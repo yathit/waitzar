@@ -4,10 +4,10 @@
  * Please refer to the end of the file for licensing information
  */
 
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINNT 0x0500 //Run on Windows 2000+
 #define _UNICODE
 #define UNICODE
-//#define _WIN32_WINNT 0x0410 //Run on Windows 98+
+//#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
 
 #include <windows.h>
 #include <stdio.h>
@@ -203,6 +203,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
 			}
 
+			break;
+		}
+		case WM_NCHITTEST: //Allow dragging of the client area...
+		{
+			UINT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
+			if(uHitTest == HTCLIENT)
+				return HTCAPTION;
+			else
+				return uHitTest;
 			break;
 		}
 		case WM_CTLCOLORDLG:
