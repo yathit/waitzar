@@ -13,9 +13,67 @@
 #include <stdio.h>
 #include <tchar.h>
 
+//Prototypes
+BOOL turnOnHotkeys(HWND hwnd, BOOL on);
+
 //Unique IDs
-#define IDC_CURR_WORD_LBL 101
 #define LANG_HOTKEY 142
+#define IDC_CURR_WORD_LBL 143
+
+//Our obnoxious hotkey shortcuts
+#define HOTKEY_A 65
+#define HOTKEY_B 66
+#define HOTKEY_C 67
+#define HOTKEY_D 68
+#define HOTKEY_E 69
+#define HOTKEY_F 70
+#define HOTKEY_G 71
+#define HOTKEY_H 72
+#define HOTKEY_I 73
+#define HOTKEY_J 74
+#define HOTKEY_K 75
+#define HOTKEY_L 76
+#define HOTKEY_M 77
+#define HOTKEY_N 78
+#define HOTKEY_O 79
+#define HOTKEY_P 80
+#define HOTKEY_Q 81
+#define HOTKEY_R 82
+#define HOTKEY_S 83
+#define HOTKEY_T 84
+#define HOTKEY_U 85
+#define HOTKEY_V 86
+#define HOTKEY_W 87
+#define HOTKEY_X 88
+#define HOTKEY_Y 89
+#define HOTKEY_Z 90
+//Lowercase
+#define HOTKEY_A_LOW 97
+#define HOTKEY_B_LOW 98
+#define HOTKEY_C_LOW 99
+#define HOTKEY_D_LOW 100
+#define HOTKEY_E_LOW 101
+#define HOTKEY_F_LOW 102
+#define HOTKEY_G_LOW 103
+#define HOTKEY_H_LOW 104
+#define HOTKEY_I_LOW 105
+#define HOTKEY_J_LOW 106
+#define HOTKEY_K_LOW 107
+#define HOTKEY_L_LOW 108
+#define HOTKEY_M_LOW 109
+#define HOTKEY_N_LOW 110
+#define HOTKEY_O_LOW 111
+#define HOTKEY_P_LOW 112
+#define HOTKEY_Q_LOW 113
+#define HOTKEY_R_LOW 114
+#define HOTKEY_S_LOW 115
+#define HOTKEY_T_LOW 116
+#define HOTKEY_U_LOW 117
+#define HOTKEY_V_LOW 118
+#define HOTKEY_W_LOW 119
+#define HOTKEY_X_LOW 120
+#define HOTKEY_Y_LOW 121
+#define HOTKEY_Z_LOW 122
 
 //Brushes
 HBRUSH g_WhiteBkgrd;
@@ -29,6 +87,7 @@ KEYBDINPUT keyInput;
 
 //Global stuff
 TCHAR currStr[50];
+BOOL mmOn;
 
 /*BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
 	DWORD dwThreadId, dwProcessId;
@@ -100,50 +159,66 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_HOTKEY:
-			if( wParam == LANG_HOTKEY)
+		{
+			//Handle our main language hotkey
+			if(wParam == LANG_HOTKEY)
 			{
-				//Show/hide the window. This allows us to "debug", and will later be used for
-				// the actual language switch.
-				if (IsWindowVisible(hwnd))
+				//Switch language
+				BOOL res;
+				if (mmOn==TRUE)
+					res = turnOnHotkeys(hwnd, FALSE);
+				else
+					res = turnOnHotkeys(hwnd, TRUE);
+				if (res==FALSE)
+					MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
+
+				//Any windows left?
+				if (mmOn==FALSE)
 					ShowWindow(hwnd, SW_HIDE);
-				else {
+			}
+
+			//Handle our individual keystrokes as hotkeys (less registering that way...)
+			int keyCode = wParam;
+			if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z)
+				keyCode += 32;
+			if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW) 
+			{
+				//Is this the first keypress of a romanized word? If so, the window is not visible...
+				if (IsWindowVisible(hwnd) == FALSE)
+				{
+					//Reset it...
+					lstrcpy(currStr, _T(""));
+					SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
+
+					//Show it
 					ShowWindow(hwnd, SW_SHOW);
 					if (GetForegroundWindow() != hwnd)
 						SetForegroundWindow(hwnd);
 				}
+
+				//Now, handle the keypress as per the usual...
+				TCHAR keyStr[50];
+				lstrcpy(keyStr, currStr);
+				swprintf(currStr, _T("%s%c"), keyStr, keyCode);
+				SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
 			}
+
 			break;
+		}
 		case WM_CTLCOLORDLG:
 				return (LONG)g_BlackBkgrd;
 			break;
 		case WM_CHAR:
-			//Only handle ASCII keys
-			/*if (wParam&0xFF != wParam)
-				break;*/
 			{
-				//Capital to lowercase
-				TCHAR key = wParam;
-				TCHAR keyStr[5];
-				if (key >= 'A' && key <= 'Z')
-					key += 32;
-
-				if (key >= 'a' && key <= 'z') { //Handle letter keys
-					swprintf(currStr, _T("%s%c"), keyStr, key);
-					//StrCatW(currStr, keyStr);
-					//TCHAR str = _T(currStr);
-					SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
-				} else if (key == ' ') {        //Handle space
+				if (wParam == ' ') {        //Handle space
 					//Send key presses to the top-level program.
-	//				EnumWindows(EnumWindowsProc, NULL);
 					HWND fore = GetNextWindow(hwnd, GW_HWNDNEXT);
 					while (fore != NULL) {
 						if (IsWindowVisible(fore)) {
 							TCHAR res[100];
 							if (GetWindowText(fore, res, 100) > -1) {
 								SetForegroundWindow(fore);
-
 								fore = GetForegroundWindow();
-								//SendMessage(fore, WM_CHAR, 'K', 0);
 
 								//Try SendInput() instead of SendMessage()
 								inputItem.type=INPUT_KEYBOARD;
@@ -157,31 +232,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								{
 									MessageBox(hwnd, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 								}
-								/*inputItem.type = INPUT_KEYBOARD;
-								inputItem.ki.wVk = 'k';
-								inputItem.ki.dwFlags = 0;
-								inputItem.ki.time = 0;
-								inputItem.ki.wScan = 0;
-								inputItem.ki.dwExtraInfo = 0;
-								SendInput(1,inputItem,sizeof(INPUT));*/
-
-								//MessageBox(hwnd, res, "Sent to window:", MB_OK|MB_ICONHAND);
 								break;
 							}
 						}
 						fore = GetNextWindow(fore, GW_HWNDNEXT);
 					}
-					/*int i;
-					for (i=0; i<50; i++) {
-						if (currStr[i] == '\0')
-							break;
-
-						//Send this key to the foreground window.
-
-					}*/
 
 					//For now...
-					//PostQuitMessage(0);
 					ShowWindow(hwnd, SW_HIDE);
 				}
 			}
@@ -195,6 +252,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
+			//Cleanup
+			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE) 
+				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
+			if (mmOn==TRUE)
+			{
+				if (turnOnHotkeys(hwnd, FALSE) == FALSE)
+					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
+			}
+
 			PostQuitMessage(0);
 			break;
 		default:
@@ -202,6 +268,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
+}
+
+
+BOOL turnOnHotkeys(HWND hwnd, BOOL on) 
+{
+	int low_code;
+	int high_code;
+	BOOL retVal = TRUE;
+
+	for (low_code=HOTKEY_A_LOW; low_code<=HOTKEY_Z_LOW; low_code++)  
+	{
+		high_code = low_code - 32;
+		if (on==TRUE) 
+		{
+			//Register this as an uppercase/lowercase letter
+			if (RegisterHotKey(hwnd, high_code, MOD_SHIFT, high_code)==FALSE)
+				retVal = FALSE;
+			if (RegisterHotKey(hwnd, low_code, NULL, high_code)==FALSE)
+				retVal = FALSE;
+		} 
+		else 
+		{
+			//De-register this as an uppercase/lowercase letter
+			if (UnregisterHotKey(hwnd, high_code)==FALSE)
+				retVal = FALSE;
+			if (UnregisterHotKey(hwnd, low_code)==FALSE)
+				retVal = FALSE;
+		}
+	}
+
+	mmOn = on;
+
+	return retVal;
 }
 
 
@@ -248,8 +347,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	);
 
 	//Set our hotkey
-	if(RegisterHotKey(hwnd, LANG_HOTKEY, MOD_ALT | MOD_SHIFT, VK_SHIFT)==0 )
+	if( RegisterHotKey(hwnd, LANG_HOTKEY, MOD_ALT | MOD_SHIFT, VK_SHIFT)==0 )
 		MessageBox(NULL, _T("Hotkey Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+	mmOn = FALSE;	
 
 	//Create a label
 	LPTSTR str = TEXT("ko");
@@ -274,14 +374,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Success?
 	if(hwnd == NULL || currWordLbl == NULL)
 	{
-		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"),
-		MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
 
 	//Show it
-	ShowWindow(hwnd, nCmdShow);
-	UpdateWindow(hwnd);
+	//ShowWindow(hwnd, nCmdShow);
+	//UpdateWindow(hwnd);
+
+	//Hide it
+	//ShowWindow(hwnd, SW_HIDE);
 
 	//Main message handling loop
 	while(GetMessage(&Msg, NULL, 0, 0) > 0)
@@ -289,9 +391,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		TranslateMessage(&Msg);
 		DispatchMessage(&Msg);
 	}
-
-	//Cleanup
-	UnregisterHotKey(hwnd, LANG_HOTKEY);
 
 	//Done
 	return (int)Msg.wParam;
