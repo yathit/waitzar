@@ -54,7 +54,9 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-ICON_WZ                 ICON                    "WZ.ico"
+ICON_WZ                 ICON                    "WZ.ICO"
+ICON_WZ_ENG             ICON                    "WZ_ENG.ICO"
+ICON_WZ_MM              ICON                    "WZ_MM.ICO"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
