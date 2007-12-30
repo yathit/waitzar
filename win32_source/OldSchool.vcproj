@@ -31,10 +31,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/OldSchool.exe"
+				OutputFile="$(OutDir)/WaitZar.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/OldSchool.pdb"
+				ProgramDatabaseFile="$(OutDir)/WaitZar.pdb"
 				SubSystem="2"
 				TargetMachine="1"/>
 			<Tool
@@ -129,15 +129,16 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 			<File
-				RelativePath=".\WZ.ico">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCResourceCompilerTool"/>
-				</FileConfiguration>
+				RelativePath=".\WaitZarRes.rc">
 			</File>
 			<File
-				RelativePath=".\WZResource.rc">
+				RelativePath=".\Wz.ico">
+			</File>
+			<File
+				RelativePath=".\Wz_eng.ico">
+			</File>
+			<File
+				RelativePath=".\Wz_mm.ico">
 			</File>
 		</Filter>
 	</Files>
