@@ -93,6 +93,8 @@ HWND currWordLbl;
 //Singletons
 INPUT inputItem;
 KEYBDINPUT keyInput;
+HICON mmIcon;
+HICON engIcon;
 
 //Global stuff
 TCHAR currStr[50];
@@ -326,6 +328,22 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 
 	mmOn = on;
 
+	//Change icon in the tray
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof(NOTIFYICONDATA);
+	nid.hWnd = hwnd;
+	nid.uID = STATUS_NID;
+	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
+	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
+	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+	if (mmOn)
+		nid.hIcon = mmIcon;
+	else
+		nid.hIcon = engIcon;
+
+	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE)
+		MessageBox(NULL, _T("Can't switch icon..."), _T("Warning"), MB_ICONERROR | MB_OK);
+
 	return retVal;
 }
 
@@ -376,19 +394,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		NULL, NULL, hInstance, NULL
 	);
 
+	//Load some icons...
+	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
+	engIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_ENG), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
+
 	//Make our "notify icon" data structure
 	nid.cbSize = sizeof(NOTIFYICONDATA); //natch
 	nid.hWnd = hwnd; //Cauess OUR window to receive notifications for this icon.
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
-	nid.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_ENG), IMAGE_ICON,
-                        GetSystemMetrics(SM_CXSMICON),
-                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
+	nid.hIcon = engIcon;
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 
 	//Error checking..
-	if (nid.hIcon == NULL)
+	if (mmIcon == NULL || engIcon==NULL)
 		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
 
 	//Add our icon to the tray
