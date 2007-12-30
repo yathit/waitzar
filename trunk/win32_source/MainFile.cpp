@@ -12,6 +12,10 @@
 #include <windows.h>
 #include <stdio.h>
 #include <tchar.h>
+#include "resource.h"
+
+//Resources
+//ICON_WZ ICON WZ.ico
 
 //Prototypes
 BOOL turnOnHotkeys(HWND hwnd, BOOL on);
@@ -19,6 +23,11 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on);
 //Unique IDs
 #define LANG_HOTKEY 142
 #define IDC_CURR_WORD_LBL 143
+#define STATUS_NID 144
+//#define ICON_WZ 145
+
+//Custom message IDs
+#define UWM_SYSTRAY (WM_USER + 1)
 
 //Our obnoxious hotkey shortcuts
 #define HOTKEY_A 65
@@ -270,6 +279,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			}
 
+			//Remove systray icon
+			NOTIFYICONDATA nid;
+			nid.cbSize = sizeof(NOTIFYICONDATA);
+			nid.hWnd = hwnd;
+			nid.uID = STATUS_NID;
+			nid.uFlags = NIF_TIP; //??? Needed ???
+			Shell_NotifyIcon(NIM_DELETE, &nid);
+
 			PostQuitMessage(0);
 			break;
 		default:
@@ -318,9 +335,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	WNDCLASSEX wc;
 	HWND hwnd;
 	MSG Msg;
+	NOTIFYICONDATA nid;
 
 	//Stuffz
 	LPCWSTR g_szClassName = _T("myWindowClass");
+
+	//Give this process a low background priority
+	SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
@@ -349,11 +370,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	hwnd = CreateWindowEx(
 		0, //No style
 		g_szClassName,
-		_T("WaitZar"),
-		WS_OVERLAPPEDWINDOW,
+		_T("WaitZar"), 
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
 		NULL, NULL, hInstance, NULL
 	);
+
+	//Make our "notify icon" data structure
+	nid.cbSize = sizeof(NOTIFYICONDATA); //natch
+	nid.hWnd = hwnd; //Cauess OUR window to receive notifications for this icon.
+	nid.uID = STATUS_NID;
+	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
+	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
+	nid.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
+	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+
+	//Error checking..
+	if (nid.hIcon == NULL)
+		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
+
+	//Add our icon to the tray
+	Shell_NotifyIcon(NIM_ADD, &nid);
+	
 
 	//Set our hotkey
 	if( RegisterHotKey(hwnd, LANG_HOTKEY, MOD_ALT | MOD_SHIFT, VK_SHIFT)==0 )
