@@ -20,6 +20,7 @@
 //Prototypes
 BOOL turnOnHotkeys(HWND hwnd, BOOL on);
 void switchToLanguage(HWND hwnd, BOOL toMM);
+void loadModel(HINSTANCE hInst);
 
 //Unique IDs
 #define LANG_HOTKEY 142
@@ -134,6 +135,43 @@ BOOL mmOn;
 }*/
 
 
+void loadModel(HINSTANCE hInst) {
+	//Load our embedded resource, the WaitZar model
+	HGLOBAL     res_handle = NULL;
+	HRSRC       res;
+    char *      res_data;
+    DWORD       res_size;
+
+	//Find the resource and get its size, etc.
+	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
+	//res = FindResourceEx(NULL, _T("Model"), _T("WZ_MODEL"), LANG_ENGLISH);
+	if (!res) {
+		MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
+        return;
+	}
+    res_handle = LoadResource(NULL, res);
+	if (!res_handle) {
+		MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
+        return;
+	}
+    res_data = (char*)LockResource(res_handle);
+    res_size = SizeofResource(NULL, res);
+
+	//Temp
+	//char amt[50];
+	TCHAR myStr[60];
+	//ultoa(res_size, amt, 10);
+	swprintf(myStr, _T("Total: %li"), res_size);
+	MessageBox(NULL, myStr, _T("Loaded!"), MB_ICONINFORMATION | MB_OK);
+
+
+	//Done - This shouldn't matter, though, since the process only 
+	//       accesses it once. Fortunately, this is not an external file.
+	UnlockResource(res_handle);
+}
+
+
+
 void switchToLanguage(HWND hwnd, BOOL toMM) {
 	//Don't do anything if we are switching to the SAME language.
 	if (toMM == mmOn)
@@ -184,7 +222,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				HDC hdcStatic = (HDC)wParam;
 				SetTextColor(hdcStatic, RGB(0, 128, 0));
 				SetBkMode(hdcStatic, TRANSPARENT);
-				return (LONG)g_WhiteBkgrd;
+				return (LONG_PTR)g_WhiteBkgrd;
 
 				//Can't do this without returning a brush color anyways...
 				//SetBkColor(hdcStatic, RGB(255, 255, 255));
@@ -204,7 +242,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 			//Handle our individual keystrokes as hotkeys (less registering that way...)
-			int keyCode = wParam;
+			int keyCode = (int)wParam;
 			if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z)
 				keyCode += 32;
 			if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW) 
@@ -233,7 +271,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_NCHITTEST: //Allow dragging of the client area...
 		{
-			UINT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
+			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
 			if(uHitTest == HTCLIENT)
 				return HTCAPTION;
 			else
@@ -282,7 +320,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_CTLCOLORDLG:
-				return (LONG)g_BlackBkgrd;
+				return (LONG_PTR)g_BlackBkgrd;
 			break;
 		case WM_CHAR:
 			{
@@ -506,6 +544,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
+
+	//If we got this far, let's try to load our file.
+	loadModel(hInstance);
+
+	//For now...
+	DestroyWindow(hwnd);
+
 
 	//Show it
 	//ShowWindow(hwnd, nCmdShow);

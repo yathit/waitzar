@@ -141,6 +141,9 @@
 				RelativePath=".\Wz_mm.ico">
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\Myanmar.model">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
