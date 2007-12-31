@@ -65,11 +65,12 @@ ICON_WZ_MM              ICON                    "WZ_MM.ICO"
 
 WZ_MENU MENU 
 BEGIN
-    POPUP "Help"
+    POPUP "Main"
     BEGIN
+        MENUITEM "Help",                        IDM_HELP
         MENUITEM SEPARATOR
-        MENUITEM "English (Alt+Shift)",         ID_HELP_ENGLISH
-        MENUITEM "Myanmar (Alt+Shift)",         ID_HELP_ENGLISH40002
+        MENUITEM "English (Alt+Shift)",         IDM_ENGLISH
+        MENUITEM "Myanmar (Alt+Shift)",         IDM_MYANMAR
     END
 END
 
