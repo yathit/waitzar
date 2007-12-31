@@ -67,10 +67,11 @@ WZ_MENU MENU
 BEGIN
     POPUP "Main"
     BEGIN
-        MENUITEM "Help",                        IDM_HELP
+        MENUITEM "&Help",                       IDM_HELP
+        MENUITEM "E&xit",                       IDM_EXIT
         MENUITEM SEPARATOR
-        MENUITEM "English (Alt+Shift)",         IDM_ENGLISH
-        MENUITEM "Myanmar (Alt+Shift)",         IDM_MYANMAR
+        MENUITEM "&English (Alt+Shift)",        IDM_ENGLISH
+        MENUITEM "&Myanmar (Alt+Shift)",        IDM_MYANMAR
     END
 END
 

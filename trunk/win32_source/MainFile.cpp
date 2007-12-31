@@ -269,6 +269,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(hwnd, FALSE);
 				} else if (retVal == IDM_MYANMAR) {
 					switchToLanguage(hwnd, TRUE);
+				} else if (retVal == IDM_EXIT) {
+					DestroyWindow(hwnd);
 				}
 
 				//Fixes a bug re: MSKB article: Q135788
