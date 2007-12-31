@@ -57,6 +57,22 @@ END
 ICON_WZ                 ICON                    "WZ.ICO"
 ICON_WZ_ENG             ICON                    "WZ_ENG.ICO"
 ICON_WZ_MM              ICON                    "WZ_MM.ICO"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+WZ_MENU MENU 
+BEGIN
+    POPUP "Help"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "English (Alt+Shift)",         ID_HELP_ENGLISH
+        MENUITEM "Myanmar (Alt+Shift)",         ID_HELP_ENGLISH40002
+    END
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
