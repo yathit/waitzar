@@ -97,42 +97,10 @@ INPUT inputItem;
 KEYBDINPUT keyInput;
 HICON mmIcon;
 HICON engIcon;
-//HINST currInst;
 
 //Global stuff
 TCHAR currStr[50];
 BOOL mmOn;
-
-/*BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
-	DWORD dwThreadId, dwProcessId;
-	HINSTANCE hInstance;
-	char String[255];
-	HANDLE hProcess;
-
-	if (!hWnd)
-		return TRUE;		// Not a window
-	if (!::IsWindowVisible(hWnd))
-		return TRUE;		// Not visible
-	if (!SendMessage(hWnd, WM_GETTEXT, sizeof(String), (LPARAM)String))
-		return TRUE;		// No window title
-	hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
-	//dwThreadId = GetWindowThreadProcessId(hWnd, &dwProcessId);
-	//hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
-	PWINDOWINFO info;
-	GetWindowInfo(hwnd, info);
-
-	MessageBox(hwnd, String, "Window Info", MB_OK|MB_ICONHAND);
-	//cout << hWnd << ' ' << dwProcessId << '\t' << String << '\t';
-	// GetModuleFileNameEx uses psapi, which works for NT only!
-	//if (GetModuleFileNameEx(hProcess, hInstance, String, sizeof(String)))
-		//MessageBox(hwnd, String, "Window Info", MB_OK|MB_ICONHAND);
-		//cout << String << endl;
-	//else
-		//MessageBox(hwnd, "None", "Window Info", MB_OK|MB_ICONHAND);
-		//cout << "(None)\n";
-	CloseHandle(hProcess);
-	return TRUE;
-}*/
 
 
 void loadModel(HINSTANCE hInst) {
