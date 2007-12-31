@@ -19,6 +19,7 @@
 
 //Prototypes
 BOOL turnOnHotkeys(HWND hwnd, BOOL on);
+void switchToLanguage(HWND hwnd, BOOL toMM);
 
 //Unique IDs
 #define LANG_HOTKEY 142
@@ -95,6 +96,7 @@ INPUT inputItem;
 KEYBDINPUT keyInput;
 HICON mmIcon;
 HICON engIcon;
+//HINST currInst;
 
 //Global stuff
 TCHAR currStr[50];
@@ -130,6 +132,26 @@ BOOL mmOn;
 	CloseHandle(hProcess);
 	return TRUE;
 }*/
+
+
+void switchToLanguage(HWND hwnd, BOOL toMM) {
+	//Don't do anything if we are switching to the SAME language.
+	if (toMM == mmOn)
+		return;
+
+	//Ok, switch
+	BOOL res;
+	if (toMM==TRUE)
+		res = turnOnHotkeys(hwnd, TRUE);
+	else
+		res = turnOnHotkeys(hwnd, FALSE);
+	if (res==FALSE)
+		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
+
+	//Any windows left?
+	if (mmOn==FALSE)
+		ShowWindow(hwnd, SW_HIDE);
+}
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -175,17 +197,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if(wParam == LANG_HOTKEY)
 			{
 				//Switch language
-				BOOL res;
 				if (mmOn==TRUE)
-					res = turnOnHotkeys(hwnd, FALSE);
+					switchToLanguage(hwnd, FALSE);
 				else
-					res = turnOnHotkeys(hwnd, TRUE);
-				if (res==FALSE)
-					MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
-
-				//Any windows left?
-				if (mmOn==FALSE)
-					ShowWindow(hwnd, SW_HIDE);
+					switchToLanguage(hwnd, TRUE);
 			}
 
 			//Handle our individual keystrokes as hotkeys (less registering that way...)
@@ -223,6 +238,45 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return HTCAPTION;
 			else
 				return uHitTest;
+			break;
+		}
+		case UWM_SYSTRAY: //Custom callback for our system tray icon
+		{
+			POINT pt;
+			HMENU hmenu, hpopup;
+			HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
+
+			if (lParam==WM_RBUTTONUP || lParam==WM_LBUTTONUP) {
+				//Make a popup menu
+				GetCursorPos(&pt);
+				hmenu = LoadMenu(hInst, MAKEINTRESOURCE(WZ_MENU));
+				hpopup = GetSubMenu(hmenu, 0);
+
+				//Cause our popup to appear in front of any other window.
+				SetForegroundWindow(hwnd);
+
+				//Force a track on this menu.
+				int retVal = TrackPopupMenu(hpopup, //Which menu to track
+                                 TPM_RETURNCMD |    //This code specifies that we return the ID of the selected menu item.
+                                 TPM_RIGHTBUTTON,   //Track right mouse button
+                                 pt.x, pt.y,        //Specifies the menu's location.
+                                 0,                 //Reserved (MSDN: _Must_ be zero)
+                                 hwnd,              //Owner
+                                 NULL);            //MSDN: Ignored
+				if (retVal == IDM_HELP) {
+					MessageBox(NULL, _T("WaitZar version 1.0 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed. It works without it, but you'll be \"typing blind\"."), _T("About"), MB_ICONINFORMATION | MB_OK);
+				} else if (retVal == IDM_ENGLISH) {
+					switchToLanguage(hwnd, FALSE);
+				} else if (retVal == IDM_MYANMAR) {
+					switchToLanguage(hwnd, TRUE);
+				}
+
+				//Fixes a bug re: MSKB article: Q135788
+				PostMessage(hwnd, 0, 0, 0);
+
+				//Reclaim resources
+				DestroyMenu(hmenu);
+			}
 			break;
 		}
 		case WM_CTLCOLORDLG:
