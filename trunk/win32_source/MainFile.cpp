@@ -116,9 +116,9 @@ BOOL loadModel(HINSTANCE hInst) {
 	//      and we need the size (can't just use WORD[])
 	//NOTE2: Because the above increases memory usage, we store all "words" as integers pointing
 	//      to the dictionary vector.
-	std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > (3000);
-	std::vector< std::hash_map <std::string, int> > *nexus = new std::vector< std::hash_map <std::string, int> > (3000);
-	std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > (3000);
+	std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
+	std::vector< std::hash_map <std::string, int> > *nexus = new std::vector< std::hash_map <std::string, int> > ;
+	std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > ;
 
 	//Find the resource and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
@@ -136,11 +136,17 @@ BOOL loadModel(HINSTANCE hInst) {
 
 	//Loop through all this
 	DWORD currLineStart = 0;
-	char *currLetter = "1000";
+	char currLetter[] = "1000";
 	int count = 0;
 	int mode = 0;
-	BOOL done = FALSE;
-	while (done == FALSE) {
+	//BOOL done = FALSE;
+	while (currLineStart < res_size) {
+		/*{
+			TCHAR temp[200];	
+			wsprintf(temp, _T("So far: %i"), currLineStart);
+				MessageBox(NULL, temp, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
+		}*/
+
 		//LTrim
 		while (res_data[currLineStart] == ' ')
 			currLineStart++;
@@ -153,6 +159,11 @@ BOOL loadModel(HINSTANCE hInst) {
 		else if (res_data[currLineStart] == '#') {
 			count = 0;
 			mode++;
+
+			//Skip to the end of the line
+			while (res_data[currLineStart] != '\n')
+				currLineStart++;
+			currLineStart++;
 			continue;
 		}
 
@@ -166,7 +177,8 @@ BOOL loadModel(HINSTANCE hInst) {
 
 				//Keep reading until the terminating bracket. 
 				//  Each "word" is of the form DD(-DD)*,
-				std::vector<WORD> *newWord = new std::vector<WORD>(5);
+				std::vector<WORD> *newWord = new std::vector<WORD>;
+
 				for(;;) {
 					//Read a "pair"
 					currLetter[2] = res_data[currLineStart++];
@@ -183,15 +195,9 @@ BOOL loadModel(HINSTANCE hInst) {
 						if (nextChar == ']')
 							break;
 						else
-							newWord = new std::vector<WORD>(5);
+							newWord = new std::vector<WORD>;
 					}
 				}
-
-				//Read until the end of the line...
-				while (res_data[currLineStart] != '\n')
-					currLineStart++;
-				currLineStart++;
-
 				break;
 			}
 			case 2: //Mappings (nexi)
@@ -202,12 +208,19 @@ BOOL loadModel(HINSTANCE hInst) {
 				MessageBox(NULL, _T("Too many comments."), _T("Error"), MB_ICONERROR | MB_OK);
 				return FALSE;
 		}		
+
+		//Assume all processing is done, and read until the end of the line
+		while (res_data[currLineStart] != '\n')
+			currLineStart++;
+		currLineStart++;
 	}
 
 	//DEBUG
+	{
 					TCHAR temp[200];	
 				wsprintf(temp, _T("Total entries: %i"), dictionary->size());
 				MessageBox(NULL, temp, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
+	}
 
 	//Done - This shouldn't matter, though, since the process only 
 	//       accesses it once. Fortunately, this is not an external file.
