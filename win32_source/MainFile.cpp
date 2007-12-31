@@ -12,6 +12,8 @@
 #include <windows.h>
 #include <stdio.h>
 #include <tchar.h>
+#include <vector>
+#include <hash_map>
 #include "resource.h"
 
 //Resources
@@ -20,7 +22,7 @@
 //Prototypes
 BOOL turnOnHotkeys(HWND hwnd, BOOL on);
 void switchToLanguage(HWND hwnd, BOOL toMM);
-void loadModel(HINSTANCE hInst);
+BOOL loadModel(HINSTANCE hInst);
 
 //Unique IDs
 #define LANG_HOTKEY 142
@@ -103,39 +105,115 @@ TCHAR currStr[50];
 BOOL mmOn;
 
 
-void loadModel(HINSTANCE hInst) {
+BOOL loadModel(HINSTANCE hInst) {
 	//Load our embedded resource, the WaitZar model
 	HGLOBAL     res_handle = NULL;
 	HRSRC       res;
     char *      res_data;
     DWORD       res_size;
 
+	//NOTE: Store MM segments as Vector<WORD>, since we need to pass individual SendInput() events,
+	//      and we need the size (can't just use WORD[])
+	//NOTE2: Because the above increases memory usage, we store all "words" as integers pointing
+	//      to the dictionary vector.
+	std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > (3000);
+	std::vector< std::hash_map <std::string, int> > *nexus = new std::vector< std::hash_map <std::string, int> > (3000);
+	std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > (3000);
+
 	//Find the resource and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
-	//res = FindResourceEx(NULL, _T("Model"), _T("WZ_MODEL"), LANG_ENGLISH);
 	if (!res) {
 		MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-        return;
+        return FALSE;
 	}
     res_handle = LoadResource(NULL, res);
 	if (!res_handle) {
 		MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-        return;
+        return FALSE;
 	}
     res_data = (char*)LockResource(res_handle);
     res_size = SizeofResource(NULL, res);
 
-	//Temp
-	//char amt[50];
-	TCHAR myStr[60];
-	//ultoa(res_size, amt, 10);
-	swprintf(myStr, _T("Total: %li"), res_size);
-	MessageBox(NULL, myStr, _T("Loaded!"), MB_ICONINFORMATION | MB_OK);
+	//Loop through all this
+	DWORD currLineStart = 0;
+	char *currLetter = "1000";
+	int count = 0;
+	int mode = 0;
+	BOOL done = FALSE;
+	while (done == FALSE) {
+		//LTrim
+		while (res_data[currLineStart] == ' ')
+			currLineStart++;
+		//Is this an empty line?
+		if (res_data[currLineStart] == '\n') {
+			currLineStart++;
+			continue;
+		}
+		//Is this a comment
+		else if (res_data[currLineStart] == '#') {
+			count = 0;
+			mode++;
+			continue;
+		}
 
+		switch (mode) {
+			case 1: //Words
+			{
+				//Skip until the first number inside the bracket
+				while (res_data[currLineStart] != '[')
+					currLineStart++;
+				currLineStart++;
+
+				//Keep reading until the terminating bracket. 
+				//  Each "word" is of the form DD(-DD)*,
+				std::vector<WORD> *newWord = new std::vector<WORD>(5);
+				for(;;) {
+					//Read a "pair"
+					currLetter[2] = res_data[currLineStart++];
+					currLetter[3] = res_data[currLineStart++];
+
+					//Translate/Add this letter
+					newWord->push_back((WORD)strtol(currLetter, NULL, 16));
+
+					//Continue?
+					char nextChar = res_data[currLineStart++];
+					if (nextChar == ',' || nextChar == ']') {
+						//Add this word
+						dictionary->push_back(*newWord);
+						if (nextChar == ']')
+							break;
+						else
+							newWord = new std::vector<WORD>(5);
+					}
+				}
+
+				//Read until the end of the line...
+				while (res_data[currLineStart] != '\n')
+					currLineStart++;
+				currLineStart++;
+
+				break;
+			}
+			case 2: //Mappings (nexi)
+				break;
+			case 3: //Prefixes (mapped)
+				break;
+			default:
+				MessageBox(NULL, _T("Too many comments."), _T("Error"), MB_ICONERROR | MB_OK);
+				return FALSE;
+		}		
+	}
+
+	//DEBUG
+					TCHAR temp[200];	
+				wsprintf(temp, _T("Total entries: %i"), dictionary->size());
+				MessageBox(NULL, temp, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
 
 	//Done - This shouldn't matter, though, since the process only 
 	//       accesses it once. Fortunately, this is not an external file.
 	UnlockResource(res_handle);
+
+	return TRUE;
 }
 
 
@@ -305,7 +383,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								//Try SendInput() instead of SendMessage()
 								inputItem.type=INPUT_KEYBOARD;
 								keyInput.wVk=0;
-								keyInput.wScan=_T('\u1000');
+								keyInput.wScan=0x1000;//_T('\u1000');
 								keyInput.dwFlags=KEYEVENTF_UNICODE;
 								keyInput.time=0;
 								keyInput.dwExtraInfo=0;
@@ -514,7 +592,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//If we got this far, let's try to load our file.
-	loadModel(hInstance);
+	if (loadModel(hInstance) == FALSE) {
+		DestroyWindow(hwnd);
+	}
 
 	//For now...
 	DestroyWindow(hwnd);
