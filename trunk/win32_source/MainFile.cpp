@@ -138,12 +138,23 @@ public:
    */
   size_t operator() (const std::string& str) const
   {
-	UINT32 len = str.length();
-	UINT32 hash = len;
-	UINT32 temp = len; //Doesn't matter
+	  //This function is borrowed from the "General Purpose Hash Function Algorithms" library,
+	  //  and is available under the Common Public License
+	  //This is the ELF hash function. 
+   unsigned int hash = 0;
+   unsigned int x    = 0;
 
+   for(std::size_t i = 0; i < str.length(); i++)
+   {
+      hash = (hash << 4) + str[i];
+      if((x = hash & 0xF0000000L) != 0)
+      {
+         hash ^= (x >> 24);
+      }
+      hash &= ~x;
+   }
 
-	return hash;
+   return hash;
   }
 
   /**
