@@ -14,7 +14,11 @@
 #include <tchar.h>
 #include <vector>
 #include <hash_map>
+#include "google\sparse_hash_map"
 #include "resource.h"
+
+//Convenience namespace
+using google::sparse_hash_map;
 
 //Resources
 //ICON_WZ ICON WZ.ico
@@ -23,6 +27,7 @@
 BOOL turnOnHotkeys(HWND hwnd, BOOL on);
 void switchToLanguage(HWND hwnd, BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
+UINT32 HsiehHash ( std::string *str );
 
 //Unique IDs
 #define LANG_HOTKEY 142
@@ -104,6 +109,66 @@ HICON engIcon;
 TCHAR currStr[50];
 BOOL mmOn;
 
+//Templated hashing function, added for (presumably) better performance
+/*UINT32 HsiehHash ( std::string *str ) {
+	UINT32 len = str->length();
+	UINT32 hash = len;
+	UINT32 temp = len; //Doesn't matter
+
+
+	return hash;
+}*/
+
+/*struct HsiehHash {
+	size_t operator()(std::string &x) {
+	//size_t operator() (std::string *s1) const { 
+		return 1; 
+		//return static_cast<size_t>(ujHash); 
+	}
+};*/
+class stringhasher : public stdext::hash_compare <std::string>
+{
+public:
+  /**
+   * Required by 
+   * Inspired by the java.lang.String.hashCode() algorithm 
+   * (it's easy to understand, and somewhat processor cache-friendly)
+   * @param The string to be hashed
+   * @return The hash value of s
+   */
+  size_t operator() (const std::string& str) const
+  {
+	UINT32 len = str.length();
+	UINT32 hash = len;
+	UINT32 temp = len; //Doesn't matter
+
+
+	return hash;
+  }
+
+  /**
+   * 
+   * @param s1 The first string
+   * @param s2 The second string
+   * @return true if the first string comes before the second in lexicographical order
+   */
+  bool operator() (const std::string& s1, const std::string& s2) const
+  {
+	  return s1.compare(s2) == -1;
+    //return s1 < s2;
+  }
+};
+
+
+//Equality structure for the Google hashing function
+/*struct eqstr
+{
+  bool operator()(std::string *s1, std::string *s2) const
+  {
+    return ( (s1 != NULL) && (s2!=NULL) && s1 == s2);
+  }
+};*/
+
 
 BOOL loadModel(HINSTANCE hInst) {
 	//Load our embedded resource, the WaitZar model
@@ -137,16 +202,11 @@ BOOL loadModel(HINSTANCE hInst) {
 	//Loop through all this
 	DWORD currLineStart = 0;
 	char currLetter[] = "1000";
+	char currNumber[50];
 	int count = 0;
 	int mode = 0;
 	//BOOL done = FALSE;
 	while (currLineStart < res_size) {
-		/*{
-			TCHAR temp[200];	
-			wsprintf(temp, _T("So far: %i"), currLineStart);
-				MessageBox(NULL, temp, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
-		}*/
-
 		//LTrim
 		while (res_data[currLineStart] == ' ')
 			currLineStart++;
@@ -201,7 +261,41 @@ BOOL loadModel(HINSTANCE hInst) {
 				break;
 			}
 			case 2: //Mappings (nexi)
+			{
+				//Skip until the first letter inside the bracket
+				while (res_data[currLineStart] != '{')
+					currLineStart++;
+				currLineStart++;
+
+				sparse_hash_map< std::string, int,  stringhasher, stringhasher> *newEntry = new sparse_hash_map< std::string, int, stringhasher, stringhasher>;
+				newEntry->empty();
+				//newEntry["january"] = 31;
+
+				while (res_data[currLineStart] != '}') {
+					//Read a hashed mapping: string
+					std::string *word = new std::string;
+					while (res_data[currLineStart] != ':')
+						word += res_data[currLineStart++];
+					currLineStart++;
+					
+					//Read a hashed mapping: number
+					strcpy(currNumber, "");
+					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
+						sprintf(currLetter, "%c", res_data[currLineStart++]);
+						strcat(currNumber, currLetter);
+					}
+					int newID = strtol(currNumber, NULL, 16);
+					
+					//Add that entry to the hash
+					//currTable
+
+					//Continue
+					if (res_data[currLineStart] == ',')
+						currLineStart++;
+				}
+
 				break;
+			}
 			case 3: //Prefixes (mapped)
 				break;
 			default:
