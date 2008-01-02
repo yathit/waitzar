@@ -157,10 +157,11 @@ BOOL loadModel(HINSTANCE hInst) {
 	//NOTE2: Because the above increases memory usage, we store all "words" as integers pointing
 	//      to the dictionary vector.
 	//std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
+	//std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
+	//std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > ;
 	WORD **dictionary;
 	UINT32 **nexus;
-	//std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
-	std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > ;
+	UINT32 **prefix;
 
 	//Find the resource and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
@@ -179,12 +180,12 @@ BOOL loadModel(HINSTANCE hInst) {
 	//Loop through all this
 	DWORD currLineStart = 0;
 	char currLetter[] = "1000";
-	char currNumber[50];
+	//char currNumber[50];
 	int count = 0;
 	int mode = 0;
 	int lastCommentedNumber = 0;
 	int currDictionaryID = 0;
-	UINT32 newWord[100];
+	UINT32 newWord[1000];
 	int newWordSz;
 	while (currLineStart < res_size) {
 		//LTrim
@@ -220,6 +221,11 @@ BOOL loadModel(HINSTANCE hInst) {
 				case 2: //Nexi
 					//Initialize our nexus list
 					nexus = (UINT32 **)malloc(lastCommentedNumber * sizeof(UINT32 *));
+					currDictionaryID = 0;
+					break;
+				case 3: //Prefixes
+					//Initialize our prefixes list
+					prefix = (UINT32 **)malloc(lastCommentedNumber * sizeof(UINT32 *));
 					currDictionaryID = 0;
 					break;
 			}
@@ -315,32 +321,36 @@ BOOL loadModel(HINSTANCE hInst) {
 				currLineStart++;
 
 				//A new hashtable for this entry. Use sparse_hash_map to keep memory usage down.
-				sparse_hash_map< int, int > *currTable = new sparse_hash_map< int, int >;
+				newWordSz = 0;
+				int nextVal;
 				while (res_data[currLineStart] != '}') {
 					//Read a hashed mapping: number
-					strcpy(currNumber, "");
+					nextVal = 0;
 					while (res_data[currLineStart] != ':') {
-						sprintf(currLetter, "%c", res_data[currLineStart++]);
-						strcat(currNumber, currLetter);
+						nextVal *= 10;
+						nextVal += (res_data[currLineStart++] - '0');
 					}
-					int newKey = strtol(currNumber, NULL, 10);
 					currLineStart++;
+
+					//Store: key
+					newWord[newWordSz++] = nextVal;
 					
 					//Read a hashed mapping: number
-					strcpy(currNumber, "");
+					nextVal = 0;
 					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
-						sprintf(currLetter, "%c", res_data[currLineStart++]);
-						strcat(currNumber, currLetter);
+						nextVal *= 10;
+						nextVal += (res_data[currLineStart++] - '0');
 					}
-					int newVal = strtol(currNumber, NULL, 10);
-					
-					//Add that entry to the hash
-					(*currTable)[newKey] = newVal;
+					//Store: val
+					newWord[newWordSz++] = nextVal;
 
 					//Continue
 					if (res_data[currLineStart] == ',')
 						currLineStart++;
 				}
+
+				//Used to mark our "halfway" boundary.
+				lastCommentedNumber = newWordSz;
 
 				//Skip until the first letter inside the square bracket
 				while (res_data[currLineStart] != '[')
@@ -348,18 +358,16 @@ BOOL loadModel(HINSTANCE hInst) {
 				currLineStart++;
 
 				//Add a new vector for these
-				std::vector<int> *mappedVals = new std::vector<int>;
 				while (res_data[currLineStart] != ']') {
 					//Read a hashed mapping: number
-					strcpy(currNumber, "");
+					nextVal = 0;
 					while (res_data[currLineStart] != ',' && res_data[currLineStart] != ']') {
-						sprintf(currLetter, "%c", res_data[currLineStart++]);
-						strcat(currNumber, currLetter);
+						nextVal *= 10;
+						nextVal += (res_data[currLineStart++] - '0');
 					}
-					int newID = strtol(currNumber, NULL, 10);
 
 					//Add it
-					mappedVals->push_back(newID);
+					newWord[newWordSz++] = nextVal;
 
 					//Continue
 					if (res_data[currLineStart] == ',')
@@ -367,8 +375,16 @@ BOOL loadModel(HINSTANCE hInst) {
 				}
 
 				//Add this entry to the current vector collection
-				std::pair <sparse_hash_map <int, int>, std::vector<int> > *newPr = new std::pair <sparse_hash_map <int, int>, std::vector<int> > (*currTable, *mappedVals);
-				prefix->push_back(*newPr);
+				prefix[currDictionaryID] = (UINT32 *)malloc((newWordSz+2) * sizeof(UINT32));
+				prefix[currDictionaryID][0] = (UINT32)lastCommentedNumber/2;
+				prefix[currDictionaryID][1] = (UINT32)(newWordSz - lastCommentedNumber);
+				for (UINT32 i=0; i<lastCommentedNumber; i++) {
+					prefix[currDictionaryID][i+2] = newWord[i];
+				}
+				for (UINT32 i=0; i<prefix[currDictionaryID][1]; i++) {
+					prefix[currDictionaryID][i+lastCommentedNumber+2] = newWord[i+lastCommentedNumber];
+				}
+				currDictionaryID++;
 
 				break; 
 			}
