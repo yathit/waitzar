@@ -153,9 +153,11 @@ BOOL loadModel(HINSTANCE hInst) {
 
 	//NOTE: Store MM segments as Vector<WORD>, since we need to pass individual SendInput() events,
 	//      and we need the size (can't just use WORD[])
+	//  -update: just use short ints; they'll scale
 	//NOTE2: Because the above increases memory usage, we store all "words" as integers pointing
 	//      to the dictionary vector.
-	std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
+	//std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
+	WORD **dictionary;
 	std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
 	std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > ;
 
@@ -179,7 +181,10 @@ BOOL loadModel(HINSTANCE hInst) {
 	char currNumber[50];
 	int count = 0;
 	int mode = 0;
-	//BOOL done = FALSE;
+	int lastCommentedNumber = 0;
+	int currDictionaryID = 0;
+	WORD newWord[100];
+	int newWordSz;
 	while (currLineStart < res_size) {
 		//LTrim
 		while (res_data[currLineStart] == ' ')
@@ -195,9 +200,24 @@ BOOL loadModel(HINSTANCE hInst) {
 			mode++;
 
 			//Skip to the end of the line
-			while (res_data[currLineStart] != '\n')
-				currLineStart++;
-			currLineStart++;
+			lastCommentedNumber = 0;
+			for (;;) {
+				char curr = res_data[currLineStart++];
+				if (curr == '\n')
+					break;
+				else if (curr >= '0' && curr <= '9') {
+					lastCommentedNumber *= 10;
+					lastCommentedNumber += (curr-'0');
+				}
+			}
+			switch (mode) {
+				case 1: //Words
+					//Initialize our dictionary
+					dictionary = (WORD **)malloc(lastCommentedNumber * sizeof(WORD *));
+					currDictionaryID = 0;
+					break;
+			}
+
 			continue;
 		}
 
@@ -211,7 +231,7 @@ BOOL loadModel(HINSTANCE hInst) {
 
 				//Keep reading until the terminating bracket. 
 				//  Each "word" is of the form DD(-DD)*,
-				std::vector<WORD> *newWord = new std::vector<WORD>;
+				newWordSz = 0;
 
 				for(;;) {
 					//Read a "pair"
@@ -219,17 +239,22 @@ BOOL loadModel(HINSTANCE hInst) {
 					currLetter[3] = res_data[currLineStart++];
 
 					//Translate/Add this letter
-					newWord->push_back((WORD)strtol(currLetter, NULL, 16));
+					newWord[newWordSz++] = (WORD)strtol(currLetter, NULL, 16);
 
 					//Continue?
 					char nextChar = res_data[currLineStart++];
 					if (nextChar == ',' || nextChar == ']') {
-						//Add this word
-						dictionary->push_back(*newWord);
+						//Finangle & add this word
+						dictionary[currDictionaryID] = (WORD *)malloc((newWordSz+1) * sizeof(WORD));
+						dictionary[currDictionaryID][0] = (WORD)newWordSz;
+						for (int i=0; i<newWordSz; i++) {
+							dictionary[currDictionaryID][i+1] = newWord[i];
+						}
+
 						if (nextChar == ']')
 							break;
 						else
-							newWord = new std::vector<WORD>;
+							newWordSz = 0;
 					}
 				}
 				break;
@@ -342,7 +367,7 @@ BOOL loadModel(HINSTANCE hInst) {
 				std::pair <sparse_hash_map <int, int>, std::vector<int> > *newPr = new std::pair <sparse_hash_map <int, int>, std::vector<int> > (*currTable, *mappedVals);
 				prefix->push_back(*newPr);
 
-				break;
+				break; 
 			}
 			default:
 				MessageBox(NULL, _T("Too many comments."), _T("Error"), MB_ICONERROR | MB_OK);
