@@ -57,6 +57,7 @@ END
 ICON_WZ                 ICON                    "WZ.ICO"
 ICON_WZ_ENG             ICON                    "WZ_ENG.ICO"
 ICON_WZ_MM              ICON                    "WZ_MM.ICO"
+ICON_WZ_LOADING         ICON                    "loading.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -645,7 +645,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
-	nid.hIcon = engIcon;
+	nid.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_LOADING), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 
 	//Error checking..
@@ -694,15 +696,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//For now...
-	DestroyWindow(hwnd);
+//	DestroyWindow(hwnd);
 
 
-	//Show it
+	//Show it's ready by changing the shell icon
+	nid.cbSize = sizeof(NOTIFYICONDATA);
+	nid.hWnd = hwnd;
+	nid.uID = STATUS_NID;
+	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
+	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
+	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+	nid.hIcon = engIcon;
+	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE)
+		MessageBox(NULL, _T("Can't switch icon..."), _T("Warning"), MB_ICONERROR | MB_OK);
+
+
+
+	//DEBUG
 	//ShowWindow(hwnd, nCmdShow);
 	//UpdateWindow(hwnd);
 
 	//Hide it
 	//ShowWindow(hwnd, SW_HIDE);
+	//END DEBUG
 
 	//Main message handling loop
 	while(GetMessage(&Msg, NULL, 0, 0) > 0)
