@@ -12,13 +12,14 @@
 #include <windows.h>
 #include <stdio.h>
 #include <tchar.h>
-#include <vector>
-#include <hash_map>
-#include "google\sparse_hash_map"
+#include <string>
+//#include <vector>
+//#include <hash_map>
+//#include "google\sparse_hash_map"
 #include "resource.h"
 
 //Convenience namespace
-using google::sparse_hash_map;
+//using google::sparse_hash_map;
 
 //Resources
 //ICON_WZ ICON WZ.ico
@@ -110,7 +111,7 @@ TCHAR currStr[50];
 BOOL mmOn;
 
 //Templated hashing function, added for (presumably) better performance
-class stringhasher : public stdext::hash_compare <std::string>
+/*class stringhasher : public stdext::hash_compare <std::string>
 {
 public:
 
@@ -141,7 +142,7 @@ public:
 	{
 		return s1.compare(s2) == 0;
 	}
-};
+};*/
 
 
 BOOL loadModel(HINSTANCE hInst) {
@@ -378,7 +379,7 @@ BOOL loadModel(HINSTANCE hInst) {
 				prefix[currDictionaryID] = (UINT32 *)malloc((newWordSz+2) * sizeof(UINT32));
 				prefix[currDictionaryID][0] = (UINT32)lastCommentedNumber/2;
 				prefix[currDictionaryID][1] = (UINT32)(newWordSz - lastCommentedNumber);
-				for (UINT32 i=0; i<lastCommentedNumber; i++) {
+				for (int i=0; i<lastCommentedNumber; i++) {
 					prefix[currDictionaryID][i+2] = newWord[i];
 				}
 				for (UINT32 i=0; i<prefix[currDictionaryID][1]; i++) {
