@@ -157,7 +157,7 @@ BOOL loadModel(HINSTANCE hInst) {
 	//      to the dictionary vector.
 	std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
 	std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
-	std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > ;
+	std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > ;
 
 	//Find the resource and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
@@ -280,7 +280,70 @@ BOOL loadModel(HINSTANCE hInst) {
 				break;
 			}
 			case 3: //Prefixes (mapped)
+			{
+				//Skip until the first letter inside the bracket
+				while (res_data[currLineStart] != '{')
+					currLineStart++;
+				currLineStart++;
+
+				//A new hashtable for this entry. Use sparse_hash_map to keep memory usage down.
+				sparse_hash_map< int, int > *currTable = new sparse_hash_map< int, int >;
+				while (res_data[currLineStart] != '}') {
+					//Read a hashed mapping: number
+					strcpy(currNumber, "");
+					while (res_data[currLineStart] != ':') {
+						sprintf(currLetter, "%c", res_data[currLineStart++]);
+						strcat(currNumber, currLetter);
+					}
+					int newKey = strtol(currNumber, NULL, 10);
+					currLineStart++;
+					
+					//Read a hashed mapping: number
+					strcpy(currNumber, "");
+					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
+						sprintf(currLetter, "%c", res_data[currLineStart++]);
+						strcat(currNumber, currLetter);
+					}
+					int newVal = strtol(currNumber, NULL, 10);
+					
+					//Add that entry to the hash
+					(*currTable)[newKey] = newVal;
+
+					//Continue
+					if (res_data[currLineStart] == ',')
+						currLineStart++;
+				}
+
+				//Skip until the first letter inside the square bracket
+				while (res_data[currLineStart] != '[')
+					currLineStart++;
+				currLineStart++;
+
+				//Add a new vector for these
+				std::vector<int> *mappedVals = new std::vector<int>;
+				while (res_data[currLineStart] != ']') {
+					//Read a hashed mapping: number
+					strcpy(currNumber, "");
+					while (res_data[currLineStart] != ',' && res_data[currLineStart] != ']') {
+						sprintf(currLetter, "%c", res_data[currLineStart++]);
+						strcat(currNumber, currLetter);
+					}
+					int newID = strtol(currNumber, NULL, 10);
+
+					//Add it
+					mappedVals->push_back(newID);
+
+					//Continue
+					if (res_data[currLineStart] == ',')
+						currLineStart++;
+				}
+
+				//Add this entry to the current vector collection
+				std::pair <sparse_hash_map <int, int>, std::vector<int> > *newPr = new std::pair <sparse_hash_map <int, int>, std::vector<int> > (*currTable, *mappedVals);
+				prefix->push_back(*newPr);
+
 				break;
+			}
 			default:
 				MessageBox(NULL, _T("Too many comments."), _T("Error"), MB_ICONERROR | MB_OK);
 				return FALSE;
