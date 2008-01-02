@@ -158,7 +158,8 @@ BOOL loadModel(HINSTANCE hInst) {
 	//      to the dictionary vector.
 	//std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
 	WORD **dictionary;
-	std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
+	UINT32 **nexus;
+	//std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
 	std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > ;
 
 	//Find the resource and get its size, etc.
@@ -183,7 +184,7 @@ BOOL loadModel(HINSTANCE hInst) {
 	int mode = 0;
 	int lastCommentedNumber = 0;
 	int currDictionaryID = 0;
-	WORD newWord[100];
+	UINT32 newWord[100];
 	int newWordSz;
 	while (currLineStart < res_size) {
 		//LTrim
@@ -214,6 +215,11 @@ BOOL loadModel(HINSTANCE hInst) {
 				case 1: //Words
 					//Initialize our dictionary
 					dictionary = (WORD **)malloc(lastCommentedNumber * sizeof(WORD *));
+					currDictionaryID = 0;
+					break;
+				case 2: //Nexi
+					//Initialize our nexus list
+					nexus = (UINT32 **)malloc(lastCommentedNumber * sizeof(UINT32 *));
 					currDictionaryID = 0;
 					break;
 			}
@@ -250,6 +256,7 @@ BOOL loadModel(HINSTANCE hInst) {
 						for (int i=0; i<newWordSz; i++) {
 							dictionary[currDictionaryID][i+1] = newWord[i];
 						}
+						currDictionaryID++;
 
 						if (nextChar == ']')
 							break;
@@ -267,32 +274,23 @@ BOOL loadModel(HINSTANCE hInst) {
 				currLineStart++;
 
 				//A new hashtable for this entry. Use sparse_hash_map to keep memory usage down.
-				sparse_hash_map< std::string, int,  stringhasher, stringhasher> *currTable = new sparse_hash_map< std::string, int, stringhasher, stringhasher>;
+				newWordSz=0;
 				while (res_data[currLineStart] != '}') {
-					//Read a hashed mapping: string
-					std::string *word = new std::string;
+					//Read a hashed mapping: character
+					int nextInt = 0;
+					char nextChar = 0;
 					while (res_data[currLineStart] != ':')
-						word->push_back(res_data[currLineStart++]);
+						nextChar = res_data[currLineStart++];
 					currLineStart++;
 					
 					//Read a hashed mapping: number
-					strcpy(currNumber, "");
 					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
-						sprintf(currLetter, "%c", res_data[currLineStart++]);
-						strcat(currNumber, currLetter);
+						nextInt *= 10;
+						nextInt += (res_data[currLineStart++] - '0');
 					}
-					int newID = strtol(currNumber, NULL, 10);
 					
 					//Add that entry to the hash
-					(*currTable)[*word] = newID;
-
-				//Debug
-				/*{
-				TCHAR temp[100];
-				wsprintf(temp, _T("Adding %S as %i check: %i"), word->c_str(), newID, (*currTable)[*word]);
-				MessageBox(NULL, temp, _T("Check!"), MB_ICONINFORMATION | MB_OK);
-				}*/
-
+					newWord[newWordSz++] = ((nextInt<<8) | (0xFF&nextChar));
 
 					//Continue
 					if (res_data[currLineStart] == ',')
@@ -300,7 +298,12 @@ BOOL loadModel(HINSTANCE hInst) {
 				}
 
 				//Add this entry to the current vector collection
-				nexus->push_back(*currTable);
+				nexus[currDictionaryID] = (UINT32 *)malloc((newWordSz+1) * sizeof(UINT32));
+				nexus[currDictionaryID][0] = (UINT32)newWordSz;
+				for (int i=0; i<newWordSz; i++) {
+					nexus[currDictionaryID][i+1] = newWord[i];
+				}
+				currDictionaryID++;
 
 				break;
 			}
