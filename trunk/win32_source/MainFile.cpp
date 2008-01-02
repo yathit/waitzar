@@ -110,75 +110,38 @@ TCHAR currStr[50];
 BOOL mmOn;
 
 //Templated hashing function, added for (presumably) better performance
-/*UINT32 HsiehHash ( std::string *str ) {
-	UINT32 len = str->length();
-	UINT32 hash = len;
-	UINT32 temp = len; //Doesn't matter
-
-
-	return hash;
-}*/
-
-/*struct HsiehHash {
-	size_t operator()(std::string &x) {
-	//size_t operator() (std::string *s1) const { 
-		return 1; 
-		//return static_cast<size_t>(ujHash); 
-	}
-};*/
 class stringhasher : public stdext::hash_compare <std::string>
 {
 public:
-  /**
-   * Required by 
-   * Inspired by the java.lang.String.hashCode() algorithm 
-   * (it's easy to understand, and somewhat processor cache-friendly)
-   * @param The string to be hashed
-   * @return The hash value of s
-   */
-  size_t operator() (const std::string& str) const
-  {
-	  //This function is borrowed from the "General Purpose Hash Function Algorithms" library,
-	  //  and is available under the Common Public License
-	  //This is the ELF hash function. 
-   unsigned int hash = 0;
-   unsigned int x    = 0;
 
-   for(std::size_t i = 0; i < str.length(); i++)
-   {
-      hash = (hash << 4) + str[i];
-      if((x = hash & 0xF0000000L) != 0)
-      {
-         hash ^= (x >> 24);
-      }
-      hash &= ~x;
-   }
+	//Hashing
+	size_t operator() (const std::string& str) const
+	{
+		//This function is borrowed from the "General Purpose Hash Function Algorithms" library,
+		//  and is available under the Common Public License
+		//This is the ELF hash function. 
+		unsigned int hash = 0;
+		unsigned int x    = 0;
 
-   return hash;
-  }
+		for(std::size_t i = 0; i < str.length(); i++)
+		{
+			hash = (hash << 4) + str[i];
+			if((x = hash & 0xF0000000L) != 0)
+			{
+				hash ^= (x >> 24);
+			}
+			hash &= ~x;
+		}
 
-  /**
-   * 
-   * @param s1 The first string
-   * @param s2 The second string
-   * @return true if the first string comes before the second in lexicographical order
-   */
-  bool operator() (const std::string& s1, const std::string& s2) const
-  {
-	  return s1.compare(s2) == -1;
-    //return s1 < s2;
-  }
+		return hash;
+	}
+
+	//Comparison
+	bool operator() (const std::string& s1, const std::string& s2) const
+	{
+		return s1.compare(s2) == 0;
+	}
 };
-
-
-//Equality structure for the Google hashing function
-/*struct eqstr
-{
-  bool operator()(std::string *s1, std::string *s2) const
-  {
-    return ( (s1 != NULL) && (s2!=NULL) && s1 == s2);
-  }
-};*/
 
 
 BOOL loadModel(HINSTANCE hInst) {
@@ -193,7 +156,7 @@ BOOL loadModel(HINSTANCE hInst) {
 	//NOTE2: Because the above increases memory usage, we store all "words" as integers pointing
 	//      to the dictionary vector.
 	std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
-	std::vector< std::hash_map <std::string, int> > *nexus = new std::vector< std::hash_map <std::string, int> > ;
+	std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
 	std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <std::hash_map <int, int>, std::vector<int> > > ;
 
 	//Find the resource and get its size, etc.
@@ -278,15 +241,13 @@ BOOL loadModel(HINSTANCE hInst) {
 					currLineStart++;
 				currLineStart++;
 
-				sparse_hash_map< std::string, int,  stringhasher, stringhasher> *newEntry = new sparse_hash_map< std::string, int, stringhasher, stringhasher>;
-				newEntry->empty();
-				//newEntry["january"] = 31;
-
+				//A new hashtable for this entry. Use sparse_hash_map to keep memory usage down.
+				sparse_hash_map< std::string, int,  stringhasher, stringhasher> *currTable = new sparse_hash_map< std::string, int, stringhasher, stringhasher>;
 				while (res_data[currLineStart] != '}') {
 					//Read a hashed mapping: string
 					std::string *word = new std::string;
 					while (res_data[currLineStart] != ':')
-						word += res_data[currLineStart++];
+						word->push_back(res_data[currLineStart++]);
 					currLineStart++;
 					
 					//Read a hashed mapping: number
@@ -295,15 +256,26 @@ BOOL loadModel(HINSTANCE hInst) {
 						sprintf(currLetter, "%c", res_data[currLineStart++]);
 						strcat(currNumber, currLetter);
 					}
-					int newID = strtol(currNumber, NULL, 16);
+					int newID = strtol(currNumber, NULL, 10);
 					
 					//Add that entry to the hash
-					//currTable
+					(*currTable)[*word] = newID;
+
+				//Debug
+				/*{
+				TCHAR temp[100];
+				wsprintf(temp, _T("Adding %S as %i check: %i"), word->c_str(), newID, (*currTable)[*word]);
+				MessageBox(NULL, temp, _T("Check!"), MB_ICONINFORMATION | MB_OK);
+				}*/
+
 
 					//Continue
 					if (res_data[currLineStart] == ',')
 						currLineStart++;
 				}
+
+				//Add this entry to the current vector collection
+				nexus->push_back(*currTable);
 
 				break;
 			}
@@ -321,11 +293,18 @@ BOOL loadModel(HINSTANCE hInst) {
 	}
 
 	//DEBUG
-	{
+	/*{
 					TCHAR temp[200];	
 				wsprintf(temp, _T("Total entries: %i"), dictionary->size());
 				MessageBox(NULL, temp, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
-	}
+	}*/
+					//Debug
+				/*{
+				TCHAR temp[100];
+				std::string gStr = "g";
+				wsprintf(temp, _T("Val for g: %i"), ((*nexus)[0])[gStr]);
+				MessageBox(NULL, temp, _T("Check!"), MB_ICONINFORMATION | MB_OK);
+				}*/
 
 	//Done - This shouldn't matter, though, since the process only 
 	//       accesses it once. Fortunately, this is not an external file.
