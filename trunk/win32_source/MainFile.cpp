@@ -110,40 +110,6 @@ HICON engIcon;
 TCHAR currStr[50];
 BOOL mmOn;
 
-//Templated hashing function, added for (presumably) better performance
-/*class stringhasher : public stdext::hash_compare <std::string>
-{
-public:
-
-	//Hashing
-	size_t operator() (const std::string& str) const
-	{
-		//This function is borrowed from the "General Purpose Hash Function Algorithms" library,
-		//  and is available under the Common Public License
-		//This is the ELF hash function. 
-		unsigned int hash = 0;
-		unsigned int x    = 0;
-
-		for(std::size_t i = 0; i < str.length(); i++)
-		{
-			hash = (hash << 4) + str[i];
-			if((x = hash & 0xF0000000L) != 0)
-			{
-				hash ^= (x >> 24);
-			}
-			hash &= ~x;
-		}
-
-		return hash;
-	}
-
-	//Comparison
-	bool operator() (const std::string& s1, const std::string& s2) const
-	{
-		return s1.compare(s2) == 0;
-	}
-};*/
-
 
 BOOL loadModel(HINSTANCE hInst) {
 	//Load our embedded resource, the WaitZar model
@@ -400,22 +366,66 @@ BOOL loadModel(HINSTANCE hInst) {
 		currLineStart++;
 	}
 
-	//DEBUG
-	/*{
-					TCHAR temp[200];	
-				wsprintf(temp, _T("Total entries: %i"), dictionary->size());
-				MessageBox(NULL, temp, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
-	}*/
-					//Debug
-				/*{
-				TCHAR temp[100];
-				std::string gStr = "g";
-				wsprintf(temp, _T("Val for g: %i"), ((*nexus)[0])[gStr]);
-				MessageBox(NULL, temp, _T("Check!"), MB_ICONINFORMATION | MB_OK);
-				}*/
+
+	//Do some testing...
+	{
+		//Test the dictionary
+		/*for (int i=0; i<100; i++) {
+			int len = dictionary[i][0];
+			
+			TCHAR temp[200];
+			TCHAR msg[200];
+			lstrcpy(msg, _T(""));
+			
+			for (int j=0; j<len; j++) {
+				wsprintf(temp, _T("%s%x "), msg, dictionary[i][j+1]);
+				lstrcpy(msg, temp);
+			}
+			
+			MessageBox(NULL, msg, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
+		}*/
+
+		//Test the nexus list
+		/*for (int i=0; i<100; i++) {
+			int len = nexus[i][0];
+			
+			TCHAR msg[200];
+			for (int j=0; j<len && j<3; j++) {
+				int val = nexus[i][j+1];
+				wsprintf(msg, _T("%c --> %i"), (val&0xFF), (val>>8));
+
+				MessageBox(NULL, msg, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
+			}
+		}*/
+
+		//Test the prefix list
+		/*for (int i=0; i<100; i++) {
+			int len1 = prefix[i][0];
+			int len2 = prefix[i][1];
+			
+			TCHAR msg[200];
+			TCHAR temp[200];
+			lstrcpy(msg, _T(""));
+			for (int j=0; j<len1 && j<3; j++) {
+				int val1 = prefix[i][j*2 + 2];
+				int val2 = prefix[i][j*2 + 3];
+				wsprintf(temp, _T("%s%i-->%i "), msg, val1, val2);
+				lstrcpy(msg, temp);
+			}
+			lstrcat(msg, _T("\n"));
+			for (int j=0; j<len2 && j<3; j++) {
+				int val = prefix[i][2+len1*2+j];
+				wsprintf(temp, _T("%s%i "), msg, val);
+				lstrcpy(msg, temp);
+			}
+
+			MessageBox(NULL, msg, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
+		}*/
+	}
+
 
 	//Done - This shouldn't matter, though, since the process only 
-	//       accesses it once. Fortunately, this is not an external file.
+	//       accesses it once and, fortunately, this is not an external file.
 	UnlockResource(res_handle);
 
 	return TRUE;
