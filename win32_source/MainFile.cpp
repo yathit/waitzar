@@ -16,6 +16,7 @@
 //#include <vector>
 //#include <hash_map>
 //#include "google\sparse_hash_map"
+#include "WordBuilder.h"
 #include "resource.h"
 
 //Convenience namespace
@@ -105,6 +106,7 @@ INPUT inputItem;
 KEYBDINPUT keyInput;
 HICON mmIcon;
 HICON engIcon;
+WordBuilder *model;
 
 //Global stuff
 TCHAR currStr[50];
@@ -368,7 +370,7 @@ BOOL loadModel(HINSTANCE hInst) {
 
 
 	//Do some testing...
-	{
+	//{
 		//Test the dictionary
 		/*for (int i=0; i<100; i++) {
 			int len = dictionary[i][0];
@@ -421,8 +423,10 @@ BOOL loadModel(HINSTANCE hInst) {
 
 			MessageBox(NULL, msg, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
 		}*/
-	}
+	//}
 
+	//Save our "model"
+	model = new WordBuilder(dictionary, nexus, prefix);
 
 	//Done - This shouldn't matter, though, since the process only 
 	//       accesses it once and, fortunately, this is not an external file.
