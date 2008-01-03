@@ -30,6 +30,7 @@ private:
 	int jumpToNexus(int fromNexus, char jumpChar);
 	int jumpToPrefix(int fromPrefix, int jumpID);
 	bool vectorContains(std::vector<UINT32> vec, UINT32 val);
+	void addPrefix(UINT32 latestPrefix);
 public:
 	WordBuilder (WORD **dictionary, UINT32 **nexus, UINT32 **prefix);
 	~WordBuilder(void);
