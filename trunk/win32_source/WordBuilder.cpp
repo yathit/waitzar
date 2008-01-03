@@ -141,6 +141,17 @@ bool WordBuilder::vectorContains(std::vector<UINT32> vec, UINT32 val)
 }
 
 
+void WordBuilder::addPrefix(UINT32 latestPrefix)
+{
+	//Latest prefixes go in the back
+	if (trigramCount == 3) {
+		trigram[0] = trigram[1];
+		trigram[1] = trigram[2];
+		trigram[2] = latestPrefix;
+	} else
+		trigram[trigramCount++] = latestPrefix;
+}
+
 
 std::vector<char> WordBuilder::getPossibleChars(void)
 {
