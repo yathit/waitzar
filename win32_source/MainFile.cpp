@@ -504,6 +504,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(hwnd, FALSE);
 				else
 					switchToLanguage(hwnd, TRUE);
+				
+				//Reset the model
+				model->reset(true);
 			}
 
 			//Handle our individual keystrokes as hotkeys (less registering that way...)
@@ -512,6 +515,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				keyCode += 32;
 			if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW) 
 			{
+				//Run this keypress into the model. Accomplish anything?
+				if (!model->typeLetter(keyCode))
+					break;
+
+				//Get list of chars from here
+				/*std::vector<UINT32> words =  model->getPossibleWords();
+				TCHAR msg[1000];
+				TCHAR temp[1000];
+				wsprintf(msg, _T("Num words: %i\n"), words.size());
+				for (size_t i=0; i<words.size(); i++) {
+					std::vector<WORD> thisWord = model->getWordKeyStrokes(words[i]);
+					for (size_t x=0; x<thisWord.size(); x++) {
+						wsprintf(temp, _T("%s%04x "), msg, thisWord[x]);
+						lstrcpy(msg, temp);
+					}
+					wsprintf(temp, _T("%s\n"), msg);
+					//wsprintf(temp, _T("%s%i (%i)\n"), msg, words[i], thisWord.size());
+					lstrcpy(msg, temp);
+				}
+				MessageBox(NULL, msg, _T("Words"), MB_OK|MB_ICONINFORMATION);*/
+
 				//Is this the first keypress of a romanized word? If so, the window is not visible...
 				if (IsWindowVisible(hwnd) == FALSE)
 				{

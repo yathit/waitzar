@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h>
+#include <tchar.h>
 #include <vector>
 
 class WordBuilder
@@ -23,9 +24,10 @@ private:
 	//Internal stuff
 	std::vector<char> possibleChars;
 	std::vector<UINT32> possibleWords;
+	std::vector<WORD> keystrokeVector;
+	TCHAR currStr[200];
 
 	//Internal functions
-	void reset(bool fullReset);
 	void resolveWords(void);
 	int jumpToNexus(int fromNexus, char jumpChar);
 	int jumpToPrefix(int fromPrefix, int jumpID);
@@ -36,8 +38,13 @@ public:
 	~WordBuilder(void);
 
 	bool typeLetter(char letter);
+	void reset(bool fullReset);
 	
 	//Information on the model's state
 	std::vector<char> getPossibleChars(void);
 	std::vector<UINT32> getPossibleWords(void);
+
+	//Translation
+	std::vector<WORD> getWordKeyStrokes(UINT32 id);
+	TCHAR* getWordString(UINT32 id);
 };
