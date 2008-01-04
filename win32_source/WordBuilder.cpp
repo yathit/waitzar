@@ -178,12 +178,13 @@ std::vector<WORD> WordBuilder::getWordKeyStrokes(UINT32 id)
 TCHAR* WordBuilder::getWordString(UINT32 id)
 {
 	lstrcpy(currStr, _T(""));
+	TCHAR temp[50];
 
 	WORD size = this->dictionary[id][0];
 	for (int i=0; i<size; i++)  {
-		//Not done yet...
+		wsprintf(temp, _T("%c"), this->dictionary[id][i+1]);
+		lstrcat(this->currStr, temp);
 	}
-	//	this->keystrokeVector.push_back(this->dictionary[id][i+1]);
 
 	return this->currStr;
 }

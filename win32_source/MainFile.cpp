@@ -35,7 +35,7 @@ UINT32 HsiehHash ( std::string *str );
 #define LANG_HOTKEY 142
 #define IDC_CURR_WORD_LBL 143
 #define STATUS_NID 144
-//#define ICON_WZ 145
+#define IDC_CURR_MYANMAR_LBL 145
 
 //Custom message IDs
 #define UWM_SYSTRAY (WM_USER + 1)
@@ -99,17 +99,21 @@ UINT32 HsiehHash ( std::string *str );
 HBRUSH g_WhiteBkgrd;
 HBRUSH g_BlackBkgrd;
 
+//Widgets
 HWND currWordLbl;
+HWND currMyanmarLbl;
 
 //Singletons
 INPUT inputItem;
 KEYBDINPUT keyInput;
 HICON mmIcon;
 HICON engIcon;
+HFONT zgFont;
 WordBuilder *model;
 
 //Global stuff
 TCHAR currStr[50];
+TCHAR myanmarStr[5000];
 BOOL mmOn;
 
 
@@ -463,27 +467,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg) {
 		case WM_CREATE:
 		{
-			//Change its color
-			//NOTE: not correct.
-			/*HDC hdcStatic = GetDC(currWordLbl);
-
-			if (hdcStatic == NULL)
-				MessageBox(hwnd, "Can't get HDC", "Error", MB_OK|MB_ICONERROR);
-
-			SetTextColor(hdcStatic, RGB(0, 128, 0));
-
-			ReleaseDC(currWordLbl, hdcStatic);*/
-
-//			SendDlgItemMessage(hwnd, IDC_CURR_WORD_LBL, WM_CTLCOLORSTATIC, (WPARAM)RGB(0, 255, 0), TRUE);
-//			SendMessage(hwnd, WM_CTLCOLORDLG, (WPARAM)RGB(0, 0, 0), TRUE);
-
 			break;
 		}
 		case WM_CTLCOLORSTATIC:
 		{
 			int staticID = GetDlgCtrlID((HWND)lParam);
-			if (staticID == IDC_CURR_WORD_LBL)
-			{
+			if (staticID == IDC_CURR_WORD_LBL) {
 				HDC hdcStatic = (HDC)wParam;
 				SetTextColor(hdcStatic, RGB(0, 128, 0));
 				SetBkMode(hdcStatic, TRANSPARENT);
@@ -491,6 +480,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Can't do this without returning a brush color anyways...
 				//SetBkColor(hdcStatic, RGB(255, 255, 255));
+			} else if (staticID == IDC_CURR_MYANMAR_LBL) {
+				//Set the font (why now??)
+				SendDlgItemMessage(hwnd, IDC_CURR_MYANMAR_LBL, WM_SETFONT, (WPARAM)zgFont, (LPARAM)TRUE);
+
+				//Proceed...
+				HDC hdcStatic = (HDC)wParam;
+				SetTextColor(hdcStatic, RGB(0, 128, 128));
+				SetBkMode(hdcStatic, TRANSPARENT);
+				return (LONG_PTR)g_WhiteBkgrd;
 			}
 			break;
 		}
@@ -519,8 +517,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (!model->typeLetter(keyCode))
 					break;
 
-				//Get list of chars from here
-				/*std::vector<UINT32> words =  model->getPossibleWords();
+				//List all possible words
+				std::vector<UINT32> words =  model->getPossibleWords();
+				lstrcpy(myanmarStr, _T(""));
+				for (size_t i=0; i<words.size(); i++) {
+					lstrcat(myanmarStr, model->getWordString(words[i]));
+					lstrcat(myanmarStr, _T("  "));
+				}
+				SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, myanmarStr);
+
+				
+				/*
 				TCHAR msg[1000];
 				TCHAR temp[1000];
 				wsprintf(msg, _T("Num words: %i\n"), words.size());
@@ -542,6 +549,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Reset it...
 					lstrcpy(currStr, _T(""));
 					SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
+					SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, currStr);
 
 					//Show it
 					ShowWindow(hwnd, SW_SHOW);
@@ -748,6 +756,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
 	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
 
+
 	//Set window's class parameters
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
@@ -769,13 +778,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create a handle to the window
 	hwnd = CreateWindowEx(
-		0, //No style
+		0,//WS_EX_TOPMOST | WS_EX_NOACTIVATE, //no_active helps... but we'll need more hotkeys.
 		g_szClassName,
 		_T("WaitZar"), 
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
+		WS_BORDER,
 		CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
 		NULL, NULL, hInstance, NULL
 	);
+
+	//Load our font
+	zgFont = CreateFont(
+		-MulDiv(14, GetDeviceCaps(GetDC(hwnd), LOGPIXELSY), 72), //Font height in UNITS, gah...
+		0, //Width, make best-guess
+		0, 0, //Escapement, orientation
+		FW_NORMAL, //Font weight
+		FALSE, //Not italic
+		FALSE, //Not underlined
+		FALSE, //Not strikethrough
+		ANSI_CHARSET, //???
+		OUT_DEFAULT_PRECIS, //Output precision
+		CLIP_DEFAULT_PRECIS, //Default clipping, might get us into trouble with Zawgyi
+		CLEARTYPE_QUALITY, //Necessary, maybe cleartype is needed, too.
+		DEFAULT_PITCH | FF_DONTCARE, //Font pitch and family
+		_T("Zawgyi-One")
+	);
+	if (zgFont == NULL) {
+		MessageBox(NULL, _T("Font creation failed."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+	}
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
@@ -810,14 +839,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	mmOn = FALSE;	
 
 	//Create a label
-	LPTSTR str = TEXT("ko");
+	//LPTSTR str = TEXT("");
 	currWordLbl = CreateWindowEx(
 		0, //No style
 		_T("STATIC"),
-		str,
+		_T(""), //No text
 		WS_CHILD | WS_VISIBLE ,
 		0, 0, 100, 30,
 		hwnd, (HMENU)IDC_CURR_WORD_LBL, GetModuleHandle(NULL),
+		NULL);
+
+	currMyanmarLbl = CreateWindowEx(
+		0, //No style
+		_T("STATIC"),
+		_T(""), //No text
+		WS_CHILD | WS_VISIBLE ,
+		0, 50, 200, 40,
+		hwnd, (HMENU)IDC_CURR_MYANMAR_LBL, GetModuleHandle(NULL),
 		NULL);
 
 
@@ -830,7 +868,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 //	SetBkColor(hdcStatic, RGB(255, 255, 255));
 
 	//Success?
-	if(hwnd == NULL || currWordLbl == NULL)
+	if(hwnd == NULL || currWordLbl == NULL || currMyanmarLbl == NULL)
 	{
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
