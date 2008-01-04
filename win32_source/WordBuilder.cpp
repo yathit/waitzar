@@ -45,6 +45,30 @@ bool WordBuilder::typeLetter(char letter)
 	return true;
 }
 
+
+//Returns the selected ID and a boolean
+std::pair<BOOL, UINT32> WordBuilder::typeSpace() 
+{
+	//Return val
+	std::pair<BOOL, UINT32> result(FALSE, 0);
+
+	//We're at a valid stopping point?
+	if (this->getPossibleWords().size() == 0)
+		return result;
+
+	//Get the selected word, add it to the prefix array
+	UINT32 newWord = this->getPossibleWords()[this->currSelectedID];
+	addPrefix(newWord);
+
+	//Reset the model, return this word
+	this->reset(false);
+
+	result.first = TRUE;
+	result.second = newWord;
+	return result;
+}
+
+
 /**
  * Reset the builder to its zero-state
  * @param fullReset If true, remove all prefixes in memory. (Called when Alt+Shift is detected.)
@@ -54,6 +78,9 @@ void WordBuilder::reset(bool fullReset)
 	//Partial reset
 	this->currNexus = 0;
 	this->pastNexusID = 0;
+	this->currSelectedID = 0;
+	this->possibleChars.clear();
+	this->possibleWords.clear();
 
 	//Full reset: remove all prefixes
 	if (fullReset)
