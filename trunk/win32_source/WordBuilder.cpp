@@ -162,3 +162,28 @@ std::vector<UINT32> WordBuilder::getPossibleWords(void)
 {
 	return this->possibleWords;
 }
+
+std::vector<WORD> WordBuilder::getWordKeyStrokes(UINT32 id) 
+{
+	this->keystrokeVector.clear();
+
+	WORD size = this->dictionary[id][0];
+	for (int i=0; i<size; i++) 
+		this->keystrokeVector.push_back(this->dictionary[id][i+1]);
+
+	return this->keystrokeVector;
+}
+
+//Note: returns a SINGLETON
+TCHAR* WordBuilder::getWordString(UINT32 id)
+{
+	lstrcpy(currStr, _T(""));
+
+	WORD size = this->dictionary[id][0];
+	for (int i=0; i<size; i++)  {
+		//Not done yet...
+	}
+	//	this->keystrokeVector.push_back(this->dictionary[id][i+1]);
+
+	return this->currStr;
+}
