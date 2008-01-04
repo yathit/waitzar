@@ -24,6 +24,9 @@ private:
 	UINT32 trigram[3];
 	UINT32 trigramCount;
 
+	//Tracking user selection
+	int currSelectedID;
+
 	//Internal stuff
 	std::vector<char> possibleChars;
 	std::vector<UINT32> possibleWords;
@@ -41,6 +44,7 @@ public:
 	~WordBuilder(void);
 
 	bool typeLetter(char letter);
+	std::pair<BOOL, UINT32> typeSpace();
 	void reset(bool fullReset);
 	
 	//Information on the model's state
