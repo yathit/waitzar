@@ -36,6 +36,10 @@ UINT32 HsiehHash ( std::string *str );
 #define IDC_CURR_WORD_LBL 143
 #define STATUS_NID 144
 #define IDC_CURR_MYANMAR_LBL 145
+#define IDC_BACKGROUND_LBL 146
+
+#define WINDOW_WIDTH 240
+#define WINDOW_HEIGHT 120
 
 //Custom message IDs
 #define UWM_SYSTRAY (WM_USER + 1)
@@ -100,10 +104,16 @@ UINT32 HsiehHash ( std::string *str );
 //Brushes
 HBRUSH g_WhiteBkgrd;
 HBRUSH g_BlackBkgrd;
+HBRUSH g_YellowBkgrd;
+HBRUSH g_GreenBkgrd;
+HPEN g_GreenPen;
 
 //Widgets
-HWND currWordLbl;
-HWND currMyanmarLbl;
+//HWND currWordLbl;
+//HWND currMyanmarLbl;
+//HWND backgroundSelect;
+//TCHAR currWord[;
+//TCHAR
 
 //Singletons
 INPUT inputItem;
@@ -112,11 +122,17 @@ HICON mmIcon;
 HICON engIcon;
 HFONT zgFont;
 WordBuilder *model;
+PAINTSTRUCT Ps;
+HDC gc;
+HDC underDC;
+HBITMAP bmpDC;
 
 //Global stuff
 TCHAR currStr[50];
 TCHAR myanmarStr[5000];
 BOOL mmOn;
+int C_WIDTH;
+int C_HEIGHT;
 
 
 BOOL loadModel(HINSTANCE hInst) {
@@ -462,6 +478,58 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 		ShowWindow(hwnd, SW_HIDE);
 }
 
+void calculate() {
+	//First, draw the background boxes....
+	SelectObject(underDC, g_WhiteBkgrd);
+	Rectangle(underDC, 5, 5, C_WIDTH-5, C_HEIGHT/2-5);
+	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);
+
+	//Now, draw the strings....
+	SetTextColor(underDC, RGB(0, 128, 0));
+	//SelectObject(underDC, g_GreenBkgrd);
+	SelectObject(underDC, zgFont);
+	TextOut(underDC, 10, 10, currStr, lstrlen(currStr));
+	TextOut(underDC, 10, C_HEIGHT/2+10, myanmarStr, lstrlen(myanmarStr));
+	
+
+		//DEBUG
+/*    POINT Pt[7];
+	Pt[0].x =  20;
+	Pt[0].y =  50;
+	Pt[1].x = 180;
+	Pt[1].y =  50;
+	Pt[2].x = 180;
+	Pt[2].y =  20;
+	Pt[3].x = 230;
+	Pt[3].y =  70;
+	Pt[4].x = 180;
+	Pt[4].y = 120;
+	Pt[5].x = 180;
+	Pt[5].y =  90;
+	Pt[6].x =  20;
+	Pt[6].y =  90;*/
+
+	//DEBUG
+    /*HPEN hpen, hpenOld;
+    HBRUSH hbrush, hbrushOld;*/
+
+    // Create a green pen.
+    //hpen = CreatePen(PS_SOLID, 10, RGB(0, 255, 0));
+    // Create a red brush.
+    //hbrush = CreateSolidBrush(RGB(255, 0, 0));
+	
+	
+	//SelectObject(underDC, hpen);
+    //SelectObject(underDC, hbrush);
+
+			//Drawing
+	//		Polygon(underDC, Pt, 7);
+
+
+	//Bit blit...
+	BitBlt(gc,0,0,WINDOW_WIDTH,WINDOW_HEIGHT,underDC,0,0,SRCCOPY);
+}
+
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -469,6 +537,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg) {
 		case WM_CREATE:
 		{
+			gc = GetDC(hwnd);
+			underDC = CreateCompatibleDC(gc);
+
+			RECT r;
+			GetClientRect(hwnd, &r);
+			C_WIDTH = r.right;
+			C_HEIGHT = r.bottom;
+
+			bmpDC = CreateCompatibleBitmap(gc, WINDOW_WIDTH, WINDOW_HEIGHT);
+			SelectObject(underDC, bmpDC);
+			
 			break;
 		}
 		case WM_CTLCOLORSTATIC:
@@ -491,11 +570,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				SetTextColor(hdcStatic, RGB(0, 128, 128));
 				SetBkMode(hdcStatic, TRANSPARENT);
 				return (LONG_PTR)g_WhiteBkgrd;
+			} else if (staticID == IDC_BACKGROUND_LBL) {
+				//Proceed...
+				HDC hdcStatic = (HDC)wParam;
+				//SetTextColor(hdcStatic, RGB(0, 128, 128));
+				SetBkMode(hdcStatic, TRANSPARENT);
+				return (LONG_PTR)g_YellowBkgrd;
 			}
 			break;
 		}
 		case WM_HOTKEY:
 		{
+			//DEBUG
+//			int x, y;
+//			
+//			
+			calculate();
+
+
+
+
 			//Handle our main language hotkey
 			if(wParam == LANG_HOTKEY)
 			{
@@ -577,7 +671,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					lstrcat(myanmarStr, model->getWordString(words[i]));
 					lstrcat(myanmarStr, _T("  "));
 				}
-				SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, myanmarStr);
+				//SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, myanmarStr);
+				calculate();
 
 				
 				/*
@@ -601,8 +696,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					//Reset it...
 					lstrcpy(currStr, _T(""));
-					SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
-					SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, currStr);
+					/*SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
+					SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, currStr);*/
+					calculate();
 
 					//Show it
 					ShowWindow(hwnd, SW_SHOW);
@@ -614,8 +710,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				TCHAR keyStr[50];
 				lstrcpy(keyStr, currStr);
 				swprintf(currStr, _T("%s%c"), keyStr, keyCode);
-				SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
+				//SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
+				calculate();
 			}
+
+			break;
+		}
+		case WM_PAINT: 
+		{
+			//calculate();
+			//Bit blit the old buffer...
+			//NOTE: This is slowing down, for some reason...
+			/*BitBlt(gc,
+				0,0,WINDOW_WIDTH,WINDOW_HEIGHT,
+				underDC,
+				0,0,
+				SRCCOPY);*/
 
 			break;
 		}
@@ -789,6 +899,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
 	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
+	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
+	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
+	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 
 
 	//Set window's class parameters
@@ -816,7 +929,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		g_szClassName,
 		_T("WaitZar"), 
 		WS_BORDER,
-		CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
+		CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
 		NULL, NULL, hInstance, NULL
 	);
 
@@ -874,7 +987,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create a label
 	//LPTSTR str = TEXT("");
-	currWordLbl = CreateWindowEx(
+/*	currWordLbl = CreateWindowEx(
 		0, //No style
 		_T("STATIC"),
 		_T(""), //No text
@@ -892,6 +1005,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		hwnd, (HMENU)IDC_CURR_MYANMAR_LBL, GetModuleHandle(NULL),
 		NULL);
 
+	backgroundSelect = CreateWindowEx(
+		0, //No style
+		_T("STATIC"),
+		_T(""), //No text
+		WS_CHILD | WS_VISIBLE ,
+		20, 20, 100, 100,
+		hwnd, (HMENU)IDC_BACKGROUND_LBL, GetModuleHandle(NULL),
+		NULL);*/
+
 
 	//Initialize our romanisation string
 	lstrcpy(currStr, _T(""));
@@ -902,7 +1024,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 //	SetBkColor(hdcStatic, RGB(255, 255, 255));
 
 	//Success?
-	if(hwnd == NULL || currWordLbl == NULL || currMyanmarLbl == NULL)
+	if(hwnd == NULL /*|| currWordLbl == NULL || currMyanmarLbl == NULL || backgroundSelect==NULL*/)
 	{
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
