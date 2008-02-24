@@ -100,6 +100,10 @@ UINT32 HsiehHash ( std::string *str );
 #define HOTKEY_Z_LOW 122
 //Etc
 #define HOTKEY_SPACE 32
+#define HOTKEY_LEFT 17
+#define HOTKEY_RIGHT 18
+#define HOTKEY_UP 19
+#define HOTKEY_DOWN 20
 
 //Brushes
 HBRUSH g_WhiteBkgrd;
@@ -123,6 +127,8 @@ HICON engIcon;
 HFONT zgFont;
 WordBuilder *model;
 PAINTSTRUCT Ps;
+
+//Double-buffering stuff
 HDC gc;
 HDC underDC;
 HBITMAP bmpDC;
@@ -130,9 +136,13 @@ HBITMAP bmpDC;
 //Global stuff
 TCHAR currStr[50];
 TCHAR myanmarStr[5000];
+//int currSelWord;
 BOOL mmOn;
+
+//Width/height of client area
 int C_WIDTH;
 int C_HEIGHT;
+
 
 
 BOOL loadModel(HINSTANCE hInst) {
@@ -484,12 +494,20 @@ void calculate() {
 	Rectangle(underDC, 5, 5, C_WIDTH-5, C_HEIGHT/2-5);
 	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);
 
+	//Selection boxes?
+	SelectObject(underDC, g_YellowBkgrd);
+	int id = model->getCurrSelectedID();
+	if (id != -1) {
+		Rectangle(underDC, 10+20*id, 10+20*id, 30+20*id, 30+20*id);
+	}
+
 	//Now, draw the strings....
 	SetTextColor(underDC, RGB(0, 128, 0));
-	//SelectObject(underDC, g_GreenBkgrd);
+	SetBkMode(underDC, TRANSPARENT);
 	SelectObject(underDC, zgFont);
 	TextOut(underDC, 10, 10, currStr, lstrlen(currStr));
 	TextOut(underDC, 10, C_HEIGHT/2+10, myanmarStr, lstrlen(myanmarStr));
+	SetBkMode(underDC, OPAQUE);
 	
 
 		//DEBUG
@@ -585,7 +603,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //			int x, y;
 //			
 //			
-			calculate();
+//			calculate();
 
 
 
@@ -604,6 +622,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 			//Handle control hotkeys
+			if (wParam == HOTKEY_RIGHT) {
+				if (model->moveRight(1) == TRUE)
+					calculate();
+			} else if (wParam == HOTKEY_LEFT) {
+				if (model->moveRight(-1) == TRUE)
+					calculate();
+			}
+
 			if (wParam == HOTKEY_SPACE) {
 				//Are there any words to use?
 				std::pair<BOOL, UINT32> typedVal = model->typeSpace();
@@ -851,12 +877,28 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 	}
 
 
-	//Register space
+	//Register control keys
 	if (on==TRUE) {
 		if (RegisterHotKey(hwnd, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
 			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_UP, NULL, VK_UP)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
+			retVal = FALSE;
 	} else {
 		if (UnregisterHotKey(hwnd, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_LEFT)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_RIGHT)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_UP)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_DOWN)==FALSE)
 			retVal = FALSE;
 	}
 

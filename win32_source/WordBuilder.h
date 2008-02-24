@@ -46,6 +46,8 @@ public:
 	bool typeLetter(char letter);
 	std::pair<BOOL, UINT32> typeSpace();
 	void reset(bool fullReset);
+	BOOL moveRight(int amt);
+	int getCurrSelectedID();
 	
 	//Information on the model's state
 	std::vector<char> getPossibleChars(void);
