@@ -46,6 +46,31 @@ bool WordBuilder::typeLetter(char letter)
 }
 
 
+BOOL WordBuilder::moveRight(int amt) {
+	//Any words?
+	if (possibleWords.size()==0)
+		return FALSE;
+
+	//Any change?
+	int newAmt = currSelectedID + amt;
+	if (newAmt >= possibleWords.size())
+		newAmt = possibleWords.size()-1;
+	else if (newAmt < 0)
+		newAmt = 0;
+	if (newAmt == currSelectedID)
+		return FALSE;
+
+	//Do it!
+	currSelectedID = newAmt;
+	return TRUE;
+}
+
+
+int WordBuilder::getCurrSelectedID() {
+	return currSelectedID;
+}
+
+
 //Returns the selected ID and a boolean
 std::pair<BOOL, UINT32> WordBuilder::typeSpace() 
 {
@@ -78,7 +103,7 @@ void WordBuilder::reset(bool fullReset)
 	//Partial reset
 	this->currNexus = 0;
 	this->pastNexusID = 0;
-	this->currSelectedID = 0;
+	this->currSelectedID = -1;
 	this->possibleChars.clear();
 	this->possibleWords.clear();
 
@@ -131,6 +156,7 @@ void WordBuilder::resolveWords(void)
 
 	//What words are possible given this point?
 	possibleWords.clear();
+	this->currSelectedID = -1;
 	if (lowestPrefix == -1)
 		return;
 
@@ -155,6 +181,8 @@ void WordBuilder::resolveWords(void)
 				possibleWords.push_back(val);
 		}
 	}
+
+	this->currSelectedID = 0;
 }
 
 
