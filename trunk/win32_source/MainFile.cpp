@@ -1016,6 +1016,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
 		return 0;
 	}
+	UnlockResource(res_handle);
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
