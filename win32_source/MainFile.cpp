@@ -17,6 +17,7 @@
 //#include <hash_map>
 //#include "google\sparse_hash_map"
 #include "WordBuilder.h"
+#include "PulpCoreFont.h"
 #include "resource.h"
 
 //Convenience namespace
@@ -124,8 +125,9 @@ INPUT inputItem;
 KEYBDINPUT keyInput;
 HICON mmIcon;
 HICON engIcon;
-HFONT zgFont;
+//HFONT zgFont;
 WordBuilder *model;
+PulpCoreFont *mmFont;
 PAINTSTRUCT Ps;
 
 //Double-buffering stuff
@@ -504,7 +506,7 @@ void calculate() {
 	//Now, draw the strings....
 	SetTextColor(underDC, RGB(0, 128, 0));
 	SetBkMode(underDC, TRANSPARENT);
-	SelectObject(underDC, zgFont);
+	//SelectObject(underDC, zgFont);
 	TextOut(underDC, 10, 10, currStr, lstrlen(currStr));
 	TextOut(underDC, 10, C_HEIGHT/2+10, myanmarStr, lstrlen(myanmarStr));
 	SetBkMode(underDC, OPAQUE);
@@ -581,7 +583,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//SetBkColor(hdcStatic, RGB(255, 255, 255));
 			} else if (staticID == IDC_CURR_MYANMAR_LBL) {
 				//Set the font (why now??)
-				SendDlgItemMessage(hwnd, IDC_CURR_MYANMAR_LBL, WM_SETFONT, (WPARAM)zgFont, (LPARAM)TRUE);
+				//SendDlgItemMessage(hwnd, IDC_CURR_MYANMAR_LBL, WM_SETFONT, (WPARAM)zgFont, (LPARAM)TRUE);
 
 				//Proceed...
 				HDC hdcStatic = (HDC)wParam;
@@ -806,7 +808,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_CTLCOLORDLG:
-				return (LONG_PTR)g_BlackBkgrd;
+			return NULL_BRUSH;
+				//return (LONG_PTR)g_BlackBkgrd;
 			break;
 		case WM_CHAR:
 			{
@@ -976,7 +979,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	);
 
 	//Load our font
-	zgFont = CreateFont(
+/*	zgFont = CreateFont(
 		-MulDiv(14, GetDeviceCaps(GetDC(hwnd), LOGPIXELSY), 72), //Font height in UNITS, gah...
 		0, //Width, make best-guess
 		0, 0, //Escapement, orientation
@@ -990,9 +993,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		CLEARTYPE_QUALITY, //Necessary, maybe cleartype is needed, too.
 		DEFAULT_PITCH | FF_DONTCARE, //Font pitch and family
 		_T("Zawgyi-One")
-	);
-	if (zgFont == NULL) {
+	);*/
+/*	if (zgFont == NULL) {
 		MessageBox(NULL, _T("Font creation failed."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+	}*/
+	HRSRC res = FindResource(hInstance, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT")); 
+	if (!res) {
+		MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+        return 0;
+	}
+    HGLOBAL res_handle = LoadResource(NULL, res);
+	if (!res_handle) {
+		MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+        return 0;
+	}
+	mmFont = new PulpCoreFont(res, res_handle);
+	if (mmFont->isInError() == TRUE) {
+		TCHAR errorStr[200];
+		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFont->getErrorMsg());
+
+		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+		return 0;
 	}
 
 	//Load some icons...
