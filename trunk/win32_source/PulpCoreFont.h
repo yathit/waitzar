@@ -7,7 +7,8 @@
 #include <tchar.h>
 #include <stdio.h>
 
-#define MAGIC_NUMBER 0x70756c70666e740b
+const char PULP_MAGICNUM[] = "pulpfnt\x0B";              //0x70756c70666e740b
+const char PNG_SIGNATURE[] = "\x89PNG\x0D\x0A\x1A\x0A";  //0x89504e470d0a1a0a
 
 class PulpCoreFont
 {

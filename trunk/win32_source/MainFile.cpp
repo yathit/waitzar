@@ -106,6 +106,7 @@ UINT32 HsiehHash ( std::string *str );
 #define HOTKEY_UP 19
 #define HOTKEY_DOWN 20
 
+
 //Brushes
 HBRUSH g_WhiteBkgrd;
 HBRUSH g_BlackBkgrd;
