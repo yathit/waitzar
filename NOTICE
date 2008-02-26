@@ -1,2 +1,15 @@
 The following software was used to develop, compile, or maintain this project. 
 
+The Pulp Core Project: Version 0.10.11
+ - CoreFont.java
+ - CoreImage.java
+ - PNGReader.java
+ ...and several other files were combined to form:
+ PulpCoreFont.cpp
+ PulpCoreFont.h
+These files, and the PNG format used in them, are part of the Pulp Core project. 
+License: New BSD License
+Site: http://code.google.com/p/pulpcore/
+Contact: David Brackeen
+
+
