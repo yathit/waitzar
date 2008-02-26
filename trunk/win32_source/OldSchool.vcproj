@@ -117,6 +117,9 @@
 				RelativePath=".\MainFile.cpp">
 			</File>
 			<File
+				RelativePath=".\PulpCoreFont.cpp">
+			</File>
+			<File
 				RelativePath=".\WordBuilder.cpp">
 			</File>
 		</Filter>
@@ -124,6 +127,9 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			<File
+				RelativePath=".\PulpCoreFont.h">
+			</File>
 			<File
 				RelativePath=".\resource.h">
 			</File>
@@ -153,6 +159,9 @@
 		</Filter>
 		<File
 			RelativePath=".\Myanmar.model">
+		</File>
+		<File
+			RelativePath=".\waitzar.font.png">
 		</File>
 	</Files>
 	<Globals>
