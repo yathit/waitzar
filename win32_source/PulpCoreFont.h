@@ -24,6 +24,26 @@
 const char PULP_MAGICNUM[] = "pulpfnt\x0B";              //0x70756c70666e740b
 const char PNG_SIGNATURE[] = "\x89PNG\x0D\x0A\x1A\x0A";  //0x89504e470d0a1a0a
 
+//PNG chunk IDs
+#define CHUNK_IHDR 0x49484452
+#define CHUNK_PLTE 0x504c5445
+#define CHUNK_TRNS 0x74524e53
+#define CHUNK_IDAT 0x49444154
+#define CHUNK_IEND 0x49454e44
+
+//Pulp Core chunk IDs
+#define CHUNK_FONT 0x666f4e74
+#define CHUNK_HOTS 0x686f5473
+#define CHUNK_ANIM 0x616e496d
+
+//Image stuff
+#define COLOR_TYPE_GRAYSCALE 0
+#define COLOR_TYPE_RGB 2
+#define COLOR_TYPE_PALETTE 3
+#define COLOR_TYPE_GRAYSCALE_WITH_ALPHA 4
+#define COLOR_TYPE_RGB_WITH_ALPHA 6
+
+
 class PulpCoreFont
 {
 public:
@@ -33,6 +53,46 @@ public:
 	TCHAR* getErrorMsg();
 
 private:
+	//Data regarding the image
+	int bitDepth;
+	int colorType;
+	int width;
+	int height;
+	bool isOpaque;
+	int* imgData;
+	int hotspotX;
+	int hotspotY;
+	int* palette;
+	int pal_length;
+
+	//Font-specific properties
+	int firstChar;
+	int lastChar;
+	int tracking;
+	int* charPositions;
+	int num_char_pos;
+	int* bearingLeft;
+	int* bearingRight;
+	bool uppercaseOnly;
+
+	//High-level stuff
 	BOOL error;
-	TCHAR errorMsg[50];
+	TCHAR errorMsg[100];
+
+	//Private methods
+	void readHeader();
+	void readPalette(int length);
+	void readTransparency(int length);
+	void fontSet();
+	void readAnimation();
+	void readData();
+	int premultiply(int arbg);
+    int readInt();
+    int readShort();
+	int readByte();
+
+	//Useful globals
+	DWORD currPos;
+	char* res_data;
+	DWORD res_size;
 };
