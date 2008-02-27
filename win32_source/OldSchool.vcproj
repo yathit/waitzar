@@ -122,6 +122,28 @@
 			<File
 				RelativePath=".\WordBuilder.cpp">
 			</File>
+			<Filter
+				Name="jazzlib_0.0.7"
+				Filter="">
+				<File
+					RelativePath=".\Adler32.cpp">
+				</File>
+				<File
+					RelativePath=".\Inflater.cpp">
+				</File>
+				<File
+					RelativePath=".\InflaterDynHeader.cpp">
+				</File>
+				<File
+					RelativePath=".\InflaterHuffmanTree.cpp">
+				</File>
+				<File
+					RelativePath=".\OutputWindow.cpp">
+				</File>
+				<File
+					RelativePath=".\StreamManipulator.cpp">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -136,6 +158,28 @@
 			<File
 				RelativePath=".\WordBuilder.h">
 			</File>
+			<Filter
+				Name="jazzlib_0.0.7"
+				Filter="">
+				<File
+					RelativePath=".\Adler32.h">
+				</File>
+				<File
+					RelativePath=".\Inflater.h">
+				</File>
+				<File
+					RelativePath=".\InflaterDynHeader.h">
+				</File>
+				<File
+					RelativePath=".\InflaterHuffmanTree.h">
+				</File>
+				<File
+					RelativePath=".\OutputWindow.h">
+				</File>
+				<File
+					RelativePath=".\StreamManipulator.h">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
