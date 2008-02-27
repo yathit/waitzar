@@ -13,6 +13,7 @@
 */
 
 #include ".\pulpcorefont.h"
+#include "OutputWindow.h"
 
 PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
 {
@@ -184,10 +185,145 @@ void PulpCoreFont::readAnimation()
 
 void PulpCoreFont::readData() 
 {
-	lstrcpy(errorMsg, _T("Read Data not implemented! (Yikes...)"));
-	error = TRUE;
+
+	//new OutputWindow();
+	
+
+/*
+
+
+        
+        Inflater inflater = new Inflater();
+        inflater.setInput(in.getData(), in.position(), length);
+        
+        int bitsPerPixel = bitDepth * SAMPLES_PER_PIXEL[colorType];
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[] dataARGB = image.getData();
+        int bytesPerPixel = (bitsPerPixel + 7) / 8;
+        int bytesPerScanline = (width * bitsPerPixel + 7) / 8;
+        byte[] prevScanline = new byte[bytesPerScanline];
+        byte[] currScanline = new byte[bytesPerScanline];
+        byte[] filterBuffer = new byte[1];
+        int index = 0;
+        
+        for (int i = 0; i < height; i++) {
+            inflateFully(inflater, filterBuffer);
+            inflateFully(inflater, currScanline);
+            int filter = filterBuffer[0];
+            
+            // Apply filter
+            if (filter > 0 && filter < 5) {
+                decodeFilter(currScanline, prevScanline, filter, bytesPerPixel);
+            }
+            else if (filter != 0) {
+                if (Build.DEBUG) {
+                    throw new IOException("Illegal filter type: " + filter);
+                }
+                else {
+                    throw new IOException(PNG_ERROR_MESSAGE);
+                }
+            }
+            
+            // Convert bytes into ARGB pixels
+            int srcIndex = 0;
+            switch (colorType) {
+                default: case COLOR_TYPE_GRAYSCALE:
+                    for (int j = 0; j < width; j++) {
+                        int v = currScanline[j] & 0xff;
+                        dataARGB[index++] = (0xff << 24) | (v << 16) | (v << 8) | v;
+                    }
+                    break;
+                    
+                case COLOR_TYPE_RGB:
+                    for (int j = 0; j < width; j++) {
+                        int r = currScanline[srcIndex++] & 0xff;
+                        int g = currScanline[srcIndex++] & 0xff;
+                        int b = currScanline[srcIndex++] & 0xff;
+                        dataARGB[index++] = (0xff << 24) | (r << 16) | (g << 8) | b;
+                    }
+                    break;
+                    
+                case COLOR_TYPE_PALETTE:
+                    if (bitDepth == 8) {
+                        for (int j = 0; j < width; j++) {
+                            dataARGB[index++] = palette[currScanline[j] & 0xff];
+                        }
+                    }
+                    else {
+                        // Assume bitDepth == 4
+                        boolean isOdd = (width & 1) == 1;
+                        int s = width & ~1;
+                        for (int j = 0; j < s; j+=2) {
+                            int b = currScanline[srcIndex++] & 0xff;
+                            dataARGB[index++] = palette[b >> 4];
+                            dataARGB[index++] = palette[b & 0x0f];
+                        }
+                        if (isOdd) {
+                            int b = currScanline[srcIndex++] & 0xff;
+                            dataARGB[index++] = palette[b >> 4];
+                        }
+                    }
+                    break;
+                    
+                case COLOR_TYPE_GRAYSCALE_WITH_ALPHA:
+                    for (int j = 0; j < width; j++) {
+                        int v = currScanline[srcIndex++] & 0xff;
+                        int a = currScanline[srcIndex++] & 0xff;
+                        dataARGB[index++] = (a << 24) | (v << 16) | (v << 8) | v;
+                    }
+                    break;
+                    
+                case COLOR_TYPE_RGB_WITH_ALPHA:
+                    for (int j = 0; j < width; j++) {
+                        int r = currScanline[srcIndex++] & 0xff;
+                        int g = currScanline[srcIndex++] & 0xff;
+                        int b = currScanline[srcIndex++] & 0xff;
+                        int a = currScanline[srcIndex++] & 0xff;
+                        dataARGB[index++] = (a << 24) | (r << 16) | (g << 8) | b;
+                    }
+                    break;                
+            }
+            
+            // Swap curr and prev scanlines
+            byte[] temp = currScanline;
+            currScanline = prevScanline;
+            prevScanline = temp;
+        }
+        
+        if (CoreGraphics.PREMULTIPLIED_ALPHA && 
+            (colorType == COLOR_TYPE_GRAYSCALE_WITH_ALPHA || 
+            colorType == COLOR_TYPE_RGB_WITH_ALPHA))
+        {
+            Colors.premultiply(dataARGB);
+        }
+        
+        inflater.end();
+        in.setPosition(in.position() + length);
+
+
+*/
+
+
 }
 
+
+  /*  private void inflateFully(Inflater inflater, byte[] result) throws IOException {
+        int bytesRead = 0;
+        
+        while (bytesRead < result.length) {
+            fi (inflater.needsInput()) {
+                throw new IOException(ZLIB_ERROR_MESSAGE);
+            }
+            
+            try {
+                bytesRead += inflater.inflate(result, bytesRead, result.length - bytesRead);
+            }
+            catch (DataFormatException ex) {
+                throw new IOException(ZLIB_ERROR_MESSAGE);
+            }
+        }
+    }*/
 
 void PulpCoreFont::fontSet() 
 {

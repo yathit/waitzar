@@ -13,3 +13,25 @@ Site: http://code.google.com/p/pulpcore/
 Contact: David Brackeen
 
 
+The Jazzlib Project: Version 0.0.7
+  - OutputWindow.java
+  - StreamManipulator.java
+  - Inflater.java
+  - InflaterDynHeader.java
+  - InflaterHuffmanTree.java
+  - Adler32.java
+  ...and several other files were combined to form:
+  OutputWindow.(cpp|h)
+  StreamManipulator.(cpp|h)
+  Inflater.(cpp|h)
+  InflaterDynHeader.(cpp|h)
+  InflaterHuffmanTree.(cpp|h)
+  Adler32.(cpp|h)
+ These files are part of the Jazzlib project, which is part of the GNU Classpath.
+ License: GNU Classpath
+ Site: http://jazzlib.sourceforge.net/
+ Contact: John Leuner
+
+
+
+
