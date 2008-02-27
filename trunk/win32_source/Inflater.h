@@ -48,6 +48,10 @@
 #define DECODE_CHKSUM 11
 #define FINISHED 12
 
+#define DEFLATE_STORED_BLOCK 0
+#define DEFLATE_STATIC_TREES 1
+#define DEFLATE_DYN_TREES 2
+
 //Copy lengths for literal codes 257..285
 const int CPLENS[] =  { 
     3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
@@ -85,8 +89,31 @@ public:
 	Inflater(bool noWrap);
 	~Inflater();
 
+	void end();
+	bool finished();
+	int getAdler();
+	int getRemaining();
+	int getTotalIn();
+	int getTotalOut();
+	int inflate (char* buf, int buf_length);
+	int inflate (char* buf, int off, int len);
+	bool needsDictionary();
+	bool needsInput();
+	void reset();
+	void setDictionary(char* buffer, int buf_length);
+	void setDictionary (char* buffer, int off, int len);
+	void setInput(char* buf, int buf_length);
+	void setInput(char* buf, int off, int len);
+	bool decodeHeader();
+	bool decodeDict();
+	bool decodeHuffman();
+	bool decodeChksum();
+	bool decode();
+
 private:
 	void init(bool noWrap);
+	InflaterHuffmanTree* createLitlenTree();
+	InflaterHuffmanTree* createDistTree();
 
 	int mode;
 	int readAdler;
