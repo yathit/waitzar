@@ -212,7 +212,7 @@ bool Inflater::decodeHeader()
     input->dropBits(16);
     
     //The header is written in "wrong" byte order
-    header = ((header << 8) | (header >> 8)) & 0xffff;
+    header = ((header << 8) | doubleRightShift(header, 8)) & 0xffff;
     /*if (header % 31 != 0)
 		throw new DataFormatException("Header checksum illegal");*/
     /*if ((header & 0x0f00) != (Deflater.DEFLATED << 8))
@@ -374,7 +374,7 @@ bool Inflater::decode()
 
 			if ((type & 1) != 0)
 				isLastBlock = true;
-			switch (type >> 1)
+			switch (doubleRightShift(type, 1))
 			{
 				case DEFLATE_STORED_BLOCK:
 					input->skipToByteBoundary();

@@ -13,7 +13,6 @@
 */
 
 #include ".\pulpcorefont.h"
-#include "OutputWindow.h"
 
 PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
 {
@@ -54,7 +53,7 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
         else if (chunkType == CHUNK_TRNS)
             readTransparency(length);
         else if (chunkType == CHUNK_IDAT)
-            readData();
+            readData(length);
         else if (chunkType == CHUNK_ANIM)
             readAnimation();
         else if (chunkType == CHUNK_FONT)
@@ -183,147 +182,129 @@ void PulpCoreFont::readAnimation()
 }
 
 
-void PulpCoreFont::readData() 
-{
-
-	//new OutputWindow();
-	
-
-/*
-
-
+void PulpCoreFont::readData(int length) 
+{    
+	Inflater* inflater = new Inflater();
+    inflater->setInput(res_data, currPos, length);
         
-        Inflater inflater = new Inflater();
-        inflater.setInput(in.getData(), in.position(), length);
+    int bitsPerPixel = bitDepth * SAMPLES_PER_PIXEL[colorType];
+    //int[] dataARGB = image.getData();
+    int bytesPerPixel = (bitsPerPixel + 7) / 8;
+    int bytesPerScanline = (width * bitsPerPixel + 7) / 8;
+    char* prevScanline = new char[bytesPerScanline];
+	char* currScanline = new char[bytesPerScanline];
+    char* filterBuffer = new char[1];
+    int index = 0;
         
-        int bitsPerPixel = bitDepth * SAMPLES_PER_PIXEL[colorType];
-        int width = image.getWidth();
-        int height = image.getHeight();
-        int[] dataARGB = image.getData();
-        int bytesPerPixel = (bitsPerPixel + 7) / 8;
-        int bytesPerScanline = (width * bitsPerPixel + 7) / 8;
-        byte[] prevScanline = new byte[bytesPerScanline];
-        byte[] currScanline = new byte[bytesPerScanline];
-        byte[] filterBuffer = new byte[1];
-        int index = 0;
-        
-        for (int i = 0; i < height; i++) {
-            inflateFully(inflater, filterBuffer);
-            inflateFully(inflater, currScanline);
-            int filter = filterBuffer[0];
+    for (int i=0; i<height; i++) {
+		inflateFully(inflater, filterBuffer, 1);
+		inflateFully(inflater, currScanline, bytesPerScanline);
+        int filter = filterBuffer[0];
             
-            // Apply filter
-            if (filter > 0 && filter < 5) {
-                decodeFilter(currScanline, prevScanline, filter, bytesPerPixel);
-            }
-            else if (filter != 0) {
-                if (Build.DEBUG) {
-                    throw new IOException("Illegal filter type: " + filter);
-                }
-                else {
-                    throw new IOException(PNG_ERROR_MESSAGE);
-                }
-            }
-            
-            // Convert bytes into ARGB pixels
-            int srcIndex = 0;
-            switch (colorType) {
-                default: case COLOR_TYPE_GRAYSCALE:
-                    for (int j = 0; j < width; j++) {
-                        int v = currScanline[j] & 0xff;
-                        dataARGB[index++] = (0xff << 24) | (v << 16) | (v << 8) | v;
-                    }
-                    break;
-                    
-                case COLOR_TYPE_RGB:
-                    for (int j = 0; j < width; j++) {
-                        int r = currScanline[srcIndex++] & 0xff;
-                        int g = currScanline[srcIndex++] & 0xff;
-                        int b = currScanline[srcIndex++] & 0xff;
-                        dataARGB[index++] = (0xff << 24) | (r << 16) | (g << 8) | b;
-                    }
-                    break;
-                    
-                case COLOR_TYPE_PALETTE:
-                    if (bitDepth == 8) {
-                        for (int j = 0; j < width; j++) {
-                            dataARGB[index++] = palette[currScanline[j] & 0xff];
-                        }
-                    }
-                    else {
-                        // Assume bitDepth == 4
-                        boolean isOdd = (width & 1) == 1;
-                        int s = width & ~1;
-                        for (int j = 0; j < s; j+=2) {
-                            int b = currScanline[srcIndex++] & 0xff;
-                            dataARGB[index++] = palette[b >> 4];
-                            dataARGB[index++] = palette[b & 0x0f];
-                        }
-                        if (isOdd) {
-                            int b = currScanline[srcIndex++] & 0xff;
-                            dataARGB[index++] = palette[b >> 4];
-                        }
-                    }
-                    break;
-                    
-                case COLOR_TYPE_GRAYSCALE_WITH_ALPHA:
-                    for (int j = 0; j < width; j++) {
-                        int v = currScanline[srcIndex++] & 0xff;
-                        int a = currScanline[srcIndex++] & 0xff;
-                        dataARGB[index++] = (a << 24) | (v << 16) | (v << 8) | v;
-                    }
-                    break;
-                    
-                case COLOR_TYPE_RGB_WITH_ALPHA:
-                    for (int j = 0; j < width; j++) {
-                        int r = currScanline[srcIndex++] & 0xff;
-                        int g = currScanline[srcIndex++] & 0xff;
-                        int b = currScanline[srcIndex++] & 0xff;
-                        int a = currScanline[srcIndex++] & 0xff;
-                        dataARGB[index++] = (a << 24) | (r << 16) | (g << 8) | b;
-                    }
-                    break;                
-            }
-            
-            // Swap curr and prev scanlines
-            byte[] temp = currScanline;
-            currScanline = prevScanline;
-            prevScanline = temp;
+        // Apply filter
+        if (filter > 0 && filter < 5)
+			decodeFilter(currScanline, bytesPerScanline, prevScanline, filter, bytesPerPixel);
+        else if (filter!=0 && error==FALSE) {
+			error = TRUE;
+			swprintf(errorMsg, _T("Illegal filter type: %i"), filter);
         }
-        
-        if (CoreGraphics.PREMULTIPLIED_ALPHA && 
-            (colorType == COLOR_TYPE_GRAYSCALE_WITH_ALPHA || 
-            colorType == COLOR_TYPE_RGB_WITH_ALPHA))
-        {
-            Colors.premultiply(dataARGB);
+            
+        //Convert bytes into ARGB pixels
+        int srcIndex = 0;
+        switch (colorType) {
+			default: case COLOR_TYPE_GRAYSCALE:
+				for (int j = 0; j < width; j++) {
+					int v = currScanline[j] & 0xff;
+                    imgData[index++] = (0xff << 24) | (v << 16) | (v << 8) | v;
+                }
+                break;
+			case COLOR_TYPE_RGB:
+				for (int j = 0; j < width; j++) {
+                    int r = currScanline[srcIndex++] & 0xff;
+                    int g = currScanline[srcIndex++] & 0xff;
+                    int b = currScanline[srcIndex++] & 0xff;
+                    imgData[index++] = (0xff << 24) | (r << 16) | (g << 8) | b;
+                }
+                break;    
+            case COLOR_TYPE_PALETTE:
+                if (bitDepth == 8) {
+                    for (int j = 0; j < width; j++)
+                        imgData[index++] = palette[currScanline[j] & 0xff];
+                } else {
+                    //Assume bitDepth == 4
+                    bool isOdd = (width & 1) == 1;
+                    int s = width & ~1;
+                    for (int j = 0; j < s; j+=2) {
+                        int b = currScanline[srcIndex++] & 0xff;
+                        imgData[index++] = palette[doubleRightShift(b, 4)];
+                        imgData[index++] = palette[b & 0x0f];
+                    }
+                    if (isOdd) {
+                        int b = currScanline[srcIndex++] & 0xff;
+                        imgData[index++] = palette[doubleRightShift(b, 4)];
+                    }
+                }
+                break;    
+            case COLOR_TYPE_GRAYSCALE_WITH_ALPHA:
+                for (int j = 0; j < width; j++) {
+                    int v = currScanline[srcIndex++] & 0xff;
+                    int a = currScanline[srcIndex++] & 0xff;
+                    imgData[index++] = (a << 24) | (v << 16) | (v << 8) | v;
+                }
+                break;        
+            case COLOR_TYPE_RGB_WITH_ALPHA:
+                for (int j = 0; j < width; j++) {
+                    int r = currScanline[srcIndex++] & 0xff;
+                    int g = currScanline[srcIndex++] & 0xff;
+                    int b = currScanline[srcIndex++] & 0xff;
+                    int a = currScanline[srcIndex++] & 0xff;
+                    imgData[index++] = (a << 24) | (r << 16) | (g << 8) | b;
+                }
+                break;                
         }
+            
+        //Swap curr and prev scanlines
+        char* temp = currScanline;
+        currScanline = prevScanline;
+        prevScanline = temp;
+    }
         
-        inflater.end();
-        in.setPosition(in.position() + length);
+    if (/*CoreGraphics.PREMULTIPLIED_ALPHA &&*/ 
+        (colorType == COLOR_TYPE_GRAYSCALE_WITH_ALPHA || 
+        colorType == COLOR_TYPE_RGB_WITH_ALPHA))
+    {
+        premultiply(imgData, width*height);
+    }
+        
+    inflater->end();
+	currPos += length;
 
+	delete [] prevScanline;
+	delete [] currScanline;
+    delete [] filterBuffer;
 
-*/
-
-
+	delete inflater;
 }
 
 
-  /*  private void inflateFully(Inflater inflater, byte[] result) throws IOException {
-        int bytesRead = 0;
+void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length) 
+{
+	int bytesRead = 0;
         
-        while (bytesRead < result.length) {
-            fi (inflater.needsInput()) {
-                throw new IOException(ZLIB_ERROR_MESSAGE);
-            }
-            
-            try {
-                bytesRead += inflater.inflate(result, bytesRead, result.length - bytesRead);
-            }
-            catch (DataFormatException ex) {
-                throw new IOException(ZLIB_ERROR_MESSAGE);
-            }
+    while (bytesRead < res_length) {
+		if (inflater->needsInput() && error==FALSE) {
+			lstrcpy(errorMsg, _T("Inflater ran out of input..."));
+			error = TRUE;
+			return;
         }
-    }*/
+            
+        //try {
+        bytesRead += inflater->inflate(result, bytesRead, res_length - bytesRead);
+        //} catch (DataFormatException ex) {
+		//	throw new IOException(ZLIB_ERROR_MESSAGE);
+        //}
+    }
+}
 
 void PulpCoreFont::fontSet() 
 {
@@ -367,11 +348,82 @@ void PulpCoreFont::fontSet()
 }
 
 
+void PulpCoreFont::decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp) 
+{
+    int length = curr_len;
+        
+    if (filter == 1) {
+        // Input = Sub
+        // Raw(x) = Sub(x) + Raw(x-bpp)
+        // For all x < 0, assume Raw(x) = 0.
+        for (int i = bpp; i < length; i++) {
+            curr[i] = (byte)(curr[i] + curr[i - bpp]);
+        }
+    } else if (filter == 2) {
+        // Input = Up
+        // Raw(x) = Up(x) + Prior(x)
+        for (int i = 0; i < length; i++) {
+            curr[i] = (byte)(curr[i] + prev[i]);
+        }
+    } else if (filter == 3) {
+        // Input = Average
+        // Raw(x) = Average(x) + floor((Raw(x-bpp)+Prior(x))/2)
+        for (int i = 0; i < bpp; i++) {
+            curr[i] = (byte)(curr[i] + doubleRightShift((prev[i] & 0xff), 1));
+        }
+        for (int i = bpp; i < length; i++) {
+            curr[i] = (byte)(curr[i] + doubleRightShift(((curr[i - bpp] & 0xff) + (prev[i] & 0xff)), 1));
+        }
+    } else if (filter == 4) {
+        // Input = Paeth
+        // Raw(x) = Paeth(x) + PaethPredictor(Raw(x-bpp), Prior(x), Prior(x-bpp))
+        for (int i = 0; i < bpp; i++) {
+            curr[i] = (byte)(curr[i] + prev[i]);
+        }
+        for (int i = bpp; i < length; i++) {
+            curr[i] = (byte)(curr[i] + 
+                paethPredictor(curr[i - bpp] & 0xff, prev[i] & 0xff, prev[i - bpp] & 0xff));
+        }
+    }
+}
+
+
+// a = left, b = above, c = upper left
+int PulpCoreFont::paethPredictor(int a, int b, int c) 
+{
+    // Initial estimate
+    int p = a + b - c;
+       
+    // Distances to a, b, c
+    int pa = abs(p - a);
+    int pb = abs(p - b);
+    int pc = abs(p - c);
+    
+    // Return nearest of a,b,c, breaking ties in order a,b,c.
+    if (pa <= pb && pa <= pc) {
+        return a;
+    } else if (pb <= pc) {
+        return b;
+    } else {
+        return c;
+    }
+}
+
+
+
+
+void PulpCoreFont::premultiply(int* arbg, int argb_len)
+{
+    for (int i=0; i<argb_len; i++)
+		arbg[i] = premultiply(arbg[i]);
+}
+
+
 int PulpCoreFont::premultiply(int arbg) 
 {
-	int a = (arbg >> 24) & 0xFF;
-	int r = (arbg >> 16) & 0xFF;
-	int g = (arbg >> 8) & 0xFF;
+	int a = doubleRightShift(arbg, 24) & 0xFF;
+	int r = doubleRightShift(arbg, 16) & 0xFF;
+	int g = doubleRightShift(arbg, 8) & 0xFF;
     int b = arbg & 0xFF;
     
 	r = (a * r + 127) / 255;
