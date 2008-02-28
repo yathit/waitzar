@@ -53,8 +53,8 @@ BOOL WordBuilder::moveRight(int amt) {
 
 	//Any change?
 	int newAmt = currSelectedID + amt;
-	if (newAmt >= possibleWords.size())
-		newAmt = possibleWords.size()-1;
+	if (newAmt >= (int)possibleWords.size())
+		newAmt = (int)possibleWords.size()-1;
 	else if (newAmt < 0)
 		newAmt = 0;
 	if (newAmt == currSelectedID)

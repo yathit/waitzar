@@ -21,6 +21,8 @@
 #include <tchar.h>
 #include <stdio.h>
 
+#include "Inflater.h"
+
 const char PULP_MAGICNUM[] = "pulpfnt\x0B";              //0x70756c70666e740b
 const char PNG_SIGNATURE[] = "\x89PNG\x0D\x0A\x1A\x0A";  //0x89504e470d0a1a0a
 
@@ -42,6 +44,9 @@ const char PNG_SIGNATURE[] = "\x89PNG\x0D\x0A\x1A\x0A";  //0x89504e470d0a1a0a
 #define COLOR_TYPE_PALETTE 3
 #define COLOR_TYPE_GRAYSCALE_WITH_ALPHA 4
 #define COLOR_TYPE_RGB_WITH_ALPHA 6
+
+
+const int SAMPLES_PER_PIXEL[] = { 1, 0, 3, 1, 2, 0, 4 };
 
 
 class PulpCoreFont
@@ -85,11 +90,15 @@ private:
 	void readTransparency(int length);
 	void fontSet();
 	void readAnimation();
-	void readData();
+	void readData(int length);
+	void decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp);
+	int paethPredictor(int a, int b, int c);
 	int premultiply(int arbg);
+	void premultiply(int* arbg, int argb_len);
     int readInt();
     int readShort();
 	int readByte();
+	void inflateFully(Inflater* inflater, char* result, int res_length);
 
 	//Useful globals
 	DWORD currPos;
