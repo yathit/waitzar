@@ -341,8 +341,8 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
 	lstrcpy(errorMsg, inflater->specialMessage);
 	//	unsigned char s = -1;
 	//swprintf(errorMsg, _T("test: %0x"), s);
-	error = TRUE;
-	return;
+//	error = TRUE;
+//	return;
     }
 }
 

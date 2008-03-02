@@ -56,6 +56,9 @@ Inflater::~Inflater()
 		delete distTree;
 	if (adler!=NULL)
 		delete adler;
+
+
+	lstrcpy(specialMessage, _T(""));
 }
 
 
@@ -140,12 +143,11 @@ int Inflater::inflate(char* buf, int buf_length, int off, int len)
     int count = 0;
     int more;
     do {
-
 			//DEBUG
 			swprintf(specialMessage, _T("%s%i, "), debug_builder, mode);
 			lstrcpy(debug_builder, specialMessage);
 			debug_count++;
-			if (debug_count ==3) {
+			if (debug_count > 4) {
 				//Add some stuff...
 				swprintf(specialMessage, _T("%s] and"), debug_builder);
 				lstrcpy(debug_builder, specialMessage);
@@ -157,24 +159,24 @@ int Inflater::inflate(char* buf, int buf_length, int off, int len)
 
 
 				//DEBUG
-				if (!dynHeader->decode(*input)) {
+				/*if (!dynHeader->decode(*input)) {
 					swprintf(specialMessage, _T("%s  DECODE FAILED!"), debug_builder);
 					return 0;
 				}
 				litlenTree = dynHeader->buildLitLenTree();
 				distTree = dynHeader->buildDistTree();
-				mode = DECODE_HUFFMAN;
+				mode = DECODE_HUFFMAN;*/
 
 
-				swprintf(specialMessage, _T("%s  "), dynHeader->specialMessage);
+				//swprintf(specialMessage, _T("%s  "), dynHeader->specialMessage);
 				
 				//DEBUG
-				decodeHuffman();
+				//decodeHuffman();
 
 
 				//swprintf(specialMessage, _T("%s] and now: %s"), debug_builder, test->specialString);
 
-				return 0;
+				//return 0;
 			}
 
 
@@ -311,16 +313,34 @@ bool Inflater::decodeDict()
 
 bool Inflater::decodeHuffman()
 {
-	//This is the problem now...
-
 	int free = outputWindow->getFreeSpace();
+
+
+	//DEBUG
+	//TCHAR debug_msg[300];
+	//lstrcpy(debug_msg, specialMessage);
+
+
+
+
     while (free >= 258) {
 		int symbol;
 		switch (mode)
 		{
 			case DECODE_HUFFMAN:
 				//This is the inner loop so it is optimized a bit
-				while (((symbol = litlenTree->getSymbol(*input)) & ~0xff) == 0) {
+				
+				for(;;) {
+					symbol = litlenTree->getSymbol(*input);
+					if (((symbol) & ~0xff) != 0)
+						break;
+
+
+	//DEBUG
+	//swprintf(specialMessage, _T("%s\nalso: %i"), debug_msg, litlenTree->specialString);
+	//return false;
+
+
 					outputWindow->write(symbol);
 					if (--free < 258)
 						return true;
