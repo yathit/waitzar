@@ -82,7 +82,7 @@ private:
 
 	//High-level stuff
 	BOOL error;
-	TCHAR errorMsg[500]; //Change back to 100 later...
+	TCHAR errorMsg[300]; //Change back to 100 later...
 
 	//Private methods
 	void readHeader();
@@ -104,4 +104,7 @@ private:
 	DWORD currPos;
 	char* res_data;
 	DWORD res_size;
+
+	//Delete later
+	TCHAR debug_msg[100];
 };
