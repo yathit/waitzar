@@ -1015,6 +1015,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
 		return 0;
+	} else {
+		//TEMP
+		MessageBox(NULL, _T("WaitZar font loaded just fine!"), _T("Ok"), MB_ICONINFORMATION | MB_OK);
 	}
 	UnlockResource(res_handle);
 

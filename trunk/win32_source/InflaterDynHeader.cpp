@@ -73,6 +73,11 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				input.dropBits(5);
 				num = lnum+dnum;
 				litdistLens = new char[num];
+				
+				//Java inits....
+				for (int i=0; i<num; i++)
+					litdistLens[i] = 0;
+
 				mode = BLNUM;
 				//Fall through
 			case BLNUM:
@@ -124,14 +129,14 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 						break;
 
 					//DEBUG
-					swprintf(specialMessage, _T("%s%i, "), debug_msg, symbol);
-					lstrcpy(debug_msg, specialMessage);
+					//swprintf(specialMessage, _T("%s%i, "), debug_msg, symbol);
+					//lstrcpy(debug_msg, specialMessage);
 
 					//Special
-					if (symbol==0) {
+					/*if (symbol==0) {
 						swprintf(specialMessage, _T("%s%s"), debug_msg, blTree->specialString);
 						return true;
-					}
+					}*/
 
 					//Normal case: symbol in [0..15]
 					lastLen = (char)symbol;
@@ -143,9 +148,9 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				}
 				//need more input?
 
-				//DEBUG: Here's the problem...
-				swprintf(specialMessage, _T("%s]"), debug_msg);
-				return true;
+				//DEBUG:
+				//swprintf(specialMessage, _T("%s]"), debug_msg);
+				//return true;
 
 				if (symbol < 0)
 					return false;
