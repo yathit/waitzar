@@ -52,9 +52,6 @@ public:
 	int copyBytes(char* output, int offset, int length);
 	void reset();
 	void setInput(char* buf, int off, int len);
-
-	//Delete later...
-	TCHAR specialMessage[300];
 private:
 	//Fields
 	char* window;

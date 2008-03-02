@@ -52,7 +52,7 @@ private:
 	void buildTree(char* codeLengths, int codeL_len);
 
 	//Fields
-	char* tree;
+	short* tree;
 };
 
 

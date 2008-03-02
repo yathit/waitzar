@@ -55,7 +55,7 @@ InflaterDynHeader::~InflaterDynHeader()
 bool InflaterDynHeader::decode(StreamManipulator &input)
 {
 //    decode_loop:
-    for (;;) {
+    for (;;) {		
 		switch (mode) {
 			case LNUM:
 				lnum = input.peekBits(5);
@@ -87,6 +87,10 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				//Fall through
 			case BLLENS:
 			{
+				//swprintf(specialMessage, _T("Made it to BLLENS"));
+				//return true;
+
+
 				while (ptr < blnum) {
 					int len = input.peekBits(3);
 					if (len < 0)
@@ -99,20 +103,50 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				delete [] blLens;
 				ptr = 0;
 				mode = LENS;
+
+				//swprintf(specialMessage, _T("Made it through BLLENS"));
+				//return true;
+
 				//Fall through
 			}
 			case LENS:
 			{
 				int symbol;
-				while (((symbol = blTree->getSymbol(input)) & ~15) == 0) {
+
+				//DEBUG
+				TCHAR debug_msg[300];
+				lstrcpy(debug_msg, _T("["));
+
+				for(;;) {
+					//Ah, whoops...
+					symbol = blTree->getSymbol(input);
+					if (((symbol) & ~15) != 0)
+						break;
+
+					//DEBUG
+					swprintf(specialMessage, _T("%s%i, "), debug_msg, symbol);
+					lstrcpy(debug_msg, specialMessage);
+
+					//Special
+					if (symbol==0) {
+						swprintf(specialMessage, _T("%s%s"), debug_msg, blTree->specialString);
+						return true;
+					}
+
 					//Normal case: symbol in [0..15]
-					litdistLens[ptr++] = (char)( lastLen = (byte) symbol);
+					lastLen = (char)symbol;
+					litdistLens[ptr++] = (char)lastLen;
 					if (ptr == num) {
 						//Finished
 						return true;
 					}
 				}
 				//need more input?
+
+				//DEBUG: Here's the problem...
+				swprintf(specialMessage, _T("%s]"), debug_msg);
+				return true;
+
 				if (symbol < 0)
 					return false;
 	
@@ -126,6 +160,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				}
 				repSymbol = symbol-16;
 				mode = REPS;
+
 			} //fall through
 			case REPS:
 			{
@@ -148,7 +183,13 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 			mode = LENS;
 			//goto decode_loop; //Does this actually do anything...?
 		}
+
+
+		//DEBUG... 
+		//return true;
     }
+
+
 }
 
 

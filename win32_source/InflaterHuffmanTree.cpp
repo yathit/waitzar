@@ -41,6 +41,8 @@ short bitReverse(int value)
  */
 InflaterHuffmanTree::InflaterHuffmanTree(char* codeLens, int codeL_len)
 {	
+	lstrcpy(specialString, _T(""));
+
 	buildTree(codeLens, codeL_len);
 }
 
@@ -70,19 +72,19 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 	//return;
 
 	//DEBUG
-	lstrcpy(specialString, _T("["));
+	/*lstrcpy(specialString, _T("["));
 	TCHAR debug_str[100];
-	lstrcpy(debug_str, _T("["));
+	lstrcpy(debug_str, _T("["));*/
 
 
     unsigned int code = 0;
     int treeSize = 512;
     for (int bits = 1; bits <= MAX_BITLEN; bits++) {
 		//DEBUG
-		if (lstrlen(debug_str) < 70) {
+		/*if (lstrlen(debug_str) < 70) {
 			swprintf(specialString, _T("%s(%x,%x), "), debug_str, code, blCount[bits]);
 			lstrcpy(debug_str, specialString);
-		}
+		}*/
 
 		nextCode[bits] = code;
 		code += blCount[bits] << (16 - bits);
@@ -95,10 +97,10 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
     }
 
 	//DEBUG
-	if (code == 65536)
-		swprintf(specialString, _T("code ok!"));
-	else {
-		swprintf(specialString, _T("bad code! %i"), code);
+	if (code == 65536) {
+	//	swprintf(specialString, _T("code ok!"));
+	} else {
+	//	swprintf(specialString, _T("bad code! %i"), code);
 		return;
 	}
 	//return;
@@ -108,14 +110,14 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 
     // Now create and fill the extra tables from longest to shortest
     // bit len.  This way the sub trees will be aligned.
-    tree = new char[treeSize];
+    tree = new short[treeSize];
     int treePtr = 512;
     for (int bits = MAX_BITLEN; bits >= 10; bits--) {
 		int end   = code & 0x1ff80;
 		code -= blCount[bits] << (16 - bits);
 		int start = code & 0x1ff80;
 		for (int i = start; i < end; i += 1 << 7) {
-			tree[bitReverse(i)] = (short) ((-treePtr << 4) | bits);
+			tree[bitReverse(i)] = (char) ((-treePtr << 4) | bits);
 			treePtr += 1 << (bits-9);
 		}
     }
@@ -136,7 +138,7 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 			int treeLen = 1 << (subTree & 15);
 			subTree = -doubleRightShift(subTree, 4);
 			do { 
-				tree[subTree |doubleRightShift(revcode, 9)] = (short) ((i << 4) | bits);
+				tree[subTree |doubleRightShift(revcode, 9)] = (char) ((i << 4) | bits);
 				revcode += 1 << bits;
 			} while (revcode < treeLen);
 		}
@@ -154,14 +156,22 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 int InflaterHuffmanTree::getSymbol(StreamManipulator &input)
 {
     int lookahead, symbol;
-    if ((lookahead = input.peekBits(9)) >= 0) {
-		if ((symbol = tree[lookahead]) >= 0) {
+	lookahead = input.peekBits(9);
+    if (lookahead >= 0) {
+		symbol = tree[lookahead];
+		if (symbol >= 0) {
+			//DEBUG
+			TCHAR debug_str[300];
+			lstrcpy(debug_str, specialString);
+			swprintf(specialString, _T("%s\nfirst return: %x"), debug_str, symbol);
+
 			input.dropBits(symbol & 15);
 			return doubleRightShift(symbol, 4);
 		}
 		int subtree = -doubleRightShift(symbol, 4);
 		int bitlen = symbol & 15;
-		if ((lookahead = input.peekBits(bitlen)) >= 0) {
+		lookahead = input.peekBits(bitlen);
+		if ((lookahead) >= 0) {
 			symbol = tree[subtree | doubleRightShift(lookahead, 9)];
 			input.dropBits(symbol & 15);
 			return doubleRightShift(symbol, 4);
