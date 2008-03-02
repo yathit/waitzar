@@ -57,6 +57,9 @@ public:
 	InflaterHuffmanTree* buildLitLenTree();
 	InflaterHuffmanTree* buildDistTree();
 
+
+	//Delete later...
+	TCHAR specialMessage[300];
 private:
 	char* blLens;
 	char* litdistLens;

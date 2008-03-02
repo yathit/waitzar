@@ -30,16 +30,12 @@ void copyArray(char* source, int srcPos, char* dest, int destPos, int length)
 	}
 }
 
-//How do we do >>> again? 
+//>>> is UNSIGNED shift in java
 int tripleRightShift(int value, int shiftBy)
 {
-	return value >> shiftBy;
-}
-
-//>> is reversed in java...
-int doubleRightShift(int value, int shiftBy)
-{
-	int msb = value>>31;
+	unsigned int retVal = (unsigned int) value;
+	return (retVal >> shiftBy);
+	/*int msb = value>>31;
 	unsigned int retVal = value >> shiftBy;
 
 	if (msb != 0) {
@@ -47,7 +43,13 @@ int doubleRightShift(int value, int shiftBy)
 			retVal |= (msb<<(31-shiftBy));
 	}
 
-	return (int) retVal;
+	return (int) retVal;*/
+}
+
+//SIGNED shift
+int doubleRightShift(int value, int shiftBy)
+{
+	return value >> shiftBy;
 }
 
 
@@ -57,9 +59,6 @@ StreamManipulator::StreamManipulator()
     window_end = 0;
     buffer = 0;
     bits_in_buffer = 0;
-
-	//DEBUG
-	lstrcpy(specialMessage, _T(""));
 }
 
 
@@ -68,19 +67,7 @@ StreamManipulator::StreamManipulator()
  */
 int StreamManipulator::peekBits(int n) 
 {
-	//DEBUG
-	TCHAR debug_msg[300];
-	lstrcpy(debug_msg, specialMessage);
-	swprintf(specialMessage, _T("%s\nPEEK[%x,%i,%i] = "), debug_msg, buffer, n, bits_in_buffer);
-	lstrcpy(debug_msg, specialMessage);
-
-
 	if (bits_in_buffer < n) {
-		//DEBUG
-		swprintf(specialMessage, _T("%sLOAD\n"), debug_msg);
-		lstrcpy(debug_msg, specialMessage);
-
-
 		//Are enough bits available?
 		if (window_start == window_end)
 			return -1;
@@ -89,14 +76,7 @@ int StreamManipulator::peekBits(int n)
 		buffer |= (window[window_start] & 0xff | (window[window_start+1] & 0xff) << 8) << bits_in_buffer;
 		window_start+=2;
 		bits_in_buffer += 16;
-
-		//DEBUG
-		swprintf(specialMessage, _T("%sPEEK[%x,%i,%i] = "), debug_msg, buffer, n, bits_in_buffer);
-		lstrcpy(debug_msg, specialMessage);
     }
-
-	//DEBUG
-	swprintf(specialMessage, _T("%s%i"), debug_msg, (buffer & ((1 << n) - 1)));
 
     return buffer & ((1 << n) - 1);
 }
@@ -107,19 +87,8 @@ int StreamManipulator::peekBits(int n)
  */
 void StreamManipulator::dropBits(int n)
 {
-	//DEBUG
-	TCHAR debug_msg[300];
-	lstrcpy(debug_msg, specialMessage);
-	swprintf(specialMessage, _T("%s\nDROP %i [%x"), debug_msg, n, buffer);
-	lstrcpy(debug_msg, specialMessage);
-
-
-
 	buffer = tripleRightShift(buffer, n);
     bits_in_buffer -= n;
-
-	//DEBUG
-	swprintf(specialMessage, _T("%s,%x]"), debug_msg, buffer);
 }
 
 
@@ -190,7 +159,7 @@ int StreamManipulator::copyBytes(char* output, int offset, int length)
 	//Start copying
     int count = 0;
     while (bits_in_buffer > 0 && length > 0) {
-		output[offset++] = (short) buffer;
+		output[offset++] = (char) buffer;
 		buffer = tripleRightShift(buffer, 8);
 		bits_in_buffer -= 8;
 		length--;

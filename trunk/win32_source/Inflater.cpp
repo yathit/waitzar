@@ -147,9 +147,30 @@ int Inflater::inflate(char* buf, int buf_length, int off, int len)
 			debug_count++;
 			if (debug_count ==3) {
 				//Add some stuff...
-				swprintf(specialMessage, _T("%s] and %s"), debug_builder, input->specialMessage);
+				swprintf(specialMessage, _T("%s] and"), debug_builder);
+				lstrcpy(debug_builder, specialMessage);
 
-				//InflaterHuffmanTree* test =  createLitlenTree();
+
+				//swprintf(specialMessage, _T("%s  shift test: %i"),debug_builder, doubleRightShift(260, 4));
+				//return 0;
+
+
+
+				//DEBUG
+				if (!dynHeader->decode(*input)) {
+					swprintf(specialMessage, _T("%s  DECODE FAILED!"), debug_builder);
+					return 0;
+				}
+				litlenTree = dynHeader->buildLitLenTree();
+				distTree = dynHeader->buildDistTree();
+				mode = DECODE_HUFFMAN;
+
+
+				swprintf(specialMessage, _T("%s  "), dynHeader->specialMessage);
+				
+				//DEBUG
+				decodeHuffman();
+
 
 				//swprintf(specialMessage, _T("%s] and now: %s"), debug_builder, test->specialString);
 
@@ -290,6 +311,8 @@ bool Inflater::decodeDict()
 
 bool Inflater::decodeHuffman()
 {
+	//This is the problem now...
+
 	int free = outputWindow->getFreeSpace();
     while (free >= 258) {
 		int symbol;
@@ -307,8 +330,8 @@ bool Inflater::decodeHuffman()
 						return false;
 					else {
 						//symbol == 256: end of block
-						//distTree = NULL;
-						//litlenTree = null;
+						delete [] distTree;
+						delete [] litlenTree;
 						mode = DECODE_BLOCKS;
 						return true;
 					}
