@@ -32,7 +32,7 @@ void OutputWindow::write(int abyte)
 {
     /*if (window_filled++ == WINDOW_SIZE)
       throw new IllegalStateException("Window full");*/
-    window[window_end++] = (byte) abyte;
+    window[window_end++] = (short) abyte;
     window_end &= WINDOW_MASK;
 }
 
@@ -88,7 +88,7 @@ int OutputWindow::copyStored(StreamManipulator &input, int len)
 }
 
 
-void OutputWindow::copyDict(char* dict, int offset, int len)
+void OutputWindow::copyDict(short* dict, int offset, int len)
 {
     /*if (window_filled > 0)
       throw new IllegalStateException();*/
@@ -119,7 +119,7 @@ void OutputWindow::reset()
 }
 
 
-int OutputWindow::copyOutput(char* output, int offset, int len)
+int OutputWindow::copyOutput(short* output, int offset, int len)
 {
 	int copy_end = window_end;
     if (len > window_filled)

@@ -1010,7 +1010,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	mmFont = new PulpCoreFont(res, res_handle);
 	if (mmFont->isInError() == TRUE) {
-		TCHAR errorStr[200];
+		TCHAR errorStr[600];
 		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFont->getErrorMsg());
 
 		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);

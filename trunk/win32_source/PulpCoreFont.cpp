@@ -21,6 +21,8 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
 	lstrcpy(this->errorMsg, _T(""));
 
 	//Get raw data
+	//NOTE: Can I retrieve this as an array of shorts instead of chars? 
+	//     If not, then I have to convert it for use with Inflater->setInput()
     res_data = (char*)LockResource(dataHandle);
     res_size = SizeofResource(NULL, resource);
 
@@ -188,16 +190,21 @@ void PulpCoreFont::readData(int length)
     inflater->setInput(res_data, currPos, length);
         
     int bitsPerPixel = bitDepth * SAMPLES_PER_PIXEL[colorType];
-    //int[] dataARGB = image.getData();
     int bytesPerPixel = (bitsPerPixel + 7) / 8;
     int bytesPerScanline = (width * bitsPerPixel + 7) / 8;
-    char* prevScanline = new char[bytesPerScanline];
-	char* currScanline = new char[bytesPerScanline];
-    char* filterBuffer = new char[1];
+    short* prevScanline = new short[bytesPerScanline];
+	short* currScanline = new short[bytesPerScanline];
+    short* filterBuffer = new short[1];
     int index = 0;
         
     for (int i=0; i<height; i++) {
 		inflateFully(inflater, filterBuffer, 1);
+
+		//DEBUG
+		if (error==TRUE)
+			return;
+
+
 		inflateFully(inflater, currScanline, bytesPerScanline);
         int filter = filterBuffer[0];
             
@@ -264,7 +271,7 @@ void PulpCoreFont::readData(int length)
         }
             
         //Swap curr and prev scanlines
-        char* temp = currScanline;
+        short* temp = currScanline;
         currScanline = prevScanline;
         prevScanline = temp;
     }
@@ -287,22 +294,32 @@ void PulpCoreFont::readData(int length)
 }
 
 
-void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length) 
+void PulpCoreFont::inflateFully(Inflater* inflater, short* result, int res_length) 
 {
 	int bytesRead = 0;
-        
+
     while (bytesRead < res_length) {
 		if (inflater->needsInput() && error==FALSE) {
 			lstrcpy(errorMsg, _T("Inflater ran out of input..."));
 			error = TRUE;
 			return;
         }
-            
-        //try {
-        bytesRead += inflater->inflate(result, bytesRead, res_length - bytesRead);
-        //} catch (DataFormatException ex) {
-		//	throw new IOException(ZLIB_ERROR_MESSAGE);
-        //}
+
+		int res = inflater->inflate(result, res_length, bytesRead, res_length - bytesRead);
+		if (res==-1 && error==FALSE) {
+			lstrcpy(errorMsg, _T("0 > off || off > off + len || off + len > buf_length"));
+			error = TRUE;
+			return;
+        }
+
+        bytesRead += res;
+
+	//DEBUG
+	lstrcpy(errorMsg, inflater->specialMessage);
+	//	unsigned char s = -1;
+	//swprintf(errorMsg, _T("test: %0x"), s);
+	error = TRUE;
+	return;
     }
 }
 
@@ -348,7 +365,7 @@ void PulpCoreFont::fontSet()
 }
 
 
-void PulpCoreFont::decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp) 
+void PulpCoreFont::decodeFilter(short* curr, int curr_len, short* prev, int filter, int bpp) 
 {
     int length = curr_len;
         
@@ -357,31 +374,31 @@ void PulpCoreFont::decodeFilter(char* curr, int curr_len, char* prev, int filter
         // Raw(x) = Sub(x) + Raw(x-bpp)
         // For all x < 0, assume Raw(x) = 0.
         for (int i = bpp; i < length; i++) {
-            curr[i] = (byte)(curr[i] + curr[i - bpp]);
+            curr[i] = (short)(curr[i] + curr[i - bpp]);
         }
     } else if (filter == 2) {
         // Input = Up
         // Raw(x) = Up(x) + Prior(x)
         for (int i = 0; i < length; i++) {
-            curr[i] = (byte)(curr[i] + prev[i]);
+            curr[i] = (short)(curr[i] + prev[i]);
         }
     } else if (filter == 3) {
         // Input = Average
         // Raw(x) = Average(x) + floor((Raw(x-bpp)+Prior(x))/2)
         for (int i = 0; i < bpp; i++) {
-            curr[i] = (byte)(curr[i] + doubleRightShift((prev[i] & 0xff), 1));
+			curr[i] = (short)(curr[i] + doubleRightShift((prev[i] & 0xff), 1));
         }
         for (int i = bpp; i < length; i++) {
-            curr[i] = (byte)(curr[i] + doubleRightShift(((curr[i - bpp] & 0xff) + (prev[i] & 0xff)), 1));
+            curr[i] = (short)(curr[i] + doubleRightShift(((curr[i - bpp] & 0xff) + (prev[i] & 0xff)), 1));
         }
     } else if (filter == 4) {
         // Input = Paeth
         // Raw(x) = Paeth(x) + PaethPredictor(Raw(x-bpp), Prior(x), Prior(x-bpp))
         for (int i = 0; i < bpp; i++) {
-            curr[i] = (byte)(curr[i] + prev[i]);
+            curr[i] = (short)(curr[i] + prev[i]);
         }
         for (int i = bpp; i < length; i++) {
-            curr[i] = (byte)(curr[i] + 
+            curr[i] = (short)(curr[i] + 
                 paethPredictor(curr[i - bpp] & 0xff, prev[i] & 0xff, prev[i - bpp] & 0xff));
         }
     }

@@ -95,27 +95,30 @@ public:
 	int getRemaining();
 	int getTotalIn();
 	int getTotalOut();
-	int inflate (char* buf, int buf_length);
-	int inflate (char* buf, int off, int len);
+	int inflate (short* buf, int buf_length);
+	int inflate (short* buf, int buf_length, int off, int len);
 	bool needsDictionary();
 	bool needsInput();
 	void reset();
-	void setDictionary(char* buffer, int buf_length);
-	void setDictionary (char* buffer, int off, int len);
-	void setInput(char* buf, int buf_length);
-	void setInput(char* buf, int off, int len);
+	void setDictionary(short* buffer, int buf_length);
+	void setDictionary (short* buffer, int off, int len);
+	void setInput(short* buf, int buf_length);
+	void setInput(short* buf, int off, int len);
 	bool decodeHeader();
 	bool decodeDict();
 	bool decodeHuffman();
 	bool decodeChksum();
 	bool decode();
 
+	//Move back to private later...
+	int mode;
+	TCHAR specialMessage[500]; //Delete later
 private:
 	void init(bool noWrap);
 	InflaterHuffmanTree* createLitlenTree();
 	InflaterHuffmanTree* createDistTree();
 
-	int mode;
+	
 	int readAdler;
 	int neededBits;
 	int repLength, repDist;

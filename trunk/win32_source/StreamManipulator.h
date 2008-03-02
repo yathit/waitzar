@@ -29,7 +29,7 @@
 
 
 //Useful methods
-void copyArray(char* source, int srcPos, char* dest, int destPos, int length);
+void copyArray(short* source, int srcPos, short* dest, int destPos, int length);
 int tripleRightShift(int value, int shiftBy);
 int doubleRightShift(int value, int shiftBy);
 
@@ -49,13 +49,13 @@ public:
 	int getAvailableBytes();
 	void skipToByteBoundary();
 	bool needsInput();
-	int copyBytes(char* output, int offset, int length);
+	int copyBytes(short* output, int offset, int length);
 	void reset();
-	void setInput(char* buf, int off, int len);
+	void setInput(short* buf, int off, int len);
 
 private:
 	//Fields
-	char* window;
+	short* window;
     int window_start;
     int window_end;
     int buffer;

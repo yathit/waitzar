@@ -40,14 +40,16 @@ const char bit4Reverse[] = "\000\010\004\014\002\012\006\016\001\011\005\015\003
 class InflaterHuffmanTree
 {
 public:
-	InflaterHuffmanTree(char* codeLens, int codeL_len);
+	InflaterHuffmanTree(short* codeLens, int codeL_len);
 	~InflaterHuffmanTree(void);
 
 	int getSymbol(StreamManipulator &input);
 
+	//Delete later:
+	TCHAR specialString[500];
 private:
 	//Methods
-	void buildTree(char* codeLengths, int codeL_len);
+	void buildTree(short* codeLengths, int codeL_len);
 
 	//Fields
 	short* tree;

@@ -58,8 +58,8 @@ public:
 	InflaterHuffmanTree* buildDistTree();
 
 private:
-	char* blLens;
-	char* litdistLens;
+	short* blLens;
+	short* litdistLens;
 	
 	InflaterHuffmanTree* blTree;
   
