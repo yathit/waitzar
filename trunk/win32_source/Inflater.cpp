@@ -64,6 +64,14 @@ Inflater::~Inflater()
 
 void Inflater::init(bool noWrap)
 {
+	//NULLs
+	input = NULL;
+	outputWindow = NULL;
+	dynHeader = NULL;
+	litlenTree = NULL;
+	distTree = NULL;
+	adler = NULL;
+
     this->nowrap = noWrap;
     this->adler = new Adler32();
     input = new StreamManipulator();
@@ -227,9 +235,19 @@ void Inflater::reset()
     totalIn = totalOut = 0;
     input->reset();
     outputWindow->reset();
-    delete dynHeader;
-	delete litlenTree;
-    delete distTree;
+
+	if (dynHeader!=NULL) {
+		delete dynHeader;
+		dynHeader = NULL;
+	}
+	if (litlenTree!=NULL) {
+		delete litlenTree;
+		litlenTree = NULL;
+	}
+	if (distTree!=NULL) {
+		delete distTree;
+		distTree = NULL;
+	}
     isLastBlock = false;
     adler->reset();
 }
@@ -324,6 +342,12 @@ bool Inflater::decodeHuffman()
 
 
     while (free >= 258) {
+
+		if (free==22895)
+		{
+int i =0;
+		}
+
 		int symbol;
 		switch (mode)
 		{
@@ -350,8 +374,14 @@ bool Inflater::decodeHuffman()
 						return false;
 					else {
 						//symbol == 256: end of block
-						delete [] distTree;
-						delete [] litlenTree;
+						if (distTree!=NULL) {
+							delete distTree;
+							distTree = NULL;
+						}
+						if (litlenTree != NULL) {
+							delete litlenTree;
+							litlenTree = NULL;
+						}
 						mode = DECODE_BLOCKS;
 						return true;
 					}
