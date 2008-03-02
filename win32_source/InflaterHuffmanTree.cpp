@@ -111,13 +111,18 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
     // Now create and fill the extra tables from longest to shortest
     // bit len.  This way the sub trees will be aligned.
     tree = new short[treeSize];
+
+	//Java inits....
+	for (int i=0; i<treeSize; i++)
+		tree[treeSize] = 0;
+
     int treePtr = 512;
     for (int bits = MAX_BITLEN; bits >= 10; bits--) {
 		int end   = code & 0x1ff80;
 		code -= blCount[bits] << (16 - bits);
 		int start = code & 0x1ff80;
-		for (int i = start; i < end; i += 1 << 7) {
-			tree[bitReverse(i)] = (char) ((-treePtr << 4) | bits);
+		for (int i=start; i<end; i+=1<<7) {
+			tree[bitReverse(i)] = (short) ((-treePtr << 4) | bits);
 			treePtr += 1 << (bits-9);
 		}
     }
@@ -138,7 +143,7 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 			int treeLen = 1 << (subTree & 15);
 			subTree = -doubleRightShift(subTree, 4);
 			do { 
-				tree[subTree |doubleRightShift(revcode, 9)] = (char) ((i << 4) | bits);
+				tree[subTree |doubleRightShift(revcode, 9)] = (short) ((i << 4) | bits);
 				revcode += 1 << bits;
 			} while (revcode < treeLen);
 		}

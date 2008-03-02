@@ -18,6 +18,7 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
 {
 	//Delete later
 	lstrcpy(debug_msg, _T("["));
+	debug_count = 0;
 
 	//Init
 	this->error = FALSE;
@@ -326,17 +327,18 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
 
     while (bytesRead < res_length) {
 
-		//DEBUG
-		TCHAR temp[10];
-	swprintf(temp, _T("%i."), res_length);
-	lstrcat(debug_msg, temp);
-
+		//debug_count++;
 
 		if (inflater->needsInput() && error==FALSE) {
 			swprintf(errorMsg, _T("Inflater ran out of input: %s"), debug_msg);
 			error = TRUE;
 			return;
         }
+
+	//DEBUG
+//	TCHAR temp[10];
+//	swprintf(temp, _T("%i."), res_length);
+//	lstrcat(debug_msg, temp);
 
 		int res = inflater->inflate(result, res_length, bytesRead, res_length - bytesRead);
 		if (res==-1 && error==FALSE) {
@@ -348,7 +350,7 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
         bytesRead += res;
 
 	//DEBUG
-	lstrcpy(errorMsg, inflater->specialMessage);
+//	lstrcpy(errorMsg, inflater->specialMessage);
 	//	unsigned char s = -1;
 	//swprintf(errorMsg, _T("test: %0x"), s);
 //	error = TRUE;

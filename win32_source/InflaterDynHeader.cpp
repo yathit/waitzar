@@ -87,6 +87,11 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				blnum += 4;
 				input.dropBits(4);
 				blLens = new char[19];
+
+				//Java init
+				for (int i=0; i<19; i++)
+					blLens[i] = 0;
+
 				ptr = 0;
 				mode = BLLENS;
 				//Fall through
