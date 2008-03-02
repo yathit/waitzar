@@ -66,6 +66,16 @@ void Inflater::init(bool noWrap)
     input = new StreamManipulator();
     outputWindow = new OutputWindow();
     mode = nowrap ? DECODE_BLOCKS : DECODE_HEADER;
+
+	//Init to Java defaults...
+	this->isLastBlock = false;
+	this->readAdler = 0;
+	this->neededBits = 0;
+	this->repLength = this->repDist = 0;
+	this->uncomprLen = 0;
+	this->isLastBlock = false;
+	this->totalOut = 0;
+	this->totalIn = 0;
 }
 
 
@@ -105,25 +115,48 @@ int Inflater::getTotalOut()
 }
 
 
-int Inflater::inflate (char* buf, int buf_length)
+int Inflater::inflate(short* buf, int buf_length)
 {
-	return inflate (buf, 0, buf_length);
+	return inflate (buf, buf_length, 0, buf_length);
 }
 
 
-int Inflater::inflate (char* buf, int off, int len)
+int Inflater::inflate(short* buf, int buf_length, int off, int len)
 {
     //Special case: len may be zero
     if (len == 0)
 		return 0;
     
 	//Check for correct buff, off, len triple
-    /*if (0 > off || off > off + len || off + len > buf.length)
-		throw new ArrayIndexOutOfBoundsException();*/
+    if (0 > off || off > off + len || off + len > buf_length)
+		return -1;
+
+	//DEBUG
+	int debug_count = 0;
+	TCHAR debug_builder[100];
+	lstrcpy(specialMessage, _T("["));
+	lstrcpy(debug_builder, _T("["));
 
     int count = 0;
     int more;
     do {
+
+			//DEBUG
+			swprintf(specialMessage, _T("%s%i, "), debug_builder, mode);
+			lstrcpy(debug_builder, specialMessage);
+			debug_count++;
+			if (debug_count ==3) {
+				//Add some stuff...
+				swprintf(specialMessage, _T("%s] OK"), debug_builder);
+
+				//InflaterHuffmanTree* test =  createLitlenTree();
+
+				//swprintf(specialMessage, _T("%s] and now: %s"), debug_builder, test->specialString);
+
+				return 0;
+			}
+
+
 		if (mode != DECODE_CHKSUM) {
 	    /* Don't give away any output, if we are waiting for the
 	     * checksum in the input stream.
@@ -133,6 +166,13 @@ int Inflater::inflate (char* buf, int off, int len)
 	     *   implies more output can be produced.  
 	     */
 			more = outputWindow->copyOutput(buf, off, len);
+
+
+			//DEBUG:
+			/*if (outputWindow->window_filled != 0)
+				swprintf(specialMessage, _T("window_filled is: %i"), outputWindow->window_filled);*/
+
+
 			adler->update(buf, off, more);
 			off += more;
 			count += more;
@@ -172,12 +212,12 @@ void Inflater::reset()
 }
 
 
-void Inflater::setDictionary(char* buffer, int buf_length)
+void Inflater::setDictionary(short* buffer, int buf_length)
 {
 	setDictionary(buffer, 0, buf_length);
 }
 
-void Inflater::setDictionary (char* buffer, int off, int len)
+void Inflater::setDictionary (short* buffer, int off, int len)
 {
     /*if (!needsDictionary())
       throw new IllegalStateException();*/
@@ -191,13 +231,13 @@ void Inflater::setDictionary (char* buffer, int off, int len)
 }
 
 
-void Inflater::setInput(char* buf, int buf_length)
+void Inflater::setInput(short* buf, int buf_length)
 {
 	setInput (buf, 0, buf_length);
 }
 
 
-void Inflater::setInput(char* buf, int off, int len)
+void Inflater::setInput(short* buf, int off, int len)
 {
     input->setInput (buf, off, len);
     totalIn += len;
@@ -444,7 +484,7 @@ bool Inflater::decode()
 
 InflaterHuffmanTree* Inflater::createLitlenTree()
 {
-	char* codeLengths = new char[288];
+	short* codeLengths = new short[288];
 	int i = 0;
 	while (i < 144)
 		codeLengths[i++] = 8;
@@ -454,6 +494,7 @@ InflaterHuffmanTree* Inflater::createLitlenTree()
 		codeLengths[i++] = 7;
 	while (i < 288)
 		codeLengths[i++] = 8;
+
 	InflaterHuffmanTree* retVal = new InflaterHuffmanTree(codeLengths, 288);
 	delete [] codeLengths;
 	return retVal;
@@ -463,7 +504,7 @@ InflaterHuffmanTree* Inflater::createLitlenTree()
 
 InflaterHuffmanTree* Inflater::createDistTree()
 {
-	char* codeLengths= new char[32];
+	short* codeLengths= new short[32];
 	int i = 0;
 	while (i < 32)
 		codeLengths[i++] = 5;

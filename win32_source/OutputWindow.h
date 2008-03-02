@@ -47,20 +47,21 @@ public:
 	void write(int abyte);
 	void repeat(int len, int dist);
 	int copyStored(StreamManipulator &input, int len);
-	void copyDict(char* dict, int offset, int len);
+	void copyDict(short* dict, int offset, int len);
 	int getFreeSpace();
 	int getAvailable();
-	int copyOutput(char* output, int offset, int len);
+	int copyOutput(short* output, int offset, int len);
 	void reset();
 
+	//Move to private later...
+	int window_filled;
 private:
 	//Functions
 	void slowRepeat(int rep_start, int len, int dist);
 
 	//Fields
-	char window[WINDOW_SIZE];
+	short window[WINDOW_SIZE];
 	int window_end;
-	int window_filled;
 };
 
 

@@ -82,7 +82,7 @@ private:
 
 	//High-level stuff
 	BOOL error;
-	TCHAR errorMsg[100];
+	TCHAR errorMsg[500]; //Change back to 100 later...
 
 	//Private methods
 	void readHeader();
@@ -91,14 +91,14 @@ private:
 	void fontSet();
 	void readAnimation();
 	void readData(int length);
-	void decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp);
+	void decodeFilter(short* curr, int curr_len, short* prev, int filter, int bpp);
 	int paethPredictor(int a, int b, int c);
 	int premultiply(int arbg);
 	void premultiply(int* arbg, int argb_len);
     int readInt();
     int readShort();
 	int readByte();
-	void inflateFully(Inflater* inflater, char* result, int res_length);
+	void inflateFully(Inflater* inflater, short* result, int res_length);
 
 	//Useful globals
 	DWORD currPos;

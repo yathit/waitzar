@@ -39,7 +39,7 @@ short bitReverse(int value)
  * NOTE: Make sure this is never called with the default constructor!
  * Otherwise, the statics won't initialize.
  */
-InflaterHuffmanTree::InflaterHuffmanTree(char* codeLens, int codeL_len)
+InflaterHuffmanTree::InflaterHuffmanTree(short* codeLens, int codeL_len)
 {	
 	buildTree(codeLens, codeL_len);
 }
@@ -50,19 +50,40 @@ InflaterHuffmanTree::~InflaterHuffmanTree(void)
 		delete [] tree;
 }
 
-void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
+void InflaterHuffmanTree::buildTree(short* codeLengths, int codeL_len)
 {
 	int* blCount = new int[MAX_BITLEN+1];
     int* nextCode = new int[MAX_BITLEN+1];
+
+	//Java inits... gr....
+	for (int i=0; i<MAX_BITLEN+1; i++) {
+		blCount[i] = 0;
+		nextCode[i] = 0;
+	}
+
     for (int i = 0; i < codeL_len; i++) {
 		int bits = codeLengths[i];
 		if (bits > 0)
-		blCount[bits]++;
+			blCount[bits]++;
     }
 
-    int code = 0;
+	//return;
+
+	//DEBUG
+	lstrcpy(specialString, _T("["));
+	TCHAR debug_str[100];
+	lstrcpy(debug_str, _T("["));
+
+
+    unsigned int code = 0;
     int treeSize = 512;
     for (int bits = 1; bits <= MAX_BITLEN; bits++) {
+		//DEBUG
+		if (lstrlen(debug_str) < 70) {
+			swprintf(specialString, _T("%s(%x,%x), "), debug_str, code, blCount[bits]);
+			lstrcpy(debug_str, specialString);
+		}
+
 		nextCode[bits] = code;
 		code += blCount[bits] << (16 - bits);
 		if (bits >= 10) {
@@ -72,6 +93,16 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 			treeSize += doubleRightShift((end - start), (16 - bits));
 		}
     }
+
+	//DEBUG
+	if (code == 65536)
+		swprintf(specialString, _T("code ok!"));
+	else {
+		swprintf(specialString, _T("bad code! %i"), code);
+		return;
+	}
+	//return;
+
     /*if (code != 65536)
       throw new DataFormatException("Code lengths don't add up properly.");*/
 
@@ -88,7 +119,7 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 			treePtr += 1 << (bits-9);
 		}
     }
-    
+
     for (int i = 0; i < codeL_len; i++) {
 		int bits = codeLengths[i];
 		if (bits == 0)

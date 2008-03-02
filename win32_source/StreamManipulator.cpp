@@ -23,7 +23,7 @@
 
 
 //Clean-room implementation of System.arraycopy() from the JRE
-void copyArray(char* source, int srcPos, char* dest, int destPos, int length)
+void copyArray(short* source, int srcPos, short* dest, int destPos, int length)
 {
 	for (int i=0; i<length; i++) {
 		dest[destPos+i] = source[srcPos+i];
@@ -142,7 +142,7 @@ bool StreamManipulator::needsInput()
  * Returns the number of bytes copied (may be <length)
  * Returns -1 for error
  */
-int StreamManipulator::copyBytes(char* output, int offset, int length)
+int StreamManipulator::copyBytes(short* output, int offset, int length)
 {
 	//lenght must be a natural number
     if (length < 0)
@@ -155,7 +155,7 @@ int StreamManipulator::copyBytes(char* output, int offset, int length)
 	//Start copying
     int count = 0;
     while (bits_in_buffer > 0 && length > 0) {
-		output[offset++] = (char) buffer;
+		output[offset++] = (short) buffer;
 		buffer = tripleRightShift(buffer, 8);
 		bits_in_buffer -= 8;
 		length--;
@@ -192,7 +192,7 @@ void StreamManipulator::reset()
 /**
  *
  */
-void StreamManipulator::setInput(char* buf, int off, int len)
+void StreamManipulator::setInput(short* buf, int off, int len)
 {
 	/* //Handle this... later?
     if (window_start < window_end)

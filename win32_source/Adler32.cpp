@@ -59,7 +59,7 @@ void Adler32::update(int bval)
 /**
  * Updates the checksum with an array of bytes
  */
-void Adler32::update(char* buffer, int buffer_length)
+void Adler32::update(short* buffer, int buffer_length)
 {
 	update(buffer, 0, buffer_length);
 }
@@ -68,7 +68,7 @@ void Adler32::update(char* buffer, int buffer_length)
 /**
  * Updates the checksum with an array of bytes
  */
-void Adler32::update(char* buf, int off, int len)
+void Adler32::update(short* buf, int off, int len)
 {
     //(By Per Bothner)
     int s1 = checksum & 0xffff;
