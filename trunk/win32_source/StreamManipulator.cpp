@@ -23,7 +23,7 @@
 
 
 //Clean-room implementation of System.arraycopy() from the JRE
-void copyArray(short* source, int srcPos, short* dest, int destPos, int length)
+void copyArray(char* source, int srcPos, char* dest, int destPos, int length)
 {
 	for (int i=0; i<length; i++) {
 		dest[destPos+i] = source[srcPos+i];
@@ -57,6 +57,9 @@ StreamManipulator::StreamManipulator()
     window_end = 0;
     buffer = 0;
     bits_in_buffer = 0;
+
+	//DEBUG
+	lstrcpy(specialMessage, _T(""));
 }
 
 
@@ -65,15 +68,36 @@ StreamManipulator::StreamManipulator()
  */
 int StreamManipulator::peekBits(int n) 
 {
+	//DEBUG
+	TCHAR debug_msg[300];
+	lstrcpy(debug_msg, specialMessage);
+	swprintf(specialMessage, _T("%s\nPEEK[%x,%i,%i] = "), debug_msg, buffer, n, bits_in_buffer);
+	lstrcpy(debug_msg, specialMessage);
+
+
 	if (bits_in_buffer < n) {
+		//DEBUG
+		swprintf(specialMessage, _T("%sLOAD\n"), debug_msg);
+		lstrcpy(debug_msg, specialMessage);
+
+
 		//Are enough bits available?
 		if (window_start == window_end)
 			return -1;
 		
 		//Get bits
-		buffer |= (window[window_start++] & 0xff | (window[window_start++] & 0xff) << 8) << bits_in_buffer;
+		buffer |= (window[window_start] & 0xff | (window[window_start+1] & 0xff) << 8) << bits_in_buffer;
+		window_start+=2;
 		bits_in_buffer += 16;
+
+		//DEBUG
+		swprintf(specialMessage, _T("%sPEEK[%x,%i,%i] = "), debug_msg, buffer, n, bits_in_buffer);
+		lstrcpy(debug_msg, specialMessage);
     }
+
+	//DEBUG
+	swprintf(specialMessage, _T("%s%i"), debug_msg, (buffer & ((1 << n) - 1)));
+
     return buffer & ((1 << n) - 1);
 }
 
@@ -83,8 +107,19 @@ int StreamManipulator::peekBits(int n)
  */
 void StreamManipulator::dropBits(int n)
 {
+	//DEBUG
+	TCHAR debug_msg[300];
+	lstrcpy(debug_msg, specialMessage);
+	swprintf(specialMessage, _T("%s\nDROP %i [%x"), debug_msg, n, buffer);
+	lstrcpy(debug_msg, specialMessage);
+
+
+
 	buffer = tripleRightShift(buffer, n);
     bits_in_buffer -= n;
+
+	//DEBUG
+	swprintf(specialMessage, _T("%s,%x]"), debug_msg, buffer);
 }
 
 
@@ -142,7 +177,7 @@ bool StreamManipulator::needsInput()
  * Returns the number of bytes copied (may be <length)
  * Returns -1 for error
  */
-int StreamManipulator::copyBytes(short* output, int offset, int length)
+int StreamManipulator::copyBytes(char* output, int offset, int length)
 {
 	//lenght must be a natural number
     if (length < 0)
@@ -192,7 +227,7 @@ void StreamManipulator::reset()
 /**
  *
  */
-void StreamManipulator::setInput(short* buf, int off, int len)
+void StreamManipulator::setInput(char* buf, int off, int len)
 {
 	/* //Handle this... later?
     if (window_start < window_end)

@@ -42,8 +42,8 @@ public:
 
 	void reset();
 	void update(int bval);
-	void update(short* buffer, int buffer_length);
-	void update(short* buf, int off, int len);
+	void update(char* buffer, int buffer_length);
+	void update(char* buf, int off, int len);
 	long getValue();
 
 private:
