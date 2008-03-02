@@ -39,7 +39,7 @@ short bitReverse(int value)
  * NOTE: Make sure this is never called with the default constructor!
  * Otherwise, the statics won't initialize.
  */
-InflaterHuffmanTree::InflaterHuffmanTree(short* codeLens, int codeL_len)
+InflaterHuffmanTree::InflaterHuffmanTree(char* codeLens, int codeL_len)
 {	
 	buildTree(codeLens, codeL_len);
 }
@@ -50,7 +50,7 @@ InflaterHuffmanTree::~InflaterHuffmanTree(void)
 		delete [] tree;
 }
 
-void InflaterHuffmanTree::buildTree(short* codeLengths, int codeL_len)
+void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 {
 	int* blCount = new int[MAX_BITLEN+1];
     int* nextCode = new int[MAX_BITLEN+1];
@@ -108,7 +108,7 @@ void InflaterHuffmanTree::buildTree(short* codeLengths, int codeL_len)
 
     // Now create and fill the extra tables from longest to shortest
     // bit len.  This way the sub trees will be aligned.
-    tree = new short[treeSize];
+    tree = new char[treeSize];
     int treePtr = 512;
     for (int bits = MAX_BITLEN; bits >= 10; bits--) {
 		int end   = code & 0x1ff80;

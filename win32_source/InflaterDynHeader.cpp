@@ -72,7 +72,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				dnum++;
 				input.dropBits(5);
 				num = lnum+dnum;
-				litdistLens = new short[num];
+				litdistLens = new char[num];
 				mode = BLNUM;
 				//Fall through
 			case BLNUM:
@@ -81,7 +81,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 					return false;
 				blnum += 4;
 				input.dropBits(4);
-				blLens = new short[19];
+				blLens = new char[19];
 				ptr = 0;
 				mode = BLLENS;
 				//Fall through
@@ -92,7 +92,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 					if (len < 0)
 						return false;
 					input.dropBits(3);
-					blLens[BL_ORDER[ptr]] = (short) len;
+					blLens[BL_ORDER[ptr]] = (char) len;
 					ptr++;
 				}
 				blTree = new InflaterHuffmanTree(blLens, 19);
@@ -106,7 +106,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				int symbol;
 				while (((symbol = blTree->getSymbol(input)) & ~15) == 0) {
 					//Normal case: symbol in [0..15]
-					litdistLens[ptr++] = (short)( lastLen = (byte) symbol);
+					litdistLens[ptr++] = (char)( lastLen = (byte) symbol);
 					if (ptr == num) {
 						//Finished
 						return true;
@@ -138,7 +138,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				/*if (ptr + count > num)
 					throw new DataFormatException();*/
 				while (count-- > 0)
-					litdistLens[ptr++] = (short)lastLen;
+					litdistLens[ptr++] = (char)lastLen;
 
 				if (ptr == num) {
 					//Finished
@@ -154,7 +154,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 
 InflaterHuffmanTree* InflaterDynHeader::buildLitLenTree()
 {
-    short* litlenLens = new short[lnum];
+    char* litlenLens = new char[lnum];
 	copyArray(litdistLens, 0, litlenLens, 0, lnum);
 
 	InflaterHuffmanTree* res = new InflaterHuffmanTree(litlenLens, lnum);
@@ -165,7 +165,7 @@ InflaterHuffmanTree* InflaterDynHeader::buildLitLenTree()
 
 InflaterHuffmanTree* InflaterDynHeader::buildDistTree()
 {
-    short* distLens = new short[dnum];
+    char* distLens = new char[dnum];
     copyArray(litdistLens, lnum, distLens, 0, dnum);
 
 	InflaterHuffmanTree* res = new InflaterHuffmanTree(distLens, dnum);

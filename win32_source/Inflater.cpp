@@ -115,13 +115,13 @@ int Inflater::getTotalOut()
 }
 
 
-int Inflater::inflate(short* buf, int buf_length)
+int Inflater::inflate(char* buf, int buf_length)
 {
 	return inflate (buf, buf_length, 0, buf_length);
 }
 
 
-int Inflater::inflate(short* buf, int buf_length, int off, int len)
+int Inflater::inflate(char* buf, int buf_length, int off, int len)
 {
     //Special case: len may be zero
     if (len == 0)
@@ -147,7 +147,7 @@ int Inflater::inflate(short* buf, int buf_length, int off, int len)
 			debug_count++;
 			if (debug_count ==3) {
 				//Add some stuff...
-				swprintf(specialMessage, _T("%s] OK"), debug_builder);
+				swprintf(specialMessage, _T("%s] and %s"), debug_builder, input->specialMessage);
 
 				//InflaterHuffmanTree* test =  createLitlenTree();
 
@@ -212,12 +212,12 @@ void Inflater::reset()
 }
 
 
-void Inflater::setDictionary(short* buffer, int buf_length)
+void Inflater::setDictionary(char* buffer, int buf_length)
 {
 	setDictionary(buffer, 0, buf_length);
 }
 
-void Inflater::setDictionary (short* buffer, int off, int len)
+void Inflater::setDictionary (char* buffer, int off, int len)
 {
     /*if (!needsDictionary())
       throw new IllegalStateException();*/
@@ -231,13 +231,13 @@ void Inflater::setDictionary (short* buffer, int off, int len)
 }
 
 
-void Inflater::setInput(short* buf, int buf_length)
+void Inflater::setInput(char* buf, int buf_length)
 {
 	setInput (buf, 0, buf_length);
 }
 
 
-void Inflater::setInput(short* buf, int off, int len)
+void Inflater::setInput(char* buf, int off, int len)
 {
     input->setInput (buf, off, len);
     totalIn += len;
@@ -484,7 +484,7 @@ bool Inflater::decode()
 
 InflaterHuffmanTree* Inflater::createLitlenTree()
 {
-	short* codeLengths = new short[288];
+	char* codeLengths = new char[288];
 	int i = 0;
 	while (i < 144)
 		codeLengths[i++] = 8;
@@ -504,7 +504,7 @@ InflaterHuffmanTree* Inflater::createLitlenTree()
 
 InflaterHuffmanTree* Inflater::createDistTree()
 {
-	short* codeLengths= new short[32];
+	char* codeLengths= new char[32];
 	int i = 0;
 	while (i < 32)
 		codeLengths[i++] = 5;
