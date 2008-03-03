@@ -47,6 +47,7 @@ public:
 
 	//Delete later:
 	TCHAR specialString[500];
+	int debug_error_count;
 private:
 	//Methods
 	void buildTree(char* codeLengths, int codeL_len);

@@ -342,12 +342,6 @@ bool Inflater::decodeHuffman()
 
 
     while (free >= 258) {
-
-		if (free==22895)
-		{
-int i =0;
-		}
-
 		int symbol;
 		switch (mode)
 		{

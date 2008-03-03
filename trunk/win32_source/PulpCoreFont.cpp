@@ -325,6 +325,11 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
 {
 	int bytesRead = 0;
 
+		//DEBUG
+	TCHAR temp[10];
+	swprintf(temp, _T("%i."), res_length);
+	lstrcat(debug_msg, temp);
+
     while (bytesRead < res_length) {
 
 		//debug_count++;
@@ -334,11 +339,6 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
 			error = TRUE;
 			return;
         }
-
-	//DEBUG
-//	TCHAR temp[10];
-//	swprintf(temp, _T("%i."), res_length);
-//	lstrcat(debug_msg, temp);
 
 		int res = inflater->inflate(result, res_length, bytesRead, res_length - bytesRead);
 		if (res==-1 && error==FALSE) {
