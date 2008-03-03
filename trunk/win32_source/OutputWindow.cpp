@@ -49,7 +49,8 @@ void OutputWindow::slowRepeat(int rep_start, int len, int dist)
 
 void OutputWindow::repeat(int len, int dist)
 {
-	/*if ((window_filled += len) > WINDOW_SIZE)
+	window_filled += len;
+	/*if ((window_filled) > WINDOW_SIZE)
       throw new IllegalStateException("Window full");*/
 
     int rep_start = (window_end - dist) & WINDOW_MASK;
