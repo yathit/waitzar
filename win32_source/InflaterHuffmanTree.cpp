@@ -42,6 +42,7 @@ short bitReverse(int value)
 InflaterHuffmanTree::InflaterHuffmanTree(char* codeLens, int codeL_len)
 {	
 	lstrcpy(specialString, _T(""));
+	debug_error_count = 0;
 
 	buildTree(codeLens, codeL_len);
 }
@@ -67,6 +68,9 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 		int bits = codeLengths[i];
 		if (bits > 0)
 			blCount[bits]++;
+
+		if (bits >= MAX_BITLEN+1)
+			debug_error_count++;
     }
 
 	//return;
@@ -114,7 +118,7 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 
 	//Java inits....
 	for (int i=0; i<treeSize; i++)
-		tree[treeSize] = 0;
+		tree[i] = 0;
 
     int treePtr = 512;
     for (int bits = MAX_BITLEN; bits >= 10; bits--) {
@@ -123,6 +127,10 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 		int start = code & 0x1ff80;
 		for (int i=start; i<end; i+=1<<7) {
 			tree[bitReverse(i)] = (short) ((-treePtr << 4) | bits);
+
+			if (bitReverse(i) >= treeSize)
+				debug_error_count++;
+
 			treePtr += 1 << (bits-9);
 		}
     }
@@ -131,22 +139,41 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 		int bits = codeLengths[i];
 		if (bits == 0)
 			continue;
+
+		if (bits >= MAX_BITLEN+1)
+			debug_error_count++;
+
 		code = nextCode[bits];
 		int revcode = bitReverse(code);
 		if (bits <= 9) {
 			do {
 				tree[revcode] = (short) ((i << 4) | bits);
+
+				if (revcode >= treeSize)
+					debug_error_count++;
+
 				revcode += 1 << bits;
 			} while (revcode < 512);
 		} else {
+			if ((revcode & 511) >= treeSize)
+				debug_error_count++;
+
 			int subTree = tree[revcode & 511];
 			int treeLen = 1 << (subTree & 15);
 			subTree = -doubleRightShift(subTree, 4);
 			do { 
+
+				if ((subTree |doubleRightShift(revcode, 9)) >= treeSize)
+					debug_error_count++;
+
 				tree[subTree |doubleRightShift(revcode, 9)] = (short) ((i << 4) | bits);
 				revcode += 1 << bits;
 			} while (revcode < treeLen);
 		}
+
+		if (bits>=MAX_BITLEN+1)
+			debug_error_count++;
+
 		nextCode[bits] = code + (1 << (16 - bits));
     }
 
