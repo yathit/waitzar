@@ -45,6 +45,12 @@ InflaterHuffmanTree::InflaterHuffmanTree(char* codeLens, int codeL_len)
 	debug_error_count = 0;
 
 	buildTree(codeLens, codeL_len);
+
+    //Compute a "checksum"
+    long check = 0;
+    for (int i=0; i<512; i++)
+    	check += tree[i];
+	check = 0;
 }
 
 InflaterHuffmanTree::~InflaterHuffmanTree(void)

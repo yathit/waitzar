@@ -120,7 +120,7 @@ void OutputWindow::reset()
 }
 
 
-//This is it.
+
 int OutputWindow::copyOutput(char* output, int offset, int len)
 {
 	int copy_end = window_end;
