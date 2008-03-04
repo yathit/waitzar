@@ -142,52 +142,9 @@ int Inflater::inflate(char* buf, int buf_length, int off, int len)
     if (0 > off || off > off + len || off + len > buf_length)
 		return -1;
 
-	//DEBUG
-	int debug_count = 0;
-	TCHAR debug_builder[100];
-	lstrcpy(specialMessage, _T("["));
-	lstrcpy(debug_builder, _T("["));
-
     int count = 0;
     int more;
     do {
-			//DEBUG
-			swprintf(specialMessage, _T("%s%i, "), debug_builder, mode);
-			lstrcpy(debug_builder, specialMessage);
-			debug_count++;
-			if (debug_count > 4) {
-				//Add some stuff...
-				swprintf(specialMessage, _T("%s] and"), debug_builder);
-				lstrcpy(debug_builder, specialMessage);
-
-
-				//swprintf(specialMessage, _T("%s  shift test: %i"),debug_builder, doubleRightShift(260, 4));
-				//return 0;
-
-
-
-				//DEBUG
-				/*if (!dynHeader->decode(*input)) {
-					swprintf(specialMessage, _T("%s  DECODE FAILED!"), debug_builder);
-					return 0;
-				}
-				litlenTree = dynHeader->buildLitLenTree();
-				distTree = dynHeader->buildDistTree();
-				mode = DECODE_HUFFMAN;*/
-
-
-				//swprintf(specialMessage, _T("%s  "), dynHeader->specialMessage);
-				
-				//DEBUG
-				//decodeHuffman();
-
-
-				//swprintf(specialMessage, _T("%s] and now: %s"), debug_builder, test->specialString);
-
-				//return 0;
-			}
-
-
 		if (mode != DECODE_CHKSUM) {
 	    /* Don't give away any output, if we are waiting for the
 	     * checksum in the input stream.
@@ -196,22 +153,23 @@ int Inflater::inflate(char* buf, int buf_length, int off, int len)
 	     *   needsInput() and not finished() 
 	     *   implies more output can be produced.  
 	     */
+			//Might be a bug here, but I don't think so...
 			more = outputWindow->copyOutput(buf, off, len);
 
-
-			//DEBUG:
-			/*if (outputWindow->window_filled != 0)
-				swprintf(specialMessage, _T("window_filled is: %i"), outputWindow->window_filled);*/
-
-
 			adler->update(buf, off, more);
+
 			off += more;
 			count += more;
 			totalOut += more;
 			len -= more;
-			if (len == 0)
+			if (len == 0) {
+				//This is a splitting point... a lot of function calls return here.
+				// The first three calls continue onwards... and I think that's where the bug is...
 				return count;
+			}
 		}
+
+		//This is correct....
     } while (decode() || (outputWindow->getAvailable() > 0 && mode != DECODE_CHKSUM));
     return count;
 }
@@ -264,7 +222,8 @@ void Inflater::setDictionary (char* buffer, int off, int len)
       throw new IllegalStateException();*/
 
     adler->update(buffer, off, len);
-    /*if ((int) adler.getValue() != readAdler)
+	long addTest = adler->getValue(); //from check below...
+    /*if ((int) addTest != readAdler)
       throw new IllegalArgumentException("Wrong adler checksum");*/
     adler->reset();
     outputWindow->copyDict(buffer, off, len);
@@ -311,6 +270,9 @@ bool Inflater::decodeHeader()
 		mode = DECODE_DICT;
 		neededBits = 32;      
     }
+
+	
+
     return true;
 }
 
@@ -455,6 +417,8 @@ bool Inflater::decode()
     switch (mode) 
 	{
 		case DECODE_HEADER:
+			//First call returns here...
+			//This seems ok...
 			return decodeHeader();
 		case DECODE_DICT:
 			return decodeDict();
@@ -499,6 +463,9 @@ bool Inflater::decode()
 				/*default:
 					throw new DataFormatException("Unknown block type "+type); */
 			}
+
+			//Second call returns here...
+
 			return true;
 		}
 		case DECODE_STORED_LEN1:
@@ -529,9 +496,14 @@ bool Inflater::decode()
 			return !input->needsInput();
 		}
 		case DECODE_DYN_HEADER:
+			//Decode might be wrong...
 			if (!dynHeader->decode(*input))
 				return false;
+
+			//This is correct
 			litlenTree = dynHeader->buildLitLenTree();
+
+			//This is correct
 			distTree = dynHeader->buildDistTree();
 			mode = DECODE_HUFFMAN;
 			//fall through
@@ -539,6 +511,8 @@ bool Inflater::decode()
 		case DECODE_HUFFMAN_LENBITS:
 		case DECODE_HUFFMAN_DIST:
 		case DECODE_HUFFMAN_DISTBITS:
+			//Third call returns here.. and a later one, too.
+			// This might be wrong... check decode first...
 			return decodeHuffman();
 		case FINISHED:
 			return false;

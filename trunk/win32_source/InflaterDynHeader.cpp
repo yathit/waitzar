@@ -57,7 +57,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 //    decode_loop:
     for (;;) {		
 		switch (mode) {
-			case LNUM:
+			case LNUM: //First time
 				lnum = input.peekBits(5);
 				if (lnum < 0)
 					return false;
@@ -109,8 +109,16 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 					blLens[BL_ORDER[ptr]] = (char) len;
 					ptr++;
 				}
+
+
+					    long debug_sum = 0;
+	    for (int q=0; q<19; q++)
+	    	debug_sum += blLens[q];
+
+
 				blTree = new InflaterHuffmanTree(blLens, 19);
 				delete [] blLens;
+				blLens = NULL;
 				ptr = 0;
 				mode = LENS;
 
@@ -119,29 +127,15 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 
 				//Fall through
 			}
-			case LENS:
+			case LENS:  //First 1 fallthrough + Final 12 times
+				//If there's an error, it's here.....   (or in REPS)
 			{
 				int symbol;
-
-				//DEBUG
-				TCHAR debug_msg[300];
-				lstrcpy(debug_msg, _T("["));
-
 				for(;;) {
 					//Ah, whoops...
 					symbol = blTree->getSymbol(input);
 					if (((symbol) & ~15) != 0)
 						break;
-
-					//DEBUG
-					//swprintf(specialMessage, _T("%s%i, "), debug_msg, symbol);
-					//lstrcpy(debug_msg, specialMessage);
-
-					//Special
-					/*if (symbol==0) {
-						swprintf(specialMessage, _T("%s%s"), debug_msg, blTree->specialString);
-						return true;
-					}*/
 
 					//Normal case: symbol in [0..15]
 					lastLen = (char)symbol;
@@ -152,10 +146,6 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 					}
 				}
 				//need more input?
-
-				//DEBUG:
-				//swprintf(specialMessage, _T("%s]"), debug_msg);
-				//return true;
 
 				if (symbol < 0)
 					return false;

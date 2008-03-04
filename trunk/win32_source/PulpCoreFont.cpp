@@ -223,16 +223,28 @@ void PulpCoreFont::readData(int length)
 	char* currScanline = new char[bytesPerScanline];
     char* filterBuffer = new char[1];
     int index = 0;
+
+	//Java inits...
+	filterBuffer[0] = 0;
+	for (int i=0; i<bytesPerScanline; i++)
+		currScanline[i] = 0;
         
     for (int i=0; i<height; i++) {
+		//For some reason, this is pulling out a "64" after 12/26 hits.... weird...
+		//Possibly, the input stream is 1 byte behind (the next byte is a zero, which
+		//  is what filter SHOULD be...)
 		inflateFully(inflater, filterBuffer, 1);
 
-		//DEBUG
 		if (error==TRUE)
 			return;
 
-
 		inflateFully(inflater, currScanline, bytesPerScanline);
+
+		//DEBUG
+		int debug_sum = 0;
+		for (int q=0; q<bytesPerScanline; q++)
+			debug_sum += (int)currScanline[q];
+
         int filter = filterBuffer[0];
             
         // Apply filter
@@ -242,6 +254,10 @@ void PulpCoreFont::readData(int length)
 			error = TRUE;
 			swprintf(errorMsg, _T("Illegal filter type: %i"), filter);
         }
+
+
+		if (error==TRUE)
+			return;
             
         //Convert bytes into ARGB pixels
         int srcIndex = 0;
