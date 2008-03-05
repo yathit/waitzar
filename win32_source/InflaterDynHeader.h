@@ -69,6 +69,6 @@ private:
 	int mode;
 	int lnum, dnum, blnum, num;
 	int repSymbol;
-	short lastLen;
+	char lastLen;
 	int ptr;
 };
