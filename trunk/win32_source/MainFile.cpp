@@ -505,12 +505,14 @@ void calculate() {
 	}
 
 	//Now, draw the strings....
-	SetTextColor(underDC, RGB(0, 128, 0));
+	mmFont->drawString(underDC, currStr, 10, 10);
+
+	/*SetTextColor(underDC, RGB(0, 128, 0));
 	SetBkMode(underDC, TRANSPARENT);
 	//SelectObject(underDC, zgFont);
 	TextOut(underDC, 10, 10, currStr, lstrlen(currStr));
 	TextOut(underDC, 10, C_HEIGHT/2+10, myanmarStr, lstrlen(myanmarStr));
-	SetBkMode(underDC, OPAQUE);
+	SetBkMode(underDC, OPAQUE);*/
 	
 
 		//DEBUG
