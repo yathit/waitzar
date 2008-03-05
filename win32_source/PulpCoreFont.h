@@ -58,6 +58,9 @@ public:
 	BOOL isInError();
 	TCHAR* getErrorMsg();
 
+	void drawString(HDC gc, TCHAR* str, int xPos, int yPos);
+
+
 private:
 	//Data regarding the image
 	int bitDepth;

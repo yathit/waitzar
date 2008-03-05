@@ -188,27 +188,6 @@ void PulpCoreFont::readAnimation()
 
 void PulpCoreFont::readData(int length) 
 {   
-	//We're going to have to convert a section of our data from char[] to short[]
-	//short* DEBUG = new short[100];
-
-
-	//DEBUG
-	//Java: DataLen: 39508  pos: 324   len: 13843
-	// C++: DataLen: 39508  pos: 324   len: 13843
-	/*swprintf(errorMsg, _T("DataLen: %i  pos: %i   len: %i"), res_size, currPos, length);
-	error = TRUE;
-	return;*/
-	//DEBUG
-	//DataLen: 4510  pos: 192   len: 3703
-	/*TCHAR debug_msg[400];
-	lstrcpy(debug_msg, _T("["));
-	for (int i=0; i<10; i++) {
-		swprintf(errorMsg, _T("%s%x, "), debug_msg, (0xFF&res_data[currPos+i]));
-		lstrcpy(debug_msg, errorMsg);
-	}
-	error = TRUE;
-	return;*/
-
 	Inflater* inflater = new Inflater();
 	inflater->setInput(res_data, currPos, length);
         
@@ -516,6 +495,13 @@ int PulpCoreFont::readByte()
 {
 	return (0xFF&res_data[currPos++]);
 }
+
+
+
+void PulpCoreFont::drawString(HDC gc, TCHAR* str, int xPos, int yPos)
+{
+}
+
 
 
 
