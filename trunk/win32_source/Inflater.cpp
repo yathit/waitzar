@@ -293,15 +293,8 @@ bool Inflater::decodeDict()
 
 bool Inflater::decodeHuffman()
 {
+	//Correct...
 	int free = outputWindow->getFreeSpace();
-
-
-	//DEBUG
-	//TCHAR debug_msg[300];
-	//lstrcpy(debug_msg, specialMessage);
-
-
-
 
     while (free >= 258) {
 		int symbol;
@@ -512,7 +505,7 @@ bool Inflater::decode()
 		case DECODE_HUFFMAN_DIST:
 		case DECODE_HUFFMAN_DISTBITS:
 			//Third call returns here.. and a later one, too.
-			// This might be wrong... check decode first...
+			// This might be wrong... check decode first... (decode's ok... must be here)
 			return decodeHuffman();
 		case FINISHED:
 			return false;

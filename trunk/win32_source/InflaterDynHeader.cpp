@@ -52,6 +52,7 @@ InflaterDynHeader::~InflaterDynHeader()
 }
 
 
+//There appears to be no error here.
 bool InflaterDynHeader::decode(StreamManipulator &input)
 {
 //    decode_loop:
@@ -121,25 +122,20 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				blLens = NULL;
 				ptr = 0;
 				mode = LENS;
-
-				//swprintf(specialMessage, _T("Made it through BLLENS"));
-				//return true;
-
 				//Fall through
 			}
 			case LENS:  //First 1 fallthrough + Final 12 times
-				//If there's an error, it's here.....   (or in REPS)
 			{
-				int symbol;
+				int symbol = 0;
 				for(;;) {
-					//Ah, whoops...
+					//Nothing wrong here...
 					symbol = blTree->getSymbol(input);
 					if (((symbol) & ~15) != 0)
 						break;
 
+					//Nothing wrong here...
 					//Normal case: symbol in [0..15]
-					lastLen = (char)symbol;
-					litdistLens[ptr++] = (char)lastLen;
+					litdistLens[ptr++] = lastLen = (char)symbol;
 					if (ptr == num) {
 						//Finished
 						return true;
@@ -164,12 +160,14 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 			} //fall through
 			case REPS:
 			{
+
 				int bits = repBits[repSymbol];
 				int count = input.peekBits(bits);
 				if (count < 0)
 					return false;
 				input.dropBits(bits);
 				count += repMin[repSymbol];
+
 				/*if (ptr + count > num)
 					throw new DataFormatException();*/
 				while (count-- > 0)
@@ -181,7 +179,7 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				}
 			}
 			mode = LENS;
-			//goto decode_loop; //Does this actually do anything...?
+			//goto decode_loop; //Does this actually do anything...? //Anser: no
 		}
 
 

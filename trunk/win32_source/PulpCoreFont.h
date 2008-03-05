@@ -107,6 +107,6 @@ private:
 	DWORD res_size;
 
 	//Delete later
-	TCHAR debug_msg[100];
+//	TCHAR debug_msg[100];
 	int debug_count;
 };

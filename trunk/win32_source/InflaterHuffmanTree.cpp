@@ -198,12 +198,6 @@ int InflaterHuffmanTree::getSymbol(StreamManipulator &input)
     if (lookahead >= 0) {
 		symbol = tree[lookahead];
 		if (symbol >= 0) {
-			//DEBUG
-			//TCHAR debug_str[300];
-			//lstrcpy(debug_str, specialString);
-			//swprintf(specialString, _T("%s\nfirst return: %x"), debug_str, symbol);
-			//return 0;
-
 			input.dropBits(symbol & 15);
 			return doubleRightShift(symbol, 4);
 		}

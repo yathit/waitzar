@@ -30,7 +30,8 @@ OutputWindow::OutputWindow()
 
 void OutputWindow::write(int abyte)
 {
-    /*if (window_filled++ == WINDOW_SIZE)
+	window_filled++;
+    /*if (window_filled == WINDOW_SIZE)
       throw new IllegalStateException("Window full");*/
     window[window_end++] = (char) abyte;
     window_end &= WINDOW_MASK;
