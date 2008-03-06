@@ -437,6 +437,14 @@ void PulpCoreFont::fontSet()
     bearingLeft = new int[numChars];
     bearingRight = new int[numChars];
 
+	//Java inits...
+	for (int i=0; i<num_char_pos; i++) 
+		charPositions[i] = 0;
+	/*for (int i=0; i<numChars; i++) {
+		bearingLeft[i] = 0;
+		bearingRight[i] = 0;
+	}*/
+
 	//Read character positions
     for (int i=0; i<num_char_pos; i++) {
 		charPositions[i] = readShort();
@@ -451,8 +459,8 @@ void PulpCoreFont::fontSet()
 			bearingLeft[i] = 0;
 			bearingRight[i] = 0;
         }
-        uppercaseOnly = (lastChar < 'a');
 	}
+	uppercaseOnly = (lastChar < 'a');
 }
 
 
@@ -549,14 +557,14 @@ int PulpCoreFont::readInt()
 	return retVal;
 }
 
-int PulpCoreFont::readShort()
+short PulpCoreFont::readShort()
 {
 	int retVal = (((0xFF&res_data[currPos])<<8)  | ((0xFF&res_data[currPos+1])));
 	currPos += 2;
 	return retVal;
 }
 
-int PulpCoreFont::readByte()
+char PulpCoreFont::readByte()
 {
 	return (0xFF&res_data[currPos++]);
 }
@@ -570,20 +578,9 @@ void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
 	if (str==NULL || numChars==0 || directPixels==NULL)
 		return;
 
-	//Test
-	BOOL res = AlphaBlend(
-			   bufferDC, 34, 0, 200, 26,   //Destination
-			   directDC, 0, 0, 200, 26,    //Source
-			   blendFunc				   //Method
-		);
-
-	int x = 10;
-
-
-
 
 	//Loop through all letters...
-/*	int nextIndex = getCharIndex(str[0]);
+	int nextIndex = getCharIndex(str[0]);
 	int startX = xPos;
     for (int i=0; i<numChars; i++) {
 		int index = nextIndex;
@@ -591,10 +588,10 @@ void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
         int charWidth = charPositions[index+1] - pos;
 
 		//Draw this letter
-		BitBlt(
-			   gc, startX, yPos, charWidth, height,  //Destination
-			   directDC, pos, 0,						 //Source
-			   SRCCOPY								 //Method
+		AlphaBlend(
+			   bufferDC, startX, yPos, charWidth, height,   //Destination
+			   directDC, pos, 0, charWidth, height,    //Source
+			   blendFunc				   //Method
 		);
 
 		//Prepare next character.... if any
@@ -603,7 +600,7 @@ void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
             int dx = charWidth + getKerning(index, nextIndex);
 			startX += dx;
         }
-    }*/
+    }
 }
 
 
@@ -621,10 +618,10 @@ int PulpCoreFont::getCharIndex(TCHAR ch)
 }
 
 
-int PulpCoreFont::getKerning(TCHAR left, TCHAR right)
+/*int PulpCoreFont::getKerning(TCHAR left, TCHAR right)
 {
 	return getKerning(getCharIndex(left), getCharIndex(right));
-}
+}*/
 
 int PulpCoreFont::getKerning(int leftIndex, int rightIndex)
 {
