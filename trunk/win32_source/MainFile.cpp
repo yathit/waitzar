@@ -529,17 +529,18 @@ void calculate() {
 	Rectangle(underDC, 0, 0, C_WIDTH, C_HEIGHT);
 	/*SelectObject(underDC, g_BlackBkgrd);
 	Rectangle(underDC, 5, 5, C_WIDTH-5, C_HEIGHT/2-5);
-	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);
+	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);*/
 
 	//Selection boxes?
-	SelectObject(underDC, g_YellowBkgrd);
+	SelectObject(underDC, g_GreenBkgrd);
 	int id = model->getCurrSelectedID();
 	if (id != -1) {
-		Rectangle(underDC, 10+20*id, 10+20*id, 30+20*id, 30+20*id);
-	}*/
+		Rectangle(underDC, 10+20*id, 50, 30+20*id, 90);
+	}
 
 	//Now, draw the strings....
-	mmFont->drawString(underDC, myanmarStr, 10, 10);
+	mmFont->drawString(underDC, currStr, 10, 10);
+	mmFont->drawString(underDC, myanmarStr, 10, C_HEIGHT/2+10);
 
 	/*SetTextColor(underDC, RGB(0, 128, 0));
 	SetBkMode(underDC, TRANSPARENT);
@@ -834,7 +835,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                  hwnd,              //Owner
                                  NULL);            //MSDN: Ignored
 				if (retVal == IDM_HELP) {
-					MessageBox(NULL, _T("WaitZar version 1.0 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed. It works without it, but you'll be \"typing blind\"."), _T("About"), MB_ICONINFORMATION | MB_OK);
+					MessageBox(NULL, _T("WaitZar version 1.1 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed. It works without it, but you'll be \"typing blind\"."), _T("About"), MB_ICONINFORMATION | MB_OK);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(hwnd, FALSE);
 				} else if (retVal == IDM_MYANMAR) {

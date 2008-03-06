@@ -107,8 +107,8 @@ private:
 	int premultiply(UINT arbg);
 	void premultiply(UINT* arbg, int argb_len);
     int readInt();
-    int readShort();
-	int readByte();
+    short readShort();
+	char readByte();
 	void inflateFully(Inflater* inflater, char* result, int res_length);
 	int getCharIndex(TCHAR ch);
 	int getKerning(TCHAR left, TCHAR right);
