@@ -5,11 +5,11 @@
 	NOTE: This source file is licensed under the New BSD License, unlike the remainder
 	of the WaitZar project, which is licensed under the Apache License 2.0. This file is an
 	amalgamation of several Java source files in the Pulp Core project, and is used primarily
-	for reading an annotated version of the PNG format. 
+	for reading an annotated version of the PNG format.
 
 	Please see:
 	http://code.google.com/p/pulpcore/
-	...for the latest licensing information regarding the Pulp Core project. 
+	...for the latest licensing information regarding the Pulp Core project.
 */
 
 #include ".\pulpcorefont.h"
@@ -21,7 +21,7 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 	lstrcpy(this->errorMsg, _T(""));
 
 	//Get raw data
-	//NOTE: Can I retrieve this as an array of shorts instead of chars? 
+	//NOTE: Can I retrieve this as an array of shorts instead of chars?
 	//     If not, then I have to convert it for use with Inflater->setInput()
     res_data = (char*)LockResource(dataHandle);
     res_size = SizeofResource(NULL, resource);
@@ -30,7 +30,7 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 
 	//Loop through all bytes...
 	currPos = 0;
-	
+
 	//Read the png signature
 	for (int i=0; i<8; i++) {
 		if (res_data[currPos++] != PNG_SIGNATURE[i] && error==FALSE) {
@@ -67,7 +67,7 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 
 		//Ignore CRC
         readInt();
-            
+
 		//Continue?
         if (chunkType == CHUNK_IEND)
             break;
@@ -79,14 +79,45 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 		error = TRUE;
 	}
 
+
+	//Why are bitmaps loading upside-down....?
+	for (int x=0; x<width; x++) {
+		for (int y=0; y<height/2; y++) {
+			UINT temp = directPixels[y*width + x];
+			directPixels[y*width + x] = directPixels[(height-1-y)*width + x];
+			directPixels[(height-1-y)*width + x] = temp;
+		}
+	}
+
+
+	//Our pre-multiplied colors need some work...
+	/*for (int y=0; y<height; y++) {
+		for (int x=0; x<width; x++) {
+			//Get ARGB
+			int a = (directPixels[y*width+x]&0xFF000000)>>24;
+			int r = (directPixels[y*width+x]&0xFF0000)>>16;
+			int g = (directPixels[y*width+x]&0xFF00)>>8;
+			int b = (directPixels[y*width+x]&0xFF);*/
+
+			/*if (directPixels[y*width+x]!=0)
+				x = x;
+
+			//Set RGB
+			//int not1 = SetPixel(directDC, x, y, RGB(r, g, b));
+
+			//Set A?
+			int q = 1;*/
+		/*}
+	}*/
+
 	//Return our DC's object... not sure if this matters.
-	SelectObject(directDC, previousObject);
+	//SelectObject(directDC, previousObject);
 
 }
 
 
 
-void PulpCoreFont::readHeader(HDC currDC) 
+void PulpCoreFont::readHeader(HDC currDC)
 {
 	//Read basic image information
 	width = readInt();
@@ -99,9 +130,9 @@ void PulpCoreFont::readHeader(HDC currDC)
     bool supportedBitDepth = (bitDepth == 8 || (bitDepth == 4 && colorType == COLOR_TYPE_PALETTE));
 
 	//Simple error check
-    if (compressionMethod != 0 || filterMethod != 0 || interlaceMethod != 0 || !supportedBitDepth 
-		|| ( colorType != COLOR_TYPE_GRAYSCALE && colorType != COLOR_TYPE_RGB &&  colorType != COLOR_TYPE_PALETTE && 
-		     colorType != COLOR_TYPE_GRAYSCALE_WITH_ALPHA && colorType != COLOR_TYPE_RGB_WITH_ALPHA)) 
+    if (compressionMethod != 0 || filterMethod != 0 || interlaceMethod != 0 || !supportedBitDepth
+		|| ( colorType != COLOR_TYPE_GRAYSCALE && colorType != COLOR_TYPE_RGB &&  colorType != COLOR_TYPE_PALETTE &&
+		     colorType != COLOR_TYPE_GRAYSCALE_WITH_ALPHA && colorType != COLOR_TYPE_RGB_WITH_ALPHA))
 	{
 		//It's an error...
 		if (error==FALSE) {
@@ -117,27 +148,40 @@ void PulpCoreFont::readHeader(HDC currDC)
 
 
 	//Create a simple bitmap descriptor
-	BITMAPINFO bmpInfo; 
+	BITMAPINFO bmpInfo;
 	ZeroMemory(&bmpInfo,sizeof(BITMAPINFO));
 	bmpInfo.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
 	bmpInfo.bmiHeader.biWidth=width;
 	bmpInfo.bmiHeader.biHeight=height;
 	bmpInfo.bmiHeader.biPlanes=1;
 	bmpInfo.bmiHeader.biBitCount=32;
+	bmpInfo.bmiHeader.biCompression = BI_RGB;
+	bmpInfo.bmiHeader.biSizeImage = width * height & sizeof(UINT);
+
+	//Create the blend function now...
+	blendFunc.BlendOp = AC_SRC_OVER;
+	blendFunc.BlendFlags = 0; //Must be zero
+	blendFunc.SourceConstantAlpha = 0xFF; //Blend at the pixel leve only.
+	blendFunc.AlphaFormat = AC_SRC_ALPHA;
 
 	//Create the DIB to copy pixels onto
 	directDC = CreateCompatibleDC(currDC);
-	directBitmap = CreateDIBSection(directDC, (BITMAPINFO *)&bmpInfo,  DIB_RGB_COLORS, (void **)&directPixels, NULL, 0);
+	
+	//TEST
+	
+
+	//Make the bitmap to use....
+	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
+	previousObject = SelectObject(directDC, directBitmap);
 	if (directBitmap==NULL && error==FALSE) {
 		lstrcpy(errorMsg, _T("Couldn't create font bitmap."));
 		error = TRUE;
 		return;
 	}
-	previousObject = SelectObject(directDC, directBitmap);
 }
 
 
-void PulpCoreFont::readPalette(int length) 
+void PulpCoreFont::readPalette(int length)
 {
 	//Palettes must be %3
 	if (length%3!=0 && error==FALSE) {
@@ -156,13 +200,13 @@ void PulpCoreFont::readPalette(int length)
         int r = readByte();
         int g = readByte();
         int b = readByte();
-            
+
         palette[i] = (a << 24) | (r << 16) | (g << 8) | b;
     }
 }
 
 
-void PulpCoreFont::readTransparency(int length) 
+void PulpCoreFont::readTransparency(int length)
 {
 	//Was the palette valid
 	if ((palette == NULL || length > pal_length) && error==FALSE) {
@@ -176,14 +220,14 @@ void PulpCoreFont::readTransparency(int length)
 		int a = readByte();
         if (a<0xFF)
 			isOpaque = false;
-        
+
 		//CoreGraphics.PREMULTIPLIED_ALPHA is always true...
         palette[i] = premultiply((a << 24) | (palette[i] & 0xffffff));
     }
 }
 
 
-void PulpCoreFont::readAnimation() 
+void PulpCoreFont::readAnimation()
 {
 	//Init
 	int numFramesAcross = readShort();
@@ -192,7 +236,7 @@ void PulpCoreFont::readAnimation()
     int frames = readShort();
     int* frameSequence = new int[frames];
     int* frameDuration = new int[frames];
-    
+
 	//Read sequences & durations
     for (int i=0; i<frames; i++)
 		frameSequence[i] = readShort();
@@ -207,11 +251,11 @@ void PulpCoreFont::readAnimation()
 }
 
 
-void PulpCoreFont::readData(int length) 
-{   
+void PulpCoreFont::readData(int length)
+{
 	Inflater* inflater = new Inflater();
 	inflater->setInput(res_data, currPos, length);
-        
+
     int bitsPerPixel = bitDepth * SAMPLES_PER_PIXEL[colorType];
     int bytesPerPixel = (bitsPerPixel + 7) / 8;
     int bytesPerScanline = (width * bitsPerPixel + 7) / 8;
@@ -224,7 +268,7 @@ void PulpCoreFont::readData(int length)
 	filterBuffer[0] = 0;
 	for (int i=0; i<bytesPerScanline; i++)
 		currScanline[i] = 0;
-        
+
     for (int i=0; i<height; i++) {
 		//For some reason, this is pulling out a "64" after 12/26 hits.... weird...
 		//Possibly, the input stream is 1 byte behind (the next byte is a zero, which
@@ -242,7 +286,7 @@ void PulpCoreFont::readData(int length)
 			debug_sum += (int)currScanline[q];*/
 
         int filter = filterBuffer[0];
-            
+
         // Apply filter
         if (filter > 0 && filter < 5)
 			decodeFilter(currScanline, bytesPerScanline, prevScanline, filter, bytesPerPixel);
@@ -254,7 +298,7 @@ void PulpCoreFont::readData(int length)
 
 		if (error==TRUE)
 			return;
-            
+
         //Convert bytes into ARGB pixels
         int srcIndex = 0;
         switch (colorType) {
@@ -271,7 +315,7 @@ void PulpCoreFont::readData(int length)
                     int b = currScanline[srcIndex++] & 0xff;
                     directPixels[index++] = (0xff << 24) | (r << 16) | (g << 8) | b;
                 }
-                break;    
+                break;
             case COLOR_TYPE_PALETTE:
                 if (bitDepth == 8) {
                     for (int j = 0; j < width; j++)
@@ -290,14 +334,14 @@ void PulpCoreFont::readData(int length)
                         directPixels[index++] = palette[doubleRightShift(b, 4)];
                     }
                 }
-                break;    
+                break;
             case COLOR_TYPE_GRAYSCALE_WITH_ALPHA:
                 for (int j = 0; j < width; j++) {
                     int v = currScanline[srcIndex++] & 0xff;
                     int a = currScanline[srcIndex++] & 0xff;
                     directPixels[index++] = (a << 24) | (v << 16) | (v << 8) | v;
                 }
-                break;        
+                break;
             case COLOR_TYPE_RGB_WITH_ALPHA:
                 for (int j = 0; j < width; j++) {
                     int r = currScanline[srcIndex++] & 0xff;
@@ -306,22 +350,22 @@ void PulpCoreFont::readData(int length)
                     int a = currScanline[srcIndex++] & 0xff;
                     directPixels[index++] = (a << 24) | (r << 16) | (g << 8) | b;
                 }
-                break;                
+                break;
         }
-            
+
         //Swap curr and prev scanlines
         char* temp = currScanline;
         currScanline = prevScanline;
         prevScanline = temp;
     }
-        
-    if (/*CoreGraphics.PREMULTIPLIED_ALPHA &&*/ 
-        (colorType == COLOR_TYPE_GRAYSCALE_WITH_ALPHA || 
+
+    if (/*CoreGraphics.PREMULTIPLIED_ALPHA &&*/
+        (colorType == COLOR_TYPE_GRAYSCALE_WITH_ALPHA ||
         colorType == COLOR_TYPE_RGB_WITH_ALPHA))
     {
         premultiply(directPixels, width*height);
     }
-        
+
     inflater->end();
 	currPos += length;
 
@@ -333,7 +377,7 @@ void PulpCoreFont::readData(int length)
 }
 
 
-void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length) 
+void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length)
 {
 	int bytesRead = 0;
 
@@ -370,7 +414,7 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
     }
 }
 
-void PulpCoreFont::fontSet() 
+void PulpCoreFont::fontSet()
 {
 	//Read PulpCore's magic number
 	for (int i=0; i<8; i++) {
@@ -385,19 +429,19 @@ void PulpCoreFont::fontSet()
     lastChar = readShort();
     tracking = readShort();
 	bool hasBearing = (readByte()!=0);
-    
+
 	//Initialize arrays
     int numChars = lastChar - firstChar + 1;
 	num_char_pos = numChars + 1;
     charPositions = new int[num_char_pos];
     bearingLeft = new int[numChars];
     bearingRight = new int[numChars];
-     
+
 	//Read character positions
     for (int i=0; i<num_char_pos; i++) {
 		charPositions[i] = readShort();
     }
-        
+
 	//Read bearings
     for (int i = 0; i < numChars; i++) {
 		if (hasBearing) {
@@ -412,10 +456,10 @@ void PulpCoreFont::fontSet()
 }
 
 
-void PulpCoreFont::decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp) 
+void PulpCoreFont::decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp)
 {
     int length = curr_len;
-        
+
     if (filter == 1) {
         // Input = Sub
         // Raw(x) = Sub(x) + Raw(x-bpp)
@@ -445,7 +489,7 @@ void PulpCoreFont::decodeFilter(char* curr, int curr_len, char* prev, int filter
             curr[i] = (char)(curr[i] + prev[i]);
         }
         for (int i = bpp; i < length; i++) {
-            curr[i] = (char)(curr[i] + 
+            curr[i] = (char)(curr[i] +
                 paethPredictor(curr[i - bpp] & 0xff, prev[i] & 0xff, prev[i - bpp] & 0xff));
         }
     }
@@ -453,16 +497,16 @@ void PulpCoreFont::decodeFilter(char* curr, int curr_len, char* prev, int filter
 
 
 // a = left, b = above, c = upper left
-int PulpCoreFont::paethPredictor(int a, int b, int c) 
+int PulpCoreFont::paethPredictor(int a, int b, int c)
 {
     // Initial estimate
     int p = a + b - c;
-       
+
     // Distances to a, b, c
     int pa = abs(p - a);
     int pb = abs(p - b);
     int pc = abs(p - c);
-    
+
     // Return nearest of a,b,c, breaking ties in order a,b,c.
     if (pa <= pb && pa <= pc) {
         return a;
@@ -483,36 +527,36 @@ void PulpCoreFont::premultiply(UINT* arbg, int argb_len)
 }
 
 
-int PulpCoreFont::premultiply(UINT arbg) 
+int PulpCoreFont::premultiply(UINT arbg)
 {
 	int a = doubleRightShift(arbg, 24) & 0xFF;
 	int r = doubleRightShift(arbg, 16) & 0xFF;
 	int g = doubleRightShift(arbg, 8) & 0xFF;
     int b = arbg & 0xFF;
-    
+
 	r = (a * r + 127) / 255;
     g = (a * g + 127) / 255;
     b = (a * b + 127) / 255;
-        
+
     return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
 
-int PulpCoreFont::readInt() 
+int PulpCoreFont::readInt()
 {
 	int retVal = (((0xFF&res_data[currPos])<<24)  | ((0xFF&res_data[currPos+1])<<16) | ((0xFF&res_data[currPos+2])<<8) | ((0xFF&res_data[currPos+3]))) ;
 	currPos += 4;
 	return retVal;
 }
 
-int PulpCoreFont::readShort() 
+int PulpCoreFont::readShort()
 {
 	int retVal = (((0xFF&res_data[currPos])<<8)  | ((0xFF&res_data[currPos+1])));
 	currPos += 2;
 	return retVal;
 }
 
-int PulpCoreFont::readByte() 
+int PulpCoreFont::readByte()
 {
 	return (0xFF&res_data[currPos++]);
 }
@@ -526,16 +570,15 @@ void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
 	if (str==NULL || numChars==0 || directPixels==NULL)
 		return;
 
-
 	//Test
-	BOOL res = BitBlt(
-			   bufferDC, 34, 0, 200, 26,  //Destination
-			   directDC, 0, 0,						 //Source
-			   SRCCOPY								 //Method
+	BOOL res = AlphaBlend(
+			   bufferDC, 34, 0, 200, 26,   //Destination
+			   directDC, 0, 0, 200, 26,    //Source
+			   blendFunc				   //Method
 		);
 
 	int x = 10;
-	
+
 
 
 
@@ -546,14 +589,14 @@ void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
 		int index = nextIndex;
         int pos = charPositions[index];
         int charWidth = charPositions[index+1] - pos;
-            
+
 		//Draw this letter
 		BitBlt(
 			   gc, startX, yPos, charWidth, height,  //Destination
 			   directDC, pos, 0,						 //Source
 			   SRCCOPY								 //Method
 		);
-            
+
 		//Prepare next character.... if any
         if (i < numChars-1) {
             nextIndex = getCharIndex(str[i + 1]);
@@ -564,16 +607,16 @@ void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
 }
 
 
-int PulpCoreFont::getCharIndex(TCHAR ch) 
+int PulpCoreFont::getCharIndex(TCHAR ch)
 {
 	//Special-case (not in WZ)
 	if (uppercaseOnly && ch>='a' &&ch<= 'z')
 		ch += 'A' - 'a';
-	
+
 	//Bound
 	if (ch<firstChar || ch>lastChar)
 		ch = lastChar;
-    
+
 	return ch - firstChar;
 }
 
@@ -586,14 +629,14 @@ int PulpCoreFont::getKerning(TCHAR left, TCHAR right)
 int PulpCoreFont::getKerning(int leftIndex, int rightIndex)
 {
 	// Future versions of this method might handle kerning pairs, like "WA" and "Yo"
-	if (tracking!=0 && (shouldIgnoreTracking(rightIndex) || shouldIgnoreTracking(leftIndex))) 
+	if (tracking!=0 && (shouldIgnoreTracking(rightIndex) || shouldIgnoreTracking(leftIndex)))
         return bearingRight[leftIndex] + bearingLeft[rightIndex];
 	else
 		return bearingRight[leftIndex] + tracking + bearingLeft[rightIndex];
 }
 
 
-bool PulpCoreFont::shouldIgnoreTracking(int index) 
+bool PulpCoreFont::shouldIgnoreTracking(int index)
 {
 	int width = (charPositions[index+1] - charPositions[index]);
 	int lsb = bearingLeft[index];
@@ -608,12 +651,12 @@ bool PulpCoreFont::shouldIgnoreTracking(int index)
 /////////////////////
 //Properties
 /////////////////////
-BOOL PulpCoreFont::isInError() 
+BOOL PulpCoreFont::isInError()
 {
 	return error;
 }
 
-TCHAR* PulpCoreFont::getErrorMsg() 
+TCHAR* PulpCoreFont::getErrorMsg()
 {
 	return errorMsg;
 }

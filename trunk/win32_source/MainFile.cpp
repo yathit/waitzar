@@ -148,6 +148,37 @@ int C_HEIGHT;
 
 
 
+void makeFont(HWND currHwnd) 
+{
+	//Load our font
+	HINSTANCE hInst = (HINSTANCE)GetWindowLong(currHwnd, GWL_HINSTANCE);
+	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT")); 
+	if (!fontRes) {
+		MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+        return;
+	}
+
+    HGLOBAL res_handle = LoadResource(NULL, fontRes);
+	if (!res_handle) {
+		MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+        return;
+	}
+	mmFont = new PulpCoreFont(fontRes, res_handle, gc);
+	if (mmFont->isInError() == TRUE) {
+		TCHAR errorStr[600];
+		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFont->getErrorMsg());
+
+		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+		return;
+	} else {
+		//For debug purposes:
+		//MessageBox(NULL, _T("WaitZar font loaded just fine!"), _T("Ok"), MB_ICONINFORMATION | MB_OK);
+	}
+	UnlockResource(res_handle);
+}
+
+
+
 BOOL loadModel(HINSTANCE hInst) {
 	//Load our embedded resource, the WaitZar model
 	HGLOBAL     res_handle = NULL;
@@ -493,9 +524,10 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 
 void calculate() {
 	//First, draw the background & boxes....
-	SelectObject(underDC, g_WhiteBkgrd);
-	Rectangle(underDC, 0, 0, C_WIDTH, C_HEIGHT);
+//	SelectObject(underDC, g_WhiteBkgrd);
 	SelectObject(underDC, g_BlackBkgrd);
+	Rectangle(underDC, 0, 0, C_WIDTH, C_HEIGHT);
+	/*SelectObject(underDC, g_BlackBkgrd);
 	Rectangle(underDC, 5, 5, C_WIDTH-5, C_HEIGHT/2-5);
 	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);
 
@@ -504,7 +536,7 @@ void calculate() {
 	int id = model->getCurrSelectedID();
 	if (id != -1) {
 		Rectangle(underDC, 10+20*id, 10+20*id, 30+20*id, 30+20*id);
-	}
+	}*/
 
 	//Now, draw the strings....
 	mmFont->drawString(underDC, myanmarStr, 10, 10);
@@ -572,6 +604,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			bmpDC = CreateCompatibleBitmap(gc, WINDOW_WIDTH, WINDOW_HEIGHT);
 			SelectObject(underDC, bmpDC);
+
+			//Make our font?
+			makeFont(hwnd);
 			
 			break;
 		}
@@ -762,6 +797,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
+		case WM_MOVE:
+			//Re-draw
+			calculate();
+			break;
 		case WM_NCHITTEST: //Allow dragging of the client area...
 		{
 			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
@@ -983,47 +1022,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		NULL, NULL, hInstance, NULL
 	);
 
-	//Load our font
-/*	zgFont = CreateFont(
-		-MulDiv(14, GetDeviceCaps(GetDC(hwnd), LOGPIXELSY), 72), //Font height in UNITS, gah...
-		0, //Width, make best-guess
-		0, 0, //Escapement, orientation
-		FW_NORMAL, //Font weight
-		FALSE, //Not italic
-		FALSE, //Not underlined
-		FALSE, //Not strikethrough
-		ANSI_CHARSET, //???
-		OUT_DEFAULT_PRECIS, //Output precision
-		CLIP_DEFAULT_PRECIS, //Default clipping, might get us into trouble with Zawgyi
-		CLEARTYPE_QUALITY, //Necessary, maybe cleartype is needed, too.
-		DEFAULT_PITCH | FF_DONTCARE, //Font pitch and family
-		_T("Zawgyi-One")
-	);*/
-/*	if (zgFont == NULL) {
-		MessageBox(NULL, _T("Font creation failed."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-	}*/
-	HRSRC res = FindResource(hInstance, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT")); 
-	if (!res) {
-		MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-        return 0;
-	}
-    HGLOBAL res_handle = LoadResource(NULL, res);
-	if (!res_handle) {
-		MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-        return 0;
-	}
-	mmFont = new PulpCoreFont(res, res_handle, gc);
-	if (mmFont->isInError() == TRUE) {
-		TCHAR errorStr[600];
-		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFont->getErrorMsg());
-
-		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
-		return 0;
-	} else {
-		//For debug purposes:
-		//MessageBox(NULL, _T("WaitZar font loaded just fine!"), _T("Ok"), MB_ICONINFORMATION | MB_OK);
-	}
-	UnlockResource(res_handle);
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
@@ -1106,6 +1104,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (loadModel(hInstance) == FALSE) {
 		DestroyWindow(hwnd);
 	}
+
+	
 
 	//For now...
 //	DestroyWindow(hwnd);
