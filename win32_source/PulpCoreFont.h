@@ -53,12 +53,12 @@ const int SAMPLES_PER_PIXEL[] = { 1, 0, 3, 1, 2, 0, 4 };
 class PulpCoreFont
 {
 public:
-	PulpCoreFont(HRSRC resource, HGLOBAL dataHandle);
+	PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
 
 	BOOL isInError();
 	TCHAR* getErrorMsg();
 
-	void drawString(HDC gc, TCHAR* str, int xPos, int yPos);
+	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);
 
 
 private:
@@ -78,6 +78,7 @@ private:
 	UINT *directPixels;
 	HBITMAP directBitmap;
 	HDC directDC;
+	HGDIOBJ previousObject;
 
 	//Font-specific properties
 	int firstChar;
@@ -94,7 +95,7 @@ private:
 	TCHAR errorMsg[300]; //Change back to 100 later...
 
 	//Private methods
-	void readHeader();
+	void readHeader(HDC currDC);
 	void readPalette(int length);
 	void readTransparency(int length);
 	void fontSet();
