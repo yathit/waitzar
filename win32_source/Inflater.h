@@ -109,10 +109,6 @@ public:
 	bool decodeHuffman();
 	bool decodeChksum();
 	bool decode();
-
-	//Move back to private later...
-	int mode;
-	TCHAR specialMessage[500]; //Delete later
 private:
 	void init(bool noWrap);
 	InflaterHuffmanTree* createLitlenTree();
@@ -127,6 +123,7 @@ private:
 	int totalOut;
 	int totalIn;
 	bool nowrap;
+	int mode;
 
 	StreamManipulator* input;
 	OutputWindow* outputWindow;

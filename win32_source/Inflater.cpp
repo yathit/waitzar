@@ -56,9 +56,6 @@ Inflater::~Inflater()
 		delete distTree;
 	if (adler!=NULL)
 		delete adler;
-
-
-	lstrcpy(specialMessage, _T(""));
 }
 
 

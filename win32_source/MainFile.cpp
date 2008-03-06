@@ -492,8 +492,10 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 }
 
 void calculate() {
-	//First, draw the background boxes....
+	//First, draw the background & boxes....
 	SelectObject(underDC, g_WhiteBkgrd);
+	Rectangle(underDC, 0, 0, C_WIDTH, C_HEIGHT);
+	SelectObject(underDC, g_BlackBkgrd);
 	Rectangle(underDC, 5, 5, C_WIDTH-5, C_HEIGHT/2-5);
 	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);
 
@@ -505,7 +507,7 @@ void calculate() {
 	}
 
 	//Now, draw the strings....
-	mmFont->drawString(underDC, currStr, 10, 10);
+	mmFont->drawString(underDC, myanmarStr, 10, 10);
 
 	/*SetTextColor(underDC, RGB(0, 128, 0));
 	SetBkMode(underDC, TRANSPARENT);
@@ -1018,8 +1020,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
 		return 0;
 	} else {
-		//TEMP
-		MessageBox(NULL, _T("WaitZar font loaded just fine!"), _T("Ok"), MB_ICONINFORMATION | MB_OK);
+		//For debug purposes:
+		//MessageBox(NULL, _T("WaitZar font loaded just fine!"), _T("Ok"), MB_ICONINFORMATION | MB_OK);
 	}
 	UnlockResource(res_handle);
 

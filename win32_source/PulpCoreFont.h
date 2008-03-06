@@ -68,11 +68,16 @@ private:
 	int width;
 	int height;
 	bool isOpaque;
-	int* imgData;
+	//int* imgData;
 	int hotspotX;
 	int hotspotY;
 	int* palette;
 	int pal_length;
+
+	//Drawing onto the bitmap's surface... ugh...
+	UINT *directPixels;
+	HBITMAP directBitmap;
+	HDC directDC;
 
 	//Font-specific properties
 	int firstChar;
@@ -97,19 +102,19 @@ private:
 	void readData(int length);
 	void decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp);
 	int paethPredictor(int a, int b, int c);
-	int premultiply(int arbg);
-	void premultiply(int* arbg, int argb_len);
+	int premultiply(UINT arbg);
+	void premultiply(UINT* arbg, int argb_len);
     int readInt();
     int readShort();
 	int readByte();
 	void inflateFully(Inflater* inflater, char* result, int res_length);
+	int getCharIndex(TCHAR ch);
+	int getKerning(TCHAR left, TCHAR right);
+	int getKerning(int leftIndex, int rightIndex);
+	bool shouldIgnoreTracking(int index);
 
 	//Useful globals
 	DWORD currPos;
 	char* res_data;
 	DWORD res_size;
-
-	//Delete later
-//	TCHAR debug_msg[100];
-	int debug_count;
 };

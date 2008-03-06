@@ -41,7 +41,6 @@ short bitReverse(int value)
  */
 InflaterHuffmanTree::InflaterHuffmanTree(char* codeLens, int codeL_len)
 {	
-	lstrcpy(specialString, _T(""));
 	debug_error_count = 0;
 
 	buildTree(codeLens, codeL_len);
