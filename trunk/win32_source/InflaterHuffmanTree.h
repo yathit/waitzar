@@ -44,16 +44,15 @@ public:
 	~InflaterHuffmanTree(void);
 
 	int getSymbol(StreamManipulator &input);
-
-	//Delete later:
-	TCHAR specialString[500];
-	int debug_error_count;
 private:
 	//Methods
 	void buildTree(char* codeLengths, int codeL_len);
 
 	//Fields
 	short* tree;
+	
+	//Semi-useful array bounds error checking
+	int debug_error_count;
 };
 
 

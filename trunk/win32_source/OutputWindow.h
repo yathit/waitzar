@@ -53,8 +53,6 @@ public:
 	int copyOutput(char* output, int offset, int len);
 	void reset();
 
-	//Move to private later...
-	int window_filled;
 private:
 	//Functions
 	void slowRepeat(int rep_start, int len, int dist);
@@ -62,6 +60,7 @@ private:
 	//Fields
 	char window[WINDOW_SIZE];
 	int window_end;
+	int window_filled;
 };
 
 
