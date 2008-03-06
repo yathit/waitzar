@@ -14,7 +14,7 @@
 
 #include ".\pulpcorefont.h"
 
-PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
+PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 {
 	//Init
 	this->error = FALSE;
@@ -48,7 +48,7 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
 		chunkType = readInt();
 
 		if (chunkType == CHUNK_IHDR)
-			readHeader();
+			readHeader(currDC);
 		else if (chunkType == CHUNK_HOTS) {
 			hotspotX = readInt();
 			hotspotY = readInt();
@@ -79,11 +79,14 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle)
 		error = TRUE;
 	}
 
+	//Return our DC's object... not sure if this matters.
+	SelectObject(directDC, previousObject);
+
 }
 
 
 
-void PulpCoreFont::readHeader() 
+void PulpCoreFont::readHeader(HDC currDC) 
 {
 	//Read basic image information
 	width = readInt();
@@ -123,13 +126,14 @@ void PulpCoreFont::readHeader()
 	bmpInfo.bmiHeader.biBitCount=32;
 
 	//Create the DIB to copy pixels onto
-	directDC = CreateCompatibleDC(NULL);
+	directDC = CreateCompatibleDC(currDC);
 	directBitmap = CreateDIBSection(directDC, (BITMAPINFO *)&bmpInfo,  DIB_RGB_COLORS, (void **)&directPixels, NULL, 0);
 	if (directBitmap==NULL && error==FALSE) {
 		lstrcpy(errorMsg, _T("Couldn't create font bitmap."));
 		error = TRUE;
 		return;
 	}
+	previousObject = SelectObject(directDC, directBitmap);
 }
 
 
@@ -515,15 +519,28 @@ int PulpCoreFont::readByte()
 
 
 
-void PulpCoreFont::drawString(HDC gc, TCHAR* str, int xPos, int yPos)
+void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
 {
 	//Don't loop through null or zero-lengthed strings
 	int numChars = lstrlen(str);
 	if (str==NULL || numChars==0 || directPixels==NULL)
 		return;
 
+
+	//Test
+	BOOL res = BitBlt(
+			   bufferDC, 34, 0, 200, 26,  //Destination
+			   directDC, 0, 0,						 //Source
+			   SRCCOPY								 //Method
+		);
+
+	int x = 10;
+	
+
+
+
 	//Loop through all letters...
-	int nextIndex = getCharIndex(str[0]);
+/*	int nextIndex = getCharIndex(str[0]);
 	int startX = xPos;
     for (int i=0; i<numChars; i++) {
 		int index = nextIndex;
@@ -543,7 +560,7 @@ void PulpCoreFont::drawString(HDC gc, TCHAR* str, int xPos, int yPos)
             int dx = charWidth + getKerning(index, nextIndex);
 			startX += dx;
         }
-    }
+    }*/
 }
 
 
