@@ -79,6 +79,7 @@ private:
 	HBITMAP directBitmap;
 	HDC directDC;
 	HGDIOBJ previousObject;
+	BLENDFUNCTION blendFunc;
 
 	//Font-specific properties
 	int firstChar;

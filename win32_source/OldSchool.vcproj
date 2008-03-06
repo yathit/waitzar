@@ -32,6 +32,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="msimg32.lib"
 				OutputFile="$(OutDir)/WaitZar.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
