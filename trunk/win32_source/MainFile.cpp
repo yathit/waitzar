@@ -128,7 +128,8 @@ HICON mmIcon;
 HICON engIcon;
 //HFONT zgFont;
 WordBuilder *model;
-PulpCoreFont *mmFont;
+PulpCoreFont *mmFontBlack;
+PulpCoreFont *mmFontGreen;
 PAINTSTRUCT Ps;
 
 //Double-buffering stuff
@@ -163,10 +164,10 @@ void makeFont(HWND currHwnd)
 		MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
         return;
 	}
-	mmFont = new PulpCoreFont(fontRes, res_handle, gc);
-	if (mmFont->isInError() == TRUE) {
+	mmFontBlack = new PulpCoreFont(fontRes, res_handle, gc);
+	if (mmFontBlack->isInError()==TRUE) {
 		TCHAR errorStr[600];
-		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFont->getErrorMsg());
+		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
 
 		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
 		return;
@@ -175,6 +176,14 @@ void makeFont(HWND currHwnd)
 		//MessageBox(NULL, _T("WaitZar font loaded just fine!"), _T("Ok"), MB_ICONINFORMATION | MB_OK);
 	}
 	UnlockResource(res_handle);
+
+
+	//Copy-construct a new font
+	mmFontGreen = new PulpCoreFont(mmFontBlack, gc);
+
+	//Tint both to their respective colors
+	mmFontGreen->tintSelf(0x008000);
+	mmFontBlack->tintSelf(0x000000);
 }
 
 
@@ -539,8 +548,8 @@ void calculate() {
 	}
 
 	//Now, draw the strings....
-	mmFont->drawString(underDC, currStr, 10, 10);
-	mmFont->drawString(underDC, myanmarStr, 10, C_HEIGHT/2+10);
+	mmFontGreen->drawString(underDC, currStr, 10, 10);
+	mmFontGreen->drawString(underDC, myanmarStr, 10, C_HEIGHT/2+10);
 
 	/*SetTextColor(underDC, RGB(0, 128, 0));
 	SetBkMode(underDC, TRANSPARENT);

@@ -54,11 +54,13 @@ class PulpCoreFont
 {
 public:
 	PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
+	PulpCoreFont(PulpCoreFont* copyFrom, HDC currDC);
 
 	BOOL isInError();
 	TCHAR* getErrorMsg();
 
 	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);
+	void tintSelf(UINT rgbColor);
 
 
 private:
@@ -78,8 +80,9 @@ private:
 	UINT *directPixels;
 	HBITMAP directBitmap;
 	HDC directDC;
-	HGDIOBJ previousObject;
+//	HGDIOBJ previousObject;
 	BLENDFUNCTION blendFunc;
+	BITMAPINFO bmpInfo;
 
 	//Font-specific properties
 	int firstChar;
@@ -96,6 +99,7 @@ private:
 	TCHAR errorMsg[300]; //Change back to 100 later...
 
 	//Private methods
+	void initBmpInfo();
 	void readHeader(HDC currDC);
 	void readPalette(int length);
 	void readTransparency(int length);

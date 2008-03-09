@@ -14,6 +14,78 @@
 
 #include ".\pulpcorefont.h"
 
+
+
+//Copy constructor
+PulpCoreFont::PulpCoreFont(PulpCoreFont *copyFrom, HDC currDC)
+{
+	//Init
+	this->error = copyFrom->error;
+	lstrcpy(this->errorMsg, copyFrom->errorMsg);
+
+	//Copy all relevant fields
+	this->bitDepth = copyFrom->bitDepth;
+	this->colorType = copyFrom->colorType;
+	this->width = copyFrom->width;
+	this->height = copyFrom->height;
+	this->isOpaque = copyFrom->isOpaque;
+	this->hotspotX = copyFrom->hotspotX;
+	this->hotspotY = copyFrom->hotspotY;
+	this->num_char_pos = copyFrom->num_char_pos;
+	this->uppercaseOnly = copyFrom->uppercaseOnly;
+	this->pal_length = copyFrom->pal_length;
+	this->firstChar = copyFrom->firstChar;
+	this->lastChar = copyFrom->lastChar;
+	this->tracking = copyFrom->tracking;
+
+	//We're probably safe passing a reference.
+	this->palette = copyFrom->palette;
+	this->charPositions = copyFrom->charPositions;
+	this->bearingLeft = copyFrom->bearingLeft;
+	this->bearingRight = copyFrom->bearingRight;
+
+
+	initBmpInfo();
+
+	//Create the DIB to copy pixels onto
+	directDC = CreateCompatibleDC(currDC);
+	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
+	SelectObject(directDC, directBitmap);
+	if (directBitmap==NULL && error==FALSE) {
+		lstrcpy(errorMsg, _T("Couldn't create font bitmap."));
+		error = TRUE;
+		return;
+	}
+
+	//Copy pixels
+	for (int i=0; i<width*height; i++)  {
+		this->directPixels[i] = copyFrom->directPixels[i];
+	}
+}
+
+
+
+void PulpCoreFont::initBmpInfo() 
+{
+	//Create a simple bitmap descriptor
+	ZeroMemory(&bmpInfo,sizeof(BITMAPINFO));
+	bmpInfo.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+	bmpInfo.bmiHeader.biWidth=width;
+	bmpInfo.bmiHeader.biHeight=height;
+	bmpInfo.bmiHeader.biPlanes=1;
+	bmpInfo.bmiHeader.biBitCount=32;
+	bmpInfo.bmiHeader.biCompression = BI_RGB;
+	bmpInfo.bmiHeader.biSizeImage = width * height & sizeof(UINT);
+
+	//Create the blend function now...
+	blendFunc.BlendOp = AC_SRC_OVER;
+	blendFunc.BlendFlags = 0; //Must be zero
+	blendFunc.SourceConstantAlpha = 0xFF; //Blend at the pixel leve only.
+	blendFunc.AlphaFormat = AC_SRC_ALPHA;
+}
+
+
+
 PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 {
 	//Init
@@ -111,6 +183,7 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 	}*/
 
 	//Return our DC's object... not sure if this matters.
+	//Absolutely unsafe to do!
 	//SelectObject(directDC, previousObject);
 
 }
@@ -147,22 +220,9 @@ void PulpCoreFont::readHeader(HDC currDC)
 		isOpaque = false;
 
 
-	//Create a simple bitmap descriptor
-	BITMAPINFO bmpInfo;
-	ZeroMemory(&bmpInfo,sizeof(BITMAPINFO));
-	bmpInfo.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
-	bmpInfo.bmiHeader.biWidth=width;
-	bmpInfo.bmiHeader.biHeight=height;
-	bmpInfo.bmiHeader.biPlanes=1;
-	bmpInfo.bmiHeader.biBitCount=32;
-	bmpInfo.bmiHeader.biCompression = BI_RGB;
-	bmpInfo.bmiHeader.biSizeImage = width * height & sizeof(UINT);
 
-	//Create the blend function now...
-	blendFunc.BlendOp = AC_SRC_OVER;
-	blendFunc.BlendFlags = 0; //Must be zero
-	blendFunc.SourceConstantAlpha = 0xFF; //Blend at the pixel leve only.
-	blendFunc.AlphaFormat = AC_SRC_ALPHA;
+	initBmpInfo();
+
 
 	//Create the DIB to copy pixels onto
 	directDC = CreateCompatibleDC(currDC);
@@ -172,7 +232,7 @@ void PulpCoreFont::readHeader(HDC currDC)
 
 	//Make the bitmap to use....
 	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
-	previousObject = SelectObject(directDC, directBitmap);
+	SelectObject(directDC, directBitmap);
 	if (directBitmap==NULL && error==FALSE) {
 		lstrcpy(errorMsg, _T("Couldn't create font bitmap."));
 		error = TRUE;
@@ -642,6 +702,13 @@ bool PulpCoreFont::shouldIgnoreTracking(int index)
     return advance < width/2;
 }
 
+
+void PulpCoreFont::tintSelf(UINT rgbColor)
+{
+	for (int i=0; i<width*height; i++) {
+		directPixels[i] = premultiply((directPixels[i]&0xff000000)|(rgbColor&0x00ffffff));
+	} 
+}
 
 
 
