@@ -140,7 +140,7 @@ HBITMAP bmpDC;
 
 //Global stuff
 TCHAR currStr[50];
-TCHAR myanmarStr[5000];
+//TCHAR myanmarStr[5000];
 //int currSelWord;
 BOOL mmOn;
 
@@ -532,7 +532,24 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 		ShowWindow(hwnd, SW_HIDE);
 }
 
-void calculate() {
+
+void reBlit() 
+{
+	//Bit blit...
+	BitBlt(gc,0,0,WINDOW_WIDTH,WINDOW_HEIGHT,underDC,0,0,SRCCOPY);
+}
+
+
+//Only blit part of the area
+void reBlit(RECT blitArea)
+{
+	//Bit blit...
+	BitBlt(gc,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,underDC,blitArea.left,blitArea.top,SRCCOPY);
+}
+
+
+
+void recalculate() {
 	//First, draw the background & boxes....
 	SelectObject(underDC, g_BlackPen);
 	SelectObject(underDC, g_BlackBkgrd);
@@ -568,51 +585,10 @@ void calculate() {
 	
 	mmFontBlack->drawString(underDC, currStr, 10, 10);
 
-	/*SetTextColor(underDC, RGB(0, 128, 0));
-	SetBkMode(underDC, TRANSPARENT);
-	//SelectObject(underDC, zgFont);
-	TextOut(underDC, 10, 10, currStr, lstrlen(currStr));
-	TextOut(underDC, 10, C_HEIGHT/2+10, myanmarStr, lstrlen(myanmarStr));
-	SetBkMode(underDC, OPAQUE);*/
-	
-
-		//DEBUG
-/*    POINT Pt[7];
-	Pt[0].x =  20;
-	Pt[0].y =  50;
-	Pt[1].x = 180;
-	Pt[1].y =  50;
-	Pt[2].x = 180;
-	Pt[2].y =  20;
-	Pt[3].x = 230;
-	Pt[3].y =  70;
-	Pt[4].x = 180;
-	Pt[4].y = 120;
-	Pt[5].x = 180;
-	Pt[5].y =  90;
-	Pt[6].x =  20;
-	Pt[6].y =  90;*/
-
-	//DEBUG
-    /*HPEN hpen, hpenOld;
-    HBRUSH hbrush, hbrushOld;*/
-
-    // Create a green pen.
-    //hpen = CreatePen(PS_SOLID, 10, RGB(0, 255, 0));
-    // Create a red brush.
-    //hbrush = CreateSolidBrush(RGB(255, 0, 0));
-	
-	
-	//SelectObject(underDC, hpen);
-    //SelectObject(underDC, hbrush);
-
-			//Drawing
-	//		Polygon(underDC, Pt, 7);
-
-
-	//Bit blit...
-	BitBlt(gc,0,0,WINDOW_WIDTH,WINDOW_HEIGHT,underDC,0,0,SRCCOPY);
+	//Paint
+	reBlit();
 }
+
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -693,10 +669,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle control hotkeys
 			if (wParam == HOTKEY_RIGHT) {
 				if (model->moveRight(1) == TRUE)
-					calculate();
+					recalculate();
 			} else if (wParam == HOTKEY_LEFT) {
 				if (model->moveRight(-1) == TRUE)
-					calculate();
+					recalculate();
 			}
 
 			if (wParam == HOTKEY_SPACE) {
@@ -760,14 +736,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					break;
 
 				//List all possible words
-				std::vector<UINT32> words =  model->getPossibleWords();
+				/*std::vector<UINT32> words =  model->getPossibleWords();
 				lstrcpy(myanmarStr, _T(""));
 				for (size_t i=0; i<words.size(); i++) {
 					lstrcat(myanmarStr, model->getWordString(words[i]));
 					lstrcat(myanmarStr, _T(" "));
-				}
-				//SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, myanmarStr);
-				calculate();
+				}*/
+				recalculate();
 
 				
 				/*
@@ -793,7 +768,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					lstrcpy(currStr, _T(""));
 					/*SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
 					SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, currStr);*/
-					calculate();
+					recalculate();
 
 					//Show it
 					ShowWindow(hwnd, SW_SHOW);
@@ -806,27 +781,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				lstrcpy(keyStr, currStr);
 				swprintf(currStr, _T("%s%c"), keyStr, keyCode);
 				//SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
-				calculate();
+				recalculate();
 			}
 
 			break;
 		}
 		case WM_PAINT: 
 		{
-			//calculate();
-			//Bit blit the old buffer...
-			//NOTE: This is slowing down, for some reason...
-			/*BitBlt(gc,
-				0,0,WINDOW_WIDTH,WINDOW_HEIGHT,
-				underDC,
-				0,0,
-				SRCCOPY);*/
+			RECT updateRect;
+			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
+			{
+				//Blitting every tick will slow us down... we should validate the
+				//  rectangle after drawing it.
+				reBlit(updateRect);
 
+				//Validate the client area
+				ValidateRect(hwnd, NULL);
+			}
+
+			
+			//
+			
 			break;
 		}
 		case WM_MOVE:
 			//Re-draw
-			calculate();
+			reBlit();
 			break;
 		case WM_NCHITTEST: //Allow dragging of the client area...
 		{
@@ -861,7 +841,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                  hwnd,              //Owner
                                  NULL);            //MSDN: Ignored
 				if (retVal == IDM_HELP) {
-					MessageBox(NULL, _T("WaitZar version 1.1 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed. It works without it, but you'll be \"typing blind\"."), _T("About"), MB_ICONINFORMATION | MB_OK);
+					MessageBox(hwnd, _T("WaitZar version 1.1 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed. It works without it, but you'll be \"typing blind\"."), _T("About"), MB_ICONINFORMATION | MB_OK);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(hwnd, FALSE);
 				} else if (retVal == IDM_MYANMAR) {
@@ -876,6 +856,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Reclaim resources
 				DestroyMenu(hmenu);
 			}
+
+			//Refresh our background, which gets mysteriously deleted...
+			// Should just draw on "invalidate"
+			//reBlit();
+
 			break;
 		}
 		case WM_CTLCOLORDLG:
