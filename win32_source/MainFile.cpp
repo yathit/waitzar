@@ -106,6 +106,7 @@ int WINDOW_HEIGHT = 120;
 #define HOTKEY_RIGHT 18
 #define HOTKEY_UP 19
 #define HOTKEY_DOWN 20
+#define HOTKEY_ESC 21
 
 
 //Brushes
@@ -617,18 +618,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_HOTKEY:
 		{
-			//DEBUG
-//			int x, y;
-//			
-//			
-//			calculate();
-
-
-
-
 			//Handle our main language hotkey
-			if(wParam == LANG_HOTKEY)
-			{
+			if(wParam == LANG_HOTKEY) {
 				//Switch language
 				if (mmOn==TRUE)
 					switchToLanguage(hwnd, FALSE);
@@ -638,6 +629,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Reset the model
 				model->reset(true);
 			}
+
+
+			//Close the window?
+			if (wParam == HOTKEY_ESC) {
+				model->reset(false);
+				ShowWindow(hwnd, SW_HIDE);
+			}
+
 
 			//Handle control hotkeys
 			if (wParam == HOTKEY_RIGHT) {
@@ -655,44 +654,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					break;
 
 				//Send key presses to the top-level program.
-				// fore;// = GetNextWindow(hwnd, GW_HWNDNEXT);
-				//while (fore != NULL) {
-				//	if (IsWindowVisible(fore)) {
-					//	TCHAR res[100];
-						//if (GetWindowText(fore, res, 100) > -1) {
-							HWND fore = GetForegroundWindow();
-							SetActiveWindow(fore);
+				HWND fore = GetForegroundWindow();
+				SetActiveWindow(fore);
 
-							//Debug
-							//GetWindowText(fore, res, 100);
-							//MessageBox(NULL, res, _T("Text"), MB_OK|MB_ICONERROR);
-							std::vector<WORD> keyStrokes = model->getWordKeyStrokes(typedVal.second);
-							//Try SendInput() instead of SendMessage()
-							inputItem.type=INPUT_KEYBOARD;
-							keyInput.wVk=0;
-							keyInput.dwFlags=KEYEVENTF_UNICODE;
-							keyInput.time=0;
-							keyInput.dwExtraInfo=0;
+				std::vector<WORD> keyStrokes = model->getWordKeyStrokes(typedVal.second);
+				//Try SendInput() instead of SendMessage()
+				inputItem.type=INPUT_KEYBOARD;
+				keyInput.wVk=0;
+				keyInput.dwFlags=KEYEVENTF_UNICODE;
+				keyInput.time=0;
+				keyInput.dwExtraInfo=0;
 
-							//Send a whole bunch of these...
-							BOOL result = TRUE;
-							for (size_t i=0; i<keyStrokes.size(); i++) {
-								keyInput.wScan = keyStrokes[i];
-								inputItem.ki=keyInput;
-								if(!SendInput(1,&inputItem,sizeof(INPUT)))
-								{
-									result = FALSE;
-									break;
-								}
-							}
-							if (result == FALSE)
-								MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
-
-						//	break;
-						//}
-					//}
-					//fore = GetNextWindow(fore, GW_HWNDNEXT);
-				//}
+				//Send a whole bunch of these...
+				BOOL result = TRUE;
+				for (size_t i=0; i<keyStrokes.size(); i++) {
+					keyInput.wScan = keyStrokes[i];
+					inputItem.ki=keyInput;
+					if(!SendInput(1,&inputItem,sizeof(INPUT))) {
+						result = FALSE;
+						break;
+					}
+				}
+				if (result == FALSE)
+					MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 
 				//For now...
 				ShowWindow(hwnd, SW_HIDE);
@@ -709,51 +693,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					break;
 
 				//List all possible words
-				/*std::vector<UINT32> words =  model->getPossibleWords();
-				lstrcpy(myanmarStr, _T(""));
-				for (size_t i=0; i<words.size(); i++) {
-					lstrcat(myanmarStr, model->getWordString(words[i]));
-					lstrcat(myanmarStr, _T(" "));
-				}*/
 				recalculate();
-
 				
-				/*
-				TCHAR msg[1000];
-				TCHAR temp[1000];
-				wsprintf(msg, _T("Num words: %i\n"), words.size());
-				for (size_t i=0; i<words.size(); i++) {
-					std::vector<WORD> thisWord = model->getWordKeyStrokes(words[i]);
-					for (size_t x=0; x<thisWord.size(); x++) {
-						wsprintf(temp, _T("%s%04x "), msg, thisWord[x]);
-						lstrcpy(msg, temp);
-					}
-					wsprintf(temp, _T("%s\n"), msg);
-					//wsprintf(temp, _T("%s%i (%i)\n"), msg, words[i], thisWord.size());
-					lstrcpy(msg, temp);
-				}
-				MessageBox(NULL, msg, _T("Words"), MB_OK|MB_ICONINFORMATION);*/
 
 				//Is this the first keypress of a romanized word? If so, the window is not visible...
 				if (IsWindowVisible(hwnd) == FALSE)
 				{
 					//Reset it...
 					lstrcpy(currStr, _T(""));
-					/*SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
-					SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, currStr);*/
 					recalculate();
 
 					//Show it
 					ShowWindow(hwnd, SW_SHOW);
-					/*if (GetForegroundWindow() != hwnd)
-						SetForegroundWindow(hwnd);*/
 				}
 
 				//Now, handle the keypress as per the usual...
 				TCHAR keyStr[50];
 				lstrcpy(keyStr, currStr);
 				swprintf(currStr, _T("%s%c"), keyStr, keyCode);
-				//SetDlgItemText(hwnd, IDC_CURR_WORD_LBL, currStr);
 				recalculate();
 			}
 
@@ -771,9 +728,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Validate the client area
 				ValidateRect(hwnd, NULL);
 			}
-
-			
-			//
 			
 			break;
 		}
@@ -805,7 +759,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
 			if(uHitTest == HTCLIENT) {
-		//		doneDrag = FALSE;
 				return HTCAPTION;
 			} else
 				return uHitTest;
@@ -851,10 +804,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				DestroyMenu(hmenu);
 			}
 
-			//Refresh our background, which gets mysteriously deleted...
-			// Should just draw on "invalidate"
-			//reBlit();
-
 			break;
 		}
 		case WM_CTLCOLORDLG:
@@ -864,11 +813,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 
 			}
-
-
-			//char res[20];
-			//char buf[10];
-			//MessageBox(hwnd, strcat(strcpy(res, "Key: "), itoa(wParam, buf, 10)), "Color", MB_OK|MB_ICONASTERISK);
 			break;
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
@@ -935,6 +879,8 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 			retVal = FALSE;
 		if (RegisterHotKey(hwnd, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
 			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
+			retVal = FALSE;
 		if (RegisterHotKey(hwnd, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
 			retVal = FALSE;
 		if (RegisterHotKey(hwnd, HOTKEY_UP, NULL, VK_UP)==FALSE)
@@ -945,6 +891,8 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 		if (UnregisterHotKey(hwnd, HOTKEY_SPACE)==FALSE)
 			retVal = FALSE;
 		if (UnregisterHotKey(hwnd, HOTKEY_LEFT)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_ESC)==FALSE)
 			retVal = FALSE;
 		if (UnregisterHotKey(hwnd, HOTKEY_RIGHT)==FALSE)
 			retVal = FALSE;
