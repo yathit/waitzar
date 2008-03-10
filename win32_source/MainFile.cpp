@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
+#include <windowsx.h> //For GET_X_LPARAM
 //#include <vector>
 //#include <hash_map>
 //#include "google\sparse_hash_map"
@@ -39,8 +40,8 @@ UINT32 HsiehHash ( std::string *str );
 #define IDC_CURR_MYANMAR_LBL 145
 #define IDC_BACKGROUND_LBL 146
 
-#define WINDOW_WIDTH 240
-#define WINDOW_HEIGHT 120
+int WINDOW_WIDTH = 240;
+int WINDOW_HEIGHT = 120;
 
 //Custom message IDs
 #define UWM_SYSTRAY (WM_USER + 1)
@@ -109,18 +110,21 @@ UINT32 HsiehHash ( std::string *str );
 
 //Brushes
 HBRUSH g_WhiteBkgrd;
-HBRUSH g_BlackBkgrd;
+HBRUSH g_DarkGrayBkgrd;
 HBRUSH g_YellowBkgrd;
 HBRUSH g_GreenBkgrd;
 HPEN g_GreenPen;
 HPEN g_BlackPen;
+HPEN g_EmptyPen;
 
-//Widgets
-//HWND currWordLbl;
-//HWND currMyanmarLbl;
-//HWND backgroundSelect;
-//TCHAR currWord[;
-//TCHAR
+//Calculate's integers
+int firstLineStart;
+int secondLineStart;
+int thirdLineStart;
+int fourthLineStart;
+int borderWidth = 2;
+int spaceWidth;
+
 
 //Singletons
 INPUT inputItem;
@@ -143,6 +147,7 @@ TCHAR currStr[50];
 //TCHAR myanmarStr[5000];
 //int currSelWord;
 BOOL mmOn;
+BOOL doneDrag;
 
 //Width/height of client area
 int C_WIDTH;
@@ -444,63 +449,6 @@ BOOL loadModel(HINSTANCE hInst) {
 		currLineStart++;
 	}
 
-
-	//Do some testing...
-	//{
-		//Test the dictionary
-		/*for (int i=0; i<100; i++) {
-			int len = dictionary[i][0];
-			
-			TCHAR temp[200];
-			TCHAR msg[200];
-			lstrcpy(msg, _T(""));
-			
-			for (int j=0; j<len; j++) {
-				wsprintf(temp, _T("%s%x "), msg, dictionary[i][j+1]);
-				lstrcpy(msg, temp);
-			}
-			
-			MessageBox(NULL, msg, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
-		}*/
-
-		//Test the nexus list
-		/*for (int i=0; i<100; i++) {
-			int len = nexus[i][0];
-			
-			TCHAR msg[200];
-			for (int j=0; j<len && j<3; j++) {
-				int val = nexus[i][j+1];
-				wsprintf(msg, _T("%c --> %i"), (val&0xFF), (val>>8));
-
-				MessageBox(NULL, msg, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
-			}
-		}*/
-
-		//Test the prefix list
-		/*for (int i=0; i<100; i++) {
-			int len1 = prefix[i][0];
-			int len2 = prefix[i][1];
-			
-			TCHAR msg[200];
-			TCHAR temp[200];
-			lstrcpy(msg, _T(""));
-			for (int j=0; j<len1 && j<3; j++) {
-				int val1 = prefix[i][j*2 + 2];
-				int val2 = prefix[i][j*2 + 3];
-				wsprintf(temp, _T("%s%i-->%i "), msg, val1, val2);
-				lstrcpy(msg, temp);
-			}
-			lstrcat(msg, _T("\n"));
-			for (int j=0; j<len2 && j<3; j++) {
-				int val = prefix[i][2+len1*2+j];
-				wsprintf(temp, _T("%s%i "), msg, val);
-				lstrcpy(msg, temp);
-			}
-
-			MessageBox(NULL, msg, _T("Yo!"), MB_ICONINFORMATION | MB_OK);
-		}*/
-	//}
-
 	//Save our "model"
 	model = new WordBuilder(dictionary, nexus, prefix);
 
@@ -549,21 +497,41 @@ void reBlit(RECT blitArea)
 
 
 
-void recalculate() {
-	//First, draw the background & boxes....
+
+void initCalculate()
+{
+	//Figure out how big each of our areas is, and where they start
+	spaceWidth = mmFontBlack->getStringWidth(_T(" "));
+	firstLineStart = borderWidth;
+	secondLineStart = firstLineStart + mmFontBlack->getHeight() + spaceWidth + borderWidth;
+	thirdLineStart = secondLineStart + mmFontBlack->getHeight() + spaceWidth + borderWidth;
+	fourthLineStart = thirdLineStart + (mmFontBlack->getHeight()*8)/13 + borderWidth;
+
+	//Now, set the window's height
+	WINDOW_HEIGHT = fourthLineStart;
+}
+
+
+
+void recalculate() 
+{
+	//Background
 	SelectObject(underDC, g_BlackPen);
-	SelectObject(underDC, g_BlackBkgrd);
+	SelectObject(underDC, g_DarkGrayBkgrd);
 	Rectangle(underDC, 0, 0, C_WIDTH, C_HEIGHT);
+
+	//White overlays
+	SelectObject(underDC, g_EmptyPen);
 	SelectObject(underDC, g_WhiteBkgrd);
-	Rectangle(underDC, 5, 5, C_WIDTH-5, C_HEIGHT/2-5);
-	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);
+	Rectangle(underDC, borderWidth+1, firstLineStart+1, C_WIDTH-borderWidth-1, secondLineStart-borderWidth);
+	Rectangle(underDC, borderWidth+1, secondLineStart, C_WIDTH-borderWidth-1, thirdLineStart-borderWidth);
+	Rectangle(underDC, borderWidth+1, thirdLineStart, C_WIDTH-borderWidth-1, fourthLineStart-borderWidth-1);
 
 
 	//Now, draw the strings....
 	std::vector<UINT32> words =  model->getPossibleWords();
 	PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
-	int spaceWidth = mmFont->getStringWidth(_T(" "));
 	for (size_t i=0; i<words.size(); i++) {
 		//If this is the currently-selected word, draw a box under it.
 		int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
@@ -574,16 +542,15 @@ void recalculate() {
 
 			SelectObject(underDC, g_YellowBkgrd);
 			SelectObject(underDC, g_GreenPen);
-			Rectangle(underDC, 10+xOffset-spaceWidth/2, C_HEIGHT/2+10-spaceWidth/2, 10+xOffset+thisStrWidth+spaceWidth/2, C_HEIGHT/2+10+mmFont->getHeight()+spaceWidth/2);
+			Rectangle(underDC, borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
 		}
 
-		mmFont->drawString(underDC, model->getWordString(words[i]), 10 + xOffset, C_HEIGHT/2+10);
+		mmFont->drawString(underDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 		xOffset += thisStrWidth + spaceWidth;
 	}
 
-	
-	mmFontBlack->drawString(underDC, currStr, 10, 10);
+	mmFontBlack->drawString(underDC, currStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
 	//Paint
 	reBlit();
@@ -597,19 +564,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg) {
 		case WM_CREATE:
 		{
-			gc = GetDC(hwnd);
-			underDC = CreateCompatibleDC(gc);
+			//Make our font?
+			makeFont(hwnd);
+			initCalculate();
 
+			//Resize our window?
+			MoveWindow(hwnd, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+			doneDrag = TRUE;
+			
+			//Now, create all our buffering objects
 			RECT r;
 			GetClientRect(hwnd, &r);
 			C_WIDTH = r.right;
 			C_HEIGHT = r.bottom;
 
+			gc = GetDC(hwnd);
+			underDC = CreateCompatibleDC(gc);
+
 			bmpDC = CreateCompatibleBitmap(gc, WINDOW_WIDTH, WINDOW_HEIGHT);
 			SelectObject(underDC, bmpDC);
-
-			//Make our font?
-			makeFont(hwnd);
 			
 			break;
 		}
@@ -806,14 +779,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_MOVE:
 			//Re-draw
-			reBlit();
+			//reBlit();
 			break;
+		
+		//This is nice, but I don't think it'll work as-is.....
+		/*case WM_MOUSEMOVE:
+		{
+			HDC hdcScreen = CreateDC (TEXT("DISPLAY"), NULL, NULL, NULL);
+			SetROP2(hdcScreen, R2_NOTXORPEN);
+
+			// Draw over and erase the old rectangle.
+			//Rectangle   (hdc, ptCurrent.x, ptCurrent.y, ptNew.x, ptNew.y );
+			//ptNew.x = x;
+			//ptNew.y = y;
+			//ClientToScreen (hwnd,&ptNew);
+
+			// Draw the new rectangle.
+			SelectObject(hdcScreen, g_BlackPen);
+			Rectangle(hdcScreen, 100, 100, 200, 200);
+			DeleteDC(hdcScreen);
+
+			break;
+		}*/
 		case WM_NCHITTEST: //Allow dragging of the client area...
 		{
 			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
-			if(uHitTest == HTCLIENT)
+			if(uHitTest == HTCLIENT) {
+		//		doneDrag = FALSE;
 				return HTCAPTION;
-			else
+			} else
 				return uHitTest;
 			break;
 		}
@@ -865,7 +859,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_CTLCOLORDLG:
 			return NULL_BRUSH;
-				//return (LONG_PTR)g_BlackBkgrd;
 			break;
 		case WM_CHAR:
 			{
@@ -999,11 +992,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
-	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
+	g_DarkGrayBkgrd = CreateSolidBrush(RGB(128, 128, 128));
 	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
 	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
 
 
 	//Set window's class parameters
@@ -1015,7 +1009,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wc.hInstance = hInstance;
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = g_BlackBkgrd;//(HBRUSH)(COLOR_WINDOW+1);
+	wc.hbrBackground = g_DarkGrayBkgrd;
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = g_szClassName;
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
@@ -1030,8 +1024,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE, //no_active helps... but we'll need more hotkeys.
 		g_szClassName,
 		_T("WaitZar"), 
-		WS_BORDER,
-		CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
+		WS_POPUP, //No border or title bar
+		100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
 		NULL, NULL, hInstance, NULL
 	);
 
@@ -1068,43 +1062,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, _T("Hotkey Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 	mmOn = FALSE;	
 
-	//Create a label
-	//LPTSTR str = TEXT("");
-/*	currWordLbl = CreateWindowEx(
-		0, //No style
-		_T("STATIC"),
-		_T(""), //No text
-		WS_CHILD | WS_VISIBLE ,
-		0, 0, 100, 30,
-		hwnd, (HMENU)IDC_CURR_WORD_LBL, GetModuleHandle(NULL),
-		NULL);
-
-	currMyanmarLbl = CreateWindowEx(
-		0, //No style
-		_T("STATIC"),
-		_T(""), //No text
-		WS_CHILD | WS_VISIBLE ,
-		0, 50, 200, 40,
-		hwnd, (HMENU)IDC_CURR_MYANMAR_LBL, GetModuleHandle(NULL),
-		NULL);
-
-	backgroundSelect = CreateWindowEx(
-		0, //No style
-		_T("STATIC"),
-		_T(""), //No text
-		WS_CHILD | WS_VISIBLE ,
-		20, 20, 100, 100,
-		hwnd, (HMENU)IDC_BACKGROUND_LBL, GetModuleHandle(NULL),
-		NULL);*/
-
-
 	//Initialize our romanisation string
 	lstrcpy(currStr, _T(""));
-
-
-//	HDC hdcStatic = GetDC(currWordLbl);
-//	SetTextColor(hdcStatic, RGB(0, 255, 0));
-//	SetBkColor(hdcStatic, RGB(255, 255, 255));
 
 	//Success?
 	if(hwnd == NULL /*|| currWordLbl == NULL || currMyanmarLbl == NULL || backgroundSelect==NULL*/)
@@ -1117,11 +1076,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (loadModel(hInstance) == FALSE) {
 		DestroyWindow(hwnd);
 	}
-
-	
-
-	//For now...
-//	DestroyWindow(hwnd);
 
 
 	//Show it's ready by changing the shell icon
@@ -1136,14 +1090,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, _T("Can't switch icon..."), _T("Warning"), MB_ICONERROR | MB_OK);
 
 
-
-	//DEBUG
-	//ShowWindow(hwnd, nCmdShow);
-	//UpdateWindow(hwnd);
-
-	//Hide it
-	//ShowWindow(hwnd, SW_HIDE);
-	//END DEBUG
 
 	//Main message handling loop
 	while(GetMessage(&Msg, NULL, 0, 0) > 0)
