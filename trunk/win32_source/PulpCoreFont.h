@@ -61,6 +61,9 @@ public:
 
 	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);
 	void tintSelf(UINT rgbColor);
+    int getStringWidth(TCHAR* str);
+	int getStringWidth(TCHAR* str, int start, int length);
+	int getHeight();
 
 
 private:
