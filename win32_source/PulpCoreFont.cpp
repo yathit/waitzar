@@ -712,6 +712,40 @@ void PulpCoreFont::tintSelf(UINT rgbColor)
 
 
 
+int PulpCoreFont::getStringWidth(TCHAR* str)
+{
+	return getStringWidth(str, 0, lstrlen(str));
+}
+
+
+int PulpCoreFont::getStringWidth(TCHAR* str, int start, int end)
+{
+        if (end <= start) {
+            return 0;
+        }
+        int stringWidth = 0;
+        
+        int lastIndex = -1;
+        for (int i=start; i<end; i++) {
+            int index = getCharIndex(str[i]);
+            int charWidth = charPositions[index+1] - charPositions[index];
+            
+            if (lastIndex!=-1)
+                stringWidth += getKerning(lastIndex, index);
+            stringWidth += charWidth;
+            lastIndex = index;
+        }
+        return stringWidth;
+}
+
+
+int PulpCoreFont::getHeight()
+{
+	return height;
+}
+
+
+
 /////////////////////
 //Properties
 /////////////////////

@@ -113,6 +113,7 @@ HBRUSH g_BlackBkgrd;
 HBRUSH g_YellowBkgrd;
 HBRUSH g_GreenBkgrd;
 HPEN g_GreenPen;
+HPEN g_BlackPen;
 
 //Widgets
 //HWND currWordLbl;
@@ -533,23 +534,39 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 
 void calculate() {
 	//First, draw the background & boxes....
-//	SelectObject(underDC, g_WhiteBkgrd);
+	SelectObject(underDC, g_BlackPen);
 	SelectObject(underDC, g_BlackBkgrd);
 	Rectangle(underDC, 0, 0, C_WIDTH, C_HEIGHT);
-	/*SelectObject(underDC, g_BlackBkgrd);
+	SelectObject(underDC, g_WhiteBkgrd);
 	Rectangle(underDC, 5, 5, C_WIDTH-5, C_HEIGHT/2-5);
-	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);*/
+	Rectangle(underDC, 5, C_HEIGHT/2+5, C_WIDTH-5, C_HEIGHT-5);
 
-	//Selection boxes?
-	SelectObject(underDC, g_GreenBkgrd);
-	int id = model->getCurrSelectedID();
-	if (id != -1) {
-		Rectangle(underDC, 10+20*id, 50, 30+20*id, 90);
-	}
 
 	//Now, draw the strings....
-	mmFontGreen->drawString(underDC, currStr, 10, 10);
-	mmFontGreen->drawString(underDC, myanmarStr, 10, C_HEIGHT/2+10);
+	std::vector<UINT32> words =  model->getPossibleWords();
+	PulpCoreFont* mmFont = mmFontBlack;
+	int xOffset = 0;
+	int spaceWidth = mmFont->getStringWidth(_T(" "));
+	for (size_t i=0; i<words.size(); i++) {
+		//If this is the currently-selected word, draw a box under it.
+		int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
+		if (i!=model->getCurrSelectedID())
+			mmFont = mmFontBlack;
+		else {
+			mmFont = mmFontGreen;
+
+			SelectObject(underDC, g_YellowBkgrd);
+			SelectObject(underDC, g_GreenPen);
+			Rectangle(underDC, 10+xOffset-spaceWidth/2, C_HEIGHT/2+10-spaceWidth/2, 10+xOffset+thisStrWidth+spaceWidth/2, C_HEIGHT/2+10+mmFont->getHeight()+spaceWidth/2);
+		}
+
+		mmFont->drawString(underDC, model->getWordString(words[i]), 10 + xOffset, C_HEIGHT/2+10);
+
+		xOffset += thisStrWidth + spaceWidth;
+	}
+
+	
+	mmFontBlack->drawString(underDC, currStr, 10, 10);
 
 	/*SetTextColor(underDC, RGB(0, 128, 0));
 	SetBkMode(underDC, TRANSPARENT);
@@ -747,7 +764,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				lstrcpy(myanmarStr, _T(""));
 				for (size_t i=0; i<words.size(); i++) {
 					lstrcat(myanmarStr, model->getWordString(words[i]));
-					lstrcat(myanmarStr, _T("  "));
+					lstrcat(myanmarStr, _T(" "));
 				}
 				//SetDlgItemText(hwnd, IDC_CURR_MYANMAR_LBL, myanmarStr);
 				calculate();
@@ -1001,6 +1018,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
 	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
+	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 
 
 	//Set window's class parameters
