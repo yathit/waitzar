@@ -71,6 +71,19 @@ int WordBuilder::getCurrSelectedID() {
 }
 
 
+//Returns true if the window is still visible.
+bool WordBuilder::backspace()
+{
+	currNexus = pastNexus[--pastNexusID];
+	this->resolveWords();
+
+	if (pastNexusID == 0)
+		return false;
+	return true;
+}
+
+
+
 //Returns the selected ID and a boolean
 std::pair<BOOL, UINT32> WordBuilder::typeSpace() 
 {

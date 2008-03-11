@@ -10,25 +10,18 @@
 //#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
 
 #include <windows.h>
+#include <windowsx.h> //For GET_X_LPARAM
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
-#include <windowsx.h> //For GET_X_LPARAM
-//#include <vector>
-//#include <hash_map>
-//#include "google\sparse_hash_map"
 #include "WordBuilder.h"
 #include "PulpCoreFont.h"
 #include "resource.h"
 
-//Convenience namespace
-//using google::sparse_hash_map;
-
-//Resources
-//ICON_WZ ICON WZ.ico
 
 //Prototypes
 BOOL turnOnHotkeys(HWND hwnd, BOOL on);
+BOOL turnOnControlkeys(HWND hwnd, BOOL on);
 void switchToLanguage(HWND hwnd, BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
 UINT32 HsiehHash ( std::string *str );
@@ -107,6 +100,7 @@ int WINDOW_HEIGHT = 120;
 #define HOTKEY_UP 19
 #define HOTKEY_DOWN 20
 #define HOTKEY_ESC 21
+#define HOTKEY_BACK 22
 
 
 //Brushes
@@ -132,7 +126,6 @@ INPUT inputItem;
 KEYBDINPUT keyInput;
 HICON mmIcon;
 HICON engIcon;
-//HFONT zgFont;
 WordBuilder *model;
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
@@ -145,8 +138,6 @@ HBITMAP bmpDC;
 
 //Global stuff
 TCHAR currStr[50];
-//TCHAR myanmarStr[5000];
-//int currSelWord;
 BOOL mmOn;
 BOOL doneDrag;
 
@@ -634,7 +625,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Close the window?
 			if (wParam == HOTKEY_ESC) {
 				model->reset(false);
+
+				//Turn off control keys
+				turnOnControlkeys(hwnd, FALSE);
+
 				ShowWindow(hwnd, SW_HIDE);
+			}
+
+
+			//Back up
+			if (wParam == HOTKEY_BACK) {
+				if (model->backspace()) {
+					//Truncate...
+					currStr[lstrlen(currStr)-1] = 0;
+					recalculate();
+				} else {
+					//Turn off control keys
+					turnOnControlkeys(hwnd, FALSE);
+
+					ShowWindow(hwnd, SW_HIDE);
+				}
 			}
 
 
@@ -678,6 +688,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (result == FALSE)
 					MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 
+				//Turn off control keys
+				turnOnControlkeys(hwnd, FALSE);
+
 				//For now...
 				ShowWindow(hwnd, SW_HIDE);
 			}
@@ -702,6 +715,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Reset it...
 					lstrcpy(currStr, _T(""));
 					recalculate();
+
+					//Turn on control keys
+					turnOnControlkeys(hwnd, TRUE);
 
 					//Show it
 					ShowWindow(hwnd, SW_SHOW);
@@ -873,36 +889,6 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 	}
 
 
-	//Register control keys
-	if (on==TRUE) {
-		if (RegisterHotKey(hwnd, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_UP, NULL, VK_UP)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
-			retVal = FALSE;
-	} else {
-		if (UnregisterHotKey(hwnd, HOTKEY_SPACE)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_LEFT)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_ESC)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_RIGHT)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_UP)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_DOWN)==FALSE)
-			retVal = FALSE;
-	}
-
-
 	mmOn = on;
 
 	//Change icon in the tray
@@ -920,6 +906,47 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 
 	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE)
 		MessageBox(NULL, _T("Can't switch icon..."), _T("Warning"), MB_ICONERROR | MB_OK);
+
+	return retVal;
+}
+
+
+BOOL turnOnControlkeys(HWND hwnd, BOOL on) 
+{
+	BOOL retVal = true;
+
+	//Register control keys
+	if (on==TRUE) {
+		if (RegisterHotKey(hwnd, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_UP, NULL, VK_UP)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
+			retVal = FALSE;
+	} else {
+		if (UnregisterHotKey(hwnd, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_LEFT)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_ESC)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_BACK)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_RIGHT)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_UP)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_DOWN)==FALSE)
+			retVal = FALSE;
+	}
 
 	return retVal;
 }

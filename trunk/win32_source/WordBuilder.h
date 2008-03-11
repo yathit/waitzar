@@ -9,6 +9,25 @@
 
 class WordBuilder
 {
+public:
+	WordBuilder (WORD **dictionary, UINT32 **nexus, UINT32 **prefix);
+	~WordBuilder(void);
+
+	bool typeLetter(char letter);
+	std::pair<BOOL, UINT32> typeSpace();
+	bool backspace();
+	void reset(bool fullReset);
+	BOOL moveRight(int amt);
+	int getCurrSelectedID();
+	
+	//Information on the model's state
+	std::vector<char> getPossibleChars(void);
+	std::vector<UINT32> getPossibleWords(void);
+
+	//Translation
+	std::vector<WORD> getWordKeyStrokes(UINT32 id);
+	TCHAR* getWordString(UINT32 id);
+
 private:
 	//Essential static data
 	WORD **dictionary;
@@ -39,21 +58,5 @@ private:
 	int jumpToPrefix(int fromPrefix, int jumpID);
 	bool vectorContains(std::vector<UINT32> vec, UINT32 val);
 	void addPrefix(UINT32 latestPrefix);
-public:
-	WordBuilder (WORD **dictionary, UINT32 **nexus, UINT32 **prefix);
-	~WordBuilder(void);
 
-	bool typeLetter(char letter);
-	std::pair<BOOL, UINT32> typeSpace();
-	void reset(bool fullReset);
-	BOOL moveRight(int amt);
-	int getCurrSelectedID();
-	
-	//Information on the model's state
-	std::vector<char> getPossibleChars(void);
-	std::vector<UINT32> getPossibleWords(void);
-
-	//Translation
-	std::vector<WORD> getWordKeyStrokes(UINT32 id);
-	TCHAR* getWordString(UINT32 id);
 };
