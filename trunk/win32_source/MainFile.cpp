@@ -140,6 +140,7 @@ HBITMAP bmpDC;
 TCHAR currStr[50];
 BOOL mmOn;
 BOOL doneDrag;
+BOOL controlKeysOn = FALSE;
 
 //Width/height of client area
 int C_WIDTH;
@@ -462,8 +463,13 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 	BOOL res;
 	if (toMM==TRUE)
 		res = turnOnHotkeys(hwnd, TRUE);
-	else
+	else {
 		res = turnOnHotkeys(hwnd, FALSE);
+
+		//It's possible we still have some hotkeys left on..
+		if (controlKeysOn == TRUE)
+			turnOnControlKeys(hwnd, FALSE);
+	}
 	if (res==FALSE)
 		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
 
@@ -948,6 +954,7 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 			retVal = FALSE;
 	}
 
+	controlKeysOn = on;
 	return retVal;
 }
 
