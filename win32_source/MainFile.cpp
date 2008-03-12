@@ -468,7 +468,7 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 
 		//It's possible we still have some hotkeys left on..
 		if (controlKeysOn == TRUE)
-			turnOnControlKeys(hwnd, FALSE);
+			turnOnControlkeys(hwnd, FALSE);
 	}
 	if (res==FALSE)
 		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
@@ -810,7 +810,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                  hwnd,              //Owner
                                  NULL);            //MSDN: Ignored
 				if (retVal == IDM_HELP) {
-					MessageBox(hwnd, _T("WaitZar version 1.1 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed. It works without it, but you'll be \"typing blind\"."), _T("About"), MB_ICONINFORMATION | MB_OK);
+					MessageBox(hwnd, _T("WaitZar version 1.2 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed, if they want to see what they type after it's chosen."), _T("About"), MB_ICONINFORMATION | MB_OK);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(hwnd, FALSE);
 				} else if (retVal == IDM_MYANMAR) {
