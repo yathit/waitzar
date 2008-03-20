@@ -565,9 +565,9 @@ void recalculate()
 
 
 	//Now, draw the strings....
-	//std::vector<UINT32> words =  model->getPossibleWords();
 	PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
+	TCHAR digit[5];
 	for (size_t i=0; i<words.size(); i++) {
 		//If this is the currently-selected word, draw a box under it.
 		int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
@@ -582,6 +582,13 @@ void recalculate()
 		}
 
 		mmFont->drawString(underDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
+
+		if (i<10) {
+			swprintf(digit, _T("%i"), ((i+1)%10));
+			int digitWidth = mmFont->getStringWidth(digit);
+			
+			mmFont->drawString(underDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
+		}
 
 		xOffset += thisStrWidth + spaceWidth;
 	}
