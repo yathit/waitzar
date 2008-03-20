@@ -202,7 +202,7 @@ void WordBuilder::resolveWords(void)
 bool WordBuilder::vectorContains(std::vector<UINT32> vec, UINT32 val)
 {
 	for (size_t i=0; i<vec.size(); i++) {
-		if (vec[1] == val)
+		if (vec[i] == val)
 			return true;
 	}
 	return false;
