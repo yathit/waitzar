@@ -132,6 +132,7 @@ PulpCoreFont *mmFontGreen;
 PAINTSTRUCT Ps;
 
 //Double-buffering stuff
+HWND hwnd;
 HDC gc;
 HDC underDC;
 HBITMAP bmpDC;
@@ -482,7 +483,7 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 void reBlit() 
 {
 	//Bit blit...
-	BitBlt(gc,0,0,WINDOW_WIDTH,WINDOW_HEIGHT,underDC,0,0,SRCCOPY);
+	BitBlt(gc,0,0,C_WIDTH,C_HEIGHT,underDC,0,0,SRCCOPY);
 }
 
 
@@ -510,9 +511,46 @@ void initCalculate()
 }
 
 
+void expandHWND(int newWidth)
+{
+	SetWindowPos(hwnd, NULL, 0, 0, newWidth, C_HEIGHT, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
+	RECT r;
+	GetClientRect(hwnd, &r);
+	C_WIDTH = r.right;
+
+	//We also have to set our graphics contexts correctly. Also, throw out the old ones.
+	DeleteDC(underDC);
+	DeleteObject(bmpDC);
+	gc = GetDC(hwnd);
+	underDC = CreateCompatibleDC(gc);
+	bmpDC = CreateCompatibleBitmap(gc, C_WIDTH, C_HEIGHT);
+	SelectObject(underDC, bmpDC);
+}
+
+
 
 void recalculate() 
 {
+	//First things first: can we fit this in the current background?
+	int cumulativeWidth = (borderWidth+1)*2;
+	std::vector<UINT32> words =  model->getPossibleWords();
+	for (size_t i=0; i<words.size(); i++) {
+		cumulativeWidth += mmFontBlack->getStringWidth(model->getWordString(words[i]));
+		cumulativeWidth += spaceWidth;
+	}
+
+	//If not, resize. Also, keep the size small when possible.
+	if (cumulativeWidth>C_WIDTH)
+		expandHWND(cumulativeWidth);
+	else if (cumulativeWidth<WINDOW_WIDTH)
+		expandHWND(WINDOW_WIDTH);
+	else if (cumulativeWidth>WINDOW_WIDTH && cumulativeWidth<C_WIDTH)
+		expandHWND(cumulativeWidth);
+
+	
+	
+
+
 	//Background
 	SelectObject(underDC, g_BlackPen);
 	SelectObject(underDC, g_DarkGrayBkgrd);
@@ -527,7 +565,7 @@ void recalculate()
 
 
 	//Now, draw the strings....
-	std::vector<UINT32> words =  model->getPossibleWords();
+	//std::vector<UINT32> words =  model->getPossibleWords();
 	PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
 	for (size_t i=0; i<words.size(); i++) {
@@ -962,7 +1000,6 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	WNDCLASSEX wc;
-	HWND hwnd;
 	MSG Msg;
 	NOTIFYICONDATA nid;
 

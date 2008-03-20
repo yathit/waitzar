@@ -15,7 +15,6 @@
 #include ".\pulpcorefont.h"
 
 
-
 //Copy constructor
 PulpCoreFont::PulpCoreFont(PulpCoreFont *copyFrom, HDC currDC)
 {
