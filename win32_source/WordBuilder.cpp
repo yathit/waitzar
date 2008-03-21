@@ -83,9 +83,25 @@ bool WordBuilder::backspace()
 }
 
 
+void WordBuilder::setCurrSelected(int id)
+{
+	//Any words?
+	if (possibleWords.size()==0)
+		return;
+
+	//Fail silently if this isn't a valid id
+	if (id >= (int)possibleWords.size())
+		return;
+	else if (id < 0)
+		return;
+
+	//Do it!
+	currSelectedID = id;
+}
+
 
 //Returns the selected ID and a boolean
-std::pair<BOOL, UINT32> WordBuilder::typeSpace() 
+std::pair<BOOL, UINT32> WordBuilder::typeSpace(int quickJumpID) 
 {
 	//Return val
 	std::pair<BOOL, UINT32> result(FALSE, 0);
@@ -93,6 +109,10 @@ std::pair<BOOL, UINT32> WordBuilder::typeSpace()
 	//We're at a valid stopping point?
 	if (this->getPossibleWords().size() == 0)
 		return result;
+
+	//Quick jump?
+	if (quickJumpID > -1)
+		this->setCurrSelected(quickJumpID);
 
 	//Get the selected word, add it to the prefix array
 	UINT32 newWord = this->getPossibleWords()[this->currSelectedID];

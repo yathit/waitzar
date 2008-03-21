@@ -102,6 +102,30 @@ int WINDOW_HEIGHT = 120;
 #define HOTKEY_ESC 21
 #define HOTKEY_BACK 22
 
+//Numbers as control keys
+#define HOTKEY_NUM0 38
+#define HOTKEY_NUM1 39
+#define HOTKEY_NUM2 40
+#define HOTKEY_NUM3 41
+#define HOTKEY_NUM4 42
+#define HOTKEY_NUM5 43
+#define HOTKEY_NUM6 44
+#define HOTKEY_NUM7 45
+#define HOTKEY_NUM8 46
+#define HOTKEY_NUM9 47
+
+//And numbers as characters
+#define HOTKEY_0 48
+#define HOTKEY_1 49
+#define HOTKEY_2 50
+#define HOTKEY_3 51
+#define HOTKEY_4 52
+#define HOTKEY_5 53
+#define HOTKEY_6 54
+#define HOTKEY_7 55
+#define HOTKEY_8 56
+#define HOTKEY_9 57
+
 
 //Brushes
 HBRUSH g_WhiteBkgrd;
@@ -601,6 +625,48 @@ void recalculate()
 
 
 
+void selectWord(int id) 
+{
+	//Are there any words to use?
+	std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
+	if (typedVal.first == FALSE)
+		return;
+
+	//Send key presses to the top-level program.
+	HWND fore = GetForegroundWindow();
+	SetActiveWindow(fore);
+
+	std::vector<WORD> keyStrokes = model->getWordKeyStrokes(typedVal.second);
+	//Try SendInput() instead of SendMessage()
+	inputItem.type=INPUT_KEYBOARD;
+	keyInput.wVk=0;
+	keyInput.dwFlags=KEYEVENTF_UNICODE;
+	keyInput.time=0;
+	keyInput.dwExtraInfo=0;
+
+	//Send a whole bunch of these...
+	BOOL result = TRUE;
+	for (size_t i=0; i<keyStrokes.size(); i++) {
+		keyInput.wScan = keyStrokes[i];
+		inputItem.ki=keyInput;
+		if(!SendInput(1,&inputItem,sizeof(INPUT))) {
+			result = FALSE;
+			break;
+		}
+	}
+
+	if (result == FALSE)
+		MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
+
+	//Turn off control keys
+	turnOnControlkeys(hwnd, FALSE);
+
+	//For now...
+	ShowWindow(hwnd, SW_HIDE);
+}
+
+
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
@@ -708,42 +774,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					recalculate();
 			}
 
+
+			//Handle numbers
+			int numCode = -1;
+			if (wParam>=HOTKEY_0 && wParam<=HOTKEY_9)
+				numCode = (int)wParam - HOTKEY_0;
+			if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
+				numCode = (int)wParam - HOTKEY_NUM0;
+			if (numCode > -1) {
+				//Convert 1..0 to 0..9
+				if (--numCode<0)
+					numCode = 9;
+
+				//Now, select that word
+				selectWord(numCode);
+			}
+
+
 			if (wParam == HOTKEY_SPACE) {
-				//Are there any words to use?
-				std::pair<BOOL, UINT32> typedVal = model->typeSpace();
-				if (typedVal.first == FALSE)
-					break;
-
-				//Send key presses to the top-level program.
-				HWND fore = GetForegroundWindow();
-				SetActiveWindow(fore);
-
-				std::vector<WORD> keyStrokes = model->getWordKeyStrokes(typedVal.second);
-				//Try SendInput() instead of SendMessage()
-				inputItem.type=INPUT_KEYBOARD;
-				keyInput.wVk=0;
-				keyInput.dwFlags=KEYEVENTF_UNICODE;
-				keyInput.time=0;
-				keyInput.dwExtraInfo=0;
-
-				//Send a whole bunch of these...
-				BOOL result = TRUE;
-				for (size_t i=0; i<keyStrokes.size(); i++) {
-					keyInput.wScan = keyStrokes[i];
-					inputItem.ki=keyInput;
-					if(!SendInput(1,&inputItem,sizeof(INPUT))) {
-						result = FALSE;
-						break;
-					}
-				}
-				if (result == FALSE)
-					MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
-
-				//Turn off control keys
-				turnOnControlkeys(hwnd, FALSE);
-
-				//For now...
-				ShowWindow(hwnd, SW_HIDE);
+				selectWord(-1);
 			}
 
 			//Handle our individual keystrokes as hotkeys (less registering that way...)
@@ -982,6 +1031,32 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 			retVal = FALSE;
 		if (RegisterHotKey(hwnd, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
 			retVal = FALSE;
+
+		//We count numbers as control keys too...
+		if (RegisterHotKey(hwnd, HOTKEY_NUM0, NULL, VK_NUMPAD0)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM1, NULL, VK_NUMPAD1)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM2, NULL, VK_NUMPAD2)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM3, NULL, VK_NUMPAD3)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM4, NULL, VK_NUMPAD4)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM5, NULL, VK_NUMPAD5)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM6, NULL, VK_NUMPAD6)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM7, NULL, VK_NUMPAD7)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM8, NULL, VK_NUMPAD8)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_NUM9, NULL, VK_NUMPAD9)==FALSE)
+			retVal = FALSE;
+		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
+			if (RegisterHotKey(hwnd, i, NULL, i)==FALSE)
+				retVal = FALSE;
+		}
 	} else {
 		if (UnregisterHotKey(hwnd, HOTKEY_SPACE)==FALSE)
 			retVal = FALSE;
@@ -997,6 +1072,32 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 			retVal = FALSE;
 		if (UnregisterHotKey(hwnd, HOTKEY_DOWN)==FALSE)
 			retVal = FALSE;
+
+		//Numbers
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM0)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM1)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM2)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM3)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM4)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM5)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM6)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM7)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM8)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_NUM9)==FALSE)
+			retVal = FALSE;
+		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
+			if (UnregisterHotKey(hwnd, i)==FALSE)
+				retVal = FALSE;
+		}
 	}
 
 	controlKeysOn = on;
