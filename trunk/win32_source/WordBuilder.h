@@ -14,7 +14,7 @@ public:
 	~WordBuilder(void);
 
 	bool typeLetter(char letter);
-	std::pair<BOOL, UINT32> typeSpace();
+	std::pair<BOOL, UINT32> typeSpace(int quickJumpID);
 	bool backspace();
 	void reset(bool fullReset);
 	BOOL moveRight(int amt);
@@ -58,5 +58,6 @@ private:
 	int jumpToPrefix(int fromPrefix, int jumpID);
 	bool vectorContains(std::vector<UINT32> vec, UINT32 val);
 	void addPrefix(UINT32 latestPrefix);
+	void setCurrSelected(int id);
 
 };
