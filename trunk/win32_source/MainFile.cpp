@@ -4,20 +4,29 @@
  * Please refer to the end of the file for licensing information
  */
 
-#define _WIN32_WINNT 0x0500 //Run on Windows 2000+
+//Defines for Unicode-enabled text.
+//  As far as I know, these must appear _before_ including the windows.h include
+//  so that we get the proper Unicode-enabled source.
 #define _UNICODE
 #define UNICODE
+
+//Define to require a specific version of Windows. 
+// Maybe this is what Vista isn't liking?
+#define _WIN32_WINNT 0x0500 //Run on Windows 2000+
 //#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
 
+//System includes
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
+
+//Our includes
 #include "WordBuilder.h"
 #include "PulpCoreFont.h"
 #include "resource.h"
-
+#include "Hotkeys.h"
 
 //Prototypes
 BOOL turnOnHotkeys(HWND hwnd, BOOL on);
@@ -33,101 +42,10 @@ UINT32 HsiehHash ( std::string *str );
 #define IDC_CURR_MYANMAR_LBL 145
 #define IDC_BACKGROUND_LBL 146
 
-int WINDOW_WIDTH = 240;
-int WINDOW_HEIGHT = 120;
-
 //Custom message IDs
 #define UWM_SYSTRAY (WM_USER + 1)
 
-//Our obnoxious hotkey shortcuts
-#define HOTKEY_A 65
-#define HOTKEY_B 66
-#define HOTKEY_C 67
-#define HOTKEY_D 68
-#define HOTKEY_E 69
-#define HOTKEY_F 70
-#define HOTKEY_G 71
-#define HOTKEY_H 72
-#define HOTKEY_I 73
-#define HOTKEY_J 74
-#define HOTKEY_K 75
-#define HOTKEY_L 76
-#define HOTKEY_M 77
-#define HOTKEY_N 78
-#define HOTKEY_O 79
-#define HOTKEY_P 80
-#define HOTKEY_Q 81
-#define HOTKEY_R 82
-#define HOTKEY_S 83
-#define HOTKEY_T 84
-#define HOTKEY_U 85
-#define HOTKEY_V 86
-#define HOTKEY_W 87
-#define HOTKEY_X 88
-#define HOTKEY_Y 89
-#define HOTKEY_Z 90
-//Lowercase
-#define HOTKEY_A_LOW 97
-#define HOTKEY_B_LOW 98
-#define HOTKEY_C_LOW 99
-#define HOTKEY_D_LOW 100
-#define HOTKEY_E_LOW 101
-#define HOTKEY_F_LOW 102
-#define HOTKEY_G_LOW 103
-#define HOTKEY_H_LOW 104
-#define HOTKEY_I_LOW 105
-#define HOTKEY_J_LOW 106
-#define HOTKEY_K_LOW 107
-#define HOTKEY_L_LOW 108
-#define HOTKEY_M_LOW 109
-#define HOTKEY_N_LOW 110
-#define HOTKEY_O_LOW 111
-#define HOTKEY_P_LOW 112
-#define HOTKEY_Q_LOW 113
-#define HOTKEY_R_LOW 114
-#define HOTKEY_S_LOW 115
-#define HOTKEY_T_LOW 116
-#define HOTKEY_U_LOW 117
-#define HOTKEY_V_LOW 118
-#define HOTKEY_W_LOW 119
-#define HOTKEY_X_LOW 120
-#define HOTKEY_Y_LOW 121
-#define HOTKEY_Z_LOW 122
-//Etc
-#define HOTKEY_SPACE 32
-#define HOTKEY_LEFT 17
-#define HOTKEY_RIGHT 18
-#define HOTKEY_UP 19
-#define HOTKEY_DOWN 20
-#define HOTKEY_ESC 21
-#define HOTKEY_BACK 22
-
-//Numbers as control keys
-#define HOTKEY_NUM0 38
-#define HOTKEY_NUM1 39
-#define HOTKEY_NUM2 40
-#define HOTKEY_NUM3 41
-#define HOTKEY_NUM4 42
-#define HOTKEY_NUM5 43
-#define HOTKEY_NUM6 44
-#define HOTKEY_NUM7 45
-#define HOTKEY_NUM8 46
-#define HOTKEY_NUM9 47
-
-//And numbers as characters
-#define HOTKEY_0 48
-#define HOTKEY_1 49
-#define HOTKEY_2 50
-#define HOTKEY_3 51
-#define HOTKEY_4 52
-#define HOTKEY_5 53
-#define HOTKEY_6 54
-#define HOTKEY_7 55
-#define HOTKEY_8 56
-#define HOTKEY_9 57
-
-
-//Brushes
+//Brushes & Pens
 HBRUSH g_WhiteBkgrd;
 HBRUSH g_DarkGrayBkgrd;
 HBRUSH g_YellowBkgrd;
@@ -136,16 +54,8 @@ HPEN g_GreenPen;
 HPEN g_BlackPen;
 HPEN g_EmptyPen;
 
-//Calculate's integers
-int firstLineStart;
-int secondLineStart;
-int thirdLineStart;
-int fourthLineStart;
-int borderWidth = 2;
-int spaceWidth;
-
-
 //Singletons
+HINSTANCE hInst;
 INPUT inputItem;
 KEYBDINPUT keyInput;
 HICON mmIcon;
@@ -167,16 +77,28 @@ BOOL mmOn;
 BOOL doneDrag;
 BOOL controlKeysOn = FALSE;
 
+//Default client sizes for our windows
+int WINDOW_WIDTH = 240;
+int WINDOW_HEIGHT = 120;
+
 //Width/height of client area
 int C_WIDTH;
 int C_HEIGHT;
+
+//Calculate's integers
+int firstLineStart;
+int secondLineStart;
+int thirdLineStart;
+int fourthLineStart;
+int borderWidth = 2;
+int spaceWidth;
 
 
 
 void makeFont(HWND currHwnd) 
 {
 	//Load our font
-	HINSTANCE hInst = (HINSTANCE)GetWindowLong(currHwnd, GWL_HINSTANCE);
+//	HINSTANCE hInst = (HINSTANCE)GetWindowLong(currHwnd, GWL_HINSTANCE);
 	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT")); 
 	if (!fontRes) {
 		MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
@@ -212,7 +134,7 @@ void makeFont(HWND currHwnd)
 
 
 
-BOOL loadModel(HINSTANCE hInst) {
+BOOL loadModel(/*HINSTANCE hInst*/) {
 	//Load our embedded resource, the WaitZar model
 	HGLOBAL     res_handle = NULL;
 	HRSRC       res;
@@ -884,7 +806,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			POINT pt;
 			HMENU hmenu, hpopup;
-			HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
+			/*HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);*/
 
 			if (lParam==WM_RBUTTONUP || lParam==WM_LBUTTONUP) {
 				//Make a popup menu
@@ -1107,6 +1029,9 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	//Save for later.
+	hInst = hInstance;
+
 	WNDCLASSEX wc;
 	MSG Msg;
 	NOTIFYICONDATA nid;
@@ -1200,7 +1125,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//If we got this far, let's try to load our file.
-	if (loadModel(hInstance) == FALSE) {
+	if (loadModel(/*hInstance*/) == FALSE) {
 		DestroyWindow(hwnd);
 	}
 
