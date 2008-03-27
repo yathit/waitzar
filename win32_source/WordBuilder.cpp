@@ -6,6 +6,28 @@
 
 #include ".\wordbuilder.h"
 
+
+/**
+ * Construction of a word builder requires three things. All of these are 2-D jagged arrays;
+ *   the first entry in each row is the size of that row.
+ * @param dictionary is an array of character sequences. For example,
+ *     {"ka", "ko", "sa"} becomes {{1,0x1000}, {3,0x1000,0x102D,0x102F}, {2,0x1005,0x1032}}
+ * @param nexus is an array of links. The first entry, of course, is the count. After that, 
+ *     there are a series of integers, of the form 0xXXYY, where XX is the nexus to jump to
+ *     if character YY is pressed. The whole structure is very much a flattened tree.
+ *     Finally, if the character YY is "~", then the integer XX is actually an index into
+ *     the "prefix" array.
+ * @param prefix is an array of links, similar to nexus. However, it is much simpler. The first
+ *     entry in each row is the the "pair count". The second entry is the "match count". The 
+ *     "pair count" determines the number of pairs of entries that follow. The first item in each 
+ *     pair is the "key", and is an id into the dictionary list. If that "key" is a prefix word 
+ *     of the current word, then the "value" is an index into the prefix array to jump to.
+ *     Following these pairs are a number of "matches", which are indices into the dictionary
+ *     array; each match is a potential word.
+ * NOTE: Hash tables make more sense for these data structures, but in my experience (and in a
+ *       few profile runs) tiny hash tables offer virtually no performance improvement at a
+ *       substantial increase in the memory footprint. So, deal with the C-style arrays.
+ */
 WordBuilder::WordBuilder(WORD **dictionary, UINT32 **nexus, UINT32 **prefix) 
 {
 	//Store for later
@@ -268,7 +290,22 @@ std::vector<WORD> WordBuilder::getWordKeyStrokes(UINT32 id)
 	return this->keystrokeVector;
 }
 
-//Note: returns a SINGLETON
+
+/**
+ * Get the actual characters in a string (by ID). Note that
+ *  this returns a single (global) object, so if multiple strings are to be 
+ *  dealt with, they must be copied into local variables -something like:
+ *    TCHAR *temp1 = wb->getWordString(1);
+ *    TCHAR *temp2 = wb->getWordString(2);
+ *    TCHAR *temp3 = wb->getWordString(3);
+ * ...will FAIL; temp1, temp2, and temp3 will ALL have the value of string 3.
+ * Do something like this instead:
+ *   TCHAR temp1[50]; 
+ *   lstrcpy(temp1, wb->getWordString(1));
+ *   TCHAR temp2[50]; 
+ *   lstrcpy(temp2, wb->getWordString(2));
+ *   ...etc.
+ */ 
 TCHAR* WordBuilder::getWordString(UINT32 id)
 {
 	lstrcpy(currStr, _T(""));

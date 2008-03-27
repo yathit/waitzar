@@ -150,7 +150,6 @@ int Inflater::inflate(char* buf, int buf_length, int off, int len)
 	     *   needsInput() and not finished() 
 	     *   implies more output can be produced.  
 	     */
-			//Might be a bug here, but I don't think so...
 			more = outputWindow->copyOutput(buf, off, len);
 
 			adler->update(buf, off, more);
@@ -160,13 +159,9 @@ int Inflater::inflate(char* buf, int buf_length, int off, int len)
 			totalOut += more;
 			len -= more;
 			if (len == 0) {
-				//This is a splitting point... a lot of function calls return here.
-				// The first three calls continue onwards... and I think that's where the bug is...
 				return count;
 			}
 		}
-
-		//This is correct....
     } while (decode() || (outputWindow->getAvailable() > 0 && mode != DECODE_CHKSUM));
     return count;
 }
@@ -290,7 +285,6 @@ bool Inflater::decodeDict()
 
 bool Inflater::decodeHuffman()
 {
-	//Correct...
 	int free = outputWindow->getFreeSpace();
 
     while (free >= 258) {
@@ -304,12 +298,6 @@ bool Inflater::decodeHuffman()
 					symbol = litlenTree->getSymbol(*input);
 					if (((symbol) & ~0xff) != 0)
 						break;
-
-
-	//DEBUG
-	//swprintf(specialMessage, _T("%s\nalso: %i"), debug_msg, litlenTree->specialString);
-	//return false;
-
 
 					outputWindow->write(symbol);
 					if (--free < 258)
@@ -407,8 +395,6 @@ bool Inflater::decode()
     switch (mode) 
 	{
 		case DECODE_HEADER:
-			//First call returns here...
-			//This seems ok...
 			return decodeHeader();
 		case DECODE_DICT:
 			return decodeDict();
@@ -442,8 +428,8 @@ bool Inflater::decode()
 					mode = DECODE_STORED_LEN1;
 					break;
 				case DEFLATE_STATIC_TREES:
-					litlenTree = createLitlenTree();// InflaterHuffmanTree.defLitLenTree;
-					distTree = createDistTree(); //InflaterHuffmanTree.defDistTree;*/
+					litlenTree = createLitlenTree();
+					distTree = createDistTree();
 					mode = DECODE_HUFFMAN;
 					break;
 				case DEFLATE_DYN_TREES:
@@ -486,14 +472,11 @@ bool Inflater::decode()
 			return !input->needsInput();
 		}
 		case DECODE_DYN_HEADER:
-			//Decode might be wrong...
 			if (!dynHeader->decode(*input))
 				return false;
 
-			//This is correct
 			litlenTree = dynHeader->buildLitLenTree();
 
-			//This is correct
 			distTree = dynHeader->buildDistTree();
 			mode = DECODE_HUFFMAN;
 			//fall through
@@ -501,8 +484,6 @@ bool Inflater::decode()
 		case DECODE_HUFFMAN_LENBITS:
 		case DECODE_HUFFMAN_DIST:
 		case DECODE_HUFFMAN_DISTBITS:
-			//Third call returns here.. and a later one, too.
-			// This might be wrong... check decode first... (decode's ok... must be here)
 			return decodeHuffman();
 		case FINISHED:
 			return false;

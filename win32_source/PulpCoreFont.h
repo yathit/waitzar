@@ -23,9 +23,9 @@
 
 #include "Inflater.h"
 
+//Magic numbers for Pulp Core and .PNG headers.
 const char PULP_MAGICNUM[] = "pulpfnt\x0B";              //0x70756c70666e740b
 const char PNG_SIGNATURE[] = "\x89PNG\x0D\x0A\x1A\x0A";  //0x89504e470d0a1a0a
-
 
 //PNG chunk IDs
 #define CHUNK_IHDR 0x49484452
@@ -39,28 +39,56 @@ const char PNG_SIGNATURE[] = "\x89PNG\x0D\x0A\x1A\x0A";  //0x89504e470d0a1a0a
 #define CHUNK_HOTS 0x686f5473
 #define CHUNK_ANIM 0x616e496d
 
-//Image stuff
+//Image encoding values
 #define COLOR_TYPE_GRAYSCALE 0
 #define COLOR_TYPE_RGB 2
 #define COLOR_TYPE_PALETTE 3
 #define COLOR_TYPE_GRAYSCALE_WITH_ALPHA 4
 #define COLOR_TYPE_RGB_WITH_ALPHA 6
 
-
+//Help convert bit-depth to bits-per-pixel
 const int SAMPLES_PER_PIXEL[] = { 1, 0, 3, 1, 2, 0, 4 };
 
 
+/**
+ * PulpCore is a Java project; see the link in the license file. 
+ *  Fonts used in PulpCore are accomplished by creating a PNG of 
+ *   the Font's letters and then embedding additional "chunks" 
+ *   specifying the advance width, kerning, and other specifics. 
+ *  This creates a valid PNG file (the additional chunks are just
+ *   ignored by any other image processing software) that can
+ *   handle complex fonts like Zawgyi-One (used internally by WaitZar). 
+ *  There are three good reasons to do it this way:
+ *   1) PulpCore automatically anti-aliases a font's characters when
+ *      converting them to PNG. So, Myanmar text in WaitZar looks good
+ *      even if the user doesn't have Clear Type installed.
+ *   2) Processing is slightly faster, and memory usage barely increases.
+ *      Instead of rendering a true-type font, we're just blitting  pixels
+ *      from one buffer to another (this is always fast.)
+ *   3) If Zawgyi-One ever becomes obsolete, or changes its encoding order 
+ *      (for whatever reason) then we can still display our Myanmar text
+ *      without forcing the user to install the "old" version on his system.
+ *      We could embed the Zawgyi-One.ttf file itself, but that's 10 times
+ *      larger than our PNG (which uses internal compression, like all PNGs do.)
+ */
 class PulpCoreFont
 {
 public:
+	//Contructors
 	PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
 	PulpCoreFont(PulpCoreFont* copyFrom, HDC currDC);
 
+	//Useful for making various color replicas of one font.
+	void tintSelf(UINT rgbColor);
+
+	//We report errors, though they're unlikely.
 	BOOL isInError();
 	TCHAR* getErrorMsg();
 
+	//Drawing functionality
 	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);
-	void tintSelf(UINT rgbColor);
+	
+	//Other useful metrics
     int getStringWidth(TCHAR* str);
 	int getStringWidth(TCHAR* str, int start, int length);
 	int getHeight();
@@ -73,7 +101,6 @@ private:
 	int width;
 	int height;
 	bool isOpaque;
-	//int* imgData;
 	int hotspotX;
 	int hotspotY;
 	int* palette;
@@ -83,11 +110,10 @@ private:
 	UINT *directPixels;
 	HBITMAP directBitmap;
 	HDC directDC;
-//	HGDIOBJ previousObject;
 	BLENDFUNCTION blendFunc;
 	BITMAPINFO bmpInfo;
 
-	//Font-specific properties
+	//PulpCoreFont-specific properties
 	int firstChar;
 	int lastChar;
 	int tracking;
@@ -97,11 +123,16 @@ private:
 	int* bearingRight;
 	bool uppercaseOnly;
 
-	//High-level stuff
-	BOOL error;
-	TCHAR errorMsg[300]; //Change back to 100 later...
+	//Used by the primary constructor to hold resource-related information.
+	DWORD currPos;
+	char* res_data;
+	DWORD res_size;
 
-	//Private methods
+	//Error tracking
+	BOOL error;
+	TCHAR errorMsg[100];
+
+	//Internal Methods
 	void initBmpInfo();
 	void readHeader(HDC currDC);
 	void readPalette(int length);
@@ -121,9 +152,4 @@ private:
 	int getKerning(TCHAR left, TCHAR right);
 	int getKerning(int leftIndex, int rightIndex);
 	bool shouldIgnoreTracking(int index);
-
-	//Useful globals
-	DWORD currPos;
-	char* res_data;
-	DWORD res_size;
 };

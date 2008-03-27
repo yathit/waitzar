@@ -74,8 +74,6 @@ void Adler32::update(char* buf, int off, int len)
     int s1 = checksum & 0xffff;
 	int s2 = tripleRightShift(checksum, 16);
 
-	//There's a problem in this loop.... but I think it's because the wrong buf[] array
-	//   is being passed...
     while (len > 0) {
 		// We can defer the modulo operation:
 		// s1 maximally grows from 65521 to 65521 + 255 * 3800

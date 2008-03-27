@@ -22,7 +22,9 @@
 #include ".\streammanipulator.h"
 
 
-//Clean-room implementation of System.arraycopy() from the JRE
+/**
+ * Clean-room implementation of System.arraycopy() from the JRE
+ */
 void copyArray(char* source, int srcPos, char* dest, int destPos, int length)
 {
 	for (int i=0; i<length; i++) {
@@ -30,23 +32,20 @@ void copyArray(char* source, int srcPos, char* dest, int destPos, int length)
 	}
 }
 
-//>>> is UNSIGNED shift in java
+
+/**
+ * >>> is UNSIGNED shift in java
+ */
 int tripleRightShift(int value, int shiftBy)
 {
 	unsigned int retVal = (unsigned int) value;
 	return (retVal >> shiftBy);
-	/*int msb = value>>31;
-	unsigned int retVal = value >> shiftBy;
-
-	if (msb != 0) {
-		for (int i=0; i<shiftBy; i++)
-			retVal |= (msb<<(31-shiftBy));
-	}
-
-	return (int) retVal;*/
 }
 
-//SIGNED shift
+
+/**
+ * >> is SIGNED shift in java
+ */
 int doubleRightShift(int value, int shiftBy)
 {
 	return value >> shiftBy;
@@ -198,7 +197,7 @@ void StreamManipulator::reset()
  */
 void StreamManipulator::setInput(char* buf, int off, int len)
 {
-	/* //Handle this... later?
+	/*
     if (window_start < window_end)
       throw new IllegalStateException
 	("Old input was not completely processed");*/
