@@ -13,12 +13,17 @@
 #include <tchar.h>
 #include <vector>
 
+
+/**
+ * Used for converting a string of roman letters into a list of potential Burmese words.
+ */
 class WordBuilder
 {
 public:
 	WordBuilder (WORD **dictionary, UINT32 **nexus, UINT32 **prefix);
 	~WordBuilder(void);
 
+	//State-changing functions. Use these to respond to keypresses.
 	bool typeLetter(char letter);
 	std::pair<BOOL, UINT32> typeSpace(int quickJumpID);
 	bool backspace();
@@ -30,7 +35,7 @@ public:
 	std::vector<char> getPossibleChars(void);
 	std::vector<UINT32> getPossibleWords(void);
 
-	//Translation
+	//Get information about a particular word given its ID
 	std::vector<WORD> getWordKeyStrokes(UINT32 id);
 	TCHAR* getWordString(UINT32 id);
 

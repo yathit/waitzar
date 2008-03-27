@@ -33,7 +33,7 @@
 #include "InflaterHuffmanTree.h"
 #include "Adler32.h"
 
-
+//Token states
 #define DECODE_HEADER 0
 #define DECODE_DICT 1
 #define DECODE_BLOCKS 2
@@ -48,6 +48,7 @@
 #define DECODE_CHKSUM 11
 #define FINISHED 12
 
+//Sub-states
 #define DEFLATE_STORED_BLOCK 0
 #define DEFLATE_STATIC_TREES 1
 #define DEFLATE_DYN_TREES 2
@@ -114,7 +115,6 @@ private:
 	InflaterHuffmanTree* createLitlenTree();
 	InflaterHuffmanTree* createDistTree();
 
-	
 	int readAdler;
 	int neededBits;
 	int repLength, repDist;

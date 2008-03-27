@@ -41,8 +41,6 @@ short bitReverse(int value)
  */
 InflaterHuffmanTree::InflaterHuffmanTree(char* codeLens, int codeL_len)
 {	
-	debug_error_count = 0;
-
 	buildTree(codeLens, codeL_len);
 
     //Compute a "checksum"
@@ -73,28 +71,12 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 		int bits = codeLengths[i];
 		if (bits > 0)
 			blCount[bits]++;
-
-		if (bits >= MAX_BITLEN+1)
-			debug_error_count++;
     }
-
-	//return;
-
-	//DEBUG
-	/*lstrcpy(specialString, _T("["));
-	TCHAR debug_str[100];
-	lstrcpy(debug_str, _T("["));*/
 
 
     unsigned int code = 0;
     int treeSize = 512;
     for (int bits = 1; bits <= MAX_BITLEN; bits++) {
-		//DEBUG
-		/*if (lstrlen(debug_str) < 70) {
-			swprintf(specialString, _T("%s(%x,%x), "), debug_str, code, blCount[bits]);
-			lstrcpy(debug_str, specialString);
-		}*/
-
 		nextCode[bits] = code;
 		code += blCount[bits] << (16 - bits);
 		if (bits >= 10) {
@@ -104,15 +86,6 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 			treeSize += doubleRightShift((end - start), (16 - bits));
 		}
     }
-
-	//DEBUG
-	if (code == 65536) {
-	//	swprintf(specialString, _T("code ok!"));
-	} else {
-	//	swprintf(specialString, _T("bad code! %i"), code);
-		return;
-	}
-	//return;
 
     /*if (code != 65536)
       throw new DataFormatException("Code lengths don't add up properly.");*/
@@ -132,10 +105,6 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 		int start = code & 0x1ff80;
 		for (int i=start; i<end; i+=1<<7) {
 			tree[bitReverse(i)] = (short) ((-treePtr << 4) | bits);
-
-			if (bitReverse(i) >= treeSize)
-				debug_error_count++;
-
 			treePtr += 1 << (bits-9);
 		}
     }
@@ -145,39 +114,26 @@ void InflaterHuffmanTree::buildTree(char* codeLengths, int codeL_len)
 		if (bits == 0)
 			continue;
 
-		if (bits >= MAX_BITLEN+1)
-			debug_error_count++;
-
 		code = nextCode[bits];
 		int revcode = bitReverse(code);
 		if (bits <= 9) {
 			do {
 				tree[revcode] = (short) ((i << 4) | bits);
 
-				if (revcode >= treeSize)
-					debug_error_count++;
-
 				revcode += 1 << bits;
 			} while (revcode < 512);
 		} else {
-			if ((revcode & 511) >= treeSize)
-				debug_error_count++;
 
 			int subTree = tree[revcode & 511];
 			int treeLen = 1 << (subTree & 15);
 			subTree = -doubleRightShift(subTree, 4);
 			do { 
 
-				if ((subTree |doubleRightShift(revcode, 9)) >= treeSize)
-					debug_error_count++;
-
 				tree[subTree |doubleRightShift(revcode, 9)] = (short) ((i << 4) | bits);
 				revcode += 1 << bits;
 			} while (revcode < treeLen);
 		}
 
-		if (bits>=MAX_BITLEN+1)
-			debug_error_count++;
 
 		nextCode[bits] = code + (1 << (16 - bits));
     }

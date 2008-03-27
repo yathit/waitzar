@@ -15,7 +15,9 @@
 #include ".\pulpcorefont.h"
 
 
-//Copy constructor
+/**
+ * Copy constructor.
+ */
 PulpCoreFont::PulpCoreFont(PulpCoreFont *copyFrom, HDC currDC)
 {
 	//Init
@@ -63,6 +65,21 @@ PulpCoreFont::PulpCoreFont(PulpCoreFont *copyFrom, HDC currDC)
 }
 
 
+/**
+ * Tint all pixels of this font to a certain color; preserve alpha.
+ *  NOTE: Unlike in PulpCore, the proper way to make a duplicate font
+ *   of a tinted color is to call the copy constructor FIRST, and then
+ *   this method on the newly-created font.
+ */
+void PulpCoreFont::tintSelf(UINT rgbColor)
+{
+	for (int i=0; i<width*height; i++) {
+		directPixels[i] = premultiply((directPixels[i]&0xff000000)|(rgbColor&0x00ffffff));
+	} 
+}
+
+
+
 
 void PulpCoreFont::initBmpInfo() 
 {
@@ -85,6 +102,9 @@ void PulpCoreFont::initBmpInfo()
 
 
 
+/**
+ * Create a PulpCoreFont.
+ */
 PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 {
 	//Init
@@ -92,12 +112,8 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 	lstrcpy(this->errorMsg, _T(""));
 
 	//Get raw data
-	//NOTE: Can I retrieve this as an array of shorts instead of chars?
-	//     If not, then I have to convert it for use with Inflater->setInput()
     res_data = (char*)LockResource(dataHandle);
     res_size = SizeofResource(NULL, resource);
-
-
 
 	//Loop through all bytes...
 	currPos = 0;
@@ -113,7 +129,6 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 	//Read remaining "chunks"
     int length;
     int chunkType;
-	//int crc;
 	while (error==FALSE) {
 		length = readInt();
 		chunkType = readInt();
@@ -160,31 +175,9 @@ PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 		}
 	}
 
-
-	//Our pre-multiplied colors need some work...
-	/*for (int y=0; y<height; y++) {
-		for (int x=0; x<width; x++) {
-			//Get ARGB
-			int a = (directPixels[y*width+x]&0xFF000000)>>24;
-			int r = (directPixels[y*width+x]&0xFF0000)>>16;
-			int g = (directPixels[y*width+x]&0xFF00)>>8;
-			int b = (directPixels[y*width+x]&0xFF);*/
-
-			/*if (directPixels[y*width+x]!=0)
-				x = x;
-
-			//Set RGB
-			//int not1 = SetPixel(directDC, x, y, RGB(r, g, b));
-
-			//Set A?
-			int q = 1;*/
-		/*}
-	}*/
-
-	//Return our DC's object... not sure if this matters.
-	//Absolutely unsafe to do!
+	//Note: Absolutely NEVER do this:
 	//SelectObject(directDC, previousObject);
-
+	//If you do, the bitmap will no longer be valid to write to.
 }
 
 
@@ -226,9 +219,6 @@ void PulpCoreFont::readHeader(HDC currDC)
 	//Create the DIB to copy pixels onto
 	directDC = CreateCompatibleDC(currDC);
 	
-	//TEST
-	
-
 	//Make the bitmap to use....
 	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
 	SelectObject(directDC, directBitmap);
@@ -303,8 +293,6 @@ void PulpCoreFont::readAnimation()
         frameDuration[i] = readShort();
 
 	//That's all... we don't support animated fonts for now...
-    //AnimatedImage animImage = new AnimatedImage(image, numFramesAcross, numFramesDown);
-    //animImage.setSequence(frameSequence, frameDuration, loop);
 	delete [] frameSequence;
 	delete [] frameDuration;
 }
@@ -329,24 +317,15 @@ void PulpCoreFont::readData(int length)
 		currScanline[i] = 0;
 
     for (int i=0; i<height; i++) {
-		//For some reason, this is pulling out a "64" after 12/26 hits.... weird...
-		//Possibly, the input stream is 1 byte behind (the next byte is a zero, which
-		//  is what filter SHOULD be...)
 		inflateFully(inflater, filterBuffer, 1);
 
 		if (error==TRUE)
 			return;
 
 		inflateFully(inflater, currScanline, bytesPerScanline);
-
-		//DEBUG
-		/*int debug_sum = 0;
-		for (int q=0; q<bytesPerScanline; q++)
-			debug_sum += (int)currScanline[q];*/
-
-        int filter = filterBuffer[0];
-
-        // Apply filter
+        
+		//Apply filter
+		int filter = filterBuffer[0];
         if (filter > 0 && filter < 5)
 			decodeFilter(currScanline, bytesPerScanline, prevScanline, filter, bytesPerPixel);
         else if (filter!=0 && error==FALSE) {
@@ -440,15 +419,7 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
 {
 	int bytesRead = 0;
 
-		//DEBUG
-	/*TCHAR temp[10];
-	swprintf(temp, _T("%i."), res_length);
-	lstrcat(debug_msg, temp);*/
-
     while (bytesRead < res_length) {
-
-		//debug_count++;
-
 		if (inflater->needsInput() && error==FALSE) {
 			swprintf(errorMsg, _T("Inflater ran out of input"));
 			error = TRUE;
@@ -463,13 +434,6 @@ void PulpCoreFont::inflateFully(Inflater* inflater, char* result, int res_length
         }
 
         bytesRead += res;
-
-	//DEBUG
-//	lstrcpy(errorMsg, inflater->specialMessage);
-	//	unsigned char s = -1;
-	//swprintf(errorMsg, _T("test: %0x"), s);
-//	error = TRUE;
-//	return;
     }
 }
 
@@ -499,10 +463,6 @@ void PulpCoreFont::fontSet()
 	//Java inits...
 	for (int i=0; i<num_char_pos; i++) 
 		charPositions[i] = 0;
-	/*for (int i=0; i<numChars; i++) {
-		bearingLeft[i] = 0;
-		bearingRight[i] = 0;
-	}*/
 
 	//Read character positions
     for (int i=0; i<num_char_pos; i++) {
@@ -583,8 +543,6 @@ int PulpCoreFont::paethPredictor(int a, int b, int c)
         return c;
     }
 }
-
-
 
 
 void PulpCoreFont::premultiply(UINT* arbg, int argb_len)
@@ -677,11 +635,6 @@ int PulpCoreFont::getCharIndex(TCHAR ch)
 }
 
 
-/*int PulpCoreFont::getKerning(TCHAR left, TCHAR right)
-{
-	return getKerning(getCharIndex(left), getCharIndex(right));
-}*/
-
 int PulpCoreFont::getKerning(int leftIndex, int rightIndex)
 {
 	// Future versions of this method might handle kerning pairs, like "WA" and "Yo"
@@ -700,15 +653,6 @@ bool PulpCoreFont::shouldIgnoreTracking(int index)
     int advance = width + lsb + rsb;
     return advance < width/2;
 }
-
-
-void PulpCoreFont::tintSelf(UINT rgbColor)
-{
-	for (int i=0; i<width*height; i++) {
-		directPixels[i] = premultiply((directPixels[i]&0xff000000)|(rgbColor&0x00ffffff));
-	} 
-}
-
 
 
 int PulpCoreFont::getStringWidth(TCHAR* str)

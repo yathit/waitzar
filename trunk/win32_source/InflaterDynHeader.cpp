@@ -52,7 +52,7 @@ InflaterDynHeader::~InflaterDynHeader()
 }
 
 
-//There appears to be no error here.
+
 bool InflaterDynHeader::decode(StreamManipulator &input)
 {
 //    decode_loop:
@@ -98,10 +98,6 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				//Fall through
 			case BLLENS:
 			{
-				//swprintf(specialMessage, _T("Made it to BLLENS"));
-				//return true;
-
-
 				while (ptr < blnum) {
 					int len = input.peekBits(3);
 					if (len < 0)
@@ -124,20 +120,16 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 				mode = LENS;
 				//Fall through
 			}
-			case LENS:  //First 1 fallthrough + Final 12 times
+			case LENS: 
 			{
 				int symbol = 0;
 				for(;;) {
-					//Nothing wrong here...
 					symbol = blTree->getSymbol(input);
 					if (((symbol) & ~15) != 0)
 						break;
 
-					//Nothing wrong here...
-					//Normal case: symbol in [0..15]
 					litdistLens[ptr++] = lastLen = (char)symbol;
 					if (ptr == num) {
-						//Finished
 						return true;
 					}
 				}
@@ -181,10 +173,6 @@ bool InflaterDynHeader::decode(StreamManipulator &input)
 			mode = LENS;
 			//goto decode_loop; //Does this actually do anything...? //Anser: no
 		}
-
-
-		//DEBUG... 
-		//return true;
     }
 
 

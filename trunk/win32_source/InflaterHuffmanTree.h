@@ -52,7 +52,7 @@ private:
 	short* tree;
 	
 	//Semi-useful array bounds error checking
-	int debug_error_count;
+	//int debug_error_count;
 };
 
 
