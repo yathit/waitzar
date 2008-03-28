@@ -207,6 +207,9 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\config.txt">
+		</File>
+		<File
 			RelativePath=".\Myanmar.model">
 		</File>
 		<File

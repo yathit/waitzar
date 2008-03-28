@@ -133,6 +133,134 @@ void makeFont(HWND currHwnd)
 }
 
 
+BOOL registerInitialHotkey() 
+{
+	//Default keys
+	UINT modifier = MOD_CONTROL | MOD_SHIFT;
+	UINT keycode = VK_SHIFT;
+
+	//Read our config file, if it exists. 
+	FILE* configFile = fopen("config.txt", "r");
+	if (configFile != NULL) {
+		//Get file size
+		fseek (configFile, 0, SEEK_END);
+		long fileSize = ftell(configFile);
+		rewind(configFile);
+
+		//Read it all into an array, close the file.
+		char * buffer = (char*) malloc(sizeof(char)*fileSize);
+		size_t buff_size = fread(buffer, 1, fileSize, configFile);
+		fclose(configFile);
+
+
+		//Read each line
+		for (size_t i=0; i<buff_size; i++) {
+			//LTrim
+			while (buffer[i] == ' ')
+				i++;
+
+			//Comment? If so, skip to the next newline.
+			if (buffer[i] == '#') {
+				while (buffer[i] != '\n')
+					i++;
+				continue;
+			}
+
+			//Read our property's name
+			char name[50];
+			int name_pos = 0;
+			strcpy(name, "");
+			while (buffer[i] != '=') {
+				if (buffer[i] == ' ')
+					i++;
+				else
+					name[name_pos++] = buffer[i++];
+			}
+			name[name_pos] = '\0';
+			i++;
+
+			//Read our property's value
+			char value[50];
+			name_pos = 0;
+			strcpy(value, "");
+			while (buffer[i] != '\n') {
+				if (buffer[i] == ' ')
+					i++;
+				else
+					value[name_pos++] = buffer[i++];
+			}
+			value[name_pos++] = '\0';
+
+			//No possible hotkeys?
+			if (name_pos<2) 
+				continue;
+
+			//Deal with our name/value pair.
+			if (strcmp(name, "hotkey")==0) {
+				//It's a hotkey code. First, reset...
+				modifier = 0;
+				
+				//Now, set the keycode
+				//Additional rule: all keystroke modifiers must also themselves be modifiers
+				keycode = value[name_pos-2];
+				switch(keycode) {
+					case '!':
+						keycode = VK_MENU; //VK_MENU == VK_ALT
+						modifier |= MOD_ALT;
+						break;
+					case '^':
+						keycode = VK_CONTROL;
+						modifier |= MOD_CONTROL;
+						break;
+					case '+':
+						keycode = VK_SHIFT;
+						modifier |= MOD_SHIFT;
+						break;
+					case '_':
+						keycode = VK_SPACE;
+						break;
+				}
+				
+				//Now, set the modifiers
+				for (int pos=0; pos<name_pos-2; pos++) {
+					switch(value[pos]) {
+						case '!':
+							modifier |= MOD_ALT;
+							break;
+						case '^':
+							modifier |= MOD_CONTROL;
+							break;
+						case '+':
+							modifier |= MOD_SHIFT;
+							break;
+					}
+				}
+			
+				//Additional rule: Capital letters require a shift modifier
+				if (keycode>='A' && keycode<='Z')
+					modifier |= MOD_SHIFT;
+
+				//Additional rule: Lowercase letters are coded by their uppercase value
+				if (keycode>='a' && keycode<='z')
+					keycode -= 'a'-'A';
+			}
+		}
+
+		//Get rid of our buffer
+		free(buffer);
+	}
+
+
+	/*TCHAR temp[150];
+	swprintf(temp, _T("mod: %i   key: %c"), modifier, keycode);
+	MessageBox(NULL, temp, _T("Hotkey..."), MB_ICONERROR | MB_OK);*/
+
+
+	return RegisterHotKey(hwnd, LANG_HOTKEY, modifier, keycode);
+}
+
+
+
 /**
  * Load the Wait Zar language model. 
  */
@@ -1057,11 +1185,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Add our icon to the tray
 	Shell_NotifyIcon(NIM_ADD, &nid);
-	
 
 	//Set our hotkey
-	if( RegisterHotKey(hwnd, LANG_HOTKEY, MOD_ALT | MOD_SHIFT, VK_SHIFT)==0 )
-		MessageBox(NULL, _T("Hotkey Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+	if( registerInitialHotkey()==0 )
+		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 	mmOn = FALSE;	
 
 	//Initialize our romanisation string
