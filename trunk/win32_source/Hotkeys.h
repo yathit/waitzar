@@ -74,6 +74,7 @@
 #define HOTKEY_DOWN 20
 #define HOTKEY_ESC 21
 #define HOTKEY_BACK 22
+#define HOTKEY_ENTER 23
 
 //Numbers as control keys
 #define HOTKEY_NUM0 38
