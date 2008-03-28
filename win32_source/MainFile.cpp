@@ -37,10 +37,7 @@ UINT32 HsiehHash ( std::string *str );
 
 //Unique IDs
 #define LANG_HOTKEY 142
-#define IDC_CURR_WORD_LBL 143
 #define STATUS_NID 144
-#define IDC_CURR_MYANMAR_LBL 145
-#define IDC_BACKGROUND_LBL 146
 
 //Custom message IDs
 #define UWM_SYSTRAY (WM_USER + 1)
@@ -54,7 +51,7 @@ HPEN g_GreenPen;
 HPEN g_BlackPen;
 HPEN g_EmptyPen;
 
-//Singletons
+//Global Variables
 HINSTANCE hInst;
 INPUT inputItem;
 KEYBDINPUT keyInput;
@@ -71,7 +68,7 @@ HDC gc;
 HDC underDC;
 HBITMAP bmpDC;
 
-//Global stuff
+//Record-keeping
 TCHAR currStr[50];
 BOOL mmOn;
 BOOL doneDrag;
@@ -95,21 +92,26 @@ int spaceWidth;
 
 
 
+/**
+ * Create our inner-used Zawgyi-One fonts.
+ */
 void makeFont(HWND currHwnd) 
 {
-	//Load our font
-//	HINSTANCE hInst = (HINSTANCE)GetWindowLong(currHwnd, GWL_HINSTANCE);
+	//Load our font resource
 	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT")); 
 	if (!fontRes) {
 		MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
         return;
 	}
 
+	//Get a handle from this resource.
     HGLOBAL res_handle = LoadResource(NULL, fontRes);
 	if (!res_handle) {
 		MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
         return;
 	}
+
+	//Create our PulpCoreFont (it's white when we load it, not black, by the way)
 	mmFontBlack = new PulpCoreFont(fontRes, res_handle, gc);
 	if (mmFontBlack->isInError()==TRUE) {
 		TCHAR errorStr[600];
@@ -117,12 +119,10 @@ void makeFont(HWND currHwnd)
 
 		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
 		return;
-	} else {
-		//For debug purposes:
-		//MessageBox(NULL, _T("WaitZar font loaded just fine!"), _T("Ok"), MB_ICONINFORMATION | MB_OK);
 	}
-	UnlockResource(res_handle);
 
+	//Unlock this resource for later use.
+	UnlockResource(res_handle);
 
 	//Copy-construct a new font
 	mmFontGreen = new PulpCoreFont(mmFontBlack, gc);
@@ -133,27 +133,24 @@ void makeFont(HWND currHwnd)
 }
 
 
-
-BOOL loadModel(/*HINSTANCE hInst*/) {
+/**
+ * Load the Wait Zar language model. 
+ */
+BOOL loadModel() {
 	//Load our embedded resource, the WaitZar model
 	HGLOBAL     res_handle = NULL;
 	HRSRC       res;
     char *      res_data;
     DWORD       res_size;
 
-	//NOTE: Store MM segments as Vector<WORD>, since we need to pass individual SendInput() events,
-	//      and we need the size (can't just use WORD[])
-	//  -update: just use short ints; they'll scale
-	//NOTE2: Because the above increases memory usage, we store all "words" as integers pointing
-	//      to the dictionary vector.
-	//std::vector< std::vector < WORD > > *dictionary = new std::vector< std::vector < WORD > > ;
-	//std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > *nexus = new std::vector< sparse_hash_map< std::string, int,  stringhasher, stringhasher> > ;
-	//std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > *prefix = new std::vector< std::pair <sparse_hash_map <int, int>, std::vector<int> > > ;
+	//Previous versions of Wait Zar used the Google sparse hash library; however, even with
+	//  its small footprint, this method required too much memory. So, we'll just allocate
+	//  a jagged array.
 	WORD **dictionary;
 	UINT32 **nexus;
 	UINT32 **prefix;
 
-	//Find the resource and get its size, etc.
+	//Load the resource as a byte array and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
 	if (!res) {
 		MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
@@ -167,10 +164,9 @@ BOOL loadModel(/*HINSTANCE hInst*/) {
     res_data = (char*)LockResource(res_handle);
     res_size = SizeofResource(NULL, res);
 
-	//Loop through all this
+	//Loop through each line
 	DWORD currLineStart = 0;
 	char currLetter[] = "1000";
-	//char currNumber[50];
 	int count = 0;
 	int mode = 0;
 	int lastCommentedNumber = 0;
@@ -428,7 +424,7 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 
 void reBlit() 
 {
-	//Bit blit...
+	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(gc,0,0,C_WIDTH,C_HEIGHT,underDC,0,0,SRCCOPY);
 }
 
@@ -436,11 +432,9 @@ void reBlit()
 //Only blit part of the area
 void reBlit(RECT blitArea)
 {
-	//Bit blit...
+	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(gc,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,underDC,blitArea.left,blitArea.top,SRCCOPY);
 }
-
-
 
 
 void initCalculate()
@@ -459,6 +453,7 @@ void initCalculate()
 
 void expandHWND(int newWidth)
 {
+	//Resize the current window; use SetWindowPos() since it's easier...
 	SetWindowPos(hwnd, NULL, 0, 0, newWidth, C_HEIGHT, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
 	RECT r;
 	GetClientRect(hwnd, &r);
@@ -475,6 +470,10 @@ void expandHWND(int newWidth)
 
 
 
+/**
+ * Re-figure the layout of our drawing area, resize if necessary, and
+ * draw onto the back buffer. Finally, blit to the front buffer.
+ */
 void recalculate() 
 {
 	//First things first: can we fit this in the current background?
@@ -493,10 +492,6 @@ void recalculate()
 	else if (cumulativeWidth>WINDOW_WIDTH && cumulativeWidth<C_WIDTH)
 		expandHWND(cumulativeWidth);
 
-	
-	
-
-
 	//Background
 	SelectObject(underDC, g_BlackPen);
 	SelectObject(underDC, g_DarkGrayBkgrd);
@@ -508,7 +503,6 @@ void recalculate()
 	Rectangle(underDC, borderWidth+1, firstLineStart+1, C_WIDTH-borderWidth-1, secondLineStart-borderWidth);
 	Rectangle(underDC, borderWidth+1, secondLineStart, C_WIDTH-borderWidth-1, thirdLineStart-borderWidth);
 	Rectangle(underDC, borderWidth+1, thirdLineStart, C_WIDTH-borderWidth-1, fourthLineStart-borderWidth-1);
-
 
 	//Now, draw the strings....
 	PulpCoreFont* mmFont = mmFontBlack;
@@ -558,8 +552,12 @@ void selectWord(int id)
 	HWND fore = GetForegroundWindow();
 	SetActiveWindow(fore);
 
+	//Use SendInput instead of SendMessage, since SendMessage requires the actual
+	//  sub-window (component) to recieve the message, whereas SendInput only
+	//  requires the top-level window. We could probably hack in SendMessage now that
+	//  we're not becoming the active window, but for now I'd rather have a stable
+	//  system than one that works on Windows 98.
 	std::vector<WORD> keyStrokes = model->getWordKeyStrokes(typedVal.second);
-	//Try SendInput() instead of SendMessage()
 	inputItem.type=INPUT_KEYBOARD;
 	keyInput.wVk=0;
 	keyInput.dwFlags=KEYEVENTF_UNICODE;
@@ -576,19 +574,21 @@ void selectWord(int id)
 			break;
 		}
 	}
-
 	if (result == FALSE)
 		MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 
 	//Turn off control keys
 	turnOnControlkeys(hwnd, FALSE);
 
-	//For now...
+	//Hide the window
 	ShowWindow(hwnd, SW_HIDE);
 }
 
 
 
+/**
+ * Message-handling code.
+ */
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
@@ -615,35 +615,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			bmpDC = CreateCompatibleBitmap(gc, WINDOW_WIDTH, WINDOW_HEIGHT);
 			SelectObject(underDC, bmpDC);
 			
-			break;
-		}
-		case WM_CTLCOLORSTATIC:
-		{
-			int staticID = GetDlgCtrlID((HWND)lParam);
-			if (staticID == IDC_CURR_WORD_LBL) {
-				HDC hdcStatic = (HDC)wParam;
-				SetTextColor(hdcStatic, RGB(0, 128, 0));
-				SetBkMode(hdcStatic, TRANSPARENT);
-				return (LONG_PTR)g_WhiteBkgrd;
-
-				//Can't do this without returning a brush color anyways...
-				//SetBkColor(hdcStatic, RGB(255, 255, 255));
-			} else if (staticID == IDC_CURR_MYANMAR_LBL) {
-				//Set the font (why now??)
-				//SendDlgItemMessage(hwnd, IDC_CURR_MYANMAR_LBL, WM_SETFONT, (WPARAM)zgFont, (LPARAM)TRUE);
-
-				//Proceed...
-				HDC hdcStatic = (HDC)wParam;
-				SetTextColor(hdcStatic, RGB(0, 128, 128));
-				SetBkMode(hdcStatic, TRANSPARENT);
-				return (LONG_PTR)g_WhiteBkgrd;
-			} else if (staticID == IDC_BACKGROUND_LBL) {
-				//Proceed...
-				HDC hdcStatic = (HDC)wParam;
-				//SetTextColor(hdcStatic, RGB(0, 128, 128));
-				SetBkMode(hdcStatic, TRANSPARENT);
-				return (LONG_PTR)g_YellowBkgrd;
-			}
 			break;
 		}
 		case WM_HOTKEY:
@@ -712,8 +683,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				selectWord(numCode);
 			}
 
-
-			if (wParam == HOTKEY_SPACE) {
+			//Handle space bar
+			if (wParam==HOTKEY_SPACE || wParam==HOTKEY_ENTER) {
 				selectWord(-1);
 			}
 
@@ -756,6 +727,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_PAINT: 
 		{
+			//Update only if there's an area which needs updating (e.g., a higher-level
+			//  window has dragged over this one's client area... it can happen only with popups,
+			//  but let's do it just to be safe.
 			RECT updateRect;
 			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
 			{
@@ -769,30 +743,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			
 			break;
 		}
-		case WM_MOVE:
-			//Re-draw
-			//reBlit();
-			break;
-		
-		//This is nice, but I don't think it'll work as-is.....
-		/*case WM_MOUSEMOVE:
-		{
-			HDC hdcScreen = CreateDC (TEXT("DISPLAY"), NULL, NULL, NULL);
-			SetROP2(hdcScreen, R2_NOTXORPEN);
-
-			// Draw over and erase the old rectangle.
-			//Rectangle   (hdc, ptCurrent.x, ptCurrent.y, ptNew.x, ptNew.y );
-			//ptNew.x = x;
-			//ptNew.y = y;
-			//ClientToScreen (hwnd,&ptNew);
-
-			// Draw the new rectangle.
-			SelectObject(hdcScreen, g_BlackPen);
-			Rectangle(hdcScreen, 100, 100, 200, 200);
-			DeleteDC(hdcScreen);
-
-			break;
-		}*/
 		case WM_NCHITTEST: //Allow dragging of the client area...
 		{
 			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
@@ -806,7 +756,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			POINT pt;
 			HMENU hmenu, hpopup;
-			/*HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);*/
 
 			if (lParam==WM_RBUTTONUP || lParam==WM_LBUTTONUP) {
 				//Make a popup menu
@@ -845,12 +794,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_CTLCOLORDLG:
+			//Our dialog has no background color.
+			// (this might not actually have any effect)
 			return NULL_BRUSH;
-			break;
-		case WM_CHAR:
-			{
-
-			}
 			break;
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
@@ -859,8 +805,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Cleanup
 			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE) 
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
-			if (mmOn==TRUE)
-			{
+			if (mmOn==TRUE) {
 				if (turnOnHotkeys(hwnd, FALSE) == FALSE)
 					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			}
@@ -892,16 +837,13 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 	for (low_code=HOTKEY_A_LOW; low_code<=HOTKEY_Z_LOW; low_code++)  
 	{
 		high_code = low_code - 32;
-		if (on==TRUE) 
-		{
+		if (on==TRUE)  {
 			//Register this as an uppercase/lowercase letter
 			if (RegisterHotKey(hwnd, high_code, MOD_SHIFT, high_code)==FALSE)
 				retVal = FALSE;
 			if (RegisterHotKey(hwnd, low_code, NULL, high_code)==FALSE)
 				retVal = FALSE;
-		} 
-		else 
-		{
+		} else {
 			//De-register this as an uppercase/lowercase letter
 			if (UnregisterHotKey(hwnd, high_code)==FALSE)
 				retVal = FALSE;
@@ -910,7 +852,7 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 		}
 	}
 
-
+	//Switch to our target language.
 	mmOn = on;
 
 	//Change icon in the tray
@@ -940,6 +882,8 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 	//Register control keys
 	if (on==TRUE) {
 		if (RegisterHotKey(hwnd, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(hwnd, HOTKEY_ENTER, NULL, VK_RETURN)==FALSE)
 			retVal = FALSE;
 		if (RegisterHotKey(hwnd, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
 			retVal = FALSE;
@@ -981,6 +925,8 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 		}
 	} else {
 		if (UnregisterHotKey(hwnd, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(hwnd, HOTKEY_ENTER)==FALSE)
 			retVal = FALSE;
 		if (UnregisterHotKey(hwnd, HOTKEY_LEFT)==FALSE)
 			retVal = FALSE;
@@ -1027,20 +973,21 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 }
 
 
+/**
+ * Main method for Windows applications
+ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	//Save for later.
+	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
+	//  warnings. Plus, the hInstance should never change. 
 	hInst = hInstance;
 
-	WNDCLASSEX wc;
-	MSG Msg;
-	NOTIFYICONDATA nid;
-
-	//Stuffz
+	//Create a window class
 	LPCWSTR g_szClassName = _T("myWindowClass");
 
 	//Give this process a low background priority
-	SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+	//  NOTE: We need to balance this eventually. 
+	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
@@ -1051,8 +998,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
 
-
-	//Set window's class parameters
+	//Set window class's parameters
+	WNDCLASSEX wc;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
 	wc.lpfnWndProc = WndProc;
@@ -1065,15 +1012,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = g_szClassName;
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	if(!RegisterClassEx(&wc))
-	{
+	if(!RegisterClassEx(&wc)) {
 		MessageBox(NULL, _T("Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
 
 	//Create a handle to the window
+	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
+	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
+	// receive very few actual events
 	hwnd = CreateWindowEx(
-		WS_EX_TOPMOST | WS_EX_NOACTIVATE, //no_active helps... but we'll need more hotkeys.
+		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		g_szClassName,
 		_T("WaitZar"), 
 		WS_POPUP, //No border or title bar
@@ -1091,6 +1040,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
 
 	//Make our "notify icon" data structure
+	NOTIFYICONDATA nid;
 	nid.cbSize = sizeof(NOTIFYICONDATA); //natch
 	nid.hWnd = hwnd; //Cauess OUR window to receive notifications for this icon.
 	nid.uID = STATUS_NID;
@@ -1118,17 +1068,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(currStr, _T(""));
 
 	//Success?
-	if(hwnd == NULL /*|| currWordLbl == NULL || currMyanmarLbl == NULL || backgroundSelect==NULL*/)
-	{
+	if(hwnd == NULL) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
 
 	//If we got this far, let's try to load our file.
-	if (loadModel(/*hInstance*/) == FALSE) {
+	if (loadModel() == FALSE) {
 		DestroyWindow(hwnd);
 	}
-
 
 	//Show it's ready by changing the shell icon
 	nid.cbSize = sizeof(NOTIFYICONDATA);
@@ -1142,10 +1090,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, _T("Can't switch icon..."), _T("Warning"), MB_ICONERROR | MB_OK);
 
 
-
 	//Main message handling loop
-	while(GetMessage(&Msg, NULL, 0, 0) > 0)
-	{
+	MSG Msg;
+	while(GetMessage(&Msg, NULL, 0, 0) > 0) {
 		TranslateMessage(&Msg);
 		DispatchMessage(&Msg);
 	}
