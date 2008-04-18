@@ -23,6 +23,7 @@
 #include <string>
 
 //Our includes
+//#include "CStdioFile_UTF8.h"
 #include "WordBuilder.h"
 #include "PulpCoreFont.h"
 #include "resource.h"
@@ -41,6 +42,9 @@ UINT32 HsiehHash ( std::string *str );
 
 //Custom message IDs
 #define UWM_SYSTRAY (WM_USER + 1)
+
+//Grr... notepad...
+#define UNICOD_BOM 0xFEFF
 
 //Brushes & Pens
 HBRUSH g_WhiteBkgrd;
@@ -131,6 +135,49 @@ void makeFont(HWND currHwnd)
 	mmFontGreen->tintSelf(0x008000);
 	mmFontBlack->tintSelf(0x000000);
 }
+
+
+
+void readUserWords() {
+	//Read our words file, if it exists.
+	FILE* userFile = fopen("mywords.txt", "r");
+	if (userFile != NULL) {
+		//Get file size
+		fseek (userFile, 0, SEEK_END);
+		long fileSize = ftell(userFile);
+		rewind(userFile);
+
+		//Read it all into an array, close the file.
+		char * buffer = (char*) malloc(sizeof(char)*fileSize);
+		size_t buff_size = fread(buffer, 1, fileSize, userFile);
+		fclose(userFile);
+
+		//Finally, convert this array to unicode
+		TCHAR * uniBuffer;
+		size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, 0);
+		uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
+		if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars)) {
+			MessageBox(NULL, _T("mywords.txt contains invalid UTF-8 characters"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+		delete [] buffer;
+
+		//Skip the BOM, if it exists
+		int currPosition = 0;
+		if (uniBuffer[currPosition] == UNICOD_BOM)
+			currPosition++;
+
+		//Now....
+		TCHAR temp[150];
+		swprintf(temp, _T("First char: %i"), uniBuffer[currPosition]);
+		MessageBox(NULL, temp, _T("Error"), MB_ICONERROR | MB_OK);
+
+
+		delete [] uniBuffer;
+	}
+}
+
+
 
 
 BOOL registerInitialHotkey() 
@@ -1204,6 +1251,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (loadModel() == FALSE) {
 		DestroyWindow(hwnd);
 	}
+
+	//Also load user-specific words
+	readUserWords();
 
 	//Show it's ready by changing the shell icon
 	nid.cbSize = sizeof(NOTIFYICONDATA);
