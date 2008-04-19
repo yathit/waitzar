@@ -28,12 +28,21 @@
  *       few profile runs) tiny hash tables offer virtually no performance improvement at a
  *       substantial increase in the memory footprint. So, deal with the C-style arrays.
  */
-WordBuilder::WordBuilder(WORD **dictionary, UINT32 **nexus, UINT32 **prefix) 
+WordBuilder::WordBuilder (WORD **dictionary, int dictMaxID, int dictMaxSize, UINT32 **nexus, int nexusMaxID, int nexusMaxSize, UINT32 **prefix, int prefixMaxID, int prefixMaxSize)
 {
 	//Store for later
 	this->dictionary = dictionary;
 	this->nexus = nexus;
 	this->prefix = prefix;
+
+	this->dictMaxID = dictMaxID;
+	this->dictMaxSize = dictMaxSize;
+
+	this->nexusMaxID = nexusMaxID;
+	this->nexusMaxSize = nexusMaxSize;
+
+	this->prefixMaxID = prefixMaxID;
+	this->prefixMaxSize = prefixMaxSize;
 
 	//Start off
 	this->reset(true);
@@ -318,6 +327,134 @@ TCHAR* WordBuilder::getWordString(UINT32 id)
 	}
 
 	return this->currStr;
+}
+
+
+void WordBuilder::addRomanization(TCHAR* myanmar, char* roman) 
+{
+	//First task: find the word; add it if necessary
+	int dictID;
+	int mmLen = lstrlen(myanmar);
+	for (dictID=0; dictID<dictMaxID; dictID++) {
+		if (mmLen != dictionary[dictID][0])
+			continue;
+
+		bool found = true;
+		for (int i=0; i<dictionary[dictID][0]; i++) {
+			if (dictionary[dictID][i+1] != (WORD)myanmar[i]) {
+				found = false;
+				break;
+			}
+		}
+		if (found) {
+			break;
+		}
+	}
+	if (dictID==dictMaxID) {
+		//Need to add... we DO have a limit, though.
+		if (dictID == dictMaxSize) {
+			MessageBox(NULL, _T("Too many custom words!"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		dictMaxID++;
+		dictionary[dictID] = (WORD *)malloc((mmLen+1) * sizeof(WORD));
+		dictionary[dictID][0] = mmLen;
+		for (int i=0; i<mmLen; i++) {
+			dictionary[dictID][i+1] = (WORD)myanmar[i];
+		}
+	} 
+
+
+	//Next task: add the romanized mappings
+	size_t currNodeID = 0;
+	size_t romanLen = strlen(roman);
+	for (size_t rmID=0; rmID<romanLen; rmID++) {
+		//Does a path exist from our current node to the next step?
+		size_t nextNexusID;
+		for (nextNexusID=0; nextNexusID<nexus[currNodeID][0]; nextNexusID++) {
+			if (((nexus[currNodeID][nextNexusID+1])&0xFF) == roman[rmID]) {
+				break;
+			}
+		}
+		if (nextNexusID==nexus[currNodeID][0]) {
+			//First step: make a blank nexus entry at the END of this list
+			if (nexusMaxID == nexusMaxSize) {
+				MessageBox(NULL, _T("Too many custom nexi!"), _T("Error"), MB_ICONERROR | MB_OK);
+				return;
+			}
+			nexus[nexusMaxID] = (UINT32 *)malloc((1) * sizeof(UINT32));
+			nexus[nexusMaxID][0] = 0;
+
+			//Next: copy all old entries into a new array
+			UINT32 * newCurrent = (UINT32 *)malloc((nexus[currNodeID][0]+1) * sizeof(UINT32));
+			newCurrent[0] = nexus[currNodeID][0]+1;
+			for (size_t i=0; i<nexus[currNodeID][0]; i++) {
+				newCurrent[i+1] = nexus[currNodeID][i+1];
+			}
+			free(nexus[currNodeID]);
+			nexus[currNodeID] = newCurrent;
+			
+			//Finally: add a new entry linking to the nexus we just created
+			nexus[currNodeID][nexus[currNodeID][0]] = (nexusMaxID<<8) | (0xFF&roman[rmID]);
+			nexusMaxID++;
+		}
+
+		currNodeID = ((nexus[currNodeID][nextNexusID+1])>>8);
+	}
+
+
+	//Final task: add (just the first) prefix entry.
+	size_t currPrefixID;
+	for (currPrefixID=0; currPrefixID<nexus[currNodeID][0]; currPrefixID++) {
+		if (((nexus[currNodeID][currPrefixID])&0xFF) == '~') {
+			break;
+		}
+	}
+	if (currPrefixID == nexus[currNodeID][0]) {
+		//We need to add a prefix entry
+		if (prefixMaxID == prefixMaxSize) {
+			MessageBox(NULL, _T("Too many custom prefixes!"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+		prefix[prefixMaxID] = (UINT32 *)malloc((2) * sizeof(UINT32));
+		prefix[prefixMaxID][0] = 0;
+		prefix[prefixMaxID][1] = 0;
+
+		//Next: copy all old entries into a new array
+		UINT32 * newCurrent = (UINT32 *)malloc((nexus[currNodeID][0]+1) * sizeof(UINT32));
+		newCurrent[0] = nexus[currNodeID][0]+1;
+		for (size_t i=0; i<nexus[currNodeID][0]; i++) {
+			newCurrent[i+1] = nexus[currNodeID][i+1];
+		}
+		free(nexus[currNodeID]);
+		nexus[currNodeID] = newCurrent;
+			
+		//Finally: add a new entry linking to the nexus we just created
+		currPrefixID = prefixMaxID;
+		nexus[currNodeID][nexus[currNodeID][0]] = (UINT32) ((currPrefixID<<8) | ('~'));
+		prefixMaxID++;
+	}
+
+	//Does our prefix entry contain this dictionary word?
+	for (size_t i=0; i<prefix[currPrefixID][1]; i++) {
+		if (prefix[currPrefixID][prefix[currPrefixID][0]*2+2+i] == dictID) {
+			MessageBox(NULL, _T("Word is already in dictionary!"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+	}
+
+	//Ok, copy it over
+	size_t oldSize = prefix[currPrefixID][0]*2 + prefix[currPrefixID][1] + 2;
+	UINT32 * newPrefix = (UINT32 *)malloc((oldSize+1) * sizeof(UINT32));
+	newPrefix[0] = prefix[currPrefixID][0];
+	newPrefix[1] = prefix[currPrefixID][1]+1;
+	for (size_t i=2; i<oldSize; i++) {
+		newPrefix[i] = prefix[currPrefixID][i];
+	}
+	newPrefix[oldSize] = dictID;
+	free(prefix[currPrefixID]);
+	prefix[currPrefixID] = newPrefix;
 }
 
 /*

@@ -154,7 +154,7 @@ void readUserWords() {
 
 		//Finally, convert this array to unicode
 		TCHAR * uniBuffer;
-		size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, 0);
+		size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
 		uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
 		if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars)) {
 			MessageBox(NULL, _T("mywords.txt contains invalid UTF-8 characters"), _T("Error"), MB_ICONERROR | MB_OK);
@@ -167,10 +167,53 @@ void readUserWords() {
 		if (uniBuffer[currPosition] == UNICOD_BOM)
 			currPosition++;
 
-		//Now....
-		TCHAR temp[150];
-		swprintf(temp, _T("First char: %i"), uniBuffer[currPosition]);
-		MessageBox(NULL, temp, _T("Error"), MB_ICONERROR | MB_OK);
+		//Read each line
+		for (size_t i=currPosition; i<numUniChars; i++) {
+			//LTrim
+			while (uniBuffer[i] == ' ')
+				i++;
+
+			//Comment? If so, skip to the next newline.
+			//  Also skip empty lines
+			if (uniBuffer[i]=='#' || uniBuffer[i]=='\n') {
+				while (uniBuffer[i] != '\n')
+					i++;
+				continue;
+			}
+
+			//Read our MM word
+			TCHAR name[50];
+			int name_pos = 0;
+			lstrcpy(name, _T(""));
+			while (uniBuffer[i] != '=') {
+				if (uniBuffer[i] == ' ')
+					i++;
+				else
+					name[name_pos++] = uniBuffer[i++];
+			}
+			name[name_pos] = '\0';
+			i++;
+
+			//Read our romanization
+			char value[50];
+			name_pos = 0;
+			strcpy(value, "");
+			while (uniBuffer[i] != '\n') {
+				char romanChar = (char)uniBuffer[i++];
+				if (romanChar>='A' && romanChar<='Z') 
+					romanChar += ('a'-'A');
+				if (romanChar>='a' && romanChar<='z') 
+					value[name_pos++] = romanChar;
+			}
+			value[name_pos++] = '\0';
+
+			//Valid?
+			if (strlen(value)==0 || lstrlen(name)==0)
+				continue;
+
+			//Add this romanization
+			model->addRomanization(name, value);
+		}
 
 
 		delete [] uniBuffer;
@@ -207,7 +250,8 @@ BOOL registerInitialHotkey()
 				i++;
 
 			//Comment? If so, skip to the next newline.
-			if (buffer[i] == '#') {
+			//  Also skip empty lines
+			if (buffer[i]=='#' || buffer[i]=='\n') {
 				while (buffer[i] != '\n')
 					i++;
 				continue;
@@ -325,6 +369,14 @@ BOOL loadModel() {
 	UINT32 **nexus;
 	UINT32 **prefix;
 
+	//And sizes
+	int dictMaxID;
+	int dictMaxSize;
+	int nexusMaxID;
+	int nexusMaxSize;
+	int prefixMaxID;
+	int prefixMaxSize;
+
 	//Load the resource as a byte array and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
 	if (!res) {
@@ -376,17 +428,23 @@ BOOL loadModel() {
 			switch (mode) {
 				case 1: //Words
 					//Initialize our dictionary
-					dictionary = (WORD **)malloc(lastCommentedNumber * sizeof(WORD *));
+					dictMaxID = lastCommentedNumber;
+					dictMaxSize = (dictMaxID*3)/2;
+					dictionary = (WORD **)malloc(dictMaxSize * sizeof(WORD *));
 					currDictionaryID = 0;
 					break;
 				case 2: //Nexi
 					//Initialize our nexus list
-					nexus = (UINT32 **)malloc(lastCommentedNumber * sizeof(UINT32 *));
+					nexusMaxID = lastCommentedNumber;
+					nexusMaxSize = (nexusMaxID*3)/2;
+					nexus = (UINT32 **)malloc(nexusMaxSize * sizeof(UINT32 *));
 					currDictionaryID = 0;
 					break;
 				case 3: //Prefixes
 					//Initialize our prefixes list
-					prefix = (UINT32 **)malloc(lastCommentedNumber * sizeof(UINT32 *));
+					prefixMaxID = lastCommentedNumber;
+					prefixMaxSize = (prefixMaxID*3)/2;
+					prefix = (UINT32 **)malloc(prefixMaxSize * sizeof(UINT32 *));
 					currDictionaryID = 0;
 					break;
 			}
@@ -440,7 +498,7 @@ BOOL loadModel() {
 					currLineStart++;
 				currLineStart++;
 
-				//A new hashtable for this entry. Use sparse_hash_map to keep memory usage down.
+				//A new hashtable for this entry. 
 				newWordSz=0;
 				while (res_data[currLineStart] != '}') {
 					//Read a hashed mapping: character
@@ -481,7 +539,7 @@ BOOL loadModel() {
 					currLineStart++;
 				currLineStart++;
 
-				//A new hashtable for this entry. Use sparse_hash_map to keep memory usage down.
+				//A new hashtable for this entry. 
 				newWordSz = 0;
 				int nextVal;
 				while (res_data[currLineStart] != '}') {
@@ -561,7 +619,8 @@ BOOL loadModel() {
 	}
 
 	//Save our "model"
-	model = new WordBuilder(dictionary, nexus, prefix);
+	model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
+//	model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 
 	//Done - This shouldn't matter, though, since the process only 
 	//       accesses it once and, fortunately, this is not an external file.

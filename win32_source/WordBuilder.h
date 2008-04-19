@@ -20,7 +20,7 @@
 class WordBuilder
 {
 public:
-	WordBuilder (WORD **dictionary, UINT32 **nexus, UINT32 **prefix);
+	WordBuilder (WORD **dictionary, int dictMaxID, int dictMaxSize, UINT32 **nexus, int nexusMaxID, int nexusMaxSize, UINT32 **prefix, int prefixMaxID, int prefixMaxSize);
 	~WordBuilder(void);
 
 	//State-changing functions. Use these to respond to keypresses.
@@ -39,11 +39,22 @@ public:
 	std::vector<WORD> getWordKeyStrokes(UINT32 id);
 	TCHAR* getWordString(UINT32 id);
 
+	//Re-order the model
+	void addRomanization(TCHAR* myanmar, char* roman);
+
 private:
 	//Essential static data
 	WORD **dictionary;
 	UINT32 **nexus;
 	UINT32 **prefix;
+
+	//Also, for expansion
+	int dictMaxID;
+	int dictMaxSize;
+	int nexusMaxID;
+	int nexusMaxSize;
+	int prefixMaxID;
+	int prefixMaxSize;
 
 	//Tracking the current word
 	UINT32 currNexus;
