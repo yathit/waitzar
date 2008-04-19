@@ -213,6 +213,9 @@
 			RelativePath=".\Myanmar.model">
 		</File>
 		<File
+			RelativePath=".\mywords.txt">
+		</File>
+		<File
 			RelativePath=".\waitzar.font.png">
 		</File>
 	</Files>
