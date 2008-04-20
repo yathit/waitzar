@@ -65,6 +65,7 @@ WordBuilder *model;
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
 PAINTSTRUCT Ps;
+BOOL customDictWarning = TRUE;
 
 //Double-buffering stuff
 HWND hwnd;
@@ -217,7 +218,8 @@ void readUserWords() {
 		delete [] uniBuffer;
 
 
-		MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
+		if (customDictWarning==TRUE) 
+			MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
 
 	}
 }
@@ -289,7 +291,12 @@ BOOL registerInitialHotkey()
 				continue;
 
 			//Deal with our name/value pair.
-			if (strcmp(name, "hotkey")==0) {
+			if (strcmp(name, "mywordswarning")==0) {
+				if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+					customDictWarning = TRUE;
+				else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+					customDictWarning = FALSE;
+			} else if (strcmp(name, "hotkey")==0) {
 				//It's a hotkey code. First, reset...
 				modifier = 0;
 				
