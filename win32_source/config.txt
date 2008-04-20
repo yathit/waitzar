@@ -10,3 +10,8 @@
 #    ^!_    "Control+Alt + Space"
 #    !+    "Alt + Shift" 
 hotkey = ^+
+
+
+# If "no", a warning box will not display when using
+#  a custom dictionary
+mywordswarning = yes
