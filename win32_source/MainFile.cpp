@@ -214,9 +214,11 @@ void readUserWords() {
 			//Add this romanization
 			model->addRomanization(name, value);
 		}
-
-
 		delete [] uniBuffer;
+
+
+		MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
+
 	}
 }
 
@@ -340,11 +342,6 @@ BOOL registerInitialHotkey()
 		//Get rid of our buffer
 		free(buffer);
 	}
-
-
-	/*TCHAR temp[150];
-	swprintf(temp, _T("mod: %i   key: %c"), modifier, keycode);
-	MessageBox(NULL, temp, _T("Hotkey..."), MB_ICONERROR | MB_OK);*/
 
 
 	return RegisterHotKey(hwnd, LANG_HOTKEY, modifier, keycode);

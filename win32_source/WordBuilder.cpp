@@ -352,17 +352,17 @@ void WordBuilder::addRomanization(TCHAR* myanmar, char* roman)
 	}
 	if (dictID==dictMaxID) {
 		//Need to add... we DO have a limit, though.
-		if (dictID == dictMaxSize) {
+		if (dictMaxID == dictMaxSize) {
 			MessageBox(NULL, _T("Too many custom words!"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
-		dictMaxID++;
-		dictionary[dictID] = (WORD *)malloc((mmLen+1) * sizeof(WORD));
-		dictionary[dictID][0] = mmLen;
+		dictionary[dictMaxID] = (WORD *)malloc((mmLen+1) * sizeof(WORD));
+		dictionary[dictMaxID][0] = mmLen;
 		for (int i=0; i<mmLen; i++) {
-			dictionary[dictID][i+1] = (WORD)myanmar[i];
+			dictionary[dictMaxID][i+1] = (WORD)myanmar[i];
 		}
+		dictMaxID++;
 	} 
 
 
@@ -387,16 +387,17 @@ void WordBuilder::addRomanization(TCHAR* myanmar, char* roman)
 			nexus[nexusMaxID][0] = 0;
 
 			//Next: copy all old entries into a new array
-			UINT32 * newCurrent = (UINT32 *)malloc((nexus[currNodeID][0]+1) * sizeof(UINT32));
-			newCurrent[0] = nexus[currNodeID][0]+1;
-			for (size_t i=0; i<nexus[currNodeID][0]; i++) {
-				newCurrent[i+1] = nexus[currNodeID][i+1];
+			int newSizeNex = nexus[currNodeID][0]+2;
+			UINT32 * newCurrent = (UINT32 *)malloc((newSizeNex) * sizeof(UINT32));
+			for (size_t i=0; i<nexus[currNodeID][0]+1; i++) {
+				newCurrent[i] = nexus[currNodeID][i];
 			}
+			newCurrent[0] = nexus[currNodeID][0]+1;
 			free(nexus[currNodeID]);
 			nexus[currNodeID] = newCurrent;
 			
 			//Finally: add a new entry linking to the nexus we just created
-			nexus[currNodeID][nexus[currNodeID][0]] = (nexusMaxID<<8) | (0xFF&roman[rmID]);
+			nexus[currNodeID][newSizeNex-1] = (nexusMaxID<<8) | (0xFF&roman[rmID]);
 			nexusMaxID++;
 		}
 
@@ -407,7 +408,7 @@ void WordBuilder::addRomanization(TCHAR* myanmar, char* roman)
 	//Final task: add (just the first) prefix entry.
 	size_t currPrefixID;
 	for (currPrefixID=0; currPrefixID<nexus[currNodeID][0]; currPrefixID++) {
-		if (((nexus[currNodeID][currPrefixID])&0xFF) == '~') {
+		if (((nexus[currNodeID][currPrefixID+1])&0xFF) == '~') {
 			break;
 		}
 	}
@@ -422,36 +423,39 @@ void WordBuilder::addRomanization(TCHAR* myanmar, char* roman)
 		prefix[prefixMaxID][1] = 0;
 
 		//Next: copy all old entries into a new array
-		UINT32 * newCurrent = (UINT32 *)malloc((nexus[currNodeID][0]+1) * sizeof(UINT32));
-		newCurrent[0] = nexus[currNodeID][0]+1;
-		for (size_t i=0; i<nexus[currNodeID][0]; i++) {
-			newCurrent[i+1] = nexus[currNodeID][i+1];
+		int newSizeNex = nexus[currNodeID][0]+2;
+		UINT32 * newCurrent = (UINT32 *)malloc((newSizeNex) * sizeof(UINT32));
+		for (size_t i=0; i<nexus[currNodeID][0]+1; i++) {
+			newCurrent[i] = nexus[currNodeID][i];
 		}
+		newCurrent[0]++;
 		free(nexus[currNodeID]);
 		nexus[currNodeID] = newCurrent;
 			
 		//Finally: add a new entry linking to the nexus we just created
-		currPrefixID = prefixMaxID;
-		nexus[currNodeID][nexus[currNodeID][0]] = (UINT32) ((currPrefixID<<8) | ('~'));
+		nexus[currNodeID][newSizeNex-1] = (UINT32) ((prefixMaxID<<8) | ('~'));
 		prefixMaxID++;
 	}
 
+	//Translate
+	currPrefixID = (nexus[currNodeID][currPrefixID+1])>>8;
+
 	//Does our prefix entry contain this dictionary word?
+	size_t wordStart = 2+prefix[currPrefixID][0]*2;
 	for (size_t i=0; i<prefix[currPrefixID][1]; i++) {
-		if (prefix[currPrefixID][prefix[currPrefixID][0]*2+2+i] == dictID) {
+		if (prefix[currPrefixID][wordStart + i] == dictID) {
 			MessageBox(NULL, _T("Word is already in dictionary!"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 	}
 
 	//Ok, copy it over
-	size_t oldSize = prefix[currPrefixID][0]*2 + prefix[currPrefixID][1] + 2;
+	size_t oldSize = wordStart + prefix[currPrefixID][1];
 	UINT32 * newPrefix = (UINT32 *)malloc((oldSize+1) * sizeof(UINT32));
-	newPrefix[0] = prefix[currPrefixID][0];
-	newPrefix[1] = prefix[currPrefixID][1]+1;
-	for (size_t i=2; i<oldSize; i++) {
+	for (size_t i=0; i<oldSize; i++) {
 		newPrefix[i] = prefix[currPrefixID][i];
 	}
+	newPrefix[1]++;
 	newPrefix[oldSize] = dictID;
 	free(prefix[currPrefixID]);
 	prefix[currPrefixID] = newPrefix;
