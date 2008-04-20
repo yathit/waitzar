@@ -6,4 +6,4 @@
 #ဣတ္ = ate
 
 #Words reported by our users (will be incorporated into the main dictionary later).
-အီုး = ohn
+ဆီမ့္ = seint
