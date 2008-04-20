@@ -1,0 +1,17 @@
+# The hotkey is defined as:
+#    [modifier] letter
+# Modifiers include: ! for alt, ^ for control, and + for shift
+# The letter can be any of the modifiers, and any letter. 
+# Space is represented by an underscore _
+# The final character is the letter; all preceeding characters
+# are condidered modifiers (e.g., !+ implies "Hold Alt and Press Shift")
+# Some examples:
+#    ^m     "Control + m"
+#    ^!_    "Control+Alt + Space"
+#    !+    "Alt + Shift" 
+hotkey = ^+
+
+
+# If "no", a warning box will not display when using
+#  a custom dictionary
+mywordswarning = yes
