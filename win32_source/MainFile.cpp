@@ -66,6 +66,7 @@ PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
 PAINTSTRUCT Ps;
 BOOL customDictWarning = TRUE;
+TCHAR langHotkeyString[100];
 
 //Double-buffering stuff
 HWND hwnd;
@@ -232,6 +233,7 @@ BOOL registerInitialHotkey()
 	//Default keys
 	UINT modifier = MOD_CONTROL | MOD_SHIFT;
 	UINT keycode = VK_SHIFT;
+	lstrcpy(langHotkeyString, _T("Ctrl+Shift"));
 
 	//Read our config file, if it exists. 
 	FILE* configFile = fopen("config.txt", "r");
@@ -305,40 +307,56 @@ BOOL registerInitialHotkey()
 				keycode = value[name_pos-2];
 				switch(keycode) {
 					case '!':
+						lstrcpy(langHotkeyString, _T("Alt"));
 						keycode = VK_MENU; //VK_MENU == VK_ALT
 						modifier |= MOD_ALT;
 						break;
 					case '^':
+						lstrcpy(langHotkeyString, _T("Ctrl"));
 						keycode = VK_CONTROL;
 						modifier |= MOD_CONTROL;
 						break;
 					case '+':
+						lstrcpy(langHotkeyString, _T("Shift"));
 						keycode = VK_SHIFT;
 						modifier |= MOD_SHIFT;
 						break;
 					case '_':
+						lstrcpy(langHotkeyString, _T("Space"));
 						keycode = VK_SPACE;
 						break;
+					default:
+						swprintf(langHotkeyString, _T("%C"), keycode);
 				}
 				
 				//Now, set the modifiers
+				TCHAR temp[100];
 				for (int pos=0; pos<name_pos-2; pos++) {
 					switch(value[pos]) {
 						case '!':
+							swprintf(temp, _T("Alt+%s"), langHotkeyString);
+							lstrcpy(langHotkeyString, temp);
 							modifier |= MOD_ALT;
 							break;
 						case '^':
+							swprintf(temp, _T("Ctrl+%s"), langHotkeyString);
+							lstrcpy(langHotkeyString, temp);
 							modifier |= MOD_CONTROL;
 							break;
 						case '+':
+							swprintf(temp, _T("Shift+%s"), langHotkeyString);
+							lstrcpy(langHotkeyString, temp);
 							modifier |= MOD_SHIFT;
 							break;
 					}
 				}
 			
 				//Additional rule: Capital letters require a shift modifier
-				if (keycode>='A' && keycode<='Z')
+				if (keycode>='A' && keycode<='Z') {
+					swprintf(temp, _T("Shift+%s"), langHotkeyString);
+					lstrcpy(langHotkeyString, temp);
 					modifier |= MOD_SHIFT;
+				}
 
 				//Additional rule: Lowercase letters are coded by their uppercase value
 				if (keycode>='a' && keycode<='z')
@@ -1001,6 +1019,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				hmenu = LoadMenu(hInst, MAKEINTRESOURCE(WZ_MENU));
 				hpopup = GetSubMenu(hmenu, 0);
 
+
+				//Note: set our text apropriately:
+				TCHAR temp[200];
+				swprintf(temp, _T("English (%s)"), langHotkeyString);
+				ModifyMenu(hmenu, IDM_ENGLISH, MF_BYCOMMAND, IDM_ENGLISH, temp);
+				swprintf(temp, _T("Myanmar (%s)"), langHotkeyString);
+				ModifyMenu(hmenu, IDM_MYANMAR, MF_BYCOMMAND, IDM_MYANMAR, temp);
+
 				//Cause our popup to appear in front of any other window.
 				SetForegroundWindow(hwnd);
 
@@ -1013,7 +1039,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                  hwnd,              //Owner
                                  NULL);            //MSDN: Ignored
 				if (retVal == IDM_HELP) {
-					MessageBox(hwnd, _T("WaitZar version 1.2 - for more information, see: http://code.google.com/p/waitzar/\n\nAlt+Shift - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed, if they want to see what they type after it's chosen."), _T("About"), MB_ICONINFORMATION | MB_OK);
+					TCHAR temp[550];
+					swprintf(temp, _T("WaitZar version 1.2 - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed, if they want to see what they type after it's chosen."), langHotkeyString);
+					MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(hwnd, FALSE);
 				} else if (retVal == IDM_MYANMAR) {
@@ -1293,13 +1321,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (mmIcon == NULL || engIcon==NULL)
 		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
 
-	//Add our icon to the tray
-	Shell_NotifyIcon(NIM_ADD, &nid);
-
 	//Set our hotkey
 	if( registerInitialHotkey()==0 )
 		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 	mmOn = FALSE;	
+
+	//Add our icon to the tray
+	Shell_NotifyIcon(NIM_ADD, &nid);
+
 
 	//Initialize our romanisation string
 	lstrcpy(currStr, _T(""));
