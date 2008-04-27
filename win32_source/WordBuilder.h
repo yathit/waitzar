@@ -38,6 +38,7 @@ public:
 	//Get information about a particular word given its ID
 	std::vector<WORD> getWordKeyStrokes(UINT32 id);
 	TCHAR* getWordString(UINT32 id);
+	TCHAR* getParenString();
 
 	//Re-order the model
 	void addRomanization(TCHAR* myanmar, char* roman);
@@ -73,6 +74,9 @@ private:
 	std::vector<UINT32> possibleWords;
 	std::vector<WORD> keystrokeVector;
 	TCHAR currStr[200];
+
+	//Extension: guessing the next bit
+	TCHAR parenStr[100];
 
 	//Internal functions
 	void resolveWords(void);
