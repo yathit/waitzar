@@ -215,14 +215,33 @@ void WordBuilder::resolveWords(void)
 {
 	//Init
 	lstrcpy(parenStr, _T(""));
+	int pStrOffset = 0;
+
+	//If there are no words possible, can we jump to a point that doesn't diverge?
+	int speculativeNexusID = currNexus;
+	while (nexus[speculativeNexusID][0]==1 && ((nexus[speculativeNexusID][1])&0xFF)!='~') {
+		//Append this to our string
+		parenStr[pStrOffset++] = (nexus[speculativeNexusID][1]&0xFF);
+
+		//Move on this
+		speculativeNexusID = ((nexus[speculativeNexusID][1])>>8);
+	}
+	if (nexus[speculativeNexusID][0]==1 && (nexus[speculativeNexusID][1]&0xFF)=='~') {
+		//Finalize our string
+		parenStr[pStrOffset] = '\0';
+	} else {
+		//Reset
+		speculativeNexusID = currNexus;
+		lstrcpy(parenStr, _T(""));
+	}
 
 	//What possible characters are available after this point?
 	int lowestPrefix = -1;
 	this->possibleChars.clear();
-	for (UINT32 i=0; i<this->nexus[currNexus][0]; i++) {
-		char currChar = (this->nexus[currNexus][i+1]&0xFF);
+	for (UINT32 i=0; i<this->nexus[speculativeNexusID][0]; i++) {
+		char currChar = (this->nexus[speculativeNexusID][i+1]&0xFF);
 		if (currChar == '~')
-			lowestPrefix = (this->nexus[currNexus][i+1]>>8);
+			lowestPrefix = (this->nexus[speculativeNexusID][i+1]>>8);
 		else
 			this->possibleChars.push_back(currChar);
 	}
