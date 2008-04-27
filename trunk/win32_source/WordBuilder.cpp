@@ -213,6 +213,9 @@ int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID)
  */
 void WordBuilder::resolveWords(void) 
 {
+	//Init
+	lstrcpy(parenStr, _T(""));
+
 	//What possible characters are available after this point?
 	int lowestPrefix = -1;
 	this->possibleChars.clear();
@@ -298,6 +301,16 @@ std::vector<WORD> WordBuilder::getWordKeyStrokes(UINT32 id)
 
 	return this->keystrokeVector;
 }
+
+
+/**
+ * Get the remaining letters to type to arrive at the guessed word (if any)
+ */
+TCHAR* WordBuilder::getParenString()
+{
+	return this->parenStr;
+}
+
 
 
 /**

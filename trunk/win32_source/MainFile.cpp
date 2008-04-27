@@ -200,7 +200,7 @@ void readUserWords() {
 			char value[50];
 			name_pos = 0;
 			strcpy(value, "");
-			while (uniBuffer[i] != '\n') {
+			while (uniBuffer[i]!='\n' && i<numUniChars) {
 				char romanChar = (char)uniBuffer[i++];
 				if (romanChar>='A' && romanChar<='Z') 
 					romanChar += ('a'-'A');
@@ -789,7 +789,15 @@ void recalculate()
 		xOffset += thisStrWidth + spaceWidth;
 	}
 
-	mmFontBlack->drawString(underDC, currStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
+	TCHAR extendedWordString[300];
+	TCHAR* parenStr = model->getParenString();
+	if (parenStr!=NULL && lstrlen(parenStr)>0) {
+		swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr);
+	} else {
+		lstrcpy(extendedWordString, currStr);
+	}
+
+	mmFontBlack->drawString(underDC, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
 	//Paint
 	reBlit();
