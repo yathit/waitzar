@@ -68,8 +68,32 @@ bool WordBuilder::typeLetter(char letter)
 {
 	//Is this letter meaningful?
 	int nextNexus = jumpToNexus(this->currNexus, letter);
-	if (nextNexus == -1)
-		return false;
+	if (nextNexus == -1) {
+		//There's a special case: if we are evaluating "g", it might be a shortcut for "aung"
+		if (letter!='g') {
+			return false;
+		} else {
+			//Start at "aung" if we haven't already typed "a"
+			char test[5];
+			strcpy(test, "aung");
+			if (pastNexusID==1 && jumpToNexus(pastNexus[pastNexusID-1], 'a')==currNexus) {
+				strcpy(test, "ung");
+			}
+			size_t stLen = strlen(test);
+
+			//Ok, can wet get ALL the way there?
+			nextNexus = currNexus;
+			for (size_t i=0; i<stLen; i++) {
+				nextNexus = jumpToNexus(nextNexus, test[i]);
+				if (nextNexus==-1)
+					break;
+			}
+
+			//Did it work?
+			if (nextNexus==-1)
+				return false;
+		}
+	}
 
 	//Save the path to this point and continue
 	pastNexus[pastNexusID++] = currNexus;
