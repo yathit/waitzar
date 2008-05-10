@@ -10,7 +10,7 @@
 #define _UNICODE
 #define UNICODE
 
-//Define to require a specific version of Windows. 
+//Define to require a specific version of Windows.
 // Maybe this is what Vista isn't liking?
 #define _WIN32_WINNT 0x0500 //Run on Windows 2000+
 //#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
@@ -101,10 +101,10 @@ int spaceWidth;
 /**
  * Create our inner-used Zawgyi-One fonts.
  */
-void makeFont(HWND currHwnd) 
+void makeFont(HWND currHwnd)
 {
 	//Load our font resource
-	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT")); 
+	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT"));
 	if (!fontRes) {
 		MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
         return;
@@ -202,9 +202,9 @@ void readUserWords() {
 			strcpy(value, "");
 			while (uniBuffer[i]!='\n' && i<numUniChars) {
 				char romanChar = (char)uniBuffer[i++];
-				if (romanChar>='A' && romanChar<='Z') 
+				if (romanChar>='A' && romanChar<='Z')
 					romanChar += ('a'-'A');
-				if (romanChar>='a' && romanChar<='z') 
+				if (romanChar>='a' && romanChar<='z')
 					value[name_pos++] = romanChar;
 			}
 			value[name_pos++] = '\0';
@@ -219,7 +219,7 @@ void readUserWords() {
 		delete [] uniBuffer;
 
 
-		if (customDictWarning==TRUE) 
+		if (customDictWarning==TRUE)
 			MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n(You may disable this warning by setting mywordswarning = no in config.txt).\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
 
 	}
@@ -228,14 +228,14 @@ void readUserWords() {
 
 
 
-BOOL registerInitialHotkey() 
+BOOL registerInitialHotkey()
 {
 	//Default keys
 	UINT modifier = MOD_CONTROL | MOD_SHIFT;
 	UINT keycode = VK_SHIFT;
 	lstrcpy(langHotkeyString, _T("Ctrl+Shift"));
 
-	//Read our config file, if it exists. 
+	//Read our config file, if it exists.
 	FILE* configFile = fopen("config.txt", "r");
 	if (configFile != NULL) {
 		//Get file size
@@ -280,7 +280,7 @@ BOOL registerInitialHotkey()
 			char value[50];
 			name_pos = 0;
 			strcpy(value, "");
-			while (buffer[i] != '\n') {
+			while (buffer[i] != '\n' && i<buff_size) {
 				if (buffer[i] == ' ')
 					i++;
 				else
@@ -289,7 +289,7 @@ BOOL registerInitialHotkey()
 			value[name_pos++] = '\0';
 
 			//No possible hotkeys?
-			if (name_pos<2) 
+			if (name_pos<2)
 				continue;
 
 			//Deal with our name/value pair.
@@ -301,7 +301,7 @@ BOOL registerInitialHotkey()
 			} else if (strcmp(name, "hotkey")==0) {
 				//It's a hotkey code. First, reset...
 				modifier = 0;
-				
+
 				//Now, set the keycode
 				//Additional rule: all keystroke modifiers must also themselves be modifiers
 				keycode = value[name_pos-2];
@@ -328,7 +328,7 @@ BOOL registerInitialHotkey()
 					default:
 						swprintf(langHotkeyString, _T("%C"), keycode);
 				}
-				
+
 				//Now, set the modifiers
 				TCHAR temp[100];
 				for (int pos=0; pos<name_pos-2; pos++) {
@@ -350,7 +350,7 @@ BOOL registerInitialHotkey()
 							break;
 					}
 				}
-			
+
 				//Additional rule: Capital letters require a shift modifier
 				if (keycode>='A' && keycode<='Z') {
 					swprintf(temp, _T("Shift+%s"), langHotkeyString);
@@ -375,7 +375,7 @@ BOOL registerInitialHotkey()
 
 
 /**
- * Load the Wait Zar language model. 
+ * Load the Wait Zar language model.
  */
 BOOL loadModel() {
 	//Load our embedded resource, the WaitZar model
@@ -400,7 +400,7 @@ BOOL loadModel() {
 	int prefixMaxSize;
 
 	//Load the resource as a byte array and get its size, etc.
-	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model")); 
+	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
 	if (!res) {
 		MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
         return FALSE;
@@ -482,7 +482,7 @@ BOOL loadModel() {
 					currLineStart++;
 				currLineStart++;
 
-				//Keep reading until the terminating bracket. 
+				//Keep reading until the terminating bracket.
 				//  Each "word" is of the form DD(-DD)*,
 				newWordSz = 0;
 
@@ -520,7 +520,7 @@ BOOL loadModel() {
 					currLineStart++;
 				currLineStart++;
 
-				//A new hashtable for this entry. 
+				//A new hashtable for this entry.
 				newWordSz=0;
 				while (res_data[currLineStart] != '}') {
 					//Read a hashed mapping: character
@@ -529,13 +529,13 @@ BOOL loadModel() {
 					while (res_data[currLineStart] != ':')
 						nextChar = res_data[currLineStart++];
 					currLineStart++;
-					
+
 					//Read a hashed mapping: number
 					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
 						nextInt *= 10;
 						nextInt += (res_data[currLineStart++] - '0');
 					}
-					
+
 					//Add that entry to the hash
 					newWord[newWordSz++] = ((nextInt<<8) | (0xFF&nextChar));
 
@@ -561,7 +561,7 @@ BOOL loadModel() {
 					currLineStart++;
 				currLineStart++;
 
-				//A new hashtable for this entry. 
+				//A new hashtable for this entry.
 				newWordSz = 0;
 				int nextVal;
 				while (res_data[currLineStart] != '}') {
@@ -575,7 +575,7 @@ BOOL loadModel() {
 
 					//Store: key
 					newWord[newWordSz++] = nextVal;
-					
+
 					//Read a hashed mapping: number
 					nextVal = 0;
 					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
@@ -627,12 +627,12 @@ BOOL loadModel() {
 				}
 				currDictionaryID++;
 
-				break; 
+				break;
 			}
 			default:
 				MessageBox(NULL, _T("Too many comments."), _T("Error"), MB_ICONERROR | MB_OK);
 				return FALSE;
-		}		
+		}
 
 		//Assume all processing is done, and read until the end of the line
 		while (res_data[currLineStart] != '\n')
@@ -644,7 +644,7 @@ BOOL loadModel() {
 	model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 //	model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 
-	//Done - This shouldn't matter, though, since the process only 
+	//Done - This shouldn't matter, though, since the process only
 	//       accesses it once and, fortunately, this is not an external file.
 	UnlockResource(res_handle);
 
@@ -678,7 +678,7 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 }
 
 
-void reBlit() 
+void reBlit()
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(gc,0,0,C_WIDTH,C_HEIGHT,underDC,0,0,SRCCOPY);
@@ -730,7 +730,7 @@ void expandHWND(int newWidth)
  * Re-figure the layout of our drawing area, resize if necessary, and
  * draw onto the back buffer. Finally, blit to the front buffer.
  */
-void recalculate() 
+void recalculate()
 {
 	//First things first: can we fit this in the current background?
 	int cumulativeWidth = (borderWidth+1)*2;
@@ -782,7 +782,7 @@ void recalculate()
 		if (i<10) {
 			swprintf(digit, _T("%i"), ((i+1)%10));
 			int digitWidth = mmFont->getStringWidth(digit);
-			
+
 			mmFont->drawString(underDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 		}
 
@@ -805,7 +805,7 @@ void recalculate()
 
 
 
-void selectWord(int id) 
+void selectWord(int id)
 {
 	//Are there any words to use?
 	std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
@@ -866,7 +866,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Resize our window?
 			MoveWindow(hwnd, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
 			doneDrag = TRUE;
-			
+
 			//Now, create all our buffering objects
 			RECT r;
 			GetClientRect(hwnd, &r);
@@ -878,7 +878,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			bmpDC = CreateCompatibleBitmap(gc, WINDOW_WIDTH, WINDOW_HEIGHT);
 			SelectObject(underDC, bmpDC);
-			
+
 			break;
 		}
 		case WM_HOTKEY:
@@ -890,7 +890,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(hwnd, FALSE);
 				else
 					switchToLanguage(hwnd, TRUE);
-				
+
 				//Reset the model
 				model->reset(true);
 			}
@@ -956,7 +956,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			int keyCode = (int)wParam;
 			if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z)
 				keyCode += 32;
-			if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW) 
+			if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW)
 			{
 				//Run this keypress into the model. Accomplish anything?
 				if (!model->typeLetter(keyCode))
@@ -964,7 +964,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//List all possible words
 				recalculate();
-				
+
 
 				//Is this the first keypress of a romanized word? If so, the window is not visible...
 				if (IsWindowVisible(hwnd) == FALSE)
@@ -989,7 +989,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_PAINT: 
+		case WM_PAINT:
 		{
 			//Update only if there's an area which needs updating (e.g., a higher-level
 			//  window has dragged over this one's client area... it can happen only with popups,
@@ -1004,7 +1004,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Validate the client area
 				ValidateRect(hwnd, NULL);
 			}
-			
+
 			break;
 		}
 		case WM_NCHITTEST: //Allow dragging of the client area...
@@ -1077,7 +1077,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case WM_DESTROY:
 			//Cleanup
-			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE) 
+			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE)
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			if (mmOn==TRUE) {
 				if (turnOnHotkeys(hwnd, FALSE) == FALSE)
@@ -1102,13 +1102,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-BOOL turnOnHotkeys(HWND hwnd, BOOL on) 
+BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 {
 	int low_code;
 	int high_code;
 	BOOL retVal = TRUE;
 
-	for (low_code=HOTKEY_A_LOW; low_code<=HOTKEY_Z_LOW; low_code++)  
+	for (low_code=HOTKEY_A_LOW; low_code<=HOTKEY_Z_LOW; low_code++)
 	{
 		high_code = low_code - 32;
 		if (on==TRUE)  {
@@ -1149,7 +1149,7 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 }
 
 
-BOOL turnOnControlkeys(HWND hwnd, BOOL on) 
+BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 {
 	BOOL retVal = true;
 
@@ -1253,14 +1253,14 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
-	//  warnings. Plus, the hInstance should never change. 
+	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
 
 	//Create a window class
 	LPCWSTR g_szClassName = _T("myWindowClass");
 
 	//Give this process a low background priority
-	//  NOTE: We need to balance this eventually. 
+	//  NOTE: We need to balance this eventually.
 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
 	//Create a white/black brush
@@ -1298,7 +1298,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	hwnd = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		g_szClassName,
-		_T("WaitZar"), 
+		_T("WaitZar"),
 		WS_POPUP, //No border or title bar
 		100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
 		NULL, NULL, hInstance, NULL
@@ -1332,7 +1332,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Set our hotkey
 	if( registerInitialHotkey()==0 )
 		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-	mmOn = FALSE;	
+	mmOn = FALSE;
 
 	//Add our icon to the tray
 	Shell_NotifyIcon(NIM_ADD, &nid);
