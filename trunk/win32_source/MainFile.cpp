@@ -88,6 +88,7 @@ BOOL senWindowSkipMove = FALSE;
 
 //Record-keeping
 TCHAR currStr[50];
+TCHAR currPhrase[500];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 
@@ -812,6 +813,7 @@ void recalculate()
 	SelectObject(senUnderDC, g_DarkGrayBkgrd);
 	Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
 	SelectObject(senUnderDC, g_EmptyPen);
+	mmFontSmallBlack->drawString(senUnderDC, currPhrase, borderWidth+1, borderWidth+1);
 
 	//White overlays
 	SelectObject(mainUnderDC, g_EmptyPen);
@@ -903,6 +905,9 @@ void selectWord(int id)
 
 	//Turn off control keys
 	turnOnControlkeys(FALSE);
+
+	//Append to our sentence
+	lstrcat(currPhrase, model->getWordString(typedVal.second));
 
 	//Hide the window(s)
 	ShowWindow(mainWindow, SW_HIDE);
@@ -1122,6 +1127,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					//Reset it...
 					lstrcpy(currStr, _T(""));
+					//lstrcpy(currPhrase, _T(""));
 					recalculate();
 
 					//Turn on control keys
@@ -1538,6 +1544,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Initialize our romanisation string
 	lstrcpy(currStr, _T(""));
+	lstrcpy(currPhrase, _T(""));
 
 	//Success?
 	if(mainWindow==NULL || senWindow==NULL) {
