@@ -916,8 +916,10 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (senWindowSkipMove==FALSE && IsWindowVisible(mainWindow)==TRUE && dragBothWindowsTogether==TRUE) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
+				RECT r2;
+				GetWindowRect(GetDesktopWindow(), &r2);
 				mainWindowSkipMove = TRUE;
-				SetWindowPos(mainWindow, HWND_TOPMOST, r.left, r.top-C_HEIGHT, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			senWindowSkipMove = FALSE;
 			break;
@@ -986,12 +988,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_MOVE: 
 		{
-			//Move the main window?
+			//Move the sentence window?
 			if (mainWindowSkipMove==FALSE && IsWindowVisible(senWindow)==TRUE && dragBothWindowsTogether==TRUE) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
+				RECT r2;
+				GetWindowRect(GetDesktopWindow(), &r2);
 				senWindowSkipMove = TRUE;
-				SetWindowPos(senWindow, HWND_TOPMOST, r.left, r.top+C_HEIGHT, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			mainWindowSkipMove = FALSE;
 			break;
