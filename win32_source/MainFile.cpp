@@ -69,18 +69,21 @@ PulpCoreFont *mmFontGreen;
 PAINTSTRUCT Ps;
 BOOL customDictWarning = TRUE;
 TCHAR langHotkeyString[100];
+BOOL dragBothWindowsTogether = TRUE;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
 HDC mainDC;
 HDC mainUnderDC;
 HBITMAP mainBitmap;
+BOOL mainWindowSkipMove = FALSE;
 
 //Double-buffering stuff - secondaryWindow
 HWND senWindow;
 HDC senDC;
 HDC senUnderDC;
 HBITMAP senBitmap;
+BOOL senWindowSkipMove = FALSE;
 
 //Record-keeping
 TCHAR currStr[50];
@@ -309,6 +312,11 @@ BOOL registerInitialHotkey()
 					customDictWarning = TRUE;
 				else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 					customDictWarning = FALSE;
+			} else if (strcmp(name, "lockwindows")==0) {
+				if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+					dragBothWindowsTogether = TRUE;
+				else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+					dragBothWindowsTogether = FALSE;
 			} else if (strcmp(name, "hotkey")==0) {
 				//It's a hotkey code. First, reset...
 				modifier = 0;
@@ -891,6 +899,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			senBitmap = CreateCompatibleBitmap(senDC, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT);
 			SelectObject(senUnderDC, senBitmap);
+			break;
 		}
 		case WM_NCHITTEST: //Allow dragging of the client area...
 		{
@@ -899,6 +908,18 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return HTCAPTION;
 			} else
 				return uHitTest;
+			break;
+		}
+		case WM_MOVE: 
+		{
+			//Move the main window?
+			if (senWindowSkipMove==FALSE && IsWindowVisible(mainWindow)==TRUE && dragBothWindowsTogether==TRUE) {
+				RECT r;
+				GetWindowRect(hwnd, &r);
+				mainWindowSkipMove = TRUE;
+				SetWindowPos(mainWindow, HWND_TOPMOST, r.left, r.top-C_HEIGHT, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+			}
+			senWindowSkipMove = FALSE;
 			break;
 		}
 		case WM_PAINT:
@@ -961,6 +982,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			mainBitmap = CreateCompatibleBitmap(mainDC, WINDOW_WIDTH, WINDOW_HEIGHT);
 			SelectObject(mainUnderDC, mainBitmap);
 
+			break;
+		}
+		case WM_MOVE: 
+		{
+			//Move the main window?
+			if (mainWindowSkipMove==FALSE && IsWindowVisible(senWindow)==TRUE && dragBothWindowsTogether==TRUE) {
+				RECT r;
+				GetWindowRect(hwnd, &r);
+				senWindowSkipMove = TRUE;
+				SetWindowPos(senWindow, HWND_TOPMOST, r.left, r.top+C_HEIGHT, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+			}
+			mainWindowSkipMove = FALSE;
 			break;
 		}
 		case WM_HOTKEY:

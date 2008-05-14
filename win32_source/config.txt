@@ -15,3 +15,8 @@ hotkey = ^+
 # If "no", a warning box will not display when using
 #  a custom dictionary
 mywordswarning = yes
+
+
+# If "yes", the sentence window will always display below the 
+#  current word window.
+lockwindows = yes
