@@ -23,7 +23,6 @@
 #include <string>
 
 //Our includes
-//#include "CStdioFile_UTF8.h"
 #include "WordBuilder.h"
 #include "PulpCoreFont.h"
 #include "resource.h"
@@ -68,11 +67,17 @@ PAINTSTRUCT Ps;
 BOOL customDictWarning = TRUE;
 TCHAR langHotkeyString[100];
 
-//Double-buffering stuff
-HWND hwnd;
+//Double-buffering stuff - mainWindow
+HWND mainWindow;
+HDC mainDC;
+HDC mainUnderDC;
+HBITMAP mainBitmap;
+
+//Double-buffering stuff - secondaryWindow
+/*HWND mainWindow;
 HDC gc;
 HDC underDC;
-HBITMAP bmpDC;
+HBITMAP bmpDC;*/
 
 //Record-keeping
 TCHAR currStr[50];
@@ -118,7 +123,7 @@ void makeFont(HWND currHwnd)
 	}
 
 	//Create our PulpCoreFont (it's white when we load it, not black, by the way)
-	mmFontBlack = new PulpCoreFont(fontRes, res_handle, gc);
+	mmFontBlack = new PulpCoreFont(fontRes, res_handle, mainDC);
 	if (mmFontBlack->isInError()==TRUE) {
 		TCHAR errorStr[600];
 		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
@@ -131,7 +136,7 @@ void makeFont(HWND currHwnd)
 	UnlockResource(res_handle);
 
 	//Copy-construct a new font
-	mmFontGreen = new PulpCoreFont(mmFontBlack, gc);
+	mmFontGreen = new PulpCoreFont(mmFontBlack, mainDC);
 
 	//Tint both to their respective colors
 	mmFontGreen->tintSelf(0x008000);
@@ -369,7 +374,7 @@ BOOL registerInitialHotkey()
 	}
 
 
-	return RegisterHotKey(hwnd, LANG_HOTKEY, modifier, keycode);
+	return RegisterHotKey(mainWindow, LANG_HOTKEY, modifier, keycode);
 }
 
 
@@ -681,7 +686,7 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 void reBlit()
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
-	BitBlt(gc,0,0,C_WIDTH,C_HEIGHT,underDC,0,0,SRCCOPY);
+	BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
 }
 
 
@@ -689,7 +694,7 @@ void reBlit()
 void reBlit(RECT blitArea)
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
-	BitBlt(gc,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,underDC,blitArea.left,blitArea.top,SRCCOPY);
+	BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
 
@@ -710,18 +715,18 @@ void initCalculate()
 void expandHWND(int newWidth)
 {
 	//Resize the current window; use SetWindowPos() since it's easier...
-	SetWindowPos(hwnd, NULL, 0, 0, newWidth, C_HEIGHT, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
+	SetWindowPos(mainWindow, NULL, 0, 0, newWidth, C_HEIGHT, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
 	RECT r;
-	GetClientRect(hwnd, &r);
+	GetClientRect(mainWindow, &r);
 	C_WIDTH = r.right;
 
 	//We also have to set our graphics contexts correctly. Also, throw out the old ones.
-	DeleteDC(underDC);
-	DeleteObject(bmpDC);
-	gc = GetDC(hwnd);
-	underDC = CreateCompatibleDC(gc);
-	bmpDC = CreateCompatibleBitmap(gc, C_WIDTH, C_HEIGHT);
-	SelectObject(underDC, bmpDC);
+	DeleteDC(mainUnderDC);
+	DeleteObject(mainBitmap);
+	mainDC = GetDC(mainWindow);
+	mainUnderDC = CreateCompatibleDC(mainDC);
+	mainBitmap = CreateCompatibleBitmap(mainDC, C_WIDTH, C_HEIGHT);
+	SelectObject(mainUnderDC, mainBitmap);
 }
 
 
@@ -749,16 +754,16 @@ void recalculate()
 		expandHWND(cumulativeWidth);
 
 	//Background
-	SelectObject(underDC, g_BlackPen);
-	SelectObject(underDC, g_DarkGrayBkgrd);
-	Rectangle(underDC, 0, 0, C_WIDTH, C_HEIGHT);
+	SelectObject(mainUnderDC, g_BlackPen);
+	SelectObject(mainUnderDC, g_DarkGrayBkgrd);
+	Rectangle(mainUnderDC, 0, 0, C_WIDTH, C_HEIGHT);
 
 	//White overlays
-	SelectObject(underDC, g_EmptyPen);
-	SelectObject(underDC, g_WhiteBkgrd);
-	Rectangle(underDC, borderWidth+1, firstLineStart+1, C_WIDTH-borderWidth-1, secondLineStart-borderWidth);
-	Rectangle(underDC, borderWidth+1, secondLineStart, C_WIDTH-borderWidth-1, thirdLineStart-borderWidth);
-	Rectangle(underDC, borderWidth+1, thirdLineStart, C_WIDTH-borderWidth-1, fourthLineStart-borderWidth-1);
+	SelectObject(mainUnderDC, g_EmptyPen);
+	SelectObject(mainUnderDC, g_WhiteBkgrd);
+	Rectangle(mainUnderDC, borderWidth+1, firstLineStart+1, C_WIDTH-borderWidth-1, secondLineStart-borderWidth);
+	Rectangle(mainUnderDC, borderWidth+1, secondLineStart, C_WIDTH-borderWidth-1, thirdLineStart-borderWidth);
+	Rectangle(mainUnderDC, borderWidth+1, thirdLineStart, C_WIDTH-borderWidth-1, fourthLineStart-borderWidth-1);
 
 	//Now, draw the strings....
 	PulpCoreFont* mmFont = mmFontBlack;
@@ -772,18 +777,18 @@ void recalculate()
 		else {
 			mmFont = mmFontGreen;
 
-			SelectObject(underDC, g_YellowBkgrd);
-			SelectObject(underDC, g_GreenPen);
-			Rectangle(underDC, borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
+			SelectObject(mainUnderDC, g_YellowBkgrd);
+			SelectObject(mainUnderDC, g_GreenPen);
+			Rectangle(mainUnderDC, borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
 		}
 
-		mmFont->drawString(underDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
+		mmFont->drawString(mainUnderDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 		if (i<10) {
 			swprintf(digit, _T("%i"), ((i+1)%10));
 			int digitWidth = mmFont->getStringWidth(digit);
 
-			mmFont->drawString(underDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
+			mmFont->drawString(mainUnderDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 		}
 
 		xOffset += thisStrWidth + spaceWidth;
@@ -797,7 +802,7 @@ void recalculate()
 		lstrcpy(extendedWordString, currStr);
 	}
 
-	mmFontBlack->drawString(underDC, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
+	mmFontBlack->drawString(mainUnderDC, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
 	//Paint
 	reBlit();
@@ -842,10 +847,10 @@ void selectWord(int id)
 		MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 
 	//Turn off control keys
-	turnOnControlkeys(hwnd, FALSE);
+	turnOnControlkeys(mainWindow, FALSE);
 
 	//Hide the window
-	ShowWindow(hwnd, SW_HIDE);
+	ShowWindow(mainWindow, SW_HIDE);
 }
 
 
@@ -873,11 +878,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			C_WIDTH = r.right;
 			C_HEIGHT = r.bottom;
 
-			gc = GetDC(hwnd);
-			underDC = CreateCompatibleDC(gc);
+			mainDC = GetDC(hwnd);
+			mainUnderDC = CreateCompatibleDC(mainDC);
 
-			bmpDC = CreateCompatibleBitmap(gc, WINDOW_WIDTH, WINDOW_HEIGHT);
-			SelectObject(underDC, bmpDC);
+			mainBitmap = CreateCompatibleBitmap(mainDC, WINDOW_WIDTH, WINDOW_HEIGHT);
+			SelectObject(mainUnderDC, mainBitmap);
 
 			break;
 		}
@@ -1247,6 +1252,46 @@ BOOL turnOnControlkeys(HWND hwnd, BOOL on)
 }
 
 
+
+HWND makeMainWindow(LPCWSTR windowClassName)
+{
+	//Set a window class's parameters
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInst;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = g_DarkGrayBkgrd;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = windowClassName;
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	if(!RegisterClassEx(&wc)) {
+		MessageBox(NULL, _T("Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		return 0;
+	}
+
+	//Create a handle to the window
+	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
+	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
+	// receive very few actual events
+	mainWindow = CreateWindowEx(
+		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
+		windowClassName,
+		_T("WaitZar"),
+		WS_POPUP, //No border or title bar
+		100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
+		NULL, NULL, hInst, NULL
+	);
+
+	return mainWindow;
+}
+
+
+
 /**
  * Main method for Windows applications
  */
@@ -1255,9 +1300,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
-
-	//Create a window class
-	LPCWSTR g_szClassName = _T("myWindowClass");
 
 	//Give this process a low background priority
 	//  NOTE: We need to balance this eventually.
@@ -1272,38 +1314,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
 
-	//Set window class's parameters
-	WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
-	wc.lpfnWndProc = WndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = g_DarkGrayBkgrd;
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = g_szClassName;
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	if(!RegisterClassEx(&wc)) {
-		MessageBox(NULL, _T("Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		return 0;
-	}
-
-	//Create a handle to the window
-	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
-	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
-	// receive very few actual events
-	hwnd = CreateWindowEx(
-		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
-		g_szClassName,
-		_T("WaitZar"),
-		WS_POPUP, //No border or title bar
-		100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
-		NULL, NULL, hInstance, NULL
-	);
-
+	//Create our main window.
+	HWND mainWindow = makeMainWindow(_T("waitZarMainWindow"));
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
@@ -1316,7 +1328,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Make our "notify icon" data structure
 	NOTIFYICONDATA nid;
 	nid.cbSize = sizeof(NOTIFYICONDATA); //natch
-	nid.hWnd = hwnd; //Cauess OUR window to receive notifications for this icon.
+	nid.hWnd = mainWindow; //Cauess OUR window to receive notifications for this icon.
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
@@ -1342,14 +1354,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(currStr, _T(""));
 
 	//Success?
-	if(hwnd == NULL) {
+	if(mainWindow == NULL) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
 
 	//If we got this far, let's try to load our file.
 	if (loadModel() == FALSE) {
-		DestroyWindow(hwnd);
+		DestroyWindow(mainWindow);
+		return 1;
 	}
 
 	//Also load user-specific words
@@ -1357,7 +1370,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Show it's ready by changing the shell icon
 	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = hwnd;
+	nid.hWnd = mainWindow;
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
