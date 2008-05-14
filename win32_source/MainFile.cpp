@@ -74,10 +74,10 @@ HDC mainUnderDC;
 HBITMAP mainBitmap;
 
 //Double-buffering stuff - secondaryWindow
-/*HWND mainWindow;
-HDC gc;
-HDC underDC;
-HBITMAP bmpDC;*/
+HWND senWindow;
+HDC senDC;
+HDC senUnderDC;
+HBITMAP senBitmap;
 
 //Record-keeping
 TCHAR currStr[50];
@@ -712,21 +712,22 @@ void initCalculate()
 }
 
 
-void expandHWND(int newWidth)
+void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight)
 {
 	//Resize the current window; use SetWindowPos() since it's easier...
-	SetWindowPos(mainWindow, NULL, 0, 0, newWidth, C_HEIGHT, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
+	SetWindowPos(hwnd, NULL, 0, 0, newWidth, newHeight, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
 	RECT r;
-	GetClientRect(mainWindow, &r);
+	GetClientRect(hwnd, &r);
 	C_WIDTH = r.right;
+	C_HEIGHT = newHeight;
 
 	//We also have to set our graphics contexts correctly. Also, throw out the old ones.
-	DeleteDC(mainUnderDC);
-	DeleteObject(mainBitmap);
-	mainDC = GetDC(mainWindow);
-	mainUnderDC = CreateCompatibleDC(mainDC);
-	mainBitmap = CreateCompatibleBitmap(mainDC, C_WIDTH, C_HEIGHT);
-	SelectObject(mainUnderDC, mainBitmap);
+	DeleteDC(underDC);
+	DeleteObject(bmp);
+	dc = GetDC(hwnd);
+	underDC = CreateCompatibleDC(dc);
+	bmp = CreateCompatibleBitmap(dc, C_WIDTH, C_HEIGHT);
+	SelectObject(underDC, bmp);
 }
 
 
@@ -747,11 +748,11 @@ void recalculate()
 
 	//If not, resize. Also, keep the size small when possible.
 	if (cumulativeWidth>C_WIDTH)
-		expandHWND(cumulativeWidth);
-	else if (cumulativeWidth<WINDOW_WIDTH)
-		expandHWND(WINDOW_WIDTH);
+		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT);
+	else if (cumulativeWidth<WINDOW_WIDTH && C_WIDTH>WINDOW_WIDTH)
+		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, WINDOW_WIDTH, C_HEIGHT);
 	else if (cumulativeWidth>WINDOW_WIDTH && cumulativeWidth<C_WIDTH)
-		expandHWND(cumulativeWidth);
+		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT);
 
 	//Background
 	SelectObject(mainUnderDC, g_BlackPen);
