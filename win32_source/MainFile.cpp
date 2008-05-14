@@ -28,10 +28,13 @@
 #include "resource.h"
 #include "Hotkeys.h"
 
+//Current version
+#define WAIT_ZAR_VERSION _T("1.5")
+
 //Prototypes
-BOOL turnOnHotkeys(HWND hwnd, BOOL on);
-BOOL turnOnControlkeys(HWND hwnd, BOOL on);
-void switchToLanguage(HWND hwnd, BOOL toMM);
+BOOL turnOnHotkeys(BOOL on);
+BOOL turnOnControlkeys(BOOL on);
+void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
 UINT32 HsiehHash ( std::string *str );
 
@@ -82,16 +85,19 @@ HBITMAP senBitmap;
 //Record-keeping
 TCHAR currStr[50];
 BOOL mmOn;
-BOOL doneDrag;
 BOOL controlKeysOn = FALSE;
 
 //Default client sizes for our windows
 int WINDOW_WIDTH = 240;
 int WINDOW_HEIGHT = 120;
+int SUB_WINDOW_WIDTH = 300;
+int SUB_WINDOW_HEIGHT = 50;
 
 //Width/height of client area
 int C_WIDTH;
 int C_HEIGHT;
+int SUB_C_WIDTH;
+int SUB_C_HEIGHT;
 
 //Calculate's integers
 int firstLineStart;
@@ -658,7 +664,7 @@ BOOL loadModel() {
 
 
 
-void switchToLanguage(HWND hwnd, BOOL toMM) {
+void switchToLanguage(BOOL toMM) {
 	//Don't do anything if we are switching to the SAME language.
 	if (toMM == mmOn)
 		return;
@@ -666,20 +672,22 @@ void switchToLanguage(HWND hwnd, BOOL toMM) {
 	//Ok, switch
 	BOOL res;
 	if (toMM==TRUE)
-		res = turnOnHotkeys(hwnd, TRUE);
+		res = turnOnHotkeys(TRUE);
 	else {
-		res = turnOnHotkeys(hwnd, FALSE);
+		res = turnOnHotkeys(FALSE);
 
 		//It's possible we still have some hotkeys left on..
 		if (controlKeysOn == TRUE)
-			turnOnControlkeys(hwnd, FALSE);
+			turnOnControlkeys(FALSE);
 	}
 	if (res==FALSE)
 		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
 
 	//Any windows left?
-	if (mmOn==FALSE)
-		ShowWindow(hwnd, SW_HIDE);
+	if (mmOn==FALSE) {
+		ShowWindow(mainWindow, SW_HIDE);
+		ShowWindow(senWindow, SW_HIDE);
+	}
 }
 
 
@@ -687,6 +695,7 @@ void reBlit()
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
+	BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
 }
 
 
@@ -695,6 +704,7 @@ void reBlit(RECT blitArea)
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
+	BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
 
@@ -712,21 +722,21 @@ void initCalculate()
 }
 
 
-void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight)
+void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
 {
 	//Resize the current window; use SetWindowPos() since it's easier...
 	SetWindowPos(hwnd, NULL, 0, 0, newWidth, newHeight, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
 	RECT r;
 	GetClientRect(hwnd, &r);
-	C_WIDTH = r.right;
-	C_HEIGHT = newHeight;
+	SAVED_CLIENT_WIDTH = r.right;
+	SAVED_CLIENT_HEIGHT = newHeight;
 
 	//We also have to set our graphics contexts correctly. Also, throw out the old ones.
 	DeleteDC(underDC);
 	DeleteObject(bmp);
 	dc = GetDC(hwnd);
 	underDC = CreateCompatibleDC(dc);
-	bmp = CreateCompatibleBitmap(dc, C_WIDTH, C_HEIGHT);
+	bmp = CreateCompatibleBitmap(dc, SAVED_CLIENT_WIDTH, SAVED_CLIENT_HEIGHT);
 	SelectObject(underDC, bmp);
 }
 
@@ -748,16 +758,22 @@ void recalculate()
 
 	//If not, resize. Also, keep the size small when possible.
 	if (cumulativeWidth>C_WIDTH)
-		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT);
+		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
 	else if (cumulativeWidth<WINDOW_WIDTH && C_WIDTH>WINDOW_WIDTH)
-		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, WINDOW_WIDTH, C_HEIGHT);
+		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, WINDOW_WIDTH, C_HEIGHT, C_WIDTH, C_HEIGHT);
 	else if (cumulativeWidth>WINDOW_WIDTH && cumulativeWidth<C_WIDTH)
-		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT);
+		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
 
 	//Background
 	SelectObject(mainUnderDC, g_BlackPen);
 	SelectObject(mainUnderDC, g_DarkGrayBkgrd);
 	Rectangle(mainUnderDC, 0, 0, C_WIDTH, C_HEIGHT);
+
+	//Background -second window
+	SelectObject(senUnderDC, g_BlackPen);
+	SelectObject(senUnderDC, g_DarkGrayBkgrd);
+	Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
+	SelectObject(senUnderDC, g_EmptyPen);
 
 	//White overlays
 	SelectObject(mainUnderDC, g_EmptyPen);
@@ -848,12 +864,73 @@ void selectWord(int id)
 		MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 
 	//Turn off control keys
-	turnOnControlkeys(mainWindow, FALSE);
+	turnOnControlkeys(FALSE);
 
-	//Hide the window
+	//Hide the window(s)
 	ShowWindow(mainWindow, SW_HIDE);
+	ShowWindow(senWindow, SW_HIDE);
 }
 
+
+LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg) {
+		case WM_CREATE:
+		{
+			//Resize our window?
+			MoveWindow(hwnd, 100, 100, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+
+			//Now, create all our buffering objects
+			RECT r;
+			GetClientRect(hwnd, &r);
+			SUB_C_WIDTH = r.right;
+			SUB_C_HEIGHT = r.bottom;
+
+			senDC = GetDC(hwnd);
+			senUnderDC = CreateCompatibleDC(senDC);
+
+			senBitmap = CreateCompatibleBitmap(senDC, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT);
+			SelectObject(senUnderDC, senBitmap);
+		}
+		case WM_NCHITTEST: //Allow dragging of the client area...
+		{
+			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
+			if(uHitTest == HTCLIENT) {
+				return HTCAPTION;
+			} else
+				return uHitTest;
+			break;
+		}
+		case WM_PAINT:
+		{
+			//Update only if there's an area which needs updating (e.g., a higher-level
+			//  window has dragged over this one's client area... it can happen only with popups,
+			//  but let's do it just to be safe.
+			RECT updateRect;
+			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
+			{
+				//Blitting every tick will slow us down... we should validate the
+				//  rectangle after drawing it.
+				reBlit(updateRect);
+
+				//Validate the client area
+				ValidateRect(hwnd, NULL);
+			}
+
+			break;
+		}
+		case WM_CLOSE:
+			DestroyWindow(hwnd);
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		default:
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
 
 
 /**
@@ -871,7 +948,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Resize our window?
 			MoveWindow(hwnd, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-			doneDrag = TRUE;
 
 			//Now, create all our buffering objects
 			RECT r;
@@ -893,9 +969,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if(wParam == LANG_HOTKEY) {
 				//Switch language
 				if (mmOn==TRUE)
-					switchToLanguage(hwnd, FALSE);
+					switchToLanguage(FALSE);
 				else
-					switchToLanguage(hwnd, TRUE);
+					switchToLanguage(TRUE);
 
 				//Reset the model
 				model->reset(true);
@@ -907,9 +983,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				model->reset(false);
 
 				//Turn off control keys
-				turnOnControlkeys(hwnd, FALSE);
+				turnOnControlkeys(FALSE);
 
-				ShowWindow(hwnd, SW_HIDE);
+				ShowWindow(mainWindow, SW_HIDE);
+				ShowWindow(senWindow, SW_HIDE);
 			}
 
 
@@ -921,9 +998,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					recalculate();
 				} else {
 					//Turn off control keys
-					turnOnControlkeys(hwnd, FALSE);
+					turnOnControlkeys(FALSE);
 
-					ShowWindow(hwnd, SW_HIDE);
+					ShowWindow(mainWindow, SW_HIDE);
+					ShowWindow(senWindow, SW_HIDE);
 				}
 			}
 
@@ -980,10 +1058,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					recalculate();
 
 					//Turn on control keys
-					turnOnControlkeys(hwnd, TRUE);
+					turnOnControlkeys(TRUE);
 
 					//Show it
-					ShowWindow(hwnd, SW_SHOW);
+					ShowWindow(mainWindow, SW_SHOW);
+					ShowWindow(senWindow, SW_SHOW);
 				}
 
 				//Now, handle the keypress as per the usual...
@@ -1054,12 +1133,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                  NULL);            //MSDN: Ignored
 				if (retVal == IDM_HELP) {
 					TCHAR temp[550];
-					swprintf(temp, _T("WaitZar version 1.2 - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed, if they want to see what they type after it's chosen."), langHotkeyString);
+					swprintf(temp, _T("WaitZar version %s - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed, if they want to see what they type after it's chosen."), WAIT_ZAR_VERSION, langHotkeyString);
 					MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
 				} else if (retVal == IDM_ENGLISH) {
-					switchToLanguage(hwnd, FALSE);
+					switchToLanguage(FALSE);
 				} else if (retVal == IDM_MYANMAR) {
-					switchToLanguage(hwnd, TRUE);
+					switchToLanguage(TRUE);
 				} else if (retVal == IDM_EXIT) {
 					DestroyWindow(hwnd);
 				}
@@ -1086,7 +1165,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE)
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			if (mmOn==TRUE) {
-				if (turnOnHotkeys(hwnd, FALSE) == FALSE)
+				if (turnOnHotkeys(FALSE) == FALSE)
 					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			}
 
@@ -1108,7 +1187,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-BOOL turnOnHotkeys(HWND hwnd, BOOL on)
+BOOL turnOnHotkeys(BOOL on)
 {
 	int low_code;
 	int high_code;
@@ -1119,15 +1198,15 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 		high_code = low_code - 32;
 		if (on==TRUE)  {
 			//Register this as an uppercase/lowercase letter
-			if (RegisterHotKey(hwnd, high_code, MOD_SHIFT, high_code)==FALSE)
+			if (RegisterHotKey(mainWindow, high_code, MOD_SHIFT, high_code)==FALSE)
 				retVal = FALSE;
-			if (RegisterHotKey(hwnd, low_code, NULL, high_code)==FALSE)
+			if (RegisterHotKey(mainWindow, low_code, NULL, high_code)==FALSE)
 				retVal = FALSE;
 		} else {
 			//De-register this as an uppercase/lowercase letter
-			if (UnregisterHotKey(hwnd, high_code)==FALSE)
+			if (UnregisterHotKey(mainWindow, high_code)==FALSE)
 				retVal = FALSE;
-			if (UnregisterHotKey(hwnd, low_code)==FALSE)
+			if (UnregisterHotKey(mainWindow, low_code)==FALSE)
 				retVal = FALSE;
 		}
 	}
@@ -1138,7 +1217,7 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 	//Change icon in the tray
 	NOTIFYICONDATA nid;
 	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = hwnd;
+	nid.hWnd = mainWindow;
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
@@ -1155,95 +1234,95 @@ BOOL turnOnHotkeys(HWND hwnd, BOOL on)
 }
 
 
-BOOL turnOnControlkeys(HWND hwnd, BOOL on)
+BOOL turnOnControlkeys(BOOL on)
 {
 	BOOL retVal = true;
 
 	//Register control keys
 	if (on==TRUE) {
-		if (RegisterHotKey(hwnd, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_ENTER, NULL, VK_RETURN)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_ENTER, NULL, VK_RETURN)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_UP, NULL, VK_UP)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_UP, NULL, VK_UP)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
 			retVal = FALSE;
 
 		//We count numbers as control keys too...
-		if (RegisterHotKey(hwnd, HOTKEY_NUM0, NULL, VK_NUMPAD0)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM0, NULL, VK_NUMPAD0)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM1, NULL, VK_NUMPAD1)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM1, NULL, VK_NUMPAD1)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM2, NULL, VK_NUMPAD2)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM2, NULL, VK_NUMPAD2)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM3, NULL, VK_NUMPAD3)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM3, NULL, VK_NUMPAD3)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM4, NULL, VK_NUMPAD4)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM4, NULL, VK_NUMPAD4)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM5, NULL, VK_NUMPAD5)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM5, NULL, VK_NUMPAD5)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM6, NULL, VK_NUMPAD6)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM6, NULL, VK_NUMPAD6)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM7, NULL, VK_NUMPAD7)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM7, NULL, VK_NUMPAD7)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM8, NULL, VK_NUMPAD8)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM8, NULL, VK_NUMPAD8)==FALSE)
 			retVal = FALSE;
-		if (RegisterHotKey(hwnd, HOTKEY_NUM9, NULL, VK_NUMPAD9)==FALSE)
+		if (RegisterHotKey(mainWindow, HOTKEY_NUM9, NULL, VK_NUMPAD9)==FALSE)
 			retVal = FALSE;
 		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
-			if (RegisterHotKey(hwnd, i, NULL, i)==FALSE)
+			if (RegisterHotKey(mainWindow, i, NULL, i)==FALSE)
 				retVal = FALSE;
 		}
 	} else {
-		if (UnregisterHotKey(hwnd, HOTKEY_SPACE)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_SPACE)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_ENTER)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_ENTER)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_LEFT)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_ESC)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_ESC)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_BACK)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_BACK)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_RIGHT)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_UP)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_UP)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_DOWN)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_DOWN)==FALSE)
 			retVal = FALSE;
 
 		//Numbers
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM0)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM0)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM1)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM1)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM2)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM2)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM3)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM3)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM4)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM4)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM5)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM5)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM6)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM6)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM7)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM7)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM8)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM8)==FALSE)
 			retVal = FALSE;
-		if (UnregisterHotKey(hwnd, HOTKEY_NUM9)==FALSE)
+		if (UnregisterHotKey(mainWindow, HOTKEY_NUM9)==FALSE)
 			retVal = FALSE;
 		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
-			if (UnregisterHotKey(hwnd, i)==FALSE)
+			if (UnregisterHotKey(mainWindow, i)==FALSE)
 				retVal = FALSE;
 		}
 	}
@@ -1292,6 +1371,44 @@ HWND makeMainWindow(LPCWSTR windowClassName)
 }
 
 
+HWND makeSubWindow(LPCWSTR windowClassName)
+{
+	//Set a window class's parameters
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = SubWndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInst;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = g_DarkGrayBkgrd;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = windowClassName;
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	if(!RegisterClassEx(&wc)) {
+		MessageBox(NULL, _T("Sub-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		return 0;
+	}
+
+	//Create a handle to the window
+	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
+	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
+	// receive very few actual events
+	senWindow = CreateWindowEx(
+		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
+		windowClassName,
+		_T("WaitZar"),
+		WS_POPUP, //No border or title bar
+		100, 100, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT,
+		NULL, NULL, hInst, NULL
+	);
+
+	return senWindow;
+}
+
+
 
 /**
  * Main method for Windows applications
@@ -1317,6 +1434,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create our main window.
 	HWND mainWindow = makeMainWindow(_T("waitZarMainWindow"));
+	HWND senWindow = makeSubWindow(_T("waitZarSentenceWindow"));
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
@@ -1355,7 +1473,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(currStr, _T(""));
 
 	//Success?
-	if(mainWindow == NULL) {
+	if(mainWindow==NULL || senWindow==NULL) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
@@ -1363,6 +1481,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//If we got this far, let's try to load our file.
 	if (loadModel() == FALSE) {
 		DestroyWindow(mainWindow);
+		DestroyWindow(senWindow);
 		return 1;
 	}
 
