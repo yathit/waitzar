@@ -218,6 +218,9 @@
 		<File
 			RelativePath=".\waitzar.font.png">
 		</File>
+		<File
+			RelativePath=".\waitzar_small.font.png">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -90,6 +90,7 @@ WZ_MODEL                Model                   "Myanmar.model"
 //
 
 WZ_FONT                 COREFONT                "waitzar.font.png"
+WZ_SMALL_FONT           COREFONT                "waitzar_small.font.png"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

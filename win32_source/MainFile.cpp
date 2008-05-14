@@ -66,6 +66,7 @@ HICON engIcon;
 WordBuilder *model;
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
+PulpCoreFont *mmFontSmallBlack;
 PAINTSTRUCT Ps;
 BOOL customDictWarning = TRUE;
 TCHAR langHotkeyString[100];
@@ -149,6 +150,35 @@ void makeFont(HWND currHwnd)
 
 	//Tint both to their respective colors
 	mmFontGreen->tintSelf(0x008000);
+	mmFontBlack->tintSelf(0x000000);
+
+	//Now, our small font (resource first!)
+	HRSRC fontRes2 = FindResource(hInst, MAKEINTRESOURCE(WZ_SMALL_FONT), _T("COREFONT"));
+	if (!fontRes2) {
+		MessageBox(NULL, _T("Couldn't find WZ_SMALL_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+        return;
+	}
+
+	//Get a handle from this resource.
+    HGLOBAL res_handle_2 = LoadResource(NULL, fontRes2);
+	if (!res_handle_2) {
+		MessageBox(NULL, _T("Couldn't get a handle on WZ_SMALL_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+        return;
+	}
+
+	mmFontSmallBlack = new PulpCoreFont(fontRes2, res_handle_2, senDC);
+	if (mmFontSmallBlack->isInError()==TRUE) {
+		TCHAR errorStr[600];
+		swprintf(errorStr, _T("WZ Small Font didn't load correctly: %s"), mmFontSmallBlack->getErrorMsg());
+
+		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+		return;
+	}
+
+	//Unlock this resource for later use.
+	UnlockResource(res_handle_2);
+
+	//Tint
 	mmFontBlack->tintSelf(0x000000);
 }
 
@@ -886,7 +916,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CREATE:
 		{
 			//Resize our window?
-			MoveWindow(hwnd, 100, 100, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+			MoveWindow(hwnd, 100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
 
 			//Now, create all our buffering objects
 			RECT r;
@@ -1438,7 +1468,7 @@ HWND makeSubWindow(LPCWSTR windowClassName)
 		windowClassName,
 		_T("WaitZar"),
 		WS_POPUP, //No border or title bar
-		100, 100, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT,
+		100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL
 	);
 
