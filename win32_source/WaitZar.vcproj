@@ -221,56 +221,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-			<File
-				RelativePath=".\Hotkeys.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PulpCoreFont.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\WordBuilder.h"
-				>
-			</File>
-			<Filter
-				Name="jazzlib_0.0.7"
-				>
-				<File
-					RelativePath=".\Adler32.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Inflater.h"
-					>
-				</File>
-				<File
-					RelativePath=".\InflaterDynHeader.h"
-					>
-				</File>
-				<File
-					RelativePath=".\InflaterHuffmanTree.h"
-					>
-				</File>
-				<File
-					RelativePath=".\OutputWindow.h"
-					>
-				</File>
-				<File
-					RelativePath=".\StreamManipulator.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
@@ -295,6 +245,56 @@
 				RelativePath=".\Wz_mm.ico"
 				>
 			</File>
+			<Filter
+				Name="Header Files"
+				Filter="h;hpp;hxx;hm;inl;inc;xsd"
+				UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+				>
+				<File
+					RelativePath=".\Hotkeys.h"
+					>
+				</File>
+				<File
+					RelativePath=".\PulpCoreFont.h"
+					>
+				</File>
+				<File
+					RelativePath=".\resource.h"
+					>
+				</File>
+				<File
+					RelativePath=".\WordBuilder.h"
+					>
+				</File>
+				<Filter
+					Name="jazzlib_0.0.7"
+					>
+					<File
+						RelativePath=".\Adler32.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Inflater.h"
+						>
+					</File>
+					<File
+						RelativePath=".\InflaterDynHeader.h"
+						>
+					</File>
+					<File
+						RelativePath=".\InflaterHuffmanTree.h"
+						>
+					</File>
+					<File
+						RelativePath=".\OutputWindow.h"
+						>
+					</File>
+					<File
+						RelativePath=".\StreamManipulator.h"
+						>
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\config.txt"
