@@ -68,8 +68,12 @@ PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
 PulpCoreFont *mmFontSmallBlack;
 PAINTSTRUCT Ps;
+
+//Configuration variables.
 BOOL customDictWarning = TRUE;
 TCHAR langHotkeyString[100];
+char langHotkeyRaw[100];
+BOOL typePhrases = TRUE;
 BOOL dragBothWindowsTogether = TRUE;
 
 //Double-buffering stuff - mainWindow
@@ -152,6 +156,10 @@ void makeFont(HWND currHwnd)
 	//Tint both to their respective colors
 	mmFontGreen->tintSelf(0x008000);
 	mmFontBlack->tintSelf(0x000000);
+
+	//Save resources if we don't use the second window
+	if (typePhrases==FALSE)
+		return;
 
 	//Now, our small font (resource first!)
 	HRSRC fontRes2 = FindResource(hInst, MAKEINTRESOURCE(WZ_SMALL_FONT), _T("COREFONT"));
@@ -271,153 +279,169 @@ void readUserWords() {
 }
 
 
+void loadConfigOptions()
+{
+	//Default keys
+	lstrcpy(langHotkeyString, _T("Ctrl+Shift"));
+	strcpy(langHotkeyRaw, "^+");
+
+	//Read our config file, if it exists.
+	FILE* configFile = fopen("config.txt", "r");
+	if (configFile == NULL)
+		return;
+
+	//Get file size
+	fseek (configFile, 0, SEEK_END);
+	long fileSize = ftell(configFile);
+	rewind(configFile);
+
+	//Read it all into an array, close the file.
+	char * buffer = (char*) malloc(sizeof(char)*fileSize);
+	size_t buff_size = fread(buffer, 1, fileSize, configFile);
+	fclose(configFile);
+
+
+	//Read each line
+	for (size_t i=0; i<buff_size; i++) {
+		//LTrim
+		while (buffer[i] == ' ')
+			i++;
+
+		//Comment? If so, skip to the next newline.
+		//  Also skip empty lines
+		if (buffer[i]=='#' || buffer[i]=='\n') {
+			while (buffer[i] != '\n')
+				i++;
+			continue;
+		}
+
+		//Read our property's name
+		char name[50];
+		int name_pos = 0;
+		strcpy(name, "");
+		while (buffer[i] != '=') {
+			if (buffer[i] == ' ')
+				i++;
+			else
+				name[name_pos++] = buffer[i++];
+		}
+		name[name_pos] = '\0';
+		i++;
+
+		//Read our property's value
+		char value[50];
+		name_pos = 0;
+		strcpy(value, "");
+		while (buffer[i] != '\n' && i<buff_size) {
+			if (buffer[i] == ' ')
+				i++;
+			else
+				value[name_pos++] = buffer[i++];
+		}
+		value[name_pos++] = '\0';
+
+		//No possible hotkeys?
+		if (name_pos<2)
+			continue;
+
+		//Deal with our name/value pair.
+		if (strcmp(name, "mywordswarning")==0) {
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				customDictWarning = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				customDictWarning = FALSE;
+		} else if (strcmp(name, "lockwindows")==0) {
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				dragBothWindowsTogether = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				dragBothWindowsTogether = FALSE;
+		} else if (strcmp(name, "powertyping")==0) {
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				typePhrases = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				typePhrases = FALSE;
+		} else if (strcmp(name, "hotkey")==0) {
+			//Set it later
+			strcpy(langHotkeyRaw, value);
+		}
+
+	}
+
+	//Get rid of our buffer
+	free(buffer);
+}
+
 
 
 BOOL registerInitialHotkey()
 {
-	//Default keys
 	UINT modifier = MOD_CONTROL | MOD_SHIFT;
 	UINT keycode = VK_SHIFT;
-	lstrcpy(langHotkeyString, _T("Ctrl+Shift"));
+	size_t str_len = strlen(langHotkeyRaw);
 
-	//Read our config file, if it exists.
-	FILE* configFile = fopen("config.txt", "r");
-	if (configFile != NULL) {
-		//Get file size
-		fseek (configFile, 0, SEEK_END);
-		long fileSize = ftell(configFile);
-		rewind(configFile);
+	//It's a hotkey code. First, reset...
+	modifier = 0;
 
-		//Read it all into an array, close the file.
-		char * buffer = (char*) malloc(sizeof(char)*fileSize);
-		size_t buff_size = fread(buffer, 1, fileSize, configFile);
-		fclose(configFile);
-
-
-		//Read each line
-		for (size_t i=0; i<buff_size; i++) {
-			//LTrim
-			while (buffer[i] == ' ')
-				i++;
-
-			//Comment? If so, skip to the next newline.
-			//  Also skip empty lines
-			if (buffer[i]=='#' || buffer[i]=='\n') {
-				while (buffer[i] != '\n')
-					i++;
-				continue;
-			}
-
-			//Read our property's name
-			char name[50];
-			int name_pos = 0;
-			strcpy(name, "");
-			while (buffer[i] != '=') {
-				if (buffer[i] == ' ')
-					i++;
-				else
-					name[name_pos++] = buffer[i++];
-			}
-			name[name_pos] = '\0';
-			i++;
-
-			//Read our property's value
-			char value[50];
-			name_pos = 0;
-			strcpy(value, "");
-			while (buffer[i] != '\n' && i<buff_size) {
-				if (buffer[i] == ' ')
-					i++;
-				else
-					value[name_pos++] = buffer[i++];
-			}
-			value[name_pos++] = '\0';
-
-			//No possible hotkeys?
-			if (name_pos<2)
-				continue;
-
-			//Deal with our name/value pair.
-			if (strcmp(name, "mywordswarning")==0) {
-				if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-					customDictWarning = TRUE;
-				else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-					customDictWarning = FALSE;
-			} else if (strcmp(name, "lockwindows")==0) {
-				if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-					dragBothWindowsTogether = TRUE;
-				else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-					dragBothWindowsTogether = FALSE;
-			} else if (strcmp(name, "hotkey")==0) {
-				//It's a hotkey code. First, reset...
-				modifier = 0;
-
-				//Now, set the keycode
-				//Additional rule: all keystroke modifiers must also themselves be modifiers
-				keycode = value[name_pos-2];
-				switch(keycode) {
-					case '!':
-						lstrcpy(langHotkeyString, _T("Alt"));
-						keycode = VK_MENU; //VK_MENU == VK_ALT
-						modifier |= MOD_ALT;
-						break;
-					case '^':
-						lstrcpy(langHotkeyString, _T("Ctrl"));
-						keycode = VK_CONTROL;
-						modifier |= MOD_CONTROL;
-						break;
-					case '+':
-						lstrcpy(langHotkeyString, _T("Shift"));
-						keycode = VK_SHIFT;
-						modifier |= MOD_SHIFT;
-						break;
-					case '_':
-						lstrcpy(langHotkeyString, _T("Space"));
-						keycode = VK_SPACE;
-						break;
-					default:
-						swprintf(langHotkeyString, _T("%C"), keycode);
-				}
-
-				//Now, set the modifiers
-				TCHAR temp[100];
-				for (int pos=0; pos<name_pos-2; pos++) {
-					switch(value[pos]) {
-						case '!':
-							swprintf(temp, _T("Alt+%s"), langHotkeyString);
-							lstrcpy(langHotkeyString, temp);
-							modifier |= MOD_ALT;
-							break;
-						case '^':
-							swprintf(temp, _T("Ctrl+%s"), langHotkeyString);
-							lstrcpy(langHotkeyString, temp);
-							modifier |= MOD_CONTROL;
-							break;
-						case '+':
-							swprintf(temp, _T("Shift+%s"), langHotkeyString);
-							lstrcpy(langHotkeyString, temp);
-							modifier |= MOD_SHIFT;
-							break;
-					}
-				}
-
-				//Additional rule: Capital letters require a shift modifier
-				if (keycode>='A' && keycode<='Z') {
-					swprintf(temp, _T("Shift+%s"), langHotkeyString);
-					lstrcpy(langHotkeyString, temp);
-					modifier |= MOD_SHIFT;
-				}
-
-				//Additional rule: Lowercase letters are coded by their uppercase value
-				if (keycode>='a' && keycode<='z')
-					keycode -= 'a'-'A';
-			}
-		}
-
-		//Get rid of our buffer
-		free(buffer);
+	//Now, set the keycode
+	//Additional rule: all keystroke modifiers must also themselves be modifiers
+	keycode = langHotkeyRaw[str_len-1];
+	switch(keycode) {
+		case '!':
+			lstrcpy(langHotkeyString, _T("Alt"));
+			keycode = VK_MENU; //VK_MENU == VK_ALT
+			modifier |= MOD_ALT;
+			break;
+		case '^':
+			lstrcpy(langHotkeyString, _T("Ctrl"));
+			keycode = VK_CONTROL;
+			modifier |= MOD_CONTROL;
+			break;
+		case '+':
+			lstrcpy(langHotkeyString, _T("Shift"));
+			keycode = VK_SHIFT;
+			modifier |= MOD_SHIFT;
+			break;
+		case '_':
+			lstrcpy(langHotkeyString, _T("Space"));
+			keycode = VK_SPACE;
+			break;
+		default:
+			swprintf(langHotkeyString, _T("%C"), keycode);
 	}
 
+	//Now, set the modifiers
+	TCHAR temp[100];
+	for (size_t pos=0; pos<str_len-1; pos++) {
+		switch(langHotkeyRaw[pos]) {
+			case '!':
+				swprintf(temp, _T("Alt+%s"), langHotkeyString);
+				lstrcpy(langHotkeyString, temp);
+				modifier |= MOD_ALT;
+				break;
+			case '^':
+				swprintf(temp, _T("Ctrl+%s"), langHotkeyString);
+				lstrcpy(langHotkeyString, temp);
+				modifier |= MOD_CONTROL;
+				break;
+			case '+':
+				swprintf(temp, _T("Shift+%s"), langHotkeyString);
+				lstrcpy(langHotkeyString, temp);
+				modifier |= MOD_SHIFT;
+				break;
+		}
+	}
+
+	//Additional rule: Capital letters require a shift modifier
+	if (keycode>='A' && keycode<='Z') {
+		swprintf(temp, _T("Shift+%s"), langHotkeyString);
+		lstrcpy(langHotkeyString, temp);
+		modifier |= MOD_SHIFT;
+	}
+
+	//Additional rule: Lowercase letters are coded by their uppercase value
+	if (keycode>='a' && keycode<='z') {
+		keycode -= 'a'-'A';
+	}
 
 	return RegisterHotKey(mainWindow, LANG_HOTKEY, modifier, keycode);
 }
@@ -702,6 +726,15 @@ BOOL loadModel() {
 }
 
 
+void ShowBothWindows(int cmdShow)
+{
+	ShowWindow(mainWindow, cmdShow);
+	if (typePhrases==TRUE) {
+		ShowWindow(senWindow, cmdShow);
+	}
+}
+
+
 
 void switchToLanguage(BOOL toMM) {
 	//Don't do anything if we are switching to the SAME language.
@@ -724,8 +757,7 @@ void switchToLanguage(BOOL toMM) {
 
 	//Any windows left?
 	if (mmOn==FALSE) {
-		ShowWindow(mainWindow, SW_HIDE);
-		ShowWindow(senWindow, SW_HIDE);
+		ShowBothWindows(SW_HIDE);
 	}
 }
 
@@ -734,7 +766,8 @@ void reBlit()
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
-	BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
+	if (typePhrases==TRUE)
+		BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
 }
 
 
@@ -743,7 +776,8 @@ void reBlit(RECT blitArea)
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
-	BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
+	if (typePhrases==TRUE)
+		BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
 
@@ -809,11 +843,13 @@ void recalculate()
 	Rectangle(mainUnderDC, 0, 0, C_WIDTH, C_HEIGHT);
 
 	//Background -second window
-	SelectObject(senUnderDC, g_BlackPen);
-	SelectObject(senUnderDC, g_DarkGrayBkgrd);
-	Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
-	SelectObject(senUnderDC, g_EmptyPen);
-	mmFontSmallBlack->drawString(senUnderDC, currPhrase, borderWidth+1, borderWidth+1);
+	if (typePhrases==TRUE) {
+		SelectObject(senUnderDC, g_BlackPen);
+		SelectObject(senUnderDC, g_DarkGrayBkgrd);
+		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
+		SelectObject(senUnderDC, g_EmptyPen);
+		mmFontSmallBlack->drawString(senUnderDC, currPhrase, borderWidth+1, borderWidth+1);
+	}
 
 	//White overlays
 	SelectObject(mainUnderDC, g_EmptyPen);
@@ -910,8 +946,7 @@ void selectWord(int id)
 	lstrcat(currPhrase, model->getWordString(typedVal.second));
 
 	//Hide the window(s)
-	ShowWindow(mainWindow, SW_HIDE);
-	ShowWindow(senWindow, SW_HIDE);
+	ShowBothWindows(SW_HIDE);
 }
 
 
@@ -1024,7 +1059,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE: 
 		{
 			//Move the sentence window?
-			if (mainWindowSkipMove==FALSE && IsWindowVisible(senWindow)==TRUE && dragBothWindowsTogether==TRUE) {
+			if (typePhrases==TRUE && mainWindowSkipMove==FALSE && IsWindowVisible(senWindow)==TRUE && dragBothWindowsTogether==TRUE) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
@@ -1057,8 +1092,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Turn off control keys
 				turnOnControlkeys(FALSE);
 
-				ShowWindow(mainWindow, SW_HIDE);
-				ShowWindow(senWindow, SW_HIDE);
+				ShowBothWindows(SW_HIDE);
 			}
 
 
@@ -1072,8 +1106,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Turn off control keys
 					turnOnControlkeys(FALSE);
 
-					ShowWindow(mainWindow, SW_HIDE);
-					ShowWindow(senWindow, SW_HIDE);
+					ShowBothWindows(SW_HIDE);
 				}
 			}
 
@@ -1134,8 +1167,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					turnOnControlkeys(TRUE);
 
 					//Show it
-					ShowWindow(mainWindow, SW_SHOW);
-					ShowWindow(senWindow, SW_SHOW);
+					ShowBothWindows(SW_SHOW);
 				}
 
 				//Now, handle the keypress as per the usual...
@@ -1446,6 +1478,9 @@ HWND makeMainWindow(LPCWSTR windowClassName)
 
 HWND makeSubWindow(LPCWSTR windowClassName)
 {
+	if (typePhrases==FALSE)
+		return NULL;
+
 	//Set a window class's parameters
 	WNDCLASSEX wc;
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -1491,6 +1526,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
+
+	//Load our configuration file now; save some headaches later
+	loadConfigOptions();
 
 	//Give this process a low background priority
 	//  NOTE: We need to balance this eventually.
@@ -1547,7 +1585,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(currPhrase, _T(""));
 
 	//Success?
-	if(mainWindow==NULL || senWindow==NULL) {
+	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL)) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
@@ -1555,7 +1593,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//If we got this far, let's try to load our file.
 	if (loadModel() == FALSE) {
 		DestroyWindow(mainWindow);
-		DestroyWindow(senWindow);
+		if (typePhrases==TRUE)
+			DestroyWindow(senWindow);
 		return 1;
 	}
 
