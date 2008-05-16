@@ -865,7 +865,7 @@ void recalculate()
 		TCHAR tempPhrase[500];
 		lstrcpy(currPhrase, _T(""));
 		std::list<int>::iterator printIT = prevTypedWords->begin();
-		int cursorPosX=0;
+		int cursorPosX=borderWidth;
 		int counterCursorID=0;
 		for (;printIT != prevTypedWords->end(); printIT++) {
 			//Append this string
@@ -874,7 +874,7 @@ void recalculate()
 
 			//Calculate our x co-ordinate, if applicable.
 			if (counterCursorID == cursorAfterIndex) {
-				cursorPosX = mmFontSmallBlack->getStringWidth(currPhrase) + spaceWidth/2;
+				cursorPosX += mmFontSmallBlack->getStringWidth(currPhrase); //+ spaceWidth/2;
 				//lstrcat(currPhrase, _T(" "));
 			}
 			counterCursorID++;
@@ -883,10 +883,10 @@ void recalculate()
 		SelectObject(senUnderDC, g_BlackPen);
 		SelectObject(senUnderDC, g_DarkGrayBkgrd);
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
-		if (cursorAfterIndex>=0) {
-			MoveToEx(senUnderDC, cursorPosX, borderWidth+1, NULL);
-			LineTo(senUnderDC, cursorPosX, SUB_C_HEIGHT-borderWidth-1);
-		}
+		//if (prevTypedWords->size()>0) {
+		MoveToEx(senUnderDC, cursorPosX, borderWidth+1, NULL);
+		LineTo(senUnderDC, cursorPosX, SUB_C_HEIGHT-borderWidth-1);
+		//}
 		SelectObject(senUnderDC, g_EmptyPen);
 		mmFontSmallBlack->drawString(senUnderDC, currPhrase, borderWidth+1, borderWidth+1);
 	}
@@ -1026,24 +1026,26 @@ BOOL moveCursorRight(int amt)
 	int newAmt = (int)cursorAfterIndex+amt;
 	if (newAmt >= (int)prevTypedWords->size())
 		newAmt = (int)prevTypedWords->size()-1;
-	else if (newAmt < 0)
-		newAmt = 0;
+	else if (newAmt < -1)
+		newAmt = -1;
 	if (newAmt == cursorAfterIndex)
 		return FALSE;
 
 	//Set the trigram
-	WORD trigram[3];
-	int trigram_count;
-	std::list<int>::iterator findIT = prevTypedWords->begin();
-	advance(findIT, newAmt);
-	for (trigram_count=0;trigram_count<3; trigram_count++) {
-		if (newAmt-trigram_count<0)
-			break;
-		trigram[trigram_count] = *findIT;
-		if (trigram_count<2)
-			findIT--;
+	if (newAmt>=0) {
+		WORD trigram[3];
+		int trigram_count;
+		std::list<int>::iterator findIT = prevTypedWords->begin();
+		advance(findIT, newAmt);
+		for (trigram_count=0;trigram_count<3; trigram_count++) {
+			if (newAmt-trigram_count<0)
+				break;
+			trigram[trigram_count] = *findIT;
+			if (trigram_count<2)
+				findIT--;
+		}
+		model->insertTrigram(trigram, trigram_count);
 	}
-	model->insertTrigram(trigram, trigram_count);
 
 	//Update our index
 	cursorAfterIndex = newAmt;
@@ -1208,6 +1210,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					} else {
 						//Just hide the typing window for now.
 						ShowWindow(mainWindow, SW_HIDE);
+
+						if (prevTypedWords->size()==0) {
+							//Kill the entire sentence.
+							prevTypedWords->clear();
+							cursorAfterIndex = -1;
+							ShowBothWindows(SW_HIDE);
+						}
 					}
 				}
 			}
@@ -1224,7 +1233,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						cursorAfterIndex--;
 						recalculate();
 					}
-					if (prevTypedWords->empty()) {
+					if (prevTypedWords->size()==0) {
 						//Kill the entire sentence.
 						prevTypedWords->clear();
 						cursorAfterIndex = -1;
@@ -1345,7 +1354,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//A bit tricky here. If the cursor's at the end, we'll 
 					//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
 					//Hopefully this won't confuse users so much.
-					if (cursorAfterIndex<prevTypedWords->size()) {
+					if (cursorAfterIndex==-1 || cursorAfterIndex<prevTypedWords->size()-1) {
 						cursorAfterIndex++;
 						recalculate();
 					} else {
