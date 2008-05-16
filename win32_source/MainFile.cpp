@@ -1091,7 +1091,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE: 
 		{
 			//Move the main window?
-			if (senWindowSkipMove==FALSE && IsWindowVisible(mainWindow)==TRUE && dragBothWindowsTogether==TRUE) {
+			if (senWindowSkipMove==FALSE && (IsWindowVisible(mainWindow)==TRUE || IsWindowVisible(senWindow)==TRUE) && dragBothWindowsTogether==TRUE) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
@@ -1230,13 +1230,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Delete: Phrases only
 			if (wParam == HOTKEY_DELETE) {
 				if (IsWindowVisible(mainWindow)==FALSE) {
-					/*TCHAR testMsg[500];
-					swprintf(testMsg, _T("test: %i %i"), cursorAfterIndex, prevTypedWords->size());
-					MessageBox(NULL, testMsg, _T("Error"), MB_ICONERROR | MB_OK);*/
-
 					//Delete the next word
 					if (cursorAfterIndex>=-1 && cursorAfterIndex<((int)prevTypedWords->size()-1)) {
-						//MessageBox(NULL, _T("ok"), _T("Error"), MB_ICONERROR | MB_OK);
 						std::list<int>::iterator erIT = prevTypedWords->begin();
 						advance(erIT, cursorAfterIndex+1);
 						prevTypedWords->erase(erIT);
