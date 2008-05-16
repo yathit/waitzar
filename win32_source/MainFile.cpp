@@ -102,7 +102,7 @@ size_t cursorAfterIndex;
 int WINDOW_WIDTH = 240;
 int WINDOW_HEIGHT = 120;
 int SUB_WINDOW_WIDTH = 300;
-int SUB_WINDOW_HEIGHT = 50;
+int SUB_WINDOW_HEIGHT = 26;
 
 //Width/height of client area
 int C_WIDTH;
@@ -863,14 +863,28 @@ void recalculate()
 		TCHAR tempPhrase[500];
 		lstrcpy(currPhrase, _T(""));
 		std::list<int>::iterator printIT = prevTypedWords->begin();
+		int cursorPosX=0;
+		int counterCursorID=0;
 		for (;printIT != prevTypedWords->end(); printIT++) {
-			swprintf(tempPhrase, _T("%s %i"), currPhrase, *printIT);
+			//Append this string
+			swprintf(tempPhrase, _T("%s%s"), currPhrase, model->getWordString(*printIT));
 			lstrcpy(currPhrase, tempPhrase);
+
+			//Calculate our x co-ordinate, if applicable.
+			if (counterCursorID == cursorAfterIndex) {
+				cursorPosX = mmFontSmallBlack->getStringWidth(currPhrase) + spaceWidth/2;
+				lstrcat(currPhrase, _T(" "));
+			}
+			counterCursorID++;
 		}
 
 		SelectObject(senUnderDC, g_BlackPen);
 		SelectObject(senUnderDC, g_DarkGrayBkgrd);
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
+		if (cursorAfterIndex>=0) {
+			MoveToEx(senUnderDC, cursorPosX, borderWidth+1, NULL);
+			LineTo(senUnderDC, cursorPosX, SUB_C_HEIGHT-borderWidth-1);
+		}
 		SelectObject(senUnderDC, g_EmptyPen);
 		mmFontSmallBlack->drawString(senUnderDC, currPhrase, borderWidth+1, borderWidth+1);
 	}
