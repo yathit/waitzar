@@ -35,6 +35,7 @@
 //Prototypes
 BOOL turnOnHotkeys(BOOL on);
 BOOL turnOnControlkeys(BOOL on);
+BOOL turnOnNumberkeys(BOOL on);
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
 
@@ -95,6 +96,7 @@ TCHAR currStr[50];
 TCHAR currPhrase[500];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
+BOOL numberKeysOn = FALSE;
 std::list<int> *prevTypedWords;
 int cursorAfterIndex;
 
@@ -762,13 +764,15 @@ void switchToLanguage(BOOL toMM) {
 	if (toMM==TRUE) {
 		res = turnOnHotkeys(TRUE);
 		if (typePhrases==TRUE)
-			res = res && turnOnControlkeys(TRUE);
+			res = res && turnOnNumberkeys(TRUE); //JUST numbers, not control.
 	} else {
 		res = turnOnHotkeys(FALSE);
 
-		//It's possible we still have some hotkeys left on..
+		//It's possible we still have some hotkeys left on...
 		if (controlKeysOn == TRUE)
 			turnOnControlkeys(FALSE);
+		if (numberKeysOn == TRUE) 
+			turnOnNumberkeys(FALSE);
 	}
 	if (res==FALSE)
 		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
@@ -1197,7 +1201,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Kill the entire sentence.
 					prevTypedWords->clear();
 					cursorAfterIndex = -1;
-					//turnOnControlkeys(FALSE);
+					turnOnControlkeys(FALSE);
 					ShowBothWindows(SW_HIDE);
 				} else {
 					model->reset(false);
@@ -1206,6 +1210,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (typePhrases==FALSE) {
 						//Turn off control keys
 						turnOnControlkeys(FALSE);
+						turnOnNumberkeys(FALSE);
 						ShowBothWindows(SW_HIDE);
 					} else {
 						//Just hide the typing window for now.
@@ -1240,6 +1245,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (prevTypedWords->size()==0) {
 						//Kill the entire sentence.
 						prevTypedWords->clear();
+						turnOnControlkeys(FALSE);
 						cursorAfterIndex = -1;
 						ShowBothWindows(SW_HIDE);
 					}
@@ -1262,7 +1268,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Kill the entire sentence.
 						prevTypedWords->clear();
 						cursorAfterIndex = -1;
-						//turnOnControlkeys(FALSE);
+						turnOnControlkeys(FALSE);
 						ShowBothWindows(SW_HIDE);
 					}
 				} else {
@@ -1275,10 +1281,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (typePhrases==FALSE) {
 							//Turn off control keys
 							turnOnControlkeys(FALSE);
+							turnOnNumberkeys(FALSE);
 							ShowBothWindows(SW_HIDE);
 						} else {
 							//Just hide the typing window for now.
 							ShowWindow(mainWindow, SW_HIDE);
+
+							if (prevTypedWords->size()==0) {
+								//Kill the entire sentence.
+								prevTypedWords->clear();
+								cursorAfterIndex = -1;
+								turnOnControlkeys(FALSE);
+								ShowWindow(senWindow, SW_HIDE);
+							}
 						}
 					}
 				}
@@ -1340,8 +1355,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//Is our window even visible?
-					if (IsWindowVisible(senWindow) == FALSE)
+					if (IsWindowVisible(senWindow) == FALSE) {
+						turnOnControlkeys(TRUE);
 						ShowWindow(senWindow, SW_SHOW);
+					}
 
 					recalculate();
 				}
@@ -1589,32 +1606,13 @@ BOOL turnOnHotkeys(BOOL on)
 }
 
 
-BOOL turnOnControlkeys(BOOL on)
+BOOL turnOnNumberkeys(BOOL on)
 {
 	BOOL retVal = true;
 
-	//Register control keys
+	//Register numbers
 	if (on==TRUE) {
-		if (RegisterHotKey(mainWindow, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_ENTER, NULL, VK_RETURN)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_DELETE, NULL, VK_DELETE)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_UP, NULL, VK_UP)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
-			retVal = FALSE;
-
-		//We count numbers as control keys too...
+		//Numbers are no longer control keys.
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM0, NULL, VK_NUMPAD0)==FALSE)
 			retVal = FALSE;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM1, NULL, VK_NUMPAD1)==FALSE)
@@ -1640,25 +1638,6 @@ BOOL turnOnControlkeys(BOOL on)
 				retVal = FALSE;
 		}
 	} else {
-		if (UnregisterHotKey(mainWindow, HOTKEY_SPACE)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_ENTER)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_ESC)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_BACK)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_DELETE)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_UP)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_DOWN)==FALSE)
-			retVal = FALSE;
-
 		//Numbers
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM0)==FALSE)
 			retVal = FALSE;
@@ -1684,6 +1663,57 @@ BOOL turnOnControlkeys(BOOL on)
 			if (UnregisterHotKey(mainWindow, i)==FALSE)
 				retVal = FALSE;
 		}
+	}
+
+	numberKeysOn = on;
+	return retVal;
+}
+
+
+
+BOOL turnOnControlkeys(BOOL on)
+{
+	BOOL retVal = true;
+
+	//Register control keys
+	if (on==TRUE) {
+		if (RegisterHotKey(mainWindow, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_ENTER, NULL, VK_RETURN)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_DELETE, NULL, VK_DELETE)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_UP, NULL, VK_UP)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
+			retVal = FALSE;
+	} else {
+		if (UnregisterHotKey(mainWindow, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_ENTER)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_ESC)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_BACK)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_DELETE)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_UP)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_DOWN)==FALSE)
+			retVal = FALSE;
 	}
 
 	controlKeysOn = on;
