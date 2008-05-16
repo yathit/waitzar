@@ -759,9 +759,11 @@ void switchToLanguage(BOOL toMM) {
 
 	//Ok, switch
 	BOOL res;
-	if (toMM==TRUE)
+	if (toMM==TRUE) {
 		res = turnOnHotkeys(TRUE);
-	else {
+		if (typePhrases==TRUE)
+			res = res && turnOnControlkeys(TRUE);
+	} else {
 		res = turnOnHotkeys(FALSE);
 
 		//It's possible we still have some hotkeys left on..
@@ -1021,7 +1023,7 @@ BOOL moveCursorRight(int amt)
 		return FALSE;
 
 	//Any change?
-	int newAmt = cursorAfterIndex+amt;
+	int newAmt = (int)cursorAfterIndex+amt;
 	if (newAmt >= (int)prevTypedWords->size())
 		newAmt = (int)prevTypedWords->size()-1;
 	else if (newAmt < 0)
@@ -1031,14 +1033,15 @@ BOOL moveCursorRight(int amt)
 
 	//Set the trigram
 	WORD trigram[3];
-	int trigram_count=0;
+	int trigram_count;
 	std::list<int>::iterator findIT = prevTypedWords->begin();
 	advance(findIT, newAmt);
-	for (;trigram_count<3; trigram_count++) {
+	for (trigram_count=0;trigram_count<3; trigram_count++) {
 		if (newAmt-trigram_count<0)
 			break;
-		trigram[trigram_count++] = *findIT;
-		findIT--;
+		trigram[trigram_count] = *findIT;
+		if (trigram_count<2)
+			findIT--;
 	}
 	model->insertTrigram(trigram, trigram_count);
 
@@ -1192,7 +1195,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Kill the entire sentence.
 					prevTypedWords->clear();
 					cursorAfterIndex = -1;
-					turnOnControlkeys(FALSE);
+					//turnOnControlkeys(FALSE);
 					ShowBothWindows(SW_HIDE);
 				} else {
 					model->reset(false);
@@ -1225,7 +1228,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Kill the entire sentence.
 						prevTypedWords->clear();
 						cursorAfterIndex = -1;
-						turnOnControlkeys(FALSE);
+						//turnOnControlkeys(FALSE);
 						ShowBothWindows(SW_HIDE);
 					}
 				} else {
@@ -1301,6 +1304,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						advance(addIT, cursorAfterIndex);
 						prevTypedWords->insert(addIT, numCode);
 					}
+
+					//Is our window even visible?
+					if (IsWindowVisible(senWindow) == FALSE)
+						ShowWindow(senWindow, SW_SHOW);
+
 					recalculate();
 				}
 			}
