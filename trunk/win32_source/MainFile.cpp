@@ -873,7 +873,7 @@ void recalculate()
 			//Calculate our x co-ordinate, if applicable.
 			if (counterCursorID == cursorAfterIndex) {
 				cursorPosX = mmFontSmallBlack->getStringWidth(currPhrase) + spaceWidth/2;
-				lstrcat(currPhrase, _T(" "));
+				//lstrcat(currPhrase, _T(" "));
 			}
 			counterCursorID++;
 		}
@@ -1012,6 +1012,41 @@ void selectWord(int id)
 		}
 	}
 }
+
+
+BOOL moveCursorRight(int amt) 
+{
+	//Any words?
+	if (prevTypedWords->size()==0)
+		return FALSE;
+
+	//Any change?
+	int newAmt = cursorAfterIndex+amt;
+	if (newAmt >= (int)prevTypedWords->size())
+		newAmt = (int)prevTypedWords->size()-1;
+	else if (newAmt < 0)
+		newAmt = 0;
+	if (newAmt == cursorAfterIndex)
+		return FALSE;
+
+	//Set the trigram
+	WORD trigram[3];
+	int trigram_count=0;
+	std::list<int>::iterator findIT = prevTypedWords->begin();
+	advance(findIT, newAmt);
+	for (;trigram_count<3; trigram_count++) {
+		if (newAmt-trigram_count<0)
+			break;
+		trigram[trigram_count++] = *findIT;
+		findIT--;
+	}
+	model->insertTrigram(trigram, trigram_count);
+
+	//Update our index
+	cursorAfterIndex = newAmt;
+	return TRUE;
+}
+
 
 
 LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -1220,14 +1255,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (model->moveRight(1) == TRUE)
 						recalculate();
 				} else {
-					//TODO: Move right/left within the current phrase.
+					//Move right/left within the current phrase.
+					if (moveCursorRight(1) == TRUE)
+						recalculate();
 				}
 			} else if (wParam == HOTKEY_LEFT) {
 				if (IsWindowVisible(mainWindow)==TRUE) {
 					if (model->moveRight(-1) == TRUE)
 						recalculate();
 				} else {
-					//TODO: Move right/left within the current phrase.
+					//Move right/left within the current phrase.
+					if (moveCursorRight(-1) == TRUE)
+						recalculate();
 				}
 			}
 
