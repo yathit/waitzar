@@ -96,7 +96,7 @@ TCHAR currPhrase[500];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 std::list<int> *prevTypedWords;
-size_t cursorAfterIndex;
+int cursorAfterIndex;
 
 //Default client sizes for our windows
 int WINDOW_WIDTH = 240;
@@ -1222,11 +1222,36 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 
+			//Delete: Phrases only
+			if (wParam == HOTKEY_DELETE) {
+				if (IsWindowVisible(mainWindow)==FALSE) {
+					/*TCHAR testMsg[500];
+					swprintf(testMsg, _T("test: %i %i"), cursorAfterIndex, prevTypedWords->size());
+					MessageBox(NULL, testMsg, _T("Error"), MB_ICONERROR | MB_OK);*/
+
+					//Delete the next word
+					if (cursorAfterIndex>=-1 && cursorAfterIndex<((int)prevTypedWords->size()-1)) {
+						//MessageBox(NULL, _T("ok"), _T("Error"), MB_ICONERROR | MB_OK);
+						std::list<int>::iterator erIT = prevTypedWords->begin();
+						advance(erIT, cursorAfterIndex+1);
+						prevTypedWords->erase(erIT);
+						recalculate();
+					}
+					if (prevTypedWords->size()==0) {
+						//Kill the entire sentence.
+						prevTypedWords->clear();
+						cursorAfterIndex = -1;
+						ShowBothWindows(SW_HIDE);
+					}
+				}
+			}
+
+
 			//Back up
 			if (wParam == HOTKEY_BACK) {
 				if (IsWindowVisible(mainWindow)==FALSE) {
 					//Delete the previous word
-					if (cursorAfterIndex>=0 && cursorAfterIndex<prevTypedWords->size()) {
+					if (cursorAfterIndex>=0 && cursorAfterIndex<(int)prevTypedWords->size()) {
 						std::list<int>::iterator erIT = prevTypedWords->begin();
 						advance(erIT, cursorAfterIndex);
 						prevTypedWords->erase(erIT);
@@ -1354,7 +1379,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//A bit tricky here. If the cursor's at the end, we'll 
 					//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
 					//Hopefully this won't confuse users so much.
-					if (cursorAfterIndex==-1 || cursorAfterIndex<prevTypedWords->size()-1) {
+					if (cursorAfterIndex==-1 || cursorAfterIndex<((int)prevTypedWords->size()-1)) {
 						cursorAfterIndex++;
 						recalculate();
 					} else {
@@ -1580,6 +1605,8 @@ BOOL turnOnControlkeys(BOOL on)
 			retVal = FALSE;
 		if (RegisterHotKey(mainWindow, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
 			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_DELETE, NULL, VK_DELETE)==FALSE)
+			retVal = FALSE;
 		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
 			retVal = FALSE;
 		if (RegisterHotKey(mainWindow, HOTKEY_UP, NULL, VK_UP)==FALSE)
@@ -1622,6 +1649,8 @@ BOOL turnOnControlkeys(BOOL on)
 		if (UnregisterHotKey(mainWindow, HOTKEY_ESC)==FALSE)
 			retVal = FALSE;
 		if (UnregisterHotKey(mainWindow, HOTKEY_BACK)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_DELETE)==FALSE)
 			retVal = FALSE;
 		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT)==FALSE)
 			retVal = FALSE;
