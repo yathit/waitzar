@@ -34,6 +34,7 @@ public:
 	//Information on the model's state
 	std::vector<char> getPossibleChars(void);
 	std::vector<UINT32> getPossibleWords(void);
+	void insertTrigram(WORD* trigram_ids, int num_used_trigrams);
 
 	//Get information about a particular word given its ID
 	std::vector<WORD> getWordKeyStrokes(UINT32 id);

@@ -314,13 +314,13 @@ bool WordBuilder::vectorContains(std::vector<UINT32> vec, UINT32 val)
 
 void WordBuilder::addPrefix(UINT32 latestPrefix)
 {
-	//Latest prefixes go in the back
-	if (trigramCount == 3) {
-		trigram[0] = trigram[1];
-		trigram[1] = trigram[2];
-		trigram[2] = latestPrefix;
-	} else
-		trigram[trigramCount++] = latestPrefix;
+	//Latest prefixes go in the FRONT
+	trigram[2] = trigram[1];
+	trigram[1] = trigram[0];
+	trigram[0] = latestPrefix;
+
+	if (trigramCount<3)
+		trigramCount++;
 }
 
 
@@ -332,6 +332,19 @@ std::vector<char> WordBuilder::getPossibleChars(void)
 std::vector<UINT32> WordBuilder::getPossibleWords(void)
 {
 	return this->possibleWords;
+}
+
+/**
+ * The trigram_ids is organized as [0,1,2], where "0" is the most recently-typed word.
+ * In the event that no previous words are available (e.g., beginning of a sentence)
+ *  set num_used_trigrams to 0. If a unigram/bigram is available, set it to 1 or 2.
+ */
+void WordBuilder::insertTrigram(WORD* trigram_ids, int num_used_trigrams)
+{
+	trigramCount = num_used_trigrams;
+	for (size_t i=0; i<trigramCount; i++) {
+		this->trigram[i] = trigram_ids[i];
+	}
 }
 
 std::vector<WORD> WordBuilder::getWordKeyStrokes(UINT32 id) 

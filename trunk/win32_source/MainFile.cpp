@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
+#include <list>
 
 //Our includes
 #include "WordBuilder.h"
@@ -36,7 +37,6 @@ BOOL turnOnHotkeys(BOOL on);
 BOOL turnOnControlkeys(BOOL on);
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
-UINT32 HsiehHash ( std::string *str );
 
 //Unique IDs
 #define LANG_HOTKEY 142
@@ -95,6 +95,8 @@ TCHAR currStr[50];
 TCHAR currPhrase[500];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
+std::list<int> *prevTypedWords;
+size_t cursorAfterIndex;
 
 //Default client sizes for our windows
 int WINDOW_WIDTH = 240;
@@ -473,6 +475,9 @@ BOOL loadModel() {
 	int prefixMaxID;
 	int prefixMaxSize;
 
+	//Special...
+	int numberCheck = 0;
+
 	//Load the resource as a byte array and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
 	if (!res) {
@@ -571,6 +576,17 @@ BOOL loadModel() {
 					//Continue?
 					char nextChar = res_data[currLineStart++];
 					if (nextChar == ',' || nextChar == ']') {
+						//Double check
+						if (numberCheck<10) {
+							if (newWordSz!=1 || newWord[0]!=0x1040+numberCheck) {
+								TCHAR tempError[400];
+								swprintf(tempError, _T("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i"), newWord[0], newWordSz);
+								MessageBox(NULL, tempError, _T("Error"), MB_ICONERROR | MB_OK);
+								return FALSE;
+							}
+							numberCheck++;
+						}
+
 						//Finangle & add this word
 						dictionary[currDictionaryID] = (WORD *)malloc((newWordSz+1) * sizeof(WORD));
 						dictionary[currDictionaryID][0] = (WORD)newWordSz;
@@ -844,6 +860,14 @@ void recalculate()
 
 	//Background -second window
 	if (typePhrases==TRUE) {
+		TCHAR tempPhrase[500];
+		lstrcpy(currPhrase, _T(""));
+		std::list<int>::iterator printIT = prevTypedWords->begin();
+		for (;printIT != prevTypedWords->end(); printIT++) {
+			swprintf(tempPhrase, _T("%s %i"), currPhrase, *printIT);
+			lstrcpy(currPhrase, tempPhrase);
+		}
+
 		SelectObject(senUnderDC, g_BlackPen);
 		SelectObject(senUnderDC, g_DarkGrayBkgrd);
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
@@ -903,13 +927,8 @@ void recalculate()
 
 
 
-void selectWord(int id)
+void typeCurrentPhrase()
 {
-	//Are there any words to use?
-	std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
-	if (typedVal.first == FALSE)
-		return;
-
 	//Send key presses to the top-level program.
 	HWND fore = GetForegroundWindow();
 	SetActiveWindow(fore);
@@ -919,34 +938,65 @@ void selectWord(int id)
 	//  requires the top-level window. We could probably hack in SendMessage now that
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
-	std::vector<WORD> keyStrokes = model->getWordKeyStrokes(typedVal.second);
-	inputItem.type=INPUT_KEYBOARD;
-	keyInput.wVk=0;
-	keyInput.dwFlags=KEYEVENTF_UNICODE;
-	keyInput.time=0;
-	keyInput.dwExtraInfo=0;
+	std::list<int>::iterator printIT = prevTypedWords->begin();
+	for (;printIT != prevTypedWords->end(); printIT++) {
+		std::vector<WORD> keyStrokes = model->getWordKeyStrokes(*printIT);
+		inputItem.type=INPUT_KEYBOARD;
+		keyInput.wVk=0;
+		keyInput.dwFlags=KEYEVENTF_UNICODE;
+		keyInput.time=0;
+		keyInput.dwExtraInfo=0;
 
-	//Send a whole bunch of these...
-	BOOL result = TRUE;
-	for (size_t i=0; i<keyStrokes.size(); i++) {
-		keyInput.wScan = keyStrokes[i];
-		inputItem.ki=keyInput;
-		if(!SendInput(1,&inputItem,sizeof(INPUT))) {
-			result = FALSE;
-			break;
+		//Send a whole bunch of these...
+		BOOL result = TRUE;
+		for (size_t i=0; i<keyStrokes.size(); i++) {
+			keyInput.wScan = keyStrokes[i];
+			inputItem.ki=keyInput;
+			if(!SendInput(1,&inputItem,sizeof(INPUT))) {
+				result = FALSE;
+				break;
+			}
 		}
+		if (result == FALSE)
+			MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 	}
-	if (result == FALSE)
-		MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
+
+	//Now, reset...
+	prevTypedWords->clear();
+	cursorAfterIndex = -1;
 
 	//Turn off control keys
 	turnOnControlkeys(FALSE);
 
-	//Append to our sentence
-	lstrcat(currPhrase, model->getWordString(typedVal.second));
-
 	//Hide the window(s)
 	ShowBothWindows(SW_HIDE);
+}
+
+
+
+void selectWord(int id)
+{
+	//Are there any words to use?
+	std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
+	if (typedVal.first == FALSE)
+		return;
+
+	if (typePhrases==FALSE) {
+		//Simple Case
+		prevTypedWords->clear();
+		prevTypedWords->push_back(typedVal.second);
+		typeCurrentPhrase();
+	} else {
+		//Advanced Case - Insert
+		cursorAfterIndex++;
+		if (cursorAfterIndex==prevTypedWords->size())
+			prevTypedWords->push_back(typedVal.second);
+		else {
+			std::list<int>::iterator addIT = prevTypedWords->begin();
+			advance(addIT, cursorAfterIndex);
+			prevTypedWords->insert(addIT, typedVal.second);
+		}
+	}
 }
 
 
@@ -1081,43 +1131,90 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(TRUE);
 
 				//Reset the model
+				prevTypedWords->clear();
+				cursorAfterIndex = -1;
 				model->reset(true);
 			}
 
 
 			//Close the window?
 			if (wParam == HOTKEY_ESC) {
-				model->reset(false);
+				if (IsWindowVisible(mainWindow)==FALSE) {
+					//Kill the entire sentence.
+					prevTypedWords->clear();
+					cursorAfterIndex = -1;
+					turnOnControlkeys(FALSE);
+					ShowBothWindows(SW_HIDE);
+				} else {
+					model->reset(false);
 
-				//Turn off control keys
-				turnOnControlkeys(FALSE);
-
-				ShowBothWindows(SW_HIDE);
+					//Are we using advanced input?
+					if (typePhrases==FALSE) {
+						//Turn off control keys
+						turnOnControlkeys(FALSE);
+						ShowBothWindows(SW_HIDE);
+					} else {
+						//Just hide the typing window for now.
+						ShowWindow(mainWindow, SW_HIDE);
+					}
+				}
 			}
 
 
 			//Back up
 			if (wParam == HOTKEY_BACK) {
-				if (model->backspace()) {
-					//Truncate...
-					currStr[lstrlen(currStr)-1] = 0;
-					recalculate();
+				if (IsWindowVisible(mainWindow)==FALSE) {
+					//Delete the previous word
+					if (cursorAfterIndex>=0 && cursorAfterIndex<prevTypedWords->size()) {
+						std::list<int>::iterator erIT = prevTypedWords->begin();
+						advance(erIT, cursorAfterIndex);
+						prevTypedWords->erase(erIT);
+						cursorAfterIndex--;
+						recalculate();
+					}
+					if (prevTypedWords->empty()) {
+						//Kill the entire sentence.
+						prevTypedWords->clear();
+						cursorAfterIndex = -1;
+						turnOnControlkeys(FALSE);
+						ShowBothWindows(SW_HIDE);
+					}
 				} else {
-					//Turn off control keys
-					turnOnControlkeys(FALSE);
-
-					ShowBothWindows(SW_HIDE);
+					if (model->backspace()) {
+						//Truncate...
+						currStr[lstrlen(currStr)-1] = 0;
+						recalculate();
+					} else {
+						//Are we using advanced input?
+						if (typePhrases==FALSE) {
+							//Turn off control keys
+							turnOnControlkeys(FALSE);
+							ShowBothWindows(SW_HIDE);
+						} else {
+							//Just hide the typing window for now.
+							ShowWindow(mainWindow, SW_HIDE);
+						}
+					}
 				}
 			}
 
 
 			//Handle control hotkeys
 			if (wParam == HOTKEY_RIGHT) {
-				if (model->moveRight(1) == TRUE)
-					recalculate();
+				if (IsWindowVisible(mainWindow)==TRUE) {
+					//Move right/left within the current word.
+					if (model->moveRight(1) == TRUE)
+						recalculate();
+				} else {
+					//TODO: Move right/left within the current phrase.
+				}
 			} else if (wParam == HOTKEY_LEFT) {
-				if (model->moveRight(-1) == TRUE)
-					recalculate();
+				if (IsWindowVisible(mainWindow)==TRUE) {
+					if (model->moveRight(-1) == TRUE)
+						recalculate();
+				} else {
+					//TODO: Move right/left within the current phrase.
+				}
 			}
 
 
@@ -1128,17 +1225,73 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
 				numCode = (int)wParam - HOTKEY_NUM0;
 			if (numCode > -1) {
-				//Convert 1..0 to 0..9
-				if (--numCode<0)
-					numCode = 9;
+				//Our key code has been properly transformed.
+				if (IsWindowVisible(mainWindow)==TRUE) {
+					//Convert 1..0 to 0..9
+					if (--numCode<0)
+						numCode = 9;
 
-				//Now, select that word
-				selectWord(numCode);
+					//The model is visible: select that word
+					selectWord(numCode);
+					if (typePhrases==TRUE) {
+						lstrcpy(currStr, _T(""));
+						model->reset(false);
+						recalculate();
+					}
+				} else {
+					//Just type that number directly. 
+					cursorAfterIndex++;
+					if (cursorAfterIndex==prevTypedWords->size())
+						prevTypedWords->push_back(numCode);
+					else {
+						std::list<int>::iterator addIT = prevTypedWords->begin();
+						advance(addIT, cursorAfterIndex);
+						prevTypedWords->insert(addIT, numCode);
+					}
+					recalculate();
+				}
 			}
 
-			//Handle space bar
-			if (wParam==HOTKEY_SPACE || wParam==HOTKEY_ENTER) {
-				selectWord(-1);
+			//Handle Enter
+			if (wParam==HOTKEY_ENTER) {
+				if (IsWindowVisible(mainWindow)==TRUE) {
+					//The model is visible: select that word
+					selectWord(-1);
+					if (typePhrases==TRUE) {
+						ShowWindow(mainWindow, SW_HIDE);
+						lstrcpy(currStr, _T(""));
+						model->reset(false);
+						recalculate();
+					}
+				} else {
+					//Type the entire sentence
+					typeCurrentPhrase();
+				}
+			}
+
+			//Handle Space Bar
+			if (wParam==HOTKEY_SPACE) {
+				if (IsWindowVisible(mainWindow)==TRUE) {
+					//The model is visible: select that word
+					selectWord(-1);
+					if (typePhrases==TRUE) {
+						ShowWindow(mainWindow, SW_HIDE);
+						model->reset(false);
+						lstrcpy(currStr, _T(""));
+						recalculate();
+					}
+				} else {
+					//A bit tricky here. If the cursor's at the end, we'll 
+					//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
+					//Hopefully this won't confuse users so much.
+					if (cursorAfterIndex<prevTypedWords->size()) {
+						cursorAfterIndex++;
+						recalculate();
+					} else {
+						//Type the entire sentence
+						typeCurrentPhrase();
+					}
+				}
 			}
 
 			//Handle our individual keystrokes as hotkeys (less registering that way...)
@@ -1156,18 +1309,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 				//Is this the first keypress of a romanized word? If so, the window is not visible...
-				if (IsWindowVisible(hwnd) == FALSE)
+				if (IsWindowVisible(mainWindow) == FALSE)
 				{
 					//Reset it...
 					lstrcpy(currStr, _T(""));
-					//lstrcpy(currPhrase, _T(""));
 					recalculate();
 
-					//Turn on control keys
-					turnOnControlkeys(TRUE);
-
 					//Show it
-					ShowBothWindows(SW_SHOW);
+					if (typePhrases==FALSE || IsWindowVisible(senWindow)==FALSE) {
+						//Turn on control keys
+						turnOnControlkeys(TRUE);
+						ShowBothWindows(SW_SHOW);
+					} else {
+						ShowWindow(mainWindow, SW_SHOW);
+					}
 				}
 
 				//Now, handle the keypress as per the usual...
@@ -1546,6 +1701,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Create our main window.
 	HWND mainWindow = makeMainWindow(_T("waitZarMainWindow"));
 	HWND senWindow = makeSubWindow(_T("waitZarSentenceWindow"));
+
+	//Our vector is used to store typed words for later...
+	prevTypedWords = new std::list<int>();
+	cursorAfterIndex = -1;
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
