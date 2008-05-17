@@ -44,6 +44,10 @@ WordBuilder::WordBuilder (WORD **dictionary, int dictMaxID, int dictMaxSize, UIN
 	this->prefixMaxID = prefixMaxID;
 	this->prefixMaxSize = prefixMaxSize;
 
+	//Cache
+	punctHalfStop = 0x104A;
+	punctFullStop = 0x104B;
+
 	//Start off
 	this->reset(true);
 }
@@ -58,6 +62,16 @@ WordBuilder::~WordBuilder(void)
 	//      So, we don't really worry too much about memory (except brushes and windows and 
 	//      those kinds of things.)
 }
+
+
+WORD WordBuilder::getStopCharacter(bool isFull) 
+{
+	if (isFull)
+		return punctFullStop;
+	else
+		return punctHalfStop;
+}
+
 
 
 /**

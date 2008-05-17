@@ -41,6 +41,9 @@ public:
 	TCHAR* getWordString(UINT32 id);
 	TCHAR* getParenString();
 
+	//Some additional useful info --probably will use this when mult. fonts are allowed
+	WORD getStopCharacter(bool isFull);
+
 	//Re-order the model
 	void addRomanization(TCHAR* myanmar, char* roman);
 
@@ -49,6 +52,10 @@ private:
 	WORD **dictionary;
 	UINT32 **nexus;
 	UINT32 **prefix;
+
+	//Cached
+	WORD punctHalfStop;
+	WORD punctFullStop;
 
 	//Also, for expansion
 	int dictMaxID;

@@ -101,7 +101,9 @@
 #define HOTKEY_8 56
 #define HOTKEY_9 57
 
-
+//Super control keys...
+#define HOTKEY_COMMA 61
+#define HOTKEY_PERIOD 62
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

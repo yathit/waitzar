@@ -69,6 +69,7 @@ PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
 PulpCoreFont *mmFontSmallBlack;
 PAINTSTRUCT Ps;
+WORD stopChar;
 
 //Configuration variables.
 BOOL customDictWarning = TRUE;
@@ -959,8 +960,17 @@ void typeCurrentPhrase()
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
 	std::list<int>::iterator printIT = prevTypedWords->begin();
-	for (;printIT != prevTypedWords->end(); printIT++) {
-		std::vector<WORD> keyStrokes = model->getWordKeyStrokes(*printIT);
+	std::vector<WORD> keyStrokes;
+	for (;printIT!=prevTypedWords->end() || stopChar!=0;) {
+		//We may or may not have a half/full stop at the end.
+		if (printIT!=prevTypedWords->end()) {
+			keyStrokes = model->getWordKeyStrokes(*printIT);
+		} else {
+			keyStrokes.clear();
+			keyStrokes.push_back(stopChar);
+		}
+
+		//Set our data structure's fields.
 		inputItem.type=INPUT_KEYBOARD;
 		keyInput.wVk=0;
 		keyInput.dwFlags=KEYEVENTF_UNICODE;
@@ -979,17 +989,28 @@ void typeCurrentPhrase()
 		}
 		if (result == FALSE)
 			MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
+
+		//Increment
+		if (printIT!=prevTypedWords->end())
+			printIT++;
+		else
+			stopChar = 0;
 	}
 
 	//Now, reset...
+	model->reset(true);
 	prevTypedWords->clear();
 	cursorAfterIndex = -1;
 
-	//Turn off control keys
-	turnOnControlkeys(FALSE);
+	//Technically, this can be called with JUST a stopChar, which implies
+	//  that the window isn't visible. So check this.
+	if (controlKeysOn) {
+		//Turn off control keys
+		turnOnControlkeys(FALSE);
 
-	//Hide the window(s)
-	ShowBothWindows(SW_HIDE);
+		//Hide the window(s)
+		ShowBothWindows(SW_HIDE);
+	}
 }
 
 
@@ -1334,6 +1355,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//The model is visible: select that word
 					selectWord(numCode);
 					if (typePhrases==TRUE) {
+						ShowWindow(mainWindow, SW_HIDE);
 						lstrcpy(currStr, _T(""));
 						model->reset(false);
 						recalculate();
@@ -1359,8 +1381,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 
+
+			//Handle Half-stop/Full-stop
+			if (wParam==HOTKEY_COMMA || wParam==HOTKEY_PERIOD) {
+				stopChar = model->getStopCharacter((wParam==HOTKEY_PERIOD));
+				if (IsWindowVisible(mainWindow)==FALSE) {
+					if (IsWindowVisible(senWindow)==FALSE) {
+						//This should be cleared already, but let's be safe...
+						prevTypedWords->clear();	
+					}
+					//Otherwise, we perform the normal "enter" routine.
+					typeCurrentPhrase();
+				}
+			}
+
+
 			//Handle Enter
 			if (wParam==HOTKEY_ENTER) {
+				stopChar = 0;
 				if (IsWindowVisible(mainWindow)==TRUE) {
 					//The model is visible: select that word
 					selectWord(-1);
@@ -1378,6 +1416,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle Space Bar
 			if (wParam==HOTKEY_SPACE) {
+				stopChar = 0;
 				if (IsWindowVisible(mainWindow)==TRUE) {
 					//The model is visible: select that word
 					selectWord(-1);
@@ -1632,6 +1671,12 @@ BOOL turnOnNumberkeys(BOOL on)
 			if (RegisterHotKey(mainWindow, i, NULL, i)==FALSE)
 				retVal = FALSE;
 		}
+
+		//Special super-control keys
+		if (RegisterHotKey(mainWindow, HOTKEY_COMMA, NULL, VK_OEM_COMMA)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_PERIOD, NULL, VK_OEM_PERIOD)==FALSE)
+			retVal = FALSE;
 	} else {
 		//Numbers
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM0)==FALSE)
@@ -1658,6 +1703,12 @@ BOOL turnOnNumberkeys(BOOL on)
 			if (UnregisterHotKey(mainWindow, i)==FALSE)
 				retVal = FALSE;
 		}
+
+		//Additional super-control keys
+		if (UnregisterHotKey(mainWindow, HOTKEY_COMMA)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_PERIOD)==FALSE)
+			retVal = FALSE;
 	}
 
 	numberKeysOn = on;
