@@ -867,33 +867,35 @@ void recalculate()
 
 	//Background -second window
 	if (typePhrases==TRUE) {
-		TCHAR tempPhrase[500];
-		lstrcpy(currPhrase, _T(""));
-		std::list<int>::iterator printIT = prevTypedWords->begin();
-		int cursorPosX=borderWidth;
-		int counterCursorID=0;
-		for (;printIT != prevTypedWords->end(); printIT++) {
-			//Append this string
-			swprintf(tempPhrase, _T("%s%s"), currPhrase, model->getWordString(*printIT));
-			lstrcpy(currPhrase, tempPhrase);
-
-			//Calculate our x co-ordinate, if applicable.
-			if (counterCursorID == cursorAfterIndex) {
-				cursorPosX += mmFontSmallBlack->getStringWidth(currPhrase); //+ spaceWidth/2;
-				//lstrcat(currPhrase, _T(" "));
-			}
-			counterCursorID++;
-		}
-
+		//Draw the background
 		SelectObject(senUnderDC, g_BlackPen);
 		SelectObject(senUnderDC, g_DarkGrayBkgrd);
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
-		//if (prevTypedWords->size()>0) {
-		MoveToEx(senUnderDC, cursorPosX, borderWidth+1, NULL);
-		LineTo(senUnderDC, cursorPosX, SUB_C_HEIGHT-borderWidth-1);
-		//}
+
+		//Draw each string
+		//TCHAR tempPhrase[500];
+		lstrcpy(currPhrase, _T(""));
+		std::list<int>::iterator printIT = prevTypedWords->begin();
+		int currentPosX = borderWidth + 1;
+		int cursorPosX = currentPosX;
+		int counterCursorID=0;
+		for (;printIT != prevTypedWords->end(); printIT++) {
+			//Append this string
+			mmFontSmallBlack->drawString(senUnderDC, model->getWordString(*printIT), currentPosX, borderWidth+1);
+			currentPosX += (mmFontSmallBlack->getStringWidth(model->getWordString(*printIT))+1);
+
+			//Line? (don't print now; we also want to draw it at cursorAfterIndex==-1)
+			if (counterCursorID == cursorAfterIndex)
+				cursorPosX = currentPosX;
+
+			//Increment
+			counterCursorID++;
+		}
+
+		//Draw the cursor
+		MoveToEx(senUnderDC, cursorPosX-1, borderWidth+1, NULL);
+		LineTo(senUnderDC, cursorPosX-1, SUB_C_HEIGHT-borderWidth-1);
 		SelectObject(senUnderDC, g_EmptyPen);
-		mmFontSmallBlack->drawString(senUnderDC, currPhrase, borderWidth+1, borderWidth+1);
 	}
 
 	//White overlays
@@ -1538,9 +1540,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                  hwnd,              //Owner
                                  NULL);            //MSDN: Ignored
 				if (retVal == IDM_HELP) {
+					//Properly handle hotkeys
+					BOOL refreshControl = controlKeysOn;
+					if  (refreshControl==TRUE)
+						turnOnControlkeys(FALSE);
+
+					//Show our box
 					TCHAR temp[550];
 					swprintf(temp, _T("WaitZar version %s - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have Zawgyi-One installed, if they want to see what they type after it's chosen."), WAIT_ZAR_VERSION, langHotkeyString);
 					MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
+
+					//Hotkeys again
+					if  (refreshControl==TRUE)
+						turnOnControlkeys(TRUE);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(FALSE);
 				} else if (retVal == IDM_MYANMAR) {
