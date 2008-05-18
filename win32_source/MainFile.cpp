@@ -1017,12 +1017,12 @@ void typeCurrentPhrase()
 
 
 
-void selectWord(int id)
+BOOL selectWord(int id)
 {
 	//Are there any words to use?
 	std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
 	if (typedVal.first == FALSE)
-		return;
+		return FALSE;
 
 	if (typePhrases==FALSE) {
 		//Simple Case
@@ -1040,6 +1040,8 @@ void selectWord(int id)
 			prevTypedWords->insert(addIT, typedVal.second);
 		}
 	}
+
+	return TRUE;
 }
 
 
@@ -1355,8 +1357,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						numCode = 9;
 
 					//The model is visible: select that word
-					selectWord(numCode);
-					if (typePhrases==TRUE) {
+					BOOL typed = selectWord(numCode);
+					if (typed==TRUE && typePhrases==TRUE) {
 						ShowWindow(mainWindow, SW_HIDE);
 						lstrcpy(currStr, _T(""));
 						model->reset(false);
@@ -1403,8 +1405,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				stopChar = 0;
 				if (IsWindowVisible(mainWindow)==TRUE) {
 					//The model is visible: select that word
-					selectWord(-1);
-					if (typePhrases==TRUE) {
+					BOOL typed = selectWord(-1);
+					if (typed==TRUE && typePhrases==TRUE) {
 						ShowWindow(mainWindow, SW_HIDE);
 						lstrcpy(currStr, _T(""));
 						model->reset(false);
@@ -1421,8 +1423,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				stopChar = 0;
 				if (IsWindowVisible(mainWindow)==TRUE) {
 					//The model is visible: select that word
-					selectWord(-1);
-					if (typePhrases==TRUE) {
+					BOOL typed = selectWord(-1);
+					if (typed==TRUE && typePhrases==TRUE) {
 						ShowWindow(mainWindow, SW_HIDE);
 						model->reset(false);
 						lstrcpy(currStr, _T(""));
