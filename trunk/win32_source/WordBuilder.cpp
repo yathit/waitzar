@@ -188,7 +188,7 @@ std::pair<BOOL, UINT32> WordBuilder::typeSpace(int quickJumpID)
 	//Quick jump?
 	if (quickJumpID > -1)
 		this->setCurrSelected(quickJumpID);
-	if (currSelectedID != quickJumpID)
+	if (currSelectedID!=quickJumpID && quickJumpID!=-1)
 		return result; //No effect
 
 	//Get the selected word, add it to the prefix array

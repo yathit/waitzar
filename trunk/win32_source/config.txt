@@ -21,7 +21,7 @@ mywordswarning = yes
 #  must type "Space" again to enter the entire phrase. The benefit of doing it this way is 
 #  that Wait Zar can "figure out" what word you want based on the previous words.
 # Also, you can use the arrow keys to move left/right between words, like a mini text editor.
-powertyping = yes
+powertyping = no
 
 
 # If "yes", the sentence window will always display below the 
