@@ -36,6 +36,7 @@
 BOOL turnOnHotkeys(BOOL on);
 BOOL turnOnControlkeys(BOOL on);
 BOOL turnOnNumberkeys(BOOL on);
+BOOL turnOnPunctuationkeys(BOOL on);
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
 
@@ -77,6 +78,7 @@ TCHAR langHotkeyString[100];
 char langHotkeyRaw[100];
 BOOL typePhrases = TRUE;
 BOOL dragBothWindowsTogether = TRUE;
+BOOL typeBurmeseNumbers = TRUE;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -98,6 +100,7 @@ TCHAR currPhrase[500];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 BOOL numberKeysOn = FALSE;
+BOOL punctuationKeysOn = FALSE;
 std::list<int> *prevTypedWords;
 int cursorAfterIndex;
 
@@ -365,6 +368,11 @@ void loadConfigOptions()
 				typePhrases = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				typePhrases = FALSE;
+		} else if (strcmp(name, "burmesenumerals")==0) {
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				typeBurmeseNumbers = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				typeBurmeseNumbers = FALSE;
 		} else if (strcmp(name, "hotkey")==0) {
 			//Set it later
 			strcpy(langHotkeyRaw, value);
@@ -763,8 +771,8 @@ void switchToLanguage(BOOL toMM) {
 	//Ok, switch
 	BOOL res;
 	if (toMM==TRUE) {
-		res = turnOnHotkeys(TRUE);
-		if (typePhrases==TRUE)
+		res = turnOnHotkeys(TRUE) && turnOnPunctuationkeys(TRUE);
+		if (typeBurmeseNumbers==TRUE)
 			res = res && turnOnNumberkeys(TRUE); //JUST numbers, not control.
 	} else {
 		res = turnOnHotkeys(FALSE);
@@ -774,6 +782,8 @@ void switchToLanguage(BOOL toMM) {
 			turnOnControlkeys(FALSE);
 		if (numberKeysOn == TRUE) 
 			turnOnNumberkeys(FALSE);
+		if (punctuationKeysOn == TRUE)
+			turnOnPunctuationkeys(FALSE);
 	}
 	if (res==FALSE)
 		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
@@ -1235,7 +1245,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (typePhrases==FALSE) {
 						//Turn off control keys
 						turnOnControlkeys(FALSE);
-						turnOnNumberkeys(FALSE);
+						//turnOnNumberkeys(FALSE);
 						ShowBothWindows(SW_HIDE);
 					} else {
 						//Just hide the typing window for now.
@@ -1301,7 +1311,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (typePhrases==FALSE) {
 							//Turn off control keys
 							turnOnControlkeys(FALSE);
-							turnOnNumberkeys(FALSE);
+							//turnOnNumberkeys(FALSE);
 							ShowBothWindows(SW_HIDE);
 						} else {
 							//Just hide the typing window for now.
@@ -1365,23 +1375,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						recalculate();
 					}
 				} else {
-					//Just type that number directly. 
-					cursorAfterIndex++;
-					if (cursorAfterIndex==prevTypedWords->size())
+					if (typePhrases==FALSE) {
+						prevTypedWords->clear();
 						prevTypedWords->push_back(numCode);
-					else {
-						std::list<int>::iterator addIT = prevTypedWords->begin();
-						advance(addIT, cursorAfterIndex);
-						prevTypedWords->insert(addIT, numCode);
-					}
+						typeCurrentPhrase();
+					} else {
+						//Just type that number directly. 
+						cursorAfterIndex++;
+						if (cursorAfterIndex==prevTypedWords->size())
+							prevTypedWords->push_back(numCode);
+						else {
+							std::list<int>::iterator addIT = prevTypedWords->begin();
+							advance(addIT, cursorAfterIndex);
+							prevTypedWords->insert(addIT, numCode);
+						}
 
-					//Is our window even visible?
-					if (IsWindowVisible(senWindow) == FALSE) {
-						turnOnControlkeys(TRUE);
-						ShowWindow(senWindow, SW_SHOW);
-					}
+						//Is our window even visible?
+						if (IsWindowVisible(senWindow) == FALSE) {
+							turnOnControlkeys(TRUE);
+							ShowWindow(senWindow, SW_SHOW);
+						}
 
-					recalculate();
+						recalculate();
+					}
 				}
 			}
 
@@ -1654,6 +1670,30 @@ BOOL turnOnHotkeys(BOOL on)
 }
 
 
+BOOL turnOnPunctuationkeys(BOOL on)
+{
+	BOOL retVal = true;
+
+	if (on==TRUE) {
+		//Punctuation keys
+		if (RegisterHotKey(mainWindow, HOTKEY_COMMA, NULL, VK_OEM_COMMA)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_PERIOD, NULL, VK_OEM_PERIOD)==FALSE)
+			retVal = FALSE;
+	} else {
+		//Additional punctuation keys
+		if (UnregisterHotKey(mainWindow, HOTKEY_COMMA)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_PERIOD)==FALSE)
+			retVal = FALSE;
+	}
+
+	//Return
+	punctuationKeysOn = on;
+	return retVal;
+}
+
+
 BOOL turnOnNumberkeys(BOOL on)
 {
 	BOOL retVal = true;
@@ -1685,12 +1725,6 @@ BOOL turnOnNumberkeys(BOOL on)
 			if (RegisterHotKey(mainWindow, i, NULL, i)==FALSE)
 				retVal = FALSE;
 		}
-
-		//Special super-control keys
-		if (RegisterHotKey(mainWindow, HOTKEY_COMMA, NULL, VK_OEM_COMMA)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_PERIOD, NULL, VK_OEM_PERIOD)==FALSE)
-			retVal = FALSE;
 	} else {
 		//Numbers
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM0)==FALSE)
@@ -1717,12 +1751,6 @@ BOOL turnOnNumberkeys(BOOL on)
 			if (UnregisterHotKey(mainWindow, i)==FALSE)
 				retVal = FALSE;
 		}
-
-		//Additional super-control keys
-		if (UnregisterHotKey(mainWindow, HOTKEY_COMMA)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_PERIOD)==FALSE)
-			retVal = FALSE;
 	}
 
 	numberKeysOn = on;
