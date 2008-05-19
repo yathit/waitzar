@@ -1034,6 +1034,10 @@ BOOL selectWord(int id)
 	if (typedVal.first == FALSE)
 		return FALSE;
 
+	//Optionally turn off numerals
+	if (numberKeysOn==TRUE)
+		turnOnNumberkeys(FALSE);
+
 	if (typePhrases==FALSE) {
 		//Simple Case
 		prevTypedWords->clear();
@@ -1480,6 +1484,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Reset it...
 					lstrcpy(currStr, _T(""));
 					recalculate();
+
+					//Optionally turn on numerals
+					if (numberKeysOn==FALSE)
+						turnOnNumberkeys(TRUE);
 
 					//Show it
 					if (typePhrases==FALSE || IsWindowVisible(senWindow)==FALSE) {
