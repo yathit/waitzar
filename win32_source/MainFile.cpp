@@ -71,6 +71,8 @@ PulpCoreFont *mmFontGreen;
 PulpCoreFont *mmFontSmallBlack;
 PAINTSTRUCT Ps;
 WORD stopChar;
+int numConfigOptions;
+int numCustomWords;
 
 //Configuration variables.
 BOOL customDictWarning = TRUE;
@@ -203,6 +205,7 @@ void makeFont(HWND currHwnd)
 
 void readUserWords() {
 	//Read our words file, if it exists.
+	numCustomWords = -1;
 	FILE* userFile = fopen("mywords.txt", "r");
 	if (userFile != NULL) {
 		//Get file size
@@ -231,6 +234,7 @@ void readUserWords() {
 			currPosition++;
 
 		//Read each line
+		numCustomWords = 0;
 		for (size_t i=currPosition; i<numUniChars; i++) {
 			//LTrim
 			while (uniBuffer[i] == ' ')
@@ -276,6 +280,7 @@ void readUserWords() {
 
 			//Add this romanization
 			model->addRomanization(name, value);
+			numCustomWords++;
 		}
 		delete [] uniBuffer;
 
@@ -294,6 +299,7 @@ void loadConfigOptions()
 	strcpy(langHotkeyRaw, "^+");
 
 	//Read our config file, if it exists.
+	numConfigOptions = -1;
 	FILE* configFile = fopen("config.txt", "r");
 	if (configFile == NULL)
 		return;
@@ -310,6 +316,7 @@ void loadConfigOptions()
 
 
 	//Read each line
+	numConfigOptions = 0;
 	for (size_t i=0; i<buff_size; i++) {
 		//LTrim
 		while (buffer[i] == ' ')
@@ -336,6 +343,11 @@ void loadConfigOptions()
 		name[name_pos] = '\0';
 		i++;
 
+		//Valid?
+		BOOL valid = TRUE;
+		if (name_pos==0)
+			valid = FALSE;
+
 		//Read our property's value
 		char value[50];
 		name_pos = 0;
@@ -348,34 +360,51 @@ void loadConfigOptions()
 		}
 		value[name_pos++] = '\0';
 
-		//No possible hotkeys?
-		if (name_pos<2)
+		//Valid?
+		if (name_pos==1 || valid == FALSE)
 			continue;
 
 		//Deal with our name/value pair.
 		if (strcmp(name, "mywordswarning")==0) {
+			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				customDictWarning = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				customDictWarning = FALSE;
+			else
+				numConfigOptions--;
 		} else if (strcmp(name, "lockwindows")==0) {
+			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				dragBothWindowsTogether = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				dragBothWindowsTogether = FALSE;
+			else
+				numConfigOptions--;
 		} else if (strcmp(name, "powertyping")==0) {
+			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				typePhrases = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				typePhrases = FALSE;
+			else
+				numConfigOptions--;
 		} else if (strcmp(name, "burmesenumerals")==0) {
+			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				typeBurmeseNumbers = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				typeBurmeseNumbers = FALSE;
+			else
+				numConfigOptions--;
 		} else if (strcmp(name, "hotkey")==0) {
+			//No possible hotkeys?
+			if (name_pos<2)
+				continue;
+
 			//Set it later
 			strcpy(langHotkeyRaw, value);
+			numConfigOptions++;
 		}
 
 	}
@@ -2003,6 +2032,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Also load user-specific words
 	readUserWords();
+
+	//Did we get any?
+	TCHAR noConfigWarningMsg[1500];
+	lstrcpy(noConfigWarningMsg, _T(""));
+	if (numConfigOptions==0)
+		lstrcpy(noConfigWarningMsg, _T("config.txt contained no valid configuration options."));
+	if (numCustomWords==0) {
+		if (lstrlen(noConfigWarningMsg)==0)
+			lstrcpy(noConfigWarningMsg, _T("mywords.txt contained no Burmese words."));
+		else
+			lstrcat(noConfigWarningMsg, _T(" Also, mywords.txt contained no Burmese words."));
+	}
+	if (lstrlen(noConfigWarningMsg)>0) {
+		lstrcat(noConfigWarningMsg, _T("\nThis could be caused by a number of things:\n   + config.txt should be ASCII-encoded. mywords.txt should be UTF-8-encoded. Possibly you used another encoding?"));
+		lstrcat(noConfigWarningMsg, _T("\n   + Perhaps you mis-spelled a configuration option. Check the Wait Zar manual to make sure you spelled each configuration option correctly.\n   + Maybe you commented out a line by mistake? The \"#\" key means to ignore a line."));
+		lstrcat(noConfigWarningMsg, _T("\n   + Maybe your line-endings are wrong? Wait Zar can handle \n OR \r\l (Windows or Linux) but that's all..."));
+		lstrcat(noConfigWarningMsg, _T("\n\nIf you think this was caused by a bug in Wait Zar, please post an issue at http://code.google.com/p/waitzar/issues/list\n\nThis is just a warning --Wait Zar will still work fine without any config.txt or mywords.txt files."));
+		MessageBox(NULL, noConfigWarningMsg, _T("Warning"), MB_ICONWARNING | MB_OK);
+	}
 
 	//Show it's ready by changing the shell icon
 	nid.cbSize = sizeof(NOTIFYICONDATA);
