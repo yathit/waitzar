@@ -966,6 +966,25 @@ void typeCurrentPhrase()
 	HWND fore = GetForegroundWindow();
 	SetActiveWindow(fore);
 
+	//Load our font
+	/*HFONT zgFont = CreateFont(
+		-MulDiv(14, GetDeviceCaps(GetDC(mainWindow), LOGPIXELSY), 72), //Font height in UNITS, gah...
+		0, //Width, make best-guess
+		0, 0, //Escapement, orientation
+		FW_NORMAL, //Font weight
+		FALSE, //Not italic
+		FALSE, //Not underlined
+		FALSE, //Not strikethrough
+		ANSI_CHARSET, //???
+		OUT_DEFAULT_PRECIS, //Output precision
+		CLIP_DEFAULT_PRECIS, //Default clipping, might get us into trouble with Zawgyi
+		5, //Necessary, maybe cleartype is needed, too.
+		DEFAULT_PITCH | FF_DONTCARE, //Font pitch and family
+		_T("Zawgyi-One")
+	);
+	if (zgFont!=NULL) 
+		SendMessage(fore, WM_SETFONT, WPARAM(zgFont), FALSE);*/
+
 	//Use SendInput instead of SendMessage, since SendMessage requires the actual
 	//  sub-window (component) to recieve the message, whereas SendInput only
 	//  requires the top-level window. We could probably hack in SendMessage now that
