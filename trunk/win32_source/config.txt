@@ -14,7 +14,7 @@ hotkey = ^+
 
 # If "no", a warning box will not display when using
 #  a custom dictionary
-mywordswarning = yes
+mywordswarning = no
 
 
 # If "yes", each typed word becomes part of a phrase; the user

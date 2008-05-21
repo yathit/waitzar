@@ -202,6 +202,80 @@ void makeFont(HWND currHwnd)
 }
 
 
+/**
+ * Read a line from a file. Yay! First template function!
+ *  Note that this function automatically converts all upper case to lower case before checking.
+ * @param stream - TCHAR* or char*
+ * @param index,streamSize - current position, max pos
+ * @param nameRet, valRet The return strings for name/value pairs. Should be big enough to hold the name/value strings
+ */
+template <class T, class S>
+void readLine(T* stream, size_t &index, size_t streamSize, BOOL nameHasASCII, BOOL nameHasMyanmar, BOOL nameHasSymbols, BOOL valueHasASCII, BOOL valueHasMyanmar, BOOL valueHasSymbols, T* nameRet, S* valRet)
+{
+	//Init --note: 0x0000 is necessary, see: 
+	//http://msdn.microsoft.com/en-us/library/ms776431(VS.85).aspx
+	nameRet[0] = (T)0x0000;
+	valRet[0] = (S)0x0000;
+
+	//Left-trim
+	while (stream[index] == ' ')
+		index++;
+
+	//Comment? Empty line? If so, skip...
+	if (stream[index]=='#' || stream[index]=='\n') {
+		while (stream[index] != '\n')
+			index++;
+		index++;
+		return;
+	}
+
+	//Start reading "name" and "value"
+	int name_pos = 0;
+	int value_pos = 0;
+	BOOL nameDone = FALSE;
+	BOOL hasASCII = nameHasASCII;
+	BOOL hasMyanmar = nameHasMyanmar;
+	BOOL hasSymbols = nameHasSymbols;
+	T currChar;
+	while (index<streamSize) {
+		if (stream[index] == '\n') {
+			//Done
+			index++;
+			break;
+		} else if (stream[index] == '=') {
+			//Switch modes
+			nameDone = TRUE;
+			hasASCII = valueHasASCII;
+			hasMyanmar = valueHasMyanmar;
+			hasSymbols = valueHasSymbols;
+		} else if (stream[index]!=' ') {
+			//Convert to lowercase
+			currChar = (T)stream[index];
+			if (currChar>='A' && currChar<='Z')
+				currChar += ('a'-'A');
+			
+			//Check if it's valid
+			if (
+			   (hasASCII==TRUE && currChar>='a' && currChar<='z') ||
+			   (hasMyanmar==TRUE && currChar>=(T)0x1000 && currChar<=(T)0x109F) ||
+			   (hasSymbols==TRUE && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+'))) {
+				  //Add it
+				  if (nameDone==FALSE)
+					nameRet[name_pos++] = currChar;
+				  else
+					valRet[value_pos++] = (S)currChar;
+			}
+		}
+
+		//Continue
+		index++;
+	}
+
+	//Append & return
+	nameRet[name_pos] = (T)0x0000;
+	valRet[value_pos] = (S)0x0000;
+}
+
 
 void readUserWords() {
 	//Read our words file, if it exists.
@@ -218,63 +292,34 @@ void readUserWords() {
 		size_t buff_size = fread(buffer, 1, fileSize, userFile);
 		fclose(userFile);
 
+		numCustomWords = 0;
+		if (buff_size==0) {
+			return; //Empty file.
+		}
+
 		//Finally, convert this array to unicode
 		TCHAR * uniBuffer;
 		size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
 		uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
 		if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars)) {
-			MessageBox(NULL, _T("mywords.txt contains invalid UTF-8 characters"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
 			return;
 		}
 		delete [] buffer;
 
 		//Skip the BOM, if it exists
-		int currPosition = 0;
+		size_t currPosition = 0;
 		if (uniBuffer[currPosition] == UNICOD_BOM)
 			currPosition++;
 
 		//Read each line
-		numCustomWords = 0;
-		for (size_t i=currPosition; i<numUniChars; i++) {
-			//LTrim
-			while (uniBuffer[i] == ' ')
-				i++;
+		TCHAR* name = new TCHAR[100];
+		char* value = new char[100];
+		while (currPosition<numUniChars) {
+			//Get the name/value pair using our nifty template function....
+			readLine(uniBuffer, currPosition, numUniChars, TRUE, TRUE, FALSE, TRUE, FALSE, FALSE, name, value);
 
-			//Comment? If so, skip to the next newline.
-			//  Also skip empty lines
-			if (uniBuffer[i]=='#' || uniBuffer[i]=='\n') {
-				while (uniBuffer[i] != '\n')
-					i++;
-				continue;
-			}
-
-			//Read our MM word
-			TCHAR name[50];
-			int name_pos = 0;
-			lstrcpy(name, _T(""));
-			while (uniBuffer[i] != '=') {
-				if (uniBuffer[i] == ' ')
-					i++;
-				else
-					name[name_pos++] = uniBuffer[i++];
-			}
-			name[name_pos] = '\0';
-			i++;
-
-			//Read our romanization
-			char value[50];
-			name_pos = 0;
-			strcpy(value, "");
-			while (uniBuffer[i]!='\n' && i<numUniChars) {
-				char romanChar = (char)uniBuffer[i++];
-				if (romanChar>='A' && romanChar<='Z')
-					romanChar += ('a'-'A');
-				if (romanChar>='a' && romanChar<='z')
-					value[name_pos++] = romanChar;
-			}
-			value[name_pos++] = '\0';
-
-			//Valid?
+			//Make sure both name and value are non-empty
 			if (strlen(value)==0 || lstrlen(name)==0)
 				continue;
 
@@ -283,9 +328,11 @@ void readUserWords() {
 			numCustomWords++;
 		}
 		delete [] uniBuffer;
+		delete [] name;
+		delete [] value;
 
 
-		if (customDictWarning==TRUE)
+		if (numCustomWords>0 && customDictWarning==TRUE)
 			MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n(You may disable this warning by setting mywordswarning = no in config.txt).\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
 
 	}
@@ -317,51 +364,14 @@ void loadConfigOptions()
 
 	//Read each line
 	numConfigOptions = 0;
-	for (size_t i=0; i<buff_size; i++) {
-		//LTrim
-		while (buffer[i] == ' ')
-			i++;
+	char* name = new char[100];
+	char* value = new char[100];
+	for (size_t i=0; i<buff_size;) {
+		//Read name/value
+		readLine(buffer, i, buff_size, TRUE, FALSE, FALSE, TRUE, FALSE, TRUE, name, value);
 
-		//Comment? If so, skip to the next newline.
-		//  Also skip empty lines
-		if (buffer[i]=='#' || buffer[i]=='\n') {
-			while (buffer[i] != '\n')
-				i++;
-			continue;
-		}
-
-		//Read our property's name
-		char name[50];
-		int name_pos = 0;
-		strcpy(name, "");
-		while (buffer[i] != '=') {
-			if (buffer[i] == ' ')
-				i++;
-			else
-				name[name_pos++] = buffer[i++];
-		}
-		name[name_pos] = '\0';
-		i++;
-
-		//Valid?
-		BOOL valid = TRUE;
-		if (name_pos==0)
-			valid = FALSE;
-
-		//Read our property's value
-		char value[50];
-		name_pos = 0;
-		strcpy(value, "");
-		while (buffer[i] != '\n' && i<buff_size) {
-			if (buffer[i] == ' ')
-				i++;
-			else
-				value[name_pos++] = buffer[i++];
-		}
-		value[name_pos++] = '\0';
-
-		//Valid?
-		if (name_pos==1 || valid == FALSE)
+		//Are both name and value non-zero?
+		if (strlen(name)==0 || strlen(value)==0)
 			continue;
 
 		//Deal with our name/value pair.
@@ -399,7 +409,7 @@ void loadConfigOptions()
 				numConfigOptions--;
 		} else if (strcmp(name, "hotkey")==0) {
 			//No possible hotkeys?
-			if (name_pos<2)
+			if (strlen(value)<2)
 				continue;
 
 			//Set it later
@@ -411,6 +421,8 @@ void loadConfigOptions()
 
 	//Get rid of our buffer
 	free(buffer);
+	delete [] name;
+	delete [] value;
 }
 
 
@@ -452,7 +464,7 @@ BOOL registerInitialHotkey()
 	}
 
 	//Now, set the modifiers
-	TCHAR temp[100];
+	TCHAR* temp = new TCHAR[100];
 	for (size_t pos=0; pos<str_len-1; pos++) {
 		switch(langHotkeyRaw[pos]) {
 			case '!':
@@ -484,6 +496,9 @@ BOOL registerInitialHotkey()
 	if (keycode>='a' && keycode<='z') {
 		keycode -= 'a'-'A';
 	}
+
+	//Reclaim memory
+	delete [] temp;
 
 	return RegisterHotKey(mainWindow, LANG_HOTKEY, modifier, keycode);
 }
@@ -2036,8 +2051,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Did we get any?
 	TCHAR noConfigWarningMsg[1500];
 	lstrcpy(noConfigWarningMsg, _T(""));
-	if (numConfigOptions==0)
+	if (numConfigOptions==0) {
 		lstrcpy(noConfigWarningMsg, _T("config.txt contained no valid configuration options."));
+	}
 	if (numCustomWords==0) {
 		if (lstrlen(noConfigWarningMsg)==0)
 			lstrcpy(noConfigWarningMsg, _T("mywords.txt contained no Burmese words."));
@@ -2047,7 +2063,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (lstrlen(noConfigWarningMsg)>0) {
 		lstrcat(noConfigWarningMsg, _T("\nThis could be caused by a number of things:\n   + config.txt should be ASCII-encoded. mywords.txt should be UTF-8-encoded. Possibly you used another encoding?"));
 		lstrcat(noConfigWarningMsg, _T("\n   + Perhaps you mis-spelled a configuration option. Check the Wait Zar manual to make sure you spelled each configuration option correctly.\n   + Maybe you commented out a line by mistake? The \"#\" key means to ignore a line."));
-		lstrcat(noConfigWarningMsg, _T("\n   + Maybe your line-endings are wrong? Wait Zar can handle \n OR \r\l (Windows or Linux) but that's all..."));
+		lstrcat(noConfigWarningMsg, _T("\n   + Maybe your line-endings are wrong? Wait Zar can handle \\n OR \\r\\l (Windows or Linux) but that's all..."));
 		lstrcat(noConfigWarningMsg, _T("\n\nIf you think this was caused by a bug in Wait Zar, please post an issue at http://code.google.com/p/waitzar/issues/list\n\nThis is just a warning --Wait Zar will still work fine without any config.txt or mywords.txt files."));
 		MessageBox(NULL, noConfigWarningMsg, _T("Warning"), MB_ICONWARNING | MB_OK);
 	}
