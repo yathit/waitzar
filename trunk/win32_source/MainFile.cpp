@@ -238,6 +238,7 @@ void readLine(T* stream, size_t &index, size_t streamSize, BOOL nameHasASCII, BO
 	BOOL hasMyanmar = nameHasMyanmar;
 	BOOL hasSymbols = nameHasSymbols;
 	T currChar;
+	T prevCaseChar;
 	while (index<streamSize) {
 		if (stream[index] == '\n') {
 			//Done
@@ -252,6 +253,7 @@ void readLine(T* stream, size_t &index, size_t streamSize, BOOL nameHasASCII, BO
 		} else if (stream[index]!=' ') {
 			//Convert to lowercase
 			currChar = (T)stream[index];
+			prevCaseChar = currChar;
 			if (currChar>='A' && currChar<='Z')
 				currChar += ('a'-'A');
 			
@@ -260,6 +262,10 @@ void readLine(T* stream, size_t &index, size_t streamSize, BOOL nameHasASCII, BO
 			   (hasASCII==TRUE && currChar>='a' && currChar<='z') ||
 			   (hasMyanmar==TRUE && currChar>=(T)0x1000 && currChar<=(T)0x109F) ||
 			   (hasSymbols==TRUE && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+'))) {
+				  //This test exists for hotkey configurations
+				  if (hasSymbols==TRUE)
+				    currChar = prevCaseChar;
+
 				  //Add it
 				  if (nameDone==FALSE)
 					nameRet[name_pos++] = currChar;
@@ -413,10 +419,6 @@ void loadConfigOptions()
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "hotkey")==0) {
-			//No possible hotkeys?
-			if (strlen(value)<2)
-				continue;
-
 			//Set it later
 			strcpy(langHotkeyRaw, value);
 			numConfigOptions++;
@@ -434,12 +436,9 @@ void loadConfigOptions()
 
 BOOL registerInitialHotkey()
 {
-	UINT modifier = MOD_CONTROL | MOD_SHIFT;
-	UINT keycode = VK_SHIFT;
+	UINT modifier = 0;
+	UINT keycode = 0;
 	size_t str_len = strlen(langHotkeyRaw);
-
-	//It's a hotkey code. First, reset...
-	modifier = 0;
 
 	//Now, set the keycode
 	//Additional rule: all keystroke modifiers must also themselves be modifiers
