@@ -75,7 +75,7 @@ int numConfigOptions;
 int numCustomWords;
 
 //Configuration variables.
-BOOL customDictWarning = TRUE;
+BOOL customDictWarning = FALSE;
 TCHAR langHotkeyString[100];
 char langHotkeyRaw[100];
 BOOL typePhrases = TRUE;
