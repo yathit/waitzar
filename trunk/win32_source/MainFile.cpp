@@ -49,6 +49,7 @@ BOOL loadModel(HINSTANCE hInst);
 
 //Grr... notepad...
 #define UNICOD_BOM 0xFEFF
+#define BACKWARDS_BOM 0xFFFE
 
 //Brushes & Pens
 HBRUSH g_WhiteBkgrd;
@@ -311,6 +312,10 @@ void readUserWords() {
 		size_t currPosition = 0;
 		if (uniBuffer[currPosition] == UNICOD_BOM)
 			currPosition++;
+		else if (uniBuffer[currPosition] == BACKWARDS_BOM) {
+			MessageBox(NULL, _T("mywords.txt appears to be backwards. You should fix the Unicode encoding using Notepad or another Windows-based text utility.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
+			return;
+		}
 
 		//Read each line
 		TCHAR* name = new TCHAR[100];
