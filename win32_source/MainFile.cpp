@@ -1126,7 +1126,7 @@ BOOL selectWord(int id)
 }
 
 
-BOOL moveCursorRight(int amt) 
+BOOL moveCursorRight(int amt, BOOL allowSameIndex) 
 {
 	//Any words?
 	if (prevTypedWords->size()==0)
@@ -1138,7 +1138,7 @@ BOOL moveCursorRight(int amt)
 		newAmt = (int)prevTypedWords->size()-1;
 	else if (newAmt < -1)
 		newAmt = -1;
-	if (newAmt == cursorAfterIndex)
+	if (newAmt == cursorAfterIndex && allowSameIndex==FALSE)
 		return FALSE;
 
 	//Set the trigram
@@ -1160,6 +1160,11 @@ BOOL moveCursorRight(int amt)
 	//Update our index
 	cursorAfterIndex = newAmt;
 	return TRUE;
+}
+
+BOOL moveCursorRight(int amt) 
+{
+	return moveCursorRight(amt, FALSE);
 }
 
 
@@ -1312,14 +1317,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else {
 					model->reset(false);
 
+					//No more numbers
+					if (typeBurmeseNumbers==FALSE)
+						turnOnNumberkeys(FALSE);
+
 					//Are we using advanced input?
 					if (typePhrases==FALSE) {
 						//Turn off control keys
 						turnOnControlkeys(FALSE);
-						
-						if (typeBurmeseNumbers==FALSE)
-							turnOnNumberkeys(FALSE);
-						
 						ShowBothWindows(SW_HIDE);
 					} else {
 						//Just hide the typing window for now.
@@ -1381,13 +1386,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						currStr[lstrlen(currStr)-1] = 0;
 						recalculate();
 					} else {
+						//No more numerals.
+						if (typeBurmeseNumbers==FALSE)
+							turnOnNumberkeys(FALSE);
+
 						//Are we using advanced input?
 						if (typePhrases==FALSE) {
 							//Turn off control keys
 							turnOnControlkeys(FALSE);
-							
-							if (typeBurmeseNumbers==FALSE)
-								turnOnNumberkeys(FALSE);
 							
 							ShowBothWindows(SW_HIDE);
 						} else {
@@ -1467,6 +1473,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							advance(addIT, cursorAfterIndex);
 							prevTypedWords->insert(addIT, numCode);
 						}
+						moveCursorRight(0, TRUE);
 
 						//Is our window even visible?
 						if (IsWindowVisible(senWindow) == FALSE) {
