@@ -1102,7 +1102,7 @@ BOOL selectWord(int id)
 		return FALSE;
 
 	//Optionally turn off numerals
-	if (numberKeysOn==TRUE)
+	if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
 		turnOnNumberkeys(FALSE);
 
 	if (typePhrases==FALSE) {
@@ -1316,7 +1316,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (typePhrases==FALSE) {
 						//Turn off control keys
 						turnOnControlkeys(FALSE);
-						//turnOnNumberkeys(FALSE);
+						
+						if (typeBurmeseNumbers==FALSE)
+							turnOnNumberkeys(FALSE);
+						
 						ShowBothWindows(SW_HIDE);
 					} else {
 						//Just hide the typing window for now.
@@ -1382,7 +1385,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (typePhrases==FALSE) {
 							//Turn off control keys
 							turnOnControlkeys(FALSE);
-							//turnOnNumberkeys(FALSE);
+							
+							if (typeBurmeseNumbers==FALSE)
+								turnOnNumberkeys(FALSE);
+							
 							ShowBothWindows(SW_HIDE);
 						} else {
 							//Just hide the typing window for now.
@@ -1426,6 +1432,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle numbers
 			int numCode = -1;
+			stopChar = 0;
 			if (wParam>=HOTKEY_0 && wParam<=HOTKEY_9)
 				numCode = (int)wParam - HOTKEY_0;
 			if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
