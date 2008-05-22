@@ -7,8 +7,6 @@
 
 #Words reported by our users (will be incorporated into the main dictionary later).
 ဆီမ့္ = seint
-#၎ = lakaung
 
-#Testing...
+#Here for convenience. 
 မဂၤလာပါ = minggalarpar
-super-long-ish-super-long-word = super

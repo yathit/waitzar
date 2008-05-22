@@ -14,14 +14,14 @@ hotkey = ^+
 
 # If "no", a warning box will not display when using
 #  a custom dictionary
-mywordswarning = yes
+mywordswarning = no
 
 
 # If "yes", each typed word becomes part of a phrase; the user
 #  must type "Space" again to enter the entire phrase. The benefit of doing it this way is 
 #  that Wait Zar can "figure out" what word you want based on the previous words.
 # Also, you can use the arrow keys to move left/right between words, like a mini text editor.
-powertyping = no
+powertyping = yes
 
 
 # If "yes", the sentence window will always display below the 
@@ -31,4 +31,4 @@ lockwindows = yes
 
 # If "yes", typing 0..9 will yield Burmese numbers 0 to 9. If "no", Wait Zar
 #  won't process numbers.
-burmesenumerals = no
+burmesenumerals = yes
