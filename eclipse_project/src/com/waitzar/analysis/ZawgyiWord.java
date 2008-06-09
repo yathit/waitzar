@@ -23,12 +23,12 @@ public class ZawgyiWord {
 	private String rawText;
 
 	//Sorting elements
-	private String sortConsonant = "";
-	private String sortMedial = "";
-	private String sortFinal = "";
-	private String sortVowel = "";
-	private String sortTone = "";
-	private String sortUnknown = "";
+	private int sortConsonat = 0;
+	private int sortMedial = 0;
+	private int sortFinal = 0;
+	private int sortVowel = 0;
+	private int sortTone = 0;
+	private String unknownBit;
 
 	public ZawgyiWord(String zawgyiText) {
 		//Before anything, re-order the string where necessary.
@@ -45,11 +45,11 @@ public class ZawgyiWord {
 		String[] independentVowels = new String[] {"\u1023", "\u1024", "\u1025", "\u1026", "\u1025\u102E", "\u1027", "\u1029", "\u107E\u101E", "\u102A", "\u1031\u107E\u101E\u102C\u1039"};
 		String[] collationForms = new String[] {"\u1021\u102D", "\u1021\u102E", "\u1021\u102F", "\u1021\u1030", "\u1021\u1030", "\u1021\u1031", "\u1031\u1021\u102C", "\u1031\u1021\u102C", "\u1031\u1021\u102C\u1039", "\u1031\u1021\u102C\u1039"};
 
-		for (int i=0; i<independentVowels.length(); i++) {
+		for (int i=0; i<independentVowels.length; i++) {
 			if (this.rawText.contains(independentVowels[i])) {
-				segmentWord(this.rawText.replaceAll(independentVowels[i], collationForms[i]);
+				segmentWord(this.rawText.replaceAll(independentVowels[i], collationForms[i]));
 				break;
-			} else if (i==independentVowels.length()-1) {
+			} else if (i==independentVowels.length-1) {
 				if (this.rawText.equals("\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038"))
 					segmentWord("\u101A\u102C\u1000\u1039\u1000\u103A\u102C\u1038");
 				else if (this.rawText.equals("\u1000\u103C\u103A\u108F\u102F\u1039\u1015\u1039"))
@@ -66,18 +66,18 @@ public class ZawgyiWord {
 	 * @param text
 	 */
 	private void segmentWord(String text) {
-		//Special case for WZ: allow "-" as a consonant
-		if (text.contains("-"))
-			sortConsonant = "-";
-		else {
-			//Figure out the consonant, replace with a "-"
-			Matcher m = consonantRegex.matcher(text);
-			if (m.matches()) {
-				sortConsonant = m.group(1);
-				text = text.replaceFirst(sortConsonant, "-");
-				sortConsonant = sortConsonant.replaceAll("\u108F", "\u1014");
-			}
+		//First, merge all characters to one representation
+		text = unifyText(text);
+			
+		//Figure out the consonant, replace with a "-"
+		Matcher m = consonantRegex.matcher(text);
+		if (m.matches()) {
+			interpretConsonant(m.group(1));
+			text = text.replaceFirst(m.group(1), "-");
 		}
+		
+		//Special case for WZ: allow "-" as a consonant
+		text.replaceAll("\\-", "");
 
 		//Segment medial
 		if (text.length()>1) {
@@ -111,6 +111,53 @@ public class ZawgyiWord {
 
 	}
 
+	
+	public String unifyText(String text) {
+		//First, some quick substitutions
+		text = text.replaceAll("\u105A", "\u102C\u1039").replaceAll("\u1088", "\u103D\u102F").replaceAll("\u1089", "\u103D\u1030").replaceAll("\u108A", "\u103D\u103C");		
+		
+		char[] src = text.toCharArray();
+		char[] res = new char[src.length];
+		for (int i=0; i<src.length; i++) {
+			//Handle error cases:
+			char c = src[i];
+			if   ( (c>='\u1023' && c<='\u1027')
+				|| (c>='\u1029' && c<='\u102A')
+				|| (c>='\u1040' && c<='\u1049')
+				|| (c>='\u104A' && c<='\u104B')
+				|| (c>='\u104C' && c<='\u104F')
+				|| (c>='\u1050' && c<='\u1059')
+				|| (c>='\u1060' && c<='\u1063')
+				|| (c>='\u1065' && c<='\u1068')
+				|| (c=='\u1069')
+				|| (c=='\u106C')
+				|| (c=='\u106D')
+				|| (c>='\u106E' && c<='\u106F')
+				|| (c>='\u1070' && c<='\u107C')
+				|| (c=='\u1085')
+				|| (c>='\u108B' && c<='\u108E')
+				|| (c>='\u1091' && c<='\u1092')
+				|| (c>='\u1096' && c<='\u1097')
+				|| (c=='\u109F')) {
+				
+				//Error
+				
+			} else {
+				switch (c) {
+				
+				
+				
+					default:
+						//Unknown
+				}
+			}
+				
+			
+		}
+		
+	}
+	
+	
 
 	/**
 	 * Returns the raw string, as typed by the user.
