@@ -1,5 +1,6 @@
 package com.waitzar.analysis;
 
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,19 +17,23 @@ import java.util.regex.Pattern;
  */
 public class ZawgyiWord {
 	//Regexes
-	public static Pattern consonantRegex = Pattern.compile("([\\u1000-\\u1021[\\u108F[\\u104C-\\u104F]]])[^\\u1039]");
-	public static Pattern medialRegex = Pattern.compile("((\\-\\u103A)|(\\u103B\\-)|(\\u107E\\-)|(\\-\\u103C)|(\\-\\u103D)|(\\-\\u103C\\u103A)|(\\-\\u103D\\u103A)|(\\u1081\\-\\u103D)|(\\u1082\\-\\u103D)|(\\-\\u108A)|(\\u1081\\-\\u108A)|(\\u1082\\-\\u108A))");
+	//public static Pattern consonantRegex = Pattern.compile("([\\u1000-\\u1021[\\u108F[\\u104C-\\u104F]]])[^\\u1039]");
+	//public static Pattern medialRegex = Pattern.compile("((\\-\\u103A)|(\\u103B\\-)|(\\u107E\\-)|(\\-\\u103C)|(\\-\\u103D)|(\\-\\u103C\\u103A)|(\\-\\u103D\\u103A)|(\\u1081\\-\\u103D)|(\\u1082\\-\\u103D)|(\\-\\u108A)|(\\u1081\\-\\u108A)|(\\u1082\\-\\u108A))");
 
 	//The actual string the user entered
 	private String rawText;
 
 	//Sorting elements
-	private int sortConsonat = 0;
+	private int sortConsonant = 0;
 	private int sortMedial = 0;
 	private int sortFinal = 0;
 	private int sortVowel = 0;
 	private int sortTone = 0;
-	private String unknownBit;
+	private String unknownBit = "";
+	
+	private static int count = 0;
+	
+	private String data = "";
 
 	public ZawgyiWord(String zawgyiText) {
 		//Before anything, re-order the string where necessary.
@@ -46,11 +51,11 @@ public class ZawgyiWord {
 		String[] collationForms = new String[] {"\u1021\u102D", "\u1021\u102E", "\u1021\u102F", "\u1021\u1030", "\u1021\u1030", "\u1021\u1031", "\u1031\u1021\u102C", "\u1031\u1021\u102C", "\u1031\u1021\u102C\u1039", "\u1031\u1021\u102C\u1039"};
 
 		for (int i=0; i<independentVowels.length; i++) {
-			if (this.rawText.contains(independentVowels[i])) {
+			if (this.rawText.contains(independentVowels[i]) && (!independentVowels[i].equals("\u1025") || !this.rawText.contains("\u1025\u1039"))) {
 				segmentWord(this.rawText.replaceAll(independentVowels[i], collationForms[i]));
 				break;
 			} else if (i==independentVowels.length-1) {
-				if (this.rawText.equals("\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038"))
+				if (this.rawText.equals("\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038")) 
 					segmentWord("\u101A\u102C\u1000\u1039\u1000\u103A\u102C\u1038");
 				else if (this.rawText.equals("\u1000\u103C\u103A\u108F\u102F\u1039\u1015\u1039"))
 					segmentWord("\u1000\u103C\u103A\u108F\u102F\u1014\u102F\u1015\u1039");
@@ -62,55 +67,316 @@ public class ZawgyiWord {
 
 
 	/**
-	 * Populates consonant/medial/vowell etc. fields
+	 * Populates consonant/medial/vowel etc. fields
 	 * @param text
 	 */
 	private void segmentWord(String text) {
+		System.out.println(count++ + " " + printMM(text));
+		
 		//First, merge all characters to one representation
 		text = unifyText(text);
-			
-		//Figure out the consonant, replace with a "-"
-		Matcher m = consonantRegex.matcher(text);
-		if (m.matches()) {
-			interpretConsonant(m.group(1));
-			text = text.replaceFirst(m.group(1), "-");
-		}
-		
-		//Special case for WZ: allow "-" as a consonant
-		text.replaceAll("\\-", "");
 
-		//Segment medial
-		if (text.length()>1) {
-			Matcher m = medialRegex.matcher(text);
-			if (m.matches()) {
-				sortMedial = m.group(1);
-				text = text.replaceFirst(sortMedial, "-");
-				sortMedial = sortMedial.replaceAll("\u1081|\u1082|\u107E", "\u103B");
-				sortMedial = sortMedial.replaceAll("\u108A", "\u103D\u103C");
-			} else {
-				sortMedial = "-";
-			}
-		}
+		//Special case for WZ: allow "-" as a consonant
+		text = text.replaceAll("\\-", "");
+		
+		//Figure out the consonant, replace with a "-"
+		text = extractConsonant(text);
+		
+		//Segment the medial next
+		text = extractMedial(text);
 
 		//Segment vowell
+		text = extractVowel(text);
 
 		//Segment final
+		text = extractFinal(text);
 
 		//Segment tone
-
-
-
-
-
-
+		text = extractTone(text);
 
 		//Finally
-		if (text.length()>1) {
-			sortUnknown = text;
+		if (text.length()>0) {
+			unknownBit = text;
 		}
 
 	}
 
+	
+	private String extractTone(String text) {
+		StringBuilder sb =  new StringBuilder();
+		boolean foundDotBelow = false;
+		boolean foundVisarga = false;
+		
+		for (int i=0; i<text.length(); i++) {
+			char c = text.charAt(i);
+			if (c=='\u1037') {
+				if (foundDotBelow)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundDotBelow = true;
+			} else if (c=='\u1038') {
+				if (foundVisarga)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundVisarga = true;
+			} else
+				sb.append(c);
+		}
+		
+		if (foundDotBelow && foundVisarga)
+			sortTone = 3;
+		else if (foundDotBelow)
+			sortTone = 1;
+		else if (foundVisarga)
+			sortTone = 2;
+		
+		return sb.toString();
+	}
+	
+	
+	private String extractFinal(String text) {
+		StringBuilder sb =  new StringBuilder();
+		boolean foundAa = false;
+		boolean foundI = false;
+		boolean foundU = false;
+		boolean foundE = false;
+		boolean foundKilledAa = true;
+		
+		for (int i=0; i<text.length(); i++) {
+			char c = text.charAt(i);
+			
+			//Special case for kinzi
+			if (c=='\u1064') {
+				if (sortFinal != 0) {
+					throw new RuntimeException("Mixed final found on " + printMM(text));
+				} else 
+					sortFinal = 6;
+			}
+			
+			//One exception, then proceed as normal, looking for killed characters
+			int finalVal = 0;
+			if (c=='\u1025' && i<text.length()-1 && text.charAt(i+1)=='\u1039')
+				c = '\u100A';
+			if (c>'\u1000' && c<'\u1020' && c!='\u101B' && c!='\u101D' && c!='\u101F') {
+				if (i<text.length()-1 && text.charAt(i+1)=='\u1039') {
+					if (c=='\u101C')
+						finalVal = 28;
+					else if (c=='\u101E')
+						finalVal = 29;
+					else if (c=='\u1020')
+						finalVal = 30;
+					else
+						finalVal = c - '\u1000' + 1;
+					i++; //Skip asat
+				}
+			} else 
+				sb.append(c);
+			
+			//Set it
+			if (finalVal!=0 && sortFinal!=0) 
+				throw new RuntimeException("Final already set on : " + printMM(text));
+			sortFinal = finalVal;
+		}
+		
+		return sb.toString();
+	}
+	
+	
+	
+	private String extractVowel(String text) {
+		StringBuilder sb =  new StringBuilder();
+		boolean foundAa = false;
+		boolean foundI = false;
+		boolean foundU = false;
+		boolean foundUu = false;
+		boolean foundE = false;
+		boolean foundKilledAa = false;
+		boolean foundAnusvara = false;
+		
+		for (int i=0; i<text.length(); i++) {
+			char c = text.charAt(i);
+			if (c=='\u102C') {
+				if (i<text.length()-1 && text.charAt(i+1)=='\u1039') {
+					if (foundKilledAa)
+						throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+					else
+						foundKilledAa = true;
+					i++; //Skip asat
+				} else {
+					if (foundAa)
+						throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+					else
+						foundAa = true;
+				}
+			} else if (c=='\u102D') {
+				if (foundI)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundI = true;
+			} else if (c=='\u102F') {
+				if (foundU)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundU = true;
+			} else if (c=='\u1030') {
+				if (foundUu)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundUu = true;
+			} else if (c=='\u1031') {
+				if (foundE)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundE = true;
+			} else if (c=='\u1036') {
+				if (foundAnusvara)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundAnusvara = true;
+			} else if (c=='\u102E') {
+				if (sortVowel!=0)
+					throw new RuntimeException("Mixed vowel found on " + printMM(text));
+				else
+					sortVowel = 3;
+			} else if (c=='\u1032') {
+				if (sortVowel!=0)
+					throw new RuntimeException("Mixed vowel found on " + printMM(text));
+				else
+					sortVowel = 7;
+			} else {
+				sb.append(c);
+			}
+		}
+		
+		//Finally...
+		if ((foundAa || foundI || foundU || foundE) && sortVowel!=0)
+			throw new RuntimeException("Double vowel found on " + printMM(text));
+		
+		if (foundI) {
+			if (foundU) {
+				sortVowel = 11;
+			} else {
+				sortVowel = 2;
+			}
+		} else if (foundU) {
+			if (foundAnusvara) {
+				sortVowel = 12;
+			} else {
+				sortVowel = 4;
+			}
+		} else if (foundE) {
+			if (foundKilledAa) {
+				sortVowel = 9;
+			} else if (foundAa) {
+				sortVowel = 8;
+			} else {
+				sortVowel = 6;
+			}
+		} else if (foundAa) {
+			sortVowel = 1;
+		} else if (foundUu) {
+			if (foundAnusvara) {
+				sortVowel = 13;
+			} else {
+				sortVowel = 5;
+			}
+		}
+		
+		return sb.toString();
+	}
+	
+	
+	private String extractMedial(String text) {
+		StringBuilder sb =  new StringBuilder();
+		boolean foundYa = false;
+		boolean foundYeye = false;
+		boolean foundWa = false;
+		boolean foundHa = false;
+		
+		for (int i=0; i<text.length(); i++) {
+			char c = text.charAt(i);
+			if (c=='\u103A') {
+				if (foundYa)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundYa = true;
+			} else if (c=='\u103B') {
+				if (foundYeye)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundYeye = true;
+			} else if (c=='\u103C') {
+				if (foundWa)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundWa = true;
+			} else if (c=='\u103D') {
+				if (foundHa)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
+				else
+					foundHa = true;
+			} else 
+				sb.append(c);
+		}
+		
+		//Set properly
+		if (foundHa && foundWa) {
+			if (foundYeye)
+				sortMedial = 9;
+			else
+				sortMedial = 8;
+		} else if (foundWa) {
+			if (foundYeye)
+				sortMedial = 7;
+			else if (foundYa)
+				sortMedial = 5;
+			else
+				sortMedial = 3;
+		} else if (foundHa) {
+			if (foundYa)
+				sortMedial = 6;
+			else
+				sortMedial = 4;
+		} else if (foundYa) {
+			sortMedial = 1;
+		} else if (foundYeye) {
+			sortMedial = 2;
+		}
+		
+		return sb.toString();
+	}
+	
+	
+	private String extractConsonant(String text) {
+		//Consonants are somewhat tricky (since they can also appear in finals).
+		StringBuilder sb =  new StringBuilder();
+		for (int i=0; i<text.length(); i++) {
+			char c = text.charAt(i);
+			
+			//Basic consonants first. Test for "asat" in all cases, even though it's probably only necessary in the first.
+			int newConsonant = 0;			
+			if (c>='\u1000' && c<='\u1021' && (i==text.length()-1 || text.charAt(i+1)!='\u1039')) {
+				newConsonant = ((int)c) - 0x1000 + 1; 
+			} else if (c=='\u103F' && (i==text.length()-1 || text.charAt(i+1)!='\u1039')) {
+				newConsonant = 35;
+			} else if (c>='\u104C' && c<='\u104F' && (i==text.length()-1 || text.charAt(i+1)!='\u1039')) {
+				newConsonant = ((int)c) - 0x104C + 36;
+			} else {
+				sb.append(c);
+			}
+			
+			//Set it?
+			if (newConsonant!=0) {
+				if (sortConsonant!=0) {
+					throw new RuntimeException("Double consonant ("+(int)c+") in " + printMM(text));
+				} else {
+					sortConsonant = newConsonant;
+				}
+			}
+		}
+		
+		return sb.toString();
+	}
 	
 	public String unifyText(String text) {
 		//First, some quick substitutions
@@ -121,11 +387,10 @@ public class ZawgyiWord {
 		for (int i=0; i<src.length; i++) {
 			//Handle error cases:
 			char c = src[i];
-			if   ( (c>='\u1023' && c<='\u1027')
+			if   ( (c>='\u1023' && c<='\u1027' && c!='\u1025')
 				|| (c>='\u1029' && c<='\u102A')
 				|| (c>='\u1040' && c<='\u1049')
 				|| (c>='\u104A' && c<='\u104B')
-				|| (c>='\u104C' && c<='\u104F')
 				|| (c>='\u1050' && c<='\u1059')
 				|| (c>='\u1060' && c<='\u1063')
 				|| (c>='\u1065' && c<='\u1068')
@@ -141,22 +406,130 @@ public class ZawgyiWord {
 				|| (c=='\u109F')) {
 				
 				//Error
-				
+				throw new RuntimeException("Bad character range in: " + printMM(text));
 			} else {
 				switch (c) {
-				
-				
-				
+					case '\u1000':
+					case '\u1001':
+					case '\u1002':
+					case '\u1003':
+					case '\u1004':
+					case '\u1005':
+					case '\u1006':
+					case '\u1007':
+					case '\u1008':
+					case '\u100B':
+					case '\u100C':
+					case '\u100D':
+					case '\u100E':
+					case '\u100F':
+					case '\u1010':
+					case '\u1011':
+					case '\u1012':
+					case '\u1013':
+					case '\u1015':
+					case '\u1016':
+					case '\u1017':
+					case '\u1018':
+					case '\u1019':
+					case '\u101A':
+					case '\u101C':
+					case '\u101D':
+					case '\u101E':
+					case '\u101F':
+					case '\u1020':
+					case '\u1021':
+					case '\u102D':
+					case '\u102E':
+					case '\u1031':
+					case '\u1032':
+					case '\u1036':
+					case '\u1038':
+					case '\u1039':
+					case '\u103C':
+					case '\u104C':
+					case '\u104D':
+					case '\u104E':
+					case '\u104F':
+					case '\u1064':
+					case '\u1086':
+					case '-': //eek
+					case '\u1025': //double-eek
+						res[i] = c;
+						break;
+					case '\u1009':
+					case '\u106A':
+						res[i] = '\u1009';
+						break;
+					case '\u100A':
+					case '\u106B':
+						res[i] = '\u100A';
+						break;
+					case '\u1014':
+					case '\u108F':
+						res[i] = '\u1014';
+						break;
+					case '\u101B':
+					case '\u1090':
+						res[i] = '\u101B';
+						break;
+					case '\u102C':
+					case '\u102B':
+						res[i] = '\u102C';
+						break;
+					case '\u102F':
+					case '\u1033':
+						res[i] = '\u102F';
+						break;
+					case '\u1030':
+					case '\u1034':
+						res[i] = '\u1030';
+						break;
+					case '\u1037':
+					case '\u1094':
+					case '\u1095':
+						res[i] = '\u1037';
+						break;
+					case '\u103A':
+					case '\u107D':
+						res[i] = '\u103A';
+						break;
+					case '\u103B':
+					case '\u107E':
+					case '\u107F':
+					case '\u1080':
+					case '\u1081':
+					case '\u1082':
+					case '\u1083':
+					case '\u1084':
+						res[i] = '\u103B';
+						break;
+					case '\u103D':
+					case '\u1087':
+						res[i] = '\u103D';
+						break;
+
 					default:
 						//Unknown
+						throw new RuntimeException("Unknown character (" + (int)c + ") in range: " + printMM(text));
 				}
 			}
-				
-			
 		}
 		
+		return new String(res);
 	}
 	
+	
+	public static String printMM(String txt) {
+		StringBuilder sb = new StringBuilder();
+		for (char c : txt.toCharArray()) {
+			if (c<'\u1000' || c>'\u109F')
+				sb.append(c);
+			else			
+				sb.append("[").append(Integer.toHexString(c)).append("]");
+		}
+		return sb.toString();
+	}
 	
 
 	/**
@@ -170,10 +543,11 @@ public class ZawgyiWord {
 	 * Returns the string used for sorting.
 	 */
 	public String toCanonString() {
-		if (sortUnknown.length()==0)
-			return sortConsonant + sortMedial + sortFinal + sortVowel + sortTone;
-		else
-			return sortConsonant + sortMedial + sortFinal + sortVowel + sortTone + "(" + sortUnknown + ")";
+		return "C" + sortConsonant + " M" +  sortMedial + " F" + sortFinal + " V" + sortVowel + " T" + sortTone;
+	}
+	
+	public String getUnknown() {
+		return unknownBit;
 	}
 
 
@@ -389,6 +763,56 @@ public class ZawgyiWord {
 	public static boolean isInError(String txt) {
 		//Check for bad sequences, etc.
 		return false;
+	}
+	
+	public static int compare (ZawgyiWord word1, ZawgyiWord word2) {
+		//first order: consonants
+		if (word1.sortConsonant < word2.sortConsonant)
+			return -1;
+		else if (word1.sortConsonant > word2.sortConsonant)
+			return 1;
+
+		//second order: medials
+		if (word1.sortMedial < word2.sortMedial)
+			return -1;
+		else if (word1.sortMedial > word2.sortMedial)
+			return 1;
+		
+		//third order: finals
+		if (word1.sortFinal < word2.sortFinal)
+			return -1;
+		else if (word1.sortFinal > word2.sortFinal)
+			return 1;
+		
+		//fourth order: vowels
+		if (word1.sortVowel < word2.sortVowel)
+			return -1;
+		else if (word1.sortVowel > word2.sortVowel)
+			return 1;
+		
+		//fifth order: tones
+		if (word1.sortTone < word2.sortTone)
+			return -1;
+		else if (word1.sortTone > word2.sortTone)
+			return 1;
+		
+		//That's it.... unknown stuff should all sort into the "0" basket
+		return 0;
+	}
+	
+	public static Comparator<ZawgyiWord> getComparator() {
+		return new Comparator<ZawgyiWord>() {
+			public int compare(ZawgyiWord o1, ZawgyiWord o2) {
+				return ZawgyiWord.compare(o1, o2);
+			}
+		};
+	}
+	
+	public String getData() {
+		return data;
+	}
+	public void setData(String val) {
+		this.data = val;
 	}
 
 	/*public enum CHARACTER_WIDTH {
