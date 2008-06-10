@@ -30,9 +30,9 @@ public class ZawgyiWord {
 	private int sortVowel = 0;
 	private int sortTone = 0;
 	private String unknownBit = "";
-	
+
 	private static int count = 0;
-	
+
 	private String data = "";
 
 	public ZawgyiWord(String zawgyiText) {
@@ -55,7 +55,7 @@ public class ZawgyiWord {
 				segmentWord(this.rawText.replaceAll(independentVowels[i], collationForms[i]));
 				break;
 			} else if (i==independentVowels.length-1) {
-				if (this.rawText.equals("\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038")) 
+				if (this.rawText.equals("\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038"))
 					segmentWord("\u101A\u102C\u1000\u1039\u1000\u103A\u102C\u1038");
 				else if (this.rawText.equals("\u1000\u103C\u103A\u108F\u102F\u1039\u1015\u1039"))
 					segmentWord("\u1000\u103C\u103A\u108F\u102F\u1014\u102F\u1015\u1039");
@@ -72,27 +72,27 @@ public class ZawgyiWord {
 	 */
 	private void segmentWord(String text) {
 		System.out.println(count++ + " " + printMM(text));
-		
+
 		//First, merge all characters to one representation
 		text = unifyText(text);
 
 		//Special case for WZ: allow "-" as a consonant
 		text = text.replaceAll("\\-", "");
-		
+
 		//Figure out the consonant, replace with a "-"
 		text = extractConsonant(text);
-		
+
 		//Segment the medial next
 		text = extractMedial(text);
 
 		//Segment vowell
 		text = extractVowel(text);
 
+		//Segment tone BEFORE final to prevent weird glitches
+		text = extractTone(text);
+
 		//Segment final
 		text = extractFinal(text);
-
-		//Segment tone
-		text = extractTone(text);
 
 		//Finally
 		if (text.length()>0) {
@@ -101,12 +101,12 @@ public class ZawgyiWord {
 
 	}
 
-	
+
 	private String extractTone(String text) {
 		StringBuilder sb =  new StringBuilder();
 		boolean foundDotBelow = false;
 		boolean foundVisarga = false;
-		
+
 		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
 			if (c=='\u1037') {
@@ -122,18 +122,18 @@ public class ZawgyiWord {
 			} else
 				sb.append(c);
 		}
-		
+
 		if (foundDotBelow && foundVisarga)
 			sortTone = 3;
 		else if (foundDotBelow)
 			sortTone = 1;
 		else if (foundVisarga)
 			sortTone = 2;
-		
+
 		return sb.toString();
 	}
-	
-	
+
+
 	private String extractFinal(String text) {
 		StringBuilder sb =  new StringBuilder();
 		boolean foundAa = false;
@@ -141,18 +141,18 @@ public class ZawgyiWord {
 		boolean foundU = false;
 		boolean foundE = false;
 		boolean foundKilledAa = true;
-		
+
 		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
-			
+
 			//Special case for kinzi
 			if (c=='\u1064') {
 				if (sortFinal != 0) {
 					throw new RuntimeException("Mixed final found on " + printMM(text));
-				} else 
+				} else
 					sortFinal = 6;
 			}
-			
+
 			//One exception, then proceed as normal, looking for killed characters
 			int finalVal = 0;
 			if (c=='\u1025' && (i<text.length()-1 && text.charAt(i+1)=='\u1039'))
@@ -160,20 +160,20 @@ public class ZawgyiWord {
 			if ((c>='\u1000' && c<='\u1020') && (i<text.length()-1 && text.charAt(i+1)=='\u1039')) {
 				finalVal = c - '\u1000' + 1;
 				i++; //Skip asat
-			} else 
+			} else
 				sb.append(c);
-			
+
 			//Set it
-			if (finalVal!=0 && sortFinal!=0) 
+			if (finalVal!=0 && sortFinal!=0)
 				throw new RuntimeException("Final already set on : " + printMM(text));
 			sortFinal = finalVal;
 		}
-		
+
 		return sb.toString();
 	}
-	
-	
-	
+
+
+
 	private String extractVowel(String text) {
 		StringBuilder sb =  new StringBuilder();
 		boolean foundAa = false;
@@ -183,7 +183,7 @@ public class ZawgyiWord {
 		boolean foundE = false;
 		boolean foundKilledAa = false;
 		boolean foundAnusvara = false;
-		
+
 		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
 			if (c=='\u102C') {
@@ -238,11 +238,11 @@ public class ZawgyiWord {
 				sb.append(c);
 			}
 		}
-		
+
 		//Finally...
 		if ((foundAa || foundI || foundU || foundE) && sortVowel!=0)
 			throw new RuntimeException("Double vowel found on " + printMM(text));
-		
+
 		if (foundI) {
 			if (foundU) {
 				sortVowel = 11;
@@ -274,18 +274,18 @@ public class ZawgyiWord {
 		} else if (foundAnusvara) {
 			sortVowel = 10;
 		}
-		
+
 		return sb.toString();
 	}
-	
-	
+
+
 	private String extractMedial(String text) {
 		StringBuilder sb =  new StringBuilder();
 		boolean foundYa = false;
 		boolean foundYeye = false;
 		boolean foundWa = false;
 		boolean foundHa = false;
-		
+
 		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
 			if (c=='\u103A') {
@@ -308,10 +308,10 @@ public class ZawgyiWord {
 					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
 				else
 					foundHa = true;
-			} else 
+			} else
 				sb.append(c);
 		}
-		
+
 		//Set properly
 		if (foundHa && foundWa) {
 			if (foundYeye)
@@ -335,21 +335,21 @@ public class ZawgyiWord {
 		} else if (foundYeye) {
 			sortMedial = 2;
 		}
-		
+
 		return sb.toString();
 	}
-	
-	
+
+
 	private String extractConsonant(String text) {
 		//Consonants are somewhat tricky (since they can also appear in finals).
 		StringBuilder sb =  new StringBuilder();
 		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
-			
+
 			//Basic consonants first. Test for "asat" in all cases, even though it's probably only necessary in the first.
-			int newConsonant = 0;			
+			int newConsonant = 0;
 			if (c>='\u1000' && c<='\u1021' && (i==text.length()-1 || text.charAt(i+1)!='\u1039')) {
-				newConsonant = ((int)c) - 0x1000 + 1; 
+				newConsonant = ((int)c) - 0x1000 + 1;
 			} else if (c=='\u103F' && (i==text.length()-1 || text.charAt(i+1)!='\u1039')) {
 				newConsonant = 35;
 			} else if (c>='\u104C' && c<='\u104F' && (i==text.length()-1 || text.charAt(i+1)!='\u1039')) {
@@ -357,7 +357,7 @@ public class ZawgyiWord {
 			} else {
 				sb.append(c);
 			}
-			
+
 			//Set it?
 			if (newConsonant!=0) {
 				if (sortConsonant!=0) {
@@ -367,14 +367,14 @@ public class ZawgyiWord {
 				}
 			}
 		}
-		
+
 		return sb.toString();
 	}
-	
+
 	public String unifyText(String text) {
 		//First, some quick substitutions
-		text = text.replaceAll("\u105A", "\u102C\u1039").replaceAll("\u1088", "\u103D\u102F").replaceAll("\u1089", "\u103D\u1030").replaceAll("\u108A", "\u103D\u103C");		
-		
+		text = text.replaceAll("\u105A", "\u102C\u1039").replaceAll("\u1088", "\u103D\u102F").replaceAll("\u1089", "\u103D\u1030").replaceAll("\u108A", "\u103D\u103C");
+
 		char[] src = text.toCharArray();
 		char[] res = new char[src.length];
 		for (int i=0; i<src.length; i++) {
@@ -397,7 +397,7 @@ public class ZawgyiWord {
 				|| (c>='\u1091' && c<='\u1092')
 				|| (c>='\u1096' && c<='\u1097')
 				|| (c=='\u109F')) {
-				
+
 				//Error
 				throw new RuntimeException("Bad character range in: " + printMM(text));
 			} else {
@@ -508,22 +508,22 @@ public class ZawgyiWord {
 				}
 			}
 		}
-		
+
 		return new String(res);
 	}
-	
-	
+
+
 	public static String printMM(String txt) {
 		StringBuilder sb = new StringBuilder();
 		for (char c : txt.toCharArray()) {
 			if (c<'\u1000' || c>'\u109F')
 				sb.append(c);
-			else			
+			else
 				sb.append("[").append(Integer.toHexString(c)).append("]");
 		}
 		return sb.toString();
 	}
-	
+
 
 	/**
 	 * Returns the raw string, as typed by the user.
@@ -538,7 +538,7 @@ public class ZawgyiWord {
 	public String toCanonString() {
 		return "C" + sortConsonant + " M" +  sortMedial + " F" + sortFinal + " V" + sortVowel + " T" + sortTone;
 	}
-	
+
 	public String getUnknown() {
 		return unknownBit;
 	}
@@ -757,7 +757,7 @@ public class ZawgyiWord {
 		//Check for bad sequences, etc.
 		return false;
 	}
-	
+
 	public static int compare (ZawgyiWord word1, ZawgyiWord word2) {
 		//first order: consonants
 		if (word1.sortConsonant < word2.sortConsonant)
@@ -770,29 +770,29 @@ public class ZawgyiWord {
 			return -1;
 		else if (word1.sortMedial > word2.sortMedial)
 			return 1;
-		
+
 		//third order: finals
 		if (word1.sortFinal < word2.sortFinal)
 			return -1;
 		else if (word1.sortFinal > word2.sortFinal)
 			return 1;
-		
+
 		//fourth order: vowels
 		if (word1.sortVowel < word2.sortVowel)
 			return -1;
 		else if (word1.sortVowel > word2.sortVowel)
 			return 1;
-		
+
 		//fifth order: tones
 		if (word1.sortTone < word2.sortTone)
 			return -1;
 		else if (word1.sortTone > word2.sortTone)
 			return 1;
-		
+
 		//That's it.... unknown stuff should all sort into the "0" basket
 		return 0;
 	}
-	
+
 	public static Comparator<ZawgyiWord> getComparator() {
 		return new Comparator<ZawgyiWord>() {
 			public int compare(ZawgyiWord o1, ZawgyiWord o2) {
@@ -800,7 +800,7 @@ public class ZawgyiWord {
 			}
 		};
 	}
-	
+
 	public String getData() {
 		return data;
 	}
