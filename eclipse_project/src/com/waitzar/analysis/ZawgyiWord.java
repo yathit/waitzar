@@ -142,6 +142,9 @@ public class ZawgyiWord {
 		boolean foundE = false;
 		boolean foundKilledAa = true;
 
+		##Note to self: use bitflags instead of booleans, and ensure that
+		##  "new" combinations are caught.
+
 		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
 
