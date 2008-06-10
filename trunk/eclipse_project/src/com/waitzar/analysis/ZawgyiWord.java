@@ -155,20 +155,11 @@ public class ZawgyiWord {
 			
 			//One exception, then proceed as normal, looking for killed characters
 			int finalVal = 0;
-			if (c=='\u1025' && i<text.length()-1 && text.charAt(i+1)=='\u1039')
+			if (c=='\u1025' && (i<text.length()-1 && text.charAt(i+1)=='\u1039'))
 				c = '\u100A';
-			if (c>'\u1000' && c<'\u1020' && c!='\u101B' && c!='\u101D' && c!='\u101F') {
-				if (i<text.length()-1 && text.charAt(i+1)=='\u1039') {
-					if (c=='\u101C')
-						finalVal = 28;
-					else if (c=='\u101E')
-						finalVal = 29;
-					else if (c=='\u1020')
-						finalVal = 30;
-					else
-						finalVal = c - '\u1000' + 1;
-					i++; //Skip asat
-				}
+			if ((c>='\u1000' && c<='\u1020') && (i<text.length()-1 && text.charAt(i+1)=='\u1039')) {
+				finalVal = c - '\u1000' + 1;
+				i++; //Skip asat
 			} else 
 				sb.append(c);
 			
@@ -280,6 +271,8 @@ public class ZawgyiWord {
 			} else {
 				sortVowel = 5;
 			}
+		} else if (foundAnusvara) {
+			sortVowel = 10;
 		}
 		
 		return sb.toString();
