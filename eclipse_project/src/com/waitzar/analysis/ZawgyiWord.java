@@ -156,7 +156,7 @@ public class ZawgyiWord {
 			//One exception, then proceed as normal, looking for killed characters
 			int finalVal = 0;
 			if (c=='\u1025' && (i<text.length()-1 && text.charAt(i+1)=='\u1039'))
-				c = '\u100A';
+				c = '\u1009';
 			if ((c>='\u1000' && c<='\u1020') && (i<text.length()-1 && text.charAt(i+1)=='\u1039')) {
 				finalVal = c - '\u1000' + 1;
 				i++; //Skip asat
