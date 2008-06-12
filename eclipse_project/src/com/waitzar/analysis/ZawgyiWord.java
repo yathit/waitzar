@@ -136,14 +136,6 @@ public class ZawgyiWord {
 
 	private String extractFinal(String text) {
 		StringBuilder sb =  new StringBuilder();
-		boolean foundAa = false;
-		boolean foundI = false;
-		boolean foundU = false;
-		boolean foundE = false;
-		boolean foundKilledAa = true;
-
-		##Note to self: use bitflags instead of booleans, and ensure that
-		##  "new" combinations are caught.
 
 		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
@@ -181,9 +173,11 @@ public class ZawgyiWord {
 		StringBuilder sb =  new StringBuilder();
 		boolean foundAa = false;
 		boolean foundI = false;
+		boolean foundIi = false;
 		boolean foundU = false;
 		boolean foundUu = false;
 		boolean foundE = false;
+		boolean foundAi = false;
 		boolean foundKilledAa = false;
 		boolean foundAnusvara = false;
 
@@ -228,55 +222,68 @@ public class ZawgyiWord {
 				else
 					foundAnusvara = true;
 			} else if (c=='\u102E') {
-				if (sortVowel!=0)
-					throw new RuntimeException("Mixed vowel found on " + printMM(text));
+				if (foundIi)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
 				else
-					sortVowel = 3;
+					foundIi = true;
 			} else if (c=='\u1032') {
-				if (sortVowel!=0)
-					throw new RuntimeException("Mixed vowel found on " + printMM(text));
+				if (foundAi)
+					throw new RuntimeException("Already found (" + (int)c + ") in " + printMM(text));
 				else
-					sortVowel = 7;
+					foundAi = true;
 			} else {
 				sb.append(c);
 			}
 		}
 
-		//Finally...
-		if ((foundAa || foundI || foundU || foundE) && sortVowel!=0)
-			throw new RuntimeException("Double vowel found on " + printMM(text));
 
-		if (foundI) {
-			if (foundU) {
-				sortVowel = 11;
-			} else {
-				sortVowel = 2;
+		//Done as bitflags to help find new combinations
+		int flagAa = 1;
+		int flagI = 2;
+		int flagIi = 4;
+		int flagU = 8;
+		int flagUu = 16;
+		int flagE = 32;
+		int flagAi = 64;
+		int flagKilledAa = 128;
+		int flagAnusvara = 256;
+		int acumulator = 0;
+		if (foundAa)
+			acumulator |= flagAa;
+		if(foundI)
+			acumulator |= flagI;
+		if(foundIi)
+			acumulator |= flagIi;
+		if(foundU)
+			acumulator |= flagU;
+		if(foundUu)
+			acumulator |= flagUu;
+		if(foundE)
+			acumulator |= flagE;
+		if(foundAi)
+			acumulator |= flagAi;
+		if(foundKilledAa)
+			acumulator |= flagKilledAa;
+		if(foundAnusvara)
+			acumulator |= flagAnusvara;
+
+		int[] vowelIds = new int[]{0, flagAa, flagI, flagIi, flagU, flagUu, flagE, flagAi,
+									flagAa|flagE, flagKilledAa|flagE, flagAnusvara,
+									flagI|flagU, flagI|flagUu, flagAnusvara|flagU, flagAnusvara|flagUu,
+									flagU|flagUu|flagI};
+
+		//Super-cool use of xor
+		sortVowel = -1;
+		for (int i=0; i<vowelIds.length; i++) {
+			if ((acumulator^vowelIds[i])==0) {
+				if (sortVowel!=-1)
+					throw new RuntimeException("Double vowel found on " + printMM(text));
+				sortVowel = i;
 			}
-		} else if (foundU) {
-			if (foundAnusvara) {
-				sortVowel = 12;
-			} else {
-				sortVowel = 4;
-			}
-		} else if (foundE) {
-			if (foundKilledAa) {
-				sortVowel = 9;
-			} else if (foundAa) {
-				sortVowel = 8;
-			} else {
-				sortVowel = 6;
-			}
-		} else if (foundAa) {
-			sortVowel = 1;
-		} else if (foundUu) {
-			if (foundAnusvara) {
-				sortVowel = 13;
-			} else {
-				sortVowel = 5;
-			}
-		} else if (foundAnusvara) {
-			sortVowel = 10;
 		}
+
+		if (sortVowel==-1)
+			throw new RuntimeException("New Vowel Combination: " + printMM(text) + " (" + acumulator + ")");
 
 		return sb.toString();
 	}
@@ -315,29 +322,41 @@ public class ZawgyiWord {
 				sb.append(c);
 		}
 
-		//Set properly
-		if (foundHa && foundWa) {
-			if (foundYeye)
-				sortMedial = 9;
-			else
-				sortMedial = 8;
-		} else if (foundWa) {
-			if (foundYeye)
-				sortMedial = 7;
-			else if (foundYa)
-				sortMedial = 5;
-			else
-				sortMedial = 3;
-		} else if (foundHa) {
-			if (foundYa)
-				sortMedial = 6;
-			else
-				sortMedial = 4;
-		} else if (foundYa) {
-			sortMedial = 1;
-		} else if (foundYeye) {
-			sortMedial = 2;
+
+		//Set using bitflags
+		int flagYa = 1;
+		int flagYeye = 2;
+		int flagWa = 4;
+		int flagHa = 8;
+		int acumulator = 0;
+		if (foundYa)
+			acumulator |= flagYa;
+		if (foundYeye)
+			acumulator |= flagYeye;
+		if (foundWa)
+			acumulator |= flagWa;
+		if (foundHa)
+			acumulator |= flagHa;
+
+		int[] medialIds = new int[]{0, flagYa, flagYeye, flagWa, flagHa,
+					flagWa|flagYa, flagHa|flagYa,
+					flagYeye|flagWa, flagYeye|flagHa, flagHa|flagWa, flagWa|flagHa|flagYa,
+					flagYeye|flagWa|flagHa};
+
+
+		//Super-cool use of xor
+		sortMedial = -1;
+		for (int i=0; i<medialIds.length; i++) {
+			if ((acumulator^medialIds[i])==0) {
+				if (sortMedial!=-1)
+					throw new RuntimeException("Double medial found on " + printMM(text));
+				sortMedial = i;
+			}
 		}
+
+		if (sortMedial==-1)
+			throw new RuntimeException("New Medial Combination: " + printMM(text) + " (" + acumulator + ")");
+
 
 		return sb.toString();
 	}
