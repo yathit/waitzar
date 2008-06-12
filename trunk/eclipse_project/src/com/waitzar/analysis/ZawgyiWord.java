@@ -269,7 +269,7 @@ public class ZawgyiWord {
 
 		int[] vowelIds = new int[]{0, flagAa, flagI, flagIi, flagU, flagUu, flagE, flagAi,
 									flagAa|flagE, flagKilledAa|flagE, flagAnusvara,
-									flagI|flagU, flagI|flagUu, flagAnusvara|flagU, flagAnusvara|flagUu,
+									flagI|flagU, flagI|flagUu, flagAnusvara|flagU,
 									flagU|flagUu|flagI};
 
 		//Super-cool use of xor
