@@ -24,6 +24,7 @@ public class ZawgyiWord {
 	private String rawText;
 
 	//Sorting elements
+	private int sortNumeral = 0;
 	private int sortConsonant = 0;
 	private int sortMedial = 0;
 	private int sortFinal = 0;
@@ -79,6 +80,9 @@ public class ZawgyiWord {
 		//Special case for WZ: allow "-" as a consonant
 		text = text.replaceAll("\\-", "");
 
+		//Figure out any numbers...? a bit hackish...
+		text = extractNumeral(text);
+		
 		//Figure out the consonant, replace with a "-"
 		text = extractConsonant(text);
 
@@ -101,6 +105,22 @@ public class ZawgyiWord {
 
 	}
 
+	
+	private String extractNumeral(String text) {
+		StringBuilder sb = new StringBuilder();
+		sortNumeral = -1;
+		for (int i=0; i<text.length(); i++) {
+			if (text.charAt(i)>='\u1040' && text.charAt(i)<='\u1049') {
+				if (sortNumeral!=-1) 
+					throw new RuntimeException("Word can contain no more than one numeral: " + printMM(text));
+				sortNumeral = text.charAt(i) - '\u1040';
+			} else 
+				sb.append(text.charAt(i));
+		}
+		
+		return sb.toString();
+	}
+	
 
 	private String extractTone(String text) {
 		StringBuilder sb =  new StringBuilder();
@@ -404,7 +424,7 @@ public class ZawgyiWord {
 			char c = src[i];
 			if   ( (c>='\u1023' && c<='\u1027' && c!='\u1025')
 				|| (c>='\u1029' && c<='\u102A')
-				|| (c>='\u1040' && c<='\u1049')
+				//|| (c>='\u1040' && c<='\u1049')
 				|| (c>='\u104A' && c<='\u104B')
 				|| (c>='\u1050' && c<='\u1059')
 				|| (c>='\u1060' && c<='\u1063')
@@ -462,6 +482,16 @@ public class ZawgyiWord {
 					case '\u1038':
 					case '\u1039':
 					case '\u103C':
+					case '\u1040':
+					case '\u1041':
+					case '\u1042':
+					case '\u1043':
+					case '\u1044':
+					case '\u1045':
+					case '\u1046':
+					case '\u1047':
+					case '\u1048':
+					case '\u1049':
 					case '\u104C':
 					case '\u104D':
 					case '\u104E':
@@ -558,7 +588,7 @@ public class ZawgyiWord {
 	 * Returns the string used for sorting.
 	 */
 	public String toCanonString() {
-		return "C" + sortConsonant + " M" +  sortMedial + " F" + sortFinal + " V" + sortVowel + " T" + sortTone;
+		return "N" + sortNumeral + " C" + sortConsonant + " M" +  sortMedial + " F" + sortFinal + " V" + sortVowel + " T" + sortTone;
 	}
 
 	public String getUnknown() {
@@ -781,6 +811,12 @@ public class ZawgyiWord {
 	}
 
 	public static int compare (ZawgyiWord word1, ZawgyiWord word2) {
+		//zeroth order: numerals
+		if (word1.sortNumeral < word2.sortNumeral)
+			return -1;
+		else if (word1.sortNumeral > word2.sortNumeral)
+			return 1;
+		
 		//first order: consonants
 		if (word1.sortConsonant < word2.sortConsonant)
 			return -1;

@@ -41,7 +41,7 @@ public class Runner {
 
 
 		//Read each line
-		Pattern linePattern = Pattern.compile("([^ ]+)[^\t]+\t[^\t]+\t([^\t]+)");
+		Pattern linePattern = Pattern.compile("([^ ]+)([^\t]+\t[^\t]+\t[^\t]+)");
 		try {
 			for (String line = reader.readLine(); line!=null; line=reader.readLine()) {
 				if (line.length()==0)
@@ -95,11 +95,11 @@ public class Runner {
 			ArrayList<ZawgyiWord> unknown = new ArrayList<ZawgyiWord>();
 			for (ZawgyiWord key : firstWords) {
 				uniqueRhymes++;
-				writeFile.write(key.toCanonString()+"\n");
+			//	writeFile.write(key.toCanonString()+"\n");
 				for (ZawgyiWord val : rhymes.get(key.toCanonString())) {
 					totalRhymes++;
 					if (val.getUnknown().length()==0) {
-						writeFile.write(val.toString() + "\t" + val.getData() + "\n");
+						writeFile.write(val.toString() + val.getData() + "\n");
 					} else {
 						unknown.add(val);
 					}
@@ -108,7 +108,8 @@ public class Runner {
 			}
 
 			//Print unknowns
-			writeFile.write("\nUNKNOWNS\n");
+			if (unknown.size()>0)
+				writeFile.write("\nUNKNOWNS\n");
 			for (ZawgyiWord uk : unknown)
 				writeFile.write(uk.toString() + " (" + uk.getUnknown() + ")\n");
 
