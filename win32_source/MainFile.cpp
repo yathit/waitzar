@@ -32,6 +32,11 @@
 //Current version
 #define WAIT_ZAR_VERSION _T("1.5")
 
+//Menu item texts
+TCHAR* POPUP_UNI = _T("Unicode 5.1");
+TCHAR* POPUP_ZG = _T("Zawgyi-One");
+TCHAR* POPUP_WIN = _T("Win Innwa");
+
 //Prototypes
 BOOL turnOnHotkeys(BOOL on);
 BOOL turnOnControlkeys(BOOL on);
@@ -1051,12 +1056,6 @@ void recalculate()
 
 void typeCurrentPhrase()
 {
-	//We might have a cached encoding level set...
-	if (cachedEncoding!=-1) {
-		model->setOutputEncoding(cachedEncoding);
-		cachedEncoding = -1;
-	}
-
 	//Send key presses to the top-level program.
 	HWND fore = GetForegroundWindow();
 	SetActiveWindow(fore);
@@ -1677,10 +1676,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Note: set our text apropriately:
 				TCHAR temp[200];
+				UINT flagE = mmOn ? 0 : MF_CHECKED;
+				UINT flagM = mmOn ? MF_CHECKED : 0;
 				swprintf(temp, _T("English (%s)"), langHotkeyString);
-				ModifyMenu(hmenu, IDM_ENGLISH, MF_BYCOMMAND, IDM_ENGLISH, temp);
+				ModifyMenu(hmenu, IDM_ENGLISH, MF_BYCOMMAND|flagE, IDM_ENGLISH, temp);
 				swprintf(temp, _T("Myanmar (%s)"), langHotkeyString);
-				ModifyMenu(hmenu, IDM_MYANMAR, MF_BYCOMMAND, IDM_MYANMAR, temp);
+				ModifyMenu(hmenu, IDM_MYANMAR, MF_BYCOMMAND|flagM, IDM_MYANMAR, temp);
+
+				//Set checks for our sub-menus:
+				UINT flagU = model->getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
+				UINT flagZ = model->getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
+				UINT flagW = model->getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
+				ModifyMenu(hmenu, ID_ENCODING_UNICODE5, MF_BYCOMMAND|flagU, ID_ENCODING_UNICODE5, POPUP_UNI);
+				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG);
+				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN);
+
 
 				//Cause our popup to appear in front of any other window.
 				SetForegroundWindow(hwnd);
@@ -1709,10 +1719,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						turnOnControlkeys(TRUE);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(FALSE);
+					
+					//Reset the model
+					prevTypedWords->clear();
+					cursorAfterIndex = -1;
+					model->reset(true);
 				} else if (retVal == IDM_MYANMAR) {
 					switchToLanguage(TRUE);
+
+					//Reset the model
+					prevTypedWords->clear();
+					cursorAfterIndex = -1;
+					model->reset(true);
 				} else if (retVal == IDM_EXIT) {
 					DestroyWindow(hwnd);
+				} else if (retVal == ID_ENCODING_UNICODE5) {
+					setEncoding(ENCODING_UNICODE);
+					recalculate();
+				} else if (retVal == ID_ENCODING_ZAWGYI) {
+					setEncoding(ENCODING_ZAWGYI);
+					recalculate();
+				} else if (retVal == ID_ENCODING_WININNWA) {
+					setEncoding(ENCODING_WININNWA);
+					recalculate();
 				}
 
 				//Fixes a bug re: MSKB article: Q135788
@@ -2108,6 +2137,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (typePhrases==TRUE)
 			DestroyWindow(senWindow);
 		return 1;
+	}
+
+	//We might have a cached encoding level set...
+	if (cachedEncoding!=-1) {
+		model->setOutputEncoding(cachedEncoding);
+		cachedEncoding = -1;
 	}
 
 	//Also load user-specific words

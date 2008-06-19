@@ -54,6 +54,7 @@ public:
 
 	//Change the encoding
 	void setOutputEncoding(UINT encoding);
+	UINT getOutputEncoding();
 
 private:
 	//Essential static data
