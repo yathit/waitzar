@@ -52,10 +52,7 @@ BOOL loadModel(HINSTANCE hInst);
 #define BACKWARDS_BOM 0xFFFE
 
 //Font conversion
-#define ENCODING_UNICODE 1
-#define ENCODING_ZAWGYI 2
-#define ENCODING_WININNWA 3
-UINT currEncoding;
+int cachedEncoding;
 TCHAR currEncStr[10];
 
 //Brushes & Pens
@@ -359,14 +356,19 @@ void readUserWords() {
 
 void setEncoding(UINT encoding) 
 {
-	currEncoding = encoding;
-
-	if (currEncoding==ENCODING_WININNWA)
+	if (encoding==ENCODING_WININNWA)
 		lstrcpy(currEncStr, _T("WI"));
-	else if (currEncoding==ENCODING_ZAWGYI)
+	else if (encoding==ENCODING_ZAWGYI)
 		lstrcpy(currEncStr, _T("ZG"));
-	else if (currEncoding==ENCODING_UNICODE)
+	else if (encoding==ENCODING_UNICODE)
 		lstrcpy(currEncStr, _T("UNI"));
+
+	if (model==NULL)
+		cachedEncoding = encoding;
+	else {
+		model->setOutputEncoding(encoding);
+		cachedEncoding = -1;
+	}
 }
 
 
@@ -1049,6 +1051,12 @@ void recalculate()
 
 void typeCurrentPhrase()
 {
+	//We might have a cached encoding level set...
+	if (cachedEncoding!=-1) {
+		model->setOutputEncoding(cachedEncoding);
+		cachedEncoding = -1;
+	}
+
 	//Send key presses to the top-level program.
 	HWND fore = GetForegroundWindow();
 	SetActiveWindow(fore);

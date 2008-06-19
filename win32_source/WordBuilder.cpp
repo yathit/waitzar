@@ -45,8 +45,20 @@ WordBuilder::WordBuilder (WORD **dictionary, int dictMaxID, int dictMaxSize, UIN
 	this->prefixMaxSize = prefixMaxSize;
 
 	//Cache
-	punctHalfStop = 0x104A;
-	punctFullStop = 0x104B;
+	punctHalfStopUni = 0x104A;
+	punctFullStopUni = 0x104B;
+	punctHalfStopWinInnwa = 63;
+	punctFullStopWinInnwa = 47;
+
+	//Init dictionaries
+	winInnwaDictionary = (WORD **)malloc(dictMaxSize * sizeof(WORD *));
+	unicodeDictionary = (WORD **)malloc(dictMaxSize * sizeof(WORD *));
+	for (int i=0; i<dictMaxSize; i++) {
+		winInnwaDictionary[i] = (WORD *)malloc((1) * sizeof(WORD));
+		unicodeDictionary[i] = (WORD *)malloc((1) * sizeof(WORD));
+		winInnwaDictionary[i][0] = 0;
+		unicodeDictionary[i][0] = 0;
+	}
 
 	//Start off
 	this->reset(true);
@@ -64,12 +76,26 @@ WordBuilder::~WordBuilder(void)
 }
 
 
+void WordBuilder::setOutputEncoding(UINT encoding)
+{
+	this->currEncoding = encoding;
+}
+
+
+
 WORD WordBuilder::getStopCharacter(bool isFull) 
 {
-	if (isFull)
-		return punctFullStop;
-	else
-		return punctHalfStop;
+	if (isFull) {
+		if (currEncoding==ENCODING_WININNWA)
+			return punctFullStopWinInnwa;
+		else
+			return punctFullStopUni;
+	} else {
+		if (currEncoding==ENCODING_WININNWA)
+			return punctHalfStopWinInnwa;
+		else
+			return punctHalfStopUni;
+	}
 }
 
 
@@ -365,11 +391,41 @@ void WordBuilder::insertTrigram(WORD* trigram_ids, int num_used_trigrams)
 
 std::vector<WORD> WordBuilder::getWordKeyStrokes(UINT32 id) 
 {
-	this->keystrokeVector.clear();
+	//Determine our dictionary
+	WORD** myDict = dictionary;
+	int destFont = Zawgyi_One;
+	if (currEncoding==ENCODING_WININNWA) {
+		myDict = winInnwaDictionary;
+		destFont = WinInnwa;
+	} else if (currEncoding==ENCODING_UNICODE) {
+		myDict = unicodeDictionary;
+		destFont = Myanmar3;
+	}
 
-	WORD size = this->dictionary[id][0];
+	//Does this word exist in the dictionary? If not, add it
+	if (currEncoding!=ENCODING_ZAWGYI && myDict[id][0] == 0) {
+		//First, convert
+		TCHAR* srcStr = this->getWordString(id);
+		TCHAR destStr[200];
+		lstrcpy(destStr, _T(""));
+		convertFont(destStr, srcStr, Zawgyi_One, destFont);
+
+		//Now, add a new entry
+		int stLen = lstrlen(destStr);
+		WORD * newEncoding = (WORD *)malloc((stLen+1) * sizeof(WORD));
+		for (int i=0; i<stLen; i++) {
+			newEncoding[i+1] = destStr[i];
+		}
+		newEncoding[0] = stLen;
+		free(myDict[id]);
+		myDict[id] = newEncoding;
+	}
+
+	//Set return vector appropriately
+	this->keystrokeVector.clear();
+	WORD size = myDict[id][0];
 	for (int i=0; i<size; i++) 
-		this->keystrokeVector.push_back(this->dictionary[id][i+1]);
+		this->keystrokeVector.push_back(myDict[id][i+1]);
 
 	return this->keystrokeVector;
 }

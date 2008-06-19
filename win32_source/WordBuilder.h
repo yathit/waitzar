@@ -9,10 +9,15 @@
 #define _UNICODE
 #define UNICODE
 
+#define ENCODING_UNICODE 1
+#define ENCODING_ZAWGYI 2
+#define ENCODING_WININNWA 3
+
 #include <windows.h>
 #include <tchar.h>
 #include <vector>
 
+#include "fontconv.h"
 
 /**
  * Used for converting a string of roman letters into a list of potential Burmese words.
@@ -47,15 +52,27 @@ public:
 	//Re-order the model
 	void addRomanization(TCHAR* myanmar, char* roman);
 
+	//Change the encoding
+	void setOutputEncoding(UINT encoding);
+
 private:
 	//Essential static data
 	WORD **dictionary;
 	UINT32 **nexus;
 	UINT32 **prefix;
 
+	//Cached lookups
+	WORD **winInnwaDictionary;
+	WORD **unicodeDictionary;
+
 	//Cached
-	WORD punctHalfStop;
-	WORD punctFullStop;
+	WORD punctHalfStopUni;
+	WORD punctFullStopUni;
+	WORD punctHalfStopWinInnwa;
+	WORD punctFullStopWinInnwa;
+
+	//Encoding of output text only
+	UINT currEncoding;
 
 	//Also, for expansion
 	int dictMaxID;
