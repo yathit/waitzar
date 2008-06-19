@@ -76,6 +76,11 @@ WordBuilder::~WordBuilder(void)
 }
 
 
+UINT WordBuilder::getOutputEncoding()
+{
+	return this->currEncoding;
+}
+
 void WordBuilder::setOutputEncoding(UINT encoding)
 {
 	this->currEncoding = encoding;
