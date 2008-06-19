@@ -51,6 +51,13 @@ BOOL loadModel(HINSTANCE hInst);
 #define UNICOD_BOM 0xFEFF
 #define BACKWARDS_BOM 0xFFFE
 
+//Font conversion
+#define ENCODING_UNICODE 1
+#define ENCODING_ZAWGYI 2
+#define ENCODING_WININNWA 3
+UINT currEncoding;
+TCHAR currEncStr[10];
+
 //Brushes & Pens
 HBRUSH g_WhiteBkgrd;
 HBRUSH g_DarkGrayBkgrd;
@@ -350,11 +357,27 @@ void readUserWords() {
 }
 
 
+void setEncoding(UINT encoding) 
+{
+	currEncoding = encoding;
+
+	if (currEncoding==ENCODING_WININNWA)
+		lstrcpy(currEncStr, _T("WI"));
+	else if (currEncoding==ENCODING_ZAWGYI)
+		lstrcpy(currEncStr, _T("ZG"));
+	else if (currEncoding==ENCODING_UNICODE)
+		lstrcpy(currEncStr, _T("UNI"));
+}
+
+
 void loadConfigOptions()
 {
 	//Default keys
 	lstrcpy(langHotkeyString, _T("Ctrl+Shift"));
 	strcpy(langHotkeyRaw, "^+");
+
+	//Default encoding
+	setEncoding(ENCODING_UNICODE);
 
 	//Read our config file, if it exists.
 	numConfigOptions = -1;
@@ -416,6 +439,16 @@ void loadConfigOptions()
 				typeBurmeseNumbers = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				typeBurmeseNumbers = FALSE;
+			else
+				numConfigOptions--;
+		} else if (strcmp(name, "defaultencoding")==0) {
+			numConfigOptions++;
+			if (strcmp(value, "wininnwa")==0)
+				setEncoding(ENCODING_WININNWA);
+			else if (strcmp(value, "zawgyi")==0)
+				setEncoding(ENCODING_ZAWGYI);
+			else if (strcmp(value, "unicode")==0 || strcmp(value, "parabaik")==0 || strcmp(value, "padauk")==0 || strcmp(value, "myanmar3")==0)
+				setEncoding(ENCODING_UNICODE);
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "hotkey")==0) {
@@ -953,7 +986,13 @@ void recalculate()
 		//Draw the cursor
 		MoveToEx(senUnderDC, cursorPosX-1, borderWidth+1, NULL);
 		LineTo(senUnderDC, cursorPosX-1, SUB_C_HEIGHT-borderWidth-1);
-		SelectObject(senUnderDC, g_EmptyPen);
+		
+		//Draw the current encoding
+		int encStrWidth = mmFontSmallBlack->getStringWidth(currEncStr);
+		SelectObject(senUnderDC, g_BlackPen);
+		SelectObject(senUnderDC, g_GreenBkgrd);
+		Rectangle(senUnderDC, SUB_C_WIDTH-encStrWidth-3, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
+		mmFontSmallBlack->drawString(senUnderDC, currEncStr, SUB_C_WIDTH-encStrWidth-2, SUB_C_HEIGHT/2-mmFontSmallBlack->getHeight()/2);
 	}
 
 	//White overlays

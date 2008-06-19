@@ -33,6 +33,20 @@ The Jazzlib Project: Version 0.0.7
  Contact: John Leuner
 
 
+The Prince KaNaung Conversion Engine, SVN revision 700
+ All files in the "burglish_core" directory:
+  fontconv.(cpp|h)
+  regex.(cpp|h)
+  fontmap.(cpp|h)
+  lib.(cpp|h)
+ ...are part of the Prince KaNaung or Burglish project, both of which are licensed
+ under the GNU GPL v2. Wait Zar strives for a low license footprint, and this is the 
+ most restrive included source. Just be aware if you link Wait Zar in your own project.
+ License: GNU General Public License version 2.0
+ Site: http://code.google.com/p/burglish/
+ Contact: Soe Min
+
+
 The Zawgyi-One Font: Version 3.14
  Zawgyi-One is a curious font; its copyright belongs to Zawgyi.net and Alpha Mandalay.
  However, it is distributed with no licensing information, and is thus classified and 

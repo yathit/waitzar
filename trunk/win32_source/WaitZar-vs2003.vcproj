@@ -146,6 +146,22 @@
 					RelativePath=".\StreamManipulator.cpp">
 				</File>
 			</Filter>
+			<Filter
+				Name="burglish_core"
+				Filter="">
+				<File
+					RelativePath=".\fontconv.cpp">
+				</File>
+				<File
+					RelativePath=".\fontmap.cpp">
+				</File>
+				<File
+					RelativePath=".\lib.cpp">
+				</File>
+				<File
+					RelativePath=".\regex.cpp">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -183,6 +199,22 @@
 				</File>
 				<File
 					RelativePath=".\StreamManipulator.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="burglish_core"
+				Filter="">
+				<File
+					RelativePath=".\fontconv.h">
+				</File>
+				<File
+					RelativePath=".\fontmap.h">
+				</File>
+				<File
+					RelativePath=".\lib.h">
+				</File>
+				<File
+					RelativePath=".\regex.h">
 				</File>
 			</Filter>
 		</Filter>
