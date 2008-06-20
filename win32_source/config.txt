@@ -40,5 +40,5 @@ burmesenumerals = no
 #  wininnwa  -Outputs according to the Win Innwa custom ASCII encoding.
 # FYI: You can also specify "padauk", "parabaik", or "myanmar3"... 
 #  all of which default to "unicode"
-defaultencoding = zawgyi
+defaultencoding = unicode
 
