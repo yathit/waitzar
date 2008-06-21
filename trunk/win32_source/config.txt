@@ -31,7 +31,7 @@ lockwindows = yes
 
 # If "yes", typing 0..9 will yield Burmese numbers 0 to 9. If "no", Wait Zar
 #  won't process numbers.
-burmesenumerals = no
+burmesenumerals = yes
 
 
 # Sets the default output encoding. Allowed values:

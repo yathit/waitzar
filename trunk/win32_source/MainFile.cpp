@@ -344,7 +344,9 @@ void readUserWords() {
 				continue;
 
 			//Add this romanization
-			model->addRomanization(name, value);
+			if (!model->addRomanization(name, value)) {
+				MessageBox(NULL, model->getLastError(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
+			}
 			numCustomWords++;
 		}
 		delete [] uniBuffer;
