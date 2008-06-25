@@ -442,6 +442,11 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id)
 			destStr[2] = 102;
 		} else if (currEncoding==ENCODING_UNICODE && compstr(srcStr, L"\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038")==0) {
 			copystr(destStr, L"\u101A\u1031\u102C\u1000\u103A\u103B\u102C\u1038");
+		} else if (currEncoding==ENCODING_WININNWA && compstr(srcStr, L"\u1015\u102B\u1094")==0) {
+			copystr(destStr, L"123");
+			destStr[0] = 121;
+			destStr[1] = 103;
+			destStr[2] = 104;
 		}
 
 		//Now, add a new entry
