@@ -23,12 +23,15 @@
 #define catstr(a, b)       wcscat((a), (b))
 #define lenstr(a)          wcslen((a))
 #define printstr(a, b, c)  swprintf((a), 150, (b), (c))
+#define compstr(a, b)      wcscmp((a), (b))
 //#include <windows.h>
-#else
+#endif
+#ifdef __STDC_ISO_10646__
 #define copystr(a, b)      strcpy((a), (b))
 #define catstr(a, b)       strcat((a), (b))
 #define lenstr(a)          strlen((a))
 #define printstr(a, b, c)  sprintf((a), (b), (c))
+#define compstr(a, b)      strcmp((a), (b))
 #endif
 
 //Useful constants

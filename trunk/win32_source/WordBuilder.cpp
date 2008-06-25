@@ -434,6 +434,16 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id)
 		copystr(destStr, L"");
 		convertFont(destStr, srcStr, Zawgyi_One, destFont);
 
+		//TEMP: Special cases
+		if (currEncoding==ENCODING_WININNWA && compstr(srcStr, L"\u1009\u102C\u1025\u1039")==0) {
+			copystr(destStr, L"123");
+			destStr[0] = 211;
+			destStr[1] = 79;
+			destStr[2] = 102;
+		} else if (currEncoding==ENCODING_UNICODE && compstr(srcStr, L"\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038")==0) {
+			copystr(destStr, L"\u101A\u1031\u102C\u1000\u103A\u103B\u102C\u1038");
+		}
+
 		//Now, add a new entry
 		size_t stLen = lenstr(destStr);
 		unsigned short * newEncoding = (unsigned short *)malloc((stLen+1) * sizeof(unsigned short));
