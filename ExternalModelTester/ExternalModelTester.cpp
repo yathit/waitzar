@@ -16,8 +16,12 @@
  */
 void main(int argc, const char* argv[])
 {
-	//Create your object.
+	//Create your model as an object.
 	WordBuilder *model = new WordBuilder(L"..\\win32_source\\Myanmar.model", L"..\\win32_source\\mywords.txt");
+
+
+	//Use case 1: 
+
 
 
 	printf( "Model Loaded\n" );
