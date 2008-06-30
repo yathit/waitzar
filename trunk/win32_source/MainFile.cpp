@@ -30,7 +30,7 @@
 #include "Hotkeys.h"
 
 //Current version
-#define WAIT_ZAR_VERSION _T("1.5")
+#define WAIT_ZAR_VERSION _T("1.5+ Beta")
 
 //Menu item texts
 TCHAR* POPUP_UNI = _T("Unicode 5.1");
@@ -1199,7 +1199,7 @@ BOOL moveCursorRight(int amt, BOOL allowSameIndex)
 			if (newAmt-trigram_count<0)
 				break;
 			trigram[trigram_count] = *findIT;
-			if (trigram_count<2)
+			if (trigram_count<2 && newAmt-trigram_count-1>=0)
 				findIT--;
 		}
 		model->insertTrigram(trigram, trigram_count);
