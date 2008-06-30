@@ -4,7 +4,7 @@
  * Please refer to the end of the file for licensing information
  */
 
-#include ".\wordbuilder.h"
+#include "WordBuilder.h"
 
 
 
@@ -16,9 +16,278 @@
  * If userWordsFile doesn't exist, it is ignored. If modelFile doesn't exist, it 
  *  causes unpredictable behavior.
  */
-WordBuilder::WordBuilder (wchar_t* modelFile, wchar_t* userWordsFile)
+WordBuilder::WordBuilder (char* modelFilePath, char* userWordsFilePath)
 {
-	//Not implemented yet...
+	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
+	unsigned short **dictionary;
+	unsigned int **nexus;
+	unsigned int **prefix;
+	int dictMaxID;
+	int dictMaxSize;
+	int nexusMaxID;
+	int nexusMaxSize;
+	int prefixMaxID;
+	int prefixMaxSize;
+	
+	//Step one: open the model file (ASCII)
+	FILE* modelFile = fopen(modelFilePath, "r");
+	if (modelFile == NULL) {
+		printf("Cannot create WordBuilder; model file does not exist.\n    %s\n", modelFile);
+		return;
+	}
+	
+	//Step two: figure out its length and convert it to a character array.
+	fseek (modelFile, 0, SEEK_END);
+	long modelFileSize = ftell(modelFile);
+	rewind(modelFile);
+	char * model_buff = (char*) malloc(sizeof(char)*modelFileSize);
+	size_t model_buff_size = fread(model_buff, 1, modelFileSize, modelFile);
+	fclose(modelFile);
+	
+	//Step three: Read each line
+	size_t currLineStart = 0;
+	unsigned short count;
+	unsigned short lastCommentedNumber;
+	unsigned int currDictionaryID;
+	unsigned short newWordSz;
+	unsigned short mode = 0;
+	unsigned int newWord[1000];
+	char currLetter[] = "1000";
+	int numberCheck = 0; //Special...
+	while (currLineStart < model_buff_size) {
+		//Step 3-A: left-trim spaces
+		while (model_buff[currLineStart] == ' ')
+			currLineStart++;
+		
+		//Step 3-B: Deal with coments and empty lines
+		if (model_buff[currLineStart] == '\n') {
+			//Step 3-B-i: Skip comments
+			currLineStart++;
+			continue;
+		} else if (model_buff[currLineStart] == '#') {
+			//Step 3-B-ii: Handle comments (find the number which is commented out)
+			count = 0;
+			mode++;
+			lastCommentedNumber = 0;
+			for (;;) {
+				char curr = model_buff[currLineStart++];
+				if (curr == '\n')
+					break;
+				else if (curr >= '0' && curr <= '9') {
+					lastCommentedNumber *= 10;
+					lastCommentedNumber += (curr-'0');
+				}
+			}
+			
+			//Step 3-B-iii: use this number to initialize our data structures
+			switch (mode) {
+				case 1: //Words
+					//Initialize our dictionary
+					dictMaxID = lastCommentedNumber;
+					dictMaxSize = (dictMaxID*3)/2;
+					dictionary = (unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
+					currDictionaryID = 0;
+					break;
+				case 2: //Nexi
+					//Initialize our nexus list
+					nexusMaxID = lastCommentedNumber;
+					nexusMaxSize = (nexusMaxID*3)/2;
+					nexus = (unsigned int **)malloc(nexusMaxSize * sizeof(unsigned int *));
+					currDictionaryID = 0;
+					break;
+				case 3: //Prefixes
+					//Initialize our prefixes list
+					prefixMaxID = lastCommentedNumber;
+					prefixMaxSize = (prefixMaxID*3)/2;
+					prefix = (unsigned int **)malloc(prefixMaxSize * sizeof(unsigned int *));
+					currDictionaryID = 0;
+					break;
+			}
+			continue;
+		}
+		
+		//Step 3-C: Act differently based on the mode we're in
+		switch (mode) {
+			case 1: //Words
+			{
+				//Skip until the first number inside the bracket
+				while (model_buff[currLineStart] != '[')
+					currLineStart++;
+				currLineStart++;
+
+				//Keep reading until the terminating bracket.
+				//  Each "word" is of the form DD(-DD)*,
+				newWordSz = 0;
+				for(;;) {
+					//Read a "pair"
+					currLetter[2] = model_buff[currLineStart++];
+					currLetter[3] = model_buff[currLineStart++];
+
+					//Translate/Add this letter
+					newWord[newWordSz++] = (unsigned short)strtol(currLetter, NULL, 16);
+
+					//Continue?
+					char nextChar = model_buff[currLineStart++];
+					if (nextChar == ',' || nextChar == ']') {
+						//Double check
+						if (numberCheck<10) {
+							if (newWordSz!=1 || newWord[0]!=0x1040+numberCheck) {
+								printf("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i", newWord[0], newWordSz);
+								return;
+							}
+							numberCheck++;
+						}
+
+						//Finangle & add this word
+						dictionary[currDictionaryID] = (unsigned short *)malloc((newWordSz+1) * sizeof(unsigned short));
+						dictionary[currDictionaryID][0] = (unsigned short)newWordSz;
+						for (int i=0; i<newWordSz; i++) {
+							dictionary[currDictionaryID][i+1] = newWord[i];
+						}
+						currDictionaryID++;
+
+						//Continue?
+						if (nextChar == ']')
+							break;
+						else
+							newWordSz = 0;
+					}
+				}
+				break;
+			}
+			case 2: //Mappings (nexi)
+			{
+				//Skip until the first letter inside the bracket
+				while (model_buff[currLineStart] != '{')
+					currLineStart++;
+				currLineStart++;
+
+				//A new hashtable for this entry.
+				newWordSz=0;
+				while (model_buff[currLineStart] != '}') {
+					//Read a hashed mapping: character
+					int nextInt = 0;
+					char nextChar = 0;
+					while (model_buff[currLineStart] != ':')
+						nextChar = model_buff[currLineStart++];
+					currLineStart++;
+
+					//Read a hashed mapping: number
+					while (model_buff[currLineStart] != ',' && model_buff[currLineStart] != '}') {
+						nextInt *= 10;
+						nextInt += (model_buff[currLineStart++] - '0');
+					}
+
+					//Add that entry to the hash
+					newWord[newWordSz++] = ((nextInt<<8) | (0xFF&nextChar));
+
+					//Continue?
+					if (model_buff[currLineStart] == ',')
+						currLineStart++;
+				}
+
+				//Add this entry to the current vector collection
+				nexus[currDictionaryID] = (unsigned int *)malloc((newWordSz+1) * sizeof(unsigned int));
+				nexus[currDictionaryID][0] = (unsigned int)newWordSz;
+				for (int i=0; i<newWordSz; i++) {
+					nexus[currDictionaryID][i+1] = newWord[i];
+				}
+				currDictionaryID++;
+
+				break;
+			}
+			case 3: //Prefixes (mapped)
+			{
+				//Skip until the first letter inside the bracket
+				while (model_buff[currLineStart] != '{')
+					currLineStart++;
+				currLineStart++;
+
+				//A new hashtable for this entry.
+				newWordSz = 0;
+				int nextVal;
+				while (model_buff[currLineStart] != '}') {
+					//Read a hashed mapping: number
+					nextVal = 0;
+					while (model_buff[currLineStart] != ':') {
+						nextVal *= 10;
+						nextVal += (model_buff[currLineStart++] - '0');
+					}
+					currLineStart++;
+
+					//Store: key
+					newWord[newWordSz++] = nextVal;
+
+					//Read a hashed mapping: number
+					nextVal = 0;
+					while (model_buff[currLineStart] != ',' && model_buff[currLineStart] != '}') {
+						nextVal *= 10;
+						nextVal += (model_buff[currLineStart++] - '0');
+					}
+					//Store: val
+					newWord[newWordSz++] = nextVal;
+
+					//Continue
+					if (model_buff[currLineStart] == ',')
+						currLineStart++;
+				}
+
+				//Used to mark our "halfway" boundary.
+				lastCommentedNumber = newWordSz;
+
+				//Skip until the first letter inside the square bracket
+				while (model_buff[currLineStart] != '[')
+					currLineStart++;
+				currLineStart++;
+
+				//Add a new vector for these
+				while (model_buff[currLineStart] != ']') {
+					//Read a hashed mapping: number
+					nextVal = 0;
+					while (model_buff[currLineStart] != ',' && model_buff[currLineStart] != ']') {
+						nextVal *= 10;
+						nextVal += (model_buff[currLineStart++] - '0');
+					}
+
+					//Add it
+					newWord[newWordSz++] = nextVal;
+
+					//Continue
+					if (model_buff[currLineStart] == ',')
+						currLineStart++;
+				}
+
+				//Add this entry to the current vector collection
+				prefix[currDictionaryID] = (unsigned int *)malloc((newWordSz+2) * sizeof(unsigned int));
+				prefix[currDictionaryID][0] = (unsigned int)lastCommentedNumber/2;
+				prefix[currDictionaryID][1] = (unsigned int)(newWordSz - lastCommentedNumber);
+				for (int i=0; i<lastCommentedNumber; i++) {
+					prefix[currDictionaryID][i+2] = newWord[i];
+				}
+				for (unsigned int i=0; i<prefix[currDictionaryID][1]; i++) {
+					prefix[currDictionaryID][i+lastCommentedNumber+2] = newWord[i+lastCommentedNumber];
+				}
+				currDictionaryID++;
+
+				break;
+			}
+			default:
+				printf("Too many comments.");
+				return;
+		}
+
+		//Right-trim
+		while (model_buff[currLineStart] != '\n')
+			currLineStart++;
+		currLineStart++;
+	}
+	
+	//Initialize the model, reclaim memory
+	init(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
+	delete [] model_buff;
+	
+	
+	///Now, load the user's custom words (later)
 }
 
 
@@ -48,6 +317,28 @@ WordBuilder::WordBuilder (wchar_t* modelFile, wchar_t* userWordsFile)
  */
 WordBuilder::WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)
 {
+        //Initialize the model
+	init(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);	
+}
+
+WordBuilder::~WordBuilder(void)
+{
+	//NOTE: This function probably doesn't ever need to be implemented properly.
+	//      The way it stands, all files are scanned and data loaded when the
+	//      program first starts. This all remains in memory until the program
+	//      exits, at which point the entire process terminates anyways.
+	//      There is never more than one WordBuilder, dictionary, nexus, prefix array, etc.
+	//      So, we don't really worry too much about memory (except brushes and windows and 
+	//      those kinds of things.)
+}
+
+
+void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) 
+{
+	/*printf("dictionary: %i\n", dictMaxID);
+	printf("nexus: %i\n", nexusMaxID);
+	printf("prefix: %i\n", prefixMaxID);*/
+	
 	//Store for later
 	this->dictionary = dictionary;
 	this->nexus = nexus;
@@ -84,17 +375,6 @@ WordBuilder::WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMa
 
 	//Start off
 	this->reset(true);
-}
-
-WordBuilder::~WordBuilder(void)
-{
-	//NOTE: This function probably doesn't ever need to be implemented properly.
-	//      The way it stands, all files are scanned and data loaded when the
-	//      program first starts. This all remains in memory until the program
-	//      exits, at which point the entire process terminates anyways.
-	//      There is never more than one WordBuilder, dictionary, nexus, prefix array, etc.
-	//      So, we don't really worry too much about memory (except brushes and windows and 
-	//      those kinds of things.)
 }
 
 
