@@ -62,6 +62,9 @@ WordBuilder::WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMa
 	this->prefixMaxID = prefixMaxID;
 	this->prefixMaxSize = prefixMaxSize;
 
+	//Default:
+	this->currEncoding = ENCODING_UNICODE;
+
 	//Cache
 	punctHalfStopUni = 0x104A;
 	punctFullStopUni = 0x104B;

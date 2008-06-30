@@ -129,6 +129,166 @@ Types a letter and updates the available word/letter list appropriately. Please 
 </td>
 </tr>
 
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::pair&lt;bool, unsigned int&gt;&nbsp;</code></font></td>
+<td><code><b class="className">typeSpace</b>(int quickJumpID)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Selects the current candidate word based on calls to moveRight() and returns its ID. A boolean value indicates if any word was selected at all.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">backspace</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Deletes one letter and moves the current nexus back one; returns false if there are no letters to delete.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>void&nbsp;</code></font></td>
+<td><code><b class="className">reset</b>(bool fullReset)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Resets the current romanisation attempt. If "fullReset" is true, it also removes any captured trigrams. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">moveRight</b>(int amt)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Moves the cursor right "amt" spaces, if possible ("amt" can be negative). Returns false if "amt" number of moves could not be made, or if amt is zero.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>int&nbsp;</code></font></td>
+<td><code><b class="className">getCurrSelectedID</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Gets the index of the current selected item. Returns -1 if there are no items to select.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::vector&lt;char&gt;&nbsp;</code></font></td>
+<td><code><b class="className">getPossibleChars</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns all valid moves forward from this point. The prototype of WaitZar uses this, but the release version does not. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::vector &lt;unsigned int&gt;&nbsp;</code></font></td>
+<td><code><b class="className">getPossibleWords</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns the IDs of all possible words at this point. Call getWordString() on each ID to retrieve the Zawgyi-One encoded string for each word. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>void&nbsp;</code></font></td>
+<td><code><b class="className">insertTrigram</b>(unsigned short* trigram_ids, int num_used_trigrams)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Re-writes the current accumulated trigram (see method detail, below.) 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>wchar_t*</code></font></td>
+<td><code><b class="className">getWordString</b>(unsigned int id)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns the wide-character string for a Myanmar word (in Zawgyi-One encoding) for a given ID. Note that the wchar_t pointer is shared; multiple calls to this function should use strcpy() to copy the returned value locally, lest all returned values default to that of the final string (see method detail, below.) 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::vector &lt;unsigned short&gt;&nbsp;</code></font></td>
+<td><code><b class="className">getWordKeyStrokes</b>(unsigned int id)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+For a given id, returns the key strokes required to type that word. Technically similar to getWordString(), but the vector of unsigned short values allows Wait Zar to pass each item to SendInput() fairly cleanly. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>wchar_t*&nbsp;</code></font></td>
+<td><code><b class="className">getParenString</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Consider a word in the model, like "singapore". After typing "singap", there are no options reachable from this point except "ore". Calling getParenString() at this point will return this. On the contrary, after typing "k", getParenString() will return "" (empty string) --there are multiple options at this point. By default, if getPossibleWords() returns nothing, WaitZar will then check if getParenString() returns anything; if so, typing space will enter this word. This speeds up typing in general.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>unsigned short&nbsp;</code></font></td>
+<td><code><b class="className">getStopCharacter</b>(bool isFull)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+For isFull==true, returns the full stop character for this encoding; if isFull==false, returns the half stop character. See also: getOutputEncoding().
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">addRomanization</b>(wchar_t* myanmar, char* roman)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Adds a given "myanmar" word (encoded according to the Zawgyi-One specification), and its relative "roman"isation to the model. Returns an indication of success; see also: getLastError().
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>wchar_t*&nbsp;</code></font></td>
+<td><code><b class="className">getLastError</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+For any function that may fail with a specific error (for now, only "addRomanization()"), returns the text of that error message. Presumably, one would present the user with this information. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>void&nbsp;</code></font></td>
+<td><code><b class="className">setOutputEncoding</b>(unsigned int encoding)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Sets the output encoding for this model to one of the following: ENCODING_UNICODE, ENCODING_ZAWGYI, ENCODING_WININNWA. Note that ENCODING_UNICODE refers to the Unicode standard version 5.1+ (e.g., PadaukOT, Parabaik, Myanmar3). These constants are defined in WordBuilder.h
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>unsigned int&nbsp;</code></font></td>
+<td><code><b class="className">getOutputEncoding</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns the output encoding set by the user (see: setOutputEncoding()). Defaults to ENCODING_UNICODE.
+</td>
+</tr>
+
 </tbody></table>
 
 
@@ -142,280 +302,6 @@ Types a letter and updates the available word/letter list appropriately. Please 
 <br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;
 <h1>From Java (will delete later...)</h1>
 
-
-<a name="method_summary"><!-- --></a>
-<table summary="" width="100%" border="1" cellpadding="3" cellspacing="0">
-<tbody><tr class="TableHeadingColor" bgcolor="#ccccff">
-<th colspan="2" align="left"><font size="+2">
-<b>Method Summary</b></font></th>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>static&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a></code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#compile%28java.lang.String%29">compile</a></b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;regex)</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Compiles the given regular expression into a pattern.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>static&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a></code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#compile%28java.lang.String,%20int%29">compile</a></b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;regex,
-        int&nbsp;flags)</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Compiles the given regular expression into a pattern with the given
- flags.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>&nbsp;int</code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#flags%28%29">flags</a></b>()</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Returns this pattern's match flags.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Matcher.html" title="class in java.util.regex">Matcher</a></code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#matcher%28java.lang.CharSequence%29">matcher</a></b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input)</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Creates a
-matcher that will match the given input against this pattern.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>static&nbsp;boolean</code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#matches%28java.lang.String,%20java.lang.CharSequence%29">matches</a></b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;regex,
-        <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input)</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Compiles
-the given regular expression and attempts to match the given input
-against it.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a></code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#pattern%28%29">pattern</a></b>()</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Returns the regular expression from which this pattern was compiled.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>static&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a></code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#quote%28java.lang.String%29">quote</a></b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;s)</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Returns a literal pattern <code>String</code> for the specified
- <code>String</code>.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>[]</code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#split%28java.lang.CharSequence%29">split</a></b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input)</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Splits the given input sequence around matches of this pattern.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>[]</code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#split%28java.lang.CharSequence,%20int%29">split</a></b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input,
-      int&nbsp;limit)</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Splits the given input sequence around matches of this pattern.</td>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td valign="top" width="1%" align="right"><font size="-1">
-<code>&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a></code></font></td>
-<td><code><b><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#toString%28%29">toString</a></b>()</code>
-
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Returns the string representation of this pattern.</td>
-</tr>
-</tbody></table>
-&nbsp;<a name="methods_inherited_from_class_java.lang.Object"><!-- --></a>
-<table summary="" width="100%" border="1" cellpadding="3" cellspacing="0">
-<tbody><tr class="TableSubHeadingColor" bgcolor="#eeeeff">
-<th align="left"><b>Methods inherited from class java.lang.<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html" title="class in java.lang">Object</a></b></th>
-</tr>
-<tr class="TableRowColor" bgcolor="white">
-<td><code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#clone%28%29">clone</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#equals%28java.lang.Object%29">equals</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#finalize%28%29">finalize</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#getClass%28%29">getClass</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#hashCode%28%29">hashCode</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#notify%28%29">notify</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#notifyAll%28%29">notifyAll</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#wait%28%29">wait</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#wait%28long%29">wait</a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#wait%28long,%20int%29">wait</a></code></td>
-</tr>
-</tbody></table>
-&nbsp;
-<p>
-
-<!-- ============ FIELD DETAIL =========== -->
-
-<a name="field_detail"><!-- --></a>
-</p><table summary="" width="100%" border="1" cellpadding="3" cellspacing="0">
-<tbody><tr class="TableHeadingColor" bgcolor="#ccccff">
-<th colspan="1" align="left"><font size="+2">
-<b>Field Detail</b></font></th>
-</tr>
-</tbody></table>
-
-<a name="UNIX_LINES"><!-- --></a><h3>
-UNIX_LINES</h3>
-<pre>public static final int <b>UNIX_LINES</b></pre>
-<dl>
-<dd>Enables Unix lines mode.
-
- <p> In this mode, only the <tt>'\n'</tt> line terminator is recognized
- in the behavior of <tt>.</tt>, <tt>^</tt>, and <tt>$</tt>.
-
- </p><p> Unix lines mode can also be enabled via the embedded flag
- expression&nbsp;<tt>(?d)</tt>.
-</p><p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.UNIX_LINES">Constant Field Values</a></dd></dl>
-</dd></dl>
-<hr>
-
-<a name="CASE_INSENSITIVE"><!-- --></a><h3>
-CASE_INSENSITIVE</h3>
-<pre>public static final int <b>CASE_INSENSITIVE</b></pre>
-<dl>
-<dd>Enables case-insensitive matching.
-
- <p> By default, case-insensitive matching assumes that only characters
- in the US-ASCII charset are being matched.  Unicode-aware
- case-insensitive matching can be enabled by specifying the <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#UNICODE_CASE"><code>UNICODE_CASE</code></a> flag in conjunction with this flag.
-
- </p><p> Case-insensitive matching can also be enabled via the embedded flag
- expression&nbsp;<tt>(?i)</tt>.
-
- </p><p> Specifying this flag may impose a slight performance penalty.  </p>
-<p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.CASE_INSENSITIVE">Constant Field Values</a></dd></dl>
-</dd></dl>
-<hr>
-
-<a name="COMMENTS"><!-- --></a><h3>
-COMMENTS</h3>
-<pre>public static final int <b>COMMENTS</b></pre>
-<dl>
-<dd>Permits whitespace and comments in pattern.
-
- <p> In this mode, whitespace is ignored, and embedded comments starting
- with <tt>#</tt> are ignored until the end of a line.
-
- </p><p> Comments mode can also be enabled via the embedded flag
- expression&nbsp;<tt>(?x)</tt>.
-</p><p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.COMMENTS">Constant Field Values</a></dd></dl>
-</dd></dl>
-<hr>
-
-<a name="MULTILINE"><!-- --></a><h3>
-MULTILINE</h3>
-<pre>public static final int <b>MULTILINE</b></pre>
-<dl>
-<dd>Enables multiline mode.
-
- <p> In multiline mode the expressions <tt>^</tt> and <tt>$</tt> match
- just after or just before, respectively, a line terminator or the end of
- the input sequence.  By default these expressions only match at the
- beginning and the end of the entire input sequence.
-
- </p><p> Multiline mode can also be enabled via the embedded flag
- expression&nbsp;<tt>(?m)</tt>.  </p>
-<p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.MULTILINE">Constant Field Values</a></dd></dl>
-</dd></dl>
-<hr>
-
-<a name="LITERAL"><!-- --></a><h3>
-LITERAL</h3>
-<pre>public static final int <b>LITERAL</b></pre>
-<dl>
-<dd>Enables literal parsing of the pattern.
-
- <p> When this flag is specified then the input string that specifies
- the pattern is treated as a sequence of literal characters.
- Metacharacters or escape sequences in the input sequence will be
- given no special meaning.
-
- </p><p>The flags CASE_INSENSITIVE and UNICODE_CASE retain their impact on
- matching when used in conjunction with this flag. The other flags
- become superfluous.
-
- </p><p> There is no embedded flag character for enabling literal parsing.
-</p><p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.LITERAL">Constant Field Values</a></dd></dl>
-</dd></dl>
-<hr>
-
-<a name="DOTALL"><!-- --></a><h3>
-DOTALL</h3>
-<pre>public static final int <b>DOTALL</b></pre>
-<dl>
-<dd>Enables dotall mode.
-
- <p> In dotall mode, the expression <tt>.</tt> matches any character,
- including a line terminator.  By default this expression does not match
- line terminators.
-
- </p><p> Dotall mode can also be enabled via the embedded flag
- expression&nbsp;<tt>(?s)</tt>.  (The <tt>s</tt> is a mnemonic for
- "single-line" mode, which is what this is called in Perl.)  </p>
-<p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.DOTALL">Constant Field Values</a></dd></dl>
-</dd></dl>
-<hr>
-
-<a name="UNICODE_CASE"><!-- --></a><h3>
-UNICODE_CASE</h3>
-<pre>public static final int <b>UNICODE_CASE</b></pre>
-<dl>
-<dd>Enables Unicode-aware case folding.
-
- <p> When this flag is specified then case-insensitive matching, when
- enabled by the <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#CASE_INSENSITIVE"><code>CASE_INSENSITIVE</code></a> flag, is done in a manner
- consistent with the Unicode Standard.  By default, case-insensitive
- matching assumes that only characters in the US-ASCII charset are being
- matched.
-
- </p><p> Unicode-aware case folding can also be enabled via the embedded flag
- expression&nbsp;<tt>(?u)</tt>.
-
- </p><p> Specifying this flag may impose a performance penalty.  </p>
-<p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.UNICODE_CASE">Constant Field Values</a></dd></dl>
-</dd></dl>
-<hr>
-
-<a name="CANON_EQ"><!-- --></a><h3>
-CANON_EQ</h3>
-<pre>public static final int <b>CANON_EQ</b></pre>
-<dl>
-<dd>Enables canonical equivalence.
-
- <p> When this flag is specified then two characters will be considered
- to match if, and only if, their full canonical decompositions match.
- The expression <tt>"a\u030A"</tt>, for example, will match the
- string <tt>"å"</tt> when this flag is specified.  By default,
- matching does not take canonical equivalence into account.
-
- </p><p> There is no embedded flag character for enabling canonical
- equivalence.
-
- </p><p> Specifying this flag may impose a performance penalty.  </p>
-<p>
-</p><dl>
-<dt><b>See Also:</b></dt><dd><a href="http://java.sun.com/j2se/1.5.0/docs/api/constant-values.html#java.util.regex.Pattern.CANON_EQ">Constant Field Values</a></dd></dl>
-</dd></dl>
 
 <!-- ============ METHOD DETAIL ========== -->
 
