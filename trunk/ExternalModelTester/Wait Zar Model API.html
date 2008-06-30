@@ -10,6 +10,10 @@
 	  font: 3em sans-serif;
 	  margin: 12px 12px 12px 12px;
 	} 
+	a {
+	  color:#00EEEE; 
+	  text-decoration:none;
+	}
 	h2{ 
 	  color: #AAFFBB; 
 	  font: 1.5em monospace;
@@ -295,348 +299,42 @@ Returns the output encoding set by the user (see: setOutputEncoding()). Defaults
 
 <br>&nbsp;<hr>
 
-<h3>Methods in Detail  (WordBuilder.cpp)</h3>
-(later)
+<h3>Methods in Detail </h3>
 
-<p>
-<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;
-<h1>From Java (will delete later...)</h1>
-
-
-<!-- ============ METHOD DETAIL ========== -->
-
-<a name="method_detail"><!-- --></a>
-<table summary="" width="100%" border="1" cellpadding="3" cellspacing="0">
-<tbody><tr class="TableHeadingColor" bgcolor="#ccccff">
-<th colspan="1" align="left"><font size="+2">
-<b>Method Detail</b></font></th>
+<!-- Table header -->
+<table summary="" width="100%" border="1" cellpadding="3" cellspacing="0" style="border:2px solid #999999;"><tbody>
+<tr bgcolor="#AAFFBB">
+<th colspan="2" align="left" style="border:1px solid #00CC00;">
+<b style="font: 1.0em sans-serif; font-weight:bold; color: #000000;">WordBuilder.cpp</b></th>
 </tr>
 </tbody></table>
 
-<a name="compile(java.lang.String)"><!-- --></a><h3>
-compile</h3>
-<pre>public static <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a> <b>compile</b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;regex)</pre>
-<dl>
-<dd>Compiles the given regular expression into a pattern.  
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
+<!-- Elements -->
+
+<h3>WordBuilder</h3>
+<pre>WordBuilder::<b class="className">WordBuilder</b>(wchar_t* modelFile, wchar_t* userWordsFile)</pre>
+<dl><dd>Constructs a WordBuilder object. Most developers will prefer this constructor.
+</dl></dd>
 <dd><dl>
-<dt><b>Parameters:</b></dt><dd><code>regex</code> - The expression to be compiled
-</dd><dt><b>Throws:</b>
-</dt><dd><code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/PatternSyntaxException.html" title="class in java.util.regex">PatternSyntaxException</a></code> - If the expression's syntax is invalid</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="compile(java.lang.String, int)"><!-- --></a><h3>
-compile</h3>
-<pre>public static <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a> <b>compile</b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;regex,
-                              int&nbsp;flags)</pre>
-<dl>
-<dd>Compiles the given regular expression into a pattern with the given
- flags.  
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-<dt><b>Parameters:</b></dt><dd><code>regex</code> - The expression to be compiled</dd><dd><code>flags</code> - Match flags, a bit mask that may include
-         <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#CASE_INSENSITIVE"><code>CASE_INSENSITIVE</code></a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#MULTILINE"><code>MULTILINE</code></a>, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#DOTALL"><code>DOTALL</code></a>,
-         <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#UNICODE_CASE"><code>UNICODE_CASE</code></a>, and <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#CANON_EQ"><code>CANON_EQ</code></a>
-</dd><dt><b>Throws:</b>
-</dt><dd><code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - If bit values other than those corresponding to the defined
-          match flags are set in <tt>flags</tt>
-</dd><dd><code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/PatternSyntaxException.html" title="class in java.util.regex">PatternSyntaxException</a></code> - If the expression's syntax is invalid</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="pattern()"><!-- --></a><h3>
-pattern</h3>
-<pre>public <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a> <b>pattern</b>()</pre>
-<dl>
-<dd>Returns the regular expression from which this pattern was compiled.
- 
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-
-<dt><b>Returns:</b></dt><dd>The source of this pattern</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="toString()"><!-- --></a><h3>
-toString</h3>
-<pre>public <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a> <b>toString</b>()</pre>
-<dl>
-<dd><p>Returns the string representation of this pattern. This
- is the regular expression from which this pattern was
- compiled.</p>
-<p>
-</p></dd><dd><dl>
-<dt><b>Overrides:</b></dt><dd><code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html#toString%28%29">toString</a></code> in class <code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Object.html" title="class in java.lang">Object</a></code></dd></dl>
-</dd>
-<dd><dl>
-
-<dt><b>Returns:</b></dt><dd>The string representation of this pattern</dd><dt><b>Since:</b></dt>
-  <dd>1.5</dd>
+<dt><b>Parameters:</b></dt>
+<dd><code>modelFile</code> - Path to "Myanmar.model", a file that describes the Wait Zar model. <a href="http://waitzar.googlecode.com/svn/trunk/win32_source/Myanmar.model">Download a copy from the SVN.</a></dd>
+<dd><code>userWordsFile</code> - Path to "mywords.txt", an (optional) UTF-8-encoded file specifying additional user romanisations --one per line-- of the form "myanmar = roman".</dd>
+<!--dt><b>Returns:</b></dt><dd>nothing</dd-->
 </dl>
 </dd>
 </dl>
 <hr>
 
-<a name="matcher(java.lang.CharSequence)"><!-- --></a><h3>
-matcher</h3>
-<pre>public <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Matcher.html" title="class in java.util.regex">Matcher</a> <b>matcher</b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input)</pre>
-<dl>
-<dd>Creates a matcher that will match the given input against this pattern.
- 
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-<dt><b>Parameters:</b></dt><dd><code>input</code> - The character sequence to be matched
-</dd><dt><b>Returns:</b></dt><dd>A new matcher for this pattern</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="flags()"><!-- --></a><h3>
-flags</h3>
-<pre>public int <b>flags</b>()</pre>
-<dl>
-<dd>Returns this pattern's match flags.  
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-
-<dt><b>Returns:</b></dt><dd>The match flags specified when this pattern was compiled</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="matches(java.lang.String, java.lang.CharSequence)"><!-- --></a><h3>
-matches</h3>
-<pre>public static boolean <b>matches</b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;regex,
-                              <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input)</pre>
-<dl>
-<dd>Compiles the given regular expression and attempts to match the given
- input against it.
-
- <p> An invocation of this convenience method of the form
-
- </p><blockquote><pre> Pattern.matches(regex, input);</pre></blockquote>
-
- behaves in exactly the same way as the expression
-
- <blockquote><pre> Pattern.compile(regex).matcher(input).matches()</pre></blockquote>
-
- <p> If a pattern is to be used multiple times, compiling it once and reusing
- it will be more efficient than invoking this method each time.  </p>
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-<dt><b>Parameters:</b></dt><dd><code>regex</code> - The expression to be compiled</dd><dd><code>input</code> - The character sequence to be matched
-</dd><dt><b>Throws:</b>
-</dt><dd><code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/PatternSyntaxException.html" title="class in java.util.regex">PatternSyntaxException</a></code> - If the expression's syntax is invalid</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="split(java.lang.CharSequence, int)"><!-- --></a><h3>
-split</h3>
-<pre>public <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>[] <b>split</b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input,
-                      int&nbsp;limit)</pre>
-<dl>
-<dd>Splits the given input sequence around matches of this pattern.
-
- <p> The array returned by this method contains each substring of the
- input sequence that is terminated by another subsequence that matches
- this pattern or is terminated by the end of the input sequence.  The
- substrings in the array are in the order in which they occur in the
- input.  If this pattern does not match any subsequence of the input then
- the resulting array has just one element, namely the input sequence in
- string form.
-
- </p><p> The <tt>limit</tt> parameter controls the number of times the
- pattern is applied and therefore affects the length of the resulting
- array.  If the limit <i>n</i> is greater than zero then the pattern
- will be applied at most <i>n</i>&nbsp;-&nbsp;1 times, the array's
- length will be no greater than <i>n</i>, and the array's last entry
- will contain all input beyond the last matched delimiter.  If <i>n</i>
- is non-positive then the pattern will be applied as many times as
- possible and the array can have any length.  If <i>n</i> is zero then
- the pattern will be applied as many times as possible, the array can
- have any length, and trailing empty strings will be discarded.
-
- </p><p> The input <tt>"boo:and:foo"</tt>, for example, yields the following
- results with these parameters:
-
- </p><blockquote><table summary="Split examples showing regex, limit, and result" cellpadding="1" cellspacing="0">
- <tbody><tr><th><p align="left"><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></p></th>
-     <th><p align="left"><i>Limit&nbsp;&nbsp;&nbsp;&nbsp;</i></p></th>
-     <th><p align="left"><i>Result&nbsp;&nbsp;&nbsp;&nbsp;</i></p></th></tr>
- <tr><td align="center">:</td>
-     <td align="center">2</td>
-     <td><tt>{ "boo", "and:foo" }</tt></td></tr>
- <tr><td align="center">:</td>
-     <td align="center">5</td>
-     <td><tt>{ "boo", "and", "foo" }</tt></td></tr>
- <tr><td align="center">:</td>
-     <td align="center">-2</td>
-     <td><tt>{ "boo", "and", "foo" }</tt></td></tr>
- <tr><td align="center">o</td>
-     <td align="center">5</td>
-     <td><tt>{ "b", "", ":and:f", "", "" }</tt></td></tr>
- <tr><td align="center">o</td>
-     <td align="center">-2</td>
-     <td><tt>{ "b", "", ":and:f", "", "" }</tt></td></tr>
- <tr><td align="center">o</td>
-     <td align="center">0</td>
-     <td><tt>{ "b", "", ":and:f" }</tt></td></tr>
- </tbody></table></blockquote>
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-<dt><b>Parameters:</b></dt><dd><code>input</code> - The character sequence to be split</dd><dd><code>limit</code> - The result threshold, as described above
-</dd><dt><b>Returns:</b></dt><dd>The array of strings computed by splitting the input
-          around matches of this pattern</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="split(java.lang.CharSequence)"><!-- --></a><h3>
-split</h3>
-<pre>public <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>[] <b>split</b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a>&nbsp;input)</pre>
-<dl>
-<dd>Splits the given input sequence around matches of this pattern.
-
- <p> This method works as if by invoking the two-argument <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html#split%28java.lang.CharSequence,%20int%29"><code>split</code></a> method with the given input
- sequence and a limit argument of zero.  Trailing empty strings are
- therefore not included in the resulting array. </p>
-
- <p> The input <tt>"boo:and:foo"</tt>, for example, yields the following
- results with these expressions:
-
- </p><blockquote><table summary="Split examples showing regex and result" cellpadding="1" cellspacing="0">
- <tbody><tr><th><p align="left"><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></p></th>
-     <th><p align="left"><i>Result</i></p></th></tr>
- <tr><td align="center">:</td>
-     <td><tt>{ "boo", "and", "foo" }</tt></td></tr>
- <tr><td align="center">o</td>
-     <td><tt>{ "b", "", ":and:f" }</tt></td></tr>
- </tbody></table></blockquote>
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-<dt><b>Parameters:</b></dt><dd><code>input</code> - The character sequence to be split
-</dd><dt><b>Returns:</b></dt><dd>The array of strings computed by splitting the input
-          around matches of this pattern</dd></dl>
-</dd>
-</dl>
-<hr>
-
-<a name="quote(java.lang.String)"><!-- --></a><h3>
-quote</h3>
-<pre>public static <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a> <b>quote</b>(<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html" title="class in java.lang">String</a>&nbsp;s)</pre>
-<dl>
-<dd>Returns a literal pattern <code>String</code> for the specified
- <code>String</code>.
-
- <p>This method produces a <code>String</code> that can be used to
- create a <code>Pattern</code> that would match the string
- <code>s</code> as if it were a literal pattern.</p> Metacharacters
- or escape sequences in the input sequence will be given no special
- meaning.
-<p>
-</p></dd><dd><dl>
-</dl>
-</dd>
-<dd><dl>
-<dt><b>Parameters:</b></dt><dd><code>s</code> - The string to be literalized
-</dd><dt><b>Returns:</b></dt><dd>A literal string replacement</dd><dt><b>Since:</b></dt>
-  <dd>1.5</dd>
-</dl>
-</dd>
-</dl>
-<!-- ========= END OF CLASS DATA ========= -->
-<hr>
 
 
-<!-- ======= START OF BOTTOM NAVBAR ====== -->
-<a name="navbar_bottom"><!-- --></a>
-<a href="#skip-navbar_bottom" title="Skip navigation links"></a>
-<table summary="" width="100%" border="0" cellpadding="1" cellspacing="0">
-<tbody><tr>
-<td colspan="2" class="NavBarCell1" bgcolor="#eeeeff">
-<a name="navbar_bottom_firstrow"><!-- --></a>
-<table summary="" border="0" cellpadding="0" cellspacing="3">
-  <tbody><tr valign="top" align="center">
-  <td class="NavBarCell1" bgcolor="#eeeeff">    <a href="http://java.sun.com/j2se/1.5.0/docs/api/overview-summary.html"><font class="NavBarFont1"><b>Overview</b></font></a>&nbsp;</td>
-  <td class="NavBarCell1" bgcolor="#eeeeff">    <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/package-summary.html"><font class="NavBarFont1"><b>Package</b></font></a>&nbsp;</td>
-  <td class="NavBarCell1Rev" bgcolor="#ffffff"> &nbsp;<font class="NavBarFont1Rev"><b>Class</b></font>&nbsp;</td>
-  <td class="NavBarCell1" bgcolor="#eeeeff">    <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/class-use/Pattern.html"><font class="NavBarFont1"><b>Use</b></font></a>&nbsp;</td>
-  <td class="NavBarCell1" bgcolor="#eeeeff">    <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/package-tree.html"><font class="NavBarFont1"><b>Tree</b></font></a>&nbsp;</td>
-  <td class="NavBarCell1" bgcolor="#eeeeff">    <a href="http://java.sun.com/j2se/1.5.0/docs/api/deprecated-list.html"><font class="NavBarFont1"><b>Deprecated</b></font></a>&nbsp;</td>
-  <td class="NavBarCell1" bgcolor="#eeeeff">    <a href="http://java.sun.com/j2se/1.5.0/docs/api/index-files/index-1.html"><font class="NavBarFont1"><b>Index</b></font></a>&nbsp;</td>
-  <td class="NavBarCell1" bgcolor="#eeeeff">    <a href="http://java.sun.com/j2se/1.5.0/docs/api/help-doc.html"><font class="NavBarFont1"><b>Help</b></font></a>&nbsp;</td>
-  </tr>
-</tbody></table>
-</td>
-<td rowspan="3" valign="top" align="right"><em>
-<b>Java<sup><font size="-2">TM</font></sup>&nbsp;2&nbsp;Platform<br>Standard&nbsp;Ed. 5.0</b></em>
-</td>
-</tr>
 
-<tr>
-<td class="NavBarCell2" bgcolor="white"><font size="-2">
-&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/MatchResult.html" title="interface in java.util.regex"><b>PREV CLASS</b></a>&nbsp;
-&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/PatternSyntaxException.html" title="class in java.util.regex"><b>NEXT CLASS</b></a></font></td>
-<td class="NavBarCell2" bgcolor="white"><font size="-2">
-  <a href="http://java.sun.com/j2se/1.5.0/docs/api/index.html?java/util/regex/Pattern.html" target="_top"><b>FRAMES</b></a>  &nbsp;
-&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html" target="_top"><b>NO FRAMES</b></a>  &nbsp;
-&nbsp;<script type="text/javascript">
-  <!--
-  if(window==top) {
-    document.writeln('<A HREF="../../../allclasses-noframe.html"><B>All Classes</B></A>');
-  }
-  //-->
-</script><a href="http://java.sun.com/j2se/1.5.0/docs/api/allclasses-noframe.html"><b>All Classes</b></a>
-
-<noscript>
-  <A HREF="../../../allclasses-noframe.html"><B>All Classes</B></A>
-</noscript>
+<h2>More later </h2>
 
 
-</font></td>
-</tr>
-<tr>
-<td class="NavBarCell3" valign="top"><font size="-2">
-  SUMMARY:&nbsp;NESTED&nbsp;|&nbsp;<a href="#field_summary">FIELD</a>&nbsp;|&nbsp;CONSTR&nbsp;|&nbsp;<a href="#method_summary">METHOD</a></font></td>
-<td class="NavBarCell3" valign="top"><font size="-2">
-DETAIL:&nbsp;<a href="#field_detail">FIELD</a>&nbsp;|&nbsp;CONSTR&nbsp;|&nbsp;<a href="#method_detail">METHOD</a></font></td>
-</tr>
-</tbody></table>
-<a name="skip-navbar_bottom"></a>
-<!-- ======== END OF BOTTOM NAVBAR ======= -->
+<!-- Footer -->
+<br>&nbsp;<br>&nbsp;<br>&nbsp;
+<p><font size="-1">Copyright 2008 by Seth N. Hetu. Released under the Apache License, version 2.0. Please read the <a href="http://waitzar.googlecode.com/svn/trunk/LICENSE">License</a> and <a href="http://waitzar.googlecode.com/svn/trunk/NOTICE">Notice</a> files before copying this document.</font></p>
 
-<hr>
-<font size="-1"><a href="http://java.sun.com/cgi-bin/bugreport.cgi">Submit a bug or feature</a><br>For further API reference and developer documentation, see <a href="http://java.sun.com/j2se/1.5.0/docs/relnotes/devdocs-vs-specs.html">Java 2 SDK SE Developer Documentation</a>.
-That documentation contains more detailed, developer-targeted
-descriptions, with conceptual overviews, definitions of terms,
-workarounds, and working code examples. </font><p><font size="-1">Copyright 2004 Sun Microsystems, Inc. All rights reserved. Use is subject to <a href="http://java.sun.com/j2se/1.5.0/docs/relnotes/license.html">license terms</a>. Also see the <a href="http://java.sun.com/docs/redist.html">documentation redistribution policy</a>.</font>
-<script language="JavaScript" src="Pattern_files/s_code_remote.js"></script><script language="JavaScript" src="Pattern_files/metrics_group1.js"></script></p></body></html>
+<!-- HTML end -->
+</body>
+</html>
