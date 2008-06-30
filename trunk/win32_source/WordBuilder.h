@@ -15,24 +15,16 @@
 #include "fontconv.h"
 
 //If defined, we are running on Linux
-//#define __STDC_ISO_10646__  200104L
+//#ifdef __STDC_ISO_10646__  200104L
+// ...whatever...
+//#endif
 
 //Windows and Linux have different "Unicode-aware" methods
-#ifndef __STDC_ISO_10646__
 #define copystr(a, b)      wcscpy((a), (b))
 #define catstr(a, b)       wcscat((a), (b))
 #define lenstr(a)          wcslen((a))
 #define printstr(a, b, c)  swprintf((a), 150, (b), (c))
 #define compstr(a, b)      wcscmp((a), (b))
-//#include <windows.h>
-#endif
-#ifdef __STDC_ISO_10646__
-#define copystr(a, b)      strcpy((a), (b))
-#define catstr(a, b)       strcat((a), (b))
-#define lenstr(a)          strlen((a))
-#define printstr(a, b, c)  sprintf((a), (b), (c))
-#define compstr(a, b)      strcmp((a), (b))
-#endif
 
 //Useful constants
 #define ENCODING_UNICODE 1
@@ -48,7 +40,7 @@
 class WordBuilder
 {
 public:
-	WordBuilder (wchar_t* modelFile, wchar_t* userWordsFile);
+	WordBuilder (char* modelFile, char* userWordsFile);
 	WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize);
 	~WordBuilder(void);
 
@@ -121,6 +113,9 @@ private:
 
 	//Tracking user selection
 	int currSelectedID;
+	
+	//Extracted from our constructor
+        void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
 
 	//Internal stuff
 	std::vector<char> possibleChars;

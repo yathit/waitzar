@@ -29,7 +29,7 @@
  #define NULL 0
 #endif
 
-#include <tchar.h>
+//#include <tchar.h>
 
 struct Burglish_Regex_Range{
 	int start;
