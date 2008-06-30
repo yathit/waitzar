@@ -58,9 +58,9 @@ public:
 	bool backspace();
 	void reset(bool fullReset);
 	bool moveRight(int amt);
-	int getCurrSelectedID();
 	
 	//Information on the model's state
+	int getCurrSelectedID();
 	std::vector<char> getPossibleChars(void);
 	std::vector<unsigned int> getPossibleWords(void);
 	void insertTrigram(unsigned short* trigram_ids, int num_used_trigrams);
@@ -70,7 +70,7 @@ public:
 	wchar_t* getWordString(unsigned int id);
 	wchar_t* getParenString();
 
-	//Some additional useful info --probably will use this when mult. fonts are allowed
+	//Some additional useful info --used when mult. fonts are enabled
 	unsigned short getStopCharacter(bool isFull);
 
 	//Re-order the model
