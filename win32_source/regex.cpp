@@ -39,7 +39,7 @@
 //#include <stdlib.h> will need for malloc
 
 /* pass regex pattern to constructor */
-Regex::Regex(wchar_t* pat, bool global, bool greedy){
+Regex::Regex(const wchar_t* pat, bool global, bool greedy){
 	this->pattern=pat;
 	this->global=global;
 	this->greedy=greedy;
@@ -394,7 +394,7 @@ bool Regex::exec(wchar_t*str){
 }
 
 /* regex substitution */
-void Regex::sub(wchar_t*srcStr, wchar_t* replStr, wchar_t* destStr){
+void Regex::sub(wchar_t*srcStr, const wchar_t* replStr, wchar_t* destStr){
 
 	/* check string is not compile yet, 
 	* try to compile here */
@@ -418,7 +418,7 @@ void Regex::sub(wchar_t*srcStr, wchar_t* replStr, wchar_t* destStr){
 		if(resIdx<(int)gr.length &&
 			srcIdx>=gr.res[resIdx].range[0].start && srcIdx<=gr.res[resIdx].range[0].end ){
 		
-			wchar_t*rs=replStr;
+			const wchar_t*rs=replStr;
 		
 			/* loop for replStr */
 			while(*rs){
