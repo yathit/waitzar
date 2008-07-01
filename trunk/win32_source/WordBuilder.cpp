@@ -16,7 +16,7 @@
  * If userWordsFile doesn't exist, it is ignored. If modelFile doesn't exist, it 
  *  causes unpredictable behavior.
  */
-WordBuilder::WordBuilder (char* modelFilePath, char* userWordsFilePath)
+WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePath)
 {
 	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
 	unsigned short **dictionary;

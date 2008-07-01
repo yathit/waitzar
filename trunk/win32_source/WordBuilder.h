@@ -40,7 +40,7 @@
 class WordBuilder
 {
 public:
-	WordBuilder (char* modelFile, char* userWordsFile);
+	WordBuilder (const char* modelFile, const char* userWordsFile);
 	WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize);
 	~WordBuilder(void);
 

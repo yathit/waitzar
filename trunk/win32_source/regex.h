@@ -67,12 +67,12 @@ struct Burglish_Regex_Results{
 /* regex headers */
 class Regex{
 	public:
-		Regex(wchar_t* pattern, bool global=false, bool greedy=false);
+		Regex(const wchar_t* pattern, bool global=false, bool greedy=false);
 		~Regex();
 		void compile();
 		bool test(wchar_t* srcStr);
-		void sub(wchar_t*srcStr, wchar_t* replStr, wchar_t* destStr);
-		wchar_t* pattern;
+		void sub(wchar_t*srcStr, const wchar_t* replStr, wchar_t* destStr);
+		const wchar_t* pattern;
 		bool global;
 		bool greedy;
 	private:

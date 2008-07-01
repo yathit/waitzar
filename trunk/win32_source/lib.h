@@ -18,10 +18,10 @@
 
 #include <wchar.h>
 
-void cpy(wchar_t* dst, wchar_t* src);
+void cpy(wchar_t* dst, const wchar_t* src);
 void sub(wchar_t* dst, wchar_t* src, wchar_t* from, wchar_t* to, bool replaceAll=false);
-int cmp(wchar_t* cs, wchar_t* ct);
-int len(wchar_t* str);
+int cmp(const wchar_t* cs, const wchar_t* ct);
+int len(const wchar_t* str);
 
 //int mcmp (wchar_t * m1 ,  wchar_t * m2 , int len);
 //void mset ( wchar_t * dst , int val , int len);

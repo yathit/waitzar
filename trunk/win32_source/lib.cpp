@@ -16,7 +16,7 @@
 #include "lib.h"
 
 //copy string
-void cpy(wchar_t* dst, wchar_t* src){
+void cpy(wchar_t* dst, const wchar_t* src){
 	while(*dst++=*src++);
 }
 
@@ -37,7 +37,7 @@ void sub(wchar_t* dst, wchar_t* src, wchar_t* from, wchar_t* to, bool replaceAll
 }
 
 //compare its match or partial match
-int cmp(wchar_t* cs,wchar_t* ct)
+int cmp(const wchar_t* cs, const wchar_t* ct)
 {
   while (*cs == *ct)
   {
@@ -49,7 +49,7 @@ int cmp(wchar_t* cs,wchar_t* ct)
 }
 
 //return length of string
-int len(wchar_t* str){
+int len(const wchar_t* str){
 	int count =0;
 	while(*str++){
 		count++;

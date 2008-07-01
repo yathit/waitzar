@@ -44,25 +44,25 @@ struct FontMap_Special_Char{
 	unsigned short length; //length of val
 	unsigned short keystate;
 	unsigned short key;
-	wchar_t val[5]; //max length = fixed length-1
+	const wchar_t val[5]; //max length = fixed length-1
 };
 
 struct FontMap_Ext{
 	unsigned short length; //length of val
 	unsigned short key;
-	wchar_t val[5];
+	const wchar_t val[5];
 };
 
 struct FontMap_Reorder_Pair{
-	wchar_t key[25]; //currently fixed
-	wchar_t val[5]; //currently fixed
+	const wchar_t key[25]; //currently fixed
+	const wchar_t val[5]; //currently fixed
 };
 
 struct FontMap{
 	/* 0 for ASCII, 1 for partial unicode, 51 for unicode 5.1 compatibles */
 	unsigned short unicode; 
 	
-	wchar_t *fontname; 
+	const wchar_t *fontname; 
 	
 	unsigned short fontsize; 
 	
@@ -76,7 +76,7 @@ struct FontMap{
 	/* special input ,  like Ctrl+Alt+5 */
 	unsigned short spchar_len;
 	union {
-		wchar_t *__spchar__; //a trick to the compiler :P
+		const wchar_t *__spchar__; //a trick to the compiler :P
 		FontMap_Special_Char *spchar;
 	};
 	
@@ -85,32 +85,32 @@ struct FontMap{
 	 * coz non-unicode fonts need that  */
 	unsigned short ext_len;
 	union {
-		wchar_t *__ext__; //a trick to the compiler :P
+		const wchar_t *__ext__; //a trick to the compiler :P
 		FontMap_Ext *ext;
 	};
 	
 	/* consonent forward re-ordering , used when non-5.1 to 5.1 */
 	unsigned short fwd_len;
 	union {
-		wchar_t* __fwd__;
+		const wchar_t* __fwd__;
 		FontMap_Reorder_Pair* fwd;
 	};
 	
 	/* consonent reverse re-ordering , used when 5.1 to non-5.1 */
 	unsigned short rev_len;
 	union {
-		wchar_t* __rev__;
+		const wchar_t* __rev__;
 		FontMap_Reorder_Pair* rev;
 	};
 	
 	/* vowel re-ordering , should be call after consonent is properly ordered */
 	unsigned short vowel_len;
-	wchar_t* vowel;
+	const wchar_t* vowel;
 	
 	/* after vowel re-ordering , need for some adjustments */
 	unsigned short after_len;
 	union {
-		wchar_t* __after__;
+		const wchar_t* __after__;
 		FontMap_Reorder_Pair* after;
 	};
 	
