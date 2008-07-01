@@ -1,0 +1,2 @@
+
+g++ ExternalModelTester.cpp ../win32_source/WordBuilder.h ../win32_source/WordBuilder.cpp ../win32_source/regex.h ../win32_source/regex.cpp ../win32_source/fontmap.h ../win32_source/fontmap.cpp ../win32_source/fontconv.h ../win32_source/fontconv.cpp ../win32_source/lib.cpp ../win32_source/lib.h  -o ModelTester
