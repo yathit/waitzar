@@ -52,10 +52,10 @@ int main(int argc, const char* argv[])
 	wchar_t* currWord;
 	std::vector<unsigned int> possWords = model->getPossibleWords();
 	wprintf(L"\"kote\" can be one of the following %i words \n", possWords.size());
-	for (int i=0; i<possWords.size(); i++) {
+	for (unsigned int i=0; i<possWords.size(); i++) {
 		currWord = model->getWordString(possWords[i]);
 		
-		for (int x=0; x<wcslen(currWord); x++) {
+		for (unsigned int x=0; x<wcslen(currWord); x++) {
 			wprintf(L" %x", currWord[x]);
 		}
 		

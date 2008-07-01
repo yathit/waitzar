@@ -36,7 +36,7 @@
 #define FLEN 16
 #define FVLEN 226  //+ 5 /*Addition*/32,13,10,47,9}
 
-//#include <tchar.h>
+#include <wchar.h>
 
 enum FM_FONTTYPE{UNKNOWN=-1,ASCII, UNICODE_PARTIAL, UNICODE_5_1=51};
 
