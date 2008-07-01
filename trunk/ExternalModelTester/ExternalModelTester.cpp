@@ -86,7 +86,7 @@ int main(int argc, const char* argv[])
 
 wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
 {
-	for (int i=0; i<keystrokes.size(); i++) {
+	for (unsigned int i=0; i<keystrokes.size(); i++) {
 		returnVal[i] = keystrokes[i];
 	}
 	returnVal[keystrokes.size()] = 0x0000; //Note: we need to terminate with a FULL-width zero (not just '\0') to ensure that we actually end the string.
