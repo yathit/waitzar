@@ -4,6 +4,13 @@
 #include "../win32_source/WordBuilder.h"
 
 
+//Function prototype:
+wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes);
+
+//Useful global...
+wchar_t returnVal[500];
+
+
 /**
  * This file demonstrates how to use Wait Zar technology in your own projects. 
  * In particular, we show how the WordBuilder class can be used to disambiguate words.
@@ -49,24 +56,40 @@ int main(int argc, const char* argv[])
 	model->typeLetter('e'); //Transition (k-->o-->t) --> 'e'
 	
 	//We have arrived at "kote", so we now just list all possible values.
-	wchar_t* currWord;
+	std::vector<unsigned short> currWord;
+	wchar_t* printWord;
 	std::vector<unsigned int> possWords = model->getPossibleWords();
 	wprintf(L"\"kote\" can be one of the following %i words \n", possWords.size());
 	for (unsigned int i=0; i<possWords.size(); i++) {
-		currWord = model->getWordString(possWords[i]);
+		//Note that here, we use getWordKeyStrokes(), NOT getWordString(). 
+		//  Calling getWordString() will ALWAYS return the Zawgyi-One encoding.
+		//  If you wish to actually print out the Myanmar text, you can use a converter function, like
+		//  we do here.
+		currWord = model->getWordKeyStrokes(possWords[i]);
+		printWord = makeStringFromKeystrokes(currWord);
 		
-		for (unsigned int x=0; x<wcslen(currWord); x++) {
+		wprintf(L"  %ls  (", printWord);
+		for (unsigned int x=0; x<currWord.size(); x++) {
 			wprintf(L" %x", currWord[x]);
 		}
 		
 		
-		wprintf(L"  (%i)\n", wcslen(currWord));
+		wprintf(L" )  size:%i\n",currWord.size());
 	}
 	wprintf(L"\n");
 	
 
-
-
 	wprintf(L"Done\n" );
 	return 0;
+}
+
+
+wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
+{
+	for (int i=0; i<keystrokes.size(); i++) {
+		returnVal[i] = keystrokes[i];
+	}
+	returnVal[keystrokes.size()] = 0x0000; //Note: we need to terminate with a FULL-width zero (not just '\0') to ensure that we actually end the string.
+	
+	return returnVal;
 }

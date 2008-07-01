@@ -124,7 +124,10 @@ WordBuilder::WordBuilder (char* modelFilePath, char* userWordsFilePath)
 					currLetter[3] = model_buff[currLineStart++];
 
 					//Translate/Add this letter
+//  wprintf(L"word: %s", currLetter);
 					newWord[newWordSz++] = (unsigned short)strtol(currLetter, NULL, 16);
+
+//   wprintf(L"    num: %x\n", newWord[newWordSz-1]);  
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
@@ -737,6 +740,7 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id)
 		unsigned short * newEncoding = (unsigned short *)malloc((stLen+1) * sizeof(unsigned short));
 		for (size_t i=0; i<stLen; i++) {
 			newEncoding[i+1] = destStr[i];
+			//wprintf(L"   test: %x   %x  %x\n", newEncoding[i+1], destStr[i], srcStr[i]);
 		}
 		newEncoding[0] = (int)stLen;
 		free(myDict[id]);
@@ -746,8 +750,11 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id)
 	//Set return vector appropriately
 	this->keystrokeVector.clear();
 	unsigned short size = myDict[id][0];
-	for (int i=0; i<size; i++) 
+	//wprintf(L"Size of return val: %i\n", size);
+	for (int i=0; i<size; i++)  {
+		//wprintf(L"   test: %x\n", myDict[id][i+1]);
 		this->keystrokeVector.push_back(myDict[id][i+1]);
+	}
 
 	return this->keystrokeVector;
 }
@@ -781,13 +788,22 @@ wchar_t* WordBuilder::getParenString()
 wchar_t* WordBuilder::getWordString(unsigned int id)
 {
 	copystr(currStr, L"");
-	wchar_t temp[50];
+	//wchar_t temp[50];
 
 	unsigned short size = this->dictionary[id][0];
 	for (int i=0; i<size; i++)  {
-		printstr(temp, L"%c", this->dictionary[id][i+1]);
-		catstr(this->currStr, temp);
+		this->currStr[i] = this->dictionary[id][i+1];
+		
+		//wprintf(L"  test: %x\n", this->dictionary[id][i+1]);
+		//printstr(temp, L"%c", this->dictionary[id][i+1]);
+		//catstr(this->currStr, temp);
 	}
+	this->currStr[size] = 0x0000; //Note: must be full-width 0000, lest the string not be properly terminated.
+	
+	//DEBUG
+	/*for (int i=0; i<wcslen(this->currStr); i++) {
+		wprintf(L"  :%x\n", this->currStr[i]);
+	}*/
 
 	return this->currStr;
 }
