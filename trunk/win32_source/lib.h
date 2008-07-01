@@ -16,7 +16,7 @@
 #ifndef __LIB_H__
 #define __LIB_H__
 
-//#include <tchar.h>
+#include <wchar.h>
 
 void cpy(wchar_t* dst, wchar_t* src);
 void sub(wchar_t* dst, wchar_t* src, wchar_t* from, wchar_t* to, bool replaceAll=false);

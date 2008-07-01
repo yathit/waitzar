@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FontConvertTester", "..\Fon
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExternalModelTester-vs2003", "..\ExternalModelTester\ExternalModelTester-vs2003.vcproj", "{FBF8B0F7-ED97-4929-8D28-E978C814BEBD}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -21,6 +25,10 @@ Global
 		{902880C9-FCBF-4366-9581-ADD22D9231BC}.Debug.Build.0 = Debug|Win32
 		{902880C9-FCBF-4366-9581-ADD22D9231BC}.Release.ActiveCfg = Release|Win32
 		{902880C9-FCBF-4366-9581-ADD22D9231BC}.Release.Build.0 = Release|Win32
+		{FBF8B0F7-ED97-4929-8D28-E978C814BEBD}.Debug.ActiveCfg = Debug|Win32
+		{FBF8B0F7-ED97-4929-8D28-E978C814BEBD}.Debug.Build.0 = Debug|Win32
+		{FBF8B0F7-ED97-4929-8D28-E978C814BEBD}.Release.ActiveCfg = Release|Win32
+		{FBF8B0F7-ED97-4929-8D28-E978C814BEBD}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
