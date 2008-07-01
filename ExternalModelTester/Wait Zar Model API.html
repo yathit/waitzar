@@ -77,6 +77,22 @@ The key benefit of using this library is that its internal components will almos
 <h3>Sample Code</h3>
 Please see below for documentation of each method in WordBuilder.cpp. For now, we will explain how to load a model and run some queries on it. ExternalModelTester.cpp contains several good examples.
 
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Compiling the Example</b>
+<br>You should first compile ExternalModelTester.cpp to get a feel for how the Wait Zar model works. Probably, it's best to use ant or make. However, if you're new to compiling code in c++, ant and make might be too much just for this simple example. Open a terminal, and browse to the "ExternalModelTester" folder. Now, enter the following (all on one line)
+<br><br><code>g++ 
+<br>ExternalModelTester.cpp 
+<br>../win32_source/WordBuilder.h ../win32_source/WordBuilder.cpp 
+<br>../win32_source/regex.h ../win32_source/regex.cpp 
+<br>../win32_source/fontmap.h ../win32_source/fontmap.cpp 
+<br>../win32_source/fontconv.h ../win32_source/fontconv.cpp 
+<br>../win32_source/lib.cpp ../win32_source/lib.h  
+<br>-o ModelTester
+<br></code>
+<br>Now you can run the tester with:
+<br><br><code>./ModelTester<br></code>
+<br>And, now is a pretty good time to learn ant or make. 
+
+
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Listing Entries for a Word</b>
 <br>Given a romanised Burmese word, like "kote", we might want to list all the Burmese words which can be typed this way. The steps for doing this are simple:
 <br><br><code>model-&gt;reset(true);
