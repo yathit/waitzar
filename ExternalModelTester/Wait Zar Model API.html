@@ -77,6 +77,33 @@ The key benefit of using this library is that its internal components will almos
 <h3>Sample Code</h3>
 Please see below for documentation of each method in WordBuilder.cpp. For now, we will explain how to load a model and run some queries on it. ExternalModelTester.cpp contains several good examples.
 
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Listing Entries for a Word</b>
+<br>Given a romanised Burmese word, like "kote", we might want to list all the Burmese words which can be typed this way. The steps for doing this are simple:
+<br><br><code>model-&gt;reset(true);
+<br>model-&gt;typeLetter('k');
+<br>model-&gt;typeLetter('o');
+<br>model-&gt;typeLetter('t');
+<br>model-&gt;typeLetter('e');
+<br>std::vector&lt;unsigned int&gt; possWords = model-&gt;getPossibleWords();
+<br></code>
+<br>At this point, "possWords" contains the IDs of all the Myanmar words we can type. In general, the Wait Zar model uses a word's abstract id for all comparisons and storage-related tasks (rather than, say, strings). This id is assigned based on the word's position in Myanmar.model; it changes whenever the Myanmar.model file changes. Words contained in mywords.txt are assigned IDs as well, up to a maximum number.
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Showing or Typing a Word</b>
+<br>When a Burmese word is shown <em>within</em> Wait Zar, it is shown using the Zawgyi-One encoding. Thus, calling model->getWordString() will return a wchar_t* encoded according to the rules of the Zawgyi-One specification. This will happen <strong>regardless</strong> of the model's current encoding! Getting a string in the encoding of your choice is somewhat tricky: the easiest way to do it as of now is to call getWordKeyStrokes() and then construct the wide-character string on your own. Here's an example of how to get the Win Innwa-encoded string for the first (and only) "kote" 
+<br><br><code>model-&gt;setOutputEncoding(ENCODING_WININNWA);
+<br>std::vector&lt;unsigned short&gt; currWord = model-&gt;getWordKeyStrokes(possWords[i]);
+<br>wchar_t* printWord[1000];
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++) {
+<br>&nbsp;&nbsp;printWord[i] = keystrokes[i];
+<br>}
+<br>//Note: we need to terminate with a FULL-width zero (not just '\0') to ensure that we actually end the string.
+<br>printWord[keystrokes.size()] = 0x0000; 
+<br>wprintf(L"  %ls  (", printWord);
+<br></code>
+<br>Actually, the call to wprintf() is somewhat risky; for one thing, you can't mix calls to printf() with those for wprintf() in the same console application (which makes using library code a tedious task). For another thing, the standard Unix console won't print Unicode characters by default, and enabling Unicode isn't always easy. (For this case, because Win Innwa is being used, this particular effect is not noticeable.) Regardless, if you iterated through printWord's wchar_t elements, you would see that their values are correct. 
+
+
+
 <h2>more later</h2>
 
 
