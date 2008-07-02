@@ -40,6 +40,7 @@
 class WordBuilder
 {
 public:
+	WordBuilder (char * model_buff, size_t model_buff_size);
 	WordBuilder (const char* modelFile, const char* userWordsFile);
 	WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize);
 	~WordBuilder(void);
@@ -114,8 +115,9 @@ private:
 	//Tracking user selection
 	int currSelectedID;
 	
-	//Extracted from our constructor
-        void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
+	//Staged Init
+	void init (char * model_buff, size_t model_buff_size);
+    void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
 
 	//Internal stuff
 	std::vector<char> possibleChars;

@@ -593,7 +593,7 @@ BOOL loadModel() {
     res_data = (char*)LockResource(res_handle);
     res_size = SizeofResource(NULL, res);
 
-	//Loop through each line
+/*	//Loop through each line
 	DWORD currLineStart = 0;
 	char currLetter[] = "1000";
 	int count = 0;
@@ -830,9 +830,10 @@ BOOL loadModel() {
 			currLineStart++;
 		currLineStart++;
 	}
-
+*/
 	//Save our "model"
-	model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
+	model = new WordBuilder(res_data, res_size);
+	//model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 //	model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 
 	//Done - This shouldn't matter, though, since the process only
