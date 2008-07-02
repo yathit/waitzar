@@ -8,7 +8,7 @@ As a romanization attempt, WaitZar's one goal is simplicity. There are many ways
   * The trunk source (for Windows) uses Win32 and C/C++, and can run -as a single .exe- off of a thumb drive without installing anything. It is intended for use on Internet Cafe computers.
   * A MM word has only one romanization, governed by a few simple rules and shortcuts. No "special keys" are used.
   * The license is short & succinct, to encourage others to branch off from this source with their own ideas.
-  * The model stores Myanmar text without using UTF-8, and can be loaded in any language that supports arrays.
+  * The model stores Myanmar text without using UTF-8, and can be loaded in any language that supports arrays. Additional words can be added through a UTF-8 file, which is simplest for users.
 
 
 = Usage =
@@ -18,11 +18,14 @@ To use WaitZar, you should have the Zawgyi-One font installed on your system. Yo
 Simply run WaitZar.exe from any location. A white exclamation point ! will appear in your system's tray. Wait for this to change to the letters "ENG". You are now typing in English; you shouldn't notice a difference.
 
 To switch to Burmese, 
-   hold *Alt* and hit *Shift*   --note that this also switches _back_ to English if pressed again.
-...and "mya" will be displayed on the tray. Open Notepad. Now, type "waitzar". When you type the first "w", a box will pop up showing your progress. You can drag this to any comfortable location on the screen. After typing the final "r", hit the Spacebar. Now, the word (note: add it) will appear in Notepad. If you see several boxes, you will have to change the font to display Zawgyi-One. 
+   hold *Ctrl* and hit *Shift*   --note that this also switches _back_ to English if pressed again.
+...and "mya" will be displayed on the tray. Open Notepad. Now, type "waitzar". When you type the first "w", a box will pop up showing your progress. You can drag this to any comfortable location on the screen. After typing the final "r", hit the Spacebar. Now, the word (note: add it) will appear in Notepad. If you see several boxes, you will have to change the font to display Myanmar3.
 
 To close the program,
    right-click on the "ENG" icon and choose "Exit". This is necessary if you need Alt+Shift to do some other task (such as switch to Chinese).
+
+Advanced Usage:
+   Please see the Wait Zar user's guide for more detailed documentation.
 
 
 = Get Involved =
