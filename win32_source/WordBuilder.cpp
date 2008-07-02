@@ -59,20 +59,18 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	//Finally, convert this array to unicode
 	wchar_t * uniBuffer = new wchar_t[buff_size];
 	
-	size_t numUniChars = mymbstowcs(NULL, buffer, 0);
-	wprintf(L"Test_Len: %i\n", numUniChars);
 	
 	//old:
 	//size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
 	//new:
-	numUniChars = mbstowcs(NULL, buffer, 0);
+	size_t numUniChars = mymbstowcs(NULL, buffer, 0);
 	if (buff_size==numUniChars) {
-		//wprintf(L"Warning! Wide-character equivalent of mywords.txt is the same length as the narrow-character length. This is probably an error...\n");
-		//Should be 510 to 454
+		wprintf(L"Warning! Conversion to wide-character string of mywords.txt probably failed...\n");
+		return;
 	}
 	
 	uniBuffer = (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
-	if (mbstowcs(NULL, buffer, buff_size)==0) {
+	if (mymbstowcs(uniBuffer, buffer, 0)==0) {
 		printf("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
 		return;
 	}
@@ -1030,29 +1028,67 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 }
 
 
+//Return 0: error
+// This follows RFC 3629's recommendations, although it is not strictly compliant.
 size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 {
-	size_t resBytes = 0;
 	size_t lenStr = maxCount;
+	size_t destIndex = 0;
 	if (lenStr==0) {
 		lenStr = strlen(src);
 	}
-	for (int i=0; i<lenStr; i++) {
-		char curr = src[i];
+	for (unsigned int i=0; i<lenStr; i++) {
+		unsigned short curr = (src[i]&0xFF);
 
-		//Just count...
-		if ((0xF0&curr)==0xF0) {
-			i++; i++; i++;
-		} else if ((0xE0&curr)==0xE0) {
-			i++; i++;
-		} else if ((0xC0&curr)==0xC0) {
-			i++;
+		//Handle carefully to avoid the security risk...
+		if (((curr>>3)^0x1E)==0) {
+			//We can't handle anything outside the BMP
+			return 0;
+		} else if (((curr>>4)^0xE)==0) {
+			//Verify the next two bytes
+			if (i>=lenStr-2 || (((src[i+1]&0xFF)>>6)^0x2)!=0 || (((src[i+2]&0xFF)>>6)^0x2)!=0) 
+				return 0;
+
+			//Combine all three bytes, check, increment
+			wchar_t destVal = 0x0000 | ((curr&0xF)<<12) | ((src[i+1]&0x3F)<<6) | (src[i+2]&0x3F);
+			if (destVal>=0x0800 && destVal<=0xFFFF) {
+				destIndex++;
+				i+=2;
+			} else
+				return 0;
+
+			//Set
+			if (dest!=NULL)
+				dest[destIndex-1] = destVal;
+		} else if (((curr>>5)^0x6)==0) {
+			//Verify the next byte
+			if (i>=lenStr-1 || (((src[i+1]&0xFF)>>6)^0x2)!=0)
+				return 0;
+
+			//Combine both bytes, check, increment
+			wchar_t destVal = 0x0000 | ((curr&0x1F)<<6) | (src[i+1]&0x3F);
+			if (destVal>=0x80 && destVal<=0x07FF) {
+				destIndex++;
+				i++;
+			} else
+				return 0;
+
+			//Set
+			if (dest!=NULL)
+				dest[destIndex-1] = destVal;
+		} else if ((curr>>7)==0) {
+			wchar_t destVal = 0x0000 | curr;
+			destIndex++;
+
+			//Set
+			if (dest!=NULL)
+				dest[destIndex-1] = destVal;
+		} else {
+			return 0;
 		}
-
-		resBytes++;
 	}
 
-	return resBytes;
+	return destIndex;
 }
 
 
