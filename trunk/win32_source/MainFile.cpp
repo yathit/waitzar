@@ -212,85 +212,6 @@ void makeFont(HWND currHwnd)
 }
 
 
-/**
- * Read a line from a file. Yay! First template function!
- *  Note that this function automatically converts all upper case to lower case before checking.
- * @param stream - TCHAR* or char*
- * @param index,streamSize - current position, max pos
- * @param nameRet, valRet The return strings for name/value pairs. Should be big enough to hold the name/value strings
- */
-template <class T, class S>
-void readLine(T* stream, size_t &index, size_t streamSize, BOOL nameHasASCII, BOOL nameHasMyanmar, BOOL nameHasSymbols, BOOL valueHasASCII, BOOL valueHasMyanmar, BOOL valueHasSymbols, T* nameRet, S* valRet)
-{
-	//Init --note: 0x0000 is necessary, see: 
-	//http://msdn.microsoft.com/en-us/library/ms776431(VS.85).aspx
-	nameRet[0] = (T)0x0000;
-	valRet[0] = (S)0x0000;
-
-	//Left-trim
-	while (stream[index] == ' ')
-		index++;
-
-	//Comment? Empty line? If so, skip...
-	if (stream[index]=='#' || stream[index]=='\n') {
-		while (stream[index] != '\n')
-			index++;
-		index++;
-		return;
-	}
-
-	//Start reading "name" and "value"
-	int name_pos = 0;
-	int value_pos = 0;
-	BOOL nameDone = FALSE;
-	BOOL hasASCII = nameHasASCII;
-	BOOL hasMyanmar = nameHasMyanmar;
-	BOOL hasSymbols = nameHasSymbols;
-	T currChar;
-	T prevCaseChar;
-	while (index<streamSize) {
-		if (stream[index] == '\n') {
-			//Done
-			index++;
-			break;
-		} else if (stream[index] == '=') {
-			//Switch modes
-			nameDone = TRUE;
-			hasASCII = valueHasASCII;
-			hasMyanmar = valueHasMyanmar;
-			hasSymbols = valueHasSymbols;
-		} else if (stream[index]!=' ') {
-			//Convert to lowercase
-			currChar = (T)stream[index];
-			prevCaseChar = currChar;
-			if (currChar>='A' && currChar<='Z')
-				currChar += ('a'-'A');
-			
-			//Check if it's valid
-			if (
-			   (hasASCII==TRUE && currChar>='a' && currChar<='z') ||
-			   (hasMyanmar==TRUE && currChar>=(T)0x1000 && currChar<=(T)0x109F) ||
-			   (hasSymbols==TRUE && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+'))) {
-				  //This test exists for hotkey configurations
-				  if (hasSymbols==TRUE)
-				    currChar = prevCaseChar;
-
-				  //Add it
-				  if (nameDone==FALSE)
-					nameRet[name_pos++] = currChar;
-				  else
-					valRet[value_pos++] = (S)currChar;
-			}
-		}
-
-		//Continue
-		index++;
-	}
-
-	//Append & return
-	nameRet[name_pos] = (T)0x0000;
-	valRet[value_pos] = (S)0x0000;
-}
 
 
 void readUserWords() {
@@ -337,7 +258,7 @@ void readUserWords() {
 		char* value = new char[100];
 		while (currPosition<numUniChars) {
 			//Get the name/value pair using our nifty template function....
-			readLine(uniBuffer, currPosition, numUniChars, TRUE, TRUE, FALSE, TRUE, FALSE, FALSE, name, value);
+			readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, name, value);
 
 			//Make sure both name and value are non-empty
 			if (strlen(value)==0 || lstrlen(name)==0)
@@ -411,7 +332,7 @@ void loadConfigOptions()
 	char* value = new char[100];
 	for (size_t i=0; i<buff_size;) {
 		//Read name/value
-		readLine(buffer, i, buff_size, TRUE, FALSE, FALSE, TRUE, FALSE, TRUE, name, value);
+		readLine(buffer, i, buff_size, true, false, false, true, false, true, name, value);
 
 		//Are both name and value non-zero?
 		if (strlen(name)==0 || strlen(value)==0)

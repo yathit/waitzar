@@ -8,7 +8,6 @@
 
 
 
-
 /**
  * Load a model given the Wait Zar binary model and a text file containing user additions.
  * @param modelFile is "Myanmar.model"
@@ -37,9 +36,77 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	
 	//Reclaim memory
 	delete [] model_buff;
+
+	///Now, load the user's custom words (optional)
+	FILE* userFile = fopen(userWordsFilePath, "r");
+	if (userFile == NULL) {
+		return;
+	}
+
+	//Get file size
+	fseek (userFile, 0, SEEK_END);
+	long fileSize = ftell(userFile);
+	rewind(userFile);
+
+	//Read it all into an array, close the file.
+	char * buffer = (char*) malloc(sizeof(char)*fileSize);
+	size_t buff_size = fread(buffer, 1, fileSize, userFile);
+	fclose(userFile);
+	if (buff_size==0) {
+		return; //Empty file.
+	}
+
+	//Finally, convert this array to unicode
+	wchar_t * uniBuffer = new wchar_t[buff_size];
 	
+	size_t numUniChars = mymbstowcs(NULL, buffer, 0);
+	wprintf(L"Test_Len: %i\n", numUniChars);
 	
-	///Now, load the user's custom words (later)
+	//old:
+	//size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
+	//new:
+	numUniChars = mbstowcs(NULL, buffer, 0);
+	if (buff_size==numUniChars) {
+		//wprintf(L"Warning! Wide-character equivalent of mywords.txt is the same length as the narrow-character length. This is probably an error...\n");
+		//Should be 510 to 454
+	}
+	
+	uniBuffer = (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
+	if (mbstowcs(NULL, buffer, buff_size)==0) {
+		printf("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
+		return;
+	}
+	delete [] buffer;
+
+	//Skip the BOM, if it exists
+	size_t currPosition = 0;
+	if (uniBuffer[currPosition] == 0xFEFF)
+		currPosition++;
+	else if (uniBuffer[currPosition] == 0xFFFE) {
+		printf("mywords.txt appears to be backwards. You should fix the Unicode encoding using Notepad or another Windows-based text utility.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
+		return;
+	}
+
+	//Read each line
+	wchar_t* name = new wchar_t[100];
+	char* value = new char[100];
+	while (currPosition<numUniChars) {
+		//Get the name/value pair using our nifty template function....
+		readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, name, value);
+
+		//Make sure both name and value are non-empty
+		if (strlen(value)==0 || wcslen(name)==0)
+			continue;
+
+		//Add this romanization
+		if (!this->addRomanization(name, value)) {
+			printf("Error adding Romanisation");
+		}
+	}
+
+	delete [] uniBuffer;
+	delete [] name;
+	delete [] value;
 }
 
 
@@ -961,6 +1028,34 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 
 	return true;
 }
+
+
+size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
+{
+	size_t resBytes = 0;
+	size_t lenStr = maxCount;
+	if (lenStr==0) {
+		lenStr = strlen(src);
+	}
+	for (int i=0; i<lenStr; i++) {
+		char curr = src[i];
+
+		//Just count...
+		if ((0xF0&curr)==0xF0) {
+			i++; i++; i++;
+		} else if ((0xE0&curr)==0xE0) {
+			i++; i++;
+		} else if ((0xC0&curr)==0xC0) {
+			i++;
+		}
+
+		resBytes++;
+	}
+
+	return resBytes;
+}
+
+
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

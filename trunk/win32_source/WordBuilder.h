@@ -31,6 +31,8 @@
 #define ENCODING_ZAWGYI 2
 #define ENCODING_WININNWA 3
 
+
+
 /**
  * Used for converting a string of roman letters into a list of potential Burmese unsigned shorts.
  *  This class is intended for use in a Linux environment. Note that:
@@ -63,8 +65,9 @@ public:
 	wchar_t* getWordString(unsigned int id);
 	wchar_t* getParenString();
 
-	//Some additional useful info --used when mult. fonts are enabled
+	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull);
+	//void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet);
 
 	//Re-order the model
 	bool addRomanization(wchar_t* myanmar, char* roman);
@@ -140,6 +143,98 @@ private:
 	void setCurrSelected(int id);
 
 };
+
+
+
+size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount);
+
+
+
+
+/**
+ * Read a line from a file. Yay! First template function!
+ *  Note that this function automatically converts all upper case to lower case before checking.
+ * NOTE: Template implementations must be defined in the same file they are declared; hence, this must be in the .h file.
+ * @param stream - TCHAR* or char*
+ * @param index,streamSize - current position, max pos
+ * @param nameRet, valRet The return strings for name/value pairs. Should be big enough to hold the name/value strings
+ */
+template <class T, class S>
+void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet)
+{
+	//Init --note: 0x0000 is necessary, see: 
+	//http://msdn.microsoft.com/en-us/library/ms776431(VS.85).aspx
+	nameRet[0] = (T)0x0000;
+	valRet[0] = (S)0x0000;
+
+	//Left-trim
+	while (stream[index] == ' ')
+		index++;
+
+	//Comment? Empty line? If so, skip...
+	if (stream[index]=='#' || stream[index]=='\n') {
+		while (stream[index] != '\n')
+			index++;
+		index++;
+		return;
+	}
+
+	//Start reading "name" and "value"
+	int name_pos = 0;
+	int value_pos = 0;
+	bool nameDone = false;
+	bool hasASCII = nameHasASCII;
+	bool hasMyanmar = nameHasMyanmar;
+	bool hasSymbols = nameHasSymbols;
+	T currChar;
+	T prevCaseChar;
+	while (index<streamSize) {
+		if (stream[index] == '\n') {
+			//Done
+			index++;
+			break;
+		} else if (stream[index] == '=') {
+			//Switch modes
+			nameDone = true;
+			hasASCII = valueHasASCII;
+			hasMyanmar = valueHasMyanmar;
+			hasSymbols = valueHasSymbols;
+		} else if (stream[index]!=' ') {
+			//Convert to lowercase
+			currChar = (T)stream[index];
+			prevCaseChar = currChar;
+			if (currChar>='A' && currChar<='Z')
+				currChar += ('a'-'A');
+			
+			//Check if it's valid
+			if (
+			   (hasASCII==true && currChar>='a' && currChar<='z') ||
+			   (hasMyanmar==true && currChar>=(T)0x1000 && currChar<=(T)0x109F) ||
+			   (hasSymbols==true && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+'))) {
+				  //This test exists for hotkey configurations
+				  if (hasSymbols==true)
+				    currChar = prevCaseChar;
+
+				  //Add it
+				  if (nameDone==false)
+					nameRet[name_pos++] = currChar;
+				  else
+					valRet[value_pos++] = (S)currChar;
+			}
+		}
+
+		//Continue
+		index++;
+	}
+
+	//Append & return
+	nameRet[name_pos] = (T)0x0000;
+	valRet[value_pos] = (S)0x0000;
+}
+
+
+
+
 
 #endif //_WordBUILDER
 
