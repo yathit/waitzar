@@ -18,17 +18,6 @@
  */
 WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePath)
 {
-	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
-	unsigned short **dictionary;
-	unsigned int **nexus;
-	unsigned int **prefix;
-	int dictMaxID;
-	int dictMaxSize;
-	int nexusMaxID;
-	int nexusMaxSize;
-	int prefixMaxID;
-	int prefixMaxSize;
-	
 	//Step one: open the model file (ASCII)
 	FILE* modelFile = fopen(modelFilePath, "r");
 	if (modelFile == NULL) {
@@ -43,7 +32,36 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	char * model_buff = (char*) malloc(sizeof(char)*modelFileSize);
 	size_t model_buff_size = fread(model_buff, 1, modelFileSize, modelFile);
 	fclose(modelFile);
+
+	init(model_buff, model_buff_size);
 	
+	//Reclaim memory
+	delete [] model_buff;
+	
+	
+	///Now, load the user's custom words (later)
+}
+
+
+WordBuilder::WordBuilder(char *model_buff, size_t model_buff_size) 
+{
+	init(model_buff, model_buff_size);
+}
+
+
+void WordBuilder::init(char *model_buff, size_t model_buff_size) 
+{
+	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
+	unsigned short **dictionary;
+	unsigned int **nexus;
+	unsigned int **prefix;
+	int dictMaxID;
+	int dictMaxSize;
+	int nexusMaxID;
+	int nexusMaxSize;
+	int prefixMaxID;
+	int prefixMaxSize;
+
 	//Step three: Read each line
 	size_t currLineStart = 0;
 	unsigned short count;
@@ -285,12 +303,8 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 		currLineStart++;
 	}
 	
-	//Initialize the model, reclaim memory
+	//Initialize the model
 	init(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
-	delete [] model_buff;
-	
-	
-	///Now, load the user's custom words (later)
 }
 
 
