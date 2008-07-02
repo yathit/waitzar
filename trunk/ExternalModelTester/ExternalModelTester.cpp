@@ -99,6 +99,7 @@ int main(int argc, const char* argv[])
 	//Type each letter
 	const char* hello = "minggalarpar";
 	wprintf(L"Typing \"minggalarpar\" as: ");
+	bool flagOn = false;
 	for (unsigned int i=0; i<strlen(hello); i++) {
 		//Is it in the model?
 		if (!model->typeLetter(hello[i])) {
@@ -106,9 +107,12 @@ int main(int argc, const char* argv[])
 		}
 
 		//Have we typed enough?
-		wprintf(L"%c", hello[i]);
-		if (wcslen(model->getParenString())>0) {
+		if (wcslen(model->getParenString())>0)
+			flagOn = true;
+		if (flagOn) {
 			wprintf(L"-");
+		} else {
+			wprintf(L"%c", hello[i]);
 		}
 	}
 	wprintf(L"\n");
