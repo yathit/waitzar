@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+//#include <wchar.h>
+//#include <locale.h>
+
 #include "../win32_source/fontconv.h"
 #include "../win32_source/WordBuilder.h"
 
@@ -32,6 +35,11 @@ int main(int argc, const char* argv[])
 			wprintf(L"Switched to wide mode.\n");
 		}
 	}
+
+	//Set the locale??
+	/*char* localeInfo = setlocale(0, "japanese");
+    wprintf(L"Locale information set to %s\n", localeInfo);*/
+
 	
 	//Create your model as an object.
 	//NOTE: You should not mix printf() and wprintf() (it might behave unexpectedly). So, for unicode programs, always use wprintf().
@@ -77,9 +85,36 @@ int main(int argc, const char* argv[])
 		wprintf(L" )  size:%i\n",currWord.size());
 	}
 	wprintf(L"\n");
+
+
+
+	//////////////////////////////////////////////////////////////////////
+	//Use case 2: Check custom words & shortcut words. Output in Win Innwa.
+	//////////////////////////////////////////////////////////////////////
+
+	//Reset, and change the encoding.
+	model->reset(true);
+	model->setOutputEncoding(ENCODING_WININNWA);
+	
+	//Type each letter
+	const char* hello = "minggalarpar";
+	wprintf(L"Typing \"minggalarpar\" as: ");
+	for (unsigned int i=0; i<strlen(hello); i++) {
+		//Is it in the model?
+		if (!model->typeLetter(hello[i])) {
+			wprintf(L"\nUh-oh! Couldn't type: %i\n", i);
+		}
+
+		//Have we typed enough?
+		wprintf(L"%c", hello[i]);
+		if (wcslen(model->getParenString())>0) {
+			wprintf(L"-");
+		}
+	}
+	wprintf(L"\n");
 	
 
-	wprintf(L"Done\n" );
+	wprintf(L"\nDone\n" );
 	return 0;
 }
 
