@@ -36,6 +36,9 @@
 	td {
 	  border:1px solid #777777;
 	}
+	dd {
+	   text-indent: -1em;
+	}
 	-->
 </style>
 
@@ -139,12 +142,23 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <tr>
 <td valign="top" width="1%" align="right">
 <font size="-1"><code>&nbsp;</code></font></td>
-<td><code><b class="className">WordBuilder</b>(wchar_t* modelFile, wchar_t* userWordsFile)</code>
+<td><code><b class="className">WordBuilder</b>(const char* modelFile, const char* userWordsFile)</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Constructs a new WordBuilder object from a given model file and an (optional) list of user-defined words. Most developers will prefer this constructor.
 </td>
 </tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>&nbsp;</code></font></td>
+<td><code><b class="className">WordBuilder</b>(char * model_buff, size_t model_buff_size)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Constructs a new WordBuilder object given a character stream and its length. This creates the same model as the "easy" constructor, without the mywords.txt list. It is useful if, say, you want to load Myanmar.model from an internal resource (Wait Zar does this).
+</td>
+</tr>
+
 
 <tr>
 <td valign="top" width="1%" align="right">
@@ -346,6 +360,18 @@ A global function defined in WordBuilder.h, this reads a line of text from one o
 </td>
 </tr>
 
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>size_t&nbsp;</code></font></td>
+<td><code><b class="className">mymbstowcs</b>(wchar_t *dest, const char *src, size_t maxCount)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Reads a stream of characters representing UTF-8 data into a wide character array, if "dest" is not null. Returns the number of wide character elements converted, or zero if there is an error. Characters outside the basic multilingual plane generate an error. Besides this detail, this function conforms to the security recommendations of RFC 3629.
+</td>
+</tr>
+
+
 </tbody></table>
 
 
@@ -364,8 +390,8 @@ A global function defined in WordBuilder.h, this reads a line of text from one o
 <!-- Elements -->
 
 <h3>WordBuilder</h3>
-<pre>WordBuilder::<b class="className">WordBuilder</b>(wchar_t* modelFile, wchar_t* userWordsFile)</pre>
-<dl><dd>Constructs a WordBuilder object. Most developers will prefer this constructor.
+<pre>WordBuilder::<b class="className">WordBuilder</b>(const char* modelFile, const char* userWordsFile)</pre>
+<dl><dd>Constructs a WordBuilder object from two files. Most developers will prefer this constructor.
 </dl></dd>
 <dd><dl>
 <dt><b>Parameters:</b></dt>
@@ -377,6 +403,67 @@ A global function defined in WordBuilder.h, this reads a line of text from one o
 </dl>
 <hr>
 
+<h3>WordBuilder</h3>
+<pre>WordBuilder::<b class="className">WordBuilder</b>(char * model_buff, size_t model_buff_size)</pre>
+<dl><dd>Constructs a WordBuilder object from a character stream of Myanmar.model.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>model_buff</code> - The ASCII-encoded stream of character data obtained from performing an fread() on Myanmar.model.</dd>
+<dd><code>model_buff_size</code> - The length of "model_buff" in bytes.</dd>
+<!--dt><b>Returns:</b></dt><dd>nothing</dd-->
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>WordBuilder</h3>
+<pre>WordBuilder::<b class="className">WordBuilder</b>(unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)</pre>
+<dl><dd>Constructs a WordBuilder object from a set of raw data describing how it disambiguates.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>dictionary</code> - The list of words in the dictionary. A 2-D jagged array; each row in the array is of the form [S][x<sub><font size="-2">0</font></sub>][x<sub><font size="-2">1</font></sub>][x<sub><font size="-2">2</font></sub>]...[x<sub><font size="-2">S-1</font></sub>], where S is the size of the string (in the Zawgyi-One encoding) and x<sub><font size="-2">N</font></sub> is the N<sup><font size="-2">th</font></sup> character in that string. Note that the trailing zero is always omitted from dictionary entries.</dd>
+<dd><code>dictMaxID</code> - The number of entries in "dictionary".</dd>
+<dd><code>dictMaxSize</code> - The number of possible elements in "dictionary". Any new entries (from mywords.txt) increments dictMaxID until it reaches dictMaxSize, then throws an error.</dd>
+<dd><code>nexus</code> - A mapping of transitions which can be made by the Wait Zar model. Also a 2-D jagged array, the first element represents the initial state, and subsequent elements are referred to by ID. Rows are of the form [S][x<sub><font size="-2">0</font></sub>][x<sub><font size="-2">1</font></sub>]...[x<sub><font size="-2">S-1</font></sub>], where S is the number of elements in that row, and each element x<sub><font size="-2">N</font></sub> is of the form 0xXXXXXXYY, where 0xYY is the character for that transition, and 0xXXXXXX is the id (starting from zero) of the element in "nexus" to jump to if that character is pressed. If Y == '~', then X represents an index in the "prefix" array instead, and its transition occurs when the spacebar is pressed. Note that this assumes platforms with 32-bit integers. </dd>
+<dd><code>nexusMaxID</code> - The number of entries in "nexus".</dd>
+<dd><code>nexusMaxSize</code> - The number of possible elements in "nexus". Any new entries (from mywords.txt) increments nexusMaxID until it reaches nexusMaxSize, then throws an error. Due to the distribution of nexi versus dictionary entries, this is very unlikely to happen, even with large dictionaries.</dd>
+<dd><code>prefix</code> - A 2-D jagged array of pairs consisting of mappings and arrays. (This is not as complex as it sounds.) By example, consider each row as [S<sub><font size="-2">1</font></sub>][S<sub><font size="-2">2</font></sub>][x<sub><font size="-2">0A</font></sub>][x<sub><font size="-2">0B</font></sub>]..[x<sub><font size="-2">S<sub><font size="-2">1</font></sub>A</font></sub>][x<sub><font size="-2">S<sub><font size="-2">1</font></sub>B</font></sub>][y<sub><font size="-2">0</font></sub>]..[y<sub><font size="-2">S<sub><font size="-2">2</font></sub></font></sub>], where S<sub><font size="-2">1</font></sub> is the number of prefix mappings, and S<sub><font size="-2">2</font></sub> is the number of word entries at this particular prefix. The mappings are TWO entries wide in this case; for each mapping entry, the first element of the pair contains the ID of the prefix to transition on, and the second contains the index of the prefix entry to transition to if that prefix indeed is being considered. The word entries are simpler; each element corresponds to a single array element which points to the ID of the candidate word. This array is sorted by order of likelihood --note, however, that except for the zero-gram entry, there is no guarentee that the prefix word list contains all possible words. </dd>
+<dd><code>prefixMaxID</code> - The number of entries in "prefix".</dd>
+<dd><code>prefixMaxSize</code> - The number of possible elements in "prefix". Any new entries (from mywords.txt) increments prefixMaxID until it reaches prefixMaxSize, then throws an error. Due to the fact that trigrams are not entered for custom words, it is extrememely unlikely, if not impossible, that overflow occurs of this nature.</dd>
+<dt><b>Remarks:</b></dt><dd>By default, the "max size" elements are set (by Wait Zar) to 1.5 times the "max ID" values.</dd>
+<!--dt><b>Returns:</b></dt><dd>nothing</dd-->
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>~WordBuilder</h3>
+<pre>WordBuilder::<b class="className">~WordBuilder</b>()</pre>
+<dl><dd>Destructor for the WordBuilder class. 
+</dl></dd>
+<dd><dl>
+<dt><b>Remarks:</b></dt><dd>This function does not clean up all memory allocated by WordBuilder, which was designed to operate as a Singleton over the entire lifetime of the Wait Zar process.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>typeLetter</h3>
+<pre>bool WordBuilder::<b class="className">typeLetter</b>(char letter)</pre>
+<dl><dd>"Types" this letter by updating the current nexus pointed to by the model. Typing '~' will probably throw the model into an inconsistent state; use "typeSpace()" to accomplish this.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>letter</code> - The ASCII letter to type.</dd>
+<dt><b>Returns:</b></dt><dd><code>true</code> if the letter caused a valid transition from the current nexus to a new nexus, and <code>false</code> if it did not.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
 
 
 
