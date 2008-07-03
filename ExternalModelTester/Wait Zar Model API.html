@@ -465,6 +465,42 @@ Reads a stream of characters representing UTF-8 data into a wide character array
 </dl>
 <hr>
 
+<h3>typeSpace</h3>
+<pre>std::pair&lt;bool, unsigned int&gt; WordBuilder::<b class="className">typeSpace</b>(int quickJumpID)</pre>
+<dl><dd>Confirms a word choice. If quickJumpID is set, this word is selected. Else, the current selected word (updated by calls to moveRight()) is selected. This also updates the prefix array, adding the selected word as the most recently typed prefix.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>quickJumpID</code> - Pick an element by id (zero-indexed). If you are using the number keys to select words, remember to transform your input; the number keys go from 1..0, but represent quickJumpIDs 0..9</dd>
+<dt><b>Returns:</b></dt><dd>A pair. The boolean component is <code>true</code> if a valid word exists and was selected; <code>false</code> otherwise. The unsigned integer component is the ID of that selected word.  </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>backspace</h3>
+<pre>bool WordBuilder::<b class="className">backspace</b>()</pre>
+<dl><dd>Deletes the most recent nexus transition performed via typeLetter(). Effectively, it's an "undo" button, to allow users to correct misspellings in their romanisations. 
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd><code>true</code> if the model is not at nexus zero, <code>false</code> if it is now, or if no backspacing is possible. If <code>false</code> is returned, the model has effectively soft reset, and there is no reason to show the user any choices.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>reset</h3>
+<pre>void WordBuilder::<b class="className">reset</b>(bool fullReset)</pre>
+<dl><dd>Resets the current nexus to zero and clears all typed letters. This should be performed after every call to typeSpace(). 
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>fullReset</code> - If <code>true</code>, the current trigram is also dropped. This means that typing "ma" "sar" "chin", then reset(true) then "bu" will prevent "ma" "sar" "chin" from affecting the ordering of choices for "bu".</dd>
+</dl>
+</dd>
+</dl>
+<hr>
 
 
 <h2>More later </h2>
