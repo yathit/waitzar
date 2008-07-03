@@ -367,7 +367,7 @@ A global function defined in WordBuilder.h, this reads a line of text from one o
 <td><code><b class="className">mymbstowcs</b>(wchar_t *dest, const char *src, size_t maxCount)</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Reads a stream of characters representing UTF-8 data into a wide character array, if "dest" is not null. Returns the number of wide character elements converted, or zero if there is an error. Characters outside the basic multilingual plane generate an error. Besides this detail, this function conforms to the security recommendations of RFC 3629.
+A global function which reads a stream of characters representing UTF-8 data into a wide character array, if "dest" is not null. Returns the number of wide character elements converted, or zero if there is an error. Characters outside the basic multilingual plane generate an error. Besides this detail, this function conforms to the security recommendations of RFC 3629.
 </td>
 </tr>
 
@@ -603,12 +603,127 @@ Reads a stream of characters representing UTF-8 data into a wide character array
 <hr>
 
 
+<h3>getParenString</h3>
+<pre>wchar_t* WordBuilder::<b class="className">getParenString</b>()</pre>
+<dl><dd>Retrieves the string which, if typed, would represent the only possible path to the only possible word(s) from this point onwards. For example, if you type "singa" and then call getParenString(), the result will be "pore". Wait Zar uses this information by default; you only need to call getParenString() if you want to display the assumed keystrokes to the user (presumably, in parentheses).
+</dl></dd>
+<dd><dl>
+<dt><b>Returns: </b></dt><dd>The parenthesized string. If wcslen() of this is zero, then there is no shortcut from this point. Note that this wchar_t* will always be ASCII text; the wide characters are not strictly necessary.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
 
-<h2>More later </h2>
+
+<h3>getStopCharacter</h3>
+<pre>unsigned short WordBuilder::<b class="className">getStopCharacter</b>(bool isFull)</pre>
+<dl><dd>Gets the full or half "stop" character for the Myanmar language. Encoding-dependent.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>isFull</code> - If <code>true</code> returns the full stop. Else, returns the half stop. </dd>
+<dt><b>Returns: </b></dt><dd>The character code. For Unicode 5.1 and Zawgyi-One, this is the same. Only Win Innwa is different.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>addRomanization</h3>
+<pre>bool WordBuilder::<b class="className">addRomanization</b>(wchar_t* myanmar, char* roman)</pre>
+<dl><dd>Adds a new word to the model. Trigrams do not benefit this word, but this usually doesn't matter much, since heavily contested words already exist in the model. Where the word gets added and why this addition may fail are a bit arbitrary now, but sensible use of this function will never lead to any serious difficulties.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>myanmar</code> - The Zawgyi-One encoding of the character to add (it will be automatically converted to any other encoding.)</dd>
+<dd><code>roman</code> - The romanisation for this myanmar word.</dd>
+<dt><b>Returns: </b></dt><dd><code>true</code> if the romanisation was sucessfully added; <code>false</code> otherwise. If the return value is <code>false</code>, call getLastError() to see what went wrong.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getLastError</h3>
+<pre>wchar_t* WordBuilder::<b class="className">getLastError</b>()</pre>
+<dl><dd>Certain common error messages are stored; retrieve the latest one with this function. Not all errors are associated with a message; you'll have to check the source code to see which ones are.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns: </b></dt><dd>The most recent error message.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>setOutputEncoding</h3>
+<pre>void WordBuilder::<b class="className">setOutputEncoding</b>(unsigned int encoding)</pre>
+<dl><dd>Sets the output encoding. The functions getWordKeyStrokes() and getStopChar() are affected by the current encoding. Setting the output encoding to an invalid value (say, "900") will not fail, but will cause undefined results from encoding-related functions.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>encoding</code> - The new output encoding. Can be ENCODING_UNICODE, ENCODING_WININNWA, or ENCODING_ZAWGYI. All constants are defined in WordBuilder.h. Note that ENCODING_UNICODE refers specifically to Unicode 5.1 (Parabaik, PadaukOT, and Myanmar3, plus most newer fonts.) Zawgyi-One is commonly used for the web, and Win Innwa is often seen in the oldest computerized documents. In general, Wait Zar tries to promote Unicode 5.1 when the choice is available.  </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getOutputEncoding</h3>
+<pre>unsigned int WordBuilder::<b class="className">getOutputEncoding</b>()</pre>
+<dl><dd>Retrieves the current encoding of the model.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns: </b></dt><dd>The current encoding. Most likely this is one of the following: ENCODING_UNICODE, ENCODING_ZAWGYI, ENCODING_WININNWA, all of which are defined in WordBuilder.h.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>readLine</h3>
+<pre>template &lt;class T, class S&gt;
+<br>void WordBuilder::<b class="className">readLine</b>(T* stream, size_t &amp;index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet)</pre>
+<dl><dd><b>Global Function.</b> Reads a line of text from a stream and updates the current index on that stream. This was moved to WordBuilder.h to preserve modular design, but it's really messy (it has to be implemented in the header, as a template function, for instance.) Probably, there's no need to use this.
+<br>Reads a line of text as a name/value pair: "name = value", according to the various flags set.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>stream</code> - The char* or wchar_t* array pertaining to your data. </dd>
+<dd><code>index</code> - The index to start reading your data stream from. This is updated (hence why it is passed by reference) based on how many units are read from the stream. </dd>
+<dd><code>streamSize</code> - The size of the stream. "index" will never be incremented beyond this value. </dd>
+<dd><code>nameHasASCII</code> - If <code>true</code>, the name is allowed to have ASCII characters. Else, these are filtered. </dd>
+<dd><code>nameHasMyanmar</code> - If <code>true</code>, the name is allowed to have characters in the range \u1000..\u109F. Else, these are filtered. </dd>
+<dd><code>nameHasSymbols</code> - If <code>true</code>, the name is allowed to have special symbols (+^!_). Else, these are filtered. </dd>
+<dd><code>valueHasASCII</code> - If <code>true</code>, the value is allowed to have ASCII characters. Else, these are filtered. </dd>
+<dd><code>valueHasMyanmar</code> - If <code>true</code>, the value is allowed to have characters in the range \u1000..\u109F. Else, these are filtered. </dd>
+<dd><code>valueHasSymbols</code> - If <code>true</code>, the value is allowed to have special symbols (+^!_). Else, these are filtered. </dd>
+<dd><code>nameRet</code> - A reference to the name char* or wchar_t* string in which the return value is stored. </dd>
+<dd><code>valRet</code> - A reference to the value char* or wchar_t* string in which the return value is stored. </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>mymbstowcs</h3>
+<pre>size_t WordBuilder::<b class="className">mymbstowcs</b>(wchar_t *dest, const char *src, size_t maxCount)</pre>
+<dl><dd><b>Global Function. </b> Surprisingly enough, there is no simple, cross-platform way to convert UTF-8 characters (in a char* array) to wide characters (in a wchar_t* array). Hence, this function exists as a light-weight (mosty) RFC 3629-compliant converter. Can also be used to determine the necessary size of the resultant wchar_t* array.
+<br>This function mimics mbstowcs, but it automatically assumes the UTF-8 code page (or whatever) that hinders this function under Windows without requiring the complexity of iconv in Linux.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>dest</code> -The destination array for the wide-character stream. Can be NULL. </dd>
+<dd><code>src</code> -The source array of char* UTF-8 characters. For example, you might consider using fopen() and fread() to read a UTF-8 file into a char* array, and then feed it into this function to create wide characters. </dd>
+<dd><code>maxCount</code> -The maximum number of src elements to convert. If char* is null-terminated (which it should be!) then simply set this to 0 to have mymbstowcs() figure it out for you. </dd>
+<dt><b>Returns: </b></dt><dd>The number of wide characters converted, or zero if there was an error.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
 
 
 <!-- Footer -->
-<br>&nbsp;<br>&nbsp;<br>&nbsp;
+<br>&nbsp;
 <p><font size="-1">Copyright 2008 by Seth N. Hetu. Released under the Apache License, version 2.0. Please read the <a href="http://waitzar.googlecode.com/svn/trunk/LICENSE">License</a> and <a href="http://waitzar.googlecode.com/svn/trunk/NOTICE">Notice</a> files before copying this document.</font></p>
 
 <!-- HTML end -->
