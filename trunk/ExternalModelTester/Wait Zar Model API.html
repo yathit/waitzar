@@ -502,6 +502,107 @@ Reads a stream of characters representing UTF-8 data into a wide character array
 </dl>
 <hr>
 
+<h3>moveRight</h3>
+<pre>bool WordBuilder::<b class="className">moveRight</b>(int amt)</pre>
+<dl><dd>Intended to help IME developers; the WordBuilder object tracks the currently selected item (which is returned by a call to typeSpace(-1)) through the use of repeated calls to moveRight(1) and moveRight(-1).
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>amt</code> - The number of elements to move right by. Can be negative. Should not be zero. </dd>
+<dt><b>Returns:</b></dt><dd><code>false</code> if the move could not be made, or if amt==0. <code>true</code> otherwise.  </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getCurrSelectedID</h3>
+<pre>int WordBuilder::<b class="className">getCurrSelectedID</b>()</pre>
+<dl><dd>Gets the index of the currently selected word.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd>The (zero-ordered) index of the currently selected word, or -1 if no words exist for the current romanisation string.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>getPossibleChars</h3>
+<pre>std::vector&lt;char&gt; WordBuilder::<b class="className">getPossibleChars</b>()</pre>
+<dl><dd>Returns a list of valid nexus moves from this location. Entering any of these with typeLetter() will guarentee a return value of <code>true</code>. Currently, this function returns an empty vector after calling model->reset() --this may be fixed in the future. For now, if you need a list of all valid first-word transitions, you might try something like: 
+<br><code>model-&gt;reset(true); model-&gt;typeLetter('k'); model-&gt;backspace(); model-&gt;getPossibleChars();</code>
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd>A (possibly empty) array of valid character transitions from this nexus. The '~' transition is not included.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getPossibleWords</h3>
+<pre>std::vector &lt;unsigned int&gt; WordBuilder::<b class="className">getPossibleWords</b>()</pre>
+<dl><dd>Gets a list of all possible Burmese words for the current romanisation string, or for the "only possible string" from this point forward (retrieved with getParenString()) if such a string exists.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd>A (possibly empty) vector of available word ids. Call getWordKeyStrokes() to get each word's encoding in Unicode 5.1, Zawgyi-One, or Win Innwa.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>insertTrigram</h3>
+<pre>void WordBuilder::<b class="className">insertTrigram</b>(unsigned short* trigram_ids, int num_used_trigrams)</pre>
+<dl><dd>Whenever typeSpace() is called, the word which is selected is added to the current trigram. The trigram is used to disambiguate words with greater accuracy than just listing the most probable one first (a zero-gram approach). The current trigram should <i>always</i> represent the three most recently typed words. If this is not the case (e.g., the user uses the left/right arrow keys to move between words, or clicks the mouse to move the cursor) then insertTrigram() should be called to update the current trigram to accurately reflect the most recent three words.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>trigram_ids</code> - A list of (up to) three recently typed words, arranged with the most recent word at index zero.</dd>
+<dd><code>num_used_trigrams</code> - The number of entries in trigram_ids. Usually 3, but may also be 2, 1, or 0 in certain cases.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getWordString</h3>
+<pre>wchar_t* WordBuilder::<b class="className">getWordString</b>(unsigned int id)</pre>
+<dl><dd>Gets the Zawgyi-One-encoded string for the given dictionary word, by id. Calling getPossibleWords(), for example, might be followed by several calls to getWordString(). Note that the string's encoding will <i>always</i> be Zawgyi-One; this function's intended use is to return the string for rendering by Wait Zar. Also, not that repeated calls to getWordString() should copy the result locally to avoid duplication. For example:
+<br><code>
+<br>wchar_t* word1 = new wchar_t[100];
+<br>wchar_t* tempWord1 = model->getWordString(12);
+<br>wcscpy(word1, tempWord1);
+<br>wchar_t* word2 = new wchar_t[100];
+<br>wchar_t* tempWord2 = model->getWordString(24);
+<br>wcscpy(word2, tempWord2);
+<br></code>
+<br>At this point, "tempWord1" and "tempWord2" <b>both</b> contain a reference to word 24's string, which is probably not what one wants. As expected, "word1" and "word2" contain the strings for words 12 and 24 respectively.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>id</code> - The id of the word to retrieve from the dictionary.</dd>
+<dt><b>Returns: </b></dt><dd>A wide-character string of that word's Zawgyi-One encoding.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getWordKeyStrokes</h3>
+<pre>std::vector &lt;unsigned short&gt; WordBuilder::<b class="className">getWordKeyStrokes</b>(unsigned int id)</pre>
+<dl><dd>Gets a vector of code points for the current encoding. If encoding==ENCODING_ZAWGYI, this returns the same code points that getWordString() does (except, of course, as unsigned shorts instead of wchar_t's. Note, however, that both data types are usually 2 bytes).
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>id</code> - The id of the word to retrieve from the dictionary. </dd>
+<dt><b>Returns:</b></dt><dd>An array of keystrokes for typing this word in the Zawgyi-One, Win Innwa, or Unicode 5.1 encoding (depends on the value for setOutputEncoding()). This array can easily be transformed into a wide-character string if necessary.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
 
 <h2>More later </h2>
 
