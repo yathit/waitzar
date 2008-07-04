@@ -85,6 +85,7 @@ int main(int argc, const char* argv[])
 		wprintf(L" )  size:%i\n",currWord.size());
 	}
 	wprintf(L"\n");
+	wprintf(L"NOTE: If you just see \"????\" instead of the Burmese letters, your terminal might not support complex fonts. The hexadecimal values for each character are provided for your reference, check these if all you can see is a series of question marks.\n\n");
 
 
 
@@ -107,8 +108,11 @@ int main(int argc, const char* argv[])
 		}
 
 		//Have we typed enough?
-		if (wcslen(model->getParenString())>0)
+		if (wcslen(model->getParenString())>0 && !flagOn) {
+			wprintf(L"%c", hello[i]);
 			flagOn = true;
+		}
+		
 		if (flagOn) {
 			wprintf(L"-");
 		} else {
