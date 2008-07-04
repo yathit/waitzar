@@ -91,9 +91,11 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br>../win32_source/lib.cpp ../win32_source/lib.h  
 <br>-o ModelTester
 <br></code>
+<br>For your reference, the file compile.sh contains this one-line text string. You can invoke it with:
+<br><br><code>./compile.sh<br></code>
 <br>Now you can run the tester with:
 <br><br><code>./ModelTester<br></code>
-<br>And, now is a pretty good time to learn ant or make. 
+<br>And, now is a pretty good time to learn ant or make.
 
 
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Listing Entries for a Word</b>
@@ -120,6 +122,35 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br>wprintf(L"  %ls  (", printWord);
 <br></code>
 <br>Actually, the call to wprintf() is somewhat risky; for one thing, you can't mix calls to printf() with those for wprintf() in the same console application (which makes using library code a tedious task). For another thing, the standard Unix console won't print Unicode characters by default, and enabling Unicode isn't always easy. (For this case, because Win Innwa is being used, this particular effect is not noticeable.) Regardless, if you iterated through printWord's wchar_t elements, you would see that their values are correct. 
+
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Determining Shortcuts</b>
+<br> Let's say we have a function, "respondToLetter()", which responds to user keypresses. We want to determine when that user has typed enough letters that we can determine only ONE possible set of words. Here's how we'd do that:
+<br><br><code>bool respondToLetter(char letter)
+<br>{
+<br>&nbsp;&nbsp;&nbsp;if (!model->typeLetter(letter)) //Invalid letter
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false;
+<br>&nbsp;&nbsp;&nbsp;
+<br>&nbsp;&nbsp;&nbsp;unsigned short sz = model->getPossibleWords().size();
+<br>&nbsp;&nbsp;&nbsp;if (wcslen(model->getParenString())>0)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wprintf(L" --the only possible input from this point is %ls which leaves us with %i options.\n", model->getParenString(), sz);
+<br>&nbsp;&nbsp;&nbsp;else if (sz>0)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wprintf(L"  --word typed!  %i options.\n", sz);
+<br>&nbsp;&nbsp;&nbsp;else
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wprintf(L"%c", letter);
+<br>}
+<br></code>
+<br>Let's assume that we add the word "minggalarpar" to the dictionary, via mywords.txt. If the respondToLetter() function is called on the letters "m" "i" "n" "g" "g", then we will see the following output:
+<br><code>mingg  --the only possible input from this point is alarpar which leaves us with 1 options.
+<br></code>
+<br>Contrarily, if we type "m" "i" "n" "g" "a", although there is still only one possible option, it does not require a paren string. So, we get:
+<br><code>minga  --word typed! 1 options.
+<br></code>
+<br>In general, the Word Builder object will handle choosing the correct word for you all the time; however, sometimes it's helpful to know exactly what assumptions and guesses this model is making.
+
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Handling Different Encodings</b>
+<br> 
 
 
 
