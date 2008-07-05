@@ -564,6 +564,9 @@ int WordBuilder::getCurrSelectedID() {
 //Returns true if the window is still visible.
 bool WordBuilder::backspace()
 {
+	if (pastNexusID == 0)
+		return false;
+
 	currNexus = pastNexus[--pastNexusID];
 	this->resolveWords();
 
