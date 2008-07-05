@@ -120,6 +120,17 @@ int main(int argc, const char* argv[])
 		}
 	}
 	wprintf(L"\n");
+
+
+
+	//////////////////////////////////////////////////////////////////////
+	//Use case 3: Compare different outputs.
+	//////////////////////////////////////////////////////////////////////
+
+	//Reset, and change the encoding.
+	model->reset(true);
+	model->setOutputEncoding(ENCODING_WININNWA);
+
 	
 
 	wprintf(L"\nDone\n" );
