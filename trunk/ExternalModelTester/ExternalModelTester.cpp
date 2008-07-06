@@ -152,20 +152,20 @@ int main(int argc, const char* argv[])
 	//Compare all three output encodings:
 	wprintf(L"\n\"singapore\" in three different output encodings:\n");
 	wprintf(L"Unicode 5.1:");
-	for (int i=0; i<wcslen(sgpUnicode); i++) {
+	for (unsigned int i=0; i<wcslen(sgpUnicode); i++) {
 		wprintf(L" U+%x", sgpUnicode[i]);
 	}
 	wprintf(L"\n");
 	
 	wprintf(L"Zawgyi-One: ");
-	for (int i=0; i<wcslen(sgpZawgyi); i++) {
+	for (unsigned int i=0; i<wcslen(sgpZawgyi); i++) {
 		wprintf(L" U+%x", sgpZawgyi[i]);
 	}
 	wprintf(L"\n");
 	
-	wprintf(L"Win Innwa:   ");
-		for (int i=0; i<wcslen(sgpWinInnwa); i++) {
-		wprintf(L" 0x%x", sgpWinInnwa[i]);
+	wprintf(L"Win Innwa:  ");
+	for (unsigned int i=0; i<wcslen(sgpWinInnwa); i++) {
+		wprintf(L"   0x%x", sgpWinInnwa[i]);
 	}
 	wprintf(L"\n\n");
 
