@@ -21,8 +21,14 @@ public class Combiner {
 	public static HashMap<String, String> rhymes = new HashMap<String, String>();
 	public static HashMap<String, String> specials = new HashMap<String, String>();
 	
+	public static HashMap<String, ArrayList<String>> wordsPerRhyme = new HashMap<String, ArrayList<String>>();
+	
 	public static ArrayList<ZawgyiWord> dictionary = new ArrayList<ZawgyiWord>();
 	public static ArrayList<String> dictionaryUnsorted = new ArrayList<String>();
+	public static ArrayList<String> incorrectWords = new ArrayList<String>();
+	
+	public static ArrayList<ZawgyiWord> firstGenerationDictionary = new ArrayList<ZawgyiWord>();
+	public static ArrayList<String> firstGenerationUnsorted = new ArrayList<String>();
 	
 	public static Pattern equalsPattern = Pattern.compile("([^=]+)=(.+)");
 	
@@ -45,6 +51,7 @@ public class Combiner {
 		} catch (UnsupportedEncodingException ex) {
 			System.out.println("Out file encoding not supported (UTF-8).");
 		}
+		
 		
 		for (ZawgyiWord wordZG : dictionary) {
 			dictionaryUnsorted.add(wordZG.toString());
@@ -76,8 +83,11 @@ public class Combiner {
 			//Get the rhyme
 			String rhyme = word.replaceFirst(onset, "-");
 			if (!rhymes.containsKey(rhyme)){
-				throw new RuntimeException("["+count+"/"+dictionaryUnsorted.size()+"] Cannot find word for: " + ZawgyiWord.printMM(onset) + " + " + ZawgyiWord.printMM(rhyme));
+				incorrectWords.add(rhyme);
+				wordsPerRhyme.put(rhyme, new ArrayList<String>());
+				//throw new RuntimeException("["+count+"/"+dictionaryUnsorted.size()+"] Cannot find word for: " + ZawgyiWord.printMM(onset) + " + " + ZawgyiWord.printMM(rhyme));
 			}
+			wordsPerRhyme.get(rhyme).add(word);
 			
 			//Print this option in our dictionary
 			try {
@@ -89,8 +99,116 @@ public class Combiner {
 			count++;
 		}
 		
+		
+		
+		//Also check that we have all words
+		System.out.println("Checking for anomalies, please wait...");
+		StringBuffer sb = new StringBuffer();
+		for (ZawgyiWord word : firstGenerationDictionary) {
+			boolean foundExactMatch = false;
+			boolean foundCanonicalMatch = false;
+			String matchFound = "";
+			for (ZawgyiWord test : dictionary) {
+				if (word.toString().equals(test.toString())) {
+					matchFound = test.toString();
+					foundExactMatch = true;
+					break;
+				} else if (word.toCanonString().equals(test.toCanonString())) {
+					matchFound = test.toString();
+					foundCanonicalMatch = true;
+				}
+			}
+			
+			if (!foundExactMatch) {
+				if (foundCanonicalMatch) {
+					sb.append("\n" + word + " canon to: " + matchFound);
+				} else {
+					sb.append("\n" + word + "  missing!");
+				}
+			}
+		}
+		
+		if (sb.length()>0) {
+			try {
+				writeFile.write("\n\nANOMALIES:" + sb.toString());
+			} catch (IOException ex) {
+				System.out.println("Error: " + ex.toString());
+			}
+		}
+		
+		
+		
+		//Now, order and output our rhymes.
+		BufferedWriter rhymeOutfile = null;
+		try {
+			rhymeOutfile = new BufferedWriter(new PrintWriter("rhymelist.generated.txt", "UTF-8"));
+		} catch (FileNotFoundException ex) {
+			System.out.println("Out file not found.");
+		} catch (UnsupportedEncodingException ex) {
+			System.out.println("Out file encoding not supported (UTF-8).");
+		}
+		
+		
+		ArrayList<ZawgyiWord> rhymesOrdered = new ArrayList<ZawgyiWord>();
+		for (String s : rhymes.keySet()) {
+			try {
+				ZawgyiWord z = new ZawgyiWord(s);
+				rhymesOrdered.add(z);
+			} catch (RuntimeException r) {
+				if (r.getMessage().startsWith("Final already set")) {
+					incorrectWords.add(s);
+				} else
+					throw new RuntimeException(r);
+			}
+		}
+		Collections.sort(rhymesOrdered, ZawgyiWord.getComparator());
+		ZawgyiWord pastWord = null;
+		sb = new StringBuffer();
+		for (ZawgyiWord zg : rhymesOrdered) {
+			if (pastWord==null || !zg.toCanonString().equals(pastWord.toCanonString())) {
+				sb.append("\n");
+			}
+			
+			sb.append(zg.toString() + " = " + rhymes.get(zg.toString()) + "\t");
+			String sep = "";
+			for (String possWord : wordsPerRhyme.get(zg.toString())) {
+				sb.append(sep).append(possWord);
+				sep = ", ";
+			}
+			sb.append("\n");
+			
+			pastWord = zg;
+			try {
+				rhymeOutfile.write(sb.toString());
+			} catch (IOException ex) {
+				System.out.println("Error: " + ex.toString());
+				return;
+			}
+			sb = new StringBuffer();
+		}
+		
+		//Add:
+		sb.append("\nNOT SORTED:\n");
+		for (String s : incorrectWords) {
+			sb.append(s + " = " + rhymes.get(s) + "\t");
+			String sep = "";
+			for (String possWord : wordsPerRhyme.get(s)) {
+				sb.append(sep).append(possWord);
+				sep = ", ";
+			}
+			sb.append("\n");
+		}
+		try {
+			rhymeOutfile.write(sb.toString());
+		} catch (IOException ex) {
+			System.out.println("Error: " + ex.toString());
+			return;
+		}
+		
+		
 		try {
 			writeFile.close();
+			rhymeOutfile.close();
 		} catch (IOException ex) {}
 		
 		System.out.println("Done");
@@ -127,6 +245,7 @@ public class Combiner {
 				}
 				
 				rhymes.put(m.group(1).trim(), m.group(2).trim());
+				wordsPerRhyme.put(m.group(1).trim(), new ArrayList<String>());
 			};
 		});
 		
@@ -161,6 +280,23 @@ public class Combiner {
 			};
 		});
 		Collections.sort(dictionary, ZawgyiWord.getComparator());
+		
+		
+		String firstGenWordListFile = "MyanmarList_v1.txt";
+		if (args.length > 4) {
+			wordListFile = args[4];
+		}
+		readLines(firstGenWordListFile, new Action() {
+			public void perform(String lineTxt) {
+				String zg = lineTxt.split("=")[0].trim();
+				
+				try {
+					firstGenerationDictionary.add(new ZawgyiWord(zg.trim()));
+				} catch (RuntimeException ex) {
+					firstGenerationUnsorted.add(zg.trim());
+				}
+			};
+		});
 	}
 	
 
