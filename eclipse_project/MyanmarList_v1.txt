@@ -1,0 +1,2798 @@
+##########################
+# Myanmar Syllables List
+##########################
+
+
+##########################
+# Numbers - Note: These are hard-coded into the final model;
+# changing these will have no effect on its output
+# This section just keeps our parser from throwing warnings out about
+# "unrecognized characters"
+##########################
+၁ = 1
+၂ = 2
+၃ = 3
+၄ = 4
+၅ = 5
+၆ = 6
+၇ = 7
+၈ = 8
+၉ = 9
+၀ = 0
+
+
+##########################
+# Borrowed Words
+##########################
+ဘက္စ္ = bus
+ဘတ္စ္ = bus
+ေလာ့ခ္ = lock
+ပြိဳင့္ = point
+လင့္ခ္ = link
+အက္စ္ = s
+အက္ဘ္ = at
+ရက္စ္ = yes
+ယပ္စ္ = yes
+ရပ္စ္ = rap
+ရယ္လ္ = yal
+ဘြိဳင္ = boy
+ဘြန္း = boon
+ဘြယ္ = bwal
+မိစ္ = mis
+ဗြီ = v
+အႏၵိယ = india
+နက္စ္ = nets
+ကဒ္ = card
+ေလာ့ဂ္ = lock
+ဝက္ဘ္ = web
+ေမးလ္ = mail
+မတ္ခ္ = mark
+အယ္လ္ = l
+ဂ်ိမ္းစ္ = james
+ဂိတ္စ္ = gates
+ဂ်ိန္း = jane
+ဂဲလ္ = girl
+မယ္လ္ = mal
+ရစ္တ္ = riz
+လာ့စ္ = las
+ရိမ္းစ္ = rain
+ကိပ္ = kat
+ေနာ့တ္ = not
+ပူးလ္ = pool
+မတ္စ္ = mass
+ဘြတ္ခ္ = book
+ဆြီ = sweet
+ဒုိးလ္ = doll
+ေလ့စ္ = las
+ဆဲလ္ = cell
+ေပါ့ပ္ = pop
+ေယာ့ခ္ = york
+သြန္မ္ = tom
+ရက္ဒ္ = yard
+အဲလ္ = l
+ေလာက္စ္ = lous
+ခ်ားလ္စ္ = charles
+ခ်ားလ္ = charles
+မာ့တ္ = mart
+ဒင္းန္ = din
+ဒင္း = din
+ဆင္မ္ = sam
+ဝီလ္ = we
+ေရ႕စ္ = raze
+ေဖာ္လ္စ္ = false
+ေရ႕ဗ္ = rave
+လိဒ္ = leed
+ႏုိ႔စ္ = nose
+အင္န္ = and
+ကင္မ္ = kim
+ဆုိးလ္ = soul
+လက္ပ္ = lap
+နပ္စ္ = neps
+ဂိမ္း = game
+ေဆာ့ဖ္ = soft
+ေမာ့္စ္ = moss
+ေမာ့စ္ = moss
+ဘြတ္ရ္ွ = bush
+အက္ဖ္ = f
+ေအာ့ဖ္ = off
+အပ္စ္ = s
+ဒတ္ဖ္ = duff
+အိတ္ခ္် = h
+ဟတ္ဖ္ = half
+ေဆးလ္ = sale
+ဂြတ္ = good
+
+
+
+##########################
+# Words which need special clauses in the parser itself
+##########################
+စကၤာပူ = singapore
+အဂၤလိပ္ = english
+သေကၤတ = tinkayta
+ႏ်ဴးကလီးယား = nuclear
+တိရစၧာန္ = teyutesan
+
+
+##########################
+# Short Form
+##########################
+
+##########################
+# --ၻ
+##########################
+ကမၻာ့ = kaba
+ကမၻ = kamba
+ကမၻာ = kabar
+ကေမၻာ = kambaw
+
+##########################
+# --ၠ
+##########################
+စကၠန္႔ = setkant
+စကၠဴ = satku
+မကၠ = matka
+က်ဳိကၠ = kyiteka
+ဥကၠ = oatka
+တကၠ = tatka
+သကၠ = thatka
+
+##########################
+# --ႅ
+##########################
+မိလႅာ = mailar
+
+##########################
+# --ၭ
+##########################
+သဏၭာန္ = tandan
+ပဏၭာ = patnar
+ကဏၭ = ganda
+
+##########################
+# --ၲ
+##########################
+စႏၲ = santa
+အႏၲ = anda
+နတိၱ = nethti
+ကတၲာ = kattar
+ၿပိတၱာ = pyittar
+မတၱီ = matedhi
+ဝတၱ = wootta
+ေမတၱာ = myittar
+ေခတၱ = khitta
+ပုတၱ = poatta
+ပတၱ = patta
+သတၱ = tattar
+သတၱဳ = thattu
+သတိၱ = thetthe
+အႏၲာ = antar
+မႏၲ = manda
+ဝႏၲာ = wontar
+ဂုတၱ = goatta
+သႏၲာ = thandar
+သႏၲ = tanta
+အတၱ = atta
+လႏၲိတ္ = lantate
+မုတၱ = moteta
+ရိတၱ = yateta
+
+
+##########################
+# --ၶ
+##########################
+ခႏၶာ = khandar
+ဗႏၶဳ = bandu
+ဗုဒၶ = buddha
+
+##########################
+# --ၼ
+##########################
+ဓမၼ = damma
+ဓမၼာ = dammar
+ၾကမၼာ = kyanmar
+သမၼာ = tanmar
+သမၼ = tanma
+ရမၼက္ = yatmat
+
+##########################
+# --ၳ
+##########################
+ဝတၳဳ = woothtu
+မိတၳီ = matehti
+
+##########################
+# --ၧ
+##########################
+ပုစၧာ = poatsar
+ဣစၧိ = eightsi
+မစၧိ = myitseet
+ရစၧာန္ = yutesan
+
+##########################
+# --ႋ
+##########################
+သခ်ဳႋင္း = thingjine
+
+##########################
+# --ႌ
+##########################
+အက်ႌ = inngi
+
+##########################
+# --ၨ
+##########################
+သၪၨာ = tinzar
+ဝိဇၨာ = waitzar
+
+##########################
+# --ၥ
+##########################
+ပစၥည္း = pyitsee
+သစၥာ = thitsar
+ဥစၥာ = oatsar
+ဝစၥ = wootsa
+ပစၥ = pyitsa
+ကိစၥ = katesa
+စစၥ = sitsa
+အစၥ = itsa
+ရစၥ = yitsa
+ကစၥ = kitsa
+နစၥ = nitsa
+မဇိၩ = myitzi
+
+##########################
+# --ြ
+##########################
+သိကြာ = theitkhao
+
+##########################
+# --ၡ
+##########################
+ဒုကၡ = dotka
+ဒုကၡိ = dotkhe
+ယကၡ = yatkha
+ရုကၡ = ratka
+လကၡ = latkha
+သိကၡာ = theitkhar
+ရကၡိ = yatkhe
+စကၡဳ = satkhu
+
+##########################
+# --ၤ
+##########################
+အဂၤ = inga
+အဂၤါ = ingar
+ဒဂၤါး = dingar
+နဂၤ = ninga
+မဂၤ = minga
+သေကၤ = tinkay
+ဒဂၤ = dinga
+သကၤန္း = thingan
+ဟသၤာ = hintar
+နလၤာ = ninlar
+ဘဂၤ = binga
+သႀကၤန္ = thingyam
+သေဘၤာ = thinbaw
+ေယာကၤ်ား = youtkyar
+သခ်ၤာ = tinchar
+
+##########################
+# --ၸ
+##########################
+သိပၸံ = theitpan
+သမၸာ = thanpar
+သပၸာယ္ = thetpal
+ကပၸ = katpa
+ကုမၸ = konepa
+ဓိပၸါယ္ = datepal
+စေမၸာ = sanpaw
+စမၸာ = sanpar
+သပၸါယ္ = thatnal
+
+
+##########################
+# --ၵ
+##########################
+နႏၵ = nanda
+စႏၵ = sanda
+ဆႏၵ = sanda
+အိႏၵိ = indi
+ကိႏၵ = kaida
+အိေႁႏၵ = eidray
+အိေႁႏၵာ = eidra
+နႏၵာ = nandar
+မုဒၵ = moteda
+ဣေႁႏၵ = eaidray
+
+##########################
+# --ၢ
+##########################
+ဘဂၢ = batga
+ပုဂၢိဳလ္ = poatgo
+မဂၢ = matga
+ပုဂၢ = poatga
+
+##########################
+# ---ၰ
+##########################
+ပုဏၰား = ponenar
+
+##########################
+# -ဣ
+##########################
+စဣဴ = satkuu
+ေမဣာ = myitta
+ဣ = ei
+
+
+##########################
+# -႑
+##########################
+ဘ႑ာ = bandar
+သ႑ာန္ = thatan
+သ႑န္ = thandan
+ဒ႑ာ = dantar
+က႑ = kanda
+
+
+
+##########################
+#Phonetic Slang
+##########################
+၄င္း = lakaung
+သ္ွ = the
+လက်ာ္ = latyar
+
+
+##########################
+# Zawgyi-specific base characters
+##########################
+
+##########################
+# ႒
+##########################
+႒ = hta
+
+
+##########################
+# Base-ordered list
+##########################
+
+##########################
+# က
+##########################
+က = ka
+ကာ = kar
+ကား = ker
+ကယ့္ = kae
+ကြ်တ္ = kyoot
+ကြ်ႏ္ုပ္ = kyannote
+ကြိဳင္ = coin
+ကိ = ki
+ကီ = ke
+ကီး = key
+ကု = ku
+ကူ = kuu
+ကူး = kuu
+ေက = kay
+ေကး = kay
+ကဲ = ka
+ကြ = kwa
+ကဲ့ = kae
+ကုိ႔ = koe
+ေကာ = kaw
+ေကာ့ = kawt
+ေကာ္ = kaw
+ကံ = kan
+ကာ့ = ka
+ကံ့ = kant
+ကုိ = ko
+ကုိး = koe
+ကက္ = kak
+ကုက္ = koke
+ေကာက္ = kout
+ကုိက္ = kite
+ကင္ = kin
+ကင္း = kinn
+ကႊၽန္ = kyon
+ေကာင္ = kaung
+ေကာင္း = kaung
+ကုိင္ = kai
+ကုိင္း = kei
+ကစ္ = kit
+ကိစ္ = kiss
+ကုဋ္ =kone
+ေကာဋ္ = ????
+ကဏ္ = kan
+ကတ္ = kat
+ကိတ္ = kate
+ကုတ္ = kote
+ကန္ = kan
+ကန္႔ = kant
+ကန္း = ken
+ကိန္ = kane
+ကိန္း = kane
+ကုန္ = kone
+ကုန္း = kone
+ကပ္ = kap
+ကုပ္ = kope
+ကုဗ္ = kove
+ကမ္ = kam
+ကုမ္ =kome
+ကံု = kon
+ကံုး = cone
+ကယ္ = cal
+ကုိယ္ = ko
+ကုိယ့္ = koot
+ကသ္ = kat
+ကမ္း = kam
+က် = kya
+က်ာ = kyar
+က်ား = kyer
+က်ိ = kyi
+က်ီ = kye
+က်ီး = kyee
+ကြ်ံ = kyon
+ကြ်က္ = kwyat
+က်ဴ = kyu
+က်ဴး = kyuu
+ကြ် = kwya
+ကြ်မ္း = khwan
+ကြ်န္ = kyun
+ကြ်န္း = kyun
+ေက် =kyay
+ေက်း = kyay
+ေကြ်း = kway
+ကြယ့္ = kwae
+က်ဲ = kyal
+ေက်ာ = kyaw
+ေက်ာ့ = kyawt
+ေက်ာ္ = kyaw
+က်ံ = kyan
+က်ဳိ = kyo
+က်ဳိ႕ = kyot
+က်ဳိး = kyoe
+က်က္ = kyat
+ေက်ာက္ = kyauk
+က်ဳိက္ = kyite
+က်င္ = kyin
+က်င့္ = kyint
+က်င္း = kyinn
+ေက်ာင္း = kyaung
+က်ဳိင္း = kyine
+က်စ္ = kyit
+က်ဥ္ = kyin
+က်ဥ္း = kyin
+က်ည္ = kye
+က်ည္း = kyee
+က်တ္ = kyat
+က်ိတ္ = kyate
+က်ဳတ္ = kyote
+က်န္ = kyan
+က်န္း = kyen
+က်ိန္ = kyane
+က်ိန္း = kyane
+က်ပ္ = kyat
+က်ိပ္ = kyate
+က်ဳပ္ = kyote
+က်မ္း = kyen
+က်ံဳ = kyon
+က်ံဳ႕ = kyont
+က်ံဳး = kyone
+ၾကံဳး = kyone
+က်ယ္ = kyal
+ၾက = kya
+ၾကာ = kyar
+ၾကား = kyer
+ႀကိ = kyi
+ႀကီ = kye
+ႀကီး = kyee
+ၾကဴ = kyu
+ၾကဴး = kyuu
+ေၾက = kyay
+ေၾကး = kay
+ႀကဲ = kyal
+ေၾကာ = kyaw
+ေၾကာ့ = kyawt
+ေၾကာ္ = kyaw
+ႀကံ = kyan
+ၾကံဳ႕ = kyont
+ၾကံ = kyar
+ၾကံ့ = kyant
+ၾကံဳ = kyone
+ႀကိဳ = kyo
+ႀကိဳ႕ = kyoot
+ႀကိဳး = kyoe
+ၾကက္ = kyat
+ၾကဳပ္ = kyote
+ေၾကာက္ = kyout
+ႀကိဳက္ = kyite
+ၾကင္ = kyin
+ေၾကာင္ = kyaung
+ေၾကာင့္ = kyaunt
+ေၾကာင္း = kyaung
+ႀကိဳင္ = kyine
+ၾကစ္ = kyit
+ၾကဥ္ = kyin
+ၾကဥ္း = kyinn
+ၾကည္ = kyi
+ၾကည့္ = kyeet
+ၾကည္း = kyee
+ၾကတ္ = kyat
+ႀကိတ္ = kyate
+ၾကဳတ္ = kyote
+ၾကန္ = kyan
+ၾကန္႔ = kyant
+ၾကပ္ = kyat
+ၾကမ္ = kyam
+ၾကမ္း = kyem
+ႀကိမ္ = kyame
+ႀကိမ္း = kyane
+ႀကံဳ = kyone
+ၾကယ္ = kyal
+ကြာ = kwar
+ကြီ = kwe
+ေကြ႕ = kwat
+ေကြး = kwey
+ကြဲ = kwal
+ကြက္ = kwat
+ကြင္း = kwin
+ကြတ္ = koot
+ကြန္ = kon
+ကြန္႔ = kont
+ကြန္း = kun
+ကြပ္ = kuut
+ကြမ္ = kwan
+ကြမ္း = kwen
+ကြယ္ = kwal
+ေကၽြး = kwyay
+ကၽြဲ = kwyal
+ကၽံြ = kyon
+ကၽြက္ = ???
+ကၽြတ္ = kyut
+ကၽြန္း = kyuun
+ကၽြမ္း = kywan
+ႂကြ = kwyal
+ႂကြား = kwyar
+ကြာ့ = kwa
+ေႂကြ = kway
+ေႂကြ႕ = kwaye
+ေႂကြး = kwyay
+ႂကြက္ = kywat
+ႂကြင္း = kywin
+ႂကြပ္ = kyut
+ႂကြယ္ = kywal
+ကြိဳက္ = kwite
+
+
+##########################
+# ခ
+##########################
+ခ = kha
+ခီ = khe
+ခါ = khar
+ခ်တ္ = chat
+ခ်န္း = chan
+ခါး = kher
+ခု = khu
+ခူ = khu
+ခူး = kheu
+ခဲ = kha
+ေခါ = khaw
+ခံ = khan
+ခံ့ = khant
+ခုိ = kho
+ခုိင္း = khine
+ခုိး = khoe
+ခက္ = khat
+ေခါက္ = khout
+ခုိက္ = khite
+ခင္ = khin
+ခင္း = khin
+ေခၚ = khaw
+ေခါင္ = khaung
+ေခါင့္ = khaunt
+ေခါင္း = khaung
+ခုိင္ = khine
+ခတ္ = khat
+ခုတ္ = khote
+ေခတ္ = khit
+ခန္ = khan
+ခန္႔ = khant
+ခန္း = khen
+ခုန္ = khon
+ခံြ = khon
+ခပ္ = khat
+ခုပ္ = khote
+ခမ္း = khen
+ခံု = khon
+ခံုး = khone
+ခ် = cha
+ခ်ာ = char
+ခ်ား = cher
+ခ်ီ = chi
+ခ်ိ = che
+ခ်ီး = che
+ခ်ဴ = chu
+ေခ် = chay
+ေခ်း = chey
+ခ်ဴပ္ = chote
+ခဲ့ = khae
+ခ်ဲ = cha
+ခ်ဲ႕ = cha
+ေခ်ာ = chaw
+ေခ်ာ့ = chawt
+ေခ်ာ္ = chaw
+ခ်ဳိ = cho
+ခ်ဳိ႕ = choot
+ခ်ဳိး = choe
+ခ်က္ = chat
+ေခ်ာက္ = chout
+ခ်င္ = chin
+ခ်င့္ = chint
+ခ်င္း = chin
+ေခ်ာင္ = chaung
+ေခ်ာင္း = chaung
+ခ်ဳိင္ = chai
+ခ်ဳိင့္ = chait
+ခ်ဳိင္း = chine
+ခ်စ္ = chit
+ခ်ဥ္ = chin
+ခ်ဥ္း = chinn
+ခ်ည္ = che
+ခ်ည့္ = cheet
+ခ်ည္း = chee
+ခ်ိတ္ = chate
+ခ်ဳတ္ = chote
+ခ်န္ = chan
+ခ်ိန္ = chain
+ခ်ိန္း = chain
+ခ်ဳန္း = chone
+ခ်ဳန္ = chone
+ခြ်န္ = chon
+ခြား = kwar
+ခြ်တ္ = choot
+ခ်ပ္ = chap
+ခ်ိပ္ = chape
+ခ်ဳပ္ = chope
+ခ်မ္း = cham
+ခ်ိမ့္ = chaint
+ခ်ံဳ = chong
+ခ်ံဳ႕ = chont
+ခ်ံဳး = chone
+ခ်ယ္ = chal
+ျခ = cha
+ျခံ = chan
+ျခာ = char
+ျခား = cher
+ျခဴ = chyu
+ျခဴး = chuu
+ေျခ = chay
+ေျခာင့္ = chout
+ၿခံ = chan
+ၿခိဳး = choe
+ေျခာက္ = chout
+ၿခိဳက္ = chite
+ျခင္ = chin
+ျခင္း = chinn
+ေျခာင္း = chaung
+ျခစ္ = chit
+ျခည္ = che
+ျခဳတ္ = chote
+ျခဳပ္ = chote
+ျခမ္း = chen
+ၿခိမ့္ = chaint
+ၿခိမ္း = chame
+ျခံဳ = chon
+ျခယ္ = chal
+ခြ = khwal
+ခြာ = khwar
+ေခြ = khway
+ေခြ႕ = khwayt
+ေခြး = khwey
+ခြဲ = kywal
+ခံြ႕ = khont
+ခြက္ = khwat
+ခြင္ = khwin
+ခြင့္ = khwint
+ခြင္း = khwin
+ခြန္ = khoon
+ခြန္း = khoon
+ခြပ္ = khoot
+ေခၽြ = chway
+ေခၽြး = chwey
+ခၽြဲ = chwal
+ခၽံြ = chwon
+ခၽြင္ = chwin
+ခၽြတ္ = choot
+ခၽြန္ = choon
+ခၽြန္း = choon
+ႁခြ = chwa
+ေႁခြ = chway
+ႁခြင္း = chwin
+ႁခြမ္း = chwen
+
+
+##########################
+# ဂ
+##########################
+ဂ = ga
+ဂမ္ = gam
+ဂတ္ = gat
+ေဂ = gay
+ေဂ်း = jay
+ဂ်စ္ = jeet
+ဂ်န္ = jam
+ဂ်ယ္ = jal
+ေဂ် = jay
+ေဂ်ာ္ = jaw
+ဂတ္စ္ = gas
+ဂံ = gan
+ဂိတ္ = gate
+ဂါ = gar
+ဂါး = gar
+ဂိ = gi
+ဂင္ = gin
+ဂင္း = gin
+ဂီ = ge
+ဂု = gu
+ဂုိး = goal
+ဂုိရ္ = go
+ဂူ = guu
+ေဂါ = gor
+ဂံုး = gore
+ေဂၚ = gor
+ေဂါက္ = gout
+ဂုိက္ = guide
+ဂုိင္း = gine
+ဂိဇ္ = gitz
+ဂုဏ္ = gon
+အဏ္ = am
+ဂုတ္ = gote
+ဂုိဏ္း = gine
+ဂြ = gwa
+ဂြ်န္ = jhon
+ဂြမ္ = gwan
+ဂန္ = gan
+ဂုန္ = gon
+ဂံု = gon
+ဂုိ = go
+ဂ်ာ = jar
+ဂ်င့္ = jint
+ဂ်ီ = je
+ဂ်က္ = jet
+ဂ်ဳ = jhu
+ဂ်ဴ = ju
+ဂ်ဴး = jew
+ေဂ်ာက္ = jout
+ဂ်ဳိက္ = jite
+ဂ်င္ = jin
+ဂ်တ္ = jet
+ဂ်ဳတ္ = jote
+ဂ်ဳပ္ = jote
+ဂ်ပ္ = jup
+ဂ်ံဳ = jone
+ဂ်ဳိ = jo
+ဂ်ဳိး = joe
+ၿဂိဳဟ္ = jho
+ၿဂိဳလ္ = jo
+ဂ်ီး = jyee
+ဂ် = jya
+ေဂြး = gway
+ဂြမ္း = gwan
+ဂြင္ = gwin
+ဂစ္ = git
+
+
+##########################
+# ဃ
+##########################
+ ဃ= gha
+ ေဃာ = ghaw
+
+ 
+##########################
+# င
+##########################
+င = nga
+ငဲ့ = ngae
+ငူ = ngu
+ငုိင္ = ngai
+ငိ = nge
+ငင္ = ngin
+ငြ = ngwa
+ေင = ngay
+ေငါ = ngaw
+ေငး = ngay
+ေငြ႕ = ngwae
+ငါ = ngar
+ငါ့ = ngart
+ငါး = nger
+ငု = ngu
+ငံ = ngan
+ငံ့ = ngant
+ငုိ = ngo
+ေငါက္ = ngout
+ငုိက္ = ngite
+ေငါင္း = ngaung
+ငတ္ = ngat
+ငုတ္ = ngote
+ေငါ႔ = ngot
+ငန္ = ngan
+ငန္း = ngen
+ငုပ္ = ngope
+ငမ္း = ngan
+ငံု = ngon
+ငံု႕ = ngont
+ငံုး = ngone
+ငယ္ = ngal
+ျငာ = nyar
+ျငား = nyer
+ၿငိ = nyi
+ၿငီး = nye
+ျငဴ = nyu
+ၿငိဳ = nyo
+ၿငိဳး = nyoe
+ျငင္း = nyin
+ျငင္ = nyin
+ေျငာင့္ = nyount
+ျငမ္း = nyen
+ၿငိမ္ = nyane
+ၿငိမ့္ = nyaint
+ၿငိမ္း = nyane
+ငြား = ngwer
+ေငြ = ngway
+ငွား = ngher
+ငွက္ = nghat
+ၿငိႇမ္း = nghane
+
+
+
+##########################
+# စ
+##########################
+စ = sa
+စာ = sar
+စား = ser
+စြ = swa
+စြင့္ = swint
+စိ = si
+စီ = se
+စီး = see
+စု = su
+စူ = suu
+စူး = sue
+ေစ = say
+ေစ့ = sayt
+ေစး = sey
+စဲ = sa
+ေစာ = saw
+ေစာ္ = saw
+စံ = san
+စုိ = so
+စုိ႕ = soot
+စုိး = soe
+စက္ = sat
+ေစာက္ = sout
+စုိက္ = site
+စင္ = sin
+စင္း = sinn
+ေစာင္ = saung
+ေစာင့္ = saunt
+ေစာင္း = saung
+စုိင္ = sai
+စုိင္း = sine
+စစ္ = sit
+ဆစ္ = sit
+စဥ္ = sin
+စ်ဥ္ = sin
+စဥ့္ = sint
+စဥ္း = sinn
+စည္ = se
+စည့္ = seet
+စည္း = see
+စဏ္ = san
+စိတ္ = sate
+စုတ္ = sote
+စုိ႔ = sot
+စန္ = san
+စန္႔ = sant
+စိန္႔ = seint
+စန္း = sen
+စိန္ = sein
+စိန္း = sane
+စုန္ = sone
+စုန္႔ = sont
+စုန္း = sone
+စပ္ = sap
+စိပ္ = sape
+စုပ္ = sope
+စမ္ = sam
+စမ္း = sem
+စိမ္ = sane
+စိမ့္ = saint
+စိမ္း = sane
+စံု = sone
+စံုး = sone
+စြာ = swar
+ေစြ = sway
+ေစြ႕ = swayt
+စြဲ = swal
+စံြ = soon
+စြက္ = swat
+စြတ္ = soot
+စြန္ = soon
+စြန္႔ = soont
+စြန္း = soon
+စြပ္ = soop
+စြမ္း = swan
+စြယ္ = swal
+
+
+
+##########################
+# ဆ
+##########################
+ဆ = sa
+ၾဆာ = sar
+ေဆ = say
+ဆာ = sar
+ဆား = ser
+ဆီ = si
+ဆင့္ = sint
+ဆီး = see
+ဆု = su
+ဆူ = suu
+ဆူး = sue
+ေဆး = say
+ဆဲ = sal
+ေဆာ = saw
+ေဆာ္ = saw
+ဆံ = san
+ဆံ့ = sant
+ဆုိ = so
+ဆုိ႔ = soot
+ဆုိး = soe
+ဆက္ = sat
+ေဆာက္ = sout
+ဆုိက္ = site
+ဆုိဒ္ = site
+ဆင္ = sin
+ဆင္း = sinn
+ေဆာင္ = saung
+ေဆာင့္ = saunt
+ေဆာင္း = saung
+ဆုိင္ = sai
+ဆုိင္း = sine
+ဆည္ = sal
+ဆည္း = see
+ဆဋ္ = san
+ဆတ္ = sat
+ဆိတ္ = sate
+ဆုတ္ = sote
+ဆဒ္ = sad
+ဆန္ = san
+ဆန္႔ = sant
+ဆန္း = sen
+ဆုန္း = sone
+ဆပ္ = sap
+ဆိပ္ = sape
+ေဆာ့ = sot
+ဆုပ္ = sope
+ဆမ္း = sem
+ဆိမ့္ = saint
+ဆံု = sone
+ဆံုး = sone
+ဆယ္ = sal
+ဆယ့္ = s
+ေဆြ = sway
+ဆြစ္ = sw
+ဆြန္း = soon
+ေဆြ႕ = swayt
+ေဆြး = swey
+ဆြိ႕ = sweet
+ဆြဲ = swal
+ဆံြ႕ = soont
+ဆြတ္ = soot
+ဆြန္႔ = soont
+ဆြပ္ = soup
+ဆြမ္း = soon
+ဆြယ္ = swal
+ဆြ = swa
+
+ 
+ 
+##########################
+# ဇ
+##########################
+ဇ = za
+ဇာ = zar
+ဇုိင္ = zai
+ဇုိ = zo
+ဇိ = zi
+ဇီ = ze
+ဇီး = zee
+ဇီ့ = ze
+ဇဥ္ = zin
+ဇူ = zu
+ဇူး = zuu
+ေဇ = zay
+ဇင္ = zin
+ဇင္း = zinn
+ဇုိင္း = zine
+ေဇာင္း = zaung
+ေဇာက္ = zout
+ဇာစ္ = zis
+ေဇဋ္ = zit
+ဇာတ္ = zat
+ဇက္ = zat
+ဇန္ = zen
+စ်ာဥ္ = zen
+ဇုိး = zoe
+ဇုန္ = zone
+ဇြန္း = zoon
+ဇမ္ = zam
+ဇိမ္ = zane
+ဇယ္ = zal
+ေဇာ္ = zaw
+ေဇာ = zaw
+ဇြဲ = zwal
+ဇြတ္ = zoot
+ဇြန္ = zoon
+ 
+ 
+ 
+##########################
+# စ်
+##########################
+စ် = za
+ေစ်း = zey
+စ်ာန္ = zen
+ 
+ 
+ 
+##########################
+# ဉ
+##########################
+ဉာဥ္ = nyin
+ဉာဏ္ = nyan
+#ဉာသ္ = nyeet
+ 
+ 
+ 
+##########################
+# ည
+##########################
+ည = nya
+ညာ = nyar
+ညဏ္ = nyan
+ညား = nyer
+ညိ = nyi
+ညီ = nye
+ညီး = nyee
+ညဳ = nyu
+ညဲ = nya
+ညံ = nyan
+ညံ့ = nyant
+ညိဳ = nyo
+ညိဳ႕ = nyot
+ညိဳး = nyoe
+ညႈိး = nyoe
+ညက္ = nyat
+ညဳက္ = nyat
+ေညာ္ = nyaw
+ေညာင့္ = nyout
+ညဥ္း = nhin
+ညင္ = nyin
+ညင္း = nyinn
+ေညာင္ = nyaung
+ေညာင္း = nyaung
+ညစ္ = nyit
+ညဥ့္ = nhint
+ညည့္ = the
+ညည္း = nyee
+ညတ္ = nyat
+ညိတ္ = nyate
+ညန္ = nyan
+ညပ္ = nyap
+ၫြတ္ = nyoot
+ၫြန္ = nyun
+ၫြန္႔ = nyunt
+ညႇာ = nhyar
+ငွာ = nhar
+ညိႇ = nhyi
+ညႇီ = nhye
+ေညႇာ္ = nhyaw
+#ညိႇဳ = ???
+#ညိႇဳ႕ = ???
+ညိႇဳး = nhoe
+ညႇက္ = nhyat
+ညႇင္း = nhyin
+ေညႇာင့္ = nhyaunt
+ေည = nyay
+ညႇစ္ = nhyit
+ညႇဥ္း = nhyin
+ညႇပ္ = nhyap
+ၫႊတ္ = nyut
+ၫႊန္ = nhon
+ၫႊန္း = nhon
+
+ 
+ 
+##########################
+# ဋ
+##########################
+ဋ = na
+ဋီ = ni
+၌ = nhyite
+ဋိ = ni
+ 
+ 
+ 
+##########################
+# ဌ
+##########################
+ဌ = hta
+ဌာန္ = htan
+ဌာ = htar
+ေဌး = htay
+ 
+ 
+ 
+##########################
+# ဍ
+##########################
+ဍ= nha
+ 
+ 
+ 
+##########################
+# ဎ
+##########################
+ဎ = ha
+ 
+ 
+ 
+##########################
+# ဏ
+##########################
+ဏ = nha
+ဏာ = nar
+ဏီ = ni
+ဏု = nu
+ဏန္း = nan
+ 
+ 
+ 
+##########################
+# တ
+##########################
+တ = ta
+ေၾတး = tay
+တံု႔ = tont
+တာ = tar
+တား = ter
+တိ = ti
+တီ = te
+တီး = tee
+တု = tu
+တူ = tuu
+တူး = tue
+ေတ = tay
+တရ္ = tal
+ေတာ့ = tot
+တာ့ = ta
+ေတး = tey
+တဲ = ta
+တယ့္ = tae
+တဲ့ = talt
+ေတာ = tor
+တြာ = twar
+ေတြ = tway
+တြင္း = twin
+ေတာ္ = taw
+တံ = tan
+တံ့ = tant
+တုိ = to
+တုိ႔ = toe
+တုိး = toe
+တက္ = tat
+ေတာက္ = tout
+ေသာင့္ = tout
+တုိက္ = tite
+တင္ = tin
+တင့္ = tint
+တင္း = tinn
+တြင့္ = twint
+ေတာင္ = taung
+ေတာင့္ = taunt
+ေတာင္း = taung
+တုိင္ = tai
+တုိင္း = tine
+တစ္ = tit
+တည္ = te
+တည့္ = talt
+တည္း = tee
+တတ္ = tat
+တိတ္ = tate
+တုတ္ = tote
+တန္ = tan
+တန္႔ = tant
+တန္း = ten
+တိန္ = tane
+တိန္း = tane
+တုန္ = tone
+တုန္း = tone
+တပ္ = tap
+တိပ္ = tape
+တုပ္ = tope
+တမ္ = tan
+တမ္း = ten
+တိမ္ = tane
+တိမ္း = tane
+တံု = tone
+တံုး = tone
+တယ္ = tal
+တ်ာ = trar
+ႀတိ = teri
+ႀတီ = tre
+ေတြ႕ = twayt
+ေတြး = tway
+တြဲ = twal
+တြက္ = twat
+တြင္ = twin
+တြတ္ = toot
+တြန္ = toon
+တြန္႔ = toont
+တြန္း = toon
+တြပ္ = tout
+တြယ္ = twal
+တြား = twarr
+ေတာ့္ = tot
+ 
+ 
+ 
+##########################
+# ထ
+##########################
+ထ = hta
+ထာ = htar
+ထာ့ = hta
+ထား = htar
+ထဲ့ = htae
+ထိ = hti
+ထီ = hte
+ထီး = htee
+ထု = htu
+ထူ = htuu
+ထူး = htoo
+ထဲ = htal
+ေထာ = htaw
+ေထာ္ = htaw
+ထံ = htan
+ထုိ = hto
+ထုိ႔ = htoe
+ထုိး = htoe
+ထက္ = htat
+ေထာက္ = htout
+ထုိက္ = htite
+ထင္ = htin
+ထင့္ = htint
+ထင္း = htinn
+ေထာင္ = htaung
+ေထာင့္ = htaunt
+ေထာင္း = htaung
+ထုိင္ = htai
+ထုိင္း = htine
+ထစ္ = htit
+ထည္ = htal
+ထည့္ = htalt
+ထတ္ = htat
+ထိတ္ = htate
+ထုတ္ = htote
+ထန္ = htan
+ထန္႔ = htant
+ထန္း = hten
+ထိန္ = htain
+ထိန္႔ = htaint
+ထိန္း = htane
+ထပ္ = htap
+ထိပ္ = htape
+ထုပ္ = htope
+ထမ္း = hten
+ထိမ္ = htane
+ထိမ္း = htane
+ထံု = hton
+ထံု႔ = htont
+ထံုး = htone
+ထယ္ = htal
+ေထရ္ = htayy
+ထြာ = htwar
+ထြား = htwar
+ေထြ = htway
+ေထြး = htway
+ထြက္ = htoot
+ထြဋ္ = htut
+ထြင္ = htwin
+ထြင္း = htwin
+ထြတ္ = htoot
+ထြန္ = htun
+ထြန္႔ = htunt
+ထြန္း = htun
+
+ 
+ 
+ 
+##########################
+# ဒ
+##########################
+ဒ = da
+ဒဲ = dal
+ဒစ္ = dit
+ဒါ = dar
+ဒါး = dar
+ဒါန္း = dan
+ဒိ = deed
+ဒီ = de
+ဒီး = dee
+ဒဲ့ = dae
+ဒီ့ = deet
+ဒု = du
+ဒုိ = do
+ဒူ = duu
+ဒူး = duu
+ေဒ = day
+ေဒ့ = dae
+ေဒ့ရ္ွ = dash
+ေဒး = day
+ေဒါ = daw
+ေဒါ့ = dot
+ဒါ့ = da
+ေဒၚ = daw
+ဒြန္း = doon
+ဒံ = dan
+ဒုိး = doe
+ဒုိ႔ = doe
+ဒက္ = dat
+ဒုက္ = dote
+ေဒါက္ = dout
+ဒုိက္ = dite
+ဒင္ = din
+ေဒါင္ = daung
+ေဒါင့္ = dout
+ေဒါင္း = down
+ဒုိင္ = dai
+ဒုိင္း = dine
+ဒိဋ္ = date
+ဒဏ္ = dan
+ဒိတ္ = date
+ဒုတ္ = dote
+ဒန္ = dan
+ဒန္႔ = dant
+ဒန္း = dann
+ဒိန္ = dai
+ဒိန္း = dane
+ဒုန္း = done
+ဒံု = don
+ဒံုး = done
+ဒယ္ = dal
+ဒုလ္ = dote
+ဒ်န္႔ = drant
+ျဒ = dra
+ျဒပ္ = drat
+ဒြ = dwa
+ဒြါ = dwar
+ဒြိ = dwe
+ေဒြး = dway
+ဒြန္ = don
+ 
+ 
+ 
+##########################
+# ဓ
+##########################
+ဓ = da
+ဓာ = dar
+ဓား = darr
+ဓူ = du
+ဓု = dhu
+ဓာတ္ = dat
+ဓါတ္ = dat
+ဓိ = dti
+ဓမ္ = dam
+ဓံ = dan
+ 
+ 
+ 
+##########################
+# န
+##########################
+န = na
+နာ့ = na
+နဲ႔ = nae
+နာ = nar
+နား = narr
+နိ = neat
+ေနာ့ = not
+ေနး = ney
+နီ = ni
+နီး = nee
+ႏု = nhu
+ႏူ = nu
+ႏူတ္ = note
+ႏူိက္ = night
+ႏံုး = nhone
+ႏံွ႔ = nhant
+ႏူး = nhuu
+ေန = nay
+ေန႔ = naye
+ႏွင့္ = nhyint
+ႏွက္ = nhat
+နဲ = nae
+ေနာ = naw
+ေနာ္ = naw
+နံ = nan
+ႏူိင္ = naing
+နံ႔ = nant
+ႏုိ = no
+ႏုိ႔ = noet
+ႏုိး = noe
+ႏႈိး = nhoe
+ေနာ့္ = not
+နက္ = net
+က္ = net
+ေနာက္ = nout
+နိဂ္ = nane
+နင္ = nin
+နင့္ = nint
+နင္း = hnin
+ေနာင္ = naung
+ႏုိင္ = naing
+ႏုိင္း = nine
+နစ္ = nit
+နိစ္ = neze
+ႏွိင္ = neing
+နည္း = nee
+နိဋ္ = nate
+နတ္ = net
+ႏုတ္ = note
+နန္ = nan
+နန္႔ = nant
+နန္း = nan
+ႏုန္႔ = nont
+ႏုန္း = nhone
+နပ္ = nhat
+နိပ္ = nhite
+ႏုပ္ = note
+နိဗ္ = nhite
+နမ္း = nhan
+နမ္ = nam
+နိမ္ = nhai
+နိမ့္ = nhate
+ႏံု = none
+ႏံု႔ = nhote
+နယ္ = nal
+နိသ္ = nate
+ႏ်ဴ = nhu
+ႏ်ဴး = new
+ႏြား = nwar
+ႏြန္႔ = nont
+ႏြဲ႕ = nwae
+ႏံြ = non
+ႏြမ္း = nwan
+ႏြယ္ = new
+ႏွ = nha
+ႏွာ = nhar
+ႏွီး = nhee
+ေႏွး = nhay
+ႏွဲ = nhal
+ေႏွာ = nhaw
+ႏံွ = nhan
+ႏံွ႕ = nhant
+ႏႈိက္ = nhite
+ႏႈိင္ = nhine
+ႏွင္ = nhin
+ႏွင္း = hnin
+ေႏွာင္ = nhaung
+ေႏွာင့္ = nhout
+ေႏွာက္ = nhout
+ေႏွာင္း = nhaung
+ႏႈိင္း = nhine
+ႏွစ္ = nhit
+ႏွတ္ = nhat
+ႏႈတ္ = nhote
+ႏွန္႔ = nant
+ႏႈန္း = nhone
+ႏွပ္ = nhote
+ႏွိပ္ = nhate
+ႏွမ္း = nhan
+ႏွိမ္ = nhai
+ႏွိမ့္ = nhent
+ႏွယ္ = nhal
+ႏႊာ = nwar
+ေႏႊး = nway
+ႏႊံ = nhon
+ႏႊင္ = nwin
+ေႏြ = nway
+ေႏြး = nway
+ 
+ 
+ 
+##########################
+# ပ
+##########################
+ပ = pa
+ပါ႔ = pa
+ပဒ္ = pad
+ပံ = pan
+ပမ္း = pan
+ပ်မ္း = pyan
+ပါယ္ = pal
+ပါ = par
+ပါတ္ = pat
+ပါး = parr
+ပီး = pee
+ပိ = peet
+ပီ = pe
+ပု = pu
+ပူ = puu
+ပူး = phu
+ေပ့ = pae
+ေပါ့တ္ = pod
+ေပ = pay
+ေပး = pay
+ပဲ = pal
+ပဲ့ = pae
+ေပါ = paw
+ေပါ့ = paut
+ေပၚ = paw
+ပံ့ = pant
+ပုိ = po
+ပုိ႔ = poe
+ပုိး = poe
+ေပါ႔ = pot
+ပက္ = pat
+ေပါက္ = pout
+ပုိက္ = pite
+ပုဂ္ = pote
+ပုိစ္ = post
+ပင္ = pin
+ပင့္ = pint
+ပင္း = pinn
+ေပါင္ = paung
+ေပါင္း = paung
+ပုိင္ = pi
+ပုိင္း = pine
+ပစ္ = pyit
+ပုစ္ = pote
+ပဇ္ = pyit
+ပဥ္ = pat
+ပည္း = pye
+ပဋ္ = pat
+ပါဌ္ = pdat
+ပဏ္ = pat
+ပိဏ္ = pate
+ပုဏ္ = pone
+ပတ္ = pat
+ပိတ္ = pite
+ပုတ္ = poat
+ပါဒ္ = pat
+ပုဒ္ = pote
+ပုိဒ္ = pite
+ပန္ = pan
+ပန္း = pann
+ပိန္ = pai
+ပိန္း = pane
+ပုန္ = pon
+ပုန္း = pone
+ပပ္ = pat
+ပုပ္ = pote
+ပုဗ္ = pote
+ပိမ့္ = pate
+ပံု = pone
+ပံု႔ = pont
+ပံုး = pone
+ပယ္ = pal
+ပလ္ = pal
+ပုလ္ = pote
+ပုိလ္ = po
+ပိသ္ = pate
+ပ် = pya
+ပ်ာ = pyar
+ပ်ား = pyar
+ျပံဳး = pyone
+ျပံဳ = pyon
+ပ်ဴ = pyu
+ေပ်ာ့ = paut
+ေပ်ာ္ = pyaw
+ပ်ံ = pyant
+ပ်ံ႕ = pyan
+ပ်ဳိ = pyo
+ပ်ဳိ႕ = pyoe
+ပ်ဳိး = pyoe
+ပ်က္ = pyat
+ေပ်ာက္ = pyout
+ပ်င္း = pyin
+ေပ်ာင္း = pyaung
+ပ်စ္ = pyit
+ပ်ဥ္ = pyin
+ပ်ဥ္း = pyin
+ပ်တ္ = pyat
+ပ်ပ္ = pyat
+ျပ = pya
+ျပာ = pyar
+ျပား = pyar
+ၿပီ = pyi
+ၿပီး = pyee
+ျပဳ = pyu
+ပ်ဳ = pyuu
+ျပဴ = pyuu
+ျပဴး = pyuu
+ေျပ = pyay
+ေျပး = pyay
+ၿပဲ = pyal
+ၿပဲ႕ = pynat
+ေျပာ = pyaw
+ေျပာ့ = pyaut
+ၿပိ = pye
+ၿပိဳ = pyo
+ၿပိဳး = pyoe
+ျပက္ = pyat
+ေျပာက္ = pyout
+ၿပိဳက္ = pyite
+ျပင္ = pyin
+ျပင္း =pyinn
+ေျပာင္ = pyaung
+ေျပာင္း = pyaung
+ၿပိဳင္ = pyai
+ၿပိဳင္း = pyane
+ျပစ္ = pyit
+ျပည္ = pye
+ျပည့္ = pyae
+ျပဋ္ = pyin
+ျပတ္ = pyat
+ၿပိတ္ = pyite
+ျပဳတ္ = pyout
+ျပန္ = pyan
+ျပန္႔ = pyant
+ၿပိန္ = pyai
+ၿပိန္း = pyane
+ျပဳန္း = pyone
+ျပဳပ္ = pyote
+ျပဳဗ္ = pyote
+ၿပံဳ = pyon
+ၿပံဳး = pyone
+ျပယ္ = pyal
+ျပသ္ = pyat
+ၿပိသ္ = phate
+ပြ = pwa
+ပြီး = pwe
+ပြား = pwar
+ေပြ = pway
+ေပြ႕ = pwae
+ေပြး = pway
+ပြဲ = pwal
+ပြဲ႕ = pwae
+ပြက္ = pwat
+ပြင့္ = pwint
+ပြင္ = pwin
+ပြတ္ = poot
+ပြန္ = pon
+ပြန္း = poon
+ပြပ္ = poot
+ႁပြတ္ = pyot
+ႁပြန္ = pyon
+ႁပြမ္း = pyoon
+ 
+ 
+ 
+##########################
+# ဖ
+##########################
+ဖ = pha
+ေဖၚ = phaw
+ဖာ = phar
+ဖား = pharr
+ဖိ = phai
+ဖီ = phe
+ဖီး = phee
+ဖု = phu
+ဖူ = phuu
+ဖူး = phu
+ေဖ = phay
+ေဖး = phayy
+ဖဲ = phal
+ေဖာ = phaw
+ေဖာ့ = phawe
+ေဖာ္ = phaw
+ဖဲ့ = phae
+ဖုိ = pho
+ဖုိ႔ = phoe
+ဖုိး = phoe
+ဖက္ = phat
+ေဖာက္ = phout
+ဖဂ္ = phin
+ဖင္ = phin
+ဖင့္ = phint
+ေဖာင္ = phaung
+ေဖာင္း = phaung
+ဖုိင္ = phai
+ဖုိင့္ = phant
+ဖစ္ = phit
+ဖည္ = phe
+ေဖာဋ္ = phaw
+ဖတ္ = phat
+ဖိတ္ = phate
+ဖုတ္ = phote
+ဖန္ = phan
+ဖန္း = phan
+ဖန္႔ = phant
+ဖိန္း = phane
+ဖုန္ = phone
+ဖုန္း = phone
+ဖပ္ = phat
+ဖမ္း = phan
+ဖိမ့္ = phent
+ဖံု = phone
+ဖံုး = phone
+ဖယ္ = phal
+ဖုိလ္ = pho
+ဖုသ္ = phote
+ဖ် = phya
+ဖ်ာ = phyar
+ဖ်ား = phar
+ေဖ်ာ့ = phwae
+ေဖ်ာ္ = phyaw
+ဖ်ံ = phyan
+ဖ်ဳိး = phyoe
+ဖ်က္ = phyat
+ေဖ်ာက္ = phout
+ျဖင့္ = phyit
+ဖ်င္ = phyin
+ဖ်င္း = phyinn
+ေဖ်ာင္း = phaung
+ဖ်စ္ = phyit
+ဖ်ဥ္ = phyin
+ဖ်ဥ္း = phyin
+ဖ်တ္ = phyat
+ဖ်န္ = phyan
+ဖ်န္း = phyann
+ဖ်ပ္ = phyat
+ျဖ = phya
+ျဖာ = phyar
+ျဖား = phyar
+ၿဖီး = phyee
+ျဖဴ = phyu
+ျဖဴး = phyuu
+ေျဖ = phyay
+ၿဖဲ = phyal
+ေျဖာ = phyaw
+ေျဖာ္ = phaw
+ၿဖိဳ = phyo
+ၿဖိဳး = phyo
+ေျဖာက္ = phyout
+ျဖင္ = phyin
+ျဖင္း = phyinn
+ေျဖာင္ = phyaung
+ေျဖာင့္ = phout
+ေျဖာင္း = phaung
+ၿဖိဳင္ = phyai
+ျဖစ္ = phyit
+ျဖည့္ = phyae
+ျဖည္း = phyae
+ျဖတ္ = phyat
+ျဖဳတ္ = phyote
+ျဖန္ = phyan
+ျဖန္႔ = phant
+ျဖန္း = phyan
+ျဖဳန္း = phyone
+ျဖဳပ္ = phyote
+ၿဖံဳ = phyone
+ၿဖံဳ႕ = phyone
+ၿဖံဳး = phyone
+ဖြာ = phwar
+ဖြင္ = pwin
+ဖြား = phwar
+ေဖြ = phway
+ေဖြး = phway
+ဖြဲ = phwal
+ဖြဲ႕ = phwint
+ဖံြ႕ = phyot
+ဖြင့္ = phwint
+ဖြတ္ = phoot
+ဖြပ္ = phwal
+ဖြယ္ = phwal
+ေဖါင္း = phaung
+ဖြ = pwa
+ 
+ 
+ 
+##########################
+# ဗ
+##########################
+ဗ = ba
+ဗာ = bar
+ဗက္ = bat
+ဗင္း = bin
+ဗား = barr
+ဗိ = beat
+ဗီ = be
+ဗီး = bee
+ဗူ = buu
+ဗစ္ = bit
+ဗူး = buu
+ေဗ = bay
+ေဗး = bay
+ေဗာ = baw
+ေဗာ့ = byout
+ဗ်ား = byar
+ဗ်ာ့ = bya
+ဗ်ဴး = byuu
+ျဗံဳး = byone
+ဗုိ႔ = boet
+ဗုိ = bo
+ဗယ္ = bal
+ဗြီး = bee
+ဗြန္ = bon
+ေဗာက္ = byout
+ဗုိက္ = bite
+ဗင္ = bin
+ေဗာင္း = baung
+ဗုိင္း = bine
+ဗုဒ္ = bhote
+ဗန္ = ban
+ဗန္း = bann
+ဗိန္ = bai
+ဗိန္း = bane
+ဗုန္း = bone
+ဗံု = bone
+ဗံုး = bone
+ဗုိလ္ = bo
+ဗိသ္ = bate
+ဗ်ဳိ႕ = by
+ဗ် = bya
+ဗ်ာ = byar
+ဗ်ဴ = byuu
+ဗ်ဳိး = byoe
+ဗ်ဳိက္ = byite
+ဗ်ဂ္ = byin
+ဗ်ဳိင္း = byine
+ဗ်စ္ = byin
+ဗ်ဥ္ = byin
+ဗ်ည္း = byee
+ဗ်တ္ = byat
+ဗ်ပ္ = byat
+ဗ်ဳပ္ = byout
+ျဗာ = byar
+ျဗဴး = byuu
+ၿဗဲ = byal
+ၿဗီ = bye
+ေျဗာ = byaw
+ၿဗိဳ႕ = byoe
+ၿဗိ = pyeet
+ျဗက္ = byat
+ေျဗာက္ = byout
+ေျဗာင္ = byaung
+ေျဗာင္း = byaung
+ၿဗိစ္ = byit
+ျဗတ္ = byat
+ျဗဳတ္ = byote
+ျဗ = bya
+ျဗဳန္း = byone
+ျဗဟ္ = byat
+ျဗာဟ္ = byat
+ေဗြ = bway
+ဗြက္ = bway
+ဗြတ္ = boot
+ဗြမ္း = bwan
+ 
+ 
+ 
+##########################
+# ဘ
+##########################
+ဘ = ba
+ဘရ္ = bal
+ဘာ့ = ba
+ဘစ္ = bit
+ဘမ္ = bam
+ဘမ္း = bam
+ဘာ = bar
+ဘား = bar
+ဘိ = beat
+ဘီ = b
+ဘီး = bee
+ဘု = bu
+ဘူ = buu
+ဘူး = bu
+ေဘ = bay
+ေဘာလ္ = ball
+ေဘး = bay
+ဘဲ = bal
+ေဘာ = ball
+ေဘာ့ = bob
+ေဘာ္ = baw
+ေဘာ့စ္ = boss
+ဘုိင္း = bine
+ဘုိင့္ = bite
+ဘုိ = bo
+ဘုိ႔ = boet
+ဘုိး = bow
+ဘက္ = bat
+ေဘာက္ = bout
+ဘင္ = bin
+ဘင္း = bin
+ေဘာင္ = baung
+ေဘာင္း = boung
+ဘုိင္ =  by
+ဘုဥ္း = phone
+ဘဏ္ = ban
+ဘတ္ = bat
+ဘိတ္ = bate
+ဘုတ္ = bote
+ဘဒ္ = bat
+ဘန္ = ban
+ဘန္႔ = bant
+ဘန္း = ban
+ဘိန္း = bane
+ဘုန္း = phone
+ဘုမ္ = bohn
+ဘံု = bon
+ဘယ္ = bal
+ဘယ္လ္ = bal
+ဘြာ = bwar
+ဘြား = bwarr
+ဘြဲ႕ = bwat
+ဘြင္း = bwin
+ဘြတ္ = boot
+ဘြဲ႔ = bwae
+ 
+ 
+ 
+##########################
+# မ
+##########################
+မ = ma
+မႈ႕ = mhu
+မႉး = mhu
+မာ့ = ma
+မွာ့ = mhar
+မုိင္ = mine
+မာ = mar
+မား = mar
+မိ = meet
+မီ = mhe
+မီး = mee
+မု = mhu
+မူ = mu
+မူး = muu
+မႈး = mhu
+ေမ = may
+ေမ့ = mae
+ေမး = may
+မဲ = mal
+မဲ့ = mae
+မုိ = mo
+ေမာ = maw
+ေမာ္ = maw
+ေမာ္လ္ = maw
+မံ = man
+မန္႔ = mant
+မုိး = moe
+မက္ = mat
+မည့္ = mae
+မုက္ = mote
+ေမာက္ = myout
+ေမာ့ = mout
+ေမာင့္ = maung
+ျမဳ = myu
+ျမဳတ္ = myote
+မႈိက္ = mhite
+မုိက္ = mite
+မယ့္ = mae
+မုခ္ = mhote
+ေမ်ာ္ = myaw
+မဂ္ = mat
+မင္ = min
+မင္း = minn
+ေမာင္း = moung
+ျမံဳ႕ = myoet
+ေျမာင့္ = myout
+ျမပ္ = myat
+ျမံဳး = myone
+မုိင္း = mine
+မစ္ = mit
+မဇ္ = mitz
+မဥ္ = min
+မည္ = me
+မည္း = mal
+မုဋ္ = mhote
+မဏ္ = mhat
+မတ္ = mat
+မိတ္ = mhate
+မုတ္ = mhote
+ေမတ္ = mhite
+မန္ = man
+မန္း = men
+မာန္ = man
+မိန္ = mai
+မိန္႔ = mate
+မိန္း = main
+မုန္ = mhan
+မုန္႔ = mhote
+မုန္း = mone
+မုဴိး = ????
+မပ္ = mhat
+မံု = mhon
+မယ္ = mal
+မာရ္ = man
+မလ္ = mat
+မိလ္ = mai
+မိသ္ = mate
+မယ္္ = mal
+မ်ား = myar
+ေမ်ာ = myaw
+မ်ဳိ = myo
+မ်ဳိး = myo
+မ်က္ = myat
+ေမ်ာက္ = myout
+မ်ဥ္း = myin
+ျမ = mya
+ျမာ = myar
+ျမား = myar
+ၿမီ = mhe
+ၿမီး = mhee
+ျမဴ = mhu
+ျမဴး = mhuu
+ေျမ = mway
+ေျမ့ = myae
+ေျမး = mway
+ၿမဲ = myal
+ေျမာ = myaw
+ေျမာ့ = myawt
+ႁမြာ = mhwyar
+ေျမာ္ = myaw
+ေမာင္ = maung
+ၿမိဳ႕ = myoe
+ၿမိဳး = myo
+ျမက္ = myat
+မ်ာ = myar
+ေျမာက္ = myout
+ၿမိဳက္ = mhyite
+ျမင္ = myin
+ျမင့္ = myint
+ျမင္း = myin
+ေျမာင္ = myang
+ေျမာင္း = myoung
+ၿမိဳင္ = myai
+ျမစ္ = myeet
+ျမည္ = mi
+ျမည့္ = myae
+ျမည္း = myee
+ျမတ္ = myat
+ၿမိတ္ = myike
+ျမန္ = myan
+ျမန္း = myann
+ၿမိန္ = myai
+ၿမိန္႔ = myeint
+ျမဳပ္ = myout
+ၿမံဳ = myone
+မြ = mwa
+ေမြ = mway
+ေမြ႕ = mwae
+ေမြး = mway
+မြဲ = mwal
+မြတ္ = moot
+မြန္ = mon
+မြန္း = moon
+မြမ္း = moon
+မွ = mha
+မွာ = mhar
+မွား = mhar
+မွီ = mhi
+မႈ = mhu
+မွဴး = mhu
+ေမွး = mhay
+မွဲ႕ = mhae
+ေမွာ္ = mhaw
+မႈိ = mhoe
+မွက္ = mhat
+ေမွာက္ = myout
+မွင္ = myin
+ေမွာင္ = myoung
+ေမွာင့္ = myout
+မႈိင္ = mhai
+မႈိင္း = mhine
+မွည့္ = mhae
+မွတ္ = mhat
+မွိတ္ = mhite
+မႈတ္ = mhote
+မွန္ = mhan
+မွန္း = mhan
+မွိန္ = mhane
+မွိန္း = mhane
+မႈန္ = mhon
+မႈန္႔ = mhone
+မႈန္း = mhone
+ေႁမြ = mway
+ႁမြက္ = mhwat
+မွ် = mhwa
+မွ်ား = mhaw
+ေမွ်ာ = mhaw
+ေမွ်ာ့ = myout
+ေမွ်ာ္ = myaw
+မွ်ဳိ႕ = myaw
+မႊား = mhyar
+မွ်င္ = myin
+မွ်စ္ = myint
+မွ်ဥ္း = myinn
+ျမႇဴ = myuu
+ေျမႇး = mhay
+ေျမႇာက္ = myout
+ၿမိႇဳက္ = mhyint
+ျမႇင့္ = myint
+ေျမႇာင္ = myaung
+ေျမႇာင့္ = myount
+ေျမႇာင္း = myaung
+ျမႇပ္ = myout
+ျမႇဳပ္ = myout
+ၿမံႇဳး = myone
+ေမႊ = mway
+ေမႊ႕ = mwae
+ေမႊး = mway
+မႊတ္ = mhoot
+မႊန္ = mhon
+မႊန္း = mhonn
+မႊာ = myaw
+မႊင္း = mywin
+မုိ႔ = moet
+
+ 
+ 
+##########################
+# ယ
+##########################
+ယ = ya
+ယ် = ya
+ယားစ္ = yar
+ယာ = yar
+ယား = yarr
+ယီး = yee
+ယု = yu
+ယူ = u
+ယူး = yuu
+ေယ = yay
+ယဲ = yal
+ယာန္ = yan
+ယဲ့ = yae
+ေယာ = yaw
+ယံ = yan
+ယုိ = yo
+ယုိ႔ = yoe
+ယုိး = yoe
+ယက္ = yat
+ေယာက္ = yat
+ယုဂ္ = yote
+ယင္ = yin
+ယ်ာဥ္ = yin
+ယင္း = yinn
+ေယာင္ = yaung
+ေယာင္း = yaung
+ယုိင္ = yine
+ယစ္ = yit
+ယဇ္ = yit
+ယဥ္ = yin
+ယဥ့္ = yint
+ယဥ္း = yinn
+ယာဥ္ = yin
+ယတ္ = yat
+ယုတ္ = yote
+ယန္ = yan
+ယန္း = yann
+ယုန္ = yone
+ယပ္ = yat
+ယမ္း = yan
+ယိမ္း = yane
+ယံု = yone
+ယံု႔ = yont
+ယံြ = yon
+ယြက္ = ywat
+ယြင္း = ywin
+ယြတ္ = yoot
+ယြန္း = yoon
+ယွက္ = shat
+ယွဥ္ = shin
+ 
+ 
+ 
+##########################
+# ရ
+##########################
+ရ = ya
+ရွမ္ = shan
+ရွီး = shee
+ရာ = yar
+ရာဇ္ = reet
+ရာဏ္ = yan
+ရာယ္ = yal
+ရိ = yeet
+ရီ = ye
+ရူ = u
+ရူး = yuu
+ေရ = yay
+ေရး = yayy
+ရဲ = ye
+ရဲ႕ = yae
+ရွဲ႕ = shae
+ရွန္ = shan
+ရွီ = she
+ရွယ္ = shal
+ရား = yar
+ေရာ = yaw
+ေရာ့ = ywat
+ရြင္ = ywin
+ရွင့္ = shint
+ေရာ္ = yaw
+ရံ = yan
+ရုိ = yo
+ရုမ္း = shan
+ရုဏ္ = yone
+ရုိ႕ = yot
+ရုိး = yoe
+ရံုး = yone
+ရက္ = yat
+ရိက္ = yate
+ရုက္ = yat
+ေရာက္ = yout
+ရုိက္ = yite
+ရင္ = yin
+ရင့္ = yint
+ရင္း = yinn
+ေရာင္ = yaung
+ေရာင့္ = yout
+ေရာင္း = yaung
+ရုိင္ = yai
+ရုိင္း = yane
+ရည့္ = yite
+ရိမ္ = yane
+ရစ္ = yit
+ရဥ့္ = yint
+ရည္ = ye
+ရည္း = yee
+ရတ္ = yat
+ရိတ္ = yate
+ရုတ္ = yote
+ရန္ = yan
+ရန္း = yann
+ရုန္႔ = yont
+ရုန္း = yone
+ရပ္ = yat
+ရိပ္ = yate
+ရုပ္ = yote
+ရမ္ = yan
+ရမ္း = yann
+ရံု = yone
+ရယ္ = yal
+ရသ္ = yat
+ရြ = ywa
+ရြာ = ywar
+ရြား = ywarr
+ေရြ = yway
+ေရြ႕ = shwae
+ေရွာ့ = shwae
+ေရြး = yway
+ရြဲ = yawl
+ရြဲ႕ = ywae
+ရံြ = yon
+ရီး = yee
+ရံြ႕ = yont
+ရြက္ = ywat
+ရြတ္ = yoot
+ရြပ္ = yoot
+ရု = yu
+ရုဇ္ = ruz
+ရြမ္း = ywane
+ရြယ္ = yawl
+ရွ = sha
+ရွာ = shar
+ရွား = sharr
+ရွိ = shi
+ရႈ = shuu
+ရႈိင္း = shine
+ရွဴ = shu
+ရွဴး = shoe
+ေရွ႕ = shae
+ေရွး = shae
+ရွဲ = shal
+ေရွာ = shaw
+ရံွ = shan
+ရႈိ႕ = shoe
+ရႈိး = show
+ရွက္ = shat
+ေရွာက္ = shout
+ရႈိက္ = shite
+ရွင္ = shin
+ရွင္း = shinn
+ေရွာင္ = shaung
+ရွိမ္း = shane
+ရွစ္ = shit
+ရွဥ့္ = shint
+ရွဥ္း = shinn
+ရွည္ = shay
+ရႈတ္ = shote
+ရွိန္ = shane
+ရွိန္း = shane
+ရႈန္း = shan
+ရွပ္ = shat
+ရႈပ္ = shote
+ရွမ္း = shan
+ရံႈ႕ = shote
+ရံႈး = shone
+ေရႊ = shwe
+ေရႊ႕ = shwae
+ရႊံ႕ = shont
+ရႊင္ = shwin
+ရႊန္း = shoon
+ရႊတ္ = shot
+ရႊပ္ = shoot
+ရႊမ္း = shwan
+၍ = ywae
+ရႊီး = shwee
+ 
+ 
+ 
+##########################
+# လ
+##########################
+လ = la
+လာ = lar
+လား = lar
+လဒ္ = lad
+လီ = le
+လီး = lee
+လဲ့ = le
+လု = lhu
+လုဒ္ = lu
+လူ = lu
+လူ႔ = lu
+လွ = hla
+လ် = hla
+လူး = luu
+ေလ = lay
+ေလ့ = lae
+ေလး = lay
+လဲ = lal
+ေလာ = law
+လုိး = low
+ေလာ့ = lot
+ေလာ္ = law
+လံ = lan
+လုိ = lo
+လန္႔ = lant
+လုိ႔ = loe
+လက္ = lat
+ေလာက္ = loud
+လုိက္ = lite
+လင္ = lin
+လင္း = lin
+လင့္ = lint
+လိင္ = lane
+လိန္ = lane
+ေလာင္ = loung
+ေလာင္း = laung
+လုိင္ = lai
+လစ္ = lit
+လည္ = lal
+လည္း = lal
+လုိဏ္ = lai
+လတ္ = lat
+လိတ္ = late
+လုတ္ = lote
+လန္ = lan 
+လန္႕ = lant
+လန္း = lan
+လိန္း = lane
+လပ္ = lat
+လိပ္ = late
+လုပ္ = lote
+လာဘ္ = lat
+လမ္း = lann
+လိမ္ =  lei
+လိမ့္ = leint
+လိမ္း = lane
+လံု = lon
+လံု႔ = lote
+လံုး = lone
+လယ္ = lal
+လ်ာ = hlar
+လ်ား = hlar
+ေလ်ာ့ = shwae
+ေလ်ာ္ = shaw
+လ်က္ = hlat
+ေလ်ာက္ = hlout
+လ်င္ = hlin
+ေလ်ာင္း = hlong
+လ်စ္ = hlit
+လ်ဥ္ = hlin
+လ်ဥ္း = hling
+လ်ပ္ = hlat
+ေလြ႕ = lwae
+လြဲ = lwal
+လြင္ = lwin
+လြင့္ = lwint
+လြတ္ = loot
+လြန္ = lon
+လြန္း = loon
+လြမ္း = hlwan
+လြယ္ = lwal
+လွီ = hle
+လွီး = hlee
+လွဴ = hlu
+ေလွ = hlay
+လွဲ = hlal
+လွယ္ = hlal
+ေလွာ္ = hlaw
+ေလ်ာ = hlaw
+လံွ = hlan
+ေလွာက္ = hlout
+လႈိက္ = hlite
+လႈိ = hlo
+လွင္ = hlin
+ေလွာင္ = hlout
+လႈိင္ = hlaing
+လႈိင္း = haling
+လွစ္ = hlit
+လွည့္ = hlae
+လွည္း = hlal
+လွန္ = hlan
+လွန္႔ = hlnat
+လွန္း = hlang
+လွပ္ = hlat
+လႈပ္ = hlote
+လွမ္း = hlan
+လွိမ့္ = hlate
+လံႈ = hlone
+လံႈ႔ = hlont
+လွ်က္ = hlat
+လွ်ာ = shar
+ေလွ်ာ = shaw
+ေလွ်ာ့ = shaut
+ေလွ်ာ္ = shaww
+လွ်ံ = hlan
+လွ်ဳိ = hlo
+လွ်ဳိ႕ = shoe
+လွ်ဳိး = show
+ေလွ်ာက္ = shout
+လွ်င္ = hlin
+လွ်ပ္ = hlat
+လွ်မ္း = hlan
+လႊ = lwa
+လႊာ = hlwar
+လႊား = hlwarr
+လႊဲ = lwal
+လႊံ႕ = lont
+လုိင္း = line
+လႊင့္ = lwint
+လႊတ္ = loot
+လႊမ္း = lwan
+လိ = le
+လ်ဴ = hlu
+ 
+ 
+ 
+##########################
+# ဝ
+##########################
+ဝ = wa
+ဝုဒ္ = wood
+ဝါ = war
+ေဝါ = wor
+ေဝါင္ = wong
+ဝဏ္ = won
+ေဝၚ = waw
+ဝံုး = wone
+ဝါး = war
+ဝိ = weet
+ဝီ = we
+ေဝ = wai
+ေဝွ႔ = whae
+ေဝ့ = weat
+ေဝး = way
+ဝဲ = wal
+ဝံ = won
+ဝုတ္ = wote
+ဝံ့ = wont
+ဝက္ = wet
+ဝုိက္ = white
+ဝွက္ = what
+ဝဂ္ = woot
+ဝင္ = win
+ဝင့္ = wint
+ဝင္း = win
+ဝုိင္း = wine
+ဝစ္ = wit
+ဝုိင္ = wine
+ဝိဇ္ = wiz
+ဝဋ္ = woot
+ဝတ္ = woot
+ဝန္ = won
+ဝန္း = woon
+ဝုန္း = wone
+ဝပ္ = woot
+ဝမ္ = wan
+ဝမ့္ = want
+ဝမ္း = one
+ဝယ္ = wal
+ဝသ္ = woot
+ေဝသ္ = what
+ေဝွ႕ = whae
+ေဝွး = whay
+ဝွဲ = whal
+ဝွန္ = whon
+ဝွန္း = whonn
+ဝွမ္း = when
+ဝူး = wu
+ 
+ 
+ 
+##########################
+# သ
+##########################
+သ = ta
+ႆ = ta
+ေသ့ = tae
+သွ် = sha
+သွ်ဳိ = sho
+သာ = tar
+သား = tarr
+သိ = te
+သီ = te
+သီး = thee
+သု = thu
+သူ = thu
+သူ႕ = thu
+ေသ = thay
+ေသး = they
+သူ႔ = thee
+သဲ = thal
+သဲ့ = tae
+ေသာ = taww
+ေသာ့ = toot
+ေသာ္ = thaw
+သံ = tan
+သံ့ = thant
+သုိ = tho
+သုိ႔ = thot
+သုိး = thoe
+သက္ = that
+သာဒ္ = that
+သိက္ = theit
+သုက္ = toat
+ေသာက္ = thout
+သုိက္ = tite
+သင္ = tin
+သင့္ = thint
+သြယ္ = thwal
+သြင္ = twin
+သင္း = thin
+သိင္ = tein
+ေသာင္ = taung
+ေသာင္း = thaung
+ေၾသာ္ = aww
+သုိင္း = tine
+သစ္ = thit
+သဥ္ = tin
+သိဥ္ = thein
+သုဥ္း = thone
+ေသဥ္ = tay
+သည္ = the
+သည့္ = the
+သည္း = tee
+ေသဋ္ = tay
+သဋ္ = tan
+သဏ္ = tan
+သတ္ = tat
+သုတ္ = thote
+ေသတ္ = that
+သဒ္ = that
+သိဒ္ = thein
+သုဒ္ = thote
+သန္ = than
+သန္႔ = thant
+သန္း = than
+သိန္ = thain
+သိန္း = thein
+သုန္ = thone
+သပ္ = that
+သိပ္ = theint
+သုပ္ = tote
+ေသာပ္ = thaw
+သဗ္ = that
+သမ္ = tan
+သမ္း = than
+သိမ္ = thein
+သိမ့္ = theint
+သိမ္း = thein
+သံု႔ = thont
+သံုး = thone
+သယ္ = thal
+သိဟ္ = theint
+သြာ = twar
+သြား = twar
+သြင္း = twin
+ေသြ = tway
+ေသြ႕ = thwae
+ေသြး = thway
+သံြ = thon
+သြက္ = twat
+သြတ္ = toot
+သြန္ = thon
+သြန္း = toon
+သြပ္ = toot
+သွ်ား = sharr
+သွ်ိ = sho
+သွ်ဳိး = shoe
+ေသွ်ာင္ = shong
+သွ်တ္ = shat
+သုိလ္ = tol
+ 
+ 
+ 
+##########################
+# ဟ
+##########################
+ဟ = ha
+ဟန္း = ham
+ဟြာ = hwar
+ဟြန္း = hoon
+ဟြင္း = hwin
+ဟြတ္ = hoot
+ဟဲ့ = hae
+ဟတ္ = hat
+ေဟ့ = hey
+ေဟာ္ = haw
+ဟာ = har
+ဟား = har
+ဟိ = heat
+ဟီ = he
+ဟီး = hee
+ေဟ = hay
+ဟဲ = hal
+ေဟာ = haw
+ေဟာလ္ = hall
+ေဟး = hey
+ေဟာ့ = hot
+ဟံ = han
+ဟမ္ = ham
+ဟုိ = ho
+ဟုိ႔ = hoot
+ဟုိး = hoo
+ဟက္ = hat
+ဟင္ = hin
+ဟင့္ = hint
+ဟင္း = hinn
+ေဟာင္ = hong
+ေဟာင္း = hong
+ဟုိင္း = hi
+ဟစ္ = hit
+ဟည္း = hee
+ဟိတ္ = hate
+ဟုတ္ = hote
+ဟမ္္ = ham
+ဟန္ = han
+ဟန္႔ = hant
+ဟိန္း = hein
+ဟုန္ = hon
+ဟုန္း = hone
+ဟပ္ = hat
+ဟုပ္ = hote
+ဟံု = hon
+ဟူး = huu
+ဟူ = hu
+ဟု = hu
+ဟံုး = hone
+ေဟာက္ = hout
+ဟသ္ = hat
+ဟယ္ = hal
+ဟုိက္ = hite
+ 
+ 
+ 
+##########################
+# ဠ
+##########################
+ဠ = nha
+ဠိ = ni
+ဠာ = nar
+ 
+ 
+ 
+##########################
+# အ
+##########################
+အ = ah
+အာ = ar
+အား = arr
+အံု႔ = oat
+အိ = ei
+အီ = ei
+ဤ = ei
+အီး = e
+အယ္ = l
+အု = ohu
+ဥ = ohu
+အူ = ou
+အဲ့ = ae
+အူး = oo
+အြန္ = ohn
+ဦး = oo
+ဦ = ohu
+ဦး = oo
+ေအ = a
+ဧ = a
+၏ = ei
+ေအး = aye
+အဲ = air
+ေအာ = aww
+ၾသ = aww
+ေအာ့ = aww
+ေအာ္ = or
+ေၾသ = or
+အံ = an
+အံ့ = ant
+အုိ = o
+အုိလ္ = o
+အုိး = oe
+အက္ = at
+ဥက္ = at
+ေအာက္ = out
+အုိက္ = eite
+အဂ္ = in
+အင္ = in
+အင့္ = int
+အင္း = inn
+ေအာင္ = aung
+ေအာင္း = aung
+ေအာင့္ = out
+အမ္ = am
+အုိင္ = i
+အစ္ = ait
+#ဣစ္ = ???
+ဥစ္ = oat
+ဧည့္ = ae
+အဋ္ = it
+ဣဋ္ = eai
+ဥဏ္ = an
+အတ္ = at
+အိတ္ = eight
+ဣတ္ = eight
+အုတ္ = oat
+ဥတ္ = oat
+ဣဒ္ = eight
+အန္ = an
+အန္း = ann
+ဣန္ = an
+အုန္ = oai
+အုန္း = ohm
+အပ္ = at
+အိပ္ = eight
+အုပ္ = oat
+ဥပ္ = oat
+အဗ္ = at
+အမ္း = ann
+အိမ္ = eai
+အိမ့္ = eait
+အိမ္း = eain
+ဥမ္ = and
+အံု = ohn
+ဥံဳ = ohn
+အံု႕ = oint
+အံုး = ohn
+အသ္ = at
+#ဣသ္ = ???
+ဥသ္ = at
+
+
+
+
