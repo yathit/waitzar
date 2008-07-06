@@ -1,977 +1,552 @@
 - = a
-
+-ြက္ = wat
+ျ- = ya
+-တ္ = at
+ၾ-စ္ = yit
+-်ဥ္ = yin
+ေ-ၽြး = way
+ၾ-ံဳး  = hyone
+ေ-ါင္ = aung
+-်မ္း = yan
+ႂ-ြင္း = win
+ၾ-ံ့  = yant
+ၾ-ံဳ  = yone
+ႀ-ိဳ႕ = yoe
+-ဏ္ = an
+ၾ-င္ = yin
+ျ-င္း = yinn
+ၾ-ဥ္း = yinn
+-ြယ့္ = wae
+-်ည္ = yi
+ေ-်ာက္ = yout
+-်ဳတ္ = yote
+ၾ-ဴး = yuu
+ၾ-မ္း = yan
+ႁ-ြ = ywa
+ေျ-ာက္ = yout
+-ၽြက္ = wat
+-ၽြဲ = wal
+-ိတ္ = ate
+ျ-ည္ = yi
+-ြပ္ = wot
+ႀ-ိဳး = yoe
+ၾ-ယ္ = yal
+-ြ်မ္း = wan
+ႁ-ြင္း = win
+ေႂ-ြ  = way
+ႀ-ိဳင္ = yai
+ေ-ါက္ = out
+ေႂ-ြ႕ = ywae
+ေ-ာ္ = aw
+ေ-ာ့ = ot
+ေၾ-း = way
+ၾ-ဳတ္ = yote
+-ြန္ = on
+ၾ-မ္ = yan
+ေၾ-ာ = yaw
+ႀ-ိမ္ = yane
+ၾ-က္ = hat
+-ိန္း = ane
+-ြား = war
+-ြာ့ = wa
+-ြ် = ywa
+ၿ-ိဳး = yoe
+ႂ-ြယ္ = ywal
+-်ိမ့္ = habe
+-ြဲ = wal
+-ြီ = wi
+-ြာ = war
+-ၽြန္း = hon
+ၾ-န္႔ = yant
+-်ဳိင္ = hai
+-ုမ္ = one
+ႂ-ြက္ = ywat
+-်န္း = an
+-ုက္ = ote
+-ြ်က္ = hot
+ၾ-  = ya
+-ယ့္ = yae
+ေႂ-ြး  = way
+-ုိင္း = yine
+-်စ္ = yit
+ေၾ-ာ္  = aw
+ေ-ၚ = aw
+-်ံ = yan
+ေ-တ္ = hit
+ေၾ-ာ့ = yut
+-်ဴ = yuu
+-်ဲ = yal
+-ၽြန္ = yon
+-်ီ = ye
+-်ိ = yi
+-်ာ = yar
+ေၾ-ာင္ = yaung
+-်ံဳ = hone
+-်င္း = yin
+-်င့္ = yint
+ႀ-ိဳက္ = yite
+-ြမ္း = wan
+-်င္ = yin
+ျ-စ္ = yit
+-ုိ႔ = oe
+ေ-ြ = way
+ႀ-ံဳ  = yone
+ေ-် = yay
+-ြတ္ = oot
+ေ-း = ae
+-ုိင္ = ine
+-ုဗ္ = at
+ၾ-ပ္ = yat
+-်ဲ႕ = yae
+ေ-ာ = aw
+-ၽံြ = yon
+ေ-ါ = aw
+ႀ-ံ  = yan
+ျ-ံဳ = yone
+ႀ-ဲ  = yal
+ႀ-ီ  = ye
+ႀ-ိ  = yi
+ျ-င္ = yin
+ၾ-န္ = yan
+-်ဴး = yuu
+ေ- = ay
+ေ-ြ႕ = wae
+-်ိပ္ = yate
+ေႁ-ြ = way
+-ြ်န္း = yun
+-်ဳိက္ = yite
+ၾ-ား = yar
+ႂ-ြပ္ = yut
+-ုပ္ = ote
+-သ္ = at
+-စ္ = it
+-်ဳန္း = yone
+ျ-ဴး = yuu
+-်ယ္ = yal
+-်ိန္ = yane
+-်ဳိ = yo
+-ံြ = on
+-ုိယ္ = o
+-ုိး = oe
+-ံ့ = ant
+-ုန္ = one
+ၿ-ိဳက္ = yite
+-ံု = one
+ေ-ာဋ္ = at
+-ၽြတ္ = yut
+-ြန္႔ = ont
+-ြ်န္ = yun
+-င္ = in
+ေၾ-ာက္ = yout
+ေၾ-ာင္း = yung
+ေၾ-ာင့္ = yout
+-်ိန္း = yane
+ျ-ယ္ = yal
+-်က္ = yat
+ႂ-ြား = wyar
+-ုိက္ = ite
+ေ-ါင္း = aung
+ေ-ါင့္ = hout
+ေ-ြး = way
+ေ-ြ်း = way
+-ုန္း = one
+-မ္း = am
+ၾ-တ္ = yat
+ႀ-ိတ္ = yate
+-ိစ္ = ate
+ေျ-  = ay
+-ယ္ = al
+-ြန္း = on
+ေ-်ာ္ = yaw
+ေ-်ာ့ = yut
+ႀ-ိမ္း = yane
+ျ-ဳပ္ = yote
+ေ-်း = yay
+-ံုး = one
+-်ိတ္ = yate
+ၿ-ံ = yan
+-ဲ့ = ae
+ေ-်ာ = yaw
+-ုတ္ = ote
+-မ္ = am
+-်ဴပ္ = yote
+-်ီး = ye
+-ြ်တ္ = yut
+-က္ = at
+-ြင္း = win
+-ြင့္ = wint
+-်ပ္ = yat
+-ြိဳင္ = oi
+-ြ်ံ = yun
+ႀ-ီး = ye
+ေ-ာင္း = aung
+-န္႔ = ant
+-်န္ = yan
+ၾ-ဥ္ = yin
+-ူး = uu
+ေျ-ာင္း = yaung
+ေျ-ာင့္ = yout
+ႀ-ိဳ = yo
+-်ား = yar
+ျ-မ္း = yan
+-ုိယ့္ = oe
+ၿ-ိမ္း = yane
+ၿ-ိမ့္ = yate
+-ြ = wa
+-် = ya
+ေ-ာင္ = aung
+-ုိ = o
+-ံ = an
+-ဲ = al
+ျ-ား = yar
+-ူ = u
+-ု = u
+-ီ = e
+-ိ = i
 -ာ = ar
 -ါ = ar
-
--ာ့ = a
--ါ႔ = a
--ါ့ = a
-
--ား = ar
--ါး = ar
-
--ိ = i
-
--ီ = e
-
--ီ့ = et
-
 -ီး = ee
-
--ု = u
--ဳ = u
-
--ူ = u
--ဴ = uu
-
--ူ႔ = hu
-
--ူး = uu
--ဴး = huu
-
-ေ- = ay
-
+-ပ္ = at
+ၾ-ည္ = yi
+-်ံဳ႕ = yul
+-်ဳိ႕ = yoe
+-န္း = am
+-်ည္း = yee
+-်ည့္ = yeet
+-ြိဳက္ = yite
+ျ-ဳတ္ = oat
+ျ-ံ  = yan
+ေ-်ာင္း = haung
+ျ-ဴ = yu
+-ြင္ = win
+ျ-ာ = yar
+-ုဋ္ = one
+-န္ = an
+ႁ-ြမ္း = yun
+-်တ္ = yat
+-င္း = in
+ႂ-ြ  = wa
+-ား = ar
+-ာ့ = a
+ၾ-ံ  = yan
+ၾ-ဴ  = yu
+ေၾ-  = yay
+ၾ-ာ = yar
+ၾ-ံဳ႕ = yote
+-်ဳပ္ = yote
+ၾ-ည္း = yee
+ေ-ၽြ = way
+ၾ-ည့္ = yeet
+-ါး = ar
+-်ဳိင္း = yine
+-်ဳိင့္ = yite
+ေ-ာက္ = out
+-်ံဳး = yone
+-်ဳိး = yoe
+ေ-်ာင္ = o
+-်ဳန္ = one
+-ႊၽန္ = yun
+-ြယ္ = wal
+-ြၽင္ = ywin
+-ံြ႕ = ont
+-ိန္ = ane
+ၾ-ဳပ္ = yote
+-ၽြမ္း = yun
+-်ဥ္း = yin
+-ြမ္ = yan
+-ွ်ဳိး = hoe
+-ုဇ္ = yit
+ျ-န္း = yan
+-ယ္လ္ = al
+-ႊန္း = hon
+ၿ-ိန္း = yine
+-ံႈး = hone
+-်ာဥ္ = in
+-ွိမ့္ = ate
+-ႇက္ = hat
+-ႈ႕ = hu
+ေ-ွ်ာက္ = hout
+ျ-င့္ = hint
+-ားစ္ = hars
+-ွ်ဥ္း = hinn
+-ႊင္း = hwin
+-ြိ႕ = ont
+-ႊင့္ = lwint
+-ိဒ္ = kit
+ၿ-ိသ္ = hit
+-ုသ္ = hit
+-ာဘ္ = at
+-ႊံ = wan
+ေ-ာပ္ = at
+-ႊဲ = wal
+ၿ-ိစ္ = yit
+-ုစ္ = hit
+-ႊာ = hwar
+-ွ်မ္း = lan
+-ွိတ္ = hit
+-ွတ္ = hat
+-ိန္႔ = ate
+ျ-ႇဴ = yu
+ၿ-ိဳ႕ = hoe
+ေ-ါ႔ = ot
+ျ-ဋ္ = ??
+-ႊင္ = yuin
+-ႉး = huu
+-ႈတ္ = hote
+ေ-ႇာ္ = haw
+ေျ-း = hay
+ေျ-့ = hae
+-ြီး = hee
+ေျ-ာ = yaw
+-ႈိင္း = laing
+-ုလ္ = ho
+-ႈး = huu
+-ဥ္ = in
+-်န္႔ = ant
+-ႈိ = ho
+-ႇပ္ = hat
+-ွ် = hwa
+-ိဏ္ = ai
+-ွဴ = hu
+ၿ-ံဳ = hone
+-ွဲ = hal
+-ွီ = he
+-်ံ႕ = han
+-ွာ = har
+-ုဂ္ = oat
+-ဋ္ = ???
+-ႇီ = he
+ေျ-ႇာင္ = haung
+-ႇာ = har
+ေ-ါ့ = hot
+ၿ-ဲ႕ = hae
+ၿ-ိဳဟ္ = ho
 ေ-႕ = hae
 ေ-႔  = hae
+-ႇဥ္း = hin
+-ုဥ္း = in
+-ာန္ = han
+-ြိ = ei
+-ြါ = war
+-ုခ္ = hote
+-ည္ = hi
+ေ-ႊ = lway
+-ါယ္ = hal
+-ွဥ္ = hin
+-ွ်စ္ = hlit
+ေ-ွ်ာ္ = haw
+ေ-ွ်ာ့ = hwae
+ေ-ႊ႕ = wae
+-ုမ္း = hone
+ၿ-ိမ္ = cai
+-ဳက္ = at
+ႁ-ြာ = war
+ေ-ါ့တ္ = ot
+-ွိန္း = ane
+-ွည္း = hal
+-ွ်င္ = hin
+-ွည့္ = ywae
+-ိဥ္ = yin
+ျ-ဟ္ = at
+ေ-ွ်ာ = aw
+-ုိင့္ = hite
+ျ-ႇဳပ္ = hote
+-်ဳ = hu
+-ုိစ္ = hit
+-ာဒ္ = at
+ၿ-ိဳင္ = hai
+ျ-ဳန္း = yone
+ျ-သ္ = at
+-ည္း = yee
+-ည့္ = ye
+ေ-ွ = hay
+-တ္စ္ = at
+-ံ႕ = ant
+ၿ-ိဳလ္ = ho
+-ိဋ္ = ate
+-ုိ႕ = hoe
+-ံ႔ = ant
+ႁ-ြက္ = hat
 ေ-့ = ae
-
-ေ-း = ae
-
--ဲ = al
-
--ဲ့ = ae
+-ံႈ = hon
+-ဇ္ = it
+ျ-ႇပ္ = hote
+ေျ-ႇာက္ = hout
+-ိႇဳး = hoe
+ေ-ွ႕ = hae
+ေ-ွ႔ = hae
+ေ-ႊး = way
+-ုိလ္ = ho
+-ူတ္ = hote
+-ာတ္ = at
+-ွ်ံ = hlan
+-ွ်ဳိ = hlo
+ေ-ွာင္ = haung
+-ွ်ိ = ho
+-ုန္႔ = oat
+-ွ်ာ = har
+-်ဂ္ = at
+-ုိရ္ = ho
+-ာဏ္ = am
+ေ-ာ္လ္ = al
+-ွ်က္ = lat
+-ႊန္ = on
+-ံွ = han
+ေ-ဥ္ = ay
+ၿ-ိန္ = ai
+-ံဳ = ohn
+-ႊား = war
+ေ-ွး = aye
+-ံု႕ = ote
+-ံု႔ = ote
+-ွမ္း = han
+ၿ-ီး = ee
+ေ-ႇာင့္ = hout
+-ိဇ္ = yet
 -ဲ႕ = hae
 -ဲ႔ = hae
-
-ေ-ာ = aw
-ေ-ါ = aw
-
-ေ-ာ့ = ot
-ေ-ါ႔ = ot
-ေ-ါ့ = hot
-
-ေ-ာ္ = aw
-ေ-ၚ = aw
-
-ေ-ာ့္ = hot
-
--ံ = an
-
--ံ့ = ant
--ံ႕ = ant
--ံ႔ = ant
-
--ုိ = o
--ိဳ = o
-
--ုိ႔ = oe
--ုိ႕ = hoe
--ိဳ႕ = hoe
-
--ုိး = oe
--ိဳး = oe
-
--ံု = one
--ံဳ = ohn
-
--ံု႔ = ote
-
--ံုး = one
-
--ုဴိး = hoe
-
--က္ = at
-
--ိက္ = ate
-
--ုက္ = ote
--ဳက္ = at
-
-ေ-ါက္ = out
-ေ-ာက္ = out
-
--ုိက္ = ite
-
--ူိက္ = ite
-
--ုခ္ = hote
-
--ဂ္ = in
-
--ိဂ္ = eai
-
--ုဂ္ = oat
-
--င္ = in
-
--င့္ = int
-
--င္း = in
-
--ိင္ = ai
-
-ေ-ါင္ = aung
-ေ-ာင္ = aung
-
-ေ-ါင့္ = hout
-ေ-ာင့္ = out
-
-ေ-ါင္း = aung
-ေ-ာင္း = aung
-
--ုိင္ = ine
-
--ုိင့္ = hite
-
--ုိင္း = yine
-
--ူိင္ = laing
-
--စ္ = it
-
--ာစ္ = it
-
--ားစ္ = hars
-
--ိစ္ = ate
-
--ုစ္ = hit
-
-ေ-ာ့စ္ = os
-
--ုိစ္ = hit
-
--ဇ္ = it
-
--ာဇ္ = yet
-
--ိဇ္ = yet
-
--ုဇ္ = yit
-
--ဥ္ = in
-
--ဥ့္ = int
-
--ဥ္း = inn
-
--ာဥ္ = im
-
--ိဥ္ = yin
-
--ုဥ္း = in
-
-ေ-ဥ္ = ay
-
--ည္ = hi
-
--ည့္ = ye
-
--ည္း = yee
-
--ဋ္ = ???
-
--ိဋ္ = ate
-
--ုဋ္ = one
-
-ေ-ဋ္ = ay
-
-ေ-ာဋ္ = at
-
--ါဌ္ = at
-
--ဏ္ = an
-
--ာဏ္ = am
-
--ိဏ္ = ai
-
--ုဏ္ = ohn
-
--ုိဏ္ = hite
-
--ုိဏ္း = ine
-
--တ္ = at
-
--ာတ္ = at
--ါတ္ = at
-
--ိတ္ = ate
-
--ုတ္ = ote
-
--ူတ္ = hote
-
-ေ-တ္ = hit
-
-ေ-ါ့တ္ = ot
-
--ဒ္ = at
-
--ာဒ္ = at
--ါဒ္ = at
-
--ိဒ္ = kit
-
--ုဒ္ = oat
-
--ုိဒ္ = oat
-
--န္ = an
-
--န္႔ = ant
-
--န္း = am
-
--ာန္ = han
-
--ါန္း = ann
-
--ိန္ = ane
-
--ိန္႔ = ate
-
--ိန္း = ane
-
--ုန္ = one
-
--ုန္႔ = oat
-
--ုန္း = one
-
--ပ္ = at
-
--ိပ္ = ate
-
--ုပ္ = ote
-
-ေ-ာပ္ = at
-
--ဗ္ = at
-
--ိဗ္ = loit
-
--ုဗ္ = at
-
--ာဘ္ = at
-
--မ္ = am
-
--မ့္ = amt
-
--မ္း = am
-
--ိမ္ = ai
-
--ိမ့္ = ate
-
--ိမ္း = ane
-
--ုမ္ = one
-
--ုမ္း = hone
-
--ယ္ = al
-
--ယ့္ = yae
-
--ါယ္ = hal
--ာယ္ = al
-
--ုိယ္ = o
-
--ုိယ့္ = oe
-
--ရ္ = al
-
--ာရ္ = al
-
-ေ-ရ္ = aw
-
--ုိရ္ = ho
-
--လ္ = ai
-
--ိလ္ = ai
-
--ုလ္ = ho
-
-ေ-ာလ္ = all
-
-ေ-ာ္လ္ = al
-
--ုိလ္ = ho
-
--သ္ = at
-
--ိသ္ = ai
-
--ုသ္ = hit
-
-ေ-သ္ = aye
-
--ိဟ္ = ai
-
--် = ya
-
--်ာ = yar
-
--်ာ့ = a
-
--်ား = yar
-
--်ိ = yi
-
--်ီ = ye
-
--်ီး = ye
-
--်ဳ = hu
-
--်ဴ = yuu
-
--်ဴး = yuu
-
-ေ-် = yay
-
-ေ-်း = yay
-
--်ဲ = yal
-
--်ဲ႕ = yae
-
-ေ-်ာ = yaw
-
-ေ-်ာ့ = yut
-
-ေ-်ာ္ = yaw
-
--်ံ = yan
-
--်ံ႕ = han
-
--်ဳိ = yo
-
--်ဳိ႕ = yoe
-
--်ဳိး = yoe
-
--်ံဳ = hone
-
--်ံဳ႕ = yul
-
--်ံဳး = yone
-
--်က္ = yat
-
-ေ-်ာက္ = yout
-
--်ဳိက္ = yite
-
--်ဂ္ = at
-
--်င္ = yin
-
--်င့္ = yint
-
--်င္း = yin
-
-ေ-်ာင္ = o
-
-ေ-်ာင္း = haung
-
--်ဳိင္ = hai
-
--်ဳိင့္ = yite
-
--်ဳိင္း = yine
-
--်စ္ = yit
-
--်ဥ္ = yin
-
--်ဥ္း = yin
-
--်ာဥ္ = in
-
--်ည္ = yi
-
--်ည့္ = yeet
-
--်ည္း = yee
-
--်တ္ = yat
-
--်ိတ္ = yate
-
--်ဳတ္ = yote
-
--်န္ = yan
-
--်န္႔ = ant
-
--်န္း = an
-
--်ိန္ = yane
-
--်ိန္း = yane
-
--်ဳန္ = one
-
--်ဳန္း = yone
-
--်ပ္ = yat
-
--်ိပ္ = yate
-
--်ဳပ္ = yote
-
--်ဴပ္ = yote
-
--်မ္း = yan
-
--်ိမ့္ = habe
-
--်ယ္ = yal
-
-ျ- = ya
-ၾ-  = ya
-
-ျ-ာ = yar
-ၾ-ာ = yar
-
-ၾ-ား = yar
-ျ-ား = yar
-
-ႀ-ိ  = yi
-ၿ-ိ = yi
-
-ႀ-ီ  = ye
-ၿ-ီ = ye
-
-ႀ-ီး = ye
-ၿ-ီး = ee
-
-ျ-ဳ = yu
-
-ျ-ဴ = yu
-ၾ-ဴ  = yu
-
-ၾ-ဴး = yuu
-ျ-ဴး = yuu
-
-ေျ-  = ay
-ေၾ-  = yay
-
-ေျ-့ = hae
-
-ေၾ-း = way
-ေျ-း = hay
-
-ႀ-ဲ  = yal
-ၿ-ဲ = yal
-
-ၿ-ဲ႕ = hae
-
-ေၾ-ာ = yaw
-ေျ-ာ = yaw
-
-ေၾ-ာ့ = yut
-ေျ-ာ့ = ywae
-
-ေၾ-ာ္  = aw
-ေျ-ာ္ = yaw
-
-ျ-ံ = yan
-ၾ-ံ  = yan
-
-ၾ-ံ့  = yant
-
-ႀ-ိဳ = yo
-ၿ-ိဳ = yo
-
-ႀ-ိဳ႕ = yoe
-ၿ-ိဳ႕ = hoe
-
-ႀ-ိဳး = yoe
-ၿ-ိဳး = yoe
-
-ၾ-ံဳ  = yone
-ျ-ံဳ = yone
-ျ-ံဳ = hone
-
-ၾ-ံဳ႕ = yote
-ျ-ံဳ႕ = oat
-
-ၾ-ံဳး  = hyone
-ျ-ံဳး = yone
-
-ၾ-က္ = hat
-ျ-က္ = at
-
-ေျ-ာက္ = yout
-ေၾ-ာက္ = yout
-
-ႀ-ိဳက္ = yite
-ၿ-ိဳက္ = yite
-
-ၾ-င္ = yin
-ျ-င္ = yin
-
-ျ-င့္ = hint
-
-ျ-င္း = yinn
-
-ေၾ-ာင္ = yaung
-ေျ-ာင္ = ung
-
-ေၾ-ာင့္ = yout
-ေျ-ာင့္ = yout
-
-ေၾ-ာင္း = yung
-ေျ-ာင္း = yaung
-
-ႀ-ိဳင္ = yai
-ၿ-ိဳင္ = hai
-
-ၿ-ိဳင္း = yine
-
-ၾ-စ္ = yit
-ျ-စ္ = yit
-
-ၿ-ိစ္ = yit
-
-ၾ-ဥ္ = yin
-
-ၾ-ဥ္း = yinn
-
-ျ-ည္ = yi
-ၾ-ည္ = yi
-
-ၾ-ည့္ = yeet
-ျ-ည့္  = yeet
-
-ၾ-ည္း = yee
-ျ-ည္း = yee
-
-ျ-ဋ္ = ??
-
-ၾ-တ္ = yat
-ျ-တ္ = yat
-
-ႀ-ိတ္ = yate
-ၿ-ိတ္ = yate
-
-ၾ-ဳတ္ = yote
-ျ-ဳတ္ = oat
-
-ၾ-န္ = yan
-ျ-န္ = yan
-
-ၾ-န္႔ = yant
-ျ-န္႔ = yant
-
-ျ-န္း = yan
-
-ၿ-ိန္ = ai
-
-ၿ-ိန္႔ = phit
-
-ၿ-ိန္း = yine
-
-ျ-ဳန္း = yone
-
-ၾ-ပ္ = yat
-ျ-ပ္ = yat
-
-ျ-ဳပ္ = yote
-ၾ-ဳပ္ = yote
-
-ျ-ဳဗ္ = hote
-
-ၾ-မ္ = yan
-
-ၾ-မ္း = yan
-ျ-မ္း = yan
-
-ႀ-ိမ္ = yane
-ၿ-ိမ္ = cai
-
-ၿ-ိမ့္ = yate
-
-ႀ-ိမ္း = yane
-ၿ-ိမ္း = yane
-
-ၾ-ယ္ = yal
-ျ-ယ္ = yal
-
-ၿ-ိဳလ္ = ho
-
-ျ-သ္ = at
-
-ၿ-ိသ္ = hit
-
-ျ-ဟ္ = at
-
-ျ-ာဟ္ = at
-
-ၿ-ိဳဟ္ = ho
-
--ြ = wa
-
--ြာ = war
--ြါ = war
-
--ြာ့ = wa
-
--ြား = war
-
--ြိ = ei
-
--ြိ႕ = ont
-
--ြီ = wi
-
--ြီး = hee
-
-ေ-ြ = way
-
-ေ-ြ႕ = wae
-
-ေ-ြး = way
-
--ြဲ = wal
-
--ြဲ႕ = wae
-
--ံြ = on
-
--ံြ႕ = ont
-
--ြက္ = wat
-
--ြိဳက္ = yite
-
--ြင္ = win
-
--ြင့္ = wint
-
--ြင္း = win
-
--ြိဳင္ = oi
-
--ြစ္ = it
-
--ြဋ္ = ???
-
--ြတ္ = oot
-
--ြန္ = on
-
--ြန္႔ = ont
-
--ြန္း = on
-
--ြပ္ = wot
-
--ြမ္ = yan
-
--ြမ္း = wan
-
--ြယ္ = wal
-
--ြယ့္ = wae
-
--ွ = ha
-
--ွာ = har
--ႇာ = har
-
--ွာ့ = nha
-
--ွား = nhar
-
--ိႇ = o
-
--ွီ = he
--ႇီ = he
-
--ွီး = hee
-
--ႈ = uu
-
--ႈ႕ = hu
-
--ႈး = huu
-
--ွဴ = hu
-
--ႉး = huu
--ွဴး = huu
-
-ေ-ွ = hay
-
-ေ-ွ႔ = hae
-
-ေ-ွး = aye
-
--ွဲ = hal
-
--ွဲ႔ = hlae
-
 ေ-ွာ = aww
-
-ေ-ႇာ္ = haw
-ေ-ွာ္ = aw
-
--ံွ = han
-
--ံွ႔ = ant
-
--ႈိ = ho
-
+-ႈိင္ = laing
+-ဥ္း = inn
+-ူိင္ = laing
+ေ-ဋ္ = ay
+-ဥ့္ = int
+-လ္ = ai
+-ုိဏ္း = ine
+ျ-ံဳ႕ = oat
+ျ-ည္း = yee
+ျ-ည့္  = yeet
+ျ-ဳဗ္ = hote
+-ိဟ္ = ai
+-ွစ္ = hlit
+ႁ-ြန္ = yon
+-ာဥ္ = im
+-ဴး = huu
+-မ့္ = amt
+ျ-က္ = at
+-ြဋ္ = ???
+ၿ-ိဳ = yo
+-ရ္ = al
+-ုဒ္ = oat
+-ဂ္ = in
+-ါဒ္ = at
+-ႈန္႔ = oat
+ေ-ွာက္ = hout
+-ိသ္ = ai
+-ွိင္ = hin
+-ႇင္း = hinn
+-ွင္ = hin
+-ူ႕ = hu
+-ူ႔ = hu
+ၿ-ံႇဳး = yone
+-ွဲ႕ = hlae
+-ွ်ပ္ = hlat
+-ိဳ႕ = hoe
+ေ-့ရ္ွ = shae
+ေ-ွာင္း = hang
+-ႊတ္ = oot
+ေ-ွာင့္ = hout
+ေ-ာ့္ = hot
+-ိင္ = ai
+ၿ-ဲ = yal
+ၿ-ိတ္ = yate
+ၿ-ီ = ye
+ၿ-ိ = yi
+-ွန္႔ = ant
+-ွဴး = huu
+ျ-ံဳး = yone
+-ါတ္ = at
+ေျ-ာ္ = yaw
+ေျ-ာ့ = ywae
+-ႊ = lwa
+-ႈ = uu
+-ိလ္ = ai
+ၿ-ိႇဳက္ = hite
+-ႈိက္ = ite
+-ူိက္ = ite
+-ွ်ား = har
+-ုဏ္ = ohn
+ေ-ာင့္ = out
+-န္႕ = ant
+-ႈန္း = ohn
+-ွယ္ = hal
+ျ-ပ္ = yat
+ႁ-ြတ္ = yoot
+-ိဂ္ = eai
+-ဗ္ = at
+-်ာ့ = a
+-ိႇ = o
+-ွိမ္ = ai
+-ိဳး = oe
+ျ-န္ = yan
+ျ-ႇင့္ = yint
+-ွက္ = hat
+-ႊမ္း = lwan
+ေ-သ္ = aye
+-ွ = ha
+-ာဇ္ = yet
+-ွန္း = han
+-ဴ = uu
+-ဳ = u
+-ိမ္ = ai
+-ုိဒ္ = oat
+ေျ-ႇာင္း = oung
+ေျ-ႇာင့္ = out
+-ိက္ = ate
+-ါ႔ = a
+-ီ့ = et
+ေ-ာလ္ = all
+-ြစ္ = it
+-ွ်တ္ = hlat
+-ွင္း = hin
+-ွင့္ = hint
+-ါဌ္ = at
+-ႇစ္ = hit
+ၿ-ံဳ႕ = yout
+ျ-ဳ = yu
 -ႈိ႕ = hoe
-
--ိႇဳး = hoe
--ႈိး = hoe
-
--ံႈ = hon
-
+-ိဳ = o
+-ာစ္ = it
+ေ-ွာ္ = aw
+-ြဲ႕ = wae
+-ြဲ႔ = wae
+-င့္ = int
+-ိဗ္ = loit
+ေ-ရ္ = aw
+ေ-ွ်ာင္ = haung
+-ွ်ဳိ႕ = hoe
+ျ-န္႔ = yant
+-ွီး = hee
+ေ-ာ့စ္ = os
+ၿ-ိဳင္း = yine
+-ွိပ္ = hite
+-ွပ္ = yat
+ၿ-ိန္႔ = phit
 -ံႈ႕ = hote
 -ံႈ႔ = hote
-
--ံႈး = hone
-
--ႇက္ = hat
--ွက္ = hat
-
-ေ-ွာက္ = hout
-
--ႈိက္ = ite
-
--ွင္ = hin
-
--ွင့္ = hint
-
--ႇင္း = hinn
--ွင္း = hin
-
--ွိင္ = hin
-
-ေ-ွာင္ = haung
-
-ေ-ႇာင့္ = hout
-ေ-ွာင့္ = hout
-
-ေ-ွာင္း = hang
-
--ႈိင္ = laing
-
--ႈိင္း = laing
-
--ွစ္ = hlit
--ႇစ္ = hit
-
--ွဥ္ = hin
-
--ႇဥ္း = hin
-
--ွည့္ = ywae
-
--ွည္း = hal
-
--ွတ္ = hat
-
--ွိတ္ = hit
-
--ႈတ္ = hote
-
--ွန္ = han
-
--ွန္႔ = ant
-
--ွန္း = han
-
--ွိန္ = hane
-
--ွိန္း = ane
-
--ႈန္ = hone
-
--ႈန္႔ = oat
-
--ႈန္း = ohn
-
--ႇပ္ = hat
--ွပ္ = yat
-
--ွိပ္ = hite
-
+-ါန္း = ann
+ျ-တ္ = yat
+-ုိဏ္ = hite
+-ါ့ = a
+-ဒ္ = at
 -ႈပ္ = hote
-
--ွမ္း = han
-
--ွိမ္ = ai
-
--ွိမ့္ = ate
-
--ွယ္ = hal
-
-ေ-့ရ္ွ = shae
-
--ြၽ = ywa
-
-ေ-ြၽ = way
-
-ေ-ြၽး = way
-
--ြၽဲ = wal
-
--ြၽံ = yon
-
--ြၽက္ = wat
-
--ြၽင္ = ywin
-
--ြၽတ္ = yut
-
--ြၽန္ = yun
-
--ြၽန္း = hon
-
--ြၽမ္း = wan
-
--ွ် = hwa
-
--ွ်ာ = har
-
--ွ်ား = har
-
--ွ်ိ = ho
-
-ေ-ွ်ာ = aw
-
-ေ-ွ်ာ့ = hwae
-
-ေ-ွ်ာ္ = haw
-
--ွ်ံ = hlan
-
--ွ်ဳိ = hlo
-
--ွ်ဳိ႕ = hoe
-
--ွ်ဳိး = hoe
-
--ွ်က္ = lat
-
-ေ-ွ်ာက္ = hout
-
--ွ်င္ = hin
-
-ေ-ွ်ာင္ = haung
-
--ွ်စ္ = hlit
-
--ွ်ဥ္း = hinn
-
--ွ်တ္ = hlat
-
--ွ်ပ္ = hlat
-
--ွ်မ္း = lan
-
-ႁ-ြ = ywa
-ႂ-ြ  = wa
-
-ႁ-ြာ = war
-
-ႂ-ြား = wyar
-
-ေႂ-ြ  = way
-ေႁ-ြ = way
-
-ေႂ-ြ႕ = ywae
-
-ေႂ-ြး  = way
-
-ႂ-ြက္ = ywat
-ႁ-ြက္ = hat
-
-ႂ-ြင္း = win
-ႁ-ြင္း = win
-
-ႁ-ြတ္ = yoot
-
-ႁ-ြန္ = yon
-
-ႂ-ြပ္ = yut
-
-ႁ-ြမ္း = yun
-
-ႂ-ြယ္ = ywal
-
-ျ-ႇဴ = yu
-
-ေျ-ႇး = aye
-
-ျ-ံႇဳး = yone
-
-ေျ-ႇာက္ = hout
-
-ၿ-ိႇဳက္ = hite
-
-ျ-ႇင့္ = yint
-
-ေျ-ႇာင္ = haung
-
-ေျ-ႇာင့္ = out
-
-ေျ-ႇာင္း = oung
-
-ျ-ႇပ္ = hote
-
-ျ-ႇဳပ္ = hote
-
+-ုဴိး = hoe
+-ံွ႕ = ant
+-ံွ႔ = ant
+-ွိန္ = hane
+-ွန္ = han
 ၿ-ိႇမ္း = mhane
-
--ႊ = lwa
-
--ႊာ = hwar
-
--ႊား = war
-
-ေ-ႊ = lway
-
-ေ-ႊ႕ = wae
-
-ေ-ႊး = way
-
--ႊဲ = wal
-
--ႊံ = wan
-
+-ိပ္ = ate
+ၿ-ံဳး = hone
+-ာရ္ = al
+-ိမ္း = ane
+-ိမ့္ = ate
+ေျ-ာင္ = ung
+-ႈိး = hoe
 -ႊံ႕ = yon
-
--ႊင္ = yuin
-
--ႊင့္ = lwint
-
--ႊင္း = hwin
-
--ႊတ္ = oot
-
--ႊန္ = on
-
--ႊန္း = hon
-
--ႊမ္း = lwan
-
--ႊၽန္ = yun
-
-
-###Special-case!
--တ္စ္ = at
--ယ္လ္ = al
+-ႈန္ = hone
+-ွား = nhar
+-ွာ့ = nha
+ေျ-ႇး = aye
+ျ-ာဟ္ = at
+-ာယ္ = al
