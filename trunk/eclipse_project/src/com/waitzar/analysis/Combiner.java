@@ -245,6 +245,10 @@ public class Combiner {
 				}
 				
 				rhymes.put(m.group(1).trim(), m.group(2).trim());
+				
+				if (wordsPerRhyme.containsKey(m.group(1).trim())) {
+					throw new RuntimeException("Word already in dictionary: " + ZawgyiWord.printMM(m.group(1)));
+				}
 				wordsPerRhyme.put(m.group(1).trim(), new ArrayList<String>());
 			};
 		});

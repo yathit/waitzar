@@ -1,4 +1,4 @@
-ကြၽႏ္ုပ္ = knull
+ကြၽႏ္ုပ္ = k???
 ေယာက္်ား = ???
 ကြၽႏု္ပ္ = ???
 ဘက္စ္ = bus
@@ -171,7 +171,6 @@
 က႑ = kanda
 လက်ာ္ = latyar
 ႒ = hta
-ကြၽႏ္ုပ္ = knull
 ဂတ္စ္ = gat
 ဘယ္လ္ = bbal
 ေၾသာ္ = thaw
@@ -356,21 +355,21 @@
 ကြမ္း = kwan
 ကြယ္ = kwal
 ကြယ့္ = kwae
-ကြၽ = knull
-ေကြၽး = knull
-ေကြၽး = knull
-ကြၽဲ = knull
-ကြၽံ = knull
+ကြၽ = k???
+ေကြၽး = k???
+ေကြၽး = k???
+ကြၽဲ = k???
+ကံြၽ = k???
 ကၽံြ = kyon
-ကြၽက္ = knull
-ကြၽက္ = knull
-ကြၽတ္ = knull
-ကြၽတ္ = knull
-ကြၽန္ = knull
-ကြၽန္း = knull
-ကြၽန္း = knull
-ကြၽမ္း = knull
-ကြၽမ္း = knull
+ကြၽက္ = k???
+ကြၽက္ = k???
+ကြၽတ္ = k???
+ကြၽတ္ = k???
+ကြၽန္ = k???
+ကြၽန္း = k???
+ကြၽန္း = k???
+ကြၽမ္း = k???
+ကြၽမ္း = k???
 ႂကြ = kwa
 ႂကြား = kwyar
 ေႂကြ = kway
@@ -510,16 +509,16 @@
 ခြန္ = khon
 ခြန္း = khon
 ခြပ္ = khwot
-ေခြၽ = khnull
-ေခြၽး = khnull
-ခြၽဲ = khnull
-ခြၽံ = khnull
-ခြၽင္ = khnull
-ခြၽတ္ = khnull
-ခြၽတ္ = khnull
-ခြၽန္ = khnull
-ခြၽန္ = khnull
-ခြၽန္း = khnull
+ေခြၽ = kh???
+ေခြၽး = kh???
+ခြၽဲ = kh???
+ခံြၽ = kh???
+ခြၽင္ = khywin
+ခြၽတ္ = kh???
+ခြၽတ္ = kh???
+ခြၽန္ = kh???
+ခြၽန္ = kh???
+ခြၽန္း = kh???
 ႁခြ = khywa
 ေႁခြ = khway
 ႁခြင္း = khwin
@@ -591,7 +590,7 @@
 ဂြတ္ = good
 ဂြမ္ = gyan
 ဂြမ္း = gwan
-ဂြၽန္ = gnull
+ဂြၽန္ = g???
 ဃ = gha
 ေဃာ = ghaw
 င = nga
@@ -1775,7 +1774,7 @@
 မႈး = mhuu
 မႉး = mhuu
 ေမွး = maye
-မွဲ႔ = mnull
+မွဲ႔ = m???
 ေမွာ္ = maw
 မႈိ = mho
 မွက္ = mhat
@@ -1811,7 +1810,7 @@
 ႁမြက္ = mhat
 ျမႇဴ = myu
 ေျမႇး = maye
-ျမံႇဳး = mnull
+ျမံႇဳး = m???
 ေျမႇာက္ = mhout
 ၿမိႇဳက္ = mhite
 ျမႇင့္ = myint
@@ -2364,7 +2363,7 @@
 အူး = auu
 ဦး = ???
 ေအ = aay
-ဧ = ???
+ဧ = ???a
 ေအး = aae
 အဲ = aal
 အဲ့ = aae
@@ -2393,7 +2392,7 @@
 အုိင္ = aine
 အစ္ = ait
 ဥစ္ = ???it
-ဧည့္ = nullnull
+ဧည့္ = ???ye
 အဋ္ = a???
 ဣဋ္ = ??????
 အဏ္ = aan
@@ -2466,7 +2465,7 @@ ANOMALIES:
 ေခၽြ canon to: ေခြၽ
 ေခၽြး canon to: ေခြၽး
 ခၽြဲ canon to: ခြၽဲ
-ခၽံြ canon to: ခြၽံ
+ခၽံြ canon to: ခံြၽ
 ခၽြင္ canon to: ခြၽင္
 ခၽြတ္ canon to: ခြၽတ္
 ခၽြန္ canon to: ခြၽန္
