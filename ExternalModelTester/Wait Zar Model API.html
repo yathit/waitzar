@@ -33,6 +33,10 @@
 	  font: 1.2em monospace;
 	  font-weight: bold;
 	}
+	.redbold {
+	  color: #FF0000;
+	  font-weight: bold;
+	}
 	td {
 	  border:1px solid #777777;
 	}
@@ -151,12 +155,46 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Handling Different Encodings</b>
 <br>If you are using this API, you are probably familiar with the basic problem with Myanmar computerized text: there are several different, incompatible encodings. Wait Zar supports two legacy encodings, in addition to Unicode 5.1. This snippet of code shows how to compare the text output in each one:
+<br><code>model->reset();
+<br><br>//Transition to a complicated word (one, say, with "kinzi" in it).
+<br>std::vector&lt;unsigned short&gt; keystrokes;
+<br>const char* sgp = "singapore";
+<br>for (unsigned int i=0; i<strlen(sgp); i++)
+<br>&nbsp;&nbsp;&nbsp;model->typeLetter(sgp[i]);
+<br>unsigned int wordID = model->getPossibleWords()[0];
+<br><br>//Print the encoding in Unicode 5.1 first:
+<br>model->setOutputEncoding(ENCODING_UNICODE);
+<br>keystrokes = model->getWordKeyStrokes(wordID);
+<br>wprintf(L"Unicode 5.1:");
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++)
+<br>&nbsp;&nbsp;&nbsp;wprintf(L" U+%x", keystrokes[i]);
+<br>wprintf(L"\n");
+<br><br>//Now print the Zawgyi-One encoding:
+<br>model->setOutputEncoding(ENCODING_ZAWGYI);
+<br>keystrokes = model->getWordKeyStrokes(wordID);
+<br>wprintf(L"Zawgyi-One: ");
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++)
+<br>&nbsp;&nbsp;&nbsp;wprintf(L" U+%x", keystrokes[i]);
+<br>wprintf(L"\n");
+<br><br>//Finall print the Win Innwa encoding:
+<br>model->setOutputEncoding(ENCODING_WININNWA);
+<br>keystrokes = model->getWordKeyStrokes(wordID);
+<br>wprintf(L"Win Innwa:  ");
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++)
+<br>&nbsp;&nbsp;&nbsp;wprintf(L"   0x%x", sgpWinInnwa[i]);
+<br>wprintf(L"\n");
+<br></code>
+<br>On Windows, this produces the following output:
+<br><code>Unicode 5.1: U+1005 <b class="redbold">U+1004 U+103a U+1039</b> U+1000 U+102c U+1015 U+1030
+<br>Zawgyi-One:&nbsp;&nbsp;U+1005 U+1000 <b class="redbold">U+1064</b> U+102c U+1015 U+1030
+<br>Win Innwa:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0x70&nbsp;&nbsp;&nbsp;0x75&nbsp;&nbsp;&nbsp;<b class="redbold">0x46</b>&nbsp;&nbsp;&nbsp;0x6d&nbsp;&nbsp;&nbsp;0x79&nbsp;&nbsp;&nbsp;0x6c
+<br></code>
+<br>The section representing "kinzi" has been highlighted in red, in case you were curious. Zawgyi-One and Win Innwa handle this the same way: with a special composed character. Unicode 5.1 demands a specialized encoding sequence to represent <i>kinzi</i>.
+<br><strong><em>NOTE: </em></strong>Currently, on Linux, the above code segfaults when converting output to Win Innwa. This is a known bug.
 
 
-
-
-<h2>more later</h2>
-
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Help &amp; Support</b>
+<br>The Wait Zar developers are happy to offer their advice on any project you're doing using Wait Zar. If you discover a problem with the API, please <a href="http://code.google.com/p/waitzar/issues/list">post a bug report</a>. If you just want to chat about how to use the Wait Zar API, please post a new topic on the <a href="http://www.mmgeeks.org/forum/index.php">MM Geeks forum</a>, under the section titled "Burglish/Wait Zar". 
 
 <br>&nbsp;<hr>
 

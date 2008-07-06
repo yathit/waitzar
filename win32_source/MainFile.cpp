@@ -485,17 +485,17 @@ BOOL loadModel() {
 	//Previous versions of Wait Zar used the Google sparse hash library; however, even with
 	//  its small footprint, this method required too much memory. So, we'll just allocate
 	//  a jagged array.
-	WORD **dictionary;
+/*	WORD **dictionary;
 	UINT32 **nexus;
-	UINT32 **prefix;
+	UINT32 **prefix;*/
 
 	//And sizes
-	int dictMaxID;
+/*	int dictMaxID;
 	int dictMaxSize;
 	int nexusMaxID;
 	int nexusMaxSize;
 	int prefixMaxID;
-	int prefixMaxSize;
+	int prefixMaxSize;*/
 
 	//Special...
 	int numberCheck = 0;
