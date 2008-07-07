@@ -871,6 +871,8 @@
 ညႇီ = nyhe
 ေညႇာ္ = nyhaw
 ၫႈိး = nyhoe
+ညိႇဳး = nyhoe
+ညႈိး = nyhoe
 ညႇက္ = nyhat
 ညႇင္း = nyhinn
 ေညႇာင့္ = nyhout
@@ -1965,7 +1967,7 @@
 ရွိ = shi
 ရွီ = she
 ရွီး = shee
-ရႈ = yuu
+႐ႈ = yuu
 ရွဴ = shuu
 ရွဴး = shhuu
 ေရွ႕ = shhae
@@ -1975,42 +1977,42 @@
 ေရွာ = shaw
 ေရွာ့ = shot
 ရံွ = yhan
-ရႈိ႕ = yhoe
-ရႈိး = yhoe
-ရံႈ႕ = yhote
-ရံႈး = yhone
+႐ႈိ႕ = yhoe
+႐ႈိး = yhoe
+႐ံႈ႕ = yhote
+႐ံႈး = yhone
 ရွက္ = shat
 ေရွာက္ = shout
-ရႈိက္ = yite
+႐ႈိက္ = yite
 ရွင္ = shin
 ရွင့္ = shint
 ရွင္း = shin
 ေရွာင္ = shaung
-ရႈိင္း = ylaing
+႐ႈိင္း = ylaing
 ရွစ္ = shit
 ရွဥ့္ = shint
 ရွဥ္း = shinn
 ရွည္ = shhi
-ရႈတ္ = yhote
+႐ႈတ္ = yhote
 ရွန္ = shan
 ရွိန္ = shane
 ရွိန္း = shane
-ရႈန္း = yohn
+႐ႈန္း = yohn
 ရွပ္ = shat
-ရႈပ္ = yhote
+႐ႈပ္ = yhote
 ရွမ္ = sham
 ရွမ္း = sham
 ရွိမ္း = shane
 ရွယ္ = shal
-ရႊီး = shee
-ေရႊ = shay
-ေရႊ႕ = shhae
-ရႊံ႕ = shant
-ရႊင္ = shin
-ရႊတ္ = shat
-ရႊန္း = sham
-ရႊပ္ = shat
-ရႊမ္း = sham
+ရႊီး = y???
+ေရႊ = ylway
+ေရႊ႕ = ywae
+ရႊံ႕ = yyon
+ရႊင္ = yyuin
+ရႊတ္ = yoot
+ရႊန္း = yhon
+ရႊပ္ = y???
+ရႊမ္း = ylwan
 လ = la
 လာ = lar
 လား = lar
@@ -2475,8 +2477,6 @@ ANOMALIES:
 ဂြ်န္ canon to: ဂြၽန္
 ငံု႕ canon to: ငံု႔
 စုိ႕ canon to: စုိ႔
-ညႈိး canon to: ၫႈိး
-ညိႇဳး canon to: ၫႈိး
 ႏံွ႕ canon to: ႏံွ႔
 ၿပံဳ canon to: ျပံဳ
 ၿပံဳး canon to: ျပံဳး
@@ -2488,6 +2488,16 @@ ANOMALIES:
 ၿမံဳ canon to: ျမံဳ
 မွဲ႕ canon to: မွဲ႔
 ၿမံႇဳး canon to: ျမံႇဳး
+ရႈ canon to: ႐ႈ
+ရႈိင္း canon to: ႐ႈိင္း
+ရႈိ႕ canon to: ႐ႈိ႕
+ရႈိး canon to: ႐ႈိး
+ရႈိက္ canon to: ႐ႈိက္
+ရႈတ္ canon to: ႐ႈတ္
+ရႈန္း canon to: ႐ႈန္း
+ရႈပ္ canon to: ႐ႈပ္
+ရံႈ႕ canon to: ႐ံႈ႕
+ရံႈး canon to: ႐ံႈး
 လန္႕ canon to: လန္႔
 ေဝွ႕ canon to: ေဝွ႔
 သူ႕ canon to: သူ႔
