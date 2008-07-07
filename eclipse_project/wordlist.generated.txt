@@ -175,6 +175,7 @@
 ဘယ္လ္ = bbal
 ေၾသာ္ = thaw
 ေၾသ = thyay
+ဥံဳ = ???ohn
 ႆ = tha
 က္ = nullat
 သ္ွ = the
@@ -355,21 +356,20 @@
 ကြမ္း = kwan
 ကြယ္ = kwal
 ကြယ့္ = kwae
-ကြၽ = k???
-ေကြၽး = k???
-ေကြၽး = k???
-ကြၽဲ = k???
-ကံြၽ = k???
-ကၽံြ = kyon
-ကြၽက္ = k???
-ကြၽက္ = k???
-ကြၽတ္ = k???
-ကြၽတ္ = k???
-ကြၽန္ = k???
-ကြၽန္း = k???
-ကြၽန္း = k???
-ကြၽမ္း = k???
-ကြၽမ္း = k???
+ကြၽ = kywa
+ေကြၽး = kway
+ေကြၽး = kway
+ကြၽဲ = kwal
+ကံြၽ = kyon
+ကြၽက္ = khot
+ကြၽက္ = khot
+ကြၽတ္ = kyut
+ကြၽတ္ = kyut
+ကြၽန္ = kyon
+ကြၽန္း = kyun
+ကြၽန္း = kyun
+ကြၽမ္း = kyun
+ကြၽမ္း = kyun
 ႂကြ = kwa
 ႂကြား = kwyar
 ေႂကြ = kway
@@ -509,20 +509,20 @@
 ခြန္ = khon
 ခြန္း = khon
 ခြပ္ = khwot
-ေခြၽ = kh???
-ေခြၽး = kh???
-ခြၽဲ = kh???
-ခံြၽ = kh???
+ေခြၽ = khway
+ေခြၽး = khway
+ခြၽဲ = khwal
+ခံြၽ = khyon
 ခြၽင္ = khywin
-ခြၽတ္ = kh???
-ခြၽတ္ = kh???
-ခြၽန္ = kh???
-ခြၽန္ = kh???
-ခြၽန္း = kh???
+ခြၽတ္ = khyut
+ခြၽတ္ = khyut
+ခြၽန္ = khyon
+ခြၽန္ = khyon
+ခြၽန္း = khyun
 ႁခြ = khywa
 ေႁခြ = khway
 ႁခြင္း = khwin
-ႁခြမ္း = khyun
+ႁခြမ္း = kh???
 ဂ = ga
 ဂါ = gar
 ဂါး = gar
@@ -590,7 +590,7 @@
 ဂြတ္ = good
 ဂြမ္ = gyan
 ဂြမ္း = gwan
-ဂြၽန္ = g???
+ဂြၽန္ = gyon
 ဃ = gha
 ေဃာ = ghaw
 င = nga
@@ -1382,7 +1382,7 @@
 ပြပ္ = pwot
 ႁပြတ္ = pyoot
 ႁပြန္ = pyon
-ႁပြမ္း = pyun
+ႁပြမ္း = p???
 ဖ = fa
 ဖာ = far
 ဖား = far
@@ -1773,8 +1773,9 @@
 မႈ႕ = mhu
 မႈး = mhuu
 မႉး = mhuu
+မွဴး = mhuu
 ေမွး = maye
-မွဲ႔ = m???
+မွဲ႔ = mhlae
 ေမွာ္ = maw
 မႈိ = mho
 မွက္ = mhat
@@ -1810,7 +1811,7 @@
 ႁမြက္ = mhat
 ျမႇဴ = myu
 ေျမႇး = maye
-ျမံႇဳး = m???
+ျမံႇဳး = myone
 ေျမႇာက္ = mhout
 ၿမိႇဳက္ = mhite
 ျမႇင့္ = myint
@@ -2444,7 +2445,7 @@
 
 ANOMALIES:
 ကြ်တ္ canon to: ကြၽတ္
-ကြ်ံ canon to: ကၽံြ
+ကြ်ံ canon to: ကံြၽ
 ကြ်က္ canon to: ကြၽက္
 ကြ် canon to: ကြၽ
 ကြ်မ္း canon to: ကြၽမ္း
@@ -2455,6 +2456,7 @@ ANOMALIES:
 ႀကံဳ canon to: ၾကံဳ
 ေကၽြး canon to: ေကြၽး
 ကၽြဲ canon to: ကြၽဲ
+ကၽံြ canon to: ကံြၽ
 ကၽြက္ canon to: ကြၽက္
 ကၽြတ္ canon to: ကြၽတ္
 ကၽြန္း canon to: ကြၽန္း
@@ -2484,7 +2486,6 @@ ANOMALIES:
 ဘြဲ႔ canon to: ဘြဲ႕
 မယ္္ canon to: မ
 ၿမံဳ canon to: ျမံဳ
-မွဴး canon to: မႉး
 မွဲ႕ canon to: မွဲ႔
 ၿမံႇဳး canon to: ျမံႇဳး
 လန္႕ canon to: လန္႔

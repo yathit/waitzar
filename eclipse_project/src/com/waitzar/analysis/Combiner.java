@@ -175,6 +175,8 @@ public class Combiner {
 				sb.append(sep).append(possWord);
 				sep = ", ";
 			}
+			if (wordsPerRhyme.get(zg.toString()).size()==0)
+				sb.append("NO_WORDS");
 			sb.append("\n");
 			
 			pastWord = zg;
