@@ -50,7 +50,6 @@ int main(int argc, const char* argv[])
 	//////////////////////////////////////////////////////////////////////
 	//Use case 1: List all Burmese words for "kote"
 	//////////////////////////////////////////////////////////////////////
-	
 	//First, we reset the model; this should occur before the first keypress of every NEW word.
 	//  Note that "true" will reset the trigrams as well, "false" just resets everything else.
 	model->reset(true);
