@@ -18,6 +18,7 @@
 //System includes
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
+#include <psapi.h> //For getting a list of currently running processes
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
@@ -115,6 +116,7 @@ BOOL numberKeysOn = FALSE;
 BOOL punctuationKeysOn = FALSE;
 std::list<int> *prevTypedWords;
 int cursorAfterIndex;
+int prevProcessID;
 
 //Default client sizes for our windows
 int WINDOW_WIDTH = 240;
@@ -211,6 +213,37 @@ void makeFont(HWND currHwnd)
 	mmFontBlack->tintSelf(0x000000);
 }
 
+
+
+BOOL waitzarAlreadyStarted() 
+{
+	//Get all processes
+	DWORD aProcesses[1024], cbNeeded, cProcesses;
+	if ( !EnumProcesses( aProcesses, sizeof(aProcesses), &cbNeeded ) )
+        return FALSE;
+	cProcesses = cbNeeded / sizeof(DWORD);
+
+	//Check for "WaitZar"
+	TCHAR szProcessName[MAX_PATH];
+	for (unsigned int i=0; i<cProcesses; i++ ) {
+		if( aProcesses[i] != 0 ) {
+			//Open a handle to this process, get its name
+			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, aProcesses[i]);
+			if (hProcess!=NULL) {
+				HMODULE hMod;
+				DWORD cbNeeded;
+				lstrcpy(szProcessName, _T("<unknown>"));
+				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
+					GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName)/sizeof(TCHAR));
+					if (lstrcmp(szProcessName, _T("WaitZar.exe"))==0)
+						return TRUE;
+				}
+			}
+        }
+	}
+
+	return FALSE;
+}
 
 
 
@@ -2037,8 +2070,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
 
 	//Set our hotkey
-	if( registerInitialHotkey()==0 )
+	if( registerInitialHotkey()==0 ) {
+		//Check if we're running Wait Zar already
+		if (waitzarAlreadyStarted()==TRUE) {
+			MessageBox(NULL, _T("Wait Zar is already running. \n\nYou should see an \"ENG\" icon in your system tray; click on that to change the language. \n\nPlease see the Wait Zar User's Guide if you have any questions."), _T("Wait Zar already running..."), MB_ICONINFORMATION | MB_OK);
+			return 0;
+		}
 		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+	}
 	mmOn = FALSE;
 
 	//Add our icon to the tray
