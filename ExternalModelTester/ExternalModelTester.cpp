@@ -136,6 +136,18 @@ int main(int argc, const char* argv[])
 	unsigned int wordID = model->getPossibleWords()[0];
 	
 	//Retrieve all three output encodings
+	wchar_t* sgpZawgyi = new wchar_t[100];
+	model->setOutputEncoding(ENCODING_ZAWGYI);
+	wcscpy(sgpZawgyi, makeStringFromKeystrokes(model->getWordKeyStrokes(wordID)));
+	
+	//Compare all three output encodings:	
+	wprintf(L"\n\"singapore\" in three different output encodings:\n");
+	wprintf(L"Zawgyi-One: ");
+	for (unsigned int i=0; i<wcslen(sgpZawgyi); i++) {
+		wprintf(L" U+%x", sgpZawgyi[i]);
+	}
+	wprintf(L"\n");
+
 	wchar_t* sgpUnicode = new wchar_t[100];
 	model->setOutputEncoding(ENCODING_UNICODE);
 	wcscpy(sgpUnicode, makeStringFromKeystrokes(model->getWordKeyStrokes(wordID)));
@@ -144,24 +156,12 @@ int main(int argc, const char* argv[])
 	model->setOutputEncoding(ENCODING_WININNWA);
 	wcscpy(sgpWinInnwa, makeStringFromKeystrokes(model->getWordKeyStrokes(wordID)));
 	
-	wchar_t* sgpZawgyi = new wchar_t[100];
-	model->setOutputEncoding(ENCODING_ZAWGYI);
-	wcscpy(sgpZawgyi, makeStringFromKeystrokes(model->getWordKeyStrokes(wordID)));
-	
-	//Compare all three output encodings:
-	wprintf(L"\n\"singapore\" in three different output encodings:\n");
 	wprintf(L"Unicode 5.1:");
 	for (unsigned int i=0; i<wcslen(sgpUnicode); i++) {
 		wprintf(L" U+%x", sgpUnicode[i]);
 	}
 	wprintf(L"\n");
-	
-	wprintf(L"Zawgyi-One: ");
-	for (unsigned int i=0; i<wcslen(sgpZawgyi); i++) {
-		wprintf(L" U+%x", sgpZawgyi[i]);
-	}
-	wprintf(L"\n");
-	
+
 	wprintf(L"Win Innwa:  ");
 	for (unsigned int i=0; i<wcslen(sgpWinInnwa); i++) {
 		wprintf(L"   0x%x", sgpWinInnwa[i]);
