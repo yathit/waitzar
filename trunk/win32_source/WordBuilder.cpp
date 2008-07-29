@@ -38,7 +38,7 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	delete [] model_buff;
 
 	///Now, load the user's custom words (optional)
-	FILE* userFile = fopen(userWordsFilePath, "r");
+	FILE* userFile = fopen(userWordsFilePath, "rb");
 	if (userFile == NULL) {
 		return;
 	}
@@ -63,14 +63,14 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	//old:
 	//size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
 	//new:
-	size_t numUniChars = mymbstowcs(NULL, buffer, 0);
+	size_t numUniChars = mymbstowcs(NULL, buffer, buff_size);
 	if (buff_size==numUniChars) {
 		wprintf(L"Warning! Conversion to wide-character string of mywords.txt probably failed...\n");
 		return;
 	}
 	
 	uniBuffer = (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
-	if (mymbstowcs(uniBuffer, buffer, 0)==0) {
+	if (mymbstowcs(uniBuffer, buffer, buff_size)==0) {
 		printf("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
 		return;
 	}
