@@ -59,13 +59,14 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 			/* "ext", decomposition */
 			if(srcExtHash[*srcTmp]!=0x0
 				&& _f[dstFont].val[LOBYTE(srcExtHash[*srcTmp])]==0x0){ /* only done when dest font dont have this char */
-				
-					unsigned short id = HIBYTE(srcExtHash[*srcTmp]);
-					//const wchar_t*extval=_f[srcFont].ext[].val;
-					for (int i=0; i<5; i++) {
-						*dstTmp++ = getExtVal(_f[srcFont], id, i);
-					}
+				wchar_t *retVal = getExtValue(_f[srcFont], HIBYTE(srcExtHash[*srcTmp]));
+				wchar_t *extval = retVal;
+				while(*extval){ 
+					*dstTmp++=*extval++;
+				}
 				srcTmp++;
+
+				delete [] retVal;
 				continue;
 			}
 			
@@ -91,24 +92,28 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	srcTmp = dst;
 	dstTmp = tmpBuffer;
 	
-	// Convert from Global font to dest font 
+	/* Convert from Global font to dest font */
 	while(*srcTmp){
 		if(*srcTmp>=VIRTUAL_OFFSET){
 			if(_f[dstFont].val[*srcTmp-VIRTUAL_OFFSET]!=0x0){
-				// re-combination process 
+				/* re-combination process */
 				bool match=false;
-				if(srcTmp[1]!=0x0){ // no need when string len is 1 
+				if(srcTmp[1]!=0x0){ /* no need when string len is 1 */
 					for(int i=0;i<_f[dstFont].ext_len;i++){
-						if( getExtLength(_f[dstFont], i)>1 // no need if ext char length is 1 
-						&& cmpExtVal(_f[dstFont], i, srcTmp)==0){
-							*dstTmp++ =  getExtKey(_f[dstFont], i);
+						wchar_t *cmpTmp = getExtValue(_f[dstFont], i);
+						if( getExtLength(_f[dstFont], i)>1 /* no need if ext char length is 1 */
+						&& cmp(cmpTmp, srcTmp)==0){
+							*dstTmp++ = getExtKey(_f[dstFont], i);
 							srcTmp += getExtLength(_f[dstFont], i);
-							match=true; // re-combined 
+							match=true; /* re-combined */
+
+							delete [] cmpTmp;
 							break;
 						}
+						delete [] cmpTmp;
 					}
 				}
-				// if !combined 
+				/* if !combined */
 				if(!match)
 					*dstTmp++=_f[dstFont].val[*srcTmp++-VIRTUAL_OFFSET];
 				continue;
@@ -118,26 +123,29 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	}
 	*dstTmp=0x0;
 	
-	
 	dstTmp = tmpBuffer;
 	
-	// consonent forward re-order 
+	/* consonent forward re-order */
 	for(int i=0;i<_f[dstFont].fwd_len;i++){
-		wchar_t *fwdKeyVal = getFwdKey(_f[dstFont], i);
-		Regex re( fwdKeyVal,true);
+		wchar_t *dstKey = getFwdKey(_f[dstFont], i);
+		wchar_t *dstVal = getFwdValue(_f[dstFont], i);
+
+		Regex re(dstKey,true);
 		if(re.test(dstTmp)){
-			re.sub(dstTmp,fwdKeyVal,dstTmp);
+			re.sub(dstTmp,dstVal,dstTmp);
 		}
-		delete [] fwdKeyVal;
+
+		delete [] dstKey;
+		delete [] dstVal;
 	}
 	
-	// re-ordering vowel 
+	/* re-ordering vowel */
 	for(int i=0;i<_f[dstFont].vowel_len-1;i++){
-		// prepare the regex pattern. 
-		 // var vowel=abcd...z; 
-		 // regex = (["+vowel.slice(i+1).join("")+"]+)("+vowel[i]+") 
-		 // example regex => ([b-z]+)(a) 
-		 // why looping? to generate ([c-z]+)(b) .... ([z]+)(y) 
+		/* prepare the regex pattern. 
+		 * var vowel=abcd...z; 
+		 * regex = (["+vowel.slice(i+1).join("")+"]+)("+vowel[i]+") 
+		 * example regex => ([b-z]+)(a) 
+		 * why looping? to generate ([c-z]+)(b) .... ([z]+)(y) */
 			
 		wchar_t restr[40]=L"(["; wchar_t bracket[]=L"]+)("; 
 		cpy(restr+2,&_f[dstFont].vowel[i+1]);// b-z
@@ -147,21 +155,25 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 		
 		Regex re(restr,true);
 		if(re.test(dstTmp)){
-			re.sub(dstTmp,L"\2\1",dstTmp); // just do re-ordering, according to pattern 
+			re.sub(dstTmp,L"\2\1",dstTmp); /* just do re-ordering, according to pattern */
 		}
 	}
 	
-	// adjusting something after vowel re-order 
+	/* adjusting something after vowel re-order */
 	for(int i=0;i<_f[dstFont].after_len;i++){
-		wchar_t *afterKeyVal = getAfterKey(_f[dstFont], i);
-		Regex re( afterKeyVal,true);
+		wchar_t *dstKey = getAfterKey(_f[dstFont], i);
+		wchar_t *dstVal = getAfterValue(_f[dstFont], i);
+
+		Regex re(dstKey,true);
 		if(re.test(dstTmp)){
-			re.sub(dstTmp,afterKeyVal,dstTmp);
+			re.sub(dstTmp,dstVal,dstTmp);
 		}
-		delete [] afterKeyVal;
+
+		delete [] dstKey;
+		delete [] dstVal;
 	}
 	
-	// copy to return string  
+	/* copy to return string  */
 	cpy(dst,dstTmp);
 	
 	return;

@@ -228,17 +228,17 @@ unsigned short getExtLength(FontMap fontMap, unsigned int id) {
 unsigned short getExtKey(FontMap fontMap, unsigned int id) {
 	return fontMap.ext[id*7 + 1];
 }
-wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index) {
+/*wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index) {
 	return fontMap.ext[id*7 + 2 + index];
-}
+}*/
 
-int cmpExtVal(FontMap fontMap, unsigned int id, const wchar_t* c2) {
+/*int cmpExtVal(FontMap fontMap, unsigned int id, const wchar_t* c2) {
 	wchar_t temp[5];
 	for (int i=0; i<5; i++) {
 		temp[i] = getExtVal(fontMap, id, i);
 	}
 	return cmp(temp, c2);
-}
+}*/
 
 //Note: These two allocate memory, so make sure to  delete the return value after you're done using it.
 wchar_t* getFwdKey(FontMap fontMap, unsigned int id) {
@@ -248,6 +248,14 @@ wchar_t* getFwdKey(FontMap fontMap, unsigned int id) {
 	}
 	return temp;
 }
+wchar_t* getFwdValue(FontMap fontMap, unsigned int id) {
+	wchar_t *temp = new wchar_t[5];
+	for (int i=0; i<5; i++) {
+		temp[i] = fontMap.fwd[id*30 + 25 + i];
+	}
+	return temp;
+}
+
 wchar_t* getAfterKey(FontMap fontMap, unsigned int id) {
 	wchar_t *temp = new wchar_t[25];
 	for (int i=0; i<25; i++) {
@@ -255,6 +263,19 @@ wchar_t* getAfterKey(FontMap fontMap, unsigned int id) {
 	}
 	return temp;
 }
-
+wchar_t* getAfterValue(FontMap fontMap, unsigned int id) {
+	wchar_t *temp = new wchar_t[5];
+	for (int i=0; i<5; i++) {
+		temp[i] = fontMap.after[id*30 + 25 + i];
+	}
+	return temp;
+}
+wchar_t* getExtValue(FontMap fontMap, unsigned int id) {
+	wchar_t *temp = new wchar_t[5];
+	for (int i=0; i<5; i++) {
+		temp[i] = fontMap.ext[id*7 + 2 + i];
+	}
+	return temp;
+}
 
 

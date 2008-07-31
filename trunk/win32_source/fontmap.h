@@ -123,11 +123,14 @@ extern FontMap _f[FLEN];
 //Useful global functions
 unsigned short getExtLength(FontMap fontMap, unsigned int id);
 unsigned short getExtKey(FontMap fontMap, unsigned int id); 
-wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index);
-int cmpExtVal(FontMap fontMap, unsigned int id, const wchar_t* c2);
+//wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index);
+//int cmpExtVal(FontMap fontMap, unsigned int id, const wchar_t* c2);
 
 wchar_t* getFwdKey(FontMap fontMap, unsigned int id);
+wchar_t* getFwdValue(FontMap fontMap, unsigned int id);
 wchar_t* getAfterKey(FontMap fontMap, unsigned int id);
+wchar_t* getAfterValue(FontMap fontMap, unsigned int id);
+wchar_t* getExtValue(FontMap fontMap, unsigned int id);
 
 #endif // __FONTMAP_H__
 
