@@ -40,7 +40,7 @@
 
 enum FM_FONTTYPE{UNKNOWN=-1,ASCII, UNICODE_PARTIAL, UNICODE_5_1=51};
 
-struct FontMap_Special_Char{
+/*struct FontMap_Special_Char{
 	unsigned short length; //length of val
 	unsigned short keystate;
 	unsigned short key;
@@ -56,7 +56,9 @@ struct FontMap_Ext{
 struct FontMap_Reorder_Pair{
 	const wchar_t key[25]; //currently fixed
 	const wchar_t val[5]; //currently fixed
-};
+};*/
+
+
 
 struct FontMap{
 	/* 0 for ASCII, 1 for partial unicode, 51 for unicode 5.1 compatibles */
@@ -75,33 +77,33 @@ struct FontMap{
 	
 	/* special input ,  like Ctrl+Alt+5 */
 	unsigned short spchar_len;
-	union {
+	//union {
 		const wchar_t *__spchar__; //a trick to the compiler :P
-		FontMap_Special_Char *spchar;
-	};
+//		FontMap_Special_Char *spchar;
+	//};
 	
 	/* extended chars for decomposition, 
 	 * like "za myin zwel" to "sa lone + ya pin", 
 	 * coz non-unicode fonts need that  */
 	unsigned short ext_len;
-	union {
-		const wchar_t *__ext__; //a trick to the compiler :P
-		FontMap_Ext *ext;
-	};
+	//union {
+		const wchar_t *ext; //a trick to the compiler :P
+		//FontMap_Ext *ext;
+	//};
 	
 	/* consonent forward re-ordering , used when non-5.1 to 5.1 */
 	unsigned short fwd_len;
-	union {
-		const wchar_t* __fwd__;
-		FontMap_Reorder_Pair* fwd;
-	};
+	//union {
+		const wchar_t* fwd;
+		//FontMap_Reorder_Pair* fwd;
+	//};
 	
 	/* consonent reverse re-ordering , used when 5.1 to non-5.1 */
 	unsigned short rev_len;
-	union {
-		const wchar_t* __rev__;
-		FontMap_Reorder_Pair* rev;
-	};
+	//union {
+		const wchar_t* rev;
+		//FontMap_Reorder_Pair* rev;
+	//};
 	
 	/* vowel re-ordering , should be call after consonent is properly ordered */
 	unsigned short vowel_len;
@@ -109,14 +111,19 @@ struct FontMap{
 	
 	/* after vowel re-ordering , need for some adjustments */
 	unsigned short after_len;
-	union {
-		const wchar_t* __after__;
-		FontMap_Reorder_Pair* after;
-	};
-	
+	//union {
+		const wchar_t* after;
+	//	FontMap_Reorder_Pair* after;
+	//};	
 };
-
 extern FontMap _f[FLEN];
+
+
+//Useful global functions
+unsigned short getExtLength(FontMap fontMap, unsigned int id);
+unsigned short getExtKey(FontMap fontMap, unsigned int id); 
+wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index);
+
 
 #endif // __FONTMAP_H__
 

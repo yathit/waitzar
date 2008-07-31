@@ -219,3 +219,15 @@ ASCII
 ,0,L""
 }};
 
+
+
+//Useful global functions
+unsigned short getExtLength(FontMap fontMap, unsigned int id) {
+	return fontMap.ext[id*7];
+}
+unsigned short getExtKey(FontMap fontMap, unsigned int id) {
+	return fontMap.ext[id*7 + 1];
+}
+wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index) {
+	return fontMap.ext[id*7 + 2 + index];
+}
