@@ -783,14 +783,6 @@ void WordBuilder::insertTrigram(unsigned short* trigram_ids, int num_used_trigra
 
 std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id) 
 {
-        //wprintf(L"GET: (font is ");
-        if (this->currEncoding==ENCODING_UNICODE) {
-            wprintf(L"Unicode)\n");
-        } else if (this->currEncoding==ENCODING_WININNWA) {
-            wprintf(L"Win Innwa)\n");
-        } else if (this->currEncoding==ENCODING_ZAWGYI) {
-            wprintf(L"Zawgyi-One)\n");
-        }
 
 	//Determine our dictionary
 	unsigned short** myDict = dictionary;

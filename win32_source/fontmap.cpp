@@ -240,6 +240,7 @@ int cmpExtVal(FontMap fontMap, unsigned int id, const wchar_t* c2) {
 	return cmp(temp, c2);
 }
 
+//Note: These two allocate memory, so make sure to  delete the return value after you're done using it.
 wchar_t* getFwdKey(FontMap fontMap, unsigned int id) {
 	wchar_t *temp = new wchar_t[25];
 	for (int i=0; i<25; i++) {
@@ -247,7 +248,6 @@ wchar_t* getFwdKey(FontMap fontMap, unsigned int id) {
 	}
 	return temp;
 }
-
 wchar_t* getAfterKey(FontMap fontMap, unsigned int id) {
 	wchar_t *temp = new wchar_t[25];
 	for (int i=0; i<25; i++) {
