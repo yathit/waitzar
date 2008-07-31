@@ -36,26 +36,9 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	}
 
 	/* build reverse index for "ext" in source, like hash */
-	/*if (dstFont==WinInnwa) {
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"Preparing srcExtHash\n");
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"i\tdest\tkey\t0xff\ti<<8\tval\n");
-        }*/
-
 	for(int i=0;i<_f[srcFont].ext_len;i++){
-	/*	if (dstFont==WinInnwa) {
-			wprintf(L"%x\t%x\n", i, getExtKey(_f[srcFont], i));
-		}*/
-
 		srcExtHash[getExtKey(_f[srcFont], i)] = (0xff & srcValHash[getExtKey(_f[srcFont], i)]) + (i << 8);
 	}
-
-	/*if (dstFont==WinInnwa) {
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"Moving on...\n");
-		wprintf(L"----------------------------------------\n");
-        }*/
 	
 	/* build reverse index for "ext" in dest, like hash */
 	//for(int i=0;i<_f[dstFont].ext_len;i++){
@@ -104,37 +87,6 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	} // end while
 	
 	*dstTmp=0x0; /* string should b terminated by null char :P */
-	
-/*	if (dstFont==WinInnwa) {
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"Before crash\n");
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"\nPrinting srcValHash:\n");
-		for (int i=0; i<CHAR_RANGE; i++) {
-			wprintf(L"  %x\n", srcValHash[i]);
-		}
-		
-		wprintf(L"\nPrinting srcExtHash:\n");
-		for (int i=0; i<CHAR_RANGE; i++) {
-			wprintf(L"  %x\n", srcExtHash[i]);
-		}
-		
-		wprintf(L"\nPrinting srcTmp:\n");
-		for (srcTmp = src; *srcTmp; srcTmp++) {
-			wprintf(L"  %x\n", *srcTmp);
-		}
-		
-		wprintf(L"\nPrinting dstTmp:\n");
-		for (dstTmp = dst; *dstTmp; dstTmp++) {
-			wprintf(L"  %x\n", *dstTmp);
-		}
-		
-		
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"Now crashing:\n");
-		wprintf(L"----------------------------------------\n");
-		return;
-	}*/
 	
 	srcTmp = dst;
 	dstTmp = tmpBuffer;
