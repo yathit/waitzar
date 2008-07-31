@@ -36,26 +36,26 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	}
 
 	/* build reverse index for "ext" in source, like hash */
-	if (dstFont==WinInnwa) {
+	/*if (dstFont==WinInnwa) {
 		wprintf(L"----------------------------------------\n");
 		wprintf(L"Preparing srcExtHash\n");
 		wprintf(L"----------------------------------------\n");
 		wprintf(L"i\tdest\tkey\t0xff\ti<<8\tval\n");
-        }
+        }*/
 
 	for(int i=0;i<_f[srcFont].ext_len;i++){
-		if (dstFont==WinInnwa) {
+	/*	if (dstFont==WinInnwa) {
 			wprintf(L"%x\t%x\n", i, getExtKey(_f[srcFont], i));
-		}
+		}*/
 
 		srcExtHash[getExtKey(_f[srcFont], i)] = (0xff & srcValHash[getExtKey(_f[srcFont], i)]) + (i << 8);
 	}
 
-	if (dstFont==WinInnwa) {
+	/*if (dstFont==WinInnwa) {
 		wprintf(L"----------------------------------------\n");
 		wprintf(L"Moving on...\n");
 		wprintf(L"----------------------------------------\n");
-        }
+        }*/
 	
 	/* build reverse index for "ext" in dest, like hash */
 	//for(int i=0;i<_f[dstFont].ext_len;i++){
@@ -105,7 +105,7 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	
 	*dstTmp=0x0; /* string should b terminated by null char :P */
 	
-	if (dstFont==WinInnwa) {
+/*	if (dstFont==WinInnwa) {
 		wprintf(L"----------------------------------------\n");
 		wprintf(L"Before crash\n");
 		wprintf(L"----------------------------------------\n");
@@ -134,13 +134,13 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 		wprintf(L"Now crashing:\n");
 		wprintf(L"----------------------------------------\n");
 		return;
-	}
+	}*/
 	
 	srcTmp = dst;
 	dstTmp = tmpBuffer;
 	
 	// Convert from Global font to dest font 
-	/*while(*srcTmp){
+	while(*srcTmp){
 		if(*srcTmp>=VIRTUAL_OFFSET){
 			if(_f[dstFont].val[*srcTmp-VIRTUAL_OFFSET]!=0x0){
 				// re-combination process 
@@ -148,9 +148,9 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 				if(srcTmp[1]!=0x0){ // no need when string len is 1 
 					for(int i=0;i<_f[dstFont].ext_len;i++){
 						if( getExtLength(_f[dstFont], i)>1 // no need if ext char length is 1 
-						&& cmp(_f[dstFont].ext[i].val, srcTmp)==0){
-							*dstTmp++=_f[dstFont].ext[i].key;
-							srcTmp+=_f[dstFont].ext[i].length;
+						&& cmpExtVal(_f[dstFont], i, srcTmp)==0){
+							*dstTmp++ =  getExtKey(_f[dstFont], i);
+							srcTmp += getExtLength(_f[dstFont], i);
 							match=true; // re-combined 
 							break;
 						}
@@ -171,10 +171,12 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	
 	// consonent forward re-order 
 	for(int i=0;i<_f[dstFont].fwd_len;i++){
-		Regex re(_f[dstFont].fwd[i].key,true);
+		wchar_t *fwdKeyVal = getFwdKey(_f[dstFont], i);
+		Regex re( fwdKeyVal,true);
 		if(re.test(dstTmp)){
-			re.sub(dstTmp,_f[dstFont].fwd[i].val,dstTmp);
+			re.sub(dstTmp,fwdKeyVal,dstTmp);
 		}
+		delete [] fwdKeyVal;
 	}
 	
 	// re-ordering vowel 
@@ -199,14 +201,16 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	
 	// adjusting something after vowel re-order 
 	for(int i=0;i<_f[dstFont].after_len;i++){
-		Regex re(_f[dstFont].after[i].key,true);
+		wchar_t *afterKeyVal = getAfterKey(_f[dstFont], i);
+		Regex re( afterKeyVal,true);
 		if(re.test(dstTmp)){
-			re.sub(dstTmp,_f[dstFont].after[i].val,dstTmp);
+			re.sub(dstTmp,afterKeyVal,dstTmp);
 		}
+		delete [] afterKeyVal;
 	}
 	
 	// copy to return string  
-	cpy(dst,dstTmp);*/
+	cpy(dst,dstTmp);
 	
 	return;
 }
