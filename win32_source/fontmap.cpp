@@ -231,3 +231,30 @@ unsigned short getExtKey(FontMap fontMap, unsigned int id) {
 wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index) {
 	return fontMap.ext[id*7 + 2 + index];
 }
+
+int cmpExtVal(FontMap fontMap, unsigned int id, const wchar_t* c2) {
+	wchar_t temp[5];
+	for (int i=0; i<5; i++) {
+		temp[i] = getExtVal(fontMap, id, i);
+	}
+	return cmp(temp, c2);
+}
+
+wchar_t* getFwdKey(FontMap fontMap, unsigned int id) {
+	wchar_t *temp = new wchar_t[25];
+	for (int i=0; i<25; i++) {
+		temp[i] = fontMap.fwd[id*30 + i];
+	}
+	return temp;
+}
+
+wchar_t* getAfterKey(FontMap fontMap, unsigned int id) {
+	wchar_t *temp = new wchar_t[25];
+	for (int i=0; i<25; i++) {
+		temp[i] = fontMap.after[id*30 + i];
+	}
+	return temp;
+}
+
+
+

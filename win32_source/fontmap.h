@@ -37,6 +37,7 @@
 #define FVLEN 226  //+ 5 /*Addition*/32,13,10,47,9}
 
 #include <wchar.h>
+#include "lib.h"
 
 enum FM_FONTTYPE{UNKNOWN=-1,ASCII, UNICODE_PARTIAL, UNICODE_5_1=51};
 
@@ -123,7 +124,10 @@ extern FontMap _f[FLEN];
 unsigned short getExtLength(FontMap fontMap, unsigned int id);
 unsigned short getExtKey(FontMap fontMap, unsigned int id); 
 wchar_t getExtVal(FontMap fontMap, unsigned int id, unsigned int index);
+int cmpExtVal(FontMap fontMap, unsigned int id, const wchar_t* c2);
 
+wchar_t* getFwdKey(FontMap fontMap, unsigned int id);
+wchar_t* getAfterKey(FontMap fontMap, unsigned int id);
 
 #endif // __FONTMAP_H__
 
