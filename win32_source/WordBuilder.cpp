@@ -12,7 +12,7 @@
  * Load a model given the Wait Zar binary model and a text file containing user additions.
  * @param modelFile is "Myanmar.model"
  * @param userWordsFile is "mywords.txt"
- * If userWordsFile doesn't exist, it is ignored. If modelFile doesn't exist, it 
+ * If userWordsFile doesn't exist, it is ignored. If modelFile doesn't exist, it
  *  causes unpredictable behavior.
  */
 WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePath)
@@ -23,7 +23,7 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 		printf("Cannot create WordBuilder; model file does not exist.\n    %s\n", modelFile);
 		return;
 	}
-	
+
 	//Step two: figure out its length and convert it to a character array.
 	fseek (modelFile, 0, SEEK_END);
 	long modelFileSize = ftell(modelFile);
@@ -33,7 +33,7 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	fclose(modelFile);
 
 	init(model_buff, model_buff_size);
-	
+
 	//Reclaim memory
 	delete [] model_buff;
 
@@ -58,8 +58,8 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 
 	//Finally, convert this array to unicode
 	wchar_t * uniBuffer = new wchar_t[buff_size];
-	
-	
+
+
 	//old:
 	//size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
 	//new:
@@ -68,7 +68,7 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 		wprintf(L"Warning! Conversion to wide-character string of mywords.txt probably failed...\n");
 		return;
 	}
-	
+
 	uniBuffer = (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
 	if (mymbstowcs(uniBuffer, buffer, buff_size)==0) {
 		printf("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
@@ -108,13 +108,13 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 }
 
 
-WordBuilder::WordBuilder(char *model_buff, size_t model_buff_size) 
+WordBuilder::WordBuilder(char *model_buff, size_t model_buff_size)
 {
 	init(model_buff, model_buff_size);
 }
 
 
-void WordBuilder::init(char *model_buff, size_t model_buff_size) 
+void WordBuilder::init(char *model_buff, size_t model_buff_size)
 {
 	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
 	unsigned short **dictionary;
@@ -141,7 +141,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 		//Step 3-A: left-trim spaces
 		while (model_buff[currLineStart] == ' ')
 			currLineStart++;
-		
+
 		//Step 3-B: Deal with coments and empty lines
 		if (model_buff[currLineStart] == '\n') {
 			//Step 3-B-i: Skip comments
@@ -161,7 +161,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 					lastCommentedNumber += (curr-'0');
 				}
 			}
-			
+
 			//Step 3-B-iii: use this number to initialize our data structures
 			switch (mode) {
 				case 1: //Words
@@ -188,7 +188,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 			}
 			continue;
 		}
-		
+
 		//Step 3-C: Act differently based on the mode we're in
 		switch (mode) {
 			case 1: //Words
@@ -210,7 +210,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 //  wprintf(L"word: %s", currLetter);
 					newWord[newWordSz++] = (unsigned short)strtol(currLetter, NULL, 16);
 
-//   wprintf(L"    num: %x\n", newWord[newWordSz-1]);  
+//   wprintf(L"    num: %x\n", newWord[newWordSz-1]);
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
@@ -367,7 +367,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 			currLineStart++;
 		currLineStart++;
 	}
-	
+
 	//Initialize the model
 	init(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 }
@@ -381,15 +381,15 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
  * NOTE: Please see the alternative constructor for a (usually preferred) helper to load from files.
  * @param dictionary is an array of character sequences. For example,
  *     {"ka", "ko", "sa"} becomes {{1,0x1000}, {3,0x1000,0x102D,0x102F}, {2,0x1005,0x1032}}
- * @param nexus is an array of links. The first entry, of course, is the count. After that, 
+ * @param nexus is an array of links. The first entry, of course, is the count. After that,
  *     there are a series of integers, of the form 0xXXYY, where XX is the nexus to jump to
  *     if character YY is pressed. The whole structure is very much a flattened tree.
  *     Finally, if the character YY is "~", then the integer XX is actually an index into
  *     the "prefix" array.
  * @param prefix is an array of links, similar to nexus. However, it is much simpler. The first
- *     entry in each row is the the "pair count". The second entry is the "match count". The 
- *     "pair count" determines the number of pairs of entries that follow. The first item in each 
- *     pair is the "key", and is an id into the dictionary list. If that "key" is a prefix word 
+ *     entry in each row is the the "pair count". The second entry is the "match count". The
+ *     "pair count" determines the number of pairs of entries that follow. The first item in each
+ *     pair is the "key", and is an id into the dictionary list. If that "key" is a prefix word
  *     of the current word, then the "value" is an index into the prefix array to jump to.
  *     Following these pairs are a number of "matches", which are indices into the dictionary
  *     array; each match is a potential word.
@@ -400,7 +400,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 WordBuilder::WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)
 {
         //Initialize the model
-	init(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);	
+	init(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 }
 
 WordBuilder::~WordBuilder(void)
@@ -410,17 +410,17 @@ WordBuilder::~WordBuilder(void)
 	//      program first starts. This all remains in memory until the program
 	//      exits, at which point the entire process terminates anyways.
 	//      There is never more than one WordBuilder, dictionary, nexus, prefix array, etc.
-	//      So, we don't really worry too much about memory (except brushes and windows and 
+	//      So, we don't really worry too much about memory (except brushes and windows and
 	//      those kinds of things.)
 }
 
 
-void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) 
+void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)
 {
 	/*printf("dictionary: %i\n", dictMaxID);
 	printf("nexus: %i\n", nexusMaxID);
 	printf("prefix: %i\n", prefixMaxID);*/
-	
+
 	//Store for later
 	this->dictionary = dictionary;
 	this->nexus = nexus;
@@ -443,7 +443,7 @@ void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxS
 	punctFullStopUni = 0x104B;
 	punctHalfStopWinInnwa = 63;
 	punctFullStopWinInnwa = 47;
-	copystr(mostRecentError, L"");
+	wcscpy(mostRecentError, L"");
 
 	//Init dictionaries
 	winInnwaDictionary = (unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
@@ -472,7 +472,7 @@ void WordBuilder::setOutputEncoding(unsigned int encoding)
 
 
 
-unsigned short WordBuilder::getStopCharacter(bool isFull) 
+unsigned short WordBuilder::getStopCharacter(bool isFull)
 {
 	if (isFull) {
 		if (currEncoding==ENCODING_WININNWA)
@@ -493,7 +493,7 @@ unsigned short WordBuilder::getStopCharacter(bool isFull)
  * Types a letter and advances the nexus pointer. Returns true if the letter was a valid move,
  *   false otherwise. Updates the available word/letter list appropriately.
  */
-bool WordBuilder::typeLetter(char letter) 
+bool WordBuilder::typeLetter(char letter)
 {
 	//Is this letter meaningful?
 	int nextNexus = jumpToNexus(this->currNexus, letter);
@@ -594,7 +594,7 @@ void WordBuilder::setCurrSelected(int id)
 
 
 //Returns the selected ID and a boolean
-std::pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID) 
+std::pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID)
 {
 	//Return val
 	std::pair<bool, unsigned int> result(false, 0);
@@ -645,7 +645,7 @@ void WordBuilder::reset(bool fullReset)
  * Given a "fromNexus", find the link leading out on character "jumpChar" and take it.
  *   Returns -1 if no such nexus could be found.
  */
-int WordBuilder::jumpToNexus(int fromNexus, char jumpChar) 
+int WordBuilder::jumpToNexus(int fromNexus, char jumpChar)
 {
 	for (unsigned int i=0; i<this->nexus[fromNexus][0]; i++) {
 		if ( (this->nexus[fromNexus][i+1]&0xFF) == jumpChar )
@@ -669,10 +669,10 @@ int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID)
  * Based on the current nexus, what letters are valid moves, and what words
  *   should we present to the user?
  */
-void WordBuilder::resolveWords(void) 
+void WordBuilder::resolveWords(void)
 {
 	//Init
-	copystr(parenStr, L"");
+	wcscpy(parenStr, L"");
 	int pStrOffset = 0;
 
 	//If there are no words possible, can we jump to a point that doesn't diverge?
@@ -690,7 +690,7 @@ void WordBuilder::resolveWords(void)
 	} else {
 		//Reset
 		speculativeNexusID = currNexus;
-		copystr(parenStr, L"");
+		wcscpy(parenStr, L"");
 	}
 
 	//What possible characters are available after this point?
@@ -781,45 +781,51 @@ void WordBuilder::insertTrigram(unsigned short* trigram_ids, int num_used_trigra
 	}
 }
 
-std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id) 
-{
 
+std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id)
+{
+	return this->getWordKeyStrokes(id, this->getOutputEncoding());
+}
+
+
+std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
+{
 	//Determine our dictionary
 	unsigned short** myDict = dictionary;
 	int destFont = Zawgyi_One;
-	if (currEncoding==ENCODING_WININNWA) {
+	if (encoding==ENCODING_WININNWA) {
 		myDict = winInnwaDictionary;
 		destFont = WinInnwa;
-	} else if (currEncoding==ENCODING_UNICODE) {
+	} else if (encoding==ENCODING_UNICODE) {
 		myDict = unicodeDictionary;
 		destFont = Myanmar3;
 	}
 
 	//Does this word exist in the dictionary? If not, add it
-	if (currEncoding!=ENCODING_ZAWGYI && myDict[id][0] == 0) {
+	if (encoding!=ENCODING_ZAWGYI && myDict[id][0] == 0) {
 		//First, convert
 		wchar_t* srcStr = this->getWordString(id);
 		wchar_t destStr[200];
-		copystr(destStr, L"");
+		wcscpy(destStr, L"");
 		convertFont(destStr, srcStr, Zawgyi_One, destFont);
 
 		//TEMP: Special cases
-		if (currEncoding==ENCODING_WININNWA && compstr(srcStr, L"\u1009\u102C\u1025\u1039")==0) {
-			copystr(destStr, L"123");
+		if (encoding==ENCODING_WININNWA && wcscmp(srcStr, L"\u1009\u102C\u1025\u1039")==0) {
+			wcscpy(destStr, L"123");
 			destStr[0] = 211;
 			destStr[1] = 79;
 			destStr[2] = 102;
-		} else if (currEncoding==ENCODING_UNICODE && compstr(srcStr, L"\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038")==0) {
-			copystr(destStr, L"\u101A\u1031\u102C\u1000\u103A\u103B\u102C\u1038");
-		} else if (currEncoding==ENCODING_WININNWA && compstr(srcStr, L"\u1015\u102B\u1094")==0) {
-			copystr(destStr, L"123");
+		} else if (encoding==ENCODING_UNICODE && wcscmp(srcStr, L"\u1031\u101A\u102C\u1000\u1039\u103A\u102C\u1038")==0) {
+			wcscpy(destStr, L"\u101A\u1031\u102C\u1000\u103A\u103B\u102C\u1038");
+		} else if (encoding==ENCODING_WININNWA && wcscmp(srcStr, L"\u1015\u102B\u1094")==0) {
+			wcscpy(destStr, L"123");
 			destStr[0] = 121;
 			destStr[1] = 103;
 			destStr[2] = 104;
 		}
 
 		//Now, add a new entry
-		size_t stLen = lenstr(destStr);
+		size_t stLen = wcslen(destStr);
 		unsigned short * newEncoding = (unsigned short *)malloc((stLen+1) * sizeof(unsigned short));
 		for (size_t i=0; i<stLen; i++) {
 			newEncoding[i+1] = destStr[i];
@@ -855,34 +861,34 @@ wchar_t* WordBuilder::getParenString()
 
 /**
  * Get the actual characters in a string (by ID). Note that
- *  this returns a single (global) object, so if multiple strings are to be 
+ *  this returns a single (global) object, so if multiple strings are to be
  *  dealt with, they must be copied into local variables -something like:
  *    TCHAR *temp1 = wb->getWordString(1);
  *    TCHAR *temp2 = wb->getWordString(2);
  *    TCHAR *temp3 = wb->getWordString(3);
  * ...will FAIL; temp1, temp2, and temp3 will ALL have the value of string 3.
  * Do something like this instead:
- *   TCHAR temp1[50]; 
+ *   TCHAR temp1[50];
  *   lstrcpy(temp1, wb->getWordString(1));
- *   TCHAR temp2[50]; 
+ *   TCHAR temp2[50];
  *   lstrcpy(temp2, wb->getWordString(2));
  *   ...etc.
- */ 
+ */
 wchar_t* WordBuilder::getWordString(unsigned int id)
 {
-	copystr(currStr, L"");
+	wcscpy(currStr, L"");
 	//wchar_t temp[50];
 
 	unsigned short size = this->dictionary[id][0];
 	for (int i=0; i<size; i++)  {
 		this->currStr[i] = this->dictionary[id][i+1];
-		
+
 		//wprintf(L"  test: %x\n", this->dictionary[id][i+1]);
 		//printstr(temp, L"%c", this->dictionary[id][i+1]);
 		//catstr(this->currStr, temp);
 	}
 	this->currStr[size] = 0x0000; //Note: must be full-width 0000, lest the string not be properly terminated.
-	
+
 	//DEBUG
 	/*for (int i=0; i<wcslen(this->currStr); i++) {
 		wprintf(L"  :%x\n", this->currStr[i]);
@@ -892,17 +898,17 @@ wchar_t* WordBuilder::getWordString(unsigned int id)
 }
 
 
-wchar_t* WordBuilder::getLastError() 
+wchar_t* WordBuilder::getLastError()
 {
 	return mostRecentError;
 }
 
 
-bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman) 
+bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 {
 	//First task: find the word; add it if necessary
 	int dictID;
-	size_t mmLen = lenstr(myanmar);
+	size_t mmLen = wcslen(myanmar);
 	for (dictID=0; dictID<dictMaxID; dictID++) {
 		if (mmLen != dictionary[dictID][0])
 			continue;
@@ -921,7 +927,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 	if (dictID==dictMaxID) {
 		//Need to add... we DO have a limit, though.
 		if (dictMaxID == dictMaxSize) {
-			copystr(mostRecentError, L"Too many custom words!");
+			wcscpy(mostRecentError, L"Too many custom words!");
 			return false;
 		}
 
@@ -931,7 +937,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 			dictionary[dictMaxID][i+1] = (unsigned short)myanmar[i];
 		}
 		dictMaxID++;
-	} 
+	}
 
 
 	//Next task: add the romanized mappings
@@ -948,7 +954,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 		if (nextNexusID==nexus[currNodeID][0]) {
 			//First step: make a blank nexus entry at the END of this list
 			if (nexusMaxID == nexusMaxSize) {
-				copystr(mostRecentError, L"Too many custom nexi!");
+				wcscpy(mostRecentError, L"Too many custom nexi!");
 				return false;
 			}
 			nexus[nexusMaxID] = (unsigned int *)malloc((1) * sizeof(unsigned int));
@@ -963,7 +969,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 			newCurrent[0] = nexus[currNodeID][0]+1;
 			free(nexus[currNodeID]);
 			nexus[currNodeID] = newCurrent;
-			
+
 			//Finally: add a new entry linking to the nexus we just created
 			nexus[currNodeID][newSizeNex-1] = (nexusMaxID<<8) | (0xFF&roman[rmID]);
 			nexusMaxID++;
@@ -983,7 +989,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 	if (currPrefixID == nexus[currNodeID][0]) {
 		//We need to add a prefix entry
 		if (prefixMaxID == prefixMaxSize) {
-			copystr(mostRecentError, L"Too many custom prefixes!");
+			wcscpy(mostRecentError, L"Too many custom prefixes!");
 			return false;
 		}
 		prefix[prefixMaxID] = (unsigned int *)malloc((2) * sizeof(unsigned int));
@@ -999,7 +1005,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 		newCurrent[0]++;
 		free(nexus[currNodeID]);
 		nexus[currNodeID] = newCurrent;
-			
+
 		//Finally: add a new entry linking to the nexus we just created
 		nexus[currNodeID][newSizeNex-1] = (unsigned int) ((prefixMaxID<<8) | ('~'));
 		prefixMaxID++;
@@ -1012,7 +1018,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 	size_t wordStart = 2+prefix[currPrefixID][0]*2;
 	for (size_t i=0; i<prefix[currPrefixID][1]; i++) {
 		if (prefix[currPrefixID][wordStart + i] == dictID) {
-			copystr(mostRecentError, L"Word is already in dictionary!");
+			wcscpy(mostRecentError, L"Word is already in dictionary!");
 			return false;
 		}
 	}
@@ -1050,7 +1056,7 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 			return 0;
 		} else if (((curr>>4)^0xE)==0) {
 			//Verify the next two bytes
-			if (i>=lenStr-2 || (((src[i+1]&0xFF)>>6)^0x2)!=0 || (((src[i+2]&0xFF)>>6)^0x2)!=0) 
+			if (i>=lenStr-2 || (((src[i+1]&0xFF)>>6)^0x2)!=0 || (((src[i+2]&0xFF)>>6)^0x2)!=0)
 				return 0;
 
 			//Combine all three bytes, check, increment

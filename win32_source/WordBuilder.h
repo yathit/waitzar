@@ -20,11 +20,12 @@
 //#endif
 
 //Windows and Linux have different "Unicode-aware" methods
-#define copystr(a, b)      wcscpy((a), (b))
+//No they don't...
+/*#define copystr(a, b)      wcscpy((a), (b))
 #define catstr(a, b)       wcscat((a), (b))
 #define lenstr(a)          wcslen((a))
 #define printstr(a, b, c)  swprintf((a), 150, (b), (c))
-#define compstr(a, b)      wcscmp((a), (b))
+#define compstr(a, b)      wcscmp((a), (b))*/
 
 //Useful constants
 #define ENCODING_UNICODE 1
@@ -36,7 +37,7 @@
 /**
  * Used for converting a string of roman letters into a list of potential Burmese unsigned shorts.
  *  This class is intended for use in a Linux environment. Note that:
- *    "Before you start using UTF-8 under Linux make sure the distribution has glibc 2.2 
+ *    "Before you start using UTF-8 under Linux make sure the distribution has glibc 2.2
  *     and XFree86 4.0 or newer versions. Earlier versions lack UTF-8 locale support and ISO10646-1 X11 fonts." ibm.com
  */
 class WordBuilder
@@ -53,7 +54,7 @@ public:
 	bool backspace();
 	void reset(bool fullReset);
 	bool moveRight(int amt);
-	
+
 	//Information on the model's state
 	int getCurrSelectedID();
 	std::vector<char> getPossibleChars(void);
@@ -62,6 +63,7 @@ public:
 
 	//Get information about a particular unsigned short given its ID
 	std::vector<unsigned short> getWordKeyStrokes(unsigned int id);
+	std::vector<unsigned short> getWordKeyStrokes(unsigned int id, unsigned int encoding);
 	wchar_t* getWordString(unsigned int id);
 	wchar_t* getParenString();
 
@@ -117,7 +119,7 @@ private:
 
 	//Tracking user selection
 	int currSelectedID;
-	
+
 	//Staged Init
 	void init (char * model_buff, size_t model_buff_size);
     void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
@@ -162,7 +164,7 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount);
 template <class T, class S>
 void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet)
 {
-	//Init --note: 0x0000 is necessary, see: 
+	//Init --note: 0x0000 is necessary, see:
 	//http://msdn.microsoft.com/en-us/library/ms776431(VS.85).aspx
 	nameRet[0] = (T)0x0000;
 	valRet[0] = (S)0x0000;
@@ -205,7 +207,7 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 			prevCaseChar = currChar;
 			if (currChar>='A' && currChar<='Z')
 				currChar += ('a'-'A');
-			
+
 			//Check if it's valid
 			if (
 			   (hasASCII==true && currChar>='a' && currChar<='z') ||
