@@ -28,7 +28,7 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	fseek (modelFile, 0, SEEK_END);
 	long modelFileSize = ftell(modelFile);
 	rewind(modelFile);
-	char * model_buff = (char*) malloc(sizeof(char)*modelFileSize);
+	char * model_buff = new char[modelFileSize];
 	size_t model_buff_size = fread(model_buff, 1, modelFileSize, modelFile);
 	fclose(modelFile);
 
@@ -49,7 +49,7 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	rewind(userFile);
 
 	//Read it all into an array, close the file.
-	char * buffer = (char*) malloc(sizeof(char)*fileSize);
+	char * buffer = new char[fileSize]; // (char*) malloc(sizeof(char)*fileSize);
 	size_t buff_size = fread(buffer, 1, fileSize, userFile);
 	fclose(userFile);
 	if (buff_size==0) {
@@ -69,7 +69,7 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 		return;
 	}
 
-	uniBuffer = (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
+	uniBuffer = new wchar_t[numUniChars]; // (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
 	if (mymbstowcs(uniBuffer, buffer, buff_size)==0) {
 		printf("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
 		return;
@@ -168,21 +168,21 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 					//Initialize our dictionary
 					dictMaxID = lastCommentedNumber;
 					dictMaxSize = (dictMaxID*3)/2;
-					dictionary = (unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
+					dictionary = new unsigned short*[dictMaxSize]; //(unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
 					currDictionaryID = 0;
 					break;
 				case 2: //Nexi
 					//Initialize our nexus list
 					nexusMaxID = lastCommentedNumber;
 					nexusMaxSize = (nexusMaxID*3)/2;
-					nexus = (unsigned int **)malloc(nexusMaxSize * sizeof(unsigned int *));
+					nexus = new unsigned int*[nexusMaxSize]; // (unsigned int **)malloc(nexusMaxSize * sizeof(unsigned int *));
 					currDictionaryID = 0;
 					break;
 				case 3: //Prefixes
 					//Initialize our prefixes list
 					prefixMaxID = lastCommentedNumber;
 					prefixMaxSize = (prefixMaxID*3)/2;
-					prefix = (unsigned int **)malloc(prefixMaxSize * sizeof(unsigned int *));
+					prefix = new unsigned int*[prefixMaxSize]; // (unsigned int **)malloc(prefixMaxSize * sizeof(unsigned int *));
 					currDictionaryID = 0;
 					break;
 			}
@@ -225,7 +225,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 						}
 
 						//Finangle & add this word
-						dictionary[currDictionaryID] = (unsigned short *)malloc((newWordSz+1) * sizeof(unsigned short));
+						dictionary[currDictionaryID] = new unsigned short[newWordSz+1];// (unsigned short *)malloc((newWordSz+1) * sizeof(unsigned short));
 						dictionary[currDictionaryID][0] = (unsigned short)newWordSz;
 						for (int i=0; i<newWordSz; i++) {
 							dictionary[currDictionaryID][i+1] = newWord[i];
@@ -273,7 +273,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 				}
 
 				//Add this entry to the current vector collection
-				nexus[currDictionaryID] = (unsigned int *)malloc((newWordSz+1) * sizeof(unsigned int));
+				nexus[currDictionaryID] = new unsigned int[newWordSz+1]; // (unsigned int *)malloc((newWordSz+1) * sizeof(unsigned int));
 				nexus[currDictionaryID][0] = (unsigned int)newWordSz;
 				for (int i=0; i<newWordSz; i++) {
 					nexus[currDictionaryID][i+1] = newWord[i];
@@ -344,7 +344,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 				}
 
 				//Add this entry to the current vector collection
-				prefix[currDictionaryID] = (unsigned int *)malloc((newWordSz+2) * sizeof(unsigned int));
+				prefix[currDictionaryID] = new unsigned int[newWordSz+2]; // (unsigned int *)malloc((newWordSz+2) * sizeof(unsigned int));
 				prefix[currDictionaryID][0] = (unsigned int)lastCommentedNumber/2;
 				prefix[currDictionaryID][1] = (unsigned int)(newWordSz - lastCommentedNumber);
 				for (int i=0; i<lastCommentedNumber; i++) {
@@ -446,11 +446,11 @@ void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxS
 	wcscpy(mostRecentError, L"");
 
 	//Init dictionaries
-	winInnwaDictionary = (unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
-	unicodeDictionary = (unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
+	winInnwaDictionary = new unsigned short*[dictMaxSize]; // (unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
+	unicodeDictionary = new unsigned short*[dictMaxSize]; // (unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
 	for (int i=0; i<dictMaxSize; i++) {
-		winInnwaDictionary[i] = (unsigned short *)malloc((1) * sizeof(unsigned short));
-		unicodeDictionary[i] = (unsigned short *)malloc((1) * sizeof(unsigned short));
+		winInnwaDictionary[i] = new unsigned short [1]; // (unsigned short *)malloc((1) * sizeof(unsigned short));
+		unicodeDictionary[i] = new unsigned short[1]; // (unsigned short *)malloc((1) * sizeof(unsigned short));
 		winInnwaDictionary[i][0] = 0;
 		unicodeDictionary[i][0] = 0;
 	}
@@ -826,13 +826,13 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsi
 
 		//Now, add a new entry
 		size_t stLen = wcslen(destStr);
-		unsigned short * newEncoding = (unsigned short *)malloc((stLen+1) * sizeof(unsigned short));
+		unsigned short * newEncoding = new unsigned short[stLen+1]; // (unsigned short *)malloc((stLen+1) * sizeof(unsigned short));
 		for (size_t i=0; i<stLen; i++) {
 			newEncoding[i+1] = destStr[i];
 			//wprintf(L"   test: %x   %x  %x\n", newEncoding[i+1], destStr[i], srcStr[i]);
 		}
 		newEncoding[0] = (int)stLen;
-		free(myDict[id]);
+		delete [] myDict[id];
 		myDict[id] = newEncoding;
 	}
 
@@ -931,7 +931,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 			return false;
 		}
 
-		dictionary[dictMaxID] = (unsigned short *)malloc((mmLen+1) * sizeof(unsigned short));
+		dictionary[dictMaxID] = new unsigned short[mmLen+1]; // (unsigned short *)malloc((mmLen+1) * sizeof(unsigned short));
 		dictionary[dictMaxID][0] = (int)mmLen;
 		for (size_t i=0; i<mmLen; i++) {
 			dictionary[dictMaxID][i+1] = (unsigned short)myanmar[i];
@@ -957,17 +957,17 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 				wcscpy(mostRecentError, L"Too many custom nexi!");
 				return false;
 			}
-			nexus[nexusMaxID] = (unsigned int *)malloc((1) * sizeof(unsigned int));
+			nexus[nexusMaxID] = new unsigned int[1]; // (unsigned int *)malloc((1) * sizeof(unsigned int));
 			nexus[nexusMaxID][0] = 0;
 
 			//Next: copy all old entries into a new array
 			int newSizeNex = nexus[currNodeID][0]+2;
-			unsigned int * newCurrent = (unsigned int *)malloc((newSizeNex) * sizeof(unsigned int));
+			unsigned int * newCurrent = new unsigned int[newSizeNex]; // (unsigned int *)malloc((newSizeNex) * sizeof(unsigned int));
 			for (size_t i=0; i<nexus[currNodeID][0]+1; i++) {
 				newCurrent[i] = nexus[currNodeID][i];
 			}
 			newCurrent[0] = nexus[currNodeID][0]+1;
-			free(nexus[currNodeID]);
+			delete [] nexus[currNodeID];
 			nexus[currNodeID] = newCurrent;
 
 			//Finally: add a new entry linking to the nexus we just created
@@ -992,18 +992,18 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 			wcscpy(mostRecentError, L"Too many custom prefixes!");
 			return false;
 		}
-		prefix[prefixMaxID] = (unsigned int *)malloc((2) * sizeof(unsigned int));
+		prefix[prefixMaxID] = new unsigned int[2]; // (unsigned int *)malloc((2) * sizeof(unsigned int));
 		prefix[prefixMaxID][0] = 0;
 		prefix[prefixMaxID][1] = 0;
 
 		//Next: copy all old entries into a new array
 		int newSizeNex = nexus[currNodeID][0]+2;
-		unsigned int * newCurrent = (unsigned int *)malloc((newSizeNex) * sizeof(unsigned int));
+		unsigned int * newCurrent = new unsigned int[newSizeNex]; // (unsigned int *)malloc((newSizeNex) * sizeof(unsigned int));
 		for (size_t i=0; i<nexus[currNodeID][0]+1; i++) {
 			newCurrent[i] = nexus[currNodeID][i];
 		}
 		newCurrent[0]++;
-		free(nexus[currNodeID]);
+		delete [] nexus[currNodeID];
 		nexus[currNodeID] = newCurrent;
 
 		//Finally: add a new entry linking to the nexus we just created
@@ -1025,13 +1025,13 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 
 	//Ok, copy it over
 	size_t oldSize = wordStart + prefix[currPrefixID][1];
-	unsigned int * newPrefix = (unsigned int *)malloc((oldSize+1) * sizeof(unsigned int));
+	unsigned int * newPrefix = new unsigned int[oldSize+1]; // (unsigned int *)malloc((oldSize+1) * sizeof(unsigned int));
 	for (size_t i=0; i<oldSize; i++) {
 		newPrefix[i] = prefix[currPrefixID][i];
 	}
 	newPrefix[1]++;
 	newPrefix[oldSize] = dictID;
-	free(prefix[currPrefixID]);
+	delete [] prefix[currPrefixID];
 	prefix[currPrefixID] = newPrefix;
 
 	return true;
