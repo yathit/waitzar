@@ -138,6 +138,10 @@ int fourthLineStart;
 int borderWidth = 2;
 int spaceWidth;
 
+//Avoid crashing if explorer is running slowly
+bool mainWindowIsVisible;
+bool subWindowIsVisible;
+
 
 
 /**
@@ -800,9 +804,14 @@ BOOL loadModel() {
 
 void ShowBothWindows(int cmdShow)
 {
+	bool show = (cmdShow==SW_SHOW);
+	
 	ShowWindow(mainWindow, cmdShow);
+	mainWindowIsVisible = show;
+
 	if (typePhrases==TRUE) {
 		ShowWindow(senWindow, cmdShow);
+		subWindowIsVisible = show;
 	}
 }
 
@@ -1205,7 +1214,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE: 
 		{
 			//Move the main window?
-			if (senWindowSkipMove==FALSE && (IsWindowVisible(mainWindow)==TRUE || IsWindowVisible(senWindow)==TRUE) && dragBothWindowsTogether==TRUE) {
+			if (senWindowSkipMove==FALSE && (mainWindowIsVisible || subWindowIsVisible) && dragBothWindowsTogether==TRUE) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
@@ -1281,7 +1290,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE: 
 		{
 			//Move the sentence window?
-			if (typePhrases==TRUE && mainWindowSkipMove==FALSE && IsWindowVisible(senWindow)==TRUE && dragBothWindowsTogether==TRUE) {
+			if (typePhrases==TRUE && mainWindowSkipMove==FALSE && subWindowIsVisible && dragBothWindowsTogether==TRUE) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
@@ -1311,7 +1320,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Close the window?
 			if (wParam == HOTKEY_ESC) {
-				if (IsWindowVisible(mainWindow)==FALSE) {
+				if (!mainWindowIsVisible) {
 					//Kill the entire sentence.
 					prevTypedWords->clear();
 					cursorAfterIndex = -1;
@@ -1332,6 +1341,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					} else {
 						//Just hide the typing window for now.
 						ShowWindow(mainWindow, SW_HIDE);
+						mainWindowIsVisible = false;
 
 						if (prevTypedWords->size()==0) {
 							//Kill the entire sentence.
@@ -1346,7 +1356,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Delete: Phrases only
 			if (wParam == HOTKEY_DELETE) {
-				if (IsWindowVisible(mainWindow)==FALSE) {
+				if (!mainWindowIsVisible) {
 					//Delete the next word
 					if (cursorAfterIndex>=-1 && cursorAfterIndex<((int)prevTypedWords->size()-1)) {
 						std::list<int>::iterator erIT = prevTypedWords->begin();
@@ -1367,7 +1377,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Back up
 			if (wParam == HOTKEY_BACK) {
-				if (IsWindowVisible(mainWindow)==FALSE) {
+				if (!mainWindowIsVisible) {
 					//Delete the previous word
 					if (cursorAfterIndex>=0 && cursorAfterIndex<(int)prevTypedWords->size()) {
 						std::list<int>::iterator erIT = prevTypedWords->begin();
@@ -1402,13 +1412,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						} else {
 							//Just hide the typing window for now.
 							ShowWindow(mainWindow, SW_HIDE);
+							mainWindowIsVisible = false;
 
 							if (prevTypedWords->size()==0) {
 								//Kill the entire sentence.
 								prevTypedWords->clear();
 								cursorAfterIndex = -1;
 								turnOnControlkeys(FALSE);
+
 								ShowWindow(senWindow, SW_HIDE);
+								subWindowIsVisible = false;
 							}
 						}
 					}
@@ -1418,7 +1431,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle control hotkeys
 			if (wParam == HOTKEY_RIGHT) {
-				if (IsWindowVisible(mainWindow)==TRUE) {
+				if (mainWindowIsVisible) {
 					//Move right/left within the current word.
 					if (model->moveRight(1) == TRUE)
 						recalculate();
@@ -1428,7 +1441,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						recalculate();
 				}
 			} else if (wParam == HOTKEY_LEFT) {
-				if (IsWindowVisible(mainWindow)==TRUE) {
+				if (mainWindowIsVisible) {
 					if (model->moveRight(-1) == TRUE)
 						recalculate();
 				} else {
@@ -1448,7 +1461,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				numCode = (int)wParam - HOTKEY_NUM0;
 			if (numCode > -1) {
 				//Our key code has been properly transformed.
-				if (IsWindowVisible(mainWindow)==TRUE) {
+				if (mainWindowIsVisible) {
 					//Convert 1..0 to 0..9
 					if (--numCode<0)
 						numCode = 9;
@@ -1457,6 +1470,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					BOOL typed = selectWord(numCode);
 					if (typed==TRUE && typePhrases==TRUE) {
 						ShowWindow(mainWindow, SW_HIDE);
+						mainWindowIsVisible = false;
+
 						lstrcpy(currStr, _T(""));
 						model->reset(false);
 						recalculate();
@@ -1479,9 +1494,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						moveCursorRight(0, TRUE);
 
 						//Is our window even visible?
-						if (IsWindowVisible(senWindow) == FALSE) {
+						if (!subWindowIsVisible) {
 							turnOnControlkeys(TRUE);
+							
 							ShowWindow(senWindow, SW_SHOW);
+							subWindowIsVisible = true;
 						}
 
 						recalculate();
@@ -1493,8 +1510,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle Half-stop/Full-stop
 			if (wParam==HOTKEY_COMMA || wParam==HOTKEY_PERIOD) {
 				stopChar = model->getStopCharacter((wParam==HOTKEY_PERIOD));
-				if (IsWindowVisible(mainWindow)==FALSE) {
-					if (IsWindowVisible(senWindow)==FALSE) {
+				if (!mainWindowIsVisible) {
+					if (!subWindowIsVisible) {
 						//This should be cleared already, but let's be safe...
 						prevTypedWords->clear();	
 					}
@@ -1507,11 +1524,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle Enter
 			if (wParam==HOTKEY_ENTER) {
 				stopChar = 0;
-				if (IsWindowVisible(mainWindow)==TRUE) {
+				if (mainWindowIsVisible) {
 					//The model is visible: select that word
 					BOOL typed = selectWord(-1);
 					if (typed==TRUE && typePhrases==TRUE) {
 						ShowWindow(mainWindow, SW_HIDE);
+						mainWindowIsVisible = false;
+
 						lstrcpy(currStr, _T(""));
 						model->reset(false);
 						recalculate();
@@ -1525,11 +1544,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle Space Bar
 			if (wParam==HOTKEY_SPACE) {
 				stopChar = 0;
-				if (IsWindowVisible(mainWindow)==TRUE) {
+				if (mainWindowIsVisible) {
 					//The model is visible: select that word
 					BOOL typed = selectWord(-1);
 					if (typed==TRUE && typePhrases==TRUE) {
 						ShowWindow(mainWindow, SW_HIDE);
+						mainWindowIsVisible = false;
+						
 						model->reset(false);
 						lstrcpy(currStr, _T(""));
 						recalculate();
@@ -1563,7 +1584,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 				//Is this the first keypress of a romanized word? If so, the window is not visible...
-				if (IsWindowVisible(mainWindow) == FALSE)
+				if (!mainWindowIsVisible)
 				{
 					//Reset it...
 					lstrcpy(currStr, _T(""));
@@ -1574,12 +1595,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						turnOnNumberkeys(TRUE);
 
 					//Show it
-					if (typePhrases==FALSE || IsWindowVisible(senWindow)==FALSE) {
+					if (typePhrases==FALSE || !subWindowIsVisible) {
 						//Turn on control keys
 						turnOnControlkeys(TRUE);
 						ShowBothWindows(SW_SHOW);
 					} else {
 						ShowWindow(mainWindow, SW_SHOW);
+						mainWindowIsVisible = true;
 					}
 				}
 
@@ -2020,6 +2042,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
+	mainWindowIsVisible = false;
+	subWindowIsVisible = false;
 
 	//Load our configuration file now; save some headaches later
 	loadConfigOptions();
