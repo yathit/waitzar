@@ -5,7 +5,7 @@
 
 As a romanisation attempt, WaitZar's one goal is simplicity. There are many ways WaitZar expresses this simplicity:
   * The source project is simple, and all third-party libraries are included internally.
-  * The trunk source (for Windows) uses Win32 and C/C++, and can run -as a single .exe- off of a thumb drive without installing anything. It is intended for use on Internet Cafe computers. (The Linux version trades this portability for stability by running as a *.deb package.) 
+  * The trunk source (for Windows) uses Win32 and C/C++, and can run -as a single .exe- off of a thumb drive without installing anything. It is intended for use on Internet Cafe computers. (The Linux version trades this portability for stability by running as a .deb package.) 
   * A Myanmar word has only _one_ romanisation, governed by a few simple rules and shortcuts. Only lowercase QWERTY keys are used.
   * The license is short & succinct, to encourage others to branch off from this source with their own ideas. However, an API, a user interaction specification, and a testing guide are provided to help spinoffs to ensure they function just like normal WaitZar.
   * The model stores Myanmar text without using UTF-8, and can be loaded in any language that supports arrays. Additional words can be added through a UTF-8 file, in a format simple for users..
@@ -14,9 +14,9 @@ As a romanisation attempt, WaitZar's one goal is simplicity. There are many ways
 = Usage =
 
 To use WaitZar, you should have at least one of the following fonts installed on your system: 
-* Myanmar3
-* Padauk
-* Parabaik
+  * Myanmar3
+  * Padauk
+  * Parabaik
 Win Innwa and Zawgyi-One are also supported, if you prefer these, but we encourage you to use Unicode 5.1 when possible. You don't actually need _any_ font installed (but you won't see numbers/letters properly after you type them).
 
 Simply run WaitZar.exe from any location. A white exclamation point ! will appear in your system's tray. Wait for this to change to the letters "ENG". You are now typing in English; you shouldn't notice a difference.
