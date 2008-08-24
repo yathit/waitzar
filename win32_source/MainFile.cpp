@@ -1324,6 +1324,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Kill the entire sentence.
 					prevTypedWords->clear();
 					cursorAfterIndex = -1;
+					model->reset(true);
 					turnOnControlkeys(FALSE);
 					ShowBothWindows(SW_HIDE);
 				} else {
