@@ -1349,6 +1349,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							prevTypedWords->clear();
 							cursorAfterIndex = -1;
 							ShowBothWindows(SW_HIDE);
+							turnOnControlkeys(FALSE);
 						}
 					}
 				}
