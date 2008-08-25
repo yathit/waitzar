@@ -191,6 +191,10 @@
 				RelativePath=".\WordBuilder.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\SentenceList.cpp"
+				>
+			</File>
 			<Filter
 				Name="jazzlib_0.0.7"
 				>
@@ -284,6 +288,10 @@
 				</File>
 				<File
 					RelativePath=".\WordBuilder.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SentenceList.h"
 					>
 				</File>
 				<Filter
