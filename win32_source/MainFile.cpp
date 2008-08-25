@@ -29,6 +29,7 @@
 #include "PulpCoreFont.h"
 #include "resource.h"
 #include "Hotkeys.h"
+#include "SentenceList.h"
 
 //Current version
 #define WAIT_ZAR_VERSION _T("1.5+ Beta")
@@ -114,8 +115,7 @@ BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 BOOL numberKeysOn = FALSE;
 BOOL punctuationKeysOn = FALSE;
-std::list<int> *prevTypedWords;
-int cursorAfterIndex;
+SentenceList *sentence;
 int prevProcessID;
 
 //Default client sizes for our windows
@@ -939,17 +939,17 @@ void recalculate()
 		//Draw each string
 		//TCHAR tempPhrase[500];
 		lstrcpy(currPhrase, _T(""));
-		std::list<int>::iterator printIT = prevTypedWords->begin();
+		std::list<int>::iterator printIT = sentence->begin();
 		int currentPosX = borderWidth + 1;
 		int cursorPosX = currentPosX;
 		int counterCursorID=0;
-		for (;printIT != prevTypedWords->end(); printIT++) {
+		for (;printIT != sentence->end(); printIT++) {
 			//Append this string
 			mmFontSmallBlack->drawString(senUnderDC, model->getWordString(*printIT), currentPosX, borderWidth+1);
 			currentPosX += (mmFontSmallBlack->getStringWidth(model->getWordString(*printIT))+1);
 
-			//Line? (don't print now; we also want to draw it at cursorAfterIndex==-1)
-			if (counterCursorID == cursorAfterIndex)
+			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
+			if (counterCursorID == sentence->getCursorIndex())
 				cursorPosX = currentPosX;
 
 			//Increment
@@ -1050,11 +1050,11 @@ void typeCurrentPhrase()
 	//  requires the top-level window. We could probably hack in SendMessage now that
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
-	std::list<int>::iterator printIT = prevTypedWords->begin();
+	std::list<int>::iterator printIT = sentence->begin();
 	std::vector<WORD> keyStrokes;
-	for (;printIT!=prevTypedWords->end() || stopChar!=0;) {
+	for (;printIT!=sentence->end() || stopChar!=0;) {
 		//We may or may not have a half/full stop at the end.
-		if (printIT!=prevTypedWords->end()) {
+		if (printIT!=sentence->end()) {
 			keyStrokes = model->getWordKeyStrokes(*printIT);
 		} else {
 			keyStrokes.clear();
@@ -1082,7 +1082,7 @@ void typeCurrentPhrase()
 			MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 
 		//Increment
-		if (printIT!=prevTypedWords->end())
+		if (printIT!=sentence->end())
 			printIT++;
 		else
 			stopChar = 0;
@@ -1090,8 +1090,7 @@ void typeCurrentPhrase()
 
 	//Now, reset...
 	model->reset(true);
-	prevTypedWords->clear();
-	cursorAfterIndex = -1;
+	sentence->clear();
 
 	//Technically, this can be called with JUST a stopChar, which implies
 	//  that the window isn't visible. So check this.
@@ -1119,65 +1118,18 @@ BOOL selectWord(int id)
 
 	if (typePhrases==FALSE) {
 		//Simple Case
-		prevTypedWords->clear();
-		prevTypedWords->push_back(typedVal.second);
+		sentence->clear();
+		sentence->insert(typedVal.second);
 		typeCurrentPhrase();
 	} else {
 		//Advanced Case - Insert
-		cursorAfterIndex++;
-		if (cursorAfterIndex==prevTypedWords->size())
-			prevTypedWords->push_back(typedVal.second);
-		else {
-			std::list<int>::iterator addIT = prevTypedWords->begin();
-			advance(addIT, cursorAfterIndex);
-			prevTypedWords->insert(addIT, typedVal.second);
-		}
+		sentence->insert(typedVal.second);
 	}
 
 	return TRUE;
 }
 
 
-BOOL moveCursorRight(int amt, BOOL allowSameIndex) 
-{
-	//Any words?
-	if (prevTypedWords->size()==0)
-		return FALSE;
-
-	//Any change?
-	int newAmt = (int)cursorAfterIndex+amt;
-	if (newAmt >= (int)prevTypedWords->size())
-		newAmt = (int)prevTypedWords->size()-1;
-	else if (newAmt < -1)
-		newAmt = -1;
-	if (newAmt == cursorAfterIndex && allowSameIndex==FALSE)
-		return FALSE;
-
-	//Set the trigram
-	if (newAmt>=0) {
-		WORD trigram[3];
-		int trigram_count;
-		std::list<int>::iterator findIT = prevTypedWords->begin();
-		advance(findIT, newAmt);
-		for (trigram_count=0;trigram_count<3; trigram_count++) {
-			if (newAmt-trigram_count<0)
-				break;
-			trigram[trigram_count] = *findIT;
-			if (trigram_count<2 && newAmt-trigram_count-1>=0)
-				findIT--;
-		}
-		model->insertTrigram(trigram, trigram_count);
-	}
-
-	//Update our index
-	cursorAfterIndex = newAmt;
-	return TRUE;
-}
-
-BOOL moveCursorRight(int amt) 
-{
-	return moveCursorRight(amt, FALSE);
-}
 
 
 
@@ -1312,8 +1264,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(TRUE);
 
 				//Reset the model
-				prevTypedWords->clear();
-				cursorAfterIndex = -1;
+				sentence->clear();
 				model->reset(true);
 			}
 
@@ -1322,8 +1273,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == HOTKEY_ESC) {
 				if (!mainWindowIsVisible) {
 					//Kill the entire sentence.
-					prevTypedWords->clear();
-					cursorAfterIndex = -1;
+					sentence->clear();
 					model->reset(true);
 					turnOnControlkeys(FALSE);
 					ShowBothWindows(SW_HIDE);
@@ -1344,10 +1294,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						ShowWindow(mainWindow, SW_HIDE);
 						mainWindowIsVisible = false;
 
-						if (prevTypedWords->size()==0) {
+						if (sentence->size()==0) {
 							//Kill the entire sentence.
-							prevTypedWords->clear();
-							cursorAfterIndex = -1;
+							sentence->clear();
 							ShowBothWindows(SW_HIDE);
 							turnOnControlkeys(FALSE);
 						}
@@ -1360,17 +1309,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == HOTKEY_DELETE) {
 				if (!mainWindowIsVisible) {
 					//Delete the next word
-					if (cursorAfterIndex>=-1 && cursorAfterIndex<((int)prevTypedWords->size()-1)) {
-						std::list<int>::iterator erIT = prevTypedWords->begin();
-						advance(erIT, cursorAfterIndex+1);
-						prevTypedWords->erase(erIT);
+					if (sentence->deleteNext())
 						recalculate();
-					}
-					if (prevTypedWords->size()==0) {
+					if (sentence->size()==0) {
 						//Kill the entire sentence.
-						prevTypedWords->clear();
+						sentence->clear();
 						turnOnControlkeys(FALSE);
-						cursorAfterIndex = -1;
 						ShowBothWindows(SW_HIDE);
 					}
 				}
@@ -1381,17 +1325,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == HOTKEY_BACK) {
 				if (!mainWindowIsVisible) {
 					//Delete the previous word
-					if (cursorAfterIndex>=0 && cursorAfterIndex<(int)prevTypedWords->size()) {
-						std::list<int>::iterator erIT = prevTypedWords->begin();
-						advance(erIT, cursorAfterIndex);
-						prevTypedWords->erase(erIT);
-						cursorAfterIndex--;
+					if (sentence->deletePrev(model))
 						recalculate();
-					}
-					if (prevTypedWords->size()==0) {
+					if (sentence->size()==0) {
 						//Kill the entire sentence.
-						prevTypedWords->clear();
-						cursorAfterIndex = -1;
+						sentence->clear();
 						turnOnControlkeys(FALSE);
 						ShowBothWindows(SW_HIDE);
 					}
@@ -1416,10 +1354,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
-							if (prevTypedWords->size()==0) {
+							if (sentence->size()==0) {
 								//Kill the entire sentence.
-								prevTypedWords->clear();
-								cursorAfterIndex = -1;
+								sentence->clear();
 								turnOnControlkeys(FALSE);
 
 								ShowWindow(senWindow, SW_HIDE);
@@ -1439,7 +1376,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						recalculate();
 				} else {
 					//Move right/left within the current phrase.
-					if (moveCursorRight(1) == TRUE)
+					if (sentence->moveCursorRight(1, model))
 						recalculate();
 				}
 			} else if (wParam == HOTKEY_LEFT) {
@@ -1448,7 +1385,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						recalculate();
 				} else {
 					//Move right/left within the current phrase.
-					if (moveCursorRight(-1) == TRUE)
+					if (sentence->moveCursorRight(-1, model))
 						recalculate();
 				}
 			}
@@ -1480,20 +1417,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 				} else {
 					if (typePhrases==FALSE) {
-						prevTypedWords->clear();
-						prevTypedWords->push_back(numCode);
+						sentence->clear();
+						sentence->insert(numCode);
 						typeCurrentPhrase();
 					} else {
 						//Just type that number directly. 
-						cursorAfterIndex++;
-						if (cursorAfterIndex==prevTypedWords->size())
-							prevTypedWords->push_back(numCode);
-						else {
-							std::list<int>::iterator addIT = prevTypedWords->begin();
-							advance(addIT, cursorAfterIndex);
-							prevTypedWords->insert(addIT, numCode);
-						}
-						moveCursorRight(0, TRUE);
+						sentence->insert(numCode);
+						sentence->moveCursorRight(0, true, model);
 
 						//Is our window even visible?
 						if (!subWindowIsVisible) {
@@ -1515,7 +1445,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (!mainWindowIsVisible) {
 					if (!subWindowIsVisible) {
 						//This should be cleared already, but let's be safe...
-						prevTypedWords->clear();	
+						sentence->clear();
 					}
 					//Otherwise, we perform the normal "enter" routine.
 					typeCurrentPhrase();
@@ -1561,8 +1491,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//A bit tricky here. If the cursor's at the end, we'll 
 					//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
 					//Hopefully this won't confuse users so much.
-					if (cursorAfterIndex==-1 || cursorAfterIndex<((int)prevTypedWords->size()-1)) {
-						cursorAfterIndex++;
+					if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
+						sentence->moveCursorRight(1, model);
 						recalculate();
 					} else {
 						//Type the entire sentence
@@ -1702,15 +1632,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(FALSE);
 					
 					//Reset the model
-					prevTypedWords->clear();
-					cursorAfterIndex = -1;
+					sentence->clear();
 					model->reset(true);
 				} else if (retVal == IDM_MYANMAR) {
 					switchToLanguage(TRUE);
 
 					//Reset the model
-					prevTypedWords->clear();
-					cursorAfterIndex = -1;
+					sentence->clear();
 					model->reset(true);
 				} else if (retVal == IDM_EXIT) {
 					DestroyWindow(hwnd);
@@ -2068,8 +1996,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	HWND senWindow = makeSubWindow(_T("waitZarSentenceWindow"));
 
 	//Our vector is used to store typed words for later...
-	prevTypedWords = new std::list<int>();
-	cursorAfterIndex = -1;
+	sentence = new SentenceList();
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
