@@ -640,6 +640,7 @@ void WordBuilder::reset(bool fullReset)
 	this->currSelectedID = -1;
 	this->possibleChars.clear();
 	this->possibleWords.clear();
+	wcscpy(getParenString, L"");
 
 	//Full reset: remove all prefixes
 	if (fullReset)
@@ -692,7 +693,7 @@ void WordBuilder::resolveWords(void)
 	}
 	if (nexus[speculativeNexusID][0]==1 && (nexus[speculativeNexusID][1]&0xFF)=='~') {
 		//Finalize our string
-		parenStr[pStrOffset] = '\0';
+		parenStr[pStrOffset] = 0x0000;
 	} else {
 		//Reset
 		speculativeNexusID = currNexus;
