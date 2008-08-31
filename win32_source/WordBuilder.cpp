@@ -640,7 +640,7 @@ void WordBuilder::reset(bool fullReset)
 	this->currSelectedID = -1;
 	this->possibleChars.clear();
 	this->possibleWords.clear();
-	wcscpy(getParenString, L"");
+	wcscpy(parenStr, L"");
 
 	//Full reset: remove all prefixes
 	if (fullReset)
