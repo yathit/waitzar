@@ -116,6 +116,9 @@ WordBuilder::WordBuilder(char *model_buff, size_t model_buff_size)
 
 void WordBuilder::init(char *model_buff, size_t model_buff_size)
 {
+	//Fix:
+	wcscpy(parenStr, L"");
+	
 	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
 	unsigned short **dictionary;
 	unsigned int **nexus;
@@ -417,6 +420,9 @@ WordBuilder::~WordBuilder(void)
 
 void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)
 {
+	//Fix:
+	wcscpy(parenStr, L"");
+	
 	/*printf("dictionary: %i\n", dictMaxID);
 	printf("nexus: %i\n", nexusMaxID);
 	printf("prefix: %i\n", prefixMaxID);*/
