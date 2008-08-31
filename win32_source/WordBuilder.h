@@ -11,6 +11,7 @@
 #include <wchar.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h> //strtol
 #include <vector>
 #include "fontconv.h"
 
