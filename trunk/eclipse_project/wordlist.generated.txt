@@ -162,8 +162,6 @@
 မဂၢ = matga
 ပုဂၢ = poatga
 ပုဏၰား = ponenar
-စဣဴ = satkuu
-ေမဣာ = myitta
 ဘ႑ာ = bandar
 သ႑ာန္ = thatan
 သ႑န္ = thandan
@@ -307,7 +305,6 @@
 ႀကိဳ႕ = kyoe
 ႀကိဳး = kyoe
 ၾကံဳ = kyone
-ၾကံဳ = kyone
 ၾကံဳ႕ = kyote
 ၾကံဳး = khyone
 ၾကက္ = khat
@@ -358,17 +355,12 @@
 ကြယ့္ = kwae
 ကြၽ = kywa
 ေကြၽး = kway
-ေကြၽး = kway
 ကြၽဲ = kwal
 ကံြၽ = kyon
 ကြၽက္ = khot
-ကြၽက္ = khot
-ကြၽတ္ = kyut
 ကြၽတ္ = kyut
 ကြၽန္ = kyon
 ကြၽန္း = kyun
-ကြၽန္း = kyun
-ကြၽမ္း = kyun
 ကြၽမ္း = kyun
 ႂကြ = kwa
 ႂကြား = kwyar
@@ -515,8 +507,6 @@
 ခံြၽ = khyon
 ခြၽင္ = khywin
 ခြၽတ္ = khyut
-ခြၽတ္ = khyut
-ခြၽန္ = khyon
 ခြၽန္ = khyon
 ခြၽန္း = khyun
 ႁခြ = khywa
@@ -662,7 +652,6 @@
 ေစာ္ = saw
 စံ = san
 စုိ = so
-စုိ႔ = soe
 စုိ႔ = soe
 စုိး = soe
 စံု = sone
@@ -1337,8 +1326,6 @@
 ၿပိဳ = pyo
 ၿပိဳး = pyoe
 ျပံဳ = pyone
-ျပံဳ = pyone
-ျပံဳး = pyone
 ျပံဳး = pyone
 ျပက္ = pat
 ေျပာက္ = pyout
@@ -1696,7 +1683,6 @@
 မုန္႔ = moat
 မုန္း = mone
 မပ္ = mat
-မယ္ = mal
 မယ္ = mal
 မယ့္ = myae
 မာရ္ = mal
@@ -2339,7 +2325,6 @@
 ဟုန္း = hone
 ဟပ္ = hat
 ဟုပ္ = hote
-ဟမ္ = ham
 ဟမ္ = ham
 ဟယ္ = hal
 ေဟာလ္ = hall
