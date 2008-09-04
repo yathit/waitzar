@@ -5,7 +5,7 @@ public class Roman {
 	
 	public Roman(String text) {
 		for (char c : text.toCharArray()) {
-			if ((c<'a' || c>'z') && (c<'1' || c>'0') && c!='?')
+			if ((c<'a' || c>'z') && (c<'0' || c>'9') && c!='?')
 				throw new RuntimeException("Invalid alphanumeric sequence: " + text);
 		}
 		this.val = text;

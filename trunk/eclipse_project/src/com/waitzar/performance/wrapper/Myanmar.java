@@ -23,7 +23,7 @@ public class Myanmar {
 	}
 	
 	public Myanmar(String text) {
-		if (!val.equals(BOS) && !val.equals(EOS)) {
+		if (!text.equals(BOS) && !text.equals(EOS)) {
 			for (char c : text.toCharArray()) {
 				if ((c<'\u1000' || c>'\u109F'))
 					throw new RuntimeException("Invalid Myanmar sequence: " + ZawgyiWord.printMM(text));
