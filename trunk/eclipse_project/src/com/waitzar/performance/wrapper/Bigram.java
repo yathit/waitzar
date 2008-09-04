@@ -9,6 +9,8 @@ public class Bigram {
 	public Bigram(Myanmar prev, Myanmar curr) {
 		val[0] = prev;
 		val[1] = curr;
+		
+		doubleComponent = 0.0;
 	}
 	
 	public String toString() {
