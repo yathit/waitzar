@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 
+import com.waitzar.analysis.ZawgyiWord;
 import com.waitzar.performance.wrapper.*;
 
 public class LanguageModel {	
@@ -19,8 +21,14 @@ public class LanguageModel {
 	//The trigrams listed for statistical use (e.g., perplexity) are of the form:
 	//  <MYi-2, MYi-1, MYi> -> count
 	//  ...where either of the MYi<0 can be <BOS> and MYi should be <EOS> once for each sentence.
-	private Hashtable<Trigram, TrigramData> trigramCounts;
-	private int totalOfTrigramCounts;
+	//Note that we also need some data on bigrams & prefixes. In particular, we need:
+	//  <MYi-2, MYi-1> --> gamma
+	//  <MYi-1, MYi> --> pSmooth
+	private Hashtable<String, Trigram> trigramCounts;
+	private long totalOfTrigramCounts;
+	private Hashtable<String, Bigram> gammaValues;
+	private Hashtable<String, Bigram> pSmoothPrevValues;
+	
 	
 	//The "trigrams" used for our estimation (e.g., typing in WaitZar) are of the form:
 	//  <MYi-2, MY-i1, RMi> -> <MYi(1) : count, MYi(2) : count, ...>
@@ -90,8 +98,10 @@ public class LanguageModel {
 		
 		//Read each line
 		testData = new ArrayList<Myanmar[]>();
-		trigramCounts = new Hashtable<Trigram, TrigramData>();
+		trigramCounts = new Hashtable<String, Trigram>();
 		totalOfTrigramCounts = 0;
+		gammaValues = new Hashtable<String, Bigram>();
+		pSmoothPrevValues = new Hashtable<String, Bigram>();
 		String line = null;
 		try {
 			int count=0;
@@ -129,9 +139,10 @@ public class LanguageModel {
 					
 						//Train the word
 						Trigram t = new Trigram(penultimateWord, ultimateWord, word);
-						if (!trigramCounts.containsKey(t))
-							trigramCounts.put(t, new TrigramData(0));
-						trigramCounts.get(t).numberOfOccurrences++;
+						if (!trigramCounts.containsKey(t.toString())) {
+							trigramCounts.put(t.toString(), t);
+						}
+						trigramCounts.get(t.toString()).numberOfOccurrences++;
 						totalOfTrigramCounts++;
 					
 						//Increment
@@ -152,75 +163,127 @@ public class LanguageModel {
 	}
 	
 	
-	public void computePerplexity() {
+	
+	//Based off the test data
+	public double calculatePerplexity() {
+		//Compute the probability of this test set.
+		double pTestSet = 1.0;
+		long numberOfWordsIncEOS = 0;
+		for (Myanmar[] sentence : testData) {
+			//Init
+			Myanmar penultimateWord = new Myanmar(Myanmar.BOS);
+			Myanmar ultimateWord = new Myanmar(Myanmar.BOS);
+			Myanmar word = null;
+			
+			//Compute the probability of this sentence
+			double pSentence = 1.0;
+			for (int i=0; i<=sentence.length; i++) {
+				//Get the word (or <EOS>)
+				if (i<sentence.length)
+					word = sentence[i];
+				else
+					word = new Myanmar(Myanmar.EOS);
+				numberOfWordsIncEOS++;
+			
+				//Test... increase perplexity
+				double conditionalProbability = getSmoothedProbability(new Trigram(penultimateWord, ultimateWord, word));
+				pSentence *= conditionalProbability;
+			
+				//Increment
+				penultimateWord = new Myanmar(ultimateWord);
+				ultimateWord = new Myanmar(word);
+			}
+			
+			//Accumulate with the probability for this test set.
+			pTestSet *= pSentence;
+		}
+		
+		//Now that we have the probability of this test set, compute the cross-entropy.
+		double hPtest = (-1.0/numberOfWordsIncEOS) * (Math.log(pTestSet)/Math.log(2.0));
+		
+		//Finally, we get the per-word perplexity
+		double ppWTest = Math.pow(2.0, hPtest);
+		return ppWTest;
+	}
+	
+	
+	
+	//Must be called each time a change is made to the model
+	public void smoothModel() {
 		//First, we need to smooth the model
 		totalOfTrigramCounts = 0;
 		
 		//Reset
-		for (Trigram tri : trigramCounts.keySet()) {
-			TrigramData triData = trigramCounts.get(tri);
-			triData.probability = 0.0;
-			totalOfTrigramCounts += triData.numberOfOccurrences;
+		gammaValues.clear();
+		pSmoothPrevValues.clear();
+		for (String key : trigramCounts.keySet()) {
+			Trigram tri = trigramCounts.get(key);
+			tri.halfOfAlphaComponent = 0.0;
+			totalOfTrigramCounts += tri.numberOfOccurrences;
 			
-			if (triData.numberOfOccurrences==0)
+			//Add the relevant bigrams if they're not already contained...
+			Bigram prefix = new Bigram(tri.getPenultimateWord(), tri.getUltimateWord());
+			if (!gammaValues.containsKey(prefix.toString()))
+				gammaValues.put(prefix.toString(), prefix);
+			Bigram biGram = new Bigram(tri.getUltimateWord(), tri.getWord());
+			if (!pSmoothPrevValues.containsKey(biGram.toString()))
+				pSmoothPrevValues.put(biGram.toString(), biGram);
+			
+			if (tri.numberOfOccurrences==0)
 				throw new RuntimeException("Invalid: Zero trigram occurrences!");
 		}
 		
-		//Now, for each trigram...
-		for (Trigram tri : trigramCounts.keySet()) {
-			//Init
-			TrigramData triData = trigramCounts.get(tri);
-			double alphaTri = 0.0;
-			double gammaTri = 0.0;
-			double pSmoothPrev = 0.0;
-			double dValue = 0.0;
-			
-			//Intermediate values
-			double D1comp = 0.0;
-			double D2comp = 0.0;
-			double D3plus_comp = 0.0;
-			
-			//Calculate: pSmoothPrev
-			if (true) {//Scope
-				double pSmoothNumerator = 0.0;
-				long pSmoothDenominator = 0;
-				boolean[] check = new boolean[]{false, true, true};
-				boolean[] check2 = new boolean[]{false, true, false};
-				for (Trigram candidate : trigramCounts.keySet()) {
-					if (tri.equals(candidate, check))
-						pSmoothNumerator++;
-					if (tri.equals(candidate, check2))
-						pSmoothDenominator++;
+		//First, compute the D-values (saves time later)
+		double D1 = 0.0;
+		double D2 = 0.0;
+		double D3plus = 0.0;
+		if (true) {// Scope
+			// Count our Ns
+			long n1 = 0;
+			long n2 = 0;
+			long n3 = 0;
+			long n4 = 0;
+			for (String key : trigramCounts.keySet()) {
+				Trigram candidate = trigramCounts.get(key);
+				
+				if (candidate.numberOfOccurrences > Integer.MAX_VALUE)
+					throw new RuntimeException("Too many counts: " + candidate.numberOfOccurrences);
+				
+				switch ((int)candidate.numberOfOccurrences) {
+				case 1:
+					n1++;
+					break;
+				case 2:
+					n2++;
+					break;
+				case 3:
+					n3++;
+					break;
+				case 4:
+					n4++;
+					break;
 				}
-				pSmoothPrev = pSmoothNumerator/pSmoothDenominator;
 			}
+
+			// Determine our possible d-values
+			double Y = n1 / (n1 + 2.0 * n2);
+			D1 = 1.0 - (2.0 * Y * n2) / n1;
+			D2 = 2.0 - (3.0 * Y * n3) / n2;
+			D3plus = 3.0 - (4.0 * Y * n4) / n3;
+		}
+		
+		//Now, for each trigram...
+		Date d = new Date();
+		System.out.println("Started training of trigrams("+trigramCounts.keySet().size()+") at " + d.getHours() + ":" + d.getMinutes());
+		for (String key : trigramCounts.keySet()) {
+			//Init
+			Trigram tri = trigramCounts.get(key);
 			
 			//Calculate: d-value
+			double dValue = 0.0;
 			if (true) {//Scope
-				//Count our Ns
-				long n1 = 0;
-				long n2 = 0;
-				long n3 = 0;
-				long n4 = 0;
-				for (Trigram candidate : trigramCounts.keySet()) {
-					switch (trigramCounts.get(candidate).numberOfOccurrences) {
-						case 1:
-							n1++; break;
-						case 2:
-							n2++; break;
-						case 3:
-							n3++; break;
-						case 4:
-							n4++; break;
-					}
-				}
-				
-				//Determine our possible d-values
-				double Y = n1/(n1 + 2.0*n2);
-				double D1 = 1.0 - (2.0*Y*n2)/n1;
-				double D2 = 2.0 - (3.0*Y*n3)/n2;
-				double D3plus = 3.0 - (4.0*Y*n4)/n3;
-				switch (triData.numberOfOccurrences) {
+				//Set the D-value appropriately.
+				switch ((int)tri.numberOfOccurrences) {
 					case 1:
 						dValue = D1;
 						break;
@@ -231,55 +294,108 @@ public class LanguageModel {
 						dValue = D3plus; 
 						break;
 				}
-				
-				//We can save on computations here...
-				double countN1 = 0.0;
-				double countN2 = 0.0;
-				double countN3plus = 0.0;
-				boolean[] matcher = new boolean[]{true, true, false};
-				for (Trigram candidate : trigramCounts.keySet()) {
-					if (tri.equals(candidate, matcher)) {
-						switch (trigramCounts.get(candidate).numberOfOccurrences) {
-							case 1:
-								countN1++;
-								break;
-							case 2:
-								countN2++;
-								break;
-							default:
-								countN3plus++;
-								break;
-						}
-					}
-				}
-				D1comp = D1*countN1;
-				D2comp = D2*countN2;
-				D3plus_comp = D3plus*countN3plus;
 			}
 			
 			
-			//Calculate: alpha value
+			//Calculate: alpha component
 			if (true) {//Scope
 				//Numerator
-				alphaTri = triData.numberOfOccurrences - dValue;
+				double alphaTri = tri.numberOfOccurrences - dValue;
 				if (alphaTri<0.0)
 					alphaTri = 0.0;
 				
 				//Denominator
 				alphaTri /= (totalOfTrigramCounts);
 				
-				//Discount
-				alphaTri += pSmoothPrev;
+				//Discount later
+				tri.halfOfAlphaComponent = alphaTri;
 			}
-			
-			
-			//Calculate: gamma value
-			gammaTri = (D1comp * D2comp * D3plus_comp)/totalOfTrigramCounts;
-			
 		}
 		
 		
+		//Now, for each of the gamma bigrams
+		d = new Date();
+		System.out.println("Started training of gamma Bigrams("+gammaValues.keySet().size()+") at " + d.getHours() + ":" + d.getMinutes());
+		for (String key : gammaValues.keySet()) {
+			Bigram big = gammaValues.get(key);
+			
+			//Compute the numerator. 
+			double countN1 = 0.0;
+			double countN2 = 0.0;
+			double countN3plus = 0.0;
+			boolean[] matcher = new boolean[]{true, true, false};
+			Trigram tri =  new Trigram(big.getUltimateWord(), big.getWord(), null);
+			for (String key2 : trigramCounts.keySet()) {
+				Trigram candidate = trigramCounts.get(key2);
+				
+				if (tri.equals(candidate, matcher)) {
+					switch ((int)candidate.numberOfOccurrences) {
+						case 1:
+							countN1++;
+							break;
+						case 2:
+							countN2++;
+							break;
+						default:
+							countN3plus++;
+							break;
+					}
+				}
+			}
+			double D1comp = D1*countN1;
+			double D2comp = D2*countN2;
+			double D3plus_comp = D3plus*countN3plus;
+			double numerator = D1comp + D2comp + D3plus_comp;
+			
+			//Divide by the denominator, store
+			big.doubleComponent = numerator/totalOfTrigramCounts;
+		}
 		
+		
+		//Now, for each of the pSmoothPrev values
+		d = new Date();
+		System.out.println("Started training of smoothed Bigrams("+pSmoothPrevValues.keySet().size()+") at " + d.getHours() + ":" + d.getMinutes());
+		for (String key3 : pSmoothPrevValues.keySet()) {
+			Bigram big = pSmoothPrevValues.get(key3);
+			
+			double pSmoothNumerator = 0.0;
+			long pSmoothDenominator = 0;
+			boolean[] check = new boolean[]{false, true, true};
+			boolean[] check2 = new boolean[]{false, true, false};
+			Trigram tri = new Trigram(null, big.getUltimateWord(), big.getWord());
+			for (String key4 : trigramCounts.keySet()) {
+				Trigram candidate = trigramCounts.get(key4);
+				
+				if (tri.equals(candidate, check))
+					pSmoothNumerator++;
+				if (tri.equals(candidate, check2))
+					pSmoothDenominator++;
+			}
+			big.doubleComponent = pSmoothNumerator/pSmoothDenominator;
+		}
+		
+		
+		//Done
+		d = new Date();
+		System.out.println("Finished smoothing at " + d.getHours() + ":" + d.getMinutes());
+	}
+	
+	
+	public double getSmoothedProbability(Trigram t) {
+		//Compute the tail-end component; we'll need it regardless of our method.
+		Bigram gammaComp = gammaValues.get(new Bigram(t.getPenultimateWord(), t.getUltimateWord()).toString());
+		Bigram pPrevComp = pSmoothPrevValues.get(new Bigram(t.getUltimateWord(), t.getWord()).toString());
+		double gamma = (gammaComp==null) ? 0.0 : gammaComp.doubleComponent;
+		double pSmoothPrev = (pPrevComp==null) ? 0.0 : pPrevComp.doubleComponent;
+		double dotDotDot = gamma * pSmoothPrev;
+		
+		//This is all, if there's no alpha component.
+		Trigram tD = trigramCounts.get(t.toString());
+		if (tD == null)
+			return dotDotDot;
+		
+		//Else... figure out the alpha component and add it
+		return tD.halfOfAlphaComponent + dotDotDot;
 	}
 	
 	
