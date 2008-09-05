@@ -187,6 +187,7 @@ public class LanguageModel {
 			
 				//Test... increase perplexity
 				double conditionalProbability = getSmoothedProbability(new Trigram(penultimateWord, ultimateWord, word));
+				//System.out.println("  probability: " + conditionalProbability);
 				pSentence *= conditionalProbability;
 			
 				//Increment
@@ -372,6 +373,9 @@ public class LanguageModel {
 					pSmoothDenominator++;
 			}
 			big.doubleComponent = pSmoothNumerator/pSmoothDenominator;
+			
+			//Both are zero:
+			System.out.println("test: " + pSmoothNumerator + " / " + pSmoothDenominator);
 		}
 		
 		
@@ -391,8 +395,12 @@ public class LanguageModel {
 		
 		//This is all, if there's no alpha component.
 		Trigram tD = trigramCounts.get(t.toString());
-		if (tD == null)
+		if (tD == null) {
+		//	System.out.println("  probability: " + gamma + " * " + pSmoothPrev);
 			return dotDotDot;
+		}
+		
+		//System.out.println("  probability: " + tD.halfOfAlphaComponent + " + " + gamma + " * " + pSmoothPrev);
 		
 		//Else... figure out the alpha component and add it
 		return tD.halfOfAlphaComponent + dotDotDot;

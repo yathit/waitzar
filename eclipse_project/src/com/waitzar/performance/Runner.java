@@ -24,16 +24,16 @@ public class Runner {
 		//Create and test a language model
 		long start = System.currentTimeMillis();
 		LanguageModel lm = new LanguageModel(new File("data/MyanmarList_v1.1.txt"), new File("data/Corpus.combined.txt"));
-		System.out.println("Trained in: " + ((System.currentTimeMillis()-start)/100) + "ns");
+		//System.out.println("Trained in: " + ((System.currentTimeMillis()-start)/100) + "ns");
 		start = System.currentTimeMillis();
 		lm.smoothModel();
-		System.out.println("Smoothed in: " + ((System.currentTimeMillis()-start)/100) + "ns");
+		//System.out.println("Smoothed in: " + ((System.currentTimeMillis()-start)/100) + "ns");
 		
 		//Finally, test the perplexity
 		start = System.currentTimeMillis();
 		double perplexity = lm.calculatePerplexity();
-		System.out.println("Perplexity computed in: " + ((System.currentTimeMillis()-start)/100) + "ns");
-		System.out.println("Perplexity value: " + perplexity);
+		//System.out.println("Perplexity computed in: " + ((System.currentTimeMillis()-start)/100) + "ns");
+		//System.out.println("Perplexity value: " + perplexity);
 		
 		
 		System.out.println("Done");
