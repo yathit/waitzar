@@ -9,11 +9,13 @@
 #    ^m     "Control + m"
 #    ^!_    "Control+Alt + Space"
 #    !+    "Alt + Shift" 
+#NO_LINUX: This option does not work under Linux (set the hotkey from the SCIM control panel)
 hotkey = ^+
 
 
 # If "no", a warning box will not display when using
 #  a custom dictionary
+#NO_LINUX: This option makes no sense under Linux, because scim reloads the waitzar module regularly.
 mywordswarning = no
 
 
@@ -21,16 +23,18 @@ mywordswarning = no
 #  must type "Space" again to enter the entire phrase. The benefit of doing it this way is 
 #  that Wait Zar can "figure out" what word you want based on the previous words.
 # Also, you can use the arrow keys to move left/right between words, like a mini text editor.
+#NO_LINUX: WaitZar under Linux does not support this option; the preedit string is really preferred. 
 powertyping = yes
 
 
 # If "yes", the sentence window will always display below the 
 #  current word window.
+#NO_LINUX: Windows auto-lock to the text you're entering in Linux, so this option makes no sense.
 lockwindows = yes
 
 
-# If "yes", typing 0..9 will yield Burmese numbers 0 to 9. If "no", Wait Zar
-#  won't process numbers.
+# If "yes", typing 0..9 will yield Burmese numbers 0 to 9. If "no", Wait Zar won't process numbers.
+#LINUX: This option works under Linux.
 burmesenumerals = yes
 
 
@@ -40,5 +44,6 @@ burmesenumerals = yes
 #  wininnwa  -Outputs according to the Win Innwa custom ASCII encoding.
 # FYI: You can also specify "padauk", "parabaik", or "myanmar3"... 
 #  all of which default to "unicode"
+#LINUX: This option works under Linux.
 defaultencoding = unicode
 
