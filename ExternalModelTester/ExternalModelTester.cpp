@@ -1,7 +1,7 @@
-#include <stdio.h>
+//Don't let Visual Studio warn us to use the _s functions
+#define _CRT_SECURE_NO_WARNINGS
 
-//#include <wchar.h>
-//#include <locale.h>
+#include <stdio.h>
 
 #include "../win32_source/fontconv.h"
 #include "../win32_source/WordBuilder.h"

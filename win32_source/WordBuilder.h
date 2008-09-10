@@ -7,6 +7,9 @@
 #ifndef _WORDBUILDER
 #define _WORDBUILDER
 
+//Don't let Visual Studio warn us to use the _s functions
+#define _CRT_SECURE_NO_WARNINGS
+
 //Necessary libraries
 #include <wchar.h>
 #include <string.h>
@@ -15,18 +18,6 @@
 #include <vector>
 #include "fontconv.h"
 
-//If defined, we are running on Linux
-//#ifdef __STDC_ISO_10646__  200104L
-// ...whatever...
-//#endif
-
-//Windows and Linux have different "Unicode-aware" methods
-//No they don't...
-/*#define copystr(a, b)      wcscpy((a), (b))
-#define catstr(a, b)       wcscat((a), (b))
-#define lenstr(a)          wcslen((a))
-#define printstr(a, b, c)  swprintf((a), 150, (b), (c))
-#define compstr(a, b)      wcscmp((a), (b))*/
 
 //Useful constants
 #define ENCODING_UNICODE 1

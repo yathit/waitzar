@@ -10,9 +10,14 @@
 #define _UNICODE
 #define UNICODE
 
+//Don't let Visual Studio warn us to use the _s functions
+#define _CRT_SECURE_NO_WARNINGS
+
+//Ironic that adding compliance now causes headaches compiling under VS2003
+#define _CRT_NON_CONFORMING_SWPRINTFS
+
 //Define to require a specific version of Windows.
-// Maybe this is what Vista isn't liking?
-#define _WIN32_WINNT 0x0500 //Run on Windows 2000+
+#define _WIN32_WINNT 0x0500 //Run on Windows 2000, XP, and Vista (haven't tested NT or the "server"s yet)
 //#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
 
 //System includes
