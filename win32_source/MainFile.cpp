@@ -78,8 +78,6 @@ HPEN g_EmptyPen;
 
 //Global Variables
 HINSTANCE hInst;
-INPUT inputItem;
-KEYBDINPUT keyInput;
 HICON mmIcon;
 HICON engIcon;
 WordBuilder *model;
@@ -90,6 +88,8 @@ PAINTSTRUCT Ps;
 WORD stopChar;
 int numConfigOptions;
 int numCustomWords;
+INPUT *inputItems;
+KEYBDINPUT keyInputPrototype;
 
 //Configuration variables.
 BOOL customDictWarning = FALSE;
@@ -1031,24 +1031,6 @@ void typeCurrentPhrase()
 	HWND fore = GetForegroundWindow();
 	SetActiveWindow(fore);
 
-	//Load our font
-	/*HFONT zgFont = CreateFont(
-		-MulDiv(14, GetDeviceCaps(GetDC(mainWindow), LOGPIXELSY), 72), //Font height in UNITS, gah...
-		0, //Width, make best-guess
-		0, 0, //Escapement, orientation
-		FW_NORMAL, //Font weight
-		FALSE, //Not italic
-		FALSE, //Not underlined
-		FALSE, //Not strikethrough
-		ANSI_CHARSET, //???
-		OUT_DEFAULT_PRECIS, //Output precision
-		CLIP_DEFAULT_PRECIS, //Default clipping, might get us into trouble with Zawgyi
-		5, //Necessary, maybe cleartype is needed, too.
-		DEFAULT_PITCH | FF_DONTCARE, //Font pitch and family
-		_T("Zawgyi-One")
-	);
-	if (zgFont!=NULL) 
-		SendMessage(fore, WM_SETFONT, WPARAM(zgFont), FALSE);*/
 
 	//Use SendInput instead of SendMessage, since SendMessage requires the actual
 	//  sub-window (component) to recieve the message, whereas SendInput only
@@ -1057,6 +1039,7 @@ void typeCurrentPhrase()
 	//  system than one that works on Windows 98.
 	std::list<int>::iterator printIT = sentence->begin();
 	std::vector<WORD> keyStrokes;
+	int number_of_key_events = 0;
 	for (;printIT!=sentence->end() || stopChar!=0;) {
 		//We may or may not have a half/full stop at the end.
 		if (printIT!=sentence->end()) {
@@ -1066,25 +1049,16 @@ void typeCurrentPhrase()
 			keyStrokes.push_back(stopChar);
 		}
 
-		//Set our data structure's fields.
-		inputItem.type=INPUT_KEYBOARD;
-		keyInput.wVk=0;
-		keyInput.dwFlags=KEYEVENTF_UNICODE;
-		keyInput.time=0;
-		keyInput.dwExtraInfo=0;
-
-		//Send a whole bunch of these...
-		BOOL result = TRUE;
+		//Buffer each key-stroke
 		for (size_t i=0; i<keyStrokes.size(); i++) {
-			keyInput.wScan = keyStrokes[i];
-			inputItem.ki=keyInput;
-			if(!SendInput(1,&inputItem,sizeof(INPUT))) {
-				result = FALSE;
-				break;
-			}
+			//Send keydown
+			keyInputPrototype.wScan = keyStrokes[i];
+			keyInputPrototype.dwFlags = KEYEVENTF_UNICODE;
+			inputItems[number_of_key_events++].ki = keyInputPrototype;
+
+			keyInputPrototype.dwFlags = KEYEVENTF_UNICODE|KEYEVENTF_KEYUP;
+			inputItems[number_of_key_events++].ki = keyInputPrototype;
 		}
-		if (result == FALSE)
-			MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
 
 		//Increment
 		if (printIT!=sentence->end())
@@ -1092,6 +1066,14 @@ void typeCurrentPhrase()
 		else
 			stopChar = 0;
 	}
+
+
+	//Send all the keystrokes at once to avoid a weird bug with single-letter repetitions.
+	if(!SendInput(number_of_key_events,inputItems,sizeof(INPUT))) {
+		MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
+	}
+
+
 
 	//Now, reset...
 	model->reset(true);
@@ -2041,6 +2023,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Add our icon to the tray
 	Shell_NotifyIcon(NIM_ADD, &nid);
 
+	//Initialize our keyboard input structures
+	inputItems = new INPUT[500];
+	for (int i=0; i<500; i++) {
+		//We expect an input of type "keyboard"
+		inputItems[i].type = INPUT_KEYBOARD;
+
+		//Specify unicode (wVk MUST be zero)
+		keyInputPrototype.dwFlags=KEYEVENTF_UNICODE;
+		keyInputPrototype.wVk=0;
+	
+		//Have the system provide its own timestamp
+		keyInputPrototype.time=0;
+
+		//No extra info
+		keyInputPrototype.dwExtraInfo=0;
+	}
 
 	//Initialize our romanisation string
 	lstrcpy(currStr, _T(""));
