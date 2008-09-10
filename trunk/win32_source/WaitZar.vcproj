@@ -48,7 +48,7 @@
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msimg32.lib"
+				AdditionalDependencies="msimg32.lib Psapi.lib"
 				OutputFile="$(OutDir)/WaitZar.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"

@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WaitZar", "WaitZar.vcproj", "{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExternalModelTester", "..\ExternalModelTester\ExternalModelTester.vcproj", "{42D38E70-0234-480A-8E0B-1DA6FFF390E7}"
@@ -12,8 +12,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}.Debug|Win32.ActiveCfg = Release|Win32
 		{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}.Debug|Win32.Build.0 = Release|Win32
-		{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}.Release|Win32.ActiveCfg = Release|Win32
-		{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}.Release|Win32.Build.0 = Release|Win32
+		{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}.Release|Win32.ActiveCfg = Debug|Win32
+		{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}.Release|Win32.Build.0 = Debug|Win32
 		{42D38E70-0234-480A-8E0B-1DA6FFF390E7}.Debug|Win32.ActiveCfg = Debug|Win32
 		{42D38E70-0234-480A-8E0B-1DA6FFF390E7}.Debug|Win32.Build.0 = Debug|Win32
 		{42D38E70-0234-480A-8E0B-1DA6FFF390E7}.Release|Win32.ActiveCfg = Release|Win32
