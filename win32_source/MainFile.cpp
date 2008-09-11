@@ -1513,6 +1513,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (numberKeysOn==FALSE)
 						turnOnNumberkeys(TRUE);
 
+					//TEST: Re-position it
+					//TEST: Use AttachThredInput? Yes!
+					//Still a bit glitchy....
+					if (false) {
+						HWND foreWnd = GetForegroundWindow();
+						DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
+						if (AttachThreadInput(GetCurrentThreadId(), foreID, TRUE)) {
+							POINT mousePos;
+							RECT clientUL;
+							if (GetCaretPos(&mousePos) && GetWindowRect(GetForegroundWindow(), &clientUL)) {
+								int mouseX = clientUL.left + mousePos.x;
+								int mouseY = clientUL.top + mousePos.y;
+							
+								//Line up our windows
+								MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+								MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+							}
+
+							//Finally
+							AttachThreadInput(GetCurrentThreadId(), foreID, FALSE);
+						}
+					}
+
+
 					//Show it
 					if (typePhrases==FALSE || !subWindowIsVisible) {
 						//Turn on control keys
