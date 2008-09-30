@@ -1,43 +1,39 @@
-#summary Simple onsets list
 #labels Phase-Design
-
-= Onsets =
-
-{{{
 က = k
 ခ = kh
 ဂ = g
 ဃ = gh
 င = ng
 စ = s
-ဆ = x
+ဆ = ss
 ဇ = z
-စ် = zy
+စ် = zh
 ည/ဉ = ny
 ဋ = tt
-ဌ = htt
-ဍ = nd
-ဎ = dh
-ဏ = nn
+ဍ = dh
+ဌ = ht
+႒ = ht
+ဠ = n
+ဎ = n
+ဏ = nh
 တ = t
 ထ = ht
 ဒ = d
-ဓ = dd
+ဓ = dh
 န = n
 ပ = p
-ဖ = f
-ဗ = bb
+ဖ = ph
+ဗ = bh
 ဘ = b
 မ = m
-ယ = i
+ယ = yh
 ရ = y
-ရွ = sh
 လ = l
 ဝ = w
 သ = th
 ဟ = h
-ဠ = nh
 အ = a
 ဥ = o
-႒ = ht
-}}}
+ရွ = sh
+သွ် = sh
+လွ် = sh
