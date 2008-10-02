@@ -27,6 +27,13 @@ mywordswarning = no
 powertyping = yes
 
 
+# If "yes", WaitZar will show a useful popup when the program first loads.
+# This is to help new users learn how WaitZar should work; advanced users can turn it
+#  off if they find it distracting.
+#NO_LINUX: WaitZar under Linux has no use for this option.
+ballooononstart = yes
+
+
 # If "yes", the sentence window will always display below the 
 #  current word window.
 #NO_LINUX: Windows auto-lock to the text you're entering in Linux, so this option makes no sense.
