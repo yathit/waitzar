@@ -98,6 +98,7 @@ char langHotkeyRaw[100];
 BOOL typePhrases = TRUE;
 BOOL dragBothWindowsTogether = TRUE;
 BOOL typeBurmeseNumbers = TRUE;
+BOOL showBalloonOnStart = TRUE;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -411,6 +412,14 @@ void loadConfigOptions()
 				typeBurmeseNumbers = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				typeBurmeseNumbers = FALSE;
+			else
+				numConfigOptions--;
+		} else if (strcmp(name, "ballooononstart")==0) {
+			numConfigOptions++;
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				showBalloonOnStart = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				showBalloonOnStart = FALSE;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
@@ -2028,6 +2037,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         GetSystemMetrics(SM_CXSMICON),
                         GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+
+	//Edit: Add support for balloon tooltips
+	if (showBalloonOnStart==TRUE) {
+		nid.uFlags |= NIF_INFO;
+		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
+		swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
+		nid.uTimeout = 20;
+		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported? 
+	}
 
 	//Error checking..
 	if (mmIcon == NULL || engIcon==NULL)
