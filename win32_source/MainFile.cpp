@@ -18,7 +18,38 @@
 
 //Define to require a specific version of Windows.
 #define _WIN32_WINNT 0x0500 //Run on Windows 2000, XP, and Vista (haven't tested NT or the "server"s yet)
+#define _WIN32_IE 0x0500    //I don't understand why I need this, but the speech balloons won't compile unless I have it.
 //#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
+
+//Slim-down our list of definitions. Would you believe that this causes NO
+//  noticeable size reduction on Windows XP, VS2003? Perhaps it helps
+//  on Vista.... 
+//Anyway, if you add a new function and get an "undefined" error, comment 
+//  the relevant #define out.
+#define NOGDICAPMASKS       //- CC_*, LC_*, PC_*, CP_*, TC_*, RC_
+#define NOKEYSTATES         //- MK_*
+#define NOSYSCOMMANDS       //- SC_*
+#define OEMRESOURCE         //- OEM Resource values
+#define NOATOM              //- Atom Manager routines
+#define NOCLIPBOARD         //- Clipboard routines
+#define NOCOLOR             //- Screen colors
+#define NODRAWTEXT          //- DrawText() and DT_*
+#define NOKERNEL            //- All KERNEL defines and routines
+#define NOMEMMGR            //- GMEM_*, LMEM_*, GHND, LHND, associated routines
+#define NOMETAFILE          //- typedef METAFILEPICT
+#define NOOPENFILE          //- OpenFile(), OemToAnsi, AnsiToOem, and OF_*
+#define NOSCROLL            //- SB_and scrolling routines
+#define NOSERVICE           //- All Service Controller routines, SERVICE_ equates, etc.
+#define NOSOUND             //- Sound driver routines
+#define NOTEXTMETRIC        //- typedef TEXTMETRIC and associated routines
+#define NOWH                //- SetWindowsHook and WH_*
+#define NOWINOFFSETS        //- GWL_*, GCL_*, associated routines
+#define NOCOMM              //- COMM driver routines
+#define NOKANJI             //- Kanji support stuff.
+#define NOHELP              //- Help engine interface.
+#define NOPROFILER          //- Profiler interface.
+#define NODEFERWINDOWPOS    //- DeferWindowPos routines
+#define NOMCX               //- Modem Configuration Extensions
 
 //System includes
 #include <windows.h>
@@ -225,7 +256,7 @@ void makeFont(HWND currHwnd)
 
 
 
-BOOL waitzarAlreadyStarted() 
+BOOL waitzarAlreadyStarted()
 {
 	//Get all processes
 	DWORD aProcesses[1024], cbNeeded, cProcesses;
@@ -325,7 +356,7 @@ void readUserWords() {
 }
 
 
-void setEncoding(UINT encoding) 
+void setEncoding(UINT encoding)
 {
 	if (encoding==ENCODING_WININNWA)
 		lstrcpy(currEncStr, _T("WI"));
@@ -819,7 +850,7 @@ BOOL loadModel() {
 void ShowBothWindows(int cmdShow)
 {
 	bool show = (cmdShow==SW_SHOW);
-	
+
 	ShowWindow(mainWindow, cmdShow);
 	mainWindowIsVisible = show;
 
@@ -848,7 +879,7 @@ void switchToLanguage(BOOL toMM) {
 		//It's possible we still have some hotkeys left on...
 		if (controlKeysOn == TRUE)
 			turnOnControlkeys(FALSE);
-		if (numberKeysOn == TRUE) 
+		if (numberKeysOn == TRUE)
 			turnOnNumberkeys(FALSE);
 		if (punctuationKeysOn == TRUE)
 			turnOnPunctuationkeys(FALSE);
@@ -973,7 +1004,7 @@ void recalculate()
 		//Draw the cursor
 		MoveToEx(senUnderDC, cursorPosX-1, borderWidth+1, NULL);
 		LineTo(senUnderDC, cursorPosX-1, SUB_C_HEIGHT-borderWidth-1);
-		
+
 		//Draw the current encoding
 		int encStrWidth = mmFontSmallBlack->getStringWidth(currEncStr);
 		SelectObject(senUnderDC, g_BlackPen);
@@ -1159,7 +1190,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return uHitTest;
 			break;
 		}
-		case WM_MOVE: 
+		case WM_MOVE:
 		{
 			//Move the main window?
 			if (senWindowSkipMove==FALSE && (mainWindowIsVisible || subWindowIsVisible) && dragBothWindowsTogether==TRUE) {
@@ -1235,7 +1266,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_MOVE: 
+		case WM_MOVE:
 		{
 			//Move the sentence window?
 			if (typePhrases==TRUE && mainWindowSkipMove==FALSE && subWindowIsVisible && dragBothWindowsTogether==TRUE) {
@@ -1343,7 +1374,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (typePhrases==FALSE) {
 							//Turn off control keys
 							turnOnControlkeys(FALSE);
-							
+
 							ShowBothWindows(SW_HIDE);
 						} else {
 							//Just hide the typing window for now.
@@ -1417,14 +1448,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						sentence->insert(numCode);
 						typeCurrentPhrase();
 					} else {
-						//Just type that number directly. 
+						//Just type that number directly.
 						sentence->insert(numCode);
 						sentence->moveCursorRight(0, true, model);
 
 						//Is our window even visible?
 						if (!subWindowIsVisible) {
 							turnOnControlkeys(TRUE);
-							
+
 							ShowWindow(senWindow, SW_SHOW);
 							subWindowIsVisible = true;
 						}
@@ -1478,13 +1509,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (typed==TRUE && typePhrases==TRUE) {
 						ShowWindow(mainWindow, SW_HIDE);
 						mainWindowIsVisible = false;
-						
+
 						model->reset(false);
 						lstrcpy(currStr, _T(""));
 						recalculate();
 					}
 				} else {
-					//A bit tricky here. If the cursor's at the end, we'll 
+					//A bit tricky here. If the cursor's at the end, we'll
 					//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
 					//Hopefully this won't confuse users so much.
 					if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
@@ -1534,7 +1565,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							if (GetCaretPos(&mousePos) && GetWindowRect(GetForegroundWindow(), &clientUL)) {
 								int mouseX = clientUL.left + mousePos.x;
 								int mouseY = clientUL.top + mousePos.y;
-							
+
 								//Line up our windows
 								MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
 								MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
@@ -1650,7 +1681,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						turnOnControlkeys(TRUE);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(FALSE);
-					
+
 					//Reset the model
 					sentence->clear();
 					model->reset(true);
@@ -1757,8 +1788,11 @@ BOOL turnOnHotkeys(BOOL on)
 	else
 		nid.hIcon = engIcon;
 
-	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE)
-		MessageBox(NULL, _T("Can't switch icon..."), _T("Warning"), MB_ICONERROR | MB_OK);
+	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
+		TCHAR eTemp[200];
+		swprintf(eTemp, _T("Can't switch icon.\nError code: %x"), GetLastError());
+		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
+	}
 
 	return retVal;
 }
@@ -2044,7 +2078,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
 		swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
 		nid.uTimeout = 20;
-		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported? 
+		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported?
 	}
 
 	//Error checking..
@@ -2055,7 +2089,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if( registerInitialHotkey()==0 ) {
 		//Check if we're running Wait Zar already
 		if (waitzarAlreadyStarted()==TRUE) {
-			MessageBox(NULL, _T("Wait Zar is already running. \n\nYou should see an \"ENG\" icon in your system tray; click on that to change the language. \n\nPlease see the Wait Zar User's Guide if you have any questions."), _T("Wait Zar already running..."), MB_ICONINFORMATION | MB_OK);
+			MessageBox(NULL, _T("Wait Zar is already running. \n\nYou should see an \"ENG\" icon in your system tray; click on that to change the language. \n\nPlease see the Wait Zar User's Guide if you have any questions.  \n\n(If you are certain WaitZar is not actually running, please wait several minutes and then re-start the program.)"), _T("Wait Zar already running..."), MB_ICONINFORMATION | MB_OK);
 			return 0;
 		}
 		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
@@ -2074,7 +2108,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//Specify unicode (wVk MUST be zero)
 		keyInputPrototype.dwFlags=KEYEVENTF_UNICODE;
 		keyInputPrototype.wVk=0;
-	
+
 		//Have the system provide its own timestamp
 		keyInputPrototype.time=0;
 
@@ -2137,8 +2171,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 	nid.hIcon = engIcon;
-	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE)
-		MessageBox(NULL, _T("Can't switch icon..."), _T("Warning"), MB_ICONERROR | MB_OK);
+	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
+		TCHAR eTemp[200];
+		swprintf(eTemp, _T("Can't load initial icon.\nError code: %x"), GetLastError());
+		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
+	}
 
 
 	//Main message handling loop
