@@ -109,6 +109,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="&quot;..\cross_platform_library\src&quot;"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -162,27 +163,27 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\ExternalModelTester.cpp"
+				RelativePath="..\cross_platform_library\src\ExternalModelTester.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\fontconv.cpp"
+				RelativePath="..\cross_platform_library\src\fontconv.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\fontmap.cpp"
+				RelativePath="..\cross_platform_library\src\fontmap.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\lib.cpp"
+				RelativePath="..\cross_platform_library\src\lib.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\regex.cpp"
+				RelativePath="..\cross_platform_library\src\regex.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\WordBuilder.cpp"
+				RelativePath="..\cross_platform_library\src\WordBuilder.cpp"
 				>
 			</File>
 		</Filter>
@@ -192,23 +193,23 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\win32_source\fontconv.h"
+				RelativePath="..\cross_platform_library\src\fontconv.h"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\fontmap.h"
+				RelativePath="..\cross_platform_library\src\fontmap.h"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\lib.h"
+				RelativePath="..\cross_platform_library\src\lib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\regex.h"
+				RelativePath="..\cross_platform_library\src\regex.h"
 				>
 			</File>
 			<File
-				RelativePath="..\win32_source\WordBuilder.h"
+				RelativePath="..\cross_platform_library\src\WordBuilder.h"
 				>
 			</File>
 		</Filter>

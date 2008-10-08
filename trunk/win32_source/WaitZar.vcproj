@@ -119,6 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;..\cross_platform_library\src&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -188,11 +189,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SentenceList.cpp"
+				RelativePath="..\cross_platform_library\src\SentenceList.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\WordBuilder.cpp"
+				RelativePath="..\cross_platform_library\src\WordBuilder.cpp"
 				>
 			</File>
 			<Filter
@@ -227,19 +228,19 @@
 				Name="burglish_core"
 				>
 				<File
-					RelativePath=".\fontconv.cpp"
+					RelativePath="..\cross_platform_library\src\fontconv.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\fontmap.cpp"
+					RelativePath="..\cross_platform_library\src\fontmap.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\lib.cpp"
+					RelativePath="..\cross_platform_library\src\lib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\regex.cpp"
+					RelativePath="..\cross_platform_library\src\regex.cpp"
 					>
 				</File>
 			</Filter>
@@ -287,11 +288,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\SentenceList.h"
+					RelativePath="..\cross_platform_library\src\SentenceList.h"
 					>
 				</File>
 				<File
-					RelativePath=".\WordBuilder.h"
+					RelativePath="..\cross_platform_library\src\WordBuilder.h"
 					>
 				</File>
 				<Filter
@@ -326,19 +327,19 @@
 					Name="burglish_core"
 					>
 					<File
-						RelativePath=".\fontconv.h"
+						RelativePath="..\cross_platform_library\src\fontconv.h"
 						>
 					</File>
 					<File
-						RelativePath=".\fontmap.h"
+						RelativePath="..\cross_platform_library\src\fontmap.h"
 						>
 					</File>
 					<File
-						RelativePath=".\lib.h"
+						RelativePath="..\cross_platform_library\src\lib.h"
 						>
 					</File>
 					<File
-						RelativePath=".\regex.h"
+						RelativePath="..\cross_platform_library\src\regex.h"
 						>
 					</File>
 				</Filter>
