@@ -2,5 +2,5 @@ libwaitzar - A library for the WaitZar language model (for the Burmese/Myanmar l
 
 Usage
 -----
-The file Wait_Zar_Model API.html, included with the distribution, describes the API 
+The file Wait_Zar_Model_API.html, included with the distribution, describes the API 
 and how to use it, giving examples. 

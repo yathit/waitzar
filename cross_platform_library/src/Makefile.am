@@ -20,7 +20,7 @@ libwaitzar_la_SOURCES = \
 
 libwaitzar_la_docdir = ${datadir}/doc/${PACKAGE} 
 
-libwaitzar_la_doc_DATA = ../Wait_Zar_Model API.html
+libwaitzar_la_doc_DATA = ../Wait_Zar_Model_API.html
 
 
 
