@@ -1,0 +1,801 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>The Wait Zar model Application Programming Interface</title>
+
+<style type="text/css">
+	<!--
+	h1{ 
+	  color: #AAFFBB; 
+	  font: 3em sans-serif;
+	  margin: 12px 12px 12px 12px;
+	} 
+	a {
+	  color:#00EEEE; 
+	  text-decoration:none;
+	}
+	h2{ 
+	  color: #AAFFBB; 
+	  font: 1.5em monospace;
+	  font-weight: bold;
+	  margin: 12px 10px 10px 20px;
+	} 
+	h3{ 
+	  color: #FFFFFF; 
+	  font: 1.2em sans-serif;
+	  font-weight: bold;
+	} 
+	* {
+	  color: #FFFFFF;
+	}
+	.className {
+	  color: #00EEEE;
+	  font: 1.2em monospace;
+	  font-weight: bold;
+	}
+	.redbold {
+	  color: #FF0000;
+	  font-weight: bold;
+	}
+	td {
+	  border:1px solid #777777;
+	}
+	dd {
+	   text-indent: -1em;
+	}
+	-->
+</style>
+
+</head>
+
+<body bgcolor="#444444">
+
+
+<table summary="" border="4" cellpadding="1" cellspacing="0" align="right" style="color:#000000;">
+<tr>
+<td  valign="top" align="right" bgcolor="white" style="color:#000000; border:2px solid blue;">
+Style based off the&nbsp;
+<br><em><b style="color:#000000;">Java<sup><font size="-2" style="color: #000000;">TM</font></sup>&nbsp;Platform&nbsp;
+<br>&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/api/" style="color:#0066FF; text-decoration:none;">API Documentation</a>&nbsp;</b></em>
+</td>
+</tr>
+</table>
+
+<h1>The Wait Zar Model</h1>
+<h2>Application Programming Interface</h2>
+<hr>
+
+<h3>Introduction</h3>
+The Wait Zar Model code, particularly that of WordBuilder.cpp, exists to help independent developers add Wait Zar's typing functionality into their developments. In general, Wait Zar is applicable to any programming task. However, there are certain situations where the hotkeys Wait Zar installs are simply sub-optimal (and this API is more useful). Here are some examples:
+<ul>
+    <li>You are working in Linux, and Wine doesn't work (or, you want something officially supported). A SCIM plugin is currently being developed independently, using this library.</li>
+	<li>You are playing a game like Counterstrike, where typing is secondary to other actions (movement, aiming, etc.) and you need a different input model.</li>
+	<li>Certain programs cause Wait Zar to constantly refresh (e.g., webcam conversations in MSN) which is something it does slowly. You are the developer for one of these programs, and you want to integrate Wait Zar directly into your program's interface.</li>
+	<li>You are doing research into Natural Language processing. You want to test Wait Zar's accuracy in a series of batch operations, which you clearly don't want to have to key in by hand.</li>
+</ul>
+
+<h3>Why Use the Wait Zar API?</h3>
+The key benefit of using this library is that its internal components will almost never change. You can basically just update the latest version of Myanmar.model (from the SVN) and run your program: no re-compiling necessary. In the case of bug fixes and the rare feature enhancement, just download the five or six code files from the SVN repository and re-compile --if there's a problem, rollback to the latest release builds, which we test thoroughly on both Windows and Linux.
+<br>The file mywords.txt is also very "plugable". You can drop in a friend's custom word list, or email your own list to friends. Again, no recompiling is necessary.
+<br>This gives you amazing amount of flexibility, coupled with cross-platform accuracy. Any application developed with this library will respond in the same way on any system. For example, a chat client developer can benefit from the stability of the Wait Zar romanisation (tested and approved by a large community of users, as of version 1.6) and also allow the chatters to add their own words to the dictionary, effecting system-wide enabling of these new words. But enough talk, let's see how it works!
+
+<br>&nbsp;<hr>
+
+<h3>Sample Code</h3>
+Please see below for documentation of each method in WordBuilder.cpp. For now, we will explain how to load a model and run some queries on it. ExternalModelTester.cpp contains several good examples.
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Compiling the Example</b>
+<br>You should first compile ExternalModelTester.cpp to get a feel for how the Wait Zar model works. Probably, it's best to use ant or make. However, if you're new to compiling code in c++, ant and make might be too much just for this simple example. Open a terminal, and browse to the "ExternalModelTester" folder. Now, enter the following (all on one line)
+<br><br><code>g++ 
+<br>ExternalModelTester.cpp 
+<br>../win32_source/WordBuilder.h ../win32_source/WordBuilder.cpp 
+<br>../win32_source/regex.h ../win32_source/regex.cpp 
+<br>../win32_source/fontmap.h ../win32_source/fontmap.cpp 
+<br>../win32_source/fontconv.h ../win32_source/fontconv.cpp 
+<br>../win32_source/lib.cpp ../win32_source/lib.h  
+<br>-o ModelTester
+<br></code>
+<br>For your reference, the file compile.sh contains this one-line text string. You can invoke it with:
+<br><br><code>./compile.sh<br></code>
+<br>Now you can run the tester with:
+<br><br><code>./ModelTester<br></code>
+<br>And, now is a pretty good time to learn ant or make.
+
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Listing Entries for a Word</b>
+<br>Given a romanised Burmese word, like "kote", we might want to list all the Burmese words which can be typed this way. The steps for doing this are simple:
+<br><br><code>model-&gt;reset(true);
+<br>model-&gt;typeLetter('k');
+<br>model-&gt;typeLetter('o');
+<br>model-&gt;typeLetter('t');
+<br>model-&gt;typeLetter('e');
+<br>std::vector&lt;unsigned int&gt; possWords = model-&gt;getPossibleWords();
+<br></code>
+<br>At this point, "possWords" contains the IDs of all the Myanmar words we can type. In general, the Wait Zar model uses a word's abstract id for all comparisons and storage-related tasks (rather than, say, strings). This id is assigned based on the word's position in Myanmar.model; it changes whenever the Myanmar.model file changes. Words contained in mywords.txt are assigned IDs as well, up to a maximum number.
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Showing or Typing a Word</b>
+<br>When a Burmese word is shown <em>within</em> Wait Zar, it is shown using the Zawgyi-One encoding. Thus, calling model->getWordString() will return a wchar_t* encoded according to the rules of the Zawgyi-One specification. This will happen <strong>regardless</strong> of the model's current encoding! Getting a string in the encoding of your choice is somewhat tricky: the easiest way to do it as of now is to call getWordKeyStrokes() and then construct the wide-character string on your own. Here's an example of how to get the Win Innwa-encoded string for the first (and only) "kote" 
+<br><br><code>model-&gt;setOutputEncoding(ENCODING_WININNWA);
+<br>std::vector&lt;unsigned short&gt; currWord = model-&gt;getWordKeyStrokes(possWords[i]);
+<br>wchar_t* printWord[1000];
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++) {
+<br>&nbsp;&nbsp;printWord[i] = keystrokes[i];
+<br>}
+<br>//Note: we need to terminate with a FULL-width zero (not just '\0') to ensure that we actually end the string.
+<br>printWord[keystrokes.size()] = 0x0000; 
+<br>wprintf(L"  %ls  (", printWord);
+<br></code>
+<br>Actually, the call to wprintf() is somewhat risky; for one thing, you can't mix calls to printf() with those for wprintf() in the same console application (which makes using library code a tedious task). For another thing, the standard Unix console won't print Unicode characters by default, and enabling Unicode isn't always easy. (For this case, because Win Innwa is being used, this particular effect is not noticeable.) Regardless, if you iterated through printWord's wchar_t elements, you would see that their values are correct. 
+
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Determining Shortcuts</b>
+<br> Let's say we have a function, "respondToLetter()", which responds to user keypresses. We want to determine when that user has typed enough letters that we can determine only ONE possible set of words. Here's how we'd do that:
+<br><br><code>bool respondToLetter(char letter)
+<br>{
+<br>&nbsp;&nbsp;&nbsp;if (!model->typeLetter(letter)) //Invalid letter
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false;
+<br>&nbsp;&nbsp;&nbsp;
+<br>&nbsp;&nbsp;&nbsp;unsigned short sz = model->getPossibleWords().size();
+<br>&nbsp;&nbsp;&nbsp;if (wcslen(model->getParenString())>0)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wprintf(L" --the only possible input from this point is %ls which leaves us with %i options.\n", model->getParenString(), sz);
+<br>&nbsp;&nbsp;&nbsp;else if (sz>0)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wprintf(L"  --word typed!  %i options.\n", sz);
+<br>&nbsp;&nbsp;&nbsp;else
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wprintf(L"%c", letter);
+<br>}
+<br></code>
+<br>Let's assume that we add the word "minggalarpar" to the dictionary, via mywords.txt. If the respondToLetter() function is called on the letters "m" "i" "n" "g" "g", then we will see the following output:
+<br><code>mingg  --the only possible input from this point is alarpar which leaves us with 1 options.
+<br></code>
+<br>Contrarily, if we type "m" "i" "n" "g" "a", although there is still only one possible option, it does not require a paren string. So, we get:
+<br><code>minga  --word typed! 1 options.
+<br></code>
+<br>In general, the Word Builder object will handle choosing the correct word for you all the time; however, sometimes it's helpful to know exactly what assumptions and guesses this model is making.
+
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Handling Different Encodings</b>
+<br>If you are using this API, you are probably familiar with the basic problem with Myanmar computerized text: there are several different, incompatible encodings. Wait Zar supports two legacy encodings, in addition to Unicode 5.1. This snippet of code shows how to compare the text output in each one:
+<br><code>model->reset();
+<br><br>//Transition to a complicated word (one, say, with "kinzi" in it).
+<br>std::vector&lt;unsigned short&gt; keystrokes;
+<br>const char* sgp = "singapore";
+<br>for (unsigned int i=0; i<strlen(sgp); i++)
+<br>&nbsp;&nbsp;&nbsp;model->typeLetter(sgp[i]);
+<br>unsigned int wordID = model->getPossibleWords()[0];
+<br><br>//Print the encoding in Unicode 5.1 first:
+<br>model->setOutputEncoding(ENCODING_UNICODE);
+<br>keystrokes = model->getWordKeyStrokes(wordID);
+<br>wprintf(L"Unicode 5.1:");
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++)
+<br>&nbsp;&nbsp;&nbsp;wprintf(L" U+%x", keystrokes[i]);
+<br>wprintf(L"\n");
+<br><br>//Now print the Zawgyi-One encoding:
+<br>model->setOutputEncoding(ENCODING_ZAWGYI);
+<br>keystrokes = model->getWordKeyStrokes(wordID);
+<br>wprintf(L"Zawgyi-One: ");
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++)
+<br>&nbsp;&nbsp;&nbsp;wprintf(L" U+%x", keystrokes[i]);
+<br>wprintf(L"\n");
+<br><br>//Finall print the Win Innwa encoding:
+<br>model->setOutputEncoding(ENCODING_WININNWA);
+<br>keystrokes = model->getWordKeyStrokes(wordID);
+<br>wprintf(L"Win Innwa:  ");
+<br>for (unsigned int i=0; i&lt;keystrokes.size(); i++)
+<br>&nbsp;&nbsp;&nbsp;wprintf(L"   0x%x", sgpWinInnwa[i]);
+<br>wprintf(L"\n");
+<br></code>
+<br>On Windows, this produces the following output:
+<br><code>Unicode 5.1: U+1005 <b class="redbold">U+1004 U+103a U+1039</b> U+1000 U+102c U+1015 U+1030
+<br>Zawgyi-One:&nbsp;&nbsp;U+1005 U+1000 <b class="redbold">U+1064</b> U+102c U+1015 U+1030
+<br>Win Innwa:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0x70&nbsp;&nbsp;&nbsp;0x75&nbsp;&nbsp;&nbsp;<b class="redbold">0x46</b>&nbsp;&nbsp;&nbsp;0x6d&nbsp;&nbsp;&nbsp;0x79&nbsp;&nbsp;&nbsp;0x6c
+<br></code>
+<br>The section representing "kinzi" has been highlighted in red, in case you were curious. Zawgyi-One and Win Innwa handle this the same way: with a special composed character. Unicode 5.1 demands a specialized encoding sequence to represent <i>kinzi</i>.
+<br><strong><em>NOTE: </em></strong>Currently, on Linux, the above code segfaults when converting output to Win Innwa. This is a known bug.
+
+
+<br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Help &amp; Support</b>
+<br>The Wait Zar developers are happy to offer their advice on any project you're doing using Wait Zar. If you discover a problem with the API, please <a href="http://code.google.com/p/waitzar/issues/list">post a bug report</a>. If you just want to chat about how to use the Wait Zar API, please post a new topic on the <a href="http://www.mmgeeks.org/forum/index.php">MM Geeks forum</a>, under the section titled "Burglish/Wait Zar". 
+
+<br>&nbsp;<hr>
+
+<h3>Method Summary </h3>
+
+<!-- Table header -->
+<table summary="" width="100%" border="1" cellpadding="3" cellspacing="0" style="border:2px solid #999999;"><tbody>
+<tr bgcolor="#AAFFBB">
+<th colspan="2" align="left" style="border:1px solid #00CC00;">
+<b style="font: 1.0em sans-serif; font-weight:bold; color: #000000;">WordBuilder.cpp</b></th>
+</tr>
+
+<!-- Elements -->
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>&nbsp;</code></font></td>
+<td><code><b class="className">WordBuilder</b>(const char* modelFile, const char* userWordsFile)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Constructs a new WordBuilder object from a given model file and an (optional) list of user-defined words. Most developers will prefer this constructor.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>&nbsp;</code></font></td>
+<td><code><b class="className">WordBuilder</b>(char * model_buff, size_t model_buff_size)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Constructs a new WordBuilder object given a character stream and its length. This creates the same model as the "easy" constructor, without the mywords.txt list. It is useful if, say, you want to load Myanmar.model from an internal resource (Wait Zar does this).
+</td>
+</tr>
+
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>&nbsp;</code></font></td>
+<td><code><b class="className">WordBuilder</b>(unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Constructs a new WordBuilder object gvien a detailed specification of its inner workings. Most developers will never need to use this constructor.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>&nbsp;</code></font></td>
+<td><code><b class="className">~WordBuilder</b>(void)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Destructor. It is highly recommended that you do not rely on this method to release all memory used by WordBuilder; this hasn't actually been tested yet. As a singleton, however, WordBuilder has no known memory leaks. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">typeLetter</b>(char letter)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Types a letter and updates the available word/letter list appropriately. Please pay attention to getParenString() when using this function.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::pair&lt;bool, unsigned int&gt;&nbsp;</code></font></td>
+<td><code><b class="className">typeSpace</b>(int quickJumpID)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Selects the current candidate word based on calls to moveRight() and returns its ID. A boolean value indicates if any word was selected at all.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">backspace</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Deletes one letter and moves the current nexus back one; returns false if there are no letters to delete.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>void&nbsp;</code></font></td>
+<td><code><b class="className">reset</b>(bool fullReset)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Resets the current romanisation attempt. If "fullReset" is true, it also removes any captured trigrams. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">moveRight</b>(int amt)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Moves the cursor right "amt" spaces, if possible ("amt" can be negative). Returns false if "amt" number of moves could not be made, or if amt is zero.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>int&nbsp;</code></font></td>
+<td><code><b class="className">getCurrSelectedID</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Gets the index of the current selected item. Returns -1 if there are no items to select.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::vector&lt;char&gt;&nbsp;</code></font></td>
+<td><code><b class="className">getPossibleChars</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns all valid moves forward from this point. The prototype of WaitZar uses this, but the release version does not. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::vector &lt;unsigned int&gt;&nbsp;</code></font></td>
+<td><code><b class="className">getPossibleWords</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns the IDs of all possible words at this point. Call getWordString() on each ID to retrieve the Zawgyi-One encoded string for each word. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>void&nbsp;</code></font></td>
+<td><code><b class="className">insertTrigram</b>(unsigned short* trigram_ids, int num_used_trigrams)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Re-writes the current accumulated trigram (see method detail, below.) 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>wchar_t*</code></font></td>
+<td><code><b class="className">getWordString</b>(unsigned int id)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns the wide-character string for a Myanmar word (in Zawgyi-One encoding) for a given ID. Note that the wchar_t pointer is shared; multiple calls to this function should use strcpy() to copy the returned value locally, lest all returned values default to that of the final string (see method detail, below.) 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>std::vector &lt;unsigned short&gt;&nbsp;</code></font></td>
+<td><code><b class="className">getWordKeyStrokes</b>(unsigned int id)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+For a given id, returns the key strokes required to type that word. Technically similar to getWordString(), but the vector of unsigned short values allows Wait Zar to pass each item to SendInput() fairly cleanly. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>wchar_t*&nbsp;</code></font></td>
+<td><code><b class="className">getParenString</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Consider a word in the model, like "singapore". After typing "singap", there are no options reachable from this point except "ore". Calling getParenString() at this point will return this. On the contrary, after typing "k", getParenString() will return "" (empty string) --there are multiple options at this point. By default, if getPossibleWords() returns nothing, WaitZar will then check if getParenString() returns anything; if so, typing space will enter this word. This speeds up typing in general.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>unsigned short&nbsp;</code></font></td>
+<td><code><b class="className">getStopCharacter</b>(bool isFull)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+For isFull==true, returns the full stop character for this encoding; if isFull==false, returns the half stop character. See also: getOutputEncoding().
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">addRomanization</b>(wchar_t* myanmar, char* roman)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Adds a given "myanmar" word (encoded according to the Zawgyi-One specification), and its relative "roman"isation to the model. Returns an indication of success; see also: getLastError().
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>wchar_t*&nbsp;</code></font></td>
+<td><code><b class="className">getLastError</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+For any function that may fail with a specific error (for now, only "addRomanization()"), returns the text of that error message. Presumably, one would present the user with this information. 
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>void&nbsp;</code></font></td>
+<td><code><b class="className">setOutputEncoding</b>(unsigned int encoding)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Sets the output encoding for this model to one of the following: ENCODING_UNICODE, ENCODING_ZAWGYI, ENCODING_WININNWA. Note that ENCODING_UNICODE refers to the Unicode standard version 5.1+ (e.g., PadaukOT, Parabaik, Myanmar3). These constants are defined in WordBuilder.h
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>unsigned int&nbsp;</code></font></td>
+<td><code><b class="className">getOutputEncoding</b>()</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns the output encoding set by the user (see: setOutputEncoding()). Defaults to ENCODING_UNICODE.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code><i>template &lt;class T, class S&gt;</i><br>void&nbsp;</code></font></td>
+<td><code><b class="className">readLine</b>(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+A global function defined in WordBuilder.h, this reads a line of text from one of the config files into a name/value pair. You probably won't need to ever use this.
+</td>
+</tr>
+
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>size_t&nbsp;</code></font></td>
+<td><code><b class="className">mymbstowcs</b>(wchar_t *dest, const char *src, size_t maxCount)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+A global function which reads a stream of characters representing UTF-8 data into a wide character array, if "dest" is not null. Returns the number of wide character elements converted, or zero if there is an error. Characters outside the basic multilingual plane generate an error. Besides this detail, this function conforms to the security recommendations of RFC 3629.
+</td>
+</tr>
+
+
+</tbody></table>
+
+
+<br>&nbsp;<hr>
+
+<h3>Methods in Detail </h3>
+
+<!-- Table header -->
+<table summary="" width="100%" border="1" cellpadding="3" cellspacing="0" style="border:2px solid #999999;"><tbody>
+<tr bgcolor="#AAFFBB">
+<th colspan="2" align="left" style="border:1px solid #00CC00;">
+<b style="font: 1.0em sans-serif; font-weight:bold; color: #000000;">WordBuilder.cpp</b></th>
+</tr>
+</tbody></table>
+
+<!-- Elements -->
+
+<h3>WordBuilder</h3>
+<pre>WordBuilder::<b class="className">WordBuilder</b>(const char* modelFile, const char* userWordsFile)</pre>
+<dl><dd>Constructs a WordBuilder object from two files. Most developers will prefer this constructor.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>modelFile</code> - Path to "Myanmar.model", a file that describes the Wait Zar model. <a href="http://waitzar.googlecode.com/svn/trunk/win32_source/Myanmar.model">Download a copy from the SVN.</a></dd>
+<dd><code>userWordsFile</code> - Path to "mywords.txt", an (optional) UTF-8-encoded file specifying additional user romanisations --one per line-- of the form "myanmar = roman".</dd>
+<!--dt><b>Returns:</b></dt><dd>nothing</dd-->
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>WordBuilder</h3>
+<pre>WordBuilder::<b class="className">WordBuilder</b>(char * model_buff, size_t model_buff_size)</pre>
+<dl><dd>Constructs a WordBuilder object from a character stream of Myanmar.model.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>model_buff</code> - The ASCII-encoded stream of character data obtained from performing an fread() on Myanmar.model.</dd>
+<dd><code>model_buff_size</code> - The length of "model_buff" in bytes.</dd>
+<!--dt><b>Returns:</b></dt><dd>nothing</dd-->
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>WordBuilder</h3>
+<pre>WordBuilder::<b class="className">WordBuilder</b>(unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)</pre>
+<dl><dd>Constructs a WordBuilder object from a set of raw data describing how it disambiguates.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>dictionary</code> - The list of words in the dictionary. A 2-D jagged array; each row in the array is of the form [S][x<sub><font size="-2">0</font></sub>][x<sub><font size="-2">1</font></sub>][x<sub><font size="-2">2</font></sub>]...[x<sub><font size="-2">S-1</font></sub>], where S is the size of the string (in the Zawgyi-One encoding) and x<sub><font size="-2">N</font></sub> is the N<sup><font size="-2">th</font></sup> character in that string. Note that the trailing zero is always omitted from dictionary entries.</dd>
+<dd><code>dictMaxID</code> - The number of entries in "dictionary".</dd>
+<dd><code>dictMaxSize</code> - The number of possible elements in "dictionary". Any new entries (from mywords.txt) increments dictMaxID until it reaches dictMaxSize, then throws an error.</dd>
+<dd><code>nexus</code> - A mapping of transitions which can be made by the Wait Zar model. Also a 2-D jagged array, the first element represents the initial state, and subsequent elements are referred to by ID. Rows are of the form [S][x<sub><font size="-2">0</font></sub>][x<sub><font size="-2">1</font></sub>]...[x<sub><font size="-2">S-1</font></sub>], where S is the number of elements in that row, and each element x<sub><font size="-2">N</font></sub> is of the form 0xXXXXXXYY, where 0xYY is the character for that transition, and 0xXXXXXX is the id (starting from zero) of the element in "nexus" to jump to if that character is pressed. If Y == '~', then X represents an index in the "prefix" array instead, and its transition occurs when the spacebar is pressed. Note that this assumes platforms with 32-bit integers. </dd>
+<dd><code>nexusMaxID</code> - The number of entries in "nexus".</dd>
+<dd><code>nexusMaxSize</code> - The number of possible elements in "nexus". Any new entries (from mywords.txt) increments nexusMaxID until it reaches nexusMaxSize, then throws an error. Due to the distribution of nexi versus dictionary entries, this is very unlikely to happen, even with large dictionaries.</dd>
+<dd><code>prefix</code> - A 2-D jagged array of pairs consisting of mappings and arrays. (This is not as complex as it sounds.) By example, consider each row as [S<sub><font size="-2">1</font></sub>][S<sub><font size="-2">2</font></sub>][x<sub><font size="-2">0A</font></sub>][x<sub><font size="-2">0B</font></sub>]..[x<sub><font size="-2">S<sub><font size="-2">1</font></sub>A</font></sub>][x<sub><font size="-2">S<sub><font size="-2">1</font></sub>B</font></sub>][y<sub><font size="-2">0</font></sub>]..[y<sub><font size="-2">S<sub><font size="-2">2</font></sub></font></sub>], where S<sub><font size="-2">1</font></sub> is the number of prefix mappings, and S<sub><font size="-2">2</font></sub> is the number of word entries at this particular prefix. The mappings are TWO entries wide in this case; for each mapping entry, the first element of the pair contains the ID of the prefix to transition on, and the second contains the index of the prefix entry to transition to if that prefix indeed is being considered. The word entries are simpler; each element corresponds to a single array element which points to the ID of the candidate word. This array is sorted by order of likelihood --note, however, that except for the zero-gram entry, there is no guarentee that the prefix word list contains all possible words. </dd>
+<dd><code>prefixMaxID</code> - The number of entries in "prefix".</dd>
+<dd><code>prefixMaxSize</code> - The number of possible elements in "prefix". Any new entries (from mywords.txt) increments prefixMaxID until it reaches prefixMaxSize, then throws an error. Due to the fact that trigrams are not entered for custom words, it is extrememely unlikely, if not impossible, that overflow occurs of this nature.</dd>
+<dt><b>Remarks:</b></dt><dd>By default, the "max size" elements are set (by Wait Zar) to 1.5 times the "max ID" values.</dd>
+<!--dt><b>Returns:</b></dt><dd>nothing</dd-->
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>~WordBuilder</h3>
+<pre>WordBuilder::<b class="className">~WordBuilder</b>()</pre>
+<dl><dd>Destructor for the WordBuilder class. 
+</dl></dd>
+<dd><dl>
+<dt><b>Remarks:</b></dt><dd>This function does not clean up all memory allocated by WordBuilder, which was designed to operate as a Singleton over the entire lifetime of the Wait Zar process.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>typeLetter</h3>
+<pre>bool WordBuilder::<b class="className">typeLetter</b>(char letter)</pre>
+<dl><dd>"Types" this letter by updating the current nexus pointed to by the model. Typing '~' will probably throw the model into an inconsistent state; use "typeSpace()" to accomplish this.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>letter</code> - The ASCII letter to type.</dd>
+<dt><b>Returns:</b></dt><dd><code>true</code> if the letter caused a valid transition from the current nexus to a new nexus, and <code>false</code> if it did not.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>typeSpace</h3>
+<pre>std::pair&lt;bool, unsigned int&gt; WordBuilder::<b class="className">typeSpace</b>(int quickJumpID)</pre>
+<dl><dd>Confirms a word choice. If quickJumpID is set, this word is selected. Else, the current selected word (updated by calls to moveRight()) is selected. This also updates the prefix array, adding the selected word as the most recently typed prefix.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>quickJumpID</code> - Pick an element by id (zero-indexed). If you are using the number keys to select words, remember to transform your input; the number keys go from 1..0, but represent quickJumpIDs 0..9</dd>
+<dt><b>Returns:</b></dt><dd>A pair. The boolean component is <code>true</code> if a valid word exists and was selected; <code>false</code> otherwise. The unsigned integer component is the ID of that selected word.  </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>backspace</h3>
+<pre>bool WordBuilder::<b class="className">backspace</b>()</pre>
+<dl><dd>Deletes the most recent nexus transition performed via typeLetter(). Effectively, it's an "undo" button, to allow users to correct misspellings in their romanisations. 
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd><code>true</code> if the model is not at nexus zero, <code>false</code> if it is now, or if no backspacing is possible. If <code>false</code> is returned, the model has effectively soft reset, and there is no reason to show the user any choices.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>reset</h3>
+<pre>void WordBuilder::<b class="className">reset</b>(bool fullReset)</pre>
+<dl><dd>Resets the current nexus to zero and clears all typed letters. This should be performed after every call to typeSpace(). 
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>fullReset</code> - If <code>true</code>, the current trigram is also dropped. This means that typing "ma" "sar" "chin", then reset(true) then "bu" will prevent "ma" "sar" "chin" from affecting the ordering of choices for "bu".</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>moveRight</h3>
+<pre>bool WordBuilder::<b class="className">moveRight</b>(int amt)</pre>
+<dl><dd>Intended to help IME developers; the WordBuilder object tracks the currently selected item (which is returned by a call to typeSpace(-1)) through the use of repeated calls to moveRight(1) and moveRight(-1).
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>amt</code> - The number of elements to move right by. Can be negative. Should not be zero. </dd>
+<dt><b>Returns:</b></dt><dd><code>false</code> if the move could not be made, or if amt==0. <code>true</code> otherwise.  </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getCurrSelectedID</h3>
+<pre>int WordBuilder::<b class="className">getCurrSelectedID</b>()</pre>
+<dl><dd>Gets the index of the currently selected word.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd>The (zero-ordered) index of the currently selected word, or -1 if no words exist for the current romanisation string.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>getPossibleChars</h3>
+<pre>std::vector&lt;char&gt; WordBuilder::<b class="className">getPossibleChars</b>()</pre>
+<dl><dd>Returns a list of valid nexus moves from this location. Entering any of these with typeLetter() will guarentee a return value of <code>true</code>. Currently, this function returns an empty vector after calling model->reset() --this may be fixed in the future. For now, if you need a list of all valid first-word transitions, you might try something like: 
+<br><code>model-&gt;reset(true); model-&gt;typeLetter('k'); model-&gt;backspace(); model-&gt;getPossibleChars();</code>
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd>A (possibly empty) array of valid character transitions from this nexus. The '~' transition is not included.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getPossibleWords</h3>
+<pre>std::vector &lt;unsigned int&gt; WordBuilder::<b class="className">getPossibleWords</b>()</pre>
+<dl><dd>Gets a list of all possible Burmese words for the current romanisation string, or for the "only possible string" from this point forward (retrieved with getParenString()) if such a string exists.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns:</b></dt><dd>A (possibly empty) vector of available word ids. Call getWordKeyStrokes() to get each word's encoding in Unicode 5.1, Zawgyi-One, or Win Innwa.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>insertTrigram</h3>
+<pre>void WordBuilder::<b class="className">insertTrigram</b>(unsigned short* trigram_ids, int num_used_trigrams)</pre>
+<dl><dd>Whenever typeSpace() is called, the word which is selected is added to the current trigram. The trigram is used to disambiguate words with greater accuracy than just listing the most probable one first (a zero-gram approach). The current trigram should <i>always</i> represent the three most recently typed words. If this is not the case (e.g., the user uses the left/right arrow keys to move between words, or clicks the mouse to move the cursor) then insertTrigram() should be called to update the current trigram to accurately reflect the most recent three words.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>trigram_ids</code> - A list of (up to) three recently typed words, arranged with the most recent word at index zero.</dd>
+<dd><code>num_used_trigrams</code> - The number of entries in trigram_ids. Usually 3, but may also be 2, 1, or 0 in certain cases.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getWordString</h3>
+<pre>wchar_t* WordBuilder::<b class="className">getWordString</b>(unsigned int id)</pre>
+<dl><dd>Gets the Zawgyi-One-encoded string for the given dictionary word, by id. Calling getPossibleWords(), for example, might be followed by several calls to getWordString(). Note that the string's encoding will <i>always</i> be Zawgyi-One; this function's intended use is to return the string for rendering by Wait Zar. Also, not that repeated calls to getWordString() should copy the result locally to avoid duplication. For example:
+<br><code>
+<br>wchar_t* word1 = new wchar_t[100];
+<br>wchar_t* tempWord1 = model->getWordString(12);
+<br>wcscpy(word1, tempWord1);
+<br>wchar_t* word2 = new wchar_t[100];
+<br>wchar_t* tempWord2 = model->getWordString(24);
+<br>wcscpy(word2, tempWord2);
+<br></code>
+<br>At this point, "tempWord1" and "tempWord2" <b>both</b> contain a reference to word 24's string, which is probably not what one wants. As expected, "word1" and "word2" contain the strings for words 12 and 24 respectively.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>id</code> - The id of the word to retrieve from the dictionary.</dd>
+<dt><b>Returns: </b></dt><dd>A wide-character string of that word's Zawgyi-One encoding.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getWordKeyStrokes</h3>
+<pre>std::vector &lt;unsigned short&gt; WordBuilder::<b class="className">getWordKeyStrokes</b>(unsigned int id)</pre>
+<dl><dd>Gets a vector of code points for the current encoding. If encoding==ENCODING_ZAWGYI, this returns the same code points that getWordString() does (except, of course, as unsigned shorts instead of wchar_t's. Note, however, that both data types are usually 2 bytes).
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>id</code> - The id of the word to retrieve from the dictionary. </dd>
+<dt><b>Returns:</b></dt><dd>An array of keystrokes for typing this word in the Zawgyi-One, Win Innwa, or Unicode 5.1 encoding (depends on the value for setOutputEncoding()). This array can easily be transformed into a wide-character string if necessary.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getParenString</h3>
+<pre>wchar_t* WordBuilder::<b class="className">getParenString</b>()</pre>
+<dl><dd>Retrieves the string which, if typed, would represent the only possible path to the only possible word(s) from this point onwards. For example, if you type "singa" and then call getParenString(), the result will be "pore". Wait Zar uses this information by default; you only need to call getParenString() if you want to display the assumed keystrokes to the user (presumably, in parentheses).
+</dl></dd>
+<dd><dl>
+<dt><b>Returns: </b></dt><dd>The parenthesized string. If wcslen() of this is zero, then there is no shortcut from this point. Note that this wchar_t* will always be ASCII text; the wide characters are not strictly necessary.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getStopCharacter</h3>
+<pre>unsigned short WordBuilder::<b class="className">getStopCharacter</b>(bool isFull)</pre>
+<dl><dd>Gets the full or half "stop" character for the Myanmar language. Encoding-dependent.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>isFull</code> - If <code>true</code> returns the full stop. Else, returns the half stop. </dd>
+<dt><b>Returns: </b></dt><dd>The character code. For Unicode 5.1 and Zawgyi-One, this is the same. Only Win Innwa is different.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>addRomanization</h3>
+<pre>bool WordBuilder::<b class="className">addRomanization</b>(wchar_t* myanmar, char* roman)</pre>
+<dl><dd>Adds a new word to the model. Trigrams do not benefit this word, but this usually doesn't matter much, since heavily contested words already exist in the model. Where the word gets added and why this addition may fail are a bit arbitrary now, but sensible use of this function will never lead to any serious difficulties.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>myanmar</code> - The Zawgyi-One encoding of the character to add (it will be automatically converted to any other encoding.)</dd>
+<dd><code>roman</code> - The romanisation for this myanmar word.</dd>
+<dt><b>Returns: </b></dt><dd><code>true</code> if the romanisation was sucessfully added; <code>false</code> otherwise. If the return value is <code>false</code>, call getLastError() to see what went wrong.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getLastError</h3>
+<pre>wchar_t* WordBuilder::<b class="className">getLastError</b>()</pre>
+<dl><dd>Certain common error messages are stored; retrieve the latest one with this function. Not all errors are associated with a message; you'll have to check the source code to see which ones are.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns: </b></dt><dd>The most recent error message.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>setOutputEncoding</h3>
+<pre>void WordBuilder::<b class="className">setOutputEncoding</b>(unsigned int encoding)</pre>
+<dl><dd>Sets the output encoding. The functions getWordKeyStrokes() and getStopChar() are affected by the current encoding. Setting the output encoding to an invalid value (say, "900") will not fail, but will cause undefined results from encoding-related functions.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>encoding</code> - The new output encoding. Can be ENCODING_UNICODE, ENCODING_WININNWA, or ENCODING_ZAWGYI. All constants are defined in WordBuilder.h. Note that ENCODING_UNICODE refers specifically to Unicode 5.1 (Parabaik, PadaukOT, and Myanmar3, plus most newer fonts.) Zawgyi-One is commonly used for the web, and Win Innwa is often seen in the oldest computerized documents. In general, Wait Zar tries to promote Unicode 5.1 when the choice is available.  </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>getOutputEncoding</h3>
+<pre>unsigned int WordBuilder::<b class="className">getOutputEncoding</b>()</pre>
+<dl><dd>Retrieves the current encoding of the model.
+</dl></dd>
+<dd><dl>
+<dt><b>Returns: </b></dt><dd>The current encoding. Most likely this is one of the following: ENCODING_UNICODE, ENCODING_ZAWGYI, ENCODING_WININNWA, all of which are defined in WordBuilder.h.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>readLine</h3>
+<pre>template &lt;class T, class S&gt;
+<br>void WordBuilder::<b class="className">readLine</b>(T* stream, size_t &amp;index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet)</pre>
+<dl><dd><b>Global Function.</b> Reads a line of text from a stream and updates the current index on that stream. This was moved to WordBuilder.h to preserve modular design, but it's really messy (it has to be implemented in the header, as a template function, for instance.) Probably, there's no need to use this.
+<br>Reads a line of text as a name/value pair: "name = value", according to the various flags set.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>stream</code> - The char* or wchar_t* array pertaining to your data. </dd>
+<dd><code>index</code> - The index to start reading your data stream from. This is updated (hence why it is passed by reference) based on how many units are read from the stream. </dd>
+<dd><code>streamSize</code> - The size of the stream. "index" will never be incremented beyond this value. </dd>
+<dd><code>nameHasASCII</code> - If <code>true</code>, the name is allowed to have ASCII characters. Else, these are filtered. </dd>
+<dd><code>nameHasMyanmar</code> - If <code>true</code>, the name is allowed to have characters in the range \u1000..\u109F. Else, these are filtered. </dd>
+<dd><code>nameHasSymbols</code> - If <code>true</code>, the name is allowed to have special symbols (+^!_). Else, these are filtered. </dd>
+<dd><code>valueHasASCII</code> - If <code>true</code>, the value is allowed to have ASCII characters. Else, these are filtered. </dd>
+<dd><code>valueHasMyanmar</code> - If <code>true</code>, the value is allowed to have characters in the range \u1000..\u109F. Else, these are filtered. </dd>
+<dd><code>valueHasSymbols</code> - If <code>true</code>, the value is allowed to have special symbols (+^!_). Else, these are filtered. </dd>
+<dd><code>nameRet</code> - A reference to the name char* or wchar_t* string in which the return value is stored. </dd>
+<dd><code>valRet</code> - A reference to the value char* or wchar_t* string in which the return value is stored. </dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<h3>mymbstowcs</h3>
+<pre>size_t WordBuilder::<b class="className">mymbstowcs</b>(wchar_t *dest, const char *src, size_t maxCount)</pre>
+<dl><dd><b>Global Function. </b> Surprisingly enough, there is no simple, cross-platform way to convert UTF-8 characters (in a char* array) to wide characters (in a wchar_t* array). Hence, this function exists as a light-weight (mosty) RFC 3629-compliant converter. Can also be used to determine the necessary size of the resultant wchar_t* array.
+<br>This function mimics mbstowcs, but it automatically assumes the UTF-8 code page (or whatever) that hinders this function under Windows without requiring the complexity of iconv in Linux.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>dest</code> -The destination array for the wide-character stream. Can be NULL. </dd>
+<dd><code>src</code> -The source array of char* UTF-8 characters. For example, you might consider using fopen() and fread() to read a UTF-8 file into a char* array, and then feed it into this function to create wide characters. </dd>
+<dd><code>maxCount</code> -The maximum number of src elements to convert. If char* is null-terminated (which it should be!) then simply set this to 0 to have mymbstowcs() figure it out for you. </dd>
+<dt><b>Returns: </b></dt><dd>The number of wide characters converted, or zero if there was an error.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
+
+<!-- Footer -->
+<br>&nbsp;
+<p><font size="-1">Copyright 2008 by Seth N. Hetu. Released under the Apache License, version 2.0. Please read the <a href="http://waitzar.googlecode.com/svn/trunk/LICENSE">License</a> and <a href="http://waitzar.googlecode.com/svn/trunk/NOTICE">Notice</a> files before copying this document.</font></p>
+
+<!-- HTML end -->
+</body>
+</html>
