@@ -1,27 +1,28 @@
-lib_LTLIBRARIES = libwaitzar.la
-include_HEADERS = WordBuilder.h
+## Source directory
 
-noinst_HEADERS = \
-	regex.h \
-	lib.h \
-	fontmap.h \
-	fontconv.h
+h_sources = \
+                    fontconv.h \
+                    fontmap.h \
+                    lib.h \
+                    regex.h \
+                    SentenceList.h \
+                    WordBuilder.h
 
-libwaitzar_la_SOURCES = \
-	WordBuilder.cpp \
-	WordBuilder.h \
-	SentenceList.cpp \
-	SentenceList.h \
-	regex.cpp \
-	lib.cpp \
-	fontmap.cpp \
-	fontconv.cpp \
-	ExternalModelTester.cpp
+cc_sources = \
+                    fontconv.cpp \
+                    fontmap.cpp \
+                    lib.cpp \
+                    regex.cpp \
+                    SentenceList.cpp \
+                    ExternalModelTester.cpp \
+                    WordBuilder.h
 
-libwaitzar_la_docdir = ${datadir}/doc/${PACKAGE} 
+library_includedir=$(includedir)/$(GENERIC_LIBRARY_NAME)-$(GENERIC_API_VERSION)/$(GENERIC_LIBRARY_NAME)
+library_include_HEADERS = $(h_sources)
 
-libwaitzar_la_doc_DATA = ../Wait_Zar_Model_API.html
+INCLUDES = -I$(top_srcdir)
 
-
-
+lib_LTLIBRARIES= libwaitzar-1.0.0.la
+libwaitzar_1_0_0_la_SOURCES= $(h_sources) $(cc_sources)
+libwaitzar_1_0_0_la_LDFLAGS= -version-info $(GENERIC_LIBRARY_VERSION) -release $(GENERIC_RELEASE)
 
