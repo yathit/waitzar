@@ -15,6 +15,9 @@
 
 #include "lib.h"
 
+namespace waitzar 
+{
+
 //copy string
 void cpy(wchar_t* dst, const wchar_t* src){
 	while(*dst++=*src++);
@@ -107,3 +110,6 @@ int len(const wchar_t* str){
 //    }
 //    return retval;
 //}
+
+
+} //End waitzar namespace

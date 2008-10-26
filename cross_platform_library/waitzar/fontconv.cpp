@@ -15,6 +15,9 @@
 
 #include "fontconv.h"
 
+namespace waitzar 
+{
+
 void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	/* declare hash style buffers */
 	wchar_t srcValHash[CHAR_RANGE]={0};
@@ -210,3 +213,6 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	
 	return;
 }
+
+} //End waitzar namespace
+

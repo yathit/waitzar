@@ -15,6 +15,8 @@
 #include "WordBuilder.h"
 
 
+namespace waitzar 
+{
 
 /**
  * Intended to encapsulate the cursor & the list of possible words into a single class,
@@ -55,7 +57,10 @@ private:
 	void updateTrigrams(WordBuilder *model);
 };
 
+} //End waitzar namespace
+
 #endif //_SENTENCELIST
+
 
 
 
