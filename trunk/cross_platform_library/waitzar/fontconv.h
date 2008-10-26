@@ -13,6 +13,7 @@
    http://code.google.com/p/burglish/source/browse/trunk/desktop/bgl_core
 */
 
+
 #ifndef __FONTCONV_H__
 #define __FONTCONV_H__
 
@@ -29,6 +30,13 @@
 	#define HIBYTE(a)           ((unsigned char)((((unsigned long)(a)) >> 8) & 0xff))
 #endif
 
+namespace waitzar 
+{
+
 void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont);
 
+} //End waitzar namespace
+	
 #endif //__FONTCONV_H__
+	
+

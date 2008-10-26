@@ -13,10 +13,14 @@
    http://code.google.com/p/burglish/source/browse/trunk/desktop/bgl_core
 */
 
+
 #ifndef __LIB_H__
 #define __LIB_H__
 
 #include <wchar.h>
+
+namespace waitzar 
+{
 
 void cpy(wchar_t* dst, const wchar_t* src);
 void sub(wchar_t* dst, wchar_t* src, wchar_t* from, wchar_t* to, bool replaceAll=false);
@@ -28,4 +32,8 @@ int len(const wchar_t* str);
 //void mcpy ( wchar_t * dst , wchar_t * src , int len );
 //int mlen ( wchar_t* src );
 
+} //End waitzar namespace
+	
 #endif //end define __LIB_H__
+
+

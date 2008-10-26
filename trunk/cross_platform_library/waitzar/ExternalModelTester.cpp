@@ -3,8 +3,10 @@
 
 #include <stdio.h>
 
-#include "fontconv.h"
-#include "WordBuilder.h"
+#include <waitzar/fontconv.h>
+#include <waitzar/WordBuilder.h>
+
+using namespace waitzar;
 
 
 //Function prototype:

@@ -13,7 +13,6 @@
    http://code.google.com/p/burglish/source/browse/trunk/desktop/bgl_core
 */
 
-
 #ifndef __REGEX_H__
 #define __REGEX_H__
 
@@ -64,6 +63,9 @@ struct Burglish_Regex_Results{
 	wchar_t* pointer;
 };
 
+namespace waitzar 
+{
+
 /* regex headers */
 class Regex{
 	public:
@@ -88,4 +90,9 @@ class Regex{
 void test_block();
 #endif
 
+} //End waitzar namespace
+
 #endif //end define __REGEX_H__
+
+
+

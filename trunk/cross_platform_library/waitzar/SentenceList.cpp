@@ -4,8 +4,14 @@
  * Please refer to the end of the file for licensing information
  */
 
+
+
 #include "SentenceList.h"
 
+
+
+namespace waitzar 
+{
 
 
 SentenceList::SentenceList ()
@@ -148,7 +154,7 @@ std::list<int>::iterator SentenceList::end()
 }
 
 
-
+} //End waitzar namespace
 
 
 /*
@@ -164,3 +170,4 @@ std::list<int>::iterator SentenceList::end()
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+

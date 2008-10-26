@@ -21,7 +21,7 @@ GENERIC_API_VERSION=1.0.0
 AC_SUBST(GENERIC_API_VERSION)
 
 #shared library versioning
-GENERIC_LIBRARY_VERSION=1:0:0
+GENERIC_LIBRARY_VERSION=1:0
 
 
 dnl --------------------------------

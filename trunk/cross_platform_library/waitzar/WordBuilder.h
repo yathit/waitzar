@@ -4,6 +4,7 @@
  * Please refer to the end of the file for licensing information
  */
 
+
 #ifndef _WORDBUILDER
 #define _WORDBUILDER
 
@@ -24,6 +25,9 @@
 #define ENCODING_ZAWGYI 2
 #define ENCODING_WININNWA 3
 
+
+namespace waitzar 
+{
 
 
 /**
@@ -140,6 +144,8 @@ private:
 
 
 
+
+
 size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount);
 
 
@@ -228,9 +234,12 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 
 
 
+} //End waitzar namespace
 
 
 #endif //_WordBUILDER
+
+
 
 
 
@@ -247,4 +256,6 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 
