@@ -1,0 +1,1 @@
+g++ -o ModelTester -Lwaitzar -Iwaitzar -DTEST_FLAG  waitzar/fontmap.h waitzar/fontmap.cpp waitzar/fontconv.h waitzar/fontconv.cpp waitzar/regex.h waitzar/regex.cpp waitzar/lib.cpp waitzar/lib.h waitzar/WordBuilder.h waitzar/WordBuilder.cpp waitzar/SentenceList.h waitzar/SentenceList.cpp ExternalModelTester.cpp
