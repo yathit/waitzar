@@ -6,7 +6,7 @@ Homepage: http://code.google.com/p/waitzar/
 Vcs-Browser: http://code.google.com/p/waitzar/source/browse/#svn/trunk/cross_platform_library
 Vcs-Svn: http://waitzar.googlecode.com/svn/trunk/cross_platform_library
 Build-Depends: debhelper (>= 5), dpkg-dev (>= 1.14.13), autotools-dev, pkg-config
-Standards-Version: 3.8.0
+Standards-Version: 3.7.3
 
 Package: libwaitzar
 Section: utils
