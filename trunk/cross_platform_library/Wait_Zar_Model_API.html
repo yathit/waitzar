@@ -104,6 +104,13 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br><br><code>./compile_tests.sh<br></code>
 <br>Now you can run the tester with:
 <br><br><code>./ModelTester<br></code>
+<br>If you get some kind of "cannot load shared object" error, then you probably installed the library locally. Run:
+<br><code>sudo gedit /etc/ld.so.conf</code>
+<br>...and add the following line at the end of the file:
+<br><code>/usr/local/lib</code>
+<br>Then, run:
+<br><code>sudo ldconfig</code>
+<br>...and then re-run your binary. It should run just fine now.
 <br>And, now is a pretty good time to learn ant or make.
 
 
