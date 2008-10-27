@@ -10,6 +10,20 @@ namespace waitzar
 {
 
 
+
+/**
+ * Load a model given the Wait Zar binary model and a series of text files containing user additions.
+ * @param modelFile is "Myanmar.model"
+ * @param userWordsFiles contains several "mywords.txt"-style files.
+ * If an exact match (roman+myanmar) is encountered in userWordsFiles[n+1] that was already in userWordsFiles[n], the 
+ * newest entry is ignored.
+ */	
+ WordBuilder::WordBuilder (const char* modelFile, std::vector<std::string> userWordsFiles)
+{
+	init(modelFile, userWordsFiles);
+}
+	
+
 /**
  * Load a model given the Wait Zar binary model and a text file containing user additions.
  * @param modelFile is "Myanmar.model"
@@ -18,6 +32,14 @@ namespace waitzar
  *  causes unpredictable behavior.
  */
 WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePath)
+{
+	std::vector<std::string> oneFile;
+	oneFile.push_back(userWordsFilePath);
+	init(modelFilePath, oneFile);
+}
+
+
+void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userWordsFilePaths) 
 {
 	//Step one: open the model file (ASCII)
 	FILE* modelFile = fopen(modelFilePath, "r");
@@ -39,74 +61,75 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 	//Reclaim memory
 	delete [] model_buff;
 
-	///Now, load the user's custom words (optional)
-	FILE* userFile = fopen(userWordsFilePath, "rb");
-	if (userFile == NULL) {
-		return;
-	}
+	//Now, load the user's custom words (optional)
+	for (int i=0; i<userWordsFilePaths.size(); i++) {
+	  FILE* userFile = fopen(userWordsFilePaths[i].c_str(), "rb");
+	  if (userFile == NULL) {
+	    continue;
+	  }
 
-	//Get file size
-	fseek (userFile, 0, SEEK_END);
-	long fileSize = ftell(userFile);
-	rewind(userFile);
+	  //Get file size
+	  fseek (userFile, 0, SEEK_END);
+	  long fileSize = ftell(userFile);
+	  rewind(userFile);
 
-	//Read it all into an array, close the file.
-	char * buffer = new char[fileSize]; // (char*) malloc(sizeof(char)*fileSize);
-	size_t buff_size = fread(buffer, 1, fileSize, userFile);
-	fclose(userFile);
-	if (buff_size==0) {
-		return; //Empty file.
-	}
+	  //Read it all into an array, close the file.
+	  char * buffer = new char[fileSize]; // (char*) malloc(sizeof(char)*fileSize);
+	  size_t buff_size = fread(buffer, 1, fileSize, userFile);
+	  fclose(userFile);
+	  if (buff_size==0) {
+	    return; //Empty file.
+	  }
 
-	//Finally, convert this array to unicode
-	wchar_t * uniBuffer = new wchar_t[buff_size];
+	  //Finally, convert this array to unicode
+	  wchar_t * uniBuffer = new wchar_t[buff_size];
+	  
+	  //old:
+	  //size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
+	  //new:
+	  size_t numUniChars = mymbstowcs(NULL, buffer, buff_size);
+	  if (buff_size==numUniChars) {
+	    wprintf(L"Warning! Conversion to wide-character string of mywords.txt probably failed...\n");
+	    return;
+	  }
 
+	  uniBuffer = new wchar_t[numUniChars]; // (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
+	  if (mymbstowcs(uniBuffer, buffer, buff_size)==0) {
+	    printf("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
+	    return;
+	  }
+	  delete [] buffer;
 
-	//old:
-	//size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
-	//new:
-	size_t numUniChars = mymbstowcs(NULL, buffer, buff_size);
-	if (buff_size==numUniChars) {
-		wprintf(L"Warning! Conversion to wide-character string of mywords.txt probably failed...\n");
-		return;
-	}
+	  //Skip the BOM, if it exists
+	  size_t currPosition = 0;
+	  if (uniBuffer[currPosition] == 0xFEFF)
+	    currPosition++;
+	  else if (uniBuffer[currPosition] == 0xFFFE) {
+	    printf("mywords.txt appears to be backwards. You should fix the Unicode encoding using Notepad or another Windows-based text utility.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
+	    return;
+	  }
 
-	uniBuffer = new wchar_t[numUniChars]; // (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
-	if (mymbstowcs(uniBuffer, buffer, buff_size)==0) {
-		printf("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
-		return;
-	}
-	delete [] buffer;
+	  //Read each line
+	  wchar_t* name = new wchar_t[100];
+	  char* value = new char[100];
+	  while (currPosition<numUniChars) {
+	    //Get the name/value pair using our nifty template function....
+	    readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, name, value);
 
-	//Skip the BOM, if it exists
-	size_t currPosition = 0;
-	if (uniBuffer[currPosition] == 0xFEFF)
-		currPosition++;
-	else if (uniBuffer[currPosition] == 0xFFFE) {
-		printf("mywords.txt appears to be backwards. You should fix the Unicode encoding using Notepad or another Windows-based text utility.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored.");
-		return;
-	}
+	    //Make sure both name and value are non-empty
+	    if (strlen(value)==0 || wcslen(name)==0)
+	      continue;
+	    
+	    //Add this romanization
+	    if (!this->addRomanization(name, value, true)) {
+	      printf("Error adding Romanisation");
+	    }
+	  }
 
-	//Read each line
-	wchar_t* name = new wchar_t[100];
-	char* value = new char[100];
-	while (currPosition<numUniChars) {
-		//Get the name/value pair using our nifty template function....
-		readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, name, value);
-
-		//Make sure both name and value are non-empty
-		if (strlen(value)==0 || wcslen(name)==0)
-			continue;
-
-		//Add this romanization
-		if (!this->addRomanization(name, value)) {
-			printf("Error adding Romanisation");
-		}
-	}
-
-	delete [] uniBuffer;
-	delete [] name;
-	delete [] value;
+	  delete [] uniBuffer;
+	  delete [] name;
+	  delete [] value;
+      }
 }
 
 
@@ -912,8 +935,12 @@ wchar_t* WordBuilder::getLastError()
 	return mostRecentError;
 }
 
-
 bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
+{
+  return this->addRomanization(myanmar, roman, false);
+}
+
+bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDuplicates)
 {
 	//First task: find the word; add it if necessary
 	int dictID;
@@ -1027,8 +1054,12 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
 	size_t wordStart = 2+prefix[currPrefixID][0]*2;
 	for (size_t i=0; i<prefix[currPrefixID][1]; i++) {
 		if (prefix[currPrefixID][wordStart + i] == dictID) {
-			wcscpy(mostRecentError, L"Word is already in dictionary!");
-			return false;
+			if (!ignoreDuplicates) {
+			  wcscpy(mostRecentError, L"Word is already in dictionary!");
+			  return false;
+			} else {
+			  return true;
+			}
 		}
 	}
 
