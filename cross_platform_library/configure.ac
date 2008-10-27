@@ -17,11 +17,11 @@ GENERIC_MINOR_VERSION=0
 GENERIC_MICRO_VERSION=0
 
 #API version (often = GENERIC_MAJOR_VERSION.GENERIC_MINOR_VERSION)
-GENERIC_API_VERSION=1.0.0
+GENERIC_API_VERSION=1.0
 AC_SUBST(GENERIC_API_VERSION)
 
 #shared library versioning
-GENERIC_LIBRARY_VERSION=1:0
+GENERIC_LIBRARY_VERSION=1:0:0
 
 
 dnl --------------------------------
@@ -58,7 +58,7 @@ dnl Generates Makefile's, configuration files and scripts
 dnl -----------------------------------------------
 
 AC_OUTPUT(Makefile \
-          waitzar-1.0.0.pc \
+          waitzar-1.0.pc \
           waitzar/Makefile
 )
 
