@@ -1,7 +1,7 @@
 ## top directory
 
 #Build in these directories:
-SUBDIRS= $(GENERIC_LIBRARY_NAME)
+SUBDIRS= $(GENERIC_LIBRARY_NAME) data
 
 #Distribute these directories:
 DIST_SUBDIRS = $(GENERIC_LIBRARY_NAME)
