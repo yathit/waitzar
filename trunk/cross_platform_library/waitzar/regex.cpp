@@ -33,13 +33,14 @@
  *
  */
 
+
 #include "regex.h"
 #include "lib.h"
 
-//#include <stdlib.h> will need for malloc
-
 namespace waitzar 
 {
+
+//#include <stdlib.h> will need for malloc
 
 /* pass regex pattern to constructor */
 Regex::Regex(const wchar_t* pat, bool global, bool greedy){
@@ -470,6 +471,5 @@ void Regex::sub(wchar_t*srcStr, const wchar_t* replStr, wchar_t* destStr){
 	cpy(destStr,this->buffer);
 }
 
-
-
 } //End waitzar namespace
+

@@ -13,7 +13,6 @@
    http://code.google.com/p/burglish/source/browse/trunk/desktop/bgl_core
 */
 
-
 #ifndef __LIB_H__
 #define __LIB_H__
 
@@ -35,5 +34,3 @@ int len(const wchar_t* str);
 } //End waitzar namespace
 	
 #endif //end define __LIB_H__
-
-

@@ -51,7 +51,7 @@ int main(int argc, const char* argv[])
 	
 	//Create your model as an object.
 	//NOTE: You should not mix printf() and wprintf() (it might behave unexpectedly). So, for unicode programs, always use wprintf().
-	WordBuilder *model = new WordBuilder("../win32_source/Myanmar.model", "../win32_source/mywords.txt");
+	WordBuilder *model = new WordBuilder("/usr/local/share/waitzar/Myanmar.model", "/usr/local/share/waitzar/mywords.txt");
 	wprintf(L"Model loaded correctly.\n\n");
 
 

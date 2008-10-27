@@ -18,6 +18,7 @@
 namespace waitzar 
 {
 
+
 /**
  * Intended to encapsulate the cursor & the list of possible words into a single class,
  *   and to fix the reverse-insertion error at the same time.
@@ -57,10 +58,10 @@ private:
 	void updateTrigrams(WordBuilder *model);
 };
 
+
 } //End waitzar namespace
 
 #endif //_SENTENCELIST
-
 
 
 

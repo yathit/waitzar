@@ -16,6 +16,12 @@
 #ifndef __FONTMAP_H__
 #define __FONTMAP_H__
 
+#include <wchar.h>
+#include "lib.h"
+
+namespace waitzar 
+{
+
 #define Zawgyi_One 0
 #define M_Myanmar1 1
 #define UniBurma 2
@@ -36,8 +42,6 @@
 #define FLEN 16
 #define FVLEN 226  //+ 5 /*Addition*/32,13,10,47,9}
 
-#include <wchar.h>
-#include "lib.h"
 
 enum FM_FONTTYPE{UNKNOWN=-1,ASCII, UNICODE_PARTIAL, UNICODE_5_1=51};
 
@@ -119,8 +123,6 @@ struct FontMap{
 };
 extern FontMap _f[FLEN];
 
-namespace waitzar 
-{
 
 //Useful global functions
 unsigned short getExtLength(FontMap fontMap, unsigned int id);
@@ -135,8 +137,6 @@ wchar_t* getAfterValue(FontMap fontMap, unsigned int id);
 wchar_t* getExtValue(FontMap fontMap, unsigned int id);
 
 } //End waitzar namespace
-	
 
 #endif // __FONTMAP_H__
-
 
