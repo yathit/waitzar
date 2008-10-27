@@ -3,7 +3,7 @@ files_MYWORDS = mywords.txt
 
 pkgdata_DATA = \
 	Myanmar.model \
-	mywords.txt \
+	mywords.txt 
 
 EXTRA_DIST = $(files_MYWORDS) $(files_MODEL)
 

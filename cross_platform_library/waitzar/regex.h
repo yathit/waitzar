@@ -13,8 +13,14 @@
    http://code.google.com/p/burglish/source/browse/trunk/desktop/bgl_core
 */
 
+
 #ifndef __REGEX_H__
 #define __REGEX_H__
+
+#include <wchar.h>
+
+namespace waitzar 
+{
 
 #define MAXCHARINSQUAREBRACKET 0x40 /* [abcdef] */
 #define MAXSOURCESTRLEN 0xFFFF /* Length of Input Str to match */	
@@ -28,7 +34,6 @@
  #define NULL 0
 #endif
 
-#include <wchar.h>
 
 struct Burglish_Regex_Range{
 	int start;
@@ -63,9 +68,6 @@ struct Burglish_Regex_Results{
 	wchar_t* pointer;
 };
 
-namespace waitzar 
-{
-
 /* regex headers */
 class Regex{
 	public:
@@ -93,6 +95,3 @@ void test_block();
 } //End waitzar namespace
 
 #endif //end define __REGEX_H__
-
-
-

@@ -4,12 +4,8 @@
  * Please refer to the end of the file for licensing information
  */
 
-
 #ifndef _WORDBUILDER
 #define _WORDBUILDER
-
-//Don't let Visual Studio warn us to use the _s functions
-#define _CRT_SECURE_NO_WARNINGS
 
 //Necessary libraries
 #include <wchar.h>
@@ -19,15 +15,27 @@
 #include <vector>
 #include "fontconv.h"
 
+namespace waitzar 
+{
+
+//If defined, we are running on Linux
+//#ifdef __STDC_ISO_10646__  200104L
+// ...whatever...
+//#endif
+
+//Windows and Linux have different "Unicode-aware" methods
+//No they don't...
+/*#define copystr(a, b)      wcscpy((a), (b))
+#define catstr(a, b)       wcscat((a), (b))
+#define lenstr(a)          wcslen((a))
+#define printstr(a, b, c)  swprintf((a), 150, (b), (c))
+#define compstr(a, b)      wcscmp((a), (b))*/
 
 //Useful constants
 #define ENCODING_UNICODE 1
 #define ENCODING_ZAWGYI 2
 #define ENCODING_WININNWA 3
 
-
-namespace waitzar 
-{
 
 
 /**
@@ -144,8 +152,6 @@ private:
 
 
 
-
-
 size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount);
 
 
@@ -233,13 +239,10 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 }
 
 
-
 } //End waitzar namespace
 
 
 #endif //_WordBUILDER
-
-
 
 
 
@@ -256,6 +259,4 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 

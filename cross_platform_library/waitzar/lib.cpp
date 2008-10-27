@@ -111,5 +111,5 @@ int len(const wchar_t* str){
 //    return retval;
 //}
 
-
 } //End waitzar namespace
+

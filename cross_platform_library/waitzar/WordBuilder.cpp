@@ -4,12 +4,11 @@
  * Please refer to the end of the file for licensing information
  */
 
-
 #include "WordBuilder.h"
 
+namespace waitzar 
+{
 
-namespace waitzar {
-	
 
 /**
  * Load a model given the Wait Zar binary model and a text file containing user additions.

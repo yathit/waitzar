@@ -15,8 +15,10 @@
 
 #include "fontconv.h"
 
+
 namespace waitzar 
 {
+
 
 void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	/* declare hash style buffers */
@@ -92,37 +94,6 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	
 	*dstTmp=0x0; /* string should b terminated by null char :P */
 	
-	if (dstFont==WinInnwa) {
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"Before crash\n");
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"\nPrinting srcValHash:\n");
-		for (int i=0; i<CHAR_RANGE; i++) {
-			wprintf(L"  %x\n", srcValHash[i]);
-		}
-		
-		wprintf(L"\nPrinting srcExtHash:\n");
-		for (int i=0; i<CHAR_RANGE; i++) {
-			wprintf(L"  %x\n", srcExtHash[i]);
-		}
-		
-		wprintf(L"\nPrinting srcTmp:\n");
-		for (srcTmp = src; *srcTmp; srcTmp++) {
-			wprintf(L"  %x\n", *srcTmp);
-		}
-		
-		wprintf(L"\nPrinting dstTmp:\n");
-		for (dstTmp = dst; *dstTmp; dstTmp++) {
-			wprintf(L"  %x\n", *dstTmp);
-		}
-		
-		
-		wprintf(L"----------------------------------------\n");
-		wprintf(L"Now crashing:\n");
-		wprintf(L"----------------------------------------\n");
-		return;
-	}
-	
 	srcTmp = dst;
 	dstTmp = tmpBuffer;
 	
@@ -156,7 +127,6 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 		*dstTmp++ = *srcTmp++;
 	}
 	*dstTmp=0x0;
-	
 	
 	dstTmp = tmpBuffer;
 	
@@ -214,5 +184,5 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	return;
 }
 
-} //End waitzar namespace
 
+} //End waitzar namespace

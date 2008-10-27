@@ -24,8 +24,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-
 #include "fontmap.h"
+
+namespace waitzar 
+{
 
 FontMap _f[FLEN]={
 {
@@ -221,10 +223,6 @@ ASCII
 }};
 
 
-namespace waitzar 
-{
-
-
 
 //Useful global functions
 unsigned short getExtLength(FontMap fontMap, unsigned int id) {
@@ -283,5 +281,5 @@ wchar_t* getExtValue(FontMap fontMap, unsigned int id) {
 	return temp;
 }
 
-
 } //End waitzar namespace
+
