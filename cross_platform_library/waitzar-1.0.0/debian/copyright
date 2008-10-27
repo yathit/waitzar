@@ -1,0 +1,37 @@
+This package was debianized by Seth N. Hetu <sorlok_reaves@yahoo.com> on
+Mon, 27 Oct 2008 15:12:44 +0800
+
+It was downloaded from http://code.google.com/p/waitzar
+
+Upstream Author: Seth N. Hetu <sorlok_reaves@yahoo.com>
+
+This software is copyright (c) 2008 by Seth N. Hetu.
+
+This package is free software; you can redistribute it and/or modify
+it under the terms of the Apache License 2.0. Please refer to:
+http://www.apache.org/licenses/LICENSE-2.0
+...for more information.
+ 
+Unless required by applicable law or agreed to in writing, the copyright holder 
+provides the Work (and each Contributor provides its Contributions) on an 
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express 
+or implied, including, without limitation, any warranties or conditions of TITLE, 
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. 
+The Legal Entity exercising permissions granted by this License is/are solely 
+responsible for determining the appropriateness of using or redistributing the Work 
+and will assume any risks associated with exercise of permissions under this License. 
+ 
+The Debian packaging is (C) 2008, Seth N. Hetu <sorlok_reaves@yahoo.com> and
+is licensed under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+You should have received a copy of the GNU General Public License
+along with these packaging files; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
+
+
+
