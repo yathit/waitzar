@@ -37,6 +37,7 @@ int main(int argc, const char* argv[])
 			wprintf(L"Switched to wide mode.\n");
 		}
 	}
+	
 
 	//Set the locale??
 	/*char* localeInfo = setlocale(0, "japanese");

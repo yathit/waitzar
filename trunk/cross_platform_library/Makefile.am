@@ -7,7 +7,7 @@ SUBDIRS= $(GENERIC_LIBRARY_NAME)
 DIST_SUBDIRS = $(GENERIC_LIBRARY_NAME)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = waitzar-1.0.0.pc
+pkgconfig_DATA = waitzar-1.0.pc
 
 EXTRA_DIST = \
              autogen.sh \
