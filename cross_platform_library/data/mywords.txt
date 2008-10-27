@@ -1,0 +1,17 @@
+﻿#Add all words according to the following notation:
+# mm = roman
+# where mm is the word in Burmese, in the encoding of your choice (Zawgyi for now)
+# ...and roman is the romanisation of that word. For example:
+#အား = ar
+#ဣတ္ = ate
+
+#Words reported by our users (will be incorporated into the main dictionary later).
+ဆီမ့္ = seint
+#၎ = lakaung
+
+#Testing...
+မဂၤလာပါ = minggalarpar
+super-long-ish-super-long-word = super
+
+#Special test:
+ေယာက္်ား = yaukyarr

@@ -3,8 +3,13 @@
 
 #include <stdio.h>
 
-#include <waitzar/fontconv.h>
-#include <waitzar/WordBuilder.h>
+#ifdef TEST_FLAG
+  #include <fontconv.h>
+  #include <WordBuilder.h>
+#else
+  #include <waitzar/fontconv.h>
+  #include <waitzar/WordBuilder.h>
+#endif
 
 using namespace waitzar;
 

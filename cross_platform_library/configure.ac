@@ -59,6 +59,7 @@ dnl -----------------------------------------------
 
 AC_OUTPUT(Makefile \
           waitzar-1.0.pc \
+          data/Makefile \
           waitzar/Makefile
 )
 
