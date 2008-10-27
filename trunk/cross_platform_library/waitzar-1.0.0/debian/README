@@ -1,0 +1,16 @@
+Readme: waitzar
+--------------------
+
+This is the encapsulation API for the WaitZar Burmese language model.
+It was programmed in C++, and tested on Windows and Linux.
+The package was developed on Debian Linux, and is used heavily 
+in the scim-waitzar IMEngine. 
+
+The WaitZar project's home page is:
+  http://code.google.com/p/scim-waitzar/
+
+A simple example file is included with the source, or can be downloaded from:
+  http://waitzar.googlecode.com/svn/trunk/cross_platform_library/ExternalModelTester.cpp
+More information can be found in the API documentation:
+  http://waitzar.googlecode.com/svn/trunk/cross_platform_library/Wait_Zar_Model_API.html
+
