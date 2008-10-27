@@ -85,7 +85,10 @@ The key benefit of using this library is that its internal components will almos
 Please see below for documentation of each method in WordBuilder.cpp. For now, we will explain how to load a model and run some queries on it. ExternalModelTester.cpp contains several good examples.
 
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Compiling the Example</b>
-<br>You should first compile ExternalModelTester.cpp to get a feel for how the Wait Zar model works. Probably, it's best to use ant or make. However, if you're new to compiling code in c++, ant and make might be too much just for this simple example. Open a terminal, and browse to the "ExternalModelTester" folder. Now, enter the following (all on one line)
+<br>You should first compile ExternalModelTester.cpp to get a feel for how the Wait Zar model works. Probably, it's best to use ant or make. However, if you're new to compiling code in c++, ant and make might be too much just for this simple example. Open a terminal, and browse to the "libwaitzar" folder. Now, enter the following (all on one line)
+<br><br><code>g++ -o ModelTester -I/usr/local/include/waitzar-1.0 -lwaitzar-1.0  ExternalModelTester.cpp
+<br></code>
+<br>If you didn't actually compile and install the library, you can always just link it statically. Try something like:
 <br><br><code> g++ 
 <br>-o ModelTester 
 <br>-Lwaitzar -Iwaitzar -DTEST_FLAG  

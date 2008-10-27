@@ -11,6 +11,7 @@ pkgconfig_DATA = waitzar-1.0.pc
 
 EXTRA_DIST = \
              autogen.sh \
+             compile_tests.sh \
              ExternalModelTester.cpp \
              Wait_Zar_Model API.html
 
