@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h> //strtol
 #include <vector>
+#include <string>
 #include "fontconv.h"
 
 namespace waitzar 
@@ -49,6 +50,7 @@ class WordBuilder
 public:
 	WordBuilder (char * model_buff, size_t model_buff_size);
 	WordBuilder (const char* modelFile, const char* userWordsFile);
+        WordBuilder (const char* modelFile, std::vector<std::string> userWordsFiles);
 	WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize);
 	~WordBuilder(void);
 
@@ -77,6 +79,7 @@ public:
 
 	//Re-order the model
 	bool addRomanization(wchar_t* myanmar, char* roman);
+	bool addRomanization(wchar_t* myanmar, char* roman, bool ignoreDuplicates);
 
 	//In case of error
 	wchar_t* getLastError();
@@ -126,7 +129,8 @@ private:
 
 	//Staged Init
 	void init (char * model_buff, size_t model_buff_size);
-    void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
+        void init (const char* modelFile, std::vector<std::string> userWordsFiles);
+        void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
 
 	//Internal stuff
 	std::vector<char> possibleChars;
