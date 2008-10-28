@@ -21,7 +21,6 @@ Section: libdevel
 Architecture: any
 Depends: libwaitzar1 (= ${binary:Version})
 Provides: libwaitzar-dev
-Conflicts: libwaitzar-dev
 Description: encapsulation of the WaitZar Burmese language model
  This package encapsulates and provides a C++ API for accessing
  the WaitZar language model used by scim-waitzar and WaitZar on Windows.
