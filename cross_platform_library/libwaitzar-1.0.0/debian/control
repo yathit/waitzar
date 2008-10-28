@@ -1,18 +1,29 @@
 Source: libwaitzar
-Priority: extra
+Priority: optional
+Section: libs
 Maintainer: Seth N. Hetu <sorlok_reaves@yahoo.com>
+Build-Depends: debhelper (>= 5), autotools-dev, pkg-config
 Homepage: http://code.google.com/p/waitzar/
 Vcs-Browser: http://code.google.com/p/waitzar/source/browse/#svn/trunk/cross_platform_library
 Vcs-Svn: http://waitzar.googlecode.com/svn/trunk/cross_platform_library
-Build-Depends: debhelper (>= 5), autotools-dev, pkg-config
 Standards-Version: 3.7.3
-Section: libs
 
-Package: libwaitzar
-Section: libs
+
+Package: libwaitzar-dev
+Section: libdevel
+Architecture: all
+Depends: libwaitzar0-dev
+Description: transitional package for libwaitzar0-dev
+ This package provides a transition to the version-named package, and can be 
+ safely removed after it has been installed.
+
+
+Package: libwaitzar0-dev
+Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Encapsulation of the WaitZar Burmese language model
+Depends: libwaitzar0 (= ${binary:Version})
+Provides: libwaitzar-dev
+Description: encapsulation of the WaitZar Burmese language model
  This package encapsulates and provides a C++ API for accessing
  the WaitZar language model used by scim-waitzar and WaitZar on Windows.
  It was developed as a cross-platform library, mainly to facilitate 
@@ -25,4 +36,25 @@ Description: Encapsulation of the WaitZar Burmese language model
  The libwaitzar package ships with the WaitZar romanisation, instructions
  on how to load it, and a sample custom dictionary for user-defined words.
  .
- This package provides basic functionality  needed by the scim-waitzar package.
+ This package provides the development libraries and header files needed to
+ develop applications which use the libwaitzar library.
+ 
+ 
+Package: libwaitzar0
+Section: libs
+Architecture: any
+Description: encapsulation of the WaitZar Burmese language model
+ This package encapsulates and provides a C++ API for accessing
+ the WaitZar language model used by scim-waitzar and WaitZar on Windows.
+ It was developed as a cross-platform library, mainly to facilitate 
+ porting the WaitZar IME to various platforms. It is also intended to
+ make it easier to perform research on the WaitZar language model by
+ opening and documenting the same code used by scim-waitzar.
+ .
+ WaitZar features its own custom romanisation, designed to be both
+ easier to learn and faster to type than other Burmese romanisations.
+ The libwaitzar package ships with the WaitZar romanisation, instructions
+ on how to load it, and a sample custom dictionary for user-defined words.
+ .
+ This package provides basic shared-library functionality needed by projects
+ which link to libwaitzar. 
