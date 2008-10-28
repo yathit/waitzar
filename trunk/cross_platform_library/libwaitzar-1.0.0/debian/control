@@ -11,18 +11,8 @@ Standards-Version: 3.7.3
 
 Package: libwaitzar-dev
 Section: libdevel
-Architecture: all
-Depends: libwaitzar0-dev
-Description: transitional package for libwaitzar0-dev
- This package provides a transition to the version-named package, and can be 
- safely removed after it has been installed.
-
-
-Package: libwaitzar0-dev
-Section: libdevel
 Architecture: any
-Depends: libwaitzar0 (= ${binary:Version})
-Provides: libwaitzar-dev
+Depends: libwaitzar
 Description: encapsulation of the WaitZar Burmese language model
  This package encapsulates and provides a C++ API for accessing
  the WaitZar language model used by scim-waitzar and WaitZar on Windows.
@@ -40,7 +30,7 @@ Description: encapsulation of the WaitZar Burmese language model
  develop applications which use the libwaitzar library.
  
  
-Package: libwaitzar0
+Package: libwaitzar
 Section: libs
 Architecture: any
 Description: encapsulation of the WaitZar Burmese language model
