@@ -8,11 +8,20 @@ Vcs-Browser: http://code.google.com/p/waitzar/source/browse/#svn/trunk/cross_pla
 Vcs-Svn: http://waitzar.googlecode.com/svn/trunk/cross_platform_library
 Standards-Version: 3.7.3
 
-
 Package: libwaitzar-dev
 Section: libdevel
+Architecture: all
+Depends: libwaitzar1-dev
+Description: transitional package for libwaitzar1-dev
+ This package provides a transition to the version-named package, and can be 
+ safely removed after it has been installed.
+
+Package: libwaitzar1-dev
+Section: libdevel
 Architecture: any
-Depends: libwaitzar
+Depends: libwaitzar1 (= ${binary:Version})
+Provides: libwaitzar-dev
+Conflicts: libwaitzar-dev
 Description: encapsulation of the WaitZar Burmese language model
  This package encapsulates and provides a C++ API for accessing
  the WaitZar language model used by scim-waitzar and WaitZar on Windows.
@@ -28,11 +37,11 @@ Description: encapsulation of the WaitZar Burmese language model
  .
  This package provides the development libraries and header files needed to
  develop applications which use the libwaitzar library.
- 
- 
-Package: libwaitzar
+
+Package: libwaitzar1
 Section: libs
 Architecture: any
+Depends: ${shlibs:Depends}
 Description: encapsulation of the WaitZar Burmese language model
  This package encapsulates and provides a C++ API for accessing
  the WaitZar language model used by scim-waitzar and WaitZar on Windows.
@@ -48,3 +57,4 @@ Description: encapsulation of the WaitZar Burmese language model
  .
  This package provides basic shared-library functionality needed by projects
  which link to libwaitzar. 
+
