@@ -1,4 +1,5 @@
 usr/include/*
+usr/include/waitzar-1.0/waitzar/*
 usr/lib/lib*.a
 usr/lib/lib*.so
 usr/lib/pkgconfig/*
