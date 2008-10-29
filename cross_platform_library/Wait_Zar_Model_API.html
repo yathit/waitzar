@@ -68,7 +68,7 @@ Style based off the&nbsp;
 <h3>Introduction</h3>
 The Wait Zar Model code, particularly that of WordBuilder.cpp, exists to help independent developers add Wait Zar's typing functionality into their developments. In general, Wait Zar is applicable to any programming task. However, there are certain situations where the hotkeys Wait Zar installs are simply sub-optimal (and this API is more useful). Here are some examples:
 <ul>
-    <li>You are working in Linux, and Wine doesn't work (or, you want something officially supported). A SCIM plugin is currently being developed independently, using this library.</li>
+    <li>You are working in Unix, and don't have access to Wine (or, you want something officially supported). Both Windows-Waitzar and scim-waitzar use this library, so you might consider developing something for your own operating system based on this library.</li>
 	<li>You are playing a game like Counterstrike, where typing is secondary to other actions (movement, aiming, etc.) and you need a different input model.</li>
 	<li>Certain programs cause Wait Zar to constantly refresh (e.g., webcam conversations in MSN) which is something it does slowly. You are the developer for one of these programs, and you want to integrate Wait Zar directly into your program's interface.</li>
 	<li>You are doing research into Natural Language processing. You want to test Wait Zar's accuracy in a series of batch operations, which you clearly don't want to have to key in by hand.</li>
@@ -77,7 +77,7 @@ The Wait Zar Model code, particularly that of WordBuilder.cpp, exists to help in
 <h3>Why Use the Wait Zar API?</h3>
 The key benefit of using this library is that its internal components will almost never change. You can basically just update the latest version of Myanmar.model (from the SVN) and run your program: no re-compiling necessary. In the case of bug fixes and the rare feature enhancement, just download the five or six code files from the SVN repository and re-compile --if there's a problem, rollback to the latest release builds, which we test thoroughly on both Windows and Linux.
 <br>The file mywords.txt is also very "plugable". You can drop in a friend's custom word list, or email your own list to friends. Again, no recompiling is necessary.
-<br>This gives you amazing amount of flexibility, coupled with cross-platform accuracy. Any application developed with this library will respond in the same way on any system. For example, a chat client developer can benefit from the stability of the Wait Zar romanisation (tested and approved by a large community of users, as of version 1.6) and also allow the chatters to add their own words to the dictionary, effecting system-wide enabling of these new words. But enough talk, let's see how it works!
+<br>This gives you amazing amount of flexibility, coupled with cross-platform accuracy. Any application developed with this library will respond in the same way on any system. For example, a chat client developer can benefit from the stability of the Wait Zar romanisation (tested and approved by a large community of users, as of version ~1.6) and also allow the chatters to add their own words to the dictionary, effecting system-wide enabling of these new words. But enough talk, let's see how it works!
 
 <br>&nbsp;<hr>
 
@@ -202,7 +202,6 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br>Win Innwa:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0x70&nbsp;&nbsp;&nbsp;0x75&nbsp;&nbsp;&nbsp;<b class="redbold">0x46</b>&nbsp;&nbsp;&nbsp;0x6d&nbsp;&nbsp;&nbsp;0x79&nbsp;&nbsp;&nbsp;0x6c
 <br></code>
 <br>The section representing "kinzi" has been highlighted in red, in case you were curious. Zawgyi-One and Win Innwa handle this the same way: with a special composed character. Unicode 5.1 demands a specialized encoding sequence to represent <i>kinzi</i>.
-<br><strong><em>NOTE: </em></strong>Currently, on Linux, the above code segfaults when converting output to Win Innwa. This is a known bug.
 
 
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Help &amp; Support</b>
@@ -228,6 +227,16 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Constructs a new WordBuilder object from a given model file and an (optional) list of user-defined words. Most developers will prefer this constructor.
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
+<font size="-1"><code>&nbsp;</code></font></td>
+<td><code><b class="className"> WordBuilder</b>(const char* modelFile, std::vector&lt;std::string&gt; userWordsFiles)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Constructs a new WordBuilder object given a model file and an (optional) array of files containing user-defined words. Duplicate entries are ignored.
 </td>
 </tr>
 
@@ -404,6 +413,16 @@ Adds a given "myanmar" word (encoded according to the Zawgyi-One specification),
 
 <tr>
 <td valign="top" width="1%" align="right">
+<font size="-1"><code>bool&nbsp;</code></font></td>
+<td><code><b class="className">addRomanization</b>(wchar_t* myanmar, char* roman, bool ignoreDuplicates)</code>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Adds a given "myanmar" word (encoded according to the Zawgyi-One specification), and its relative "roman"isation to the model, optionally ignoring duplicate entries. Returns an indication of success; see also: getLastError().
+</td>
+</tr>
+
+<tr>
+<td valign="top" width="1%" align="right">
 <font size="-1"><code>wchar_t*&nbsp;</code></font></td>
 <td><code><b class="className">getLastError</b>()</code>
 <br>
@@ -479,6 +498,20 @@ A global function which reads a stream of characters representing UTF-8 data int
 <dt><b>Parameters:</b></dt>
 <dd><code>modelFile</code> - Path to "Myanmar.model", a file that describes the Wait Zar model. <a href="http://waitzar.googlecode.com/svn/trunk/win32_source/Myanmar.model">Download a copy from the SVN.</a></dd>
 <dd><code>userWordsFile</code> - Path to "mywords.txt", an (optional) UTF-8-encoded file specifying additional user romanisations --one per line-- of the form "myanmar = roman".</dd>
+<!--dt><b>Returns:</b></dt><dd>nothing</dd-->
+</dl>
+</dd>
+</dl>
+<hr>
+
+<h3>WordBuilder</h3>
+<pre>WordBuilder::<b class="className">WordBuilder</b>(const char* modelFile, std::vector&lt;std::string&gt; userWordsFiles)</pre>
+<dl><dd>Constructs a new WordBuilder object given a model file and an (optional) array of files containing user-defined words. Duplicate entries are ignored.
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>modelFile</code> - Path to "Myanmar.model", a file that describes the Wait Zar model. <a href="http://waitzar.googlecode.com/svn/trunk/win32_source/Myanmar.model">Download a copy from the SVN.</a></dd>
+<dd><code>userWordsFiles</code> - A listing of paths to "mywords.txt" files, UTF-8-encoded files specifying additional user romanisations --one per line-- of the form "myanmar = roman".</dd>
 <!--dt><b>Returns:</b></dt><dd>nothing</dd-->
 </dl>
 </dd>
@@ -724,6 +757,23 @@ A global function which reads a stream of characters representing UTF-8 data int
 </dd>
 </dl>
 <hr>
+
+
+<h3>addRomanization</h3>
+<pre>bool WordBuilder::<b class="className">addRomanization</b>(wchar_t* myanmar, char* roman, bool ignoreDuplicates)</pre>
+<dl><dd>Adds a given "myanmar" word (encoded according to the Zawgyi-One specification), and its relative "roman"isation to the model, optionally ignoring duplicate entries. Returns an indication of success; see also: getLastError().
+</dl></dd>
+<dd><dl>
+<dt><b>Parameters:</b></dt>
+<dd><code>myanmar</code> - The Zawgyi-One encoding of the character to add (it will be automatically converted to any other encoding.)</dd>
+<dd><code>roman</code> - The romanisation for this myanmar word.</dd>
+<dd><code>ignoreDuplicates</code> - If <code>false</code> (the default), a duplicate entry will trigger an error. A "duplicate entry" is defined as a myanmar word already in the dictionary with the same romanisation.</dd>
+<dt><b>Returns: </b></dt><dd><code>true</code> if the romanisation was sucessfully added; <code>false</code> otherwise. If the return value is <code>false</code>, call getLastError() to see what went wrong.</dd>
+</dl>
+</dd>
+</dl>
+<hr>
+
 
 
 <h3>getLastError</h3>
