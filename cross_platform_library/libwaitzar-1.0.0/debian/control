@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 5), autotools-dev, pkg-config
 Homepage: http://code.google.com/p/waitzar/
 Vcs-Browser: http://code.google.com/p/waitzar/source/browse/#svn/trunk/cross_platform_library
 Vcs-Svn: http://waitzar.googlecode.com/svn/trunk/cross_platform_library
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 
 Package: libwaitzar-dev
 Section: libdevel
