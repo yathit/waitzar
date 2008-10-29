@@ -3,20 +3,13 @@ Mon, 27 Oct 2008 16:13:15 +0800.
 
 It was downloaded from http://code.google.com/p/waitzar/
 
-Upstream Author(s): 
+Upstream Author(s):  Seth N. Hetu <sorlok_reaves@yahoo.com>
 
-    Seth N. Hetu <sorlok_reaves@yahoo.com>
+Copyright: Copyright (C) 2008 Seth N. Hetu
 
-Copyright: 
-
-    Copyright (C) 2008 Seth N. Hetu
-
-License:
-
-    Apache License 2.0
+License: Apache License 2.0
 
 The Debian packaging is (C) 2008, Seth N. Hetu <sorlok_reaves@yahoo.com> and
 is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
 
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.
+#Todo: add different copyrights for different directories
