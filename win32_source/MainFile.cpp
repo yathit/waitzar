@@ -23,8 +23,8 @@
 
 //Slim-down our list of definitions. Would you believe that this causes NO
 //  noticeable size reduction on Windows XP, VS2003? Perhaps it helps
-//  on Vista.... 
-//Anyway, if you add a new function and get an "undefined" error, comment 
+//  on Vista....
+//Anyway, if you add a new function and get an "undefined" error, comment
 //  the relevant #define out.
 #define NOGDICAPMASKS       //- CC_*, LC_*, PC_*, CP_*, TC_*, RC_
 #define NOKEYSTATES         //- MK_*
@@ -68,7 +68,7 @@
 #include "SentenceList.h"
 
 //Current version
-#define WAIT_ZAR_VERSION _T("1.5+ Beta")
+#define WAIT_ZAR_VERSION _T("1.6")
 
 //Menu item texts
 TCHAR* POPUP_UNI = _T("Unicode 5.1");
