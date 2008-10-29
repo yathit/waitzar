@@ -1,28 +1,18 @@
+/* 
+   fontMap.cpp SVN revision 700
+   Copyright (C) 2007-2008 Prince Ka Naung Project
+   http://code.google.com/p/kanaung/
 
-//////////////////////////////////////////////////////////////////////////////
-//
-// This software will be released under a free software license, the GPLv2.0
-// Feel free to copy and redistribute this software.
-// Please maintain this copyright note for your inclusion of this software 
-// and/or any part of this software.
-//
-// Copyright (C) 2007-2008 Prince Ka Naung Project
-// http://code.google.com/p/kanaung/
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License version 2 as
-// published by the Free Software Foundation;
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
-//////////////////////////////////////////////////////////////////////////////
+   All rights reserved. This code is included under the terms of the GNU General Public License,
+   version 2.0.
+
+   NOTE: Wait Zar maintains its own branch of the Prince KaNaung/Burglish conversion
+   sources, mainly for reasons of validity. Also, apart from fixing warnings and deleting
+   comments, NO maintenance of this code is undertaken by Wait Zar's developers.
+   Those of you interesting in linking in font conversion to your own projects should 
+   grab the latest source from:
+   http://code.google.com/p/burglish/source/browse/trunk/desktop/bgl_core
+*/
 
 #include "fontmap.h"
 

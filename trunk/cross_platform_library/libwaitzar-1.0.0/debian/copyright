@@ -3,7 +3,7 @@ Mon, 27 Oct 2008 16:13:15 +0800.
 
 It was downloaded from http://code.google.com/p/waitzar/
 
-Upstream Author(s):  Seth N. Hetu <sorlok_reaves@yahoo.com>
+Upstream Author:  Seth N. Hetu <sorlok_reaves@yahoo.com>
 
 Copyright: Copyright (C) 2008 Seth N. Hetu
 
@@ -12,4 +12,12 @@ License: Apache License 2.0
 The Debian packaging is (C) 2008, Seth N. Hetu <sorlok_reaves@yahoo.com> and
 is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
 
-#Todo: add different copyrights for different directories
+
+The following files are drawn from the Prince Ka Naung (PKN) Project, SVN revision 700.
+As of that revision, the pkn project was licensed under the GPL version 2, and inclusion of 
+these files is in compliance with the GPL.
+  waitzar/fontconv.(h|cpp)
+  waitzar/fontmap.(h|cpp)
+  waitzar/lib.(h|cpp)
+  waitzar/regex.(h|cpp)
+

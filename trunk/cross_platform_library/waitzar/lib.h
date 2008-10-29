@@ -3,7 +3,8 @@
    Copyright (C) 2007-2008 Prince Ka Naung Project
    http://code.google.com/p/kanaung/
 
-   All rights reserved. (see the NOTICE file in the top directory for more information)
+   All rights reserved. This code is included under the terms of the GNU General Public License,
+   version 2.0.
 
    NOTE: Wait Zar maintains its own branch of the Prince KaNaung/Burglish conversion
    sources, mainly for reasons of validity. Also, apart from fixing warnings and deleting
