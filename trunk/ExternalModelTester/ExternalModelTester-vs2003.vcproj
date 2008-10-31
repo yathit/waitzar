@@ -113,22 +113,22 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath=".\ExternalModelTester.cpp">
+				RelativePath="..\cross_platform_library\ExternalModelTester.cpp">
 			</File>
 			<File
-				RelativePath="..\win32_source\fontconv.cpp">
+				RelativePath="..\cross_platform_library\waitzar\fontconv.cpp">
 			</File>
 			<File
-				RelativePath="..\win32_source\fontmap.cpp">
+				RelativePath="..\cross_platform_library\waitzar\fontmap.cpp">
 			</File>
 			<File
-				RelativePath="..\win32_source\lib.cpp">
+				RelativePath="..\cross_platform_library\waitzar\lib.cpp">
 			</File>
 			<File
-				RelativePath="..\win32_source\regex.cpp">
+				RelativePath="..\cross_platform_library\waitzar\regex.cpp">
 			</File>
 			<File
-				RelativePath="..\win32_source\WordBuilder.cpp">
+				RelativePath="..\cross_platform_library\waitzar\WordBuilder.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -136,19 +136,19 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
-				RelativePath="..\win32_source\fontconv.h">
+				RelativePath="..\cross_platform_library\waitzar\fontconv.h">
 			</File>
 			<File
-				RelativePath="..\win32_source\fontmap.h">
+				RelativePath="..\cross_platform_library\waitzar\fontmap.h">
 			</File>
 			<File
-				RelativePath="..\win32_source\lib.h">
+				RelativePath="..\cross_platform_library\waitzar\lib.h">
 			</File>
 			<File
-				RelativePath="..\win32_source\regex.h">
+				RelativePath="..\cross_platform_library\waitzar\regex.h">
 			</File>
 			<File
-				RelativePath="..\win32_source\WordBuilder.h">
+				RelativePath="..\cross_platform_library\waitzar\WordBuilder.h">
 			</File>
 		</Filter>
 		<Filter

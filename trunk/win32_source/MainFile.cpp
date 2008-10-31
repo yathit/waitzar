@@ -61,11 +61,13 @@
 #include <list>
 
 //Our includes
-#include "WordBuilder.h"
+#include "../cross_platform_library/waitzar/WordBuilder.h"
+#include "../cross_platform_library/waitzar/SentenceList.h"
 #include "PulpCoreFont.h"
 #include "resource.h"
 #include "Hotkeys.h"
-#include "SentenceList.h"
+
+using namespace waitzar;
 
 //Current version
 #define WAIT_ZAR_VERSION _T("1.6")
