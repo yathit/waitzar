@@ -6,7 +6,8 @@
 
 #include <stdio.h>
 #include <tchar.h>
-#include "..\\win32_source\\fontconv.h"
+
+#include "../cross_platform_library/waitzar/fontconv.h"
 
 #include <windows.h>
 #include <string>
@@ -82,11 +83,11 @@ void main(int argc, char* argv[])
 				if (lstrlen(word)>0) {
 					printf("Line: %i\n", lstrlen(word));
 
-					convertFont(temp, word, Zawgyi_One, WinInnwa);
+					waitzar::convertFont(temp, word, Zawgyi_One, WinInnwa);
 					LineToFile(outWinInnwa, temp);
 					LineToFile(outWinInnwa, L"\r\n");
 
-					convertFont(temp, word, Zawgyi_One, Myanmar3);
+					waitzar::convertFont(temp, word, Zawgyi_One, Myanmar3);
 					LineToFile(outUnicode, temp);
 					LineToFile(outUnicode, L"\r\n");
 
