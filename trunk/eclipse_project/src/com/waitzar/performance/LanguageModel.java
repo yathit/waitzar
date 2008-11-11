@@ -82,6 +82,12 @@ public class LanguageModel {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+		
+		try {
+			reader.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 	
 	
