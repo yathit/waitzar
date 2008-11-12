@@ -109,7 +109,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;..\cross_platform_library\src&quot;"
+				AdditionalIncludeDirectories="&quot;..\cross_platform_library\waitzar&quot;"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -163,27 +163,27 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\cross_platform_library\src\ExternalModelTester.cpp"
+				RelativePath="..\cross_platform_library\ExternalModelTester.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\fontconv.cpp"
+				RelativePath="..\cross_platform_library\waitzar\fontconv.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\fontmap.cpp"
+				RelativePath="..\cross_platform_library\waitzar\fontmap.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\lib.cpp"
+				RelativePath="..\cross_platform_library\waitzar\lib.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\regex.cpp"
+				RelativePath="..\cross_platform_library\waitzar\regex.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\WordBuilder.cpp"
+				RelativePath="..\cross_platform_library\waitzar\WordBuilder.cpp"
 				>
 			</File>
 		</Filter>
@@ -193,23 +193,23 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\cross_platform_library\src\fontconv.h"
+				RelativePath="..\cross_platform_library\waitzar\fontconv.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\fontmap.h"
+				RelativePath="..\cross_platform_library\waitzar\fontmap.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\lib.h"
+				RelativePath="..\cross_platform_library\waitzar\lib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\regex.h"
+				RelativePath="..\cross_platform_library\waitzar\regex.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\src\WordBuilder.h"
+				RelativePath="..\cross_platform_library\waitzar\WordBuilder.h"
 				>
 			</File>
 		</Filter>

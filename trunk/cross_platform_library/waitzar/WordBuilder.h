@@ -7,6 +7,9 @@
 #ifndef _WORDBUILDER
 #define _WORDBUILDER
 
+//Don't let Visual Studio warn us to use the _s functions
+#define _CRT_SECURE_NO_WARNINGS
+
 //Necessary libraries
 #include <wchar.h>
 #include <string.h>
