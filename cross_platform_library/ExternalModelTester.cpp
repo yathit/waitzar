@@ -7,11 +7,15 @@
   #include <fontconv.h>
   #include <WordBuilder.h>
 #else
-  //#include <waitzar/fontconv.h>
-  //#include <waitzar/WordBuilder.h>
-  //On windows:
-  #include "../cross_platform_library/waitzar/fontconv.h"
-  #include "../cross_platform_library/waitzar/WordBuilder.h"
+  #ifdef __STDC_ISO_10646__
+    //If defined, we are running on Linux
+    #include <waitzar/fontconv.h>
+    #include <waitzar/WordBuilder.h>
+  #else
+    //On windows:
+    #include "../cross_platform_library/waitzar/fontconv.h"
+    #include "../cross_platform_library/waitzar/WordBuilder.h"
+  #endif
 #endif
 
 using namespace waitzar;
