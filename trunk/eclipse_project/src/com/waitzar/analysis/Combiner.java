@@ -34,6 +34,7 @@ public class Combiner {
 	
 	public static Pattern equalsPattern = Pattern.compile("([^=]+)=(.+)");
 	
+	private static int errorCount;
 
 	public static void main(String[] args) {
 		//Read
@@ -275,6 +276,7 @@ public class Combiner {
 		if (args.length > 2) {
 			specialFile = args[2];
 		}
+		errorCount = 0;
 		readLines(specialFile, new Action() {
 			public void perform(String line) {
 				Matcher m = equalsPattern.matcher(line);
@@ -282,9 +284,16 @@ public class Combiner {
 					throw new RuntimeException("Line doesn't match: " + ZawgyiWord.printMM(line));
 				}
 				
-				specials.put(m.group(1).replaceAll("\\$", "").trim(), m.group(2).trim());
+				String toPut = m.group(1).replaceAll("\\$", "").trim();
+				if (specials.containsKey(toPut)) {
+					System.out.println("Error! Already contains special word: " + ZawgyiWord.printMM(toPut) + " as " + specials.get(toPut));
+					errorCount++;
+				}
+				specials.put(toPut, m.group(2).trim());
 			};
 		});
+		if (errorCount>0)
+			throw new RuntimeException("Too many errors (see above).");
 		
 
 		String wordListFile = "words.zg.txt";
