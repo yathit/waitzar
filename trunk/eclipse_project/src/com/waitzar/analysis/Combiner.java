@@ -67,8 +67,7 @@ public class Combiner {
 			if (specials.containsKey(word)) {
 				try {
 					String line = word + " = " + specials.get(word) + "\n";
-					if (word.length()==1) {
-						if (word.charAt(0)>=0x1040 && word.charAt(0)<=0x1049)
+					if (word.length()==1 && word.charAt(0)>=0x1040 && word.charAt(0)<=0x1049) {
 							writeFile.write(line);
 					} else
 						afterDigitsBuffer.append(line);
@@ -116,6 +115,7 @@ public class Combiner {
 			writeFile.write(afterDigitsBuffer.toString());
 		} catch (IOException ex) {
 			System.out.println("Error writing: " + ex.toString());
+			System.exit(1);
 		}
 		
 		
