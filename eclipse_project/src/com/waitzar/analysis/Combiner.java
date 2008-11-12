@@ -104,7 +104,10 @@ public class Combiner {
 			wordsPerRhyme.get(rhyme).add(word);
 			
 			//Print this option in our dictionary
-			afterDigitsBuffer.append(word + " = " + onsets.get(onset) + rhymes.get(rhyme) + "\n");
+			String onsetStr = onsets.get(onset);
+			if (onset.length()==1 && onset.charAt(0)=='\u1021')
+				onsetStr = "";
+			afterDigitsBuffer.append(word + " = " + onsetStr + rhymes.get(rhyme) + "\n");
 			
 			count++;
 		}
