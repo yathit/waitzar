@@ -1411,8 +1411,7 @@
 ေဖာင္ = phaung
 ေဖာင္း = phaung
 ေဖါင္း = phaung
-ဖုိင္ = file
-ဖုိင္ = file
+ဖုိင္ = phine
 ဖုိင့္ = phhite
 ဖစ္ = phit
 ဖည္ = phi
