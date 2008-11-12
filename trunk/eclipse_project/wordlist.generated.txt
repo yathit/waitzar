@@ -186,7 +186,6 @@
 ဂ်ပန္ = japan
 ဘေလာဂ္ = blog
 ႆ = tha
-ႆ = tha
 သ္ွ = the
 က = ka
 ကာ = kar
@@ -2353,7 +2352,6 @@
 အိ = i
 အီ = e
 ဤ = ei
-ဤ = ei
 အီး = ee
 အု = u
 ဥ = oa
@@ -2362,7 +2360,6 @@
 အူး = uu
 ဦး = oo
 ေအ = ay
-ဧ = ae
 ဧ = ae
 ေအး = ay
 အဲ = al
@@ -2423,10 +2420,7 @@
 ဥသ္ = oat
 အြန္ = on
 ၌ = nhite
-၌ = nhite
 ၍ = ywae
-၍ = ywae
-၏ = eat
 ၏ = eat
 ၄င္း = lakaung
 
