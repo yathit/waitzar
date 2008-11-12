@@ -51,8 +51,8 @@
 စကၤာပူ = singapore
 အဂၤလိပ္ = english
 သေကၤတ = tinkayta
-ႏ်ဴးကလီးယား = knull
-တိရစၧာန္ = snull
+ႏ်ဴးကလီးယား = nuclear
+တိရစၧာန္ = teyutesan
 ကမၻာ့ = kaba
 ကမၻ = kamba
 ကမၻာ = kabar
@@ -185,8 +185,6 @@
 ဥံဳ = oone
 ဂ်ပန္ = japan
 ဘေလာဂ္ = blog
-ႆ = tha
-က္ = nullat
 သ္ွ = the
 က = ka
 ကာ = kar
@@ -2132,7 +2130,7 @@
 ေလွ်ာ့ = shot
 ေလွ်ာ္ = shaw
 လွ်ံ = shan
-လွ်ဳိ = shnull
+လွ်ဳိ = sho
 လွ်ဳိ႕ = lhloe
 လွ်ဳိး = lhloe
 လွ်က္ = lhlat
@@ -2288,8 +2286,8 @@
 သွ် = sha
 သွ်ား = sharr
 သွ်ိ = shi
-သွ်ဳိ = shnull
-သွ်ဳိး = shnull
+သွ်ဳိ = sho
+သွ်ဳိး = shoe
 ေသွ်ာင္ = shaung
 သွ်တ္ = shat
 ဟ = ha
@@ -2353,16 +2351,13 @@
 အား = aarr
 အိ = ai
 အီ = ae
-ဤ = ei
 အီး = aee
 အု = au
 ဥ = oa
 အူ = auu
-ဦ = ou
 အူး = auu
 ဦး = oo
 ေအ = aay
-ဧ = ae
 ေအး = aay
 အဲ = aal
 အဲ့ = aae
@@ -2421,7 +2416,75 @@
 အသ္ = aat
 ဥသ္ = oat
 အြန္ = aon
-၌ = nhite
-၍ = ywae
-၏ = eat
 ၄င္း = lakaung
+
+
+ANOMALIES:
+ဣ canon to: အိ
+ကြ်တ္ canon to: ကြၽတ္
+ကြ်ံ canon to: ကံြၽ
+ကြ်က္ canon to: ကြၽက္
+ကြ် canon to: ကြၽ
+ကြ်မ္း canon to: ကြၽမ္း
+ကြ်န္ canon to: ကြၽန္
+ကြ်န္း canon to: ကြၽန္း
+ေကြ်း canon to: ေကြၽး
+ႀကံ canon to: ၾကံ
+ႀကံဳ canon to: ၾကံဳ
+ေကၽြး canon to: ေကြၽး
+ကၽြဲ canon to: ကြၽဲ
+ကၽံြ canon to: ကံြၽ
+ကၽြက္ canon to: ကြၽက္
+ကၽြတ္ canon to: ကြၽတ္
+ကၽြန္း canon to: ကြၽန္း
+ကၽြမ္း canon to: ကြၽမ္း
+ခြ်န္ canon to: ခြၽန္
+ခြ်တ္ canon to: ခြၽတ္
+ၿခံ canon to: ျခံ
+ေခၽြ canon to: ေခြၽ
+ေခၽြး canon to: ေခြၽး
+ခၽြဲ canon to: ခြၽဲ
+ခၽံြ canon to: ခံြၽ
+ခၽြင္ canon to: ခြၽင္
+ခၽြတ္ canon to: ခြၽတ္
+ခၽြန္ canon to: ခြၽန္
+ခၽြန္း canon to: ခြၽန္း
+ဂြ်န္ canon to: ဂြၽန္
+ငါ့ canon to: ငါ႔
+ငံု႕ canon to: ငံု႔
+စုိ႕ canon to: စုိ႔
+ေဒါ့ canon to: ေဒါ႔
+ဒါ့ canon to: ဒါ႔
+က္  missing!
+ႏံွ႕ canon to: ႏံွ႔
+ေပါ့တ္ canon to: ေပါ႔တ္
+ေပါ့ canon to: ေပါ႔
+ၿပံဳ canon to: ျပံဳ
+ၿပံဳး canon to: ျပံဳး
+ၿဖံဳ canon to: ျဖံဳ
+ၿဖံဳ႕ canon to: ျဖံဳ႕
+ၿဖံဳး canon to: ျဖံဳး
+ဘြဲ႔ canon to: ဘြဲ႕
+မယ္္ canon to: မ
+ၿမံဳ canon to: ျမံဳ
+မွဲ႕ canon to: မွဲ႔
+ၿမံႇဳး canon to: ျမံႇဳး
+ရႈ canon to: ႐ႈ
+ရႈိင္း canon to: ႐ႈိင္း
+ရႈိ႕ canon to: ႐ႈိ႕
+ရႈိး canon to: ႐ႈိး
+ရႈိက္ canon to: ႐ႈိက္
+ရႈတ္ canon to: ႐ႈတ္
+ရႈန္း canon to: ႐ႈန္း
+ရႈပ္ canon to: ႐ႈပ္
+ရံႈ႕ canon to: ႐ံႈ႕
+ရံႈး canon to: ႐ံႈး
+လန္႕ canon to: လန္႔
+ေဝွ႕ canon to: ေဝွ႔
+သူ႕ canon to: သူ႔
+ဟမ္္ canon to: ဟ
+ဣဋ္  missing!
+ဣတ္ canon to: အိတ္
+ဣဒ္  missing!
+ဣန္  missing!
+အံု႕ canon to: အံု႔
