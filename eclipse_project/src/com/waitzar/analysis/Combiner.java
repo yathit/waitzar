@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JTable.PrintMode;
+
 
 public class Combiner {
 	
@@ -58,11 +60,17 @@ public class Combiner {
 		}
 		
 		int count = 0;
+		StringBuilder afterDigitsBuffer = new StringBuilder();
 		for (String word : dictionaryUnsorted) {
 			//Special cases:
 			if (specials.containsKey(word)) {
 				try {
-					writeFile.write(word + " = " + specials.get(word) + "\n");
+					String line = word + " = " + specials.get(word) + "\n";
+					if (word.length()==1) {
+						if (word.charAt(0)>=0x1040 && word.charAt(0)<=0x1049)
+							writeFile.write(line);
+					} else
+						afterDigitsBuffer.append(line);
 				} catch (IOException ex) {
 					System.out.println("Error writing: " + ex.toString());
 				}
@@ -80,8 +88,13 @@ public class Combiner {
 				}
 			}
 			
-			//Get the rhyme
+			//Special case: "sh" words might re-order the rhyme in order to match the onset.
 			String rhyme = word.replaceFirst(onset, "-");
+			if (onset.length()>0 && onsets.get(onset).equals("sh")) {
+				rhyme = rhyme.replaceAll("\u1033\u102D", "\u102D\u1033");
+			}
+			
+			//Get the rhyme
 			if (!rhymes.containsKey(rhyme)){
 				incorrectWords.add(rhyme);
 				wordsPerRhyme.put(rhyme, new ArrayList<String>());
@@ -90,13 +103,15 @@ public class Combiner {
 			wordsPerRhyme.get(rhyme).add(word);
 			
 			//Print this option in our dictionary
-			try {
-				writeFile.write(word + " = " + onsets.get(onset) + rhymes.get(rhyme) + "\n");
-			} catch (IOException ex) {
-				System.out.println("Error writing: " + ex.toString());
-			}
+			afterDigitsBuffer.append(word + " = " + onsets.get(onset) + rhymes.get(rhyme) + "\n");
 			
 			count++;
+		}
+		
+		try {
+			writeFile.write(afterDigitsBuffer.toString());
+		} catch (IOException ex) {
+			System.out.println("Error writing: " + ex.toString());
 		}
 		
 		
