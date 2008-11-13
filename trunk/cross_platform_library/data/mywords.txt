@@ -5,12 +5,13 @@
 #အား = ar
 #ဣတ္ = ate
 
-#Words reported by our users
+#Words reported by our users (will be incorporated into the main dictionary later).
 ဆီမ့္ = seint
+#၎ = lakaung
 
 #Words which cannot be added to the model, as they already have a standard romanisation.
 ဖုိင္ = file
 
-#Convenience (shortcut) words
-မဂၤလာပါ = mingalarpar
-ေယာက္်ား = yaukyarr
+#Testing...
+မဂၤလာပါ = minggalarpar
+super-long-ish-super-long-word = super

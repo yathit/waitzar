@@ -9,9 +9,9 @@
 ဆီမ့္ = seint
 #၎ = lakaung
 
+#Words which cannot be added to the model, as they already have a standard romanisation.
+ဖုိင္ = file
+
 #Testing...
 မဂၤလာပါ = minggalarpar
 super-long-ish-super-long-word = super
-
-#Special test:
-ေယာက္်ား = yaukyarr
