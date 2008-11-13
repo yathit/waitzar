@@ -5,26 +5,32 @@
 
 <style type="text/css">
 	<!--
-	h1{ 
-	  color: #AAFFBB; 
+	h1{
+	  color: #AAFFBB;
 	  font: 3em sans-serif;
 	  margin: 12px 12px 12px 12px;
-	} 
+	}
 	a {
-	  color:#00EEEE; 
+	  color:#00EEEE;
 	  text-decoration:none;
 	}
-	h2{ 
-	  color: #AAFFBB; 
+	h2{
+	  color: #AAFFBB;
 	  font: 1.5em monospace;
 	  font-weight: bold;
 	  margin: 12px 10px 10px 20px;
-	} 
-	h3{ 
-	  color: #FFFFFF; 
+	}
+	h4{
+	  color: #AAFFBB;
+	  font: 1.2em monospace;
+	  font-weight: bold;
+	  margin: 12px 10px 12px 20px;
+	}
+	h3{
+	  color: #FFFFFF;
 	  font: 1.2em sans-serif;
 	  font-weight: bold;
-	} 
+	}
 	* {
 	  color: #FFFFFF;
 	}
@@ -63,6 +69,7 @@ Style based off the&nbsp;
 
 <h1>The Wait Zar Model</h1>
 <h2>Application Programming Interface</h2>
+<h4>Version 1.0</h4>
 <hr>
 
 <h3>Introduction</h3>
@@ -89,16 +96,16 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br><br><code>g++ -o ModelTester -I/usr/local/include/waitzar-1.0 -lwaitzar-1.0  ExternalModelTester.cpp
 <br></code>
 <br>If you didn't actually compile and install the library, you can always just link it statically. Try something like:
-<br><br><code> g++ 
-<br>-o ModelTester 
-<br>-Lwaitzar -Iwaitzar -DTEST_FLAG  
-<br>waitzar/fontmap.h waitzar/fontmap.cpp 
-<br>waitzar/fontconv.h waitzar/fontconv.cpp 
-<br>waitzar/regex.h waitzar/regex.cpp 
-<br>waitzar/lib.cpp waitzar/lib.h 
-<br>waitzar/WordBuilder.h waitzar/WordBuilder.cpp 
-<br>waitzar/SentenceList.h waitzar/SentenceList.cpp 
-<br>ExternalModelTester.cpp 
+<br><br><code> g++
+<br>-o ModelTester
+<br>-Lwaitzar -Iwaitzar -DTEST_FLAG
+<br>waitzar/fontmap.h waitzar/fontmap.cpp
+<br>waitzar/fontconv.h waitzar/fontconv.cpp
+<br>waitzar/regex.h waitzar/regex.cpp
+<br>waitzar/lib.cpp waitzar/lib.h
+<br>waitzar/WordBuilder.h waitzar/WordBuilder.cpp
+<br>waitzar/SentenceList.h waitzar/SentenceList.cpp
+<br>ExternalModelTester.cpp
 <br></code>
 <br>For your reference, the file compile_tests.sh contains this one-line text string. You can invoke it with:
 <br><br><code>./compile_tests.sh<br></code>
@@ -126,7 +133,7 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br>At this point, "possWords" contains the IDs of all the Myanmar words we can type. In general, the Wait Zar model uses a word's abstract id for all comparisons and storage-related tasks (rather than, say, strings). This id is assigned based on the word's position in Myanmar.model; it changes whenever the Myanmar.model file changes. Words contained in mywords.txt are assigned IDs as well, up to a maximum number.
 
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Showing or Typing a Word</b>
-<br>When a Burmese word is shown <em>within</em> Wait Zar, it is shown using the Zawgyi-One encoding. Thus, calling model->getWordString() will return a wchar_t* encoded according to the rules of the Zawgyi-One specification. This will happen <strong>regardless</strong> of the model's current encoding! Getting a string in the encoding of your choice is somewhat tricky: the easiest way to do it as of now is to call getWordKeyStrokes() and then construct the wide-character string on your own. Here's an example of how to get the Win Innwa-encoded string for the first (and only) "kote" 
+<br>When a Burmese word is shown <em>within</em> Wait Zar, it is shown using the Zawgyi-One encoding. Thus, calling model->getWordString() will return a wchar_t* encoded according to the rules of the Zawgyi-One specification. This will happen <strong>regardless</strong> of the model's current encoding! Getting a string in the encoding of your choice is somewhat tricky: the easiest way to do it as of now is to call getWordKeyStrokes() and then construct the wide-character string on your own. Here's an example of how to get the Win Innwa-encoded string for the first "kote" listed
 <br><br><code>model-&gt;setOutputEncoding(ENCODING_WININNWA);
 <br>std::vector&lt;unsigned short&gt; currWord = model-&gt;getWordKeyStrokes(possWords[i]);
 <br>wchar_t* printWord[1000];
@@ -134,10 +141,10 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 <br>&nbsp;&nbsp;printWord[i] = keystrokes[i];
 <br>}
 <br>//Note: we need to terminate with a FULL-width zero (not just '\0') to ensure that we actually end the string.
-<br>printWord[keystrokes.size()] = 0x0000; 
+<br>printWord[keystrokes.size()] = 0x0000;
 <br>wprintf(L"  %ls  (", printWord);
 <br></code>
-<br>Actually, the call to wprintf() is somewhat risky; for one thing, you can't mix calls to printf() with those for wprintf() in the same console application (which makes using library code a tedious task). For another thing, the standard Unix console won't print Unicode characters by default, and enabling Unicode isn't always easy. (For this case, because Win Innwa is being used, this particular effect is not noticeable.) Regardless, if you iterated through printWord's wchar_t elements, you would see that their values are correct. 
+<br>Actually, the call to wprintf() is somewhat risky; for one thing, you can't mix calls to printf() with those for wprintf() in the same console application (which makes using library code a tedious task). For another thing, the standard Unix console won't print Unicode characters by default, and enabling Unicode isn't always easy. (For this case, because Win Innwa is being used, this particular effect is not noticeable.) Regardless, if you iterated through printWord's wchar_t elements, you would see that their values are correct.
 
 
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Determining Shortcuts</b>
@@ -205,7 +212,7 @@ Please see below for documentation of each method in WordBuilder.cpp. For now, w
 
 
 <br><br><b style="font: 1.0em sans-serif; font-weight:bold;">Help &amp; Support</b>
-<br>The Wait Zar developers are happy to offer their advice on any project you're doing using Wait Zar. If you discover a problem with the API, please <a href="http://code.google.com/p/waitzar/issues/list">post a bug report</a>. If you just want to chat about how to use the Wait Zar API, please post a new topic on the <a href="http://www.mmgeeks.org/forum/index.php">MM Geeks forum</a>, under the section titled "Burglish/Wait Zar". 
+<br>The Wait Zar developers are happy to offer their advice on any project you're doing using Wait Zar. If you discover a problem with the API, please <a href="http://code.google.com/p/waitzar/issues/list">post a bug report</a>. If you just want to chat about how to use the Wait Zar API, please post a new topic on the <a href="http://www.mmgeeks.org/forum/index.php">MM Geeks forum</a>, under the section titled "Burglish/Wait Zar".
 
 <br>&nbsp;<hr>
 
@@ -267,7 +274,7 @@ Constructs a new WordBuilder object gvien a detailed specification of its inner 
 <td><code><b class="className">~WordBuilder</b>(void)</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Destructor. It is highly recommended that you do not rely on this method to release all memory used by WordBuilder; this hasn't actually been tested yet. As a singleton, however, WordBuilder has no known memory leaks. 
+Destructor. It is highly recommended that you do not rely on this method to release all memory used by WordBuilder; this hasn't actually been tested yet. As a singleton, however, WordBuilder has no known memory leaks.
 </td>
 </tr>
 
@@ -307,7 +314,7 @@ Deletes one letter and moves the current nexus back one; returns false if there 
 <td><code><b class="className">reset</b>(bool fullReset)</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Resets the current romanisation attempt. If "fullReset" is true, it also removes any captured trigrams. 
+Resets the current romanisation attempt. If "fullReset" is true, it also removes any captured trigrams.
 </td>
 </tr>
 
@@ -337,7 +344,7 @@ Gets the index of the current selected item. Returns -1 if there are no items to
 <td><code><b class="className">getPossibleChars</b>()</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Returns all valid moves forward from this point. The prototype of WaitZar uses this, but the release version does not. 
+Returns all valid moves forward from this point. The prototype of WaitZar uses this, but the release version does not.
 </td>
 </tr>
 
@@ -347,7 +354,7 @@ Returns all valid moves forward from this point. The prototype of WaitZar uses t
 <td><code><b class="className">getPossibleWords</b>()</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Returns the IDs of all possible words at this point. Call getWordString() on each ID to retrieve the Zawgyi-One encoded string for each word. 
+Returns the IDs of all possible words at this point. Call getWordString() on each ID to retrieve the Zawgyi-One encoded string for each word.
 </td>
 </tr>
 
@@ -357,7 +364,7 @@ Returns the IDs of all possible words at this point. Call getWordString() on eac
 <td><code><b class="className">insertTrigram</b>(unsigned short* trigram_ids, int num_used_trigrams)</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Re-writes the current accumulated trigram (see method detail, below.) 
+Re-writes the current accumulated trigram (see method detail, below.)
 </td>
 </tr>
 
@@ -367,7 +374,7 @@ Re-writes the current accumulated trigram (see method detail, below.)
 <td><code><b class="className">getWordString</b>(unsigned int id)</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Returns the wide-character string for a Myanmar word (in Zawgyi-One encoding) for a given ID. Note that the wchar_t pointer is shared; multiple calls to this function should use strcpy() to copy the returned value locally, lest all returned values default to that of the final string (see method detail, below.) 
+Returns the wide-character string for a Myanmar word (in Zawgyi-One encoding) for a given ID. Note that the wchar_t pointer is shared; multiple calls to this function should use strcpy() to copy the returned value locally, lest all returned values default to that of the final string (see method detail, below.)
 </td>
 </tr>
 
@@ -377,7 +384,7 @@ Returns the wide-character string for a Myanmar word (in Zawgyi-One encoding) fo
 <td><code><b class="className">getWordKeyStrokes</b>(unsigned int id)</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-For a given id, returns the key strokes required to type that word. Technically similar to getWordString(), but the vector of unsigned short values allows Wait Zar to pass each item to SendInput() fairly cleanly. 
+For a given id, returns the key strokes required to type that word. Technically similar to getWordString(), but the vector of unsigned short values allows Wait Zar to pass each item to SendInput() fairly cleanly.
 </td>
 </tr>
 
@@ -427,7 +434,7 @@ Adds a given "myanmar" word (encoded according to the Zawgyi-One specification),
 <td><code><b class="className">getLastError</b>()</code>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-For any function that may fail with a specific error (for now, only "addRomanization()"), returns the text of that error message. Presumably, one would present the user with this information. 
+For any function that may fail with a specific error (for now, only "addRomanization()"), returns the text of that error message. Presumably, one would present the user with this information.
 </td>
 </tr>
 
@@ -557,7 +564,7 @@ A global function which reads a stream of characters representing UTF-8 data int
 
 <h3>~WordBuilder</h3>
 <pre>WordBuilder::<b class="className">~WordBuilder</b>()</pre>
-<dl><dd>Destructor for the WordBuilder class. 
+<dl><dd>Destructor for the WordBuilder class.
 </dl></dd>
 <dd><dl>
 <dt><b>Remarks:</b></dt><dd>This function does not clean up all memory allocated by WordBuilder, which was designed to operate as a Singleton over the entire lifetime of the Wait Zar process.</dd>
@@ -596,7 +603,7 @@ A global function which reads a stream of characters representing UTF-8 data int
 
 <h3>backspace</h3>
 <pre>bool WordBuilder::<b class="className">backspace</b>()</pre>
-<dl><dd>Deletes the most recent nexus transition performed via typeLetter(). Effectively, it's an "undo" button, to allow users to correct misspellings in their romanisations. 
+<dl><dd>Deletes the most recent nexus transition performed via typeLetter(). Effectively, it's an "undo" button, to allow users to correct misspellings in their romanisations.
 </dl></dd>
 <dd><dl>
 <dt><b>Returns:</b></dt><dd><code>true</code> if the model is not at nexus zero, <code>false</code> if it is now, or if no backspacing is possible. If <code>false</code> is returned, the model has effectively soft reset, and there is no reason to show the user any choices.</dd>
@@ -607,7 +614,7 @@ A global function which reads a stream of characters representing UTF-8 data int
 
 <h3>reset</h3>
 <pre>void WordBuilder::<b class="className">reset</b>(bool fullReset)</pre>
-<dl><dd>Resets the current nexus to zero and clears all typed letters. This should be performed after every call to typeSpace(). 
+<dl><dd>Resets the current nexus to zero and clears all typed letters. This should be performed after every call to typeSpace().
 </dl></dd>
 <dd><dl>
 <dt><b>Parameters:</b></dt>
@@ -644,7 +651,7 @@ A global function which reads a stream of characters representing UTF-8 data int
 
 <h3>getPossibleChars</h3>
 <pre>std::vector&lt;char&gt; WordBuilder::<b class="className">getPossibleChars</b>()</pre>
-<dl><dd>Returns a list of valid nexus moves from this location. Entering any of these with typeLetter() will guarentee a return value of <code>true</code>. Currently, this function returns an empty vector after calling model->reset() --this may be fixed in the future. For now, if you need a list of all valid first-word transitions, you might try something like: 
+<dl><dd>Returns a list of valid nexus moves from this location. Entering any of these with typeLetter() will guarentee a return value of <code>true</code>. Currently, this function returns an empty vector after calling model->reset() --this may be fixed in the future. For now, if you need a list of all valid first-word transitions, you might try something like:
 <br><code>model-&gt;reset(true); model-&gt;typeLetter('k'); model-&gt;backspace(); model-&gt;getPossibleChars();</code>
 </dl></dd>
 <dd><dl>
