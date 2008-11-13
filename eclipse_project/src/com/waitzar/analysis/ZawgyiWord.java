@@ -72,7 +72,7 @@ public class ZawgyiWord {
 	 * @param text
 	 */
 	private void segmentWord(String text) {
-		System.out.println(count++ + " " + printMM(text));
+		//System.out.println(count++ + " " + printMM(text));
 
 		//First, merge all characters to one representation
 		text = unifyText(text);
