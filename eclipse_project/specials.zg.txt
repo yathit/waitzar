@@ -107,7 +107,6 @@ $နလၤာ = ninlar
 $ဘဂၤ = binga
 $သႀကၤန္ = thingyam
 $သေဘၤာ = thinbaw
-$ေယာကၤ်ား = youtkyar
 $သခ်ၤာ = tinchar
 $စကၤာပူ = singapore
 $အဂၤလိပ္ = english
