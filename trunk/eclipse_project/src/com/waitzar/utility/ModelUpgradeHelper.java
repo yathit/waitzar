@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import com.waitzar.performance.wrapper.Myanmar;
@@ -36,8 +37,9 @@ public class ModelUpgradeHelper {
 		//Open the input files
 		Hashtable<String, String> oldModel = new Hashtable<String, String>();
 		Hashtable<String, String> newModel = new Hashtable<String, String>();
-		loadModel(model1Path, oldModel);
-		loadModel(model2Path, newModel);
+		Hashtable<String, ArrayList<String>> newModelPairs = new Hashtable<String, ArrayList<String>>();
+		loadModel(model1Path, oldModel, null);
+		loadModel(model2Path, newModel, newModelPairs);
 		
 		System.out.println("Processing files...");
 		
@@ -81,11 +83,31 @@ public class ModelUpgradeHelper {
 			ex.printStackTrace();
 		}
 		
+		//Print something useful....
+		int maxPairs = 0;
+		for (String s : newModelPairs.keySet()) {
+			int count = newModelPairs.get(s).size();
+			if (count>maxPairs)
+				maxPairs = count;
+		}
+		
+		String sep = "";
+		System.out.println("Maximum Pairs: " + maxPairs);
+		System.out.print("Found In: ");
+		for (String s : newModelPairs.keySet()) {
+			int count = newModelPairs.get(s).size();
+			if (count==maxPairs) {
+				System.out.print(sep + s);
+				sep = ", ";
+			}
+		}
+		System.out.println();
+		
 		System.out.println("Done");
 	}
 
 	
-	public static void loadModel(String fileName, Hashtable<String, String> dictionary) {
+	public static void loadModel(String fileName, Hashtable<String, String> dictionary, Hashtable<String, ArrayList<String>> modelPairs) {
 		//Open the model file
 		BufferedReader reader = null;
 		try {
@@ -107,7 +129,15 @@ public class ModelUpgradeHelper {
 
 				// Assign a word to our dictionary
 				String[] halves = line.split("=");
-				dictionary.put(halves[0].trim(), halves[1].trim());
+				String mm = halves[0].trim();
+				String roman = halves[1].trim();
+				dictionary.put(mm, roman);
+				
+				if (modelPairs!=null) {
+					if (!modelPairs.containsKey(roman))
+						modelPairs.put(roman, new ArrayList<String>());
+					modelPairs.get(roman).add(mm);
+				}
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
