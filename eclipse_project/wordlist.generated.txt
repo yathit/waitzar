@@ -145,7 +145,6 @@
 ဘဂၤ = binga
 သႀကၤန္ = thingyam
 သေဘၤာ = thinbaw
-ေယာကၤ်ား = youtkyar
 သခ်ၤာ = tinchar
 သိပၸံ = theitpan
 သမၸာ = thanpar
@@ -180,8 +179,8 @@
 ႒ = hta
 ဂတ္စ္ = gat
 ဘယ္လ္ = bal
-ေၾသာ္ = thyaw
-ေၾသ = thyay
+ေၾသာ္ = aww
+ေၾသ = or
 ဥံဳ = oone
 ဂ်ပန္ = japan
 ဘေလာဂ္ = blog
@@ -2365,7 +2364,7 @@
 အဲ = al
 အဲ့ = ae
 ေအာ = aww
-ၾသ = thya
+ၾသ = aww
 ေအာ့ = ot
 ေအာ္ = aw
 အံ = an
@@ -2494,3 +2493,6 @@ ANOMALIES:
 ဣဒ္  missing!
 ဣန္  missing!
 အံု႕ canon to: အံု႔
+
+LAST ONSET:ၾသ
+  []

@@ -35,6 +35,12 @@ public class Combiner {
 	public static Pattern equalsPattern = Pattern.compile("([^=]+)=(.+)");
 	
 	private static int errorCount;
+	
+	
+	//DEBUG:
+	private static ArrayList<String> lastOnsetMappings = new ArrayList<String>();
+	private static String lastOnset = "";
+	
 
 	public static void main(String[] args) {
 		//Read
@@ -86,6 +92,11 @@ public class Combiner {
 				if (word.replaceAll(onsOpt+"\u1039", "").contains(onsOpt) && onsOpt.length()>onset.length()) {
 					onset = onsOpt;
 				}
+			}
+			
+			//DEBUG: track?
+			if (onset.equals(lastOnset)) {
+				lastOnsetMappings.add(word);
 			}
 			
 			//Special case: "sh" words might re-order the rhyme in order to match the onset.
@@ -226,6 +237,20 @@ public class Combiner {
 			return;
 		}
 		
+		//DEBUG: Output
+		String sep = "";
+		try {
+			writeFile.write("\n\nLAST ONSET:" + lastOnset + "\n  [");
+			for (String word : lastOnsetMappings) {
+				writeFile.write(sep + word);
+				sep = ", ";
+			}
+			writeFile.write("]\n");
+		} catch (IOException ex) {
+			System.out.println("can't write");
+			ex.printStackTrace();
+		}
+		
 		
 		try {
 			writeFile.close();
@@ -249,7 +274,9 @@ public class Combiner {
 					throw new RuntimeException("Line doesn't match: " + ZawgyiWord.printMM(line));
 				}
 				
-				onsets.put(m.group(1).trim(), m.group(2).trim());
+				String mm = m.group(1).trim();
+				onsets.put(mm, m.group(2).trim());
+				lastOnset = mm;
 			};
 		});
 		
