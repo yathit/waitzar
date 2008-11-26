@@ -145,7 +145,6 @@
 ဘဂၤ = binga
 သႀကၤန္ = thingyam
 သေဘၤာ = thinbaw
-ေယာကၤ်ား = youtkyar
 သခ်ၤာ = tinchar
 သိပၸံ = theitpan
 သမၸာ = thanpar
@@ -180,11 +179,12 @@
 ႒ = hta
 ဂတ္စ္ = gat
 ဘယ္လ္ = bal
-ေၾသာ္ = thyaw
-ေၾသ = thyay
+ေၾသာ္ = aww
+ေၾသ = aww
 ဥံဳ = oone
 ဂ်ပန္ = japan
 ဘေလာဂ္ = blog
+ဆီမ့္ = sseint
 ႆ = tha
 သ္ွ = the
 က = ka
@@ -207,7 +207,7 @@
 ကံ = kan
 ကံ့ = kant
 ကုိ = ko
-ကုိ႔ = khoe
+ကုိ႔ = khoet
 ကုိး = koe
 ကံု = kone
 ကံုး = kone
@@ -220,7 +220,7 @@
 ေကာင္ = kaung
 ေကာင္း = kaung
 ကုိင္ = kine
-ကုိင္း = kyine
+ကုိင္း = kine
 ကစ္ = kit
 ကိစ္ = kate
 ကုဋ္ = kote
@@ -242,8 +242,8 @@
 ကိပ္ = kat
 ကုပ္ = kote
 ကုဗ္ = kote
-ကမ္ = kam
-ကမ္း = kam
+ကမ္ = kan
+ကမ္း = kann
 ကုမ္ = kone
 ကယ္ = kal
 ကယ့္ = kae
@@ -322,7 +322,7 @@
 ေၾကာက္ = kyout
 ႀကိဳက္ = kyite
 ၾကင္ = kyin
-ေၾကာင္ = kaung
+ေၾကာင္ = kyaung
 ေၾကာင့္ = kyout
 ေၾကာင္း = kyaung
 ႀကိဳင္ = kyai
@@ -352,7 +352,7 @@
 ေကြး = kway
 ကြဲ = kwal
 ကြက္ = kwat
-ကြိဳက္ = kyite
+ကြိဳက္ = kwite
 ကြင္း = kwin
 ကြိဳင္ = koi
 ကြတ္ = koot
@@ -370,8 +370,8 @@
 ကံြၽ = kyon
 ကြၽက္ = kyot
 ကြၽတ္ = kyut
-ကြၽန္ = kyan
-ကြၽန္း = kyonn
+ကြၽန္ = khon
+ကြၽန္း = khonn
 ကြၽမ္း = kyun
 ႂကြ = kwa
 ႂကြား = kwyar
@@ -409,7 +409,7 @@
 ေခါင့္ = khout
 ေခါင္း = khaung
 ခုိင္ = khine
-ခုိင္း = khyine
+ခုိင္း = khine
 ခတ္ = khat
 ခုတ္ = khote
 ေခတ္ = khhit
@@ -419,7 +419,7 @@
 ခုန္ = khone
 ခပ္ = khat
 ခုပ္ = khote
-ခမ္း = kham
+ခမ္း = khann
 ခ် = khya
 ခ်ာ = khyar
 ခ်ား = khyar
@@ -518,8 +518,8 @@
 ခံြၽ = khyon
 ခြၽင္ = khywin
 ခြၽတ္ = khyut
-ခြၽန္ = khyan
-ခြၽန္း = khyonn
+ခြၽန္ = khhon
+ခြၽန္း = khhonn
 ႁခြ = khwa
 ေႁခြ = khway
 ႁခြင္း = khwyin
@@ -543,7 +543,7 @@
 ဂုိက္ = gite
 ဂင္ = gin
 ဂင္း = ginn
-ဂုိင္း = gyine
+ဂုိင္း = gine
 ဂစ္ = git
 ဂိဇ္ = gist
 ဂုဏ္ = gohn
@@ -553,7 +553,7 @@
 ဂုတ္ = gote
 ဂန္ = gan
 ဂုန္ = gone
-ဂမ္ = gam
+ဂမ္ = gan
 ဂိမ္း = game
 ဂုိရ္ = gho
 ဂဲလ္ = girl
@@ -591,7 +591,7 @@
 ဂြတ္ = good
 ဂြမ္ = gwan
 ဂြမ္း = gwann
-ဂြၽန္ = gyan
+ဂြၽန္ = ghon
 ဃ = gha
 ေဃာ = ghaww
 င = nga
@@ -622,7 +622,7 @@
 ငန္ = ngan
 ငန္း = ngam
 ငုပ္ = ngote
-ငမ္း = ngam
+ငမ္း = ngann
 ငယ္ = ngal
 ျငာ = ngyar
 ျငား = ngyar
@@ -663,7 +663,7 @@
 ေစာ္ = saw
 စံ = san
 စုိ = so
-စုိ႔ = shoe
+စုိ႔ = shoet
 စုိး = soe
 စံု = sone
 စံုး = sone
@@ -676,7 +676,7 @@
 ေစာင့္ = sout
 ေစာင္း = saung
 စုိင္ = sine
-စုိင္း = syine
+စုိင္း = sine
 စစ္ = sit
 စဥ္ = sin
 စဥ့္ = sint
@@ -699,8 +699,8 @@
 စပ္ = sat
 စိပ္ = sate
 စုပ္ = sote
-စမ္ = sam
-စမ္း = sam
+စမ္ = san
+စမ္း = sann
 စိမ္ = sain
 စိမ့္ = saint
 စိမ္း = sane
@@ -711,6 +711,7 @@
 စ်ာန္ = zhhan
 စြ = swa
 စြာ = swar
+စြီ = swee
 ေစြ = sway
 ေစြ႕ = swae
 စြဲ = swal
@@ -741,7 +742,7 @@
 ဆံ = ssan
 ဆံ့ = ssant
 ဆုိ = sso
-ဆုိ႔ = sshoe
+ဆုိ႔ = sshoet
 ဆုိး = ssoe
 ဆံု = ssone
 ဆံုး = ssone
@@ -755,7 +756,7 @@
 ေဆာင့္ = ssout
 ေဆာင္း = ssaung
 ဆုိင္ = ssine
-ဆုိင္း = ssyine
+ဆုိင္း = ssine
 ဆစ္ = ssit
 ဆည္ = ssi
 ဆည္း = ssee
@@ -773,7 +774,7 @@
 ဆိပ္ = ssate
 ဆုပ္ = ssote
 ေဆာ့ဖ္ = soft
-ဆမ္း = ssam
+ဆမ္း = ssann
 ဆိမ့္ = ssaint
 ဆယ္ = ssal
 ဆယ့္ = ssae
@@ -815,14 +816,14 @@
 ဇင္း = zinn
 ေဇာင္း = zaung
 ဇုိင္ = zine
-ဇုိင္း = zyine
+ဇုိင္း = zine
 ဇာစ္ = zit
 ဇဥ္ = zin
 ေဇဋ္ = zate
 ဇာတ္ = zat
 ဇန္ = zan
 ဇုန္ = zone
-ဇမ္ = zam
+ဇမ္ = zan
 ဇိမ္ = zain
 ဇယ္ = zal
 ဇြဲ = zwal
@@ -844,7 +845,7 @@
 ညံ = nyan
 ညံ့ = nyant
 ညိဳ = nyo
-ညိဳ႕ = nyhoe
+ညိဳ႕ = nyhoet
 ညိဳး = nyoe
 ညက္ = nyat
 ညဳက္ = nyote
@@ -917,7 +918,7 @@
 တံ = tan
 တံ့ = tant
 တုိ = to
-တုိ႔ = thoe
+တုိ႔ = thoet
 တုိး = toe
 တံု = tone
 တံု႔ = tote
@@ -932,7 +933,7 @@
 ေတာင့္ = tout
 ေတာင္း = taung
 တုိင္ = tine
-တုိင္း = tyine
+တုိင္း = tine
 တစ္ = tit
 တည္ = ti
 တည့္ = teet
@@ -950,8 +951,8 @@
 တပ္ = tat
 တိပ္ = tate
 တုပ္ = tote
-တမ္ = tam
-တမ္း = tam
+တမ္ = tan
+တမ္း = tann
 တိမ္ = tain
 တိမ္း = tane
 တယ္ = tal
@@ -993,7 +994,7 @@
 ေထာ္ = htaw
 ထံ = htan
 ထုိ = hto
-ထုိ႔ = hthoe
+ထုိ႔ = hthoet
 ထုိး = htoe
 ထံု = htone
 ထံု႔ = htote
@@ -1008,7 +1009,7 @@
 ေထာင့္ = htout
 ေထာင္း = htaung
 ထုိင္ = htine
-ထုိင္း = htyine
+ထုိင္း = htine
 ထစ္ = htit
 ထည္ = hti
 ထည့္ = hteet
@@ -1024,7 +1025,7 @@
 ထပ္ = htat
 ထိပ္ = htate
 ထုပ္ = htote
-ထမ္း = htam
+ထမ္း = htann
 ထိမ္ = htain
 ထိမ္း = htane
 ထယ္ = htal
@@ -1062,7 +1063,7 @@
 ေဒၚ = daw
 ဒံ = dan
 ဒုိ = do
-ဒုိ႔ = dhoe
+ဒုိ႔ = dhoet
 ဒုိး = doe
 ဒံု = done
 ဒံုး = done
@@ -1076,7 +1077,7 @@
 ေဒါင့္ = dout
 ေဒါင္း = daung
 ဒုိင္ = dine
-ဒုိင္း = dyine
+ဒုိင္း = dine
 ဒစ္ = dit
 ဒိဋ္ = date
 ဒဏ္ = dan
@@ -1111,7 +1112,7 @@
 ဓံ = dhan
 ဓာတ္ = dhat
 ဓါတ္ = dhat
-ဓမ္ = dham
+ဓမ္ = dhan
 န = na
 နာ = nar
 နာ့ = na
@@ -1134,7 +1135,7 @@
 နံ = nan
 နံ႔ = nant
 ႏုိ = no
-ႏုိ႔ = nhoe
+ႏုိ႔ = nhoet
 ႏုိး = noe
 ႏံု = none
 ႏံု႔ = note
@@ -1148,7 +1149,7 @@
 နင္း = ninn
 ေနာင္ = naung
 ႏုိင္ = nine
-ႏုိင္း = nyine
+ႏုိင္း = nine
 ႏူိင္ = naing
 နစ္ = nit
 နိစ္ = nate
@@ -1168,8 +1169,8 @@
 နိပ္ = nate
 ႏုပ္ = note
 နိဗ္ = nait
-နမ္ = nam
-နမ္း = nam
+နမ္ = nan
+နမ္း = nann
 နိမ္ = nain
 နိမ့္ = naint
 နယ္ = nal
@@ -1241,7 +1242,7 @@
 ပံ = pan
 ပံ့ = pant
 ပုိ = po
-ပုိ႔ = phoe
+ပုိ႔ = phoet
 ပုိး = poe
 ပံု = pone
 ပံု႔ = pote
@@ -1256,7 +1257,7 @@
 ေပါင္ = paung
 ေပါင္း = paung
 ပုိင္ = pine
-ပုိင္း = pyine
+ပုိင္း = pine
 ပစ္ = pit
 ပုစ္ = phit
 ပုိစ္ = post
@@ -1287,7 +1288,7 @@
 ပုပ္ = pote
 ေပါ့ပ္ = pop
 ပုဗ္ = pote
-ပမ္း = pam
+ပမ္း = pann
 ပိမ့္ = paint
 ပယ္ = pal
 ပါယ္ = phal
@@ -1342,7 +1343,7 @@
 ၿပိဳက္ = pyite
 ျပင္ = pyin
 ျပင္း = pyinn
-ေျပာင္ = paung
+ေျပာင္ = pyaung
 ေျပာင္း = pyaung
 ၿပိဳင္ = pyai
 ၿပိဳင္း = pyine
@@ -1400,7 +1401,7 @@
 ေဖၚ = phaw
 ေဖာ္ = phaw
 ဖုိ = pho
-ဖုိ႔ = phhoe
+ဖုိ႔ = phhoet
 ဖုိး = phoe
 ဖံု = phone
 ဖံုး = phone
@@ -1427,7 +1428,7 @@
 ဖုန္ = phone
 ဖုန္း = phone
 ဖပ္ = phat
-ဖမ္း = pham
+ဖမ္း = phann
 ဖိမ့္ = phaint
 ဖယ္ = phal
 ဖုိလ္ = phho
@@ -1470,7 +1471,7 @@
 ျဖင္ = phyin
 ျဖင့္ = phyint
 ျဖင္း = phyinn
-ေျဖာင္ = phaung
+ေျဖာင္ = phyaung
 ေျဖာင့္ = phyout
 ေျဖာင္း = phyaung
 ၿဖိဳင္ = phyai
@@ -1510,7 +1511,7 @@
 ေဗာ = vaww
 ေဗာ့ = vot
 ဗုိ = vo
-ဗုိ႔ = vhoe
+ဗုိ႔ = vhoet
 ဗံု = vone
 ဗံုး = vone
 ဗက္ = vat
@@ -1519,7 +1520,7 @@
 ဗင္ = vin
 ဗင္း = vinn
 ေဗာင္း = vaung
-ဗုိင္း = vyine
+ဗုိင္း = vine
 ဗစ္ = vit
 ဗုဒ္ = voat
 ဗန္ = van
@@ -1558,7 +1559,7 @@
 ျဗံဳး = vyone
 ျဗက္ = vyat
 ေျဗာက္ = vyout
-ေျဗာင္ = vaung
+ေျဗာင္ = vyaung
 ေျဗာင္း = vyaung
 ၿဗိစ္ = vyit
 ျဗတ္ = vyat
@@ -1590,7 +1591,7 @@
 ေဘာ့ = bot
 ေဘာ္ = baw
 ဘုိ = bo
-ဘုိ႔ = bhoe
+ဘုိ႔ = bhoet
 ဘုိး = boe
 ဘံု = bone
 ဘက္ = bat
@@ -1601,9 +1602,9 @@
 ေဘာင္း = baung
 ဘုိင္ = bine
 ဘုိင့္ = bhite
-ဘုိင္း = byine
+ဘုိင္း = bine
 ဘစ္ = bit
-ေဘာ့စ္ = bos
+ေဘာ့စ္ = boss
 ဘုဥ္း = bhone
 ဘဏ္ = ban
 ဘတ္ = bat
@@ -1615,8 +1616,8 @@
 ဘန္း = bam
 ဘိန္း = bane
 ဘုန္း = bone
-ဘမ္ = bam
-ဘမ္း = bam
+ဘမ္ = ban
+ဘမ္း = bann
 ဘုမ္ = bone
 ဘယ္ = bal
 ဘရ္ = bal
@@ -1649,7 +1650,7 @@
 ေမာ္ = maw
 မံ = man
 မုိ = mo
-မုိ႔ = mhoe
+မုိ႔ = mhoet
 မုိး = moe
 မံု = mone
 မုဴိး = mhoe
@@ -1665,7 +1666,7 @@
 ေမာင့္ = mout
 ေမာင္း = maung
 မုိင္ = mine
-မုိင္း = myine
+မုိင္း = mine
 မစ္ = mit
 မိစ္ = mis
 ေမာ့စ္ = moss
@@ -1695,7 +1696,7 @@
 မပ္ = mat
 မယ္ = mal
 မယ့္ = mae
-မာရ္ = mal
+မာရ္ = man
 မလ္ = mal
 မိလ္ = main
 ေမးလ္ = mail
@@ -1736,7 +1737,7 @@
 ျမင္ = myin
 ျမင့္ = myint
 ျမင္း = myinn
-ေျမာင္ = maung
+ေျမာင္ = myaung
 ေျမာင့္ = myout
 ေျမာင္း = myaung
 ၿမိဳင္ = myai
@@ -1840,7 +1841,7 @@
 ေယာ = yhaww
 ယံ = yhan
 ယုိ = yho
-ယုိ႔ = yhhoe
+ယုိ႔ = yhhoet
 ယုိး = yhoe
 ယံု = yhone
 ယံု႔ = yhote
@@ -1867,7 +1868,7 @@
 ယာန္ = yhhan
 ယုန္ = yhone
 ယပ္ = yhat
-ယမ္း = yham
+ယမ္း = yhann
 ယိမ္း = yhane
 ယ် = yhya
 ယ်ာဥ္ = yhin
@@ -1896,7 +1897,7 @@
 ေရာ္ = yaw
 ရံ = yan
 ရုိ = yo
-ရုိ႕ = yhoe
+ရုိ႕ = yhoet
 ရုိး = yoe
 ရံု = yone
 ရံုး = yone
@@ -1912,7 +1913,7 @@
 ေရာင့္ = yout
 ေရာင္း = yaung
 ရုိင္ = yine
-ရုိင္း = yyine
+ရုိင္း = yine
 ရစ္ = yit
 ေရ႕စ္ = raze
 ရာဇ္ = yyiz
@@ -1934,8 +1935,8 @@
 ရိပ္ = yate
 ရုပ္ = yote
 ေရ႕ဗ္ = rave
-ရမ္ = yam
-ရမ္း = yam
+ရမ္ = yan
+ရမ္း = yann
 ရိမ္ = yain
 ရုမ္း = yhone
 ရယ္ = yal
@@ -1963,7 +1964,7 @@
 ရွိ = shi
 ရွီ = she
 ရွီး = shee
-႐ႈ = yuu
+႐ႈ = shu
 ရွဴ = shuu
 ရွဴး = shuu
 ေရွ႕ = shae
@@ -1972,14 +1973,14 @@
 ရွဲ႕ = shae
 ေရွာ = shaww
 ေရွာ့ = shot
-ရံွ = yhan
-႐ႈိ႕ = yhoet
-႐ႈိး = yhoe
+ရွံ = shan
+႐ႈိ႕ = shoet
+႐ႈိး = shoe
 ႐ံႈ႕ = yhote
 ႐ံႈး = yhone
 ရွက္ = shat
 ေရွာက္ = shout
-႐ႈိက္ = yhite
+႐ႈိက္ = shite
 ရွင္ = shin
 ရွင့္ = shint
 ရွင္း = shinn
@@ -1989,26 +1990,26 @@
 ရွဥ့္ = shint
 ရွဥ္း = shinn
 ရွည္ = shi
-႐ႈတ္ = yhote
+႐ႈတ္ = shote
 ရွန္ = shan
 ရွိန္ = shane
 ရွိန္း = shane
-႐ႈန္း = yhone
+႐ႈန္း = shone
 ရွပ္ = shat
-႐ႈပ္ = yhote
-ရွမ္ = sham
-ရွမ္း = sham
+႐ႈပ္ = shote
+ရွမ္ = shan
+ရွမ္း = shann
 ရွိမ္း = shane
 ရွယ္ = shal
-ရႊီး = ywee
-ေရႊ = ylwae
-ေရႊ႕ = ylwae
-ရႊံ႕ = yyon
-ရႊင္ = yhwin
-ရႊတ္ = yoot
-ရႊန္း = yyon
-ရႊပ္ = ywat
-ရႊမ္း = ywan
+ရႊီး = shwee
+ေရႊ = shway
+ေရႊ႕ = shwae
+ရႊံ႕ = shwant
+ရႊင္ = shwin
+ရႊတ္ = shwat
+ရႊန္း = shwam
+ရႊပ္ = shwat
+ရႊမ္း = shwann
 လ = la
 လာ = lar
 လား = larr
@@ -2029,7 +2030,7 @@
 ေလာ္ = law
 လံ = lan
 လုိ = lo
-လုိ႔ = lhoe
+လုိ႔ = lhoet
 လုိး = loe
 လံု = lone
 လံု႔ = lote
@@ -2046,7 +2047,7 @@
 ေလာင္ = laung
 ေလာင္း = laung
 လုိင္ = line
-လုိင္း = lyine
+လုိင္း = line
 လစ္ = lit
 လာ့စ္ = las
 ေလ့စ္ = las
@@ -2068,7 +2069,7 @@
 လိပ္ = late
 လုပ္ = lote
 လာဘ္ = lat
-လမ္း = lam
+လမ္း = lann
 လိမ္ = lain
 လိမ့္ = laint
 လိမ္း = lane
@@ -2169,7 +2170,7 @@
 ဝင္း = winn
 ေဝါင္ = waung
 ဝုိင္ = wine
-ဝုိင္း = wyine
+ဝုိင္း = wine
 ဝစ္ = wit
 ဝိဇ္ = wist
 ဝဋ္ = woot
@@ -2181,9 +2182,9 @@
 ဝန္း = wam
 ဝုန္း = wone
 ဝပ္ = wat
-ဝမ္ = wam
+ဝမ္ = wan
 ဝမ့္ = wamt
-ဝမ္း = wam
+ဝမ္း = wann
 ဝယ္ = wal
 ဝီလ္ = we
 ဝသ္ = wat
@@ -2215,7 +2216,7 @@
 သံ = than
 သံ့ = thant
 သုိ = tho
-သုိ႔ = thhoe
+သုိ႔ = thhoet
 သုိး = thoe
 သံု႔ = thote
 သံုး = thone
@@ -2231,7 +2232,7 @@
 ေသာင္ = thaung
 ေသာင့္ = thout
 ေသာင္း = thaung
-သုိင္း = thyine
+သုိင္း = thine
 သစ္ = thit
 သဥ္ = thin
 သိဥ္ = thyin
@@ -2261,8 +2262,8 @@
 သုပ္ = thote
 ေသာပ္ = that
 သဗ္ = that
-သမ္ = tham
-သမ္း = tham
+သမ္ = than
+သမ္း = thann
 သိမ္ = thain
 သိမ့္ = thaint
 သိမ္း = thane
@@ -2309,7 +2310,7 @@
 ေဟာ္ = haw
 ဟံ = han
 ဟုိ = ho
-ဟုိ႔ = hhoe
+ဟုိ႔ = hhoet
 ဟုိး = hoe
 ဟံု = hone
 ဟံုး = hone
@@ -2321,7 +2322,7 @@
 ဟင္း = hinn
 ေဟာင္ = haung
 ေဟာင္း = haung
-ဟုိင္း = hyine
+ဟုိင္း = hine
 ဟစ္ = hit
 ဟည္း = hee
 ဟတ္ = hat
@@ -2335,7 +2336,7 @@
 ဟုန္း = hone
 ဟပ္ = hat
 ဟုပ္ = hote
-ဟမ္ = ham
+ဟမ္ = han
 ဟယ္ = hal
 ေဟာလ္ = hall
 ဟသ္ = hat
@@ -2365,7 +2366,7 @@
 အဲ = al
 အဲ့ = ae
 ေအာ = aww
-ၾသ = thya
+ၾသ = aww
 ေအာ့ = ot
 ေအာ္ = aw
 အံ = an
@@ -2407,12 +2408,12 @@
 ဥပ္ = oat
 ေအာ့ဖ္ = off
 အဗ္ = at
-အမ္ = am
-အမ္း = am
+အမ္ = an
+အမ္း = ann
 အိမ္ = ain
 အိမ့္ = aint
 အိမ္း = ane
-ဥမ္ = oam
+ဥမ္ = oan
 အယ္ = al
 အဲလ္ = l
 အုိလ္ = ho
@@ -2421,5 +2422,5 @@
 အြန္ = on
 ၌ = nhite
 ၍ = ywae
+၎ = lakaung
 ၏ = eat
-၄င္း = lakaung
