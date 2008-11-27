@@ -48,13 +48,12 @@ Site: http://www.zawgyi.net/
 Contact: Alpha Myanmar
 
 
-The Myanmar3 Font: Version 3.0
- Myanmar 3's copyright is held by Myanmar NLP, a non-profit, non-governmental organisation. 
- We are currently contacting its developers to determine the specific licensing requirements
- of the font; for now, we are bundling it with Wait Zar, in the spirit of free software.
-License: Unknown (In the Process of Determining)
-Site: http://www.myanmarnlp.net.mm/
-Contact: Myanmar NLP
+The Padauk Font: Version 2.4
+ Padauk is available from SIL International and Than Lwin Soft under the Open Font License;
+ a copy of which has been embedded at the end of the LICENSE file.
+License: Open Font License
+Site: http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=Padauk
+Contact: SIL International, Than Lwin Soft
 
 
 The Prince Ka Naung Project: svn revision 700
