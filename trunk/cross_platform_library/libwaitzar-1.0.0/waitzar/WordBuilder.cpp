@@ -62,7 +62,7 @@ void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userW
 	delete [] model_buff;
 
 	//Now, load the user's custom words (optional)
-	for (int i=0; i<userWordsFilePaths.size(); i++) {
+	for (size_t i=0; i<userWordsFilePaths.size(); i++) {
 	  FILE* userFile = fopen(userWordsFilePaths[i].c_str(), "rb");
 	  if (userFile == NULL) {
 	    continue;
