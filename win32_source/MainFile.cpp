@@ -2074,15 +2074,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 
-	//Edit: Add support for balloon tooltips
-	if (showBalloonOnStart==TRUE) {
-		nid.uFlags |= NIF_INFO;
-		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
-		swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
-		nid.uTimeout = 20;
-		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported?
-	}
-
 	//Error checking..
 	if (mmIcon == NULL || engIcon==NULL)
 		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
@@ -2098,8 +2089,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	mmOn = FALSE;
 
+	//Edit: Add support for balloon tooltips
+	if (showBalloonOnStart==TRUE) {
+		nid.uFlags |= NIF_INFO;
+		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
+		swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
+		nid.uTimeout = 20;
+		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported?
+	}
+
 	//Add our icon to the tray
 	Shell_NotifyIcon(NIM_ADD, &nid);
+
 
 	//Initialize our keyboard input structures
 	inputItems = new INPUT[500];
