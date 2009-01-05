@@ -10,7 +10,7 @@ SUBDIRS= $(GENERIC_LIBRARY_NAME) data
 DIST_SUBDIRS = $(GENERIC_LIBRARY_NAME) data
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = waitzar-1.0.pc
+pkgconfig_DATA = waitzar.pc
 
 EXTRA_DIST = \
              compile_tests.sh \
