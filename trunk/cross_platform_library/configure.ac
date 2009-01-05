@@ -4,6 +4,7 @@ dnl Initialization macros.
 dnl --------------------------------
 
 AC_INIT(waitzar/WordBuilder.h)
+AC_CONFIG_MACRO_DIR([m4])
 
 dnl -----------------------------------------------
 dnl Package name and version number (user defined)
