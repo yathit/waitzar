@@ -7,5 +7,5 @@ Name: waitzar
 Description: Encapsulation of the WaitZar language model & related APIs.
 Version: @VERSION@
 Libs: -L${libdir} -l@GENERIC_LIBRARY_NAME@
-Cflags: -I${includedir}
+Cflags: -I${includedir}/@GENERIC_LIBRARY_NAME@
 
