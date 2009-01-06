@@ -221,7 +221,7 @@ cc_sources = \
             WordBuilder.cpp \
             SentenceList.cpp 
 
-library_includedir = $(includedir)/$(GENERIC_LIBRARY_NAME)/$(GENERIC_LIBRARY_NAME)
+library_includedir = $(includedir)/$(GENERIC_LIBRARY_NAME)
 library_include_HEADERS = $(h_sources)
 INCLUDES = -I$(top_srcdir)
 lib_LTLIBRARIES = libwaitzar.la
