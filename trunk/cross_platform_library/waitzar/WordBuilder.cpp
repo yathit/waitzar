@@ -44,7 +44,7 @@ void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userW
 	//Step one: open the model file (ASCII)
 	FILE* modelFile = fopen(modelFilePath, "r");
 	if (modelFile == NULL) {
-		printf("Cannot create WordBuilder; model file does not exist.\n    %s\n", modelFile);
+		printf("Cannot create WordBuilder; model file does not exist.\n    %s\n", modelFilePath);
 		return;
 	}
 
