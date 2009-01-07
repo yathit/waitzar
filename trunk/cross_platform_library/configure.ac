@@ -54,6 +54,18 @@ AM_SANITY_CHECK
 
 AC_LANG_CPLUSPLUS
 
+
+dnl -----
+dnl Symbol versioning 
+dnl -----
+
+vsymldflags="-Wl,--version-script,wz.ver -Wl,-O1"
+AC_SUBST(vsymldflags)
+AC_MSG_RESULT([${vsymldflags}])
+
+
+
+
 dnl -----------------------------------------------
 dnl Generates Makefile's, configuration files and scripts
 dnl -----------------------------------------------
