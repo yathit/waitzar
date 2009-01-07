@@ -1,0 +1,9 @@
+HIDDEN {
+local:
+    *Regex*;
+};
+
+libwaitzar1 {
+    *;
+};
+
