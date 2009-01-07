@@ -22,7 +22,8 @@ library_include_HEADERS = $(h_sources)
 INCLUDES = -I$(top_srcdir)
 
 lib_LTLIBRARIES=libwaitzar.la
-libwaitzar_la_SOURCES= $(h_sources) $(cc_sources)
+libwaitzar_la_SOURCES= $(h_sources) $(cc_sources) wz.ver
+
 
 #Version symbol names
 libwaitzar_la_LDFLAGS = \
