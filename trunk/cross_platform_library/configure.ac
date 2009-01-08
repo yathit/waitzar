@@ -59,9 +59,6 @@ dnl -----
 dnl Symbol versioning 
 dnl -----
 
-vsymldflags="-Wl,--version-script,wz.ver -Wl,-O1"
-AC_SUBST(vsymldflags)
-AC_MSG_RESULT([${vsymldflags}])
 
 
 
