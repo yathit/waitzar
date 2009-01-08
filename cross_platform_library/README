@@ -2,8 +2,8 @@ libwaitzar - A library for the WaitZar language model (for the Burmese/Myanmar l
 
 Usage
 -----
-The file Wait_Zar_Model_API.html, included with the distribution, describes the API 
-and how to use it, giving examples. 
+The file Wait_Zar_Model_API.html, included with the libwaitzar-dev package (and the source), 
+describes the API and how to use it, giving examples.
 
 Automake & Autoconf files are based on the examples given online at:
 http://www.openismus.com/documents/linux/building_libraries/building_libraries.shtml
