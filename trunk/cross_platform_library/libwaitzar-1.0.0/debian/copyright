@@ -14,8 +14,11 @@ is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
 
 
 The following files are drawn from the Prince Ka Naung (PKN) Project, SVN revision 700.
-As of that revision, the pkn project was licensed under the GPL version 2, and inclusion of 
-these files is in compliance with the GPL.
+As of that revision, the pkn project was licensed under the GPL version 2; scim-waitzar
+has re-licensed these files under the GPL version 3 with the expressed written permission
+of the copyright holder (Mark Soe Min). 
+
+Inclusion of these files is in compliance with the GPL and the Apache License:
   waitzar/fontconv.(h|cpp)
   waitzar/fontmap.(h|cpp)
   waitzar/lib.(h|cpp)
