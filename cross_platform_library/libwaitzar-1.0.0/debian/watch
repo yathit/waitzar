@@ -3,5 +3,5 @@ version=3
 
 # Site path
 http://code.google.com/p/waitzar/(.)/ \
-  http://waitzar[.]googlecode[.]com/files/libwaitzar-([0-9.]+)[.]tar[.]gz
+  http://waitzar\.googlecode\.com/files/libwaitzar-([0-9.]+)\.tar\.gz
 
