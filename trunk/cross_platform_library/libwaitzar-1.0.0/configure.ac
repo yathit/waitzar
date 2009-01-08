@@ -54,6 +54,15 @@ AM_SANITY_CHECK
 
 AC_LANG_CPLUSPLUS
 
+
+dnl -----
+dnl Symbol versioning 
+dnl -----
+
+
+
+
+
 dnl -----------------------------------------------
 dnl Generates Makefile's, configuration files and scripts
 dnl -----------------------------------------------

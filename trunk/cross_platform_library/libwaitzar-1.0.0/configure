@@ -14954,6 +14954,12 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
+
+
+
+
+
+
 ac_config_files="$ac_config_files Makefile waitzar/Makefile data/Makefile waitzar.pc"
 
 cat >confcache <<\_ACEOF
