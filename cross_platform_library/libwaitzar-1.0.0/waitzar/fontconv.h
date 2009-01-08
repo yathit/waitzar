@@ -4,7 +4,8 @@
    http://code.google.com/p/kanaung/
 
    All rights reserved. This code is included under the terms of the GNU General Public License,
-   version 2.0.
+   version 3.0. (The original code is GPL2; WaitZar has re-licensed this code with the expressed
+   written permission of the original copyright holder.)
 
    NOTE: Wait Zar maintains its own branch of the Prince KaNaung/Burglish conversion
    sources, mainly for reasons of validity. Also, apart from fixing warnings and deleting
