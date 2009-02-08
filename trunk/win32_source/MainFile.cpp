@@ -132,6 +132,7 @@ BOOL typePhrases = TRUE;
 BOOL dragBothWindowsTogether = TRUE;
 BOOL typeBurmeseNumbers = TRUE;
 BOOL showBalloonOnStart = TRUE;
+BOOL alwaysRunElevated = FALSE;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -453,6 +454,14 @@ void loadConfigOptions()
 				showBalloonOnStart = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				showBalloonOnStart = FALSE;
+			else
+				numConfigOptions--;
+		} else if (strcmp(name, "alwayselevate")==0) {
+			numConfigOptions++;
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				alwaysRunElevated = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				alwaysRunElevated = FALSE;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
@@ -2019,6 +2028,380 @@ HWND makeSubWindow(LPCWSTR windowClassName)
 }
 
 
+/**
+ * Borrowed from KeyMagic. 
+ */
+BOOL IsAdmin()
+{
+   BOOL   fReturn         = FALSE;
+   DWORD  dwStatus;
+   DWORD  dwAccessMask;
+   DWORD  dwAccessDesired;
+   DWORD  dwACLSize;
+   DWORD  dwStructureSize = sizeof(PRIVILEGE_SET);
+   PACL   pACL            = NULL;
+   PSID   psidAdmin       = NULL;
+
+   HANDLE hToken              = NULL;
+   HANDLE hImpersonationToken = NULL;
+
+   PRIVILEGE_SET   ps;
+   GENERIC_MAPPING GenericMapping;
+
+   PSECURITY_DESCRIPTOR     psdAdmin           = NULL;
+   SID_IDENTIFIER_AUTHORITY SystemSidAuthority = SECURITY_NT_AUTHORITY;
+
+
+   /*
+      Determine if the current thread is running as a user that is a member of
+      the local admins group.  To do this, create a security descriptor that
+      has a DACL which has an ACE that allows only local aministrators access.
+      Then, call AccessCheck with the current thread's token and the security
+      descriptor.  It will say whether the user could access an object if it
+      had that security descriptor.  Note: you do not need to actually create
+      the object.  Just checking access against the security descriptor alone
+      will be sufficient.
+   */
+   const DWORD ACCESS_READ  = 1;
+   const DWORD ACCESS_WRITE = 2;
+
+
+   __try
+   {
+
+      /*
+         AccessCheck() requires an impersonation token.  We first get a primary
+         token and then create a duplicate impersonation token.  The
+         impersonation token is not actually assigned to the thread, but is
+         used in the call to AccessCheck.  Thus, this function itself never
+         impersonates, but does use the identity of the thread.  If the thread
+         was impersonating already, this function uses that impersonation context.
+      */
+      if (!OpenThreadToken(GetCurrentThread(), TOKEN_DUPLICATE|TOKEN_QUERY,
+		  TRUE, &hToken))
+      {
+         if (GetLastError() != ERROR_NO_TOKEN)
+            __leave;
+
+         if (!OpenProcessToken(GetCurrentProcess(),
+			 TOKEN_DUPLICATE|TOKEN_QUERY, &hToken))
+            __leave;
+      }
+
+      if (!DuplicateToken (hToken, SecurityImpersonation,
+		  &hImpersonationToken))
+		  __leave;
+
+
+      /*
+        Create the binary representation of the well-known SID that
+        represents the local administrators group.  Then create the security
+        descriptor and DACL with an ACE that allows only local admins access.
+        After that, perform the access check.  This will determine whether
+        the current user is a local admin.
+      */
+      if (!AllocateAndInitializeSid(&SystemSidAuthority, 2,
+                                    SECURITY_BUILTIN_DOMAIN_RID,
+                                    DOMAIN_ALIAS_RID_ADMINS,
+                                    0, 0, 0, 0, 0, 0, &psidAdmin))
+         __leave;
+
+      psdAdmin = LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+      if (psdAdmin == NULL)
+         __leave;
+
+      if (!InitializeSecurityDescriptor(psdAdmin,
+		  SECURITY_DESCRIPTOR_REVISION))
+         __leave;
+
+      // Compute size needed for the ACL.
+      dwACLSize = sizeof(ACL) + sizeof(ACCESS_ALLOWED_ACE) +
+                  GetLengthSid(psidAdmin) - sizeof(DWORD);
+
+      pACL = (PACL)LocalAlloc(LPTR, dwACLSize);
+      if (pACL == NULL)
+         __leave;
+
+      if (!InitializeAcl(pACL, dwACLSize, ACL_REVISION2))
+         __leave;
+
+      dwAccessMask= ACCESS_READ | ACCESS_WRITE;
+
+      if (!AddAccessAllowedAce(pACL, ACL_REVISION2, dwAccessMask,
+		  psidAdmin))
+         __leave;
+
+      if (!SetSecurityDescriptorDacl(psdAdmin, TRUE, pACL, FALSE))
+         __leave;
+
+      /*
+         AccessCheck validates a security descriptor somewhat; set the group
+         and owner so that enough of the security descriptor is filled out to
+         make AccessCheck happy.
+      */
+      SetSecurityDescriptorGroup(psdAdmin, psidAdmin, FALSE);
+      SetSecurityDescriptorOwner(psdAdmin, psidAdmin, FALSE);
+
+      if (!IsValidSecurityDescriptor(psdAdmin))
+         __leave;
+
+      dwAccessDesired = ACCESS_READ;
+
+      /*
+         Initialize GenericMapping structure even though you
+         do not use generic rights.
+      */
+      GenericMapping.GenericRead    = ACCESS_READ;
+      GenericMapping.GenericWrite   = ACCESS_WRITE;
+      GenericMapping.GenericExecute = 0;
+      GenericMapping.GenericAll     = ACCESS_READ | ACCESS_WRITE;
+
+      if (!AccessCheck(psdAdmin, hImpersonationToken, dwAccessDesired,
+                       &GenericMapping, &ps, &dwStructureSize, &dwStatus,
+                       &fReturn))
+      {
+         fReturn = FALSE;
+         __leave;
+      }
+
+   }
+
+   __finally
+   {
+      // Clean up.
+      if (pACL) LocalFree(pACL);
+      if (psdAdmin) LocalFree(psdAdmin);
+      if (psidAdmin) FreeSid(psidAdmin);
+      if (hImpersonationToken) CloseHandle (hImpersonationToken);
+      if (hToken) CloseHandle (hToken);
+   }
+
+   return fReturn;
+
+}
+
+
+bool IsVistaOrMore()
+{
+	OSVERSIONINFO OSversion;
+	OSversion.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+	GetVersionEx(&OSversion);
+	return (OSversion.dwMajorVersion>=6);
+}
+
+
+/** 
+ * Elevate and run a new instance of WaitZar
+ */
+void elevateWaitZar(LPCWSTR wzFileName)
+{
+	//Define our task
+	SHELLEXECUTEINFO wzInfo;
+    wzInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	wzInfo.fMask = 0;
+	wzInfo.hwnd = NULL;
+	wzInfo.lpVerb = _T("runas");
+	wzInfo.lpFile = wzFileName;
+	wzInfo.lpParameters = _T("runasadmin"); //Is this necessary?
+    wzInfo.lpDirectory = NULL;
+    wzInfo.nShow = SW_NORMAL;
+
+	//Start the task
+	if (ShellExecuteEx(&wzInfo) == FALSE) {
+		MessageBox(NULL, _T("Could not elevate WaitZar. Program will now exit."), _T("Error!"), MB_ICONERROR | MB_OK);
+	}
+}
+
+
+
+
+/**
+ * Run a series of checks to determine if WaitZar can run on this system.
+ * @returns "true" if the tests all passed
+ */
+/*bool runDebugTest() 
+{
+	//Test 1: Register a window class
+	TCHAR resultStr1[600];
+	lstrcpy(resultStr1, _T(""));
+	bool canContinue = true;
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInst;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = g_DarkGrayBkgrd;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = _T("waitZarMainWindow");
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	if(RegisterClassEx(&wc)) {
+		swprintf(resultStr1, _T("Window registration: Pass"));
+	} else {
+		swprintf(resultStr1, _T("Window registration: Failed(%i)"), GetLastError());
+		canContinue = false;
+	}
+
+	//Test 2: Create a window
+	TCHAR resultStr2[600];
+	lstrcpy(resultStr2, _T(""));
+	HWND mainWindow = NULL;
+	if (canContinue) {
+		mainWindow = CreateWindowEx(
+			WS_EX_TOPMOST | WS_EX_NOACTIVATE,
+			_T("waitZarMainWindow"),
+			_T("WaitZar"),
+			WS_POPUP, //No border or title bar
+			100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
+			NULL, NULL, hInst, NULL
+		);
+
+		if (mainWindow==NULL) {
+			swprintf(resultStr2, _T("Window creation: Failed(%i)"), GetLastError());
+			canContinue = false;
+		} else {
+			swprintf(resultStr2, _T("Window creation: Pass"));
+		}
+	}
+
+	//Test 3: Load our icons
+	TCHAR resultStr3[600];
+	lstrcpy(resultStr3, _T(""));
+	if (canContinue) {
+		mmIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
+		engIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(ICON_WZ_ENG), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
+		if (mmIcon==NULL || engIcon==NULL) {
+			swprintf(resultStr3, _T("Loading Icons: Failed(%i)"), GetLastError());
+			canContinue = false;
+		} else {
+			swprintf(resultStr3, _T("Loading Icons: Pass"));
+		}
+	}
+
+	//Test 4: Add system tray icon
+	TCHAR resultStr4[600];
+	lstrcpy(resultStr4, _T(""));
+	if (canContinue) {
+		NOTIFYICONDATA nid;
+		nid.cbSize = sizeof(NOTIFYICONDATA); 
+		nid.hWnd = mainWindow;
+		nid.uID = STATUS_NID;
+		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+		nid.uCallbackMessage = UWM_SYSTRAY;
+		nid.hIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(ICON_WZ_LOADING), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
+		lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); 
+		if (Shell_NotifyIcon(NIM_ADD, &nid)==TRUE) {
+			
+		} else {
+			swprintf(resultStr4, _T("Add Shell item: Failed(%i)"), GetLastError());
+			canContinue = false;
+		}
+	}
+
+	//Test 5: Update shell icon
+	TCHAR resultStr5[600];
+	lstrcpy(resultStr5, _T(""));
+	if (canContinue) {
+		NOTIFYICONDATA nid;
+		nid.cbSize = sizeof(NOTIFYICONDATA);
+		nid.hWnd = mainWindow;
+		nid.uID = STATUS_NID;
+		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; 
+		nid.uCallbackMessage = UWM_SYSTRAY; 
+		lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System"));
+		nid.hIcon = mmIcon;
+		if (Shell_NotifyIcon(NIM_MODIFY, &nid) == TRUE) {
+			swprintf(resultStr5, _T("Switch Shell item: Pass"));
+		} else {
+			swprintf(resultStr5, _T("Switch Shell item: Failed(%i)"), GetLastError());
+			canContinue = false;
+		}
+	}
+
+	//Test 6: Set a simple hotkey
+	TCHAR resultStr6[600];
+	lstrcpy(resultStr6, _T(""));
+	if (canContinue) {
+		TCHAR low_on[30];
+		TCHAR low_off[30];
+		TCHAR high_on[30];
+		TCHAR high_off[30];
+
+		int low_code = HOTKEY_A_LOW;
+		int high_code = low_code - 32;
+		if (RegisterHotKey(mainWindow, high_code, MOD_SHIFT, high_code)==TRUE) {
+			swprintf(high_on, _T("uppercase_on: Pass"));
+		} else {
+			swprintf(high_on, _T("uppercase_on: Fail"));
+			canContinue = false;
+		}
+		if (RegisterHotKey(mainWindow, low_code, NULL, high_code)==TRUE) {
+			swprintf(low_on, _T("lowercase_on: Pass"));
+		} else {
+			swprintf(low_on, _T("lowercase_on: Fail"));
+			canContinue = false;
+		}
+		if (UnregisterHotKey(mainWindow, high_code)==TRUE) {
+			swprintf(high_off, _T("uppercase_off: Pass"));
+		} else {
+			swprintf(high_off, _T("uppercase_off: Fail"));
+			canContinue = false;
+		}
+		if (UnregisterHotKey(mainWindow, low_code)==TRUE) {
+			swprintf(low_off, _T("uppercase_off: Pass"));
+		} else {
+			swprintf(low_off, _T("lowercase_off: Fail"));
+			canContinue = false;
+		}
+
+		swprintf(resultStr6, _T("Hotkey checks: \n    %s\n    %s\n    %s\n    %s"), high_on, low_on, high_off, low_off);
+	}
+
+	//Test 7: Check if we're running Vista
+	TCHAR resultStr7[600];
+	if (IsVistaOrMore()) {
+		swprintf(resultStr7, _T("Running Vista: Yes"));
+	} else {
+		swprintf(resultStr7, _T("Running Vista: No"));
+	}
+
+	//Test 8: Check if we're running in elevated mode
+	TCHAR resultStr8[600];
+	if (IsAdmin()) {
+		swprintf(resultStr8, _T("Running Elevated: Yes"));
+	} else {
+		swprintf(resultStr8, _T("Running Elevated: No"));
+	}
+
+	//Notify
+	TCHAR resultStr[600*10];
+	swprintf(resultStr, _T("WaitZar compatibility test:\n  %s\n  %s\n  %s\n  %s\n  %s\n  %s\n\n  %s\n  %s"), resultStr1, resultStr2, resultStr3, resultStr4, resultStr5, resultStr6, resultStr7, resultStr8);
+	MessageBox(NULL, resultStr, _T("Testing..."), MB_ICONSTOP | MB_OK);
+
+	//Cleanup
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof(NOTIFYICONDATA);
+	nid.hWnd = mainWindow;
+	nid.uID = STATUS_NID;
+	nid.uFlags = NIF_TIP;
+	Shell_NotifyIcon(NIM_DELETE, &nid);
+
+	//return canContinue;
+############################
+	return "ERROR: Try to simply catch hotkeys not responding, and then elevate. Making windows is a good way to crash the program the second time through.";
+}*/
+
+
+
 
 /**
  * Main method for Windows applications
@@ -2031,13 +2414,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	mainWindowIsVisible = false;
 	subWindowIsVisible = false;
 
-	//Load our configuration file now; save some headaches later
-	loadConfigOptions();
-
-	//Give this process a low background priority
-	//  NOTE: We need to balance this eventually.
-	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
-
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
 	g_DarkGrayBkgrd = CreateSolidBrush(RGB(128, 128, 128));
@@ -2046,6 +2422,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
+
+	//Load our configuration file now; save some headaches later
+	loadConfigOptions();
+
+	//Should we run a UAC test on startup?
+	if (alwaysRunElevated) {
+		//Will elevating help?
+		if (IsVistaOrMore() && !IsAdmin()) {
+			TCHAR szCurFileName[1024];
+            GetModuleFileName(GetModuleHandle(NULL), szCurFileName, 1023);
+			elevateWaitZar(szCurFileName);
+			return 0;
+		}
+	}
+
+	//Give this process a low background priority
+	//  NOTE: We need to balance this eventually.
+	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
 	//Create our main window.
 	HWND mainWindow = makeMainWindow(_T("waitZarMainWindow"));

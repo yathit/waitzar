@@ -34,6 +34,13 @@ powertyping = yes
 ballooononstart = yes
 
 
+# If "yes", WaitZar will detect if it is running on Vista, un-elevated, and will
+#  always request the user to elevate itself. This can help fix some weird bugs
+#  with UAC in Vista, but it is generally not necessary to turn on.
+#NO_LINUX: WaitZar under Linux should never be run by root
+alwayselevate = no
+
+
 # If "yes", the sentence window will always display below the 
 #  current word window.
 #NO_LINUX: Windows auto-lock to the text you're entering in Linux, so this option makes no sense.
