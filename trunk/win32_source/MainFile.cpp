@@ -169,12 +169,16 @@ int WINDOW_WIDTH = 240;
 int WINDOW_HEIGHT = 120;
 int SUB_WINDOW_WIDTH = 300;
 int SUB_WINDOW_HEIGHT = 26;
+int HELP_WINDOW_WIDTH = 200;
+int HELP_WINDOW_HEIGHT = 200;
 
 //Width/height of client area
 int C_WIDTH;
 int C_HEIGHT;
 int SUB_C_WIDTH;
 int SUB_C_HEIGHT;
+int HELP_C_WIDTH;
+int HELP_C_HEIGHT;
 
 //Calculate's integers
 int firstLineStart;
@@ -921,6 +925,12 @@ void reBlit()
 }
 
 
+void reBlitHelp()
+{
+	BitBlt(helpDC,0,0,HELP_C_WIDTH,HELP_C_HEIGHT,helpUnderDC,0,0,SRCCOPY);
+}
+
+
 //Only blit part of the area
 void reBlit(RECT blitArea)
 {
@@ -928,6 +938,13 @@ void reBlit(RECT blitArea)
 	BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 	if (typePhrases==TRUE)
 		BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
+}
+
+
+//Blitting for the help menu
+void reBlitHelp(RECT blitArea)
+{
+	BitBlt(helpDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,helpUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
 
@@ -962,6 +979,24 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 	bmp = CreateCompatibleBitmap(dc, SAVED_CLIENT_WIDTH, SAVED_CLIENT_HEIGHT);
 	SelectObject(underDC, bmp);
 }
+
+
+
+/**
+ * Initialize our help menu's drawing area, by drawing directly onto its back buffer.
+ * Finally, blit to the front buffer.
+ */
+void initCalculateHelp()
+{
+	//Background
+	SelectObject(helpUnderDC, g_DarkGrayBkgrd);
+	Rectangle(helpUnderDC, 20, 20, 50, 50);
+	Rectangle(helpUnderDC, 10, 50, 70, 60);
+
+	//Paint
+	reBlitHelp();
+}
+
 
 
 
@@ -1177,7 +1212,125 @@ BOOL selectWord(int id)
 
 
 
+//Message handling for our help window
+LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg) {
+		case WM_CREATE:
+		{
+			//Resize our window?
+			MoveWindow(hwnd, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, FALSE);
 
+			//Now, create all our buffering objects
+			RECT r;
+			GetClientRect(hwnd, &r);
+			HELP_C_WIDTH = r.right;
+			HELP_C_HEIGHT = r.bottom;
+
+			helpDC = GetDC(hwnd);
+			helpUnderDC = CreateCompatibleDC(helpDC);
+
+			helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
+			SelectObject(helpUnderDC, helpBitmap);
+
+
+
+			//Set necessary pixel blending attributes on our help window
+			if (SetLayeredWindowAttributes(hwnd, 0, 0xFF, ULW_ALPHA)==FALSE) {
+				TCHAR msg[500];
+				swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
+				MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+			}
+
+			//Temp
+			/*BLENDFUNCTION blendFnc = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
+			POINT ptLoc;
+			ptLoc.x = 400;
+			ptLoc.y = 300;
+			POINT ptOrigin;
+			ptOrigin.x = 0;
+			ptOrigin.y = 0;
+			if (UpdateLayeredWindow(hwnd, GetDC(NULL), &ptLoc, NULL, helpDC, &ptOrigin, 0, &blendFnc, ULW_ALPHA)==FALSE) {
+				TCHAR msg[500];
+				swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
+				MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+			}*/
+	
+			//Initialize our help window
+			initCalculateHelp();
+			//ShowWindow(hwnd, SW_SHOW);
+			//helpWindowIsVisible = true;
+
+			break;
+		}
+		case WM_NCHITTEST: //Allow dragging of the client area...
+		{
+			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
+			if(uHitTest == HTCLIENT) {
+				return HTCAPTION;
+			} else
+				return uHitTest;
+			break;
+		}
+		/*case WM_INPUTLANGCHANGE
+		case WM_CTLCOLORMSGBOX:
+		case WM_CTLCOLORSTATIC: //Give our window a transparent background
+		{
+			//Step 1: Set the background mode to transparent.
+			SetBkMode((HDC)wParam, TRANSPARENT);
+
+			//Step 2: Return a null brush to inhibit future painting.
+			return (LRESULT)GetStockObject(NULL_BRUSH);
+		}*/
+		case WM_MOVE:
+		{
+			//Move the main window?
+			/*if (senWindowSkipMove==FALSE && (mainWindowIsVisible || subWindowIsVisible) && dragBothWindowsTogether==TRUE) {
+				RECT r;
+				GetWindowRect(hwnd, &r);
+				RECT r2;
+				GetWindowRect(GetDesktopWindow(), &r2);
+				mainWindowSkipMove = TRUE;
+				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+			}
+			senWindowSkipMove = FALSE;*/
+			break;
+		}
+		case WM_PAINT:
+		{
+			//Update only if there's an area which needs updating (e.g., a higher-level
+			//  window has dragged over this one's client area... it can happen only with popups,
+			//  but let's do it just to be safe.
+			RECT updateRect;
+			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
+			{
+				//Blitting every tick will slow us down... we should validate the
+				//  rectangle after drawing it.
+				reBlitHelp(updateRect);
+
+				//Validate the client area
+				ValidateRect(hwnd, NULL);
+			}
+
+			break;
+		}
+		case WM_CLOSE:
+			DestroyWindow(hwnd);
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		default:
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+
+
+
+//Message handling for our secondary window
 LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg) {
@@ -1311,6 +1464,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Reset the model
 				sentence->clear();
 				model->reset(true);
+			}
+
+
+			//Handle our help key
+			//TEMP: Just make it work~~~
+			if (wParam == HOTKEY_HELP) {
+				if (!helpWindowIsVisible) {
+					ShowWindow(helpWindow, SW_SHOW);
+					helpWindowIsVisible = true;
+				} else {
+					ShowWindow(helpWindow, SW_HIDE);
+					helpWindowIsVisible = false;
+				}
 			}
 
 
@@ -1790,6 +1956,15 @@ BOOL turnOnHotkeys(BOOL on)
 		}
 	}
 
+	//TEMP: Turn on/off our help key
+	if (on==TRUE) {
+		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
+			retVal = FALSE;
+	} else {
+		if (UnregisterHotKey(mainWindow, HOTKEY_HELP)==FALSE)
+			retVal = FALSE;
+	}
+
 	//Switch to our target language.
 	mmOn = on;
 
@@ -1956,7 +2131,7 @@ BOOL turnOnControlkeys(BOOL on)
 
 
 
-HWND makeMainWindow(LPCWSTR windowClassName)
+void makeMainWindow(LPCWSTR windowClassName)
 {
 	//Set a window class's parameters
 	WNDCLASSEX wc;
@@ -1974,7 +2149,7 @@ HWND makeMainWindow(LPCWSTR windowClassName)
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	if(!RegisterClassEx(&wc)) {
 		MessageBox(NULL, _T("Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		return 0;
+		return;
 	}
 
 	//Create a handle to the window
@@ -1989,15 +2164,13 @@ HWND makeMainWindow(LPCWSTR windowClassName)
 		100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL
 	);
-
-	return mainWindow;
 }
 
 
-HWND makeSubWindow(LPCWSTR windowClassName)
+void makeSubWindow(LPCWSTR windowClassName)
 {
 	if (typePhrases==FALSE)
-		return NULL;
+		return;
 
 	//Set a window class's parameters
 	WNDCLASSEX wc;
@@ -2015,7 +2188,7 @@ HWND makeSubWindow(LPCWSTR windowClassName)
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	if(!RegisterClassEx(&wc)) {
 		MessageBox(NULL, _T("Sub-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		return 0;
+		return;
 	}
 
 	//Create a handle to the window
@@ -2030,9 +2203,44 @@ HWND makeSubWindow(LPCWSTR windowClassName)
 		100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL
 	);
-
-	return senWindow;
 }
+
+
+void makeHelpWindow(LPCWSTR windowClassName)
+{
+	//Set a window class's parameters
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = HelpWndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInst;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = g_DarkGrayBkgrd;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = windowClassName;
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	if(!RegisterClassEx(&wc)) {
+		MessageBox(NULL, _T("Help-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		return;
+	}
+
+	//Create a handle to the window
+	// We use LAYERED to allow for alpha blending on a per-pixel basis.
+	//The MSDN docs say this might slow the program down, but I'll reserve 
+	// any optimizations until we have actual reported slowdown.
+	helpWindow = CreateWindowEx(
+		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
+		windowClassName,
+		_T("WaitZar"),
+		WS_POPUP, //No border or title bar
+		400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT,
+		NULL, NULL, hInst, NULL
+	);
+}
+
 
 
 /**
@@ -2221,195 +2429,6 @@ void elevateWaitZar(LPCWSTR wzFileName)
 
 
 
-
-/**
- * Run a series of checks to determine if WaitZar can run on this system.
- * @returns "true" if the tests all passed
- */
-/*bool runDebugTest() 
-{
-	//Test 1: Register a window class
-	TCHAR resultStr1[600];
-	lstrcpy(resultStr1, _T(""));
-	bool canContinue = true;
-	WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
-	wc.lpfnWndProc = WndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInst;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = g_DarkGrayBkgrd;
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = _T("waitZarMainWindow");
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	if(RegisterClassEx(&wc)) {
-		swprintf(resultStr1, _T("Window registration: Pass"));
-	} else {
-		swprintf(resultStr1, _T("Window registration: Failed(%i)"), GetLastError());
-		canContinue = false;
-	}
-
-	//Test 2: Create a window
-	TCHAR resultStr2[600];
-	lstrcpy(resultStr2, _T(""));
-	HWND mainWindow = NULL;
-	if (canContinue) {
-		mainWindow = CreateWindowEx(
-			WS_EX_TOPMOST | WS_EX_NOACTIVATE,
-			_T("waitZarMainWindow"),
-			_T("WaitZar"),
-			WS_POPUP, //No border or title bar
-			100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
-			NULL, NULL, hInst, NULL
-		);
-
-		if (mainWindow==NULL) {
-			swprintf(resultStr2, _T("Window creation: Failed(%i)"), GetLastError());
-			canContinue = false;
-		} else {
-			swprintf(resultStr2, _T("Window creation: Pass"));
-		}
-	}
-
-	//Test 3: Load our icons
-	TCHAR resultStr3[600];
-	lstrcpy(resultStr3, _T(""));
-	if (canContinue) {
-		mmIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
-                        GetSystemMetrics(SM_CXSMICON),
-                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
-		engIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(ICON_WZ_ENG), IMAGE_ICON,
-                        GetSystemMetrics(SM_CXSMICON),
-                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
-		if (mmIcon==NULL || engIcon==NULL) {
-			swprintf(resultStr3, _T("Loading Icons: Failed(%i)"), GetLastError());
-			canContinue = false;
-		} else {
-			swprintf(resultStr3, _T("Loading Icons: Pass"));
-		}
-	}
-
-	//Test 4: Add system tray icon
-	TCHAR resultStr4[600];
-	lstrcpy(resultStr4, _T(""));
-	if (canContinue) {
-		NOTIFYICONDATA nid;
-		nid.cbSize = sizeof(NOTIFYICONDATA); 
-		nid.hWnd = mainWindow;
-		nid.uID = STATUS_NID;
-		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
-		nid.uCallbackMessage = UWM_SYSTRAY;
-		nid.hIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(ICON_WZ_LOADING), IMAGE_ICON,
-                        GetSystemMetrics(SM_CXSMICON),
-                        GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
-		lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); 
-		if (Shell_NotifyIcon(NIM_ADD, &nid)==TRUE) {
-			
-		} else {
-			swprintf(resultStr4, _T("Add Shell item: Failed(%i)"), GetLastError());
-			canContinue = false;
-		}
-	}
-
-	//Test 5: Update shell icon
-	TCHAR resultStr5[600];
-	lstrcpy(resultStr5, _T(""));
-	if (canContinue) {
-		NOTIFYICONDATA nid;
-		nid.cbSize = sizeof(NOTIFYICONDATA);
-		nid.hWnd = mainWindow;
-		nid.uID = STATUS_NID;
-		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; 
-		nid.uCallbackMessage = UWM_SYSTRAY; 
-		lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System"));
-		nid.hIcon = mmIcon;
-		if (Shell_NotifyIcon(NIM_MODIFY, &nid) == TRUE) {
-			swprintf(resultStr5, _T("Switch Shell item: Pass"));
-		} else {
-			swprintf(resultStr5, _T("Switch Shell item: Failed(%i)"), GetLastError());
-			canContinue = false;
-		}
-	}
-
-	//Test 6: Set a simple hotkey
-	TCHAR resultStr6[600];
-	lstrcpy(resultStr6, _T(""));
-	if (canContinue) {
-		TCHAR low_on[30];
-		TCHAR low_off[30];
-		TCHAR high_on[30];
-		TCHAR high_off[30];
-
-		int low_code = HOTKEY_A_LOW;
-		int high_code = low_code - 32;
-		if (RegisterHotKey(mainWindow, high_code, MOD_SHIFT, high_code)==TRUE) {
-			swprintf(high_on, _T("uppercase_on: Pass"));
-		} else {
-			swprintf(high_on, _T("uppercase_on: Fail"));
-			canContinue = false;
-		}
-		if (RegisterHotKey(mainWindow, low_code, NULL, high_code)==TRUE) {
-			swprintf(low_on, _T("lowercase_on: Pass"));
-		} else {
-			swprintf(low_on, _T("lowercase_on: Fail"));
-			canContinue = false;
-		}
-		if (UnregisterHotKey(mainWindow, high_code)==TRUE) {
-			swprintf(high_off, _T("uppercase_off: Pass"));
-		} else {
-			swprintf(high_off, _T("uppercase_off: Fail"));
-			canContinue = false;
-		}
-		if (UnregisterHotKey(mainWindow, low_code)==TRUE) {
-			swprintf(low_off, _T("uppercase_off: Pass"));
-		} else {
-			swprintf(low_off, _T("lowercase_off: Fail"));
-			canContinue = false;
-		}
-
-		swprintf(resultStr6, _T("Hotkey checks: \n    %s\n    %s\n    %s\n    %s"), high_on, low_on, high_off, low_off);
-	}
-
-	//Test 7: Check if we're running Vista
-	TCHAR resultStr7[600];
-	if (IsVistaOrMore()) {
-		swprintf(resultStr7, _T("Running Vista: Yes"));
-	} else {
-		swprintf(resultStr7, _T("Running Vista: No"));
-	}
-
-	//Test 8: Check if we're running in elevated mode
-	TCHAR resultStr8[600];
-	if (IsAdmin()) {
-		swprintf(resultStr8, _T("Running Elevated: Yes"));
-	} else {
-		swprintf(resultStr8, _T("Running Elevated: No"));
-	}
-
-	//Notify
-	TCHAR resultStr[600*10];
-	swprintf(resultStr, _T("WaitZar compatibility test:\n  %s\n  %s\n  %s\n  %s\n  %s\n  %s\n\n  %s\n  %s"), resultStr1, resultStr2, resultStr3, resultStr4, resultStr5, resultStr6, resultStr7, resultStr8);
-	MessageBox(NULL, resultStr, _T("Testing..."), MB_ICONSTOP | MB_OK);
-
-	//Cleanup
-	NOTIFYICONDATA nid;
-	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = mainWindow;
-	nid.uID = STATUS_NID;
-	nid.uFlags = NIF_TIP;
-	Shell_NotifyIcon(NIM_DELETE, &nid);
-
-	//return canContinue;
-############################
-	return "ERROR: Try to simply catch hotkeys not responding, and then elevate. Making windows is a good way to crash the program the second time through.";
-}*/
-
-
-
-
 /**
  * Main method for Windows applications
  */
@@ -2450,9 +2469,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
 	//Create our windows
-	/*HWND*/ mainWindow = makeMainWindow(_T("waitZarMainWindow"));
-	/*HWND*/ senWindow = makeSubWindow(_T("waitZarSentenceWindow"));
-	//HWND helpWindow
+	makeMainWindow(_T("waitZarMainWindow"));
+	makeSubWindow(_T("waitZarSentenceWindow"));
+	makeHelpWindow(_T("waitZarHelpWindow"));
 
 	//Our vector is used to store typed words for later...
 	sentence = new SentenceList();
@@ -2506,8 +2525,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Initialize our keyboard input structures
-	inputItems = new INPUT[500];
-	for (int i=0; i<500; i++) {
+	inputItems = new INPUT[1000];
+	for (int i=0; i<1000; i++) {
 		//We expect an input of type "keyboard"
 		inputItems[i].type = INPUT_KEYBOARD;
 
@@ -2527,7 +2546,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(currPhrase, _T(""));
 
 	//Success?
-	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL)) {
+	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL) || helpWindow==NULL) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
@@ -2537,6 +2556,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DestroyWindow(mainWindow);
 		if (typePhrases==TRUE)
 			DestroyWindow(senWindow);
+		DestroyWindow(helpWindow);
 		return 1;
 	}
 
