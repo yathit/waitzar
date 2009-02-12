@@ -65,6 +65,7 @@ PulpCoreFont::PulpCoreFont(PulpCoreFont *copyFrom, HDC currDC)
 }
 
 
+
 /**
  * Tint all pixels of this font to a certain color; preserve alpha.
  *  NOTE: Unlike in PulpCore, the proper way to make a duplicate font

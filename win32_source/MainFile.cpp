@@ -154,6 +154,10 @@ HDC helpDC;
 HDC helpUnderDC;
 HBITMAP helpBitmap;
 
+//Init properly
+bool mainInitDone;
+bool helpInitDone;
+
 //Record-keeping
 TCHAR currStr[50];
 TCHAR currPhrase[500];
@@ -988,10 +992,32 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
  */
 void initCalculateHelp()
 {
-	//Background
+	//
+	SelectObject(helpUnderDC, GetStockPen(NULL_PEN));
 	SelectObject(helpUnderDC, g_DarkGrayBkgrd);
+	Rectangle(helpUnderDC, 0, 0, HELP_C_WIDTH+1, HELP_C_HEIGHT+1);
+
+	//Background
+	SelectObject(helpUnderDC, g_GreenBkgrd);
 	Rectangle(helpUnderDC, 20, 20, 50, 50);
 	Rectangle(helpUnderDC, 10, 50, 70, 60);
+
+	//TEMP: image blit
+	/*HDC srcDC = mmFontGreen->getDirectDC();
+	BitBlt(
+		//Dest:
+		helpUnderDC,0,0,
+		
+		//Size (same for both)
+		200,25,
+		
+		//Src
+		srcDC,0,0,
+		
+		//Mode
+		SRCCOPY);*/
+
+	mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
 
 	//Paint
 	reBlitHelp();
@@ -1234,30 +1260,41 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SelectObject(helpUnderDC, helpBitmap);
 
 
+			//TEMP
+			//SetBkMode(GetDC(hwnd), TRANSPARENT);
+
 
 			//Set necessary pixel blending attributes on our help window
-			if (SetLayeredWindowAttributes(hwnd, 0, 0xFF, ULW_ALPHA)==FALSE) {
-				TCHAR msg[500];
-				swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
-				MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+			if (true) {
+				//if (SetLayeredWindowAttributes(hwnd, 0, 0xCC, ULW_ALPHA)==FALSE) {
+				if (SetLayeredWindowAttributes(hwnd, RGB(128, 128, 128), 0xFF, LWA_COLORKEY)==FALSE) {
+					TCHAR msg[500];
+					swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
+					MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+				}
 			}
 
 			//Temp
-			/*BLENDFUNCTION blendFnc = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
-			POINT ptLoc;
-			ptLoc.x = 400;
-			ptLoc.y = 300;
-			POINT ptOrigin;
-			ptOrigin.x = 0;
-			ptOrigin.y = 0;
-			if (UpdateLayeredWindow(hwnd, GetDC(NULL), &ptLoc, NULL, helpDC, &ptOrigin, 0, &blendFnc, ULW_ALPHA)==FALSE) {
-				TCHAR msg[500];
-				swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
-				MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-			}*/
+			if (false) {
+				BLENDFUNCTION blendFnc = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
+				POINT ptLoc;
+				ptLoc.x = 400;
+				ptLoc.y = 300;
+				POINT ptOrigin;
+				ptOrigin.x = 0;
+				ptOrigin.y = 0;
+				if (UpdateLayeredWindow(hwnd, GetDC(NULL), &ptLoc, NULL, helpDC, &ptOrigin, 0, &blendFnc, ULW_ALPHA)==FALSE) {
+					TCHAR msg[500];
+					swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
+					MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+				}
+			}
 	
 			//Initialize our help window
-			initCalculateHelp();
+			if (mainInitDone) {
+				initCalculateHelp();
+			}
+			helpInitDone = true;
 			//ShowWindow(hwnd, SW_SHOW);
 			//helpWindowIsVisible = true;
 
@@ -1272,16 +1309,6 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return uHitTest;
 			break;
 		}
-		/*case WM_INPUTLANGCHANGE
-		case WM_CTLCOLORMSGBOX:
-		case WM_CTLCOLORSTATIC: //Give our window a transparent background
-		{
-			//Step 1: Set the background mode to transparent.
-			SetBkMode((HDC)wParam, TRANSPARENT);
-
-			//Step 2: Return a null brush to inhibit future painting.
-			return (LRESULT)GetStockObject(NULL_BRUSH);
-		}*/
 		case WM_MOVE:
 		{
 			//Move the main window?
@@ -1434,6 +1461,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			mainBitmap = CreateCompatibleBitmap(mainDC, WINDOW_WIDTH, WINDOW_HEIGHT);
 			SelectObject(mainUnderDC, mainBitmap);
+
+			//Init our helper window
+			if (helpInitDone) {
+				initCalculateHelp();
+			}
+			mainInitDone = true;
 
 			break;
 		}
@@ -2440,6 +2473,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	mainWindowIsVisible = false;
 	subWindowIsVisible = false;
 	helpWindowIsVisible = false;
+	mainInitDone = false;
+	helpInitDone = false;
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
