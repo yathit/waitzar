@@ -124,6 +124,16 @@ int numCustomWords;
 INPUT *inputItems;
 KEYBDINPUT keyInputPrototype;
 
+//Help Window resources
+PulpCoreFont *helpFntKeys;
+PulpCoreFont *helpFntFore;
+PulpCoreFont *helpFntBack;
+
+//Help window colors
+#define COLOR_HELPFNT_KEYS        0x606060
+#define COLOR_HELPFNT_FORE        0x000000
+#define COLOR_HELPFNT_BACK        0x0019FF
+
 //Configuration variables.
 BOOL customDictWarning = FALSE;
 TCHAR langHotkeyString[100];
@@ -204,39 +214,138 @@ bool helpWindowIsVisible;
  */
 void makeFont(HWND currHwnd)
 {
-	//Load our font resource
-	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT"));
-	if (!fontRes) {
-		MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-        return;
+	//Load our font resource (main fonts)
+	{
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT"));
+		if (!fontRes) {
+			MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, fontRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Create our PulpCoreFont (it's white when we load it, not black, by the way)
+		mmFontBlack = new PulpCoreFont(fontRes, res_handle, mainDC);
+		if (mmFontBlack->isInError()==TRUE) {
+			TCHAR errorStr[600];
+			swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
+
+			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Unlock this resource for later use.
+		UnlockResource(res_handle);
+
+		//Copy-construct a new font
+		mmFontGreen = new PulpCoreFont(mmFontBlack, mainDC);
+
+		//Tint both to their respective colors
+		mmFontGreen->tintSelf(0x008000);
+		mmFontBlack->tintSelf(0x000000);
 	}
 
-	//Get a handle from this resource.
-    HGLOBAL res_handle = LoadResource(NULL, fontRes);
-	if (!res_handle) {
-		MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-        return;
+
+	//Load our help window font: Keys
+	{
+		//First the resource
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_KEY_FONT), _T("COREFONT"));
+		if (!fontRes) {
+			MessageBox(NULL, _T("Couldn't find WZ_HELP_KEY_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, fontRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_KEY_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		helpFntKeys = new PulpCoreFont(fontRes, res_handle, senDC);
+		if (helpFntKeys->isInError()==TRUE) {
+			TCHAR errorStr[600];
+			swprintf(errorStr, _T("WZ Help Font (keys) didn't load correctly: %s"), helpFntKeys->getErrorMsg());
+
+			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Tint to default
+		helpFntKeys->tintSelf(COLOR_HELPFNT_KEYS);
+
+		//Unlock this resource for later use.
+		UnlockResource(res_handle);
 	}
 
-	//Create our PulpCoreFont (it's white when we load it, not black, by the way)
-	mmFontBlack = new PulpCoreFont(fontRes, res_handle, mainDC);
-	if (mmFontBlack->isInError()==TRUE) {
-		TCHAR errorStr[600];
-		swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
+	//Load our help window font: Foreground
+	{
+		//First the resource
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_FORE_FONT), _T("COREFONT"));
+		if (!fontRes) {
+			MessageBox(NULL, _T("Couldn't find WZ_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
 
-		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
-		return;
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, fontRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		helpFntFore = new PulpCoreFont(fontRes, res_handle, senDC);
+		if (helpFntFore->isInError()==TRUE) {
+			TCHAR errorStr[600];
+			swprintf(errorStr, _T("WZ Help Font (foreground) didn't load correctly: %s"), helpFntFore->getErrorMsg());
+
+			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Tint to default
+		helpFntFore->tintSelf(COLOR_HELPFNT_FORE);
+
+		//Unlock this resource for later use.
+		UnlockResource(res_handle);
 	}
 
-	//Unlock this resource for later use.
-	UnlockResource(res_handle);
+	//Load our help window font: Background
+	{
+		//First the resource
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_BACK_FONT), _T("COREFONT"));
+		if (!fontRes) {
+			MessageBox(NULL, _T("Couldn't find WZ_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
 
-	//Copy-construct a new font
-	mmFontGreen = new PulpCoreFont(mmFontBlack, mainDC);
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, fontRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
 
-	//Tint both to their respective colors
-	mmFontGreen->tintSelf(0x008000);
-	mmFontBlack->tintSelf(0x000000);
+		helpFntBack = new PulpCoreFont(fontRes, res_handle, senDC);
+		if (helpFntBack->isInError()==TRUE) {
+			TCHAR errorStr[600];
+			swprintf(errorStr, _T("WZ Help Font (background) didn't load correctly: %s"), helpFntBack->getErrorMsg());
+
+			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Tint to default
+		helpFntBack->tintSelf(COLOR_HELPFNT_BACK);
+
+		//Unlock this resource for later use.
+		UnlockResource(res_handle);
+	}
 
 	//Save resources if we don't use the second window
 	if (typePhrases==FALSE)
@@ -269,7 +378,7 @@ void makeFont(HWND currHwnd)
 	UnlockResource(res_handle_2);
 
 	//Tint
-	mmFontBlack->tintSelf(0x000000);
+	mmFontSmallBlack->tintSelf(0x000000);
 }
 
 
@@ -994,30 +1103,18 @@ void initCalculateHelp()
 {
 	//
 	SelectObject(helpUnderDC, GetStockPen(NULL_PEN));
-	SelectObject(helpUnderDC, g_DarkGrayBkgrd);
+	SelectObject(helpUnderDC, g_GreenBkgrd);
 	Rectangle(helpUnderDC, 0, 0, HELP_C_WIDTH+1, HELP_C_HEIGHT+1);
 
 	//Background
-	SelectObject(helpUnderDC, g_GreenBkgrd);
+	/*SelectObject(helpUnderDC, g_GreenBkgrd);
 	Rectangle(helpUnderDC, 20, 20, 50, 50);
-	Rectangle(helpUnderDC, 10, 50, 70, 60);
+	Rectangle(helpUnderDC, 10, 50, 70, 60);*/
 
-	//TEMP: image blit
-	/*HDC srcDC = mmFontGreen->getDirectDC();
-	BitBlt(
-		//Dest:
-		helpUnderDC,0,0,
-		
-		//Size (same for both)
-		200,25,
-		
-		//Src
-		srcDC,0,0,
-		
-		//Mode
-		SRCCOPY);*/
-
-	mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
+	//mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
+	helpFntKeys->drawString(helpUnderDC, _T("Keys: A B C D WaitZar"), 10, 10);
+	helpFntBack->drawString(helpUnderDC, _T("Back: \u1000 -\u1039"), 10, 20);
+	helpFntFore->drawString(helpUnderDC, _T("Fore: \u1000 -\u1039"), 10, 30);
 
 	//Paint
 	reBlitHelp();
@@ -1259,15 +1356,10 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
 			SelectObject(helpUnderDC, helpBitmap);
 
-
-			//TEMP
-			//SetBkMode(GetDC(hwnd), TRANSPARENT);
-
-
 			//Set necessary pixel blending attributes on our help window
 			if (true) {
 				//if (SetLayeredWindowAttributes(hwnd, 0, 0xCC, ULW_ALPHA)==FALSE) {
-				if (SetLayeredWindowAttributes(hwnd, RGB(128, 128, 128), 0xFF, LWA_COLORKEY)==FALSE) {
+				if (SetLayeredWindowAttributes(hwnd, RGB(0, 128, 0), 0xFF, LWA_COLORKEY)==FALSE) {
 					TCHAR msg[500];
 					swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
 					MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
@@ -2251,7 +2343,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 	wc.hInstance = hInst;
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = g_DarkGrayBkgrd;
+	wc.hbrBackground = g_GreenBkgrd;
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = windowClassName;
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
