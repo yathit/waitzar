@@ -11,6 +11,9 @@
 #define WZ_FONT                         107
 #define IDR_COREFONT1                   108
 #define WZ_SMALL_FONT                   108
+#define WZ_HELP_KEY_FONT                109
+#define WZ_HELP_FORE_FONT               110
+#define WZ_HELP_BACK_FONT               111
 #define IDM_HELP                        40004
 #define IDM_MYANMAR                     40006
 #define IDM_EXIT                        40008
@@ -21,10 +24,10 @@
 #define ID_ENCODING_WININNWA            40014
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_RESOURCE_VALUE        112
 #define _APS_NEXT_COMMAND_VALUE         40015
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
