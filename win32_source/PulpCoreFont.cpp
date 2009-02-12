@@ -97,7 +97,7 @@ void PulpCoreFont::initBmpInfo()
 	//Create the blend function now...
 	blendFunc.BlendOp = AC_SRC_OVER;
 	blendFunc.BlendFlags = 0; //Must be zero
-	blendFunc.SourceConstantAlpha = 0xFF; //Blend at the pixel leve only.
+	blendFunc.SourceConstantAlpha = 0xFF; //Blend at the pixel level only.
 	blendFunc.AlphaFormat = AC_SRC_ALPHA;
 }
 
