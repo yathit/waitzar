@@ -148,6 +148,12 @@ HDC senUnderDC;
 HBITMAP senBitmap;
 BOOL senWindowSkipMove = FALSE;
 
+//Double-buffering stuff, tertiary window
+HWND helpWindow;
+HDC helpDC;
+HDC helpUnderDC;
+HBITMAP helpBitmap;
+
 //Record-keeping
 TCHAR currStr[50];
 TCHAR currPhrase[500];
@@ -181,6 +187,7 @@ int spaceWidth;
 //Avoid crashing if explorer is running slowly
 bool mainWindowIsVisible;
 bool subWindowIsVisible;
+bool helpWindowIsVisible;
 
 
 
@@ -2413,6 +2420,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	hInst = hInstance;
 	mainWindowIsVisible = false;
 	subWindowIsVisible = false;
+	helpWindowIsVisible = false;
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
@@ -2441,9 +2449,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//  NOTE: We need to balance this eventually.
 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
-	//Create our main window.
-	HWND mainWindow = makeMainWindow(_T("waitZarMainWindow"));
-	HWND senWindow = makeSubWindow(_T("waitZarSentenceWindow"));
+	//Create our windows
+	/*HWND*/ mainWindow = makeMainWindow(_T("waitZarMainWindow"));
+	/*HWND*/ senWindow = makeSubWindow(_T("waitZarSentenceWindow"));
+	//HWND helpWindow
 
 	//Our vector is used to store typed words for later...
 	sentence = new SentenceList();

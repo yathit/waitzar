@@ -70,3 +70,17 @@ The Prince Ka Naung Project: svn revision 700
 License: GNU General Public License, version 2.0
 Site: http://code.google.com/p/kanaung/
 Contact: Soe Min
+
+
+The myWin Myanmar Unicode keyboard layout, version 2.2
+ The files:
+ - myWin2.2.kmn (in a derivative form)
+ The myWin Unicode keyboard was designed as a Unicode 5.1-compliant re-visioning of the 
+ popular Win Burmese font layouts. It was considered a good candidate for WaitZar, as it 
+ is explicitly recommended for both Windows and Linux input of Myanmar text. This layout
+ is not used in its original format; rather, it is refactored into the "Help" menu (F1)
+ to allow users to perform a reverse-lookup of Burmese words in the WaitZar dictionary.
+ As per the license, we are re-licensing this derivative work under the GPL version 3.0
+License: GNU General Public License, version 3.0
+Site: http://www.thanlwinsoft.org/ThanLwinSoft/Downloads/index.php#keyboards
+Contact: Keith Stribley, Martin Hosken
