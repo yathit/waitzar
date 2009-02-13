@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PulpCoreImage.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\cross_platform_library\waitzar\SentenceList.cpp"
 				>
 			</File>
@@ -281,6 +285,10 @@
 				</File>
 				<File
 					RelativePath=".\PulpCoreFont.h"
+					>
+				</File>
+				<File
+					RelativePath=".\PulpCoreImage.h"
 					>
 				</File>
 				<File
