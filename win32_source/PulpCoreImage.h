@@ -61,12 +61,15 @@ const int SAMPLES_PER_PIXEL[] = { 1, 0, 3, 1, 2, 0, 4 };
 class PulpCoreImage
 {
 public:
-	//Constructor, copy constructor
-	PulpCoreImage(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
-	PulpCoreImage(PulpCoreImage *copyFrom, HDC currDC);
+	//Empty constructor
+	PulpCoreImage();
+
+	//Initializer, copy initializer
+	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
+	virtual void init(PulpCoreImage *copyFrom, HDC currDC);
 
 	//Make a blank image
-	PulpCoreImage(int width, int height, HDC &thisDC, HBITMAP &thisBmp);
+	virtual void init(int width, int height, HDC &thisDC, HBITMAP &thisBmp);
 
 	//Useful for making various color replicas of one image.
 	// Particularly useful for fonts, but used in other places

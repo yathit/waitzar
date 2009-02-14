@@ -15,11 +15,25 @@
 #include ".\pulpcoreimage.h"
 
 
+/** 
+ * From Wikipedia:
+ * "While it is recommended that virtual function calls in constructors should be avoided for C++"
+ */
+PulpCoreImage::PulpCoreImage()
+{
+}
+
+
+void PulpCoreImage::init(int width, int height, HDC &thisDC, HBITMAP &thisBmp)
+{
+}
+
+
 
 /**
- * Copy constructor.
+ * Copy initializer.
  */
-PulpCoreImage::PulpCoreImage(PulpCoreImage *copyFrom, HDC currDC)
+void PulpCoreImage::init(PulpCoreImage *copyFrom, HDC currDC)
 {
 	//Init
 	this->error = copyFrom->error;
@@ -93,9 +107,9 @@ void PulpCoreImage::tintSelf(UINT rgbColor)
 
 
 /**
- * Resource constructor
+ * Resource initializer
  */
-PulpCoreImage::PulpCoreImage(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
+void PulpCoreImage::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 {
 	//Init
 	this->error = FALSE;

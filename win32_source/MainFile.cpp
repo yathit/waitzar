@@ -230,7 +230,8 @@ void makeFont(HWND currHwnd)
 		}
 
 		//Create our PulpCoreFont (it's white when we load it, not black, by the way)
-		mmFontBlack = new PulpCoreFont(fontRes, res_handle, mainDC);
+		mmFontBlack = new PulpCoreFont();
+		mmFontBlack->init(fontRes, res_handle, mainDC);
 		if (mmFontBlack->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
@@ -243,7 +244,8 @@ void makeFont(HWND currHwnd)
 		UnlockResource(res_handle);
 
 		//Copy-construct a new font
-		mmFontGreen = new PulpCoreFont(mmFontBlack, mainDC);
+		mmFontGreen = new PulpCoreFont();
+		mmFontGreen->init(mmFontBlack, mainDC);
 
 		//Tint both to their respective colors
 		mmFontGreen->tintSelf(0x008000);
@@ -267,7 +269,8 @@ void makeFont(HWND currHwnd)
 			return;
 		}
 
-		helpFntKeys = new PulpCoreFont(fontRes, res_handle, senDC);
+		helpFntKeys = new PulpCoreFont();
+		helpFntKeys->init(fontRes, res_handle, senDC);
 		if (helpFntKeys->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Help Font (keys) didn't load correctly: %s"), helpFntKeys->getErrorMsg());
@@ -299,7 +302,8 @@ void makeFont(HWND currHwnd)
 			return;
 		}
 
-		helpFntFore = new PulpCoreFont(fontRes, res_handle, senDC);
+		helpFntFore = new PulpCoreFont();
+		helpFntFore->init(fontRes, res_handle, senDC);
 		if (helpFntFore->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Help Font (foreground) didn't load correctly: %s"), helpFntFore->getErrorMsg());
@@ -331,7 +335,8 @@ void makeFont(HWND currHwnd)
 			return;
 		}
 
-		helpFntBack = new PulpCoreFont(fontRes, res_handle, senDC);
+		helpFntBack = new PulpCoreFont();
+		helpFntBack->init(fontRes, res_handle, senDC);
 		if (helpFntBack->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Help Font (background) didn't load correctly: %s"), helpFntBack->getErrorMsg());
@@ -365,7 +370,8 @@ void makeFont(HWND currHwnd)
         return;
 	}
 
-	mmFontSmallBlack = new PulpCoreFont(fontRes2, res_handle_2, senDC);
+	mmFontSmallBlack = new PulpCoreFont();
+	mmFontSmallBlack->init(fontRes2, res_handle_2, senDC);
 	if (mmFontSmallBlack->isInError()==TRUE) {
 		TCHAR errorStr[600];
 		swprintf(errorStr, _T("WZ Small Font didn't load correctly: %s"), mmFontSmallBlack->getErrorMsg());
@@ -378,7 +384,7 @@ void makeFont(HWND currHwnd)
 	UnlockResource(res_handle_2);
 
 	//Tint
-	mmFontSmallBlack->tintSelf(0x000000);
+	mmFontSmallBlack->tintSelf(0xFFFFFF); //White is better
 }
 
 
