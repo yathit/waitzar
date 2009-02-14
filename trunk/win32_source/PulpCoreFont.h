@@ -62,9 +62,12 @@ const char PULP_MAGICNUM[] = "pulpfnt\x0B";              //0x70756c70666e740b
 class PulpCoreFont : public PulpCoreImage
 {
 public:
-	//Contructors
-	PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
-	PulpCoreFont(PulpCoreFont* copyFrom, HDC currDC);
+	//Empty constructor
+	PulpCoreFont();
+
+	//Initializers
+	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
+	void init(PulpCoreFont* copyFrom, HDC currDC);
 
 	//Drawing functionality
 	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);

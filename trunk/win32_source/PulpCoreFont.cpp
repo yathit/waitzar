@@ -14,12 +14,21 @@
 
 #include ".\pulpcorefont.h"
 
+/**
+ * Empty constructor
+ */
+PulpCoreFont::PulpCoreFont()
+{
+}
+
 
 /**
- * Copy constructor.
+ * Copy initializers.
  */
-PulpCoreFont::PulpCoreFont(PulpCoreFont *copyFrom, HDC currDC) : PulpCoreImage(copyFrom, currDC)
+void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC) 
 {
+	PulpCoreImage::init(copyFrom, currDC);
+
 	//Copy all relevant font fields
 	this->num_char_pos = copyFrom->num_char_pos;
 	this->uppercaseOnly = copyFrom->uppercaseOnly;
@@ -37,8 +46,9 @@ PulpCoreFont::PulpCoreFont(PulpCoreFont *copyFrom, HDC currDC) : PulpCoreImage(c
 /**
  * Create a PulpCoreFont.
  */
-PulpCoreFont::PulpCoreFont(HRSRC resource, HGLOBAL dataHandle, HDC currDC) : PulpCoreImage(resource, dataHandle, currDC)
+void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC) 
 {
+	PulpCoreImage::init(resource, dataHandle, currDC);
 }
 
 
