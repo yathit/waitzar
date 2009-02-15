@@ -128,6 +128,8 @@ KEYBDINPUT keyInputPrototype;
 PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
+BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
+POINT PT_ORIGIN;
 
 //Help window colors
 #define COLOR_HELPFNT_KEYS        0x606060
@@ -192,8 +194,9 @@ int C_WIDTH;
 int C_HEIGHT;
 int SUB_C_WIDTH;
 int SUB_C_HEIGHT;
-int HELP_C_WIDTH;
-int HELP_C_HEIGHT;
+
+//Try it differently for the help menu
+SIZE HELP_CLIENT_SIZE;
 
 //Calculate's integers
 int firstLineStart;
@@ -1045,9 +1048,15 @@ void reBlit()
 }
 
 
+//Can't just blit it; we have to use updatelayeredwindow
 void reBlitHelp()
 {
-	BitBlt(helpDC,0,0,HELP_C_WIDTH,HELP_C_HEIGHT,helpUnderDC,0,0,SRCCOPY);
+	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+		TCHAR msg[500];
+		swprintf(msg, _T("Help window failed to update: %i"), GetLastError());
+		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		DestroyWindow(mainWindow);
+	}
 }
 
 
@@ -1061,10 +1070,17 @@ void reBlit(RECT blitArea)
 }
 
 
-//Blitting for the help menu
+//Can't just blit it; we have to use updatelayeredwindow
+//NOTE: We have to track when this is called, instead of just repainting the entire window.
+//NOTE: Seems like it's never called.
 void reBlitHelp(RECT blitArea)
 {
-	BitBlt(helpDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,helpUnderDC,blitArea.left,blitArea.top,SRCCOPY);
+	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+		TCHAR msg[500];
+		swprintf(msg, _T("Help window failed to update: %i"), GetLastError());
+		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		DestroyWindow(mainWindow);
+	}
 }
 
 
@@ -1108,25 +1124,23 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
  */
 void initCalculateHelp()
 {
-	//
-	//SelectObject(helpUnderDC, GetStockPen(NULL_PEN));
-	//SelectObject(helpUnderDC, g_GreenBkgrd);
-	//Rectangle(helpUnderDC, 0, 0, HELP_C_WIDTH+1, HELP_C_HEIGHT+1);
-
 	//Background
-	/*SelectObject(helpUnderDC, g_GreenBkgrd);
+	SelectObject(helpUnderDC, g_GreenBkgrd);
 	Rectangle(helpUnderDC, 20, 20, 50, 50);
-	Rectangle(helpUnderDC, 10, 50, 70, 60);*/
+	Rectangle(helpUnderDC, 10, 50, 70, 60);
 
 	//mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
 	helpFntKeys->drawString(helpUnderDC, _T("Keys: A B C D WaitZar"), 10, 10);
 	helpFntBack->drawString(helpUnderDC, _T("Back: \u1000 -\u1039"), 10, 20);
 	helpFntFore->drawString(helpUnderDC, _T("Fore: \u1000 -\u1039"), 10, 30);
+}
 
+
+void recalculateHelp()
+{
 	//Paint
 	reBlitHelp();
 }
-
 
 
 
@@ -1354,20 +1368,17 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Now, create all our buffering objects
 			RECT r;
 			GetClientRect(hwnd, &r);
-			HELP_C_WIDTH = r.right;
-			HELP_C_HEIGHT = r.bottom;
+			HELP_CLIENT_SIZE.cx = r.right;
+			HELP_CLIENT_SIZE.cy = r.bottom;
 
 			helpDC = GetDC(hwnd);
 
 
 			helpImg = new PulpCoreImage();
-			helpImg->init(HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, 0x55FF0000, helpDC, helpUnderDC, helpBitmap);
-			/*helpUnderDC = CreateCompatibleDC(helpDC);
-			helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
-			SelectObject(helpUnderDC, helpBitmap);*/
+			helpImg->init(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy, 0x00000000, helpDC, helpUnderDC, helpBitmap);
 
 			//Set necessary pixel blending attributes on our help window
-			if (true) {
+			if (false) {
 				//if (SetLayeredWindowAttributes(hwnd, 0, 0xCC, ULW_ALPHA)==FALSE) {
 				if (SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), 0xFF, LWA_COLORKEY)==FALSE) {
 					TCHAR msg[500];
@@ -1608,6 +1619,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (!helpWindowIsVisible) {
 					ShowWindow(helpWindow, SW_SHOW);
 					helpWindowIsVisible = true;
+
+					recalculateHelp();
 				} else {
 					ShowWindow(helpWindow, SW_HIDE);
 					helpWindowIsVisible = false;
@@ -2577,6 +2590,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	helpWindowIsVisible = false;
 	mainInitDone = false;
 	helpInitDone = false;
+
+	//First and foremost
+	PT_ORIGIN.x = 0;
+	PT_ORIGIN.y = 0;
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
