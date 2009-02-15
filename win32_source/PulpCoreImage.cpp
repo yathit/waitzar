@@ -24,8 +24,45 @@ PulpCoreImage::PulpCoreImage()
 }
 
 
-void PulpCoreImage::init(int width, int height, HDC &thisDC, HBITMAP &thisBmp)
+/**
+ * Create a blank image. Pass in an un-initialized HDC and HBITMAP to initalize them
+ */
+void PulpCoreImage::init(int width, int height, int bkgrdARGB, HDC currDC, HDC &thisDC, HBITMAP &thisBmp)
 {
+	//Init
+	this->error = FALSE;
+	lstrcpy(this->errorMsg, _T(""));
+
+	//Init all relevant fields
+	/*this->bitDepth = copyFrom->bitDepth;
+	this->colorType = copyFrom->colorType;
+	this->isOpaque = copyFrom->isOpaque;
+	this->hotspotX = copyFrom->hotspotX;
+	this->hotspotY = copyFrom->hotspotY;
+	this->pal_length = copyFrom->pal_length;
+	this->palette = copyFrom->palette;*/
+	this->width = width;
+	this->height = height;
+	this->hotspotX = 0;
+	this->hotspotY = 0;
+
+	//Initialize our bitmap-related data structures
+	initBmpInfo();
+
+	//Create the DIB to copy pixels onto
+	directDC = thisDC = CreateCompatibleDC(currDC);
+	directBitmap = thisBmp = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
+	SelectObject(directDC, directBitmap);
+	if (directBitmap==NULL && error==FALSE) {
+		lstrcpy(errorMsg, _T("Couldn't create image bitmap."));
+		error = TRUE;
+		return;
+	}
+
+	//Init with background color
+	for (int i=0; i<width*height; i++)  {
+		this->directPixels[i] = premultiply(bkgrdARGB);
+	}
 }
 
 

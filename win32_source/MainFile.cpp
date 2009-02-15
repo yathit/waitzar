@@ -163,6 +163,7 @@ HWND helpWindow;
 HDC helpDC;
 HDC helpUnderDC;
 HBITMAP helpBitmap;
+PulpCoreImage *helpImg;
 
 //Init properly
 bool mainInitDone;
@@ -1108,9 +1109,9 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 void initCalculateHelp()
 {
 	//
-	SelectObject(helpUnderDC, GetStockPen(NULL_PEN));
-	SelectObject(helpUnderDC, g_GreenBkgrd);
-	Rectangle(helpUnderDC, 0, 0, HELP_C_WIDTH+1, HELP_C_HEIGHT+1);
+	//SelectObject(helpUnderDC, GetStockPen(NULL_PEN));
+	//SelectObject(helpUnderDC, g_GreenBkgrd);
+	//Rectangle(helpUnderDC, 0, 0, HELP_C_WIDTH+1, HELP_C_HEIGHT+1);
 
 	//Background
 	/*SelectObject(helpUnderDC, g_GreenBkgrd);
@@ -1357,15 +1358,18 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HELP_C_HEIGHT = r.bottom;
 
 			helpDC = GetDC(hwnd);
-			helpUnderDC = CreateCompatibleDC(helpDC);
 
+
+			helpImg = new PulpCoreImage();
+			helpImg->init(HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, 0x55FF0000, helpDC, helpUnderDC, helpBitmap);
+			/*helpUnderDC = CreateCompatibleDC(helpDC);
 			helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
-			SelectObject(helpUnderDC, helpBitmap);
+			SelectObject(helpUnderDC, helpBitmap);*/
 
 			//Set necessary pixel blending attributes on our help window
 			if (true) {
 				//if (SetLayeredWindowAttributes(hwnd, 0, 0xCC, ULW_ALPHA)==FALSE) {
-				if (SetLayeredWindowAttributes(hwnd, RGB(0, 128, 0), 0xFF, LWA_COLORKEY)==FALSE) {
+				if (SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), 0xFF, LWA_COLORKEY)==FALSE) {
 					TCHAR msg[500];
 					swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
 					MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);

@@ -69,7 +69,7 @@ public:
 	virtual void init(PulpCoreImage *copyFrom, HDC currDC);
 
 	//Make a blank image
-	virtual void init(int width, int height, HDC &thisDC, HBITMAP &thisBmp);
+	virtual void init(int width, int height, int bkgrdARGB, HDC currDC, HDC &thisDC, HBITMAP &thisBmp);
 
 	//Useful for making various color replicas of one image.
 	// Particularly useful for fonts, but used in other places
