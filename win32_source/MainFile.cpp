@@ -128,6 +128,7 @@ KEYBDINPUT keyInputPrototype;
 PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
+PulpCoreImage *helpCornerImg;
 BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 POINT PT_ORIGIN;
 
@@ -165,7 +166,7 @@ HWND helpWindow;
 HDC helpDC;
 HDC helpUnderDC;
 HBITMAP helpBitmap;
-PulpCoreImage *helpImg;
+//PulpCoreImage *helpImg;
 
 //Init properly
 bool mainInitDone;
@@ -274,7 +275,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		helpFntKeys = new PulpCoreFont();
-		helpFntKeys->init(fontRes, res_handle, senDC);
+		helpFntKeys->init(fontRes, res_handle, helpDC);
 		if (helpFntKeys->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Help Font (keys) didn't load correctly: %s"), helpFntKeys->getErrorMsg());
@@ -307,7 +308,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		helpFntFore = new PulpCoreFont();
-		helpFntFore->init(fontRes, res_handle, senDC);
+		helpFntFore->init(fontRes, res_handle, helpDC);
 		if (helpFntFore->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Help Font (foreground) didn't load correctly: %s"), helpFntFore->getErrorMsg());
@@ -340,7 +341,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		helpFntBack = new PulpCoreFont();
-		helpFntBack->init(fontRes, res_handle, senDC);
+		helpFntBack->init(fontRes, res_handle, helpDC);
 		if (helpFntBack->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Help Font (background) didn't load correctly: %s"), helpFntBack->getErrorMsg());
@@ -355,6 +356,41 @@ void makeFont(HWND currHwnd)
 		//Unlock this resource for later use.
 		UnlockResource(res_handle);
 	}
+
+
+	//Load our help menu's corner image (used for keyboard keys)
+	{
+		//First the resource
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_CORNER), _T("COREFONT"));
+		if (!imgRes) {
+			MessageBox(NULL, _T("Couldn't find WZ_HELP_CORNER"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, imgRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_CORNER"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		helpCornerImg = new PulpCoreImage();
+		helpCornerImg->init(imgRes, res_handle, helpDC);
+		if (helpCornerImg->isInError()==TRUE) {
+			TCHAR errorStr[600];
+			swprintf(errorStr, _T("WZ Corner Image File didn't load correctly: %s"), helpCornerImg->getErrorMsg());
+
+			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Tint to default
+		//helpCornerImg->tintSelf(COLOR_HELPFNT_BACK);
+
+		//Unlock this resource for later use.
+		UnlockResource(res_handle);
+	}
+	
 
 	//Save resources if we don't use the second window
 	if (typePhrases==FALSE)
@@ -1125,9 +1161,9 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 void initCalculateHelp()
 {
 	//Background
-	SelectObject(helpUnderDC, g_GreenBkgrd);
+	/*SelectObject(helpUnderDC, g_GreenBkgrd);
 	Rectangle(helpUnderDC, 20, 20, 50, 50);
-	Rectangle(helpUnderDC, 10, 50, 70, 60);
+	Rectangle(helpUnderDC, 10, 50, 70, 60);*/
 
 	//mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
 	helpFntKeys->drawString(helpUnderDC, _T("Keys: A B C D WaitZar"), 10, 10);
@@ -1370,12 +1406,9 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			GetClientRect(hwnd, &r);
 			HELP_CLIENT_SIZE.cx = r.right;
 			HELP_CLIENT_SIZE.cy = r.bottom;
-
 			helpDC = GetDC(hwnd);
-
-
-			helpImg = new PulpCoreImage();
-			helpImg->init(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy, 0x00000000, helpDC, helpUnderDC, helpBitmap);
+			PulpCoreImage emptyImg;
+			emptyImg.init(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy, 0x00000000, helpDC, helpUnderDC, helpBitmap);
 
 			//Set necessary pixel blending attributes on our help window
 			if (false) {
