@@ -110,6 +110,7 @@ WZ_SMALL_FONT           COREFONT                "waitzar_small.font.png"
 WZ_HELP_KEY_FONT        COREFONT                "help_ar_letters.font.png"
 WZ_HELP_FORE_FONT       COREFONT                "help_zg_main.font.png"
 WZ_HELP_BACK_FONT       COREFONT                "help_zg_sub.font.png"
+WZ_HELP_CORNER          COREFONT                "keybd_corner.png"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
