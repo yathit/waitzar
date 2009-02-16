@@ -76,6 +76,10 @@ public:
 	// for monochrome images as well
 	void tintSelf(UINT rgbColor);
 
+	//Somewhat hackish
+	void fillRectangle(int startX, int startY, int width, int height, int ARGB);
+	void rotateSelf90DegreesClockwise();
+
 	//Basic drawing functionality
 	void draw(HDC bufferDC, int xPos, int yPos);
 
