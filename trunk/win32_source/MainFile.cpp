@@ -124,6 +124,7 @@ int numConfigOptions;
 int numCustomWords;
 INPUT *inputItems;
 KEYBDINPUT keyInputPrototype;
+bool helpIsCached;
 
 //Help Window resources
 PulpCoreFont *helpFntKeys;
@@ -1160,16 +1161,6 @@ void initCalculateHelp()
 {
 	//Initialize our keyboard
 	helpKeyboard = new OnscreenKeyboard(mmFontSmallBlack, helpCornerImg);
-
-	//Time to re-size our help window
-	int newW = 0;
-	int newH = 0;
-	expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
-	HELP_CLIENT_SIZE.cx = newW;
-	HELP_CLIENT_SIZE.cy = newH;
-
-	//...and now we can properly initialize its drawing surface
-	helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
 }
 
 
@@ -1628,6 +1619,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//TEMP: Just make it work~~~
 			if (wParam == HOTKEY_HELP) {
 				if (!helpWindowIsVisible) {
+					//Did we even initialize the help window?
+					if (!helpIsCached) {
+						//Time to re-size our help window
+						int newW = 0;
+						int newH = 0;
+						expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
+						HELP_CLIENT_SIZE.cx = newW;
+						HELP_CLIENT_SIZE.cy = newH;
+
+						//...and now we can properly initialize its drawing surface
+						helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
+
+						helpIsCached = true;
+					}
+
+
 					ShowWindow(helpWindow, SW_SHOW);
 					helpWindowIsVisible = true;
 
@@ -2605,6 +2612,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//First and foremost
 	PT_ORIGIN.x = 0;
 	PT_ORIGIN.y = 0;
+	helpIsCached = false;
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
