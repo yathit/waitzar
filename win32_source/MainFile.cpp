@@ -140,6 +140,9 @@ POINT PT_ORIGIN;
 #define COLOR_HELPFNT_FORE        0x000000
 #define COLOR_HELPFNT_BACK        0x0019FF
 
+//Temp:
+#define HELPWND_TITLE             _T("WaitZar Low-Level Input")
+
 //Configuration variables.
 BOOL customDictWarning = FALSE;
 TCHAR langHotkeyString[100];
@@ -169,7 +172,7 @@ HWND helpWindow;
 HDC helpDC;
 HDC helpUnderDC;
 HBITMAP helpBitmap;
-//PulpCoreImage *helpImg;
+PulpCoreImage *helpImg;
 
 //Init properly
 bool mainInitDone;
@@ -190,7 +193,7 @@ int WINDOW_WIDTH = 240;
 int WINDOW_HEIGHT = 120;
 int SUB_WINDOW_WIDTH = 300;
 int SUB_WINDOW_HEIGHT = 26;
-int HELP_WINDOW_WIDTH = 200;
+int HELP_WINDOW_WIDTH = 500;
 int HELP_WINDOW_HEIGHT = 200;
 
 //Width/height of client area
@@ -1220,15 +1223,36 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
  */
 void initCalculateHelp()
 {
+	//Measure
+	int innerW = mmFontSmallBlack->getStringWidth(HELPWND_TITLE);
+	int innerH = mmFontSmallBlack->getHeight()-2;
+
 	//Background
-	PulpCoreImage *myButton = makeButton(33, 43, 0xFF9AA4E2, 0xFFD3D3D3, 0xFF606060);
-	myButton->draw(helpUnderDC, 10, 10);
-	delete myButton;
+	PulpCoreImage *headerButton = makeButton(innerW+2*helpCornerImg->getWidth(), innerH+2*helpCornerImg->getHeight(), 0x00FFFFFF, 0xFF9AA4E2, 0xFF000000);
+	headerButton->draw(helpUnderDC, 0, 0);
+	PulpCoreImage *bodyButton = makeButton(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy-headerButton->getHeight()+helpCornerImg->getHeight(), 0x00FFFFFF, 0xFF9AA4E2, 0xFF000000);
+	bodyButton->draw(helpUnderDC, 0, headerButton->getHeight()-helpCornerImg->getHeight());
+
+	//Fix line intersections
+	helpImg->fillRectangle(2, headerButton->getHeight()-helpCornerImg->getHeight(), headerButton->getWidth()-4, helpCornerImg->getHeight(), 0xFF9AA4E2);
+	helpImg->fillRectangle(0, headerButton->getHeight()-helpCornerImg->getHeight(), 2, helpCornerImg->getHeight(), 0xFF000000);
+	helpImg->fillRectangle(headerButton->getWidth()-2, headerButton->getHeight()-helpCornerImg->getHeight(), 2, 2, 0xFF000000);
+
+	//Free resources
+	delete bodyButton;
+	delete headerButton;
+
+	//Now draw the string
+	mmFontSmallBlack->tintSelf(0x000000);
+	mmFontSmallBlack->drawString(helpUnderDC, HELPWND_TITLE, helpCornerImg->getWidth(), helpCornerImg->getHeight());
+	mmFontSmallBlack->tintSelf(0xFFFFFF);
+
+	
 
 	//mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
 	//helpFntKeys->drawString(helpUnderDC, _T("Keys: A B C D WaitZar"), 10, 10);
 	//helpFntBack->drawString(helpUnderDC, _T("Back: \u1000 -\u1039"), 10, 20);
-	helpFntFore->drawString(helpUnderDC, _T("Fore: \u1000 -\u1039"), 10, 50);
+	//mmFontSmallBlack->drawString(helpUnderDC, _T("WaitZar Low-Level Input"), 10, 50);
 }
 
 
@@ -1467,8 +1491,8 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HELP_CLIENT_SIZE.cx = r.right;
 			HELP_CLIENT_SIZE.cy = r.bottom;
 			helpDC = GetDC(hwnd);
-			PulpCoreImage emptyImg;
-			emptyImg.init(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy, 0x00000000, helpDC, helpUnderDC, helpBitmap);
+			helpImg = new PulpCoreImage();
+			helpImg->init(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy, 0x00000000, helpDC, helpUnderDC, helpBitmap);
 
 			//Set necessary pixel blending attributes on our help window
 			if (false) {

@@ -146,8 +146,6 @@ void PulpCoreImage::tintSelf(UINT rgbColor)
 /**
  * This function is a bit of a hack, since it accesses the image's pixels directly.
  * However, we have no choice, since layered windows require premultiplied alphas.
- * NOTE that at the moment, this draws mirrored vertically. This isn't a problem, since
- *  buttons are 2-way symmetric.
  */ 
 void PulpCoreImage::fillRectangle(int startX, int startY, int width, int height, int ARGB)
 {
@@ -165,8 +163,12 @@ void PulpCoreImage::fillRectangle(int startX, int startY, int width, int height,
 	int premultColor = premultiply(ARGB);
 	for (int y=startY; y<startY+height; y++) {
 		for (int x=startX; x<startX+width; x++) {
-			int offset = y*this->getWidth() + x;
-			directPixels[offset] = premultColor;
+			//Mirror vertical 
+			int offset = (this->getHeight()-1-y)*this->getWidth() + x;
+
+			//Avoid memory errors (again~)
+			if (offset>=0 && offset<this->getWidth()*this->getHeight()) 
+				directPixels[offset] = premultColor;
 		}
 	}
 }
