@@ -64,6 +64,7 @@
 #include "../cross_platform_library/waitzar/WordBuilder.h"
 #include "../cross_platform_library/waitzar/SentenceList.h"
 #include "PulpCoreFont.h"
+#include "OnscreenKeyboard.h"
 #include "resource.h"
 #include "Hotkeys.h"
 
@@ -129,9 +130,7 @@ PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
 PulpCoreImage *helpCornerImg;
-PulpCoreImage *helpCornerImg90;
-PulpCoreImage *helpCornerImg180;
-PulpCoreImage *helpCornerImg270;
+OnscreenKeyboard *helpKeyboard;
 BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 POINT PT_ORIGIN;
 
@@ -139,9 +138,6 @@ POINT PT_ORIGIN;
 #define COLOR_HELPFNT_KEYS        0x606060
 #define COLOR_HELPFNT_FORE        0x000000
 #define COLOR_HELPFNT_BACK        0x0019FF
-
-//Temp:
-#define HELPWND_TITLE             _T("WaitZar Low-Level Input")
 
 //Configuration variables.
 BOOL customDictWarning = FALSE;
@@ -172,7 +168,6 @@ HWND helpWindow;
 HDC helpDC;
 HDC helpUnderDC;
 HBITMAP helpBitmap;
-PulpCoreImage *helpImg;
 
 //Init properly
 bool mainInitDone;
@@ -193,7 +188,7 @@ int WINDOW_WIDTH = 240;
 int WINDOW_HEIGHT = 120;
 int SUB_WINDOW_WIDTH = 300;
 int SUB_WINDOW_HEIGHT = 26;
-int HELP_WINDOW_WIDTH = 500;
+int HELP_WINDOW_WIDTH = 200;
 int HELP_WINDOW_HEIGHT = 200;
 
 //Width/height of client area
@@ -390,17 +385,6 @@ void makeFont(HWND currHwnd)
 			return;
 		}
 
-		//Make other helper images
-		helpCornerImg90 = new PulpCoreImage();
-		helpCornerImg90->init(helpCornerImg, helpDC);
-		helpCornerImg90->rotateSelf90DegreesClockwise();
-		helpCornerImg180 = new PulpCoreImage();
-		helpCornerImg180->init(helpCornerImg90, helpDC);
-		helpCornerImg180->rotateSelf90DegreesClockwise();
-		helpCornerImg270 = new PulpCoreImage();
-		helpCornerImg270->init(helpCornerImg180, helpDC);
-		helpCornerImg270->rotateSelf90DegreesClockwise();
-
 		//Unlock this resource for later use.
 		UnlockResource(res_handle);
 	}
@@ -439,54 +423,6 @@ void makeFont(HWND currHwnd)
 
 	//Tint
 	mmFontSmallBlack->tintSelf(0xFFFFFF); //White is better
-}
-
-
-
-//Make a "button", with a given width and height (including border), background color (can be transparent) and
-// foreground color. Border color is changed by calling "tint self" on cornerImg before this.
-PulpCoreImage* makeButton(int width, int height, int bgARGB, int fgARGB, int borderARGB)
-{
-	//Make an empty image
-	PulpCoreImage *result = new PulpCoreImage();
-	HDC resDC;
-	HBITMAP resBMP;
-	result->init(width, height, bgARGB, GetDC(NULL), resDC, resBMP);
-
-	//Draw the foreground before overlaying the corner images
-	int buffer_offset = 3;
-	result->fillRectangle(helpCornerImg->getWidth()-buffer_offset, 1, result->getWidth()-2*helpCornerImg->getWidth()+2*buffer_offset, helpCornerImg->getHeight(), fgARGB);
-	result->fillRectangle(helpCornerImg->getWidth()-buffer_offset, result->getHeight()-helpCornerImg->getHeight(), result->getWidth()-2*helpCornerImg->getWidth()+2*buffer_offset, helpCornerImg->getHeight()-1, fgARGB);
-	result->fillRectangle(1, helpCornerImg->getHeight()-buffer_offset, result->getWidth()-2, result->getHeight()-2*helpCornerImg->getHeight()+2*buffer_offset, fgARGB);
-
-	//A few pixels require manual setting
-	result->fillRectangle(3, 2, 1, 2, fgARGB);
-	result->fillRectangle(2, 3, 1, 1, fgARGB);
-	result->fillRectangle(result->getWidth()-1-3, 2, 1, 2, fgARGB);
-	result->fillRectangle(result->getWidth()-1-2, 3, 1, 1, fgARGB);
-	result->fillRectangle(result->getWidth()-1-3, result->getHeight()-4, 1, 2, fgARGB);
-	result->fillRectangle(result->getWidth()-1-2, result->getHeight()-4, 1, 1, fgARGB);
-	result->fillRectangle(3, result->getHeight()-4, 1, 2, fgARGB);
-	result->fillRectangle(2, result->getHeight()-4, 1, 1, fgARGB);
-
-	//Draw our corner images
-	helpCornerImg->tintSelf(borderARGB);
-	helpCornerImg->draw(resDC, 0, 0);
-	helpCornerImg90->tintSelf(borderARGB);
-	helpCornerImg90->draw(resDC, result->getWidth()-helpCornerImg->getWidth(), 0);
-	helpCornerImg180->tintSelf(borderARGB);
-	helpCornerImg180->draw(resDC, result->getWidth()-helpCornerImg->getWidth(), result->getHeight()-helpCornerImg->getHeight());
-	helpCornerImg270->tintSelf(borderARGB);
-	helpCornerImg270->draw(resDC, 0, result->getHeight()-helpCornerImg->getHeight());
-
-	//Draw the remaining lines
-	result->fillRectangle(helpCornerImg->getWidth(), 0, result->getWidth()-2*helpCornerImg->getWidth(), 2, borderARGB);
-	result->fillRectangle(helpCornerImg->getWidth(), result->getHeight()-2, result->getWidth()-2*helpCornerImg->getWidth(), 2, borderARGB);
-	result->fillRectangle(0, helpCornerImg->getHeight(), 2, result->getHeight()-2*helpCornerImg->getHeight(), borderARGB);
-	result->fillRectangle(result->getWidth()-2, helpCornerImg->getHeight(), 2, result->getHeight()-2*helpCornerImg->getHeight(), borderARGB);
-
-	//There, that was easy
-	return result;
 }
 
 
@@ -1218,41 +1154,22 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 
 
 /**
- * Initialize our help menu's drawing area, by drawing directly onto its back buffer.
- * Finally, blit to the front buffer.
+ * Initialize our on-screen keyboard
  */
 void initCalculateHelp()
 {
-	//Measure
-	int innerW = mmFontSmallBlack->getStringWidth(HELPWND_TITLE);
-	int innerH = mmFontSmallBlack->getHeight()-2;
+	//Initialize our keyboard
+	helpKeyboard = new OnscreenKeyboard(mmFontSmallBlack, helpCornerImg);
 
-	//Background
-	PulpCoreImage *headerButton = makeButton(innerW+2*helpCornerImg->getWidth(), innerH+2*helpCornerImg->getHeight(), 0x00FFFFFF, 0xFF9AA4E2, 0xFF000000);
-	headerButton->draw(helpUnderDC, 0, 0);
-	PulpCoreImage *bodyButton = makeButton(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy-headerButton->getHeight()+helpCornerImg->getHeight(), 0x00FFFFFF, 0xFF9AA4E2, 0xFF000000);
-	bodyButton->draw(helpUnderDC, 0, headerButton->getHeight()-helpCornerImg->getHeight());
+	//Time to re-size our help window
+	int newW = 0;
+	int newH = 0;
+	expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
+	HELP_CLIENT_SIZE.cx = newW;
+	HELP_CLIENT_SIZE.cy = newH;
 
-	//Fix line intersections
-	helpImg->fillRectangle(2, headerButton->getHeight()-helpCornerImg->getHeight(), headerButton->getWidth()-4, helpCornerImg->getHeight(), 0xFF9AA4E2);
-	helpImg->fillRectangle(0, headerButton->getHeight()-helpCornerImg->getHeight(), 2, helpCornerImg->getHeight(), 0xFF000000);
-	helpImg->fillRectangle(headerButton->getWidth()-2, headerButton->getHeight()-helpCornerImg->getHeight(), 2, 2, 0xFF000000);
-
-	//Free resources
-	delete bodyButton;
-	delete headerButton;
-
-	//Now draw the string
-	mmFontSmallBlack->tintSelf(0x000000);
-	mmFontSmallBlack->drawString(helpUnderDC, HELPWND_TITLE, helpCornerImg->getWidth(), helpCornerImg->getHeight());
-	mmFontSmallBlack->tintSelf(0xFFFFFF);
-
-	
-
-	//mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
-	//helpFntKeys->drawString(helpUnderDC, _T("Keys: A B C D WaitZar"), 10, 10);
-	//helpFntBack->drawString(helpUnderDC, _T("Back: \u1000 -\u1039"), 10, 20);
-	//mmFontSmallBlack->drawString(helpUnderDC, _T("WaitZar Low-Level Input"), 10, 50);
+	//...and now we can properly initialize its drawing surface
+	helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
 }
 
 
@@ -1491,34 +1408,11 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HELP_CLIENT_SIZE.cx = r.right;
 			HELP_CLIENT_SIZE.cy = r.bottom;
 			helpDC = GetDC(hwnd);
-			helpImg = new PulpCoreImage();
-			helpImg->init(HELP_CLIENT_SIZE.cx, HELP_CLIENT_SIZE.cy, 0x00000000, helpDC, helpUnderDC, helpBitmap);
 
-			//Set necessary pixel blending attributes on our help window
-			if (false) {
-				//if (SetLayeredWindowAttributes(hwnd, 0, 0xCC, ULW_ALPHA)==FALSE) {
-				if (SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), 0xFF, LWA_COLORKEY)==FALSE) {
-					TCHAR msg[500];
-					swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
-					MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-				}
-			}
-
-			//Temp
-			if (false) {
-				BLENDFUNCTION blendFnc = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
-				POINT ptLoc;
-				ptLoc.x = 400;
-				ptLoc.y = 300;
-				POINT ptOrigin;
-				ptOrigin.x = 0;
-				ptOrigin.y = 0;
-				if (UpdateLayeredWindow(hwnd, GetDC(NULL), &ptLoc, NULL, helpDC, &ptOrigin, 0, &blendFnc, ULW_ALPHA)==FALSE) {
-					TCHAR msg[500];
-					swprintf(msg, _T("Help window blend setup failed: %i"), GetLastError());
-					MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-				}
-			}
+			//Our expanding code is a bit fragile, so we'll have to initialize helpUnderDC and helpBitmap here.
+			helpUnderDC = CreateCompatibleDC(helpDC);
+			helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
+			SelectObject(helpUnderDC, helpBitmap);
 	
 			//Initialize our help window
 			if (mainInitDone) {

@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OnscreenKeyboard.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PulpCoreFont.cpp"
 				>
 			</File>
@@ -281,6 +285,10 @@
 				>
 				<File
 					RelativePath=".\Hotkeys.h"
+					>
+				</File>
+				<File
+					RelativePath=".\OnscreenKeyboard.h"
 					>
 				</File>
 				<File
