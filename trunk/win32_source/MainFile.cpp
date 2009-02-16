@@ -129,6 +129,9 @@ PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
 PulpCoreImage *helpCornerImg;
+PulpCoreImage *helpCornerImg90;
+PulpCoreImage *helpCornerImg180;
+PulpCoreImage *helpCornerImg270;
 BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 POINT PT_ORIGIN;
 
@@ -384,8 +387,16 @@ void makeFont(HWND currHwnd)
 			return;
 		}
 
-		//Tint to default
-		//helpCornerImg->tintSelf(COLOR_HELPFNT_BACK);
+		//Make other helper images
+		helpCornerImg90 = new PulpCoreImage();
+		helpCornerImg90->init(helpCornerImg, helpDC);
+		helpCornerImg90->rotateSelf90DegreesClockwise();
+		helpCornerImg180 = new PulpCoreImage();
+		helpCornerImg180->init(helpCornerImg90, helpDC);
+		helpCornerImg180->rotateSelf90DegreesClockwise();
+		helpCornerImg270 = new PulpCoreImage();
+		helpCornerImg270->init(helpCornerImg180, helpDC);
+		helpCornerImg270->rotateSelf90DegreesClockwise();
 
 		//Unlock this resource for later use.
 		UnlockResource(res_handle);
@@ -426,6 +437,55 @@ void makeFont(HWND currHwnd)
 	//Tint
 	mmFontSmallBlack->tintSelf(0xFFFFFF); //White is better
 }
+
+
+
+//Make a "button", with a given width and height (including border), background color (can be transparent) and
+// foreground color. Border color is changed by calling "tint self" on cornerImg before this.
+PulpCoreImage* makeButton(int width, int height, int bgARGB, int fgARGB, int borderARGB)
+{
+	//Make an empty image
+	PulpCoreImage *result = new PulpCoreImage();
+	HDC resDC;
+	HBITMAP resBMP;
+	result->init(width, height, bgARGB, GetDC(NULL), resDC, resBMP);
+
+	//Draw the foreground before overlaying the corner images
+	int buffer_offset = 3;
+	result->fillRectangle(helpCornerImg->getWidth()-buffer_offset, 1, result->getWidth()-2*helpCornerImg->getWidth()+2*buffer_offset, helpCornerImg->getHeight(), fgARGB);
+	result->fillRectangle(helpCornerImg->getWidth()-buffer_offset, result->getHeight()-helpCornerImg->getHeight(), result->getWidth()-2*helpCornerImg->getWidth()+2*buffer_offset, helpCornerImg->getHeight()-1, fgARGB);
+	result->fillRectangle(1, helpCornerImg->getHeight()-buffer_offset, result->getWidth()-2, result->getHeight()-2*helpCornerImg->getHeight()+2*buffer_offset, fgARGB);
+
+	//A few pixels require manual setting
+	result->fillRectangle(3, 2, 1, 2, fgARGB);
+	result->fillRectangle(2, 3, 1, 1, fgARGB);
+	result->fillRectangle(result->getWidth()-1-3, 2, 1, 2, fgARGB);
+	result->fillRectangle(result->getWidth()-1-2, 3, 1, 1, fgARGB);
+	result->fillRectangle(result->getWidth()-1-3, result->getHeight()-4, 1, 2, fgARGB);
+	result->fillRectangle(result->getWidth()-1-2, result->getHeight()-4, 1, 1, fgARGB);
+	result->fillRectangle(3, result->getHeight()-4, 1, 2, fgARGB);
+	result->fillRectangle(2, result->getHeight()-4, 1, 1, fgARGB);
+
+	//Draw our corner images
+	helpCornerImg->tintSelf(borderARGB);
+	helpCornerImg->draw(resDC, 0, 0);
+	helpCornerImg90->tintSelf(borderARGB);
+	helpCornerImg90->draw(resDC, result->getWidth()-helpCornerImg->getWidth(), 0);
+	helpCornerImg180->tintSelf(borderARGB);
+	helpCornerImg180->draw(resDC, result->getWidth()-helpCornerImg->getWidth(), result->getHeight()-helpCornerImg->getHeight());
+	helpCornerImg270->tintSelf(borderARGB);
+	helpCornerImg270->draw(resDC, 0, result->getHeight()-helpCornerImg->getHeight());
+
+	//Draw the remaining lines
+	result->fillRectangle(helpCornerImg->getWidth(), 0, result->getWidth()-2*helpCornerImg->getWidth(), 2, borderARGB);
+	result->fillRectangle(helpCornerImg->getWidth(), result->getHeight()-2, result->getWidth()-2*helpCornerImg->getWidth(), 2, borderARGB);
+	result->fillRectangle(0, helpCornerImg->getHeight(), 2, result->getHeight()-2*helpCornerImg->getHeight(), borderARGB);
+	result->fillRectangle(result->getWidth()-2, helpCornerImg->getHeight(), 2, result->getHeight()-2*helpCornerImg->getHeight(), borderARGB);
+
+	//There, that was easy
+	return result;
+}
+
 
 
 
@@ -1161,14 +1221,14 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 void initCalculateHelp()
 {
 	//Background
-	/*SelectObject(helpUnderDC, g_GreenBkgrd);
-	Rectangle(helpUnderDC, 20, 20, 50, 50);
-	Rectangle(helpUnderDC, 10, 50, 70, 60);*/
+	PulpCoreImage *myButton = makeButton(33, 43, 0xFF9AA4E2, 0xFFD3D3D3, 0xFF606060);
+	myButton->draw(helpUnderDC, 10, 10);
+	delete myButton;
 
 	//mmFontBlack->drawString(helpUnderDC, _T("\u1000"), 10, 10);
-	helpFntKeys->drawString(helpUnderDC, _T("Keys: A B C D WaitZar"), 10, 10);
-	helpFntBack->drawString(helpUnderDC, _T("Back: \u1000 -\u1039"), 10, 20);
-	helpFntFore->drawString(helpUnderDC, _T("Fore: \u1000 -\u1039"), 10, 30);
+	//helpFntKeys->drawString(helpUnderDC, _T("Keys: A B C D WaitZar"), 10, 10);
+	//helpFntBack->drawString(helpUnderDC, _T("Back: \u1000 -\u1039"), 10, 20);
+	helpFntFore->drawString(helpUnderDC, _T("Fore: \u1000 -\u1039"), 10, 50);
 }
 
 

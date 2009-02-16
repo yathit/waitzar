@@ -144,6 +144,71 @@ void PulpCoreImage::tintSelf(UINT rgbColor)
 
 
 /**
+ * This function is a bit of a hack, since it accesses the image's pixels directly.
+ * However, we have no choice, since layered windows require premultiplied alphas.
+ * NOTE that at the moment, this draws mirrored vertically. This isn't a problem, since
+ *  buttons are 2-way symmetric.
+ */ 
+void PulpCoreImage::fillRectangle(int startX, int startY, int width, int height, int ARGB)
+{
+	//Avoid corrupting memory
+	if (startX < 0)
+		startX = 0;
+	if (startY < 0)
+		startY = 0;
+	if (width > this->getWidth())
+		width = this->getWidth();
+	if (height > this->getHeight())
+		height = this->getHeight();
+
+	//Convert our color
+	int premultColor = premultiply(ARGB);
+	for (int y=startY; y<startY+height; y++) {
+		for (int x=startX; x<startX+width; x++) {
+			int offset = y*this->getWidth() + x;
+			directPixels[offset] = premultColor;
+		}
+	}
+}
+
+
+/**
+ * Also slightly hackish. Used to rotate an image by 90 degrees. This is used in the "corner" image file,
+ *  to save a tiny amount of space and (more importantly) for consistency.
+ */
+void PulpCoreImage::rotateSelf90DegreesClockwise()
+{
+	//Right now, we'll only allow rotation of squre images
+	if (this->getWidth() != this->getHeight())
+		return;
+
+	//Make a new array, copy each row into its appropriate column
+	UINT *newDirect = new UINT[this->getWidth()*this->getHeight()];
+	for (int y=0; y<this->getHeight(); y++) {
+		for (int x=0; x<this->getWidth(); x++) {
+			//Let's not corrupt anything, hmm?
+			int destX = (this->getHeight()-1-x)*this->getWidth()+y;
+			int srcX = y*this->getWidth()+x;
+
+			//Set it (flip the y axis, of course)
+			if (destX>=0 && destX<this->getWidth()*this->getHeight() && srcX>=0 && srcX<this->getWidth()*this->getHeight())
+				newDirect[destX] = directPixels[srcX];
+		}
+	}
+
+	//Sadly, we cannot access directPixels to delete it, so we have to re-copy
+	for (int y=0; y<this->getHeight(); y++) {
+		for (int x=0; x<this->getWidth(); x++) {
+			int dX = y*this->getWidth()+x;
+			directPixels[dX] = newDirect[dX];
+		}
+	}
+	delete [] newDirect;
+}
+
+
+
+/**
  * Resource initializer
  */
 void PulpCoreImage::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
@@ -232,7 +297,7 @@ void PulpCoreImage::readChunk(int chunkType, int length, HDC currDC)
 void PulpCoreImage::draw(HDC bufferDC, int xPos, int yPos) 
 {
 	AlphaBlend(
-		bufferDC, 0, 0, getWidth(), getHeight(),   //Destination
+		bufferDC, xPos, yPos, getWidth(), getHeight(),   //Destination
 		directDC, 0, 0, getWidth(), getHeight(),    //Source
 		blendFunc				   //Method
 	);
