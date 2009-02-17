@@ -28,13 +28,14 @@ const int BUTTON_KEY       = 0; //33 x 43
 const int BUTTON_BACKSPACE = 1; //67
 const int BUTTON_UTILITY   = 2; //50, also backslash, tab
 const int BUTTON_ENTER     = 3; //75
-const int BUTTON_SHIFT     = 4; //92
-const int BUTTON_SPACEBAR  = 5; //152
-const int BUTTON_CAPSLOCK  = 6; //59
-const int BUTTONS_IN_TOTAL = 7;
+const int BUTTON_SHIFT_L   = 4; //76
+const int BUTTON_SHIFT_R   = 5; //92
+const int BUTTON_SPACEBAR  = 6; //152
+const int BUTTON_CAPSLOCK  = 7; //59
+const int BUTTONS_IN_TOTAL = 8;
 
 const int BTN_HEIGHT = 43;
-const int BTN_WIDTHS[] = {33, 67, 50, 75, 92, 152, 59};
+const int BTN_WIDTHS[] = {33, 67, 50, 75, 76, 92, 152, 59};
 const int h_gap = 1;
 const int v_gap = 2;
 
@@ -49,7 +50,25 @@ const int v_gap = 2;
 #define COLOR_KEYBOARD_FOREGRD  0xFF9AA4E2
 #define COLOR_KEYBOARD_BORDER   0xFF000000
 
-#define HELPWND_TITLE             _T("WaitZar Low-Level Input")
+#define HELPWND_TITLE           _T("WaitZar Low-Level Input")
+
+
+//Useful struct for our keys
+struct key {
+	POINT location;
+	wchar_t letter;
+	wchar_t lblRegular;
+	wchar_t lblShifted;
+	int letterPalette;
+};
+const int keys_per_row[] = {14, 14, 13, 12, 8};
+const int keys_total = 14 + 14 + 13 + 12 + 8;
+
+//For now, just have this here
+const char letter[] = {'`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'b', 't', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\', 'c', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', 'e', 's', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 's', 'c', 'w', 'a', 's', 'a', 'w', 'm', 'c'};
+const int letter_types[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_BACKSPACE, BUTTON_UTILITY, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_UTILITY, BUTTON_CAPSLOCK, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_ENTER, BUTTON_SHIFT_L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_SHIFT_R, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_SPACEBAR, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY};
+const wchar_t mm_reg[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x1000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+const wchar_t mm_shift[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x1001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 
 
 
@@ -75,6 +94,9 @@ private:
 	//Cached pics
 	PulpCoreFont *titleFont;
 	PulpCoreImage *cornerImg[4];
+
+	//Buttons
+	key keys[keys_total];
 
 	//Useful helpers
 	int cornerSize;
