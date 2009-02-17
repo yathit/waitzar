@@ -83,6 +83,8 @@ public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
+	void highlightKey(char keyCode, bool highlightON);
+
 	int getWidth();
 	int getHeight();
 
@@ -99,6 +101,7 @@ private:
 	key keys[keys_total];
 
 	//Useful helpers
+	POINT keyboardOrigin;
 	int cornerSize;
 	int width;
 	int height;

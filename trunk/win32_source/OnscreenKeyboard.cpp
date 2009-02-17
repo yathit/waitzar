@@ -89,7 +89,6 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 	}
 
 	//Make our header/body buttons, to be drawn once, and draw them
-	POINT keyboardOrigin;
 	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(HELPWND_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	headerButton->draw(underDC, 0, 0);
@@ -117,6 +116,27 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 	for (int i=0; i<keys_total; i++) {
 		buttonsRegular[keys[i].letterPalette]->draw(underDC, keyboardOrigin.x+keys[i].location.x, keyboardOrigin.y+keys[i].location.y);
 	}
+}
+
+
+
+void OnscreenKeyboard::highlightKey(char keyCode, bool highlightON)
+{
+	//Get the key code
+	int id = 0;
+	switch (keyCode)
+	{
+		case 'T':
+			id = 19;
+			break;
+	}
+
+	//Re-draw this key
+	int pal = keys[id].letterPalette;
+	PulpCoreImage *keyImg = buttonsRegular[pal];
+	if (highlightON)
+		keyImg = buttonsShifted[pal];
+	keyImg->draw(underDC, keyboardOrigin.x+keys[id].location.x, keyboardOrigin.y+keys[id].location.y);
 }
 
 

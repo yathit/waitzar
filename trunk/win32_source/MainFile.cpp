@@ -70,6 +70,9 @@
 
 using namespace waitzar;
 
+//TEMP:
+bool TEMP_FLAG = false;
+
 //Current version
 #define WAIT_ZAR_VERSION _T("1.6")
 
@@ -1640,8 +1643,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					recalculateHelp();
 				} else {
-					ShowWindow(helpWindow, SW_HIDE);
-					helpWindowIsVisible = false;
+					//Temp:
+					TEMP_FLAG = !TEMP_FLAG;
+					helpKeyboard->highlightKey('T', TEMP_FLAG);
+					reBlitHelp();
+
+					//Use this later:
+					//ShowWindow(helpWindow, SW_HIDE);
+					//helpWindowIsVisible = false;
 				}
 			}
 
