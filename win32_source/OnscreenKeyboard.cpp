@@ -18,6 +18,34 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreImage *corne
 	//Determine the necessary size of our background image
 	this->width = (BTN_WIDTHS[BUTTON_KEY]+h_gap)*13 + BTN_WIDTHS[BUTTON_BACKSPACE] + this->cornerSize*2;
 	this->height = BTN_HEIGHT*5 + v_gap*4 + titleFont->getHeight()-2+2*this->cornerSize-2 + this->cornerSize;
+
+	//Init our keys
+	int currY = 0;
+	int currX = 0;
+	int currRow = 0;
+	int currRowID = 0;
+	for (int i=0; i<keys_total; i++) {
+		//Get properties
+		keys[i].letter = letter[i];
+		keys[i].lblRegular = mm_reg[i];
+		keys[i].lblShifted = mm_shift[i];
+		keys[i].letterPalette = letter_types[i];
+
+		//Lay it out
+		keys[i].location.x = currX;
+		keys[i].location.y = currY;
+
+		//Set the next location
+		currX += BTN_WIDTHS[keys[i].letterPalette] + h_gap;
+		currRowID++;
+		if (currRowID == keys_per_row[currRow]) {
+			//Next row
+			currX = 0;
+			currY += BTN_HEIGHT + v_gap;
+			currRow++;
+			currRowID = 0;
+		}
+	}
 }
 
 
@@ -61,10 +89,15 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 	}
 
 	//Make our header/body buttons, to be drawn once, and draw them
+	POINT keyboardOrigin;
 	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(HELPWND_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	headerButton->draw(underDC, 0, 0);
 	bodyButton->draw(underDC, 0, headerButton->getHeight()-this->cornerSize);
+
+	//Now we know where our keyboard begins
+	keyboardOrigin.x = this->cornerSize;
+	keyboardOrigin.y = headerButton->getHeight()-2;
 
 	//Fix their messy intersection
 	bkgrdImg->fillRectangle(2, headerButton->getHeight()-this->cornerSize, headerButton->getWidth()-4, this->cornerSize, COLOR_KEYBOARD_FOREGRD);
@@ -79,6 +112,11 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 	this->titleFont->tintSelf(0x000000);
 	this->titleFont->drawString(underDC, HELPWND_TITLE, this->cornerSize, this->cornerSize);
 	this->titleFont->tintSelf(0xFFFFFF);
+
+	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
+	for (int i=0; i<keys_total; i++) {
+		buttonsRegular[keys[i].letterPalette]->draw(underDC, keyboardOrigin.x+keys[i].location.x, keyboardOrigin.y+keys[i].location.y);
+	}
 }
 
 
