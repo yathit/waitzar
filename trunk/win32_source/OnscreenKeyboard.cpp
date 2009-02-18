@@ -120,15 +120,20 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 
 
 
-void OnscreenKeyboard::highlightKey(char keyCode, bool highlightON)
+/**
+ * Returns true if this is an actual key-code that we track
+ */
+bool OnscreenKeyboard::highlightKey(WPARAM hotkeyCode, bool highlightON)
 {
 	//Get the key code
 	int id = 0;
-	switch (keyCode)
+	switch (hotkeyCode)
 	{
-		case 'T':
+		case 't':
 			id = 19;
 			break;
+		default:
+			return false;
 	}
 
 	//Re-draw this key
@@ -137,6 +142,9 @@ void OnscreenKeyboard::highlightKey(char keyCode, bool highlightON)
 	if (highlightON)
 		keyImg = buttonsShifted[pal];
 	keyImg->draw(underDC, keyboardOrigin.x+keys[id].location.x, keyboardOrigin.y+keys[id].location.y);
+
+	//Succeeded
+	return true;
 }
 
 

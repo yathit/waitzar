@@ -82,7 +82,7 @@ TCHAR* POPUP_ZG = _T("Zawgyi-One");
 TCHAR* POPUP_WIN = _T("Win Innwa");
 
 //Prototypes
-BOOL turnOnHotkeys(BOOL on);
+BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase);
 BOOL turnOnControlkeys(BOOL on);
 BOOL turnOnNumberkeys(BOOL on);
 BOOL turnOnPunctuationkeys(BOOL on);
@@ -94,7 +94,8 @@ BOOL loadModel(HINSTANCE hInst);
 #define STATUS_NID 144
 
 //Custom message IDs
-#define UWM_SYSTRAY (WM_USER + 1)
+#define UWM_SYSTRAY    (WM_USER + 1)
+#define UWM_HOTKEY_UP  (WM_USER + 2)
 
 //Grr... notepad...
 #define UNICOD_BOM 0xFEFF
@@ -137,6 +138,11 @@ PulpCoreImage *helpCornerImg;
 OnscreenKeyboard *helpKeyboard;
 BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 POINT PT_ORIGIN;
+HANDLE keyTrackThread;   //Handle to our thread
+DWORD  keyTrackThreadID; //Its unique ID (never zero)
+CRITICAL_SECTION threadCriticalSec; //Global critical section object
+std::list<WPARAM> hotkeysDown; //If a wparam is in this list, it is being tracked
+bool threadIsActive; //If "false", this thread must be woken to do anything useful
 
 //Help window colors
 #define COLOR_HELPFNT_KEYS        0x606060
@@ -152,6 +158,7 @@ BOOL dragBothWindowsTogether = TRUE;
 BOOL typeBurmeseNumbers = TRUE;
 BOOL showBalloonOnStart = TRUE;
 BOOL alwaysRunElevated = FALSE;
+BOOL highlightKeys = TRUE;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -216,6 +223,64 @@ int spaceWidth;
 bool mainWindowIsVisible;
 bool subWindowIsVisible;
 bool helpWindowIsVisible;
+
+
+
+/**
+ * This is our threaded locus-of-control, which is woken when a keypress is detected, and 
+ *   put to sleep when all keys have been released. It is very important that this 
+ *   thread run very fast; we operate on the assumption that it completes in less
+ *   than 1 Thread cycle, including synchronization. 
+ * This thread is not activated if the "highlight keys" flag is off. This is intended to
+ *   allow increased performance on slow systems, decreased annoyance for advanced users,
+ *   and an ultimate fall-back if the thread is shown to deadlock or stall with continuous usage.
+ * @args = always null. 
+ * @returns = 0 for success (never really returns)
+ */
+DWORD WINAPI TrackHotkeyReleases(LPVOID args)
+{ 
+	//Loop forever
+	for (;;) {
+		//Check every key. Since we generally are tracking a very small number of keys, it makes
+		//  sense to put this into its own critical section
+
+		//CRITICAL SECTION
+		{
+			EnterCriticalSection(&threadCriticalSec);
+
+			//Loop through our list
+			for (std::list<WPARAM>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
+				//Get the state of this key
+				if ((GetKeyState(*keyItr) & 0x8000)==0) {
+					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
+					if (PostMessage(mainWindow, UWM_HOTKEY_UP, *keyItr, 0)==0) {
+						MessageBox(NULL, _T("Couldn't post message to Main Window"), _T("Error"), MB_OK);
+					}
+
+					//Key has been released, stop tracking it
+					keyItr = hotkeysDown.erase(keyItr); //Returns the next valid value
+				} else {
+					//Normal iteration
+					keyItr++;
+				}
+			}
+
+			//Sleep, but for how long?
+			if (hotkeysDown.empty()) {
+				//Sleep until woken up
+				LeaveCriticalSection(&threadCriticalSec);
+				SuspendThread(keyTrackThread);
+				threadIsActive = false;
+			} else {
+				//Sleep for 10ms, and continue tracking keyboard input
+				LeaveCriticalSection(&threadCriticalSec);
+				Sleep(10);
+			}
+		}
+	}
+
+	return 0; 
+} 
 
 
 
@@ -751,17 +816,6 @@ BOOL loadModel() {
 	//Previous versions of Wait Zar used the Google sparse hash library; however, even with
 	//  its small footprint, this method required too much memory. So, we'll just allocate
 	//  a jagged array.
-/*	WORD **dictionary;
-	UINT32 **nexus;
-	UINT32 **prefix;*/
-
-	//And sizes
-/*	int dictMaxID;
-	int dictMaxSize;
-	int nexusMaxID;
-	int nexusMaxSize;
-	int prefixMaxID;
-	int prefixMaxSize;*/
 
 	//Special...
 	int numberCheck = 0;
@@ -780,248 +834,8 @@ BOOL loadModel() {
     res_data = (char*)LockResource(res_handle);
     res_size = SizeofResource(NULL, res);
 
-/*	//Loop through each line
-	DWORD currLineStart = 0;
-	char currLetter[] = "1000";
-	int count = 0;
-	int mode = 0;
-	int lastCommentedNumber = 0;
-	int currDictionaryID = 0;
-	UINT32 newWord[1000];
-	int newWordSz;
-	while (currLineStart < res_size) {
-		//LTrim
-		while (res_data[currLineStart] == ' ')
-			currLineStart++;
-		//Is this an empty line?
-		if (res_data[currLineStart] == '\n') {
-			currLineStart++;
-			continue;
-		}
-		//Is this a comment
-		else if (res_data[currLineStart] == '#') {
-			count = 0;
-			mode++;
-
-			//Skip to the end of the line
-			lastCommentedNumber = 0;
-			for (;;) {
-				char curr = res_data[currLineStart++];
-				if (curr == '\n')
-					break;
-				else if (curr >= '0' && curr <= '9') {
-					lastCommentedNumber *= 10;
-					lastCommentedNumber += (curr-'0');
-				}
-			}
-			switch (mode) {
-				case 1: //Words
-					//Initialize our dictionary
-					dictMaxID = lastCommentedNumber;
-					dictMaxSize = (dictMaxID*3)/2;
-					dictionary = (WORD **)malloc(dictMaxSize * sizeof(WORD *));
-					currDictionaryID = 0;
-					break;
-				case 2: //Nexi
-					//Initialize our nexus list
-					nexusMaxID = lastCommentedNumber;
-					nexusMaxSize = (nexusMaxID*3)/2;
-					nexus = (UINT32 **)malloc(nexusMaxSize * sizeof(UINT32 *));
-					currDictionaryID = 0;
-					break;
-				case 3: //Prefixes
-					//Initialize our prefixes list
-					prefixMaxID = lastCommentedNumber;
-					prefixMaxSize = (prefixMaxID*3)/2;
-					prefix = (UINT32 **)malloc(prefixMaxSize * sizeof(UINT32 *));
-					currDictionaryID = 0;
-					break;
-			}
-
-			continue;
-		}
-
-		switch (mode) {
-			case 1: //Words
-			{
-				//Skip until the first number inside the bracket
-				while (res_data[currLineStart] != '[')
-					currLineStart++;
-				currLineStart++;
-
-				//Keep reading until the terminating bracket.
-				//  Each "word" is of the form DD(-DD)*,
-				newWordSz = 0;
-
-				for(;;) {
-					//Read a "pair"
-					currLetter[2] = res_data[currLineStart++];
-					currLetter[3] = res_data[currLineStart++];
-
-					//Translate/Add this letter
-					newWord[newWordSz++] = (WORD)strtol(currLetter, NULL, 16);
-
-					//Continue?
-					char nextChar = res_data[currLineStart++];
-					if (nextChar == ',' || nextChar == ']') {
-						//Double check
-						if (numberCheck<10) {
-							if (newWordSz!=1 || newWord[0]!=0x1040+numberCheck) {
-								TCHAR tempError[400];
-								swprintf(tempError, _T("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i"), newWord[0], newWordSz);
-								MessageBox(NULL, tempError, _T("Error"), MB_ICONERROR | MB_OK);
-								return FALSE;
-							}
-							numberCheck++;
-						}
-
-						//Finangle & add this word
-						dictionary[currDictionaryID] = (WORD *)malloc((newWordSz+1) * sizeof(WORD));
-						dictionary[currDictionaryID][0] = (WORD)newWordSz;
-						for (int i=0; i<newWordSz; i++) {
-							dictionary[currDictionaryID][i+1] = newWord[i];
-						}
-						currDictionaryID++;
-
-						if (nextChar == ']')
-							break;
-						else
-							newWordSz = 0;
-					}
-				}
-				break;
-			}
-			case 2: //Mappings (nexi)
-			{
-				//Skip until the first letter inside the bracket
-				while (res_data[currLineStart] != '{')
-					currLineStart++;
-				currLineStart++;
-
-				//A new hashtable for this entry.
-				newWordSz=0;
-				while (res_data[currLineStart] != '}') {
-					//Read a hashed mapping: character
-					int nextInt = 0;
-					char nextChar = 0;
-					while (res_data[currLineStart] != ':')
-						nextChar = res_data[currLineStart++];
-					currLineStart++;
-
-					//Read a hashed mapping: number
-					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
-						nextInt *= 10;
-						nextInt += (res_data[currLineStart++] - '0');
-					}
-
-					//Add that entry to the hash
-					newWord[newWordSz++] = ((nextInt<<8) | (0xFF&nextChar));
-
-					//Continue
-					if (res_data[currLineStart] == ',')
-						currLineStart++;
-				}
-
-				//Add this entry to the current vector collection
-				nexus[currDictionaryID] = (UINT32 *)malloc((newWordSz+1) * sizeof(UINT32));
-				nexus[currDictionaryID][0] = (UINT32)newWordSz;
-				for (int i=0; i<newWordSz; i++) {
-					nexus[currDictionaryID][i+1] = newWord[i];
-				}
-				currDictionaryID++;
-
-				break;
-			}
-			case 3: //Prefixes (mapped)
-			{
-				//Skip until the first letter inside the bracket
-				while (res_data[currLineStart] != '{')
-					currLineStart++;
-				currLineStart++;
-
-				//A new hashtable for this entry.
-				newWordSz = 0;
-				int nextVal;
-				while (res_data[currLineStart] != '}') {
-					//Read a hashed mapping: number
-					nextVal = 0;
-					while (res_data[currLineStart] != ':') {
-						nextVal *= 10;
-						nextVal += (res_data[currLineStart++] - '0');
-					}
-					currLineStart++;
-
-					//Store: key
-					newWord[newWordSz++] = nextVal;
-
-					//Read a hashed mapping: number
-					nextVal = 0;
-					while (res_data[currLineStart] != ',' && res_data[currLineStart] != '}') {
-						nextVal *= 10;
-						nextVal += (res_data[currLineStart++] - '0');
-					}
-					//Store: val
-					newWord[newWordSz++] = nextVal;
-
-					//Continue
-					if (res_data[currLineStart] == ',')
-						currLineStart++;
-				}
-
-				//Used to mark our "halfway" boundary.
-				lastCommentedNumber = newWordSz;
-
-				//Skip until the first letter inside the square bracket
-				while (res_data[currLineStart] != '[')
-					currLineStart++;
-				currLineStart++;
-
-				//Add a new vector for these
-				while (res_data[currLineStart] != ']') {
-					//Read a hashed mapping: number
-					nextVal = 0;
-					while (res_data[currLineStart] != ',' && res_data[currLineStart] != ']') {
-						nextVal *= 10;
-						nextVal += (res_data[currLineStart++] - '0');
-					}
-
-					//Add it
-					newWord[newWordSz++] = nextVal;
-
-					//Continue
-					if (res_data[currLineStart] == ',')
-						currLineStart++;
-				}
-
-				//Add this entry to the current vector collection
-				prefix[currDictionaryID] = (UINT32 *)malloc((newWordSz+2) * sizeof(UINT32));
-				prefix[currDictionaryID][0] = (UINT32)lastCommentedNumber/2;
-				prefix[currDictionaryID][1] = (UINT32)(newWordSz - lastCommentedNumber);
-				for (int i=0; i<lastCommentedNumber; i++) {
-					prefix[currDictionaryID][i+2] = newWord[i];
-				}
-				for (UINT32 i=0; i<prefix[currDictionaryID][1]; i++) {
-					prefix[currDictionaryID][i+lastCommentedNumber+2] = newWord[i+lastCommentedNumber];
-				}
-				currDictionaryID++;
-
-				break;
-			}
-			default:
-				MessageBox(NULL, _T("Too many comments."), _T("Error"), MB_ICONERROR | MB_OK);
-				return FALSE;
-		}
-
-		//Assume all processing is done, and read until the end of the line
-		while (res_data[currLineStart] != '\n')
-			currLineStart++;
-		currLineStart++;
-	}
-*/
 	//Save our "model"
 	model = new WordBuilder(res_data, res_size);
-	//model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
-//	model = new WordBuilder(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 
 	//Done - This shouldn't matter, though, since the process only
 	//       accesses it once and, fortunately, this is not an external file.
@@ -1054,11 +868,11 @@ void switchToLanguage(BOOL toMM) {
 	//Ok, switch
 	BOOL res;
 	if (toMM==TRUE) {
-		res = turnOnHotkeys(TRUE) && turnOnPunctuationkeys(TRUE);
+		res = turnOnHotkeys(TRUE, true, true) && turnOnPunctuationkeys(TRUE);
 		if (typeBurmeseNumbers==TRUE)
 			res = res && turnOnNumberkeys(TRUE); //JUST numbers, not control.
 	} else {
-		res = turnOnHotkeys(FALSE);
+		res = turnOnHotkeys(FALSE, true, true);
 
 		//It's possible we still have some hotkeys left on...
 		if (controlKeysOn == TRUE)
@@ -1068,8 +882,41 @@ void switchToLanguage(BOOL toMM) {
 		if (punctuationKeysOn == TRUE)
 			turnOnPunctuationkeys(FALSE);
 	}
+
+	//TEMP: Turn on/off our help key
+	if (toMM==TRUE) {
+		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
+			res = FALSE;
+	} else {
+		if (UnregisterHotKey(mainWindow, HOTKEY_HELP)==FALSE)
+			res = FALSE;
+	}
+
+	//Any errors?
 	if (res==FALSE)
 		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
+
+	//Switch to our target language.
+	mmOn = toMM;
+
+	//Change icon in the tray
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof(NOTIFYICONDATA);
+	nid.hWnd = mainWindow;
+	nid.uID = STATUS_NID;
+	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
+	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
+	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+	if (mmOn)
+		nid.hIcon = mmIcon;
+	else
+		nid.hIcon = engIcon;
+
+	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
+		TCHAR eTemp[200];
+		swprintf(eTemp, _T("Can't switch icon.\nError code: %x"), GetLastError());
+		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
+	}
 
 	//Any windows left?
 	if (mmOn==FALSE) {
@@ -1210,7 +1057,6 @@ void recalculate()
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
 
 		//Draw each string
-		//TCHAR tempPhrase[500];
 		lstrcpy(currPhrase, _T(""));
 		std::list<int>::iterator printIT = sentence->begin();
 		int currentPosX = borderWidth + 1;
@@ -1602,6 +1448,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			mainWindowSkipMove = FALSE;
 			break;
 		}
+		case UWM_HOTKEY_UP: //HOTKEY_UP is defined by us, it is just like HOTKEY_DOWN except it doesn't use the lparam
+		{
+			//Update our virtual keyboard
+			if (helpKeyboard->highlightKey(wParam, false))
+					reBlitHelp();
+
+			break;
+		}
 		case WM_HOTKEY:
 		{
 			//Handle our main language hotkey
@@ -1616,6 +1470,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				sentence->clear();
 				model->reset(true);
 			}
+
+
+			//Should we update the virtual keyboard? This is done independently 
+			//  of actually handling the keypress itself
+			if (helpWindowIsVisible && highlightKeys) {
+				//Is this a valid key? If so, highlight it and repaint the help window
+				if (helpKeyboard->highlightKey(wParam, true)) {
+					reBlitHelp();
+
+					//CRITICAL SECTION
+					{
+						EnterCriticalSection(&threadCriticalSec);
+
+						//Manage our thread's list of currently pressed hotkeys
+						hotkeysDown.remove(wParam);
+						hotkeysDown.push_front(wParam);
+
+						//Do we need to start our thread?
+						if (!threadIsActive) {
+							ResumeThread(keyTrackThread);
+							threadIsActive = true;
+						}
+
+						LeaveCriticalSection(&threadCriticalSec);
+					}
+				}
+			}
+
+
 
 
 			//Handle our help key
@@ -1637,10 +1520,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpIsCached = true;
 					}
 
+					//We'll keep our shifted hotkeys, but also add a hotkey for shift itself. 
+					//  I'm not sure if this will actually work...
+					BOOL ret = TRUE;
+					//ret = turnOnHotkeys(FALSE, false, true);
+					if (ret==FALSE || RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE) {
+						MessageBox(mainWindow, _T("Could not turn on shift hotkey, or turn off shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
+					}
 
+					//Show the help window
 					ShowWindow(helpWindow, SW_SHOW);
 					helpWindowIsVisible = true;
-
 					recalculateHelp();
 				} else {
 					//Temp:
@@ -2085,7 +1975,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE)
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			if (mmOn==TRUE) {
-				if (turnOnHotkeys(FALSE) == FALSE)
+				if (turnOnHotkeys(FALSE, true, true) == FALSE)
 					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			}
 
@@ -2097,6 +1987,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			nid.uFlags = NIF_TIP; //??? Needed ???
 			Shell_NotifyIcon(NIM_DELETE, &nid);
 
+			//Close our thread, delete our critical section
+			if (highlightKeys) {
+				DeleteCriticalSection(&threadCriticalSec);
+				CloseHandle(keyTrackThread);
+			}
+
 			PostQuitMessage(0);
 			break;
 		default:
@@ -2107,7 +2003,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-BOOL turnOnHotkeys(BOOL on)
+BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase)
 {
 	int low_code;
 	int high_code;
@@ -2118,52 +2014,30 @@ BOOL turnOnHotkeys(BOOL on)
 		high_code = low_code - 32;
 		if (on==TRUE)  {
 			//Register this as an uppercase/lowercase letter
-			if (RegisterHotKey(mainWindow, high_code, MOD_SHIFT, high_code)==FALSE)
-				retVal = FALSE;
-			if (RegisterHotKey(mainWindow, low_code, NULL, high_code)==FALSE)
-				retVal = FALSE;
+			if (affectUppercase) {
+				if (RegisterHotKey(mainWindow, high_code, MOD_SHIFT, high_code)==FALSE)
+					retVal = FALSE;
+			}
+			if (affectLowercase) {
+				if (RegisterHotKey(mainWindow, low_code, NULL, high_code)==FALSE)
+					retVal = FALSE;
+			}
 		} else {
 			//De-register this as an uppercase/lowercase letter
-			if (UnregisterHotKey(mainWindow, high_code)==FALSE)
-				retVal = FALSE;
-			if (UnregisterHotKey(mainWindow, low_code)==FALSE)
-				retVal = FALSE;
+			if (affectUppercase) {
+				if (UnregisterHotKey(mainWindow, high_code)==FALSE)
+					retVal = FALSE;
+			}
+			if (affectLowercase) {
+				if (UnregisterHotKey(mainWindow, low_code)==FALSE)
+					retVal = FALSE;
+			}
 		}
-	}
-
-	//TEMP: Turn on/off our help key
-	if (on==TRUE) {
-		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
-			retVal = FALSE;
-	} else {
-		if (UnregisterHotKey(mainWindow, HOTKEY_HELP)==FALSE)
-			retVal = FALSE;
-	}
-
-	//Switch to our target language.
-	mmOn = on;
-
-	//Change icon in the tray
-	NOTIFYICONDATA nid;
-	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = mainWindow;
-	nid.uID = STATUS_NID;
-	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
-	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
-	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
-	if (mmOn)
-		nid.hIcon = mmIcon;
-	else
-		nid.hIcon = engIcon;
-
-	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
-		TCHAR eTemp[200];
-		swprintf(eTemp, _T("Can't switch icon.\nError code: %x"), GetLastError());
-		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
 	}
 
 	return retVal;
 }
+
 
 
 BOOL turnOnPunctuationkeys(BOOL on)
@@ -2770,6 +2644,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		lstrcat(noConfigWarningMsg, _T("\n\nIf you think this was caused by a bug in Wait Zar, please post an issue at http://code.google.com/p/waitzar/issues/list\n\nThis is just a warning --Wait Zar will still work fine without any config.txt or mywords.txt files."));
 		MessageBox(NULL, noConfigWarningMsg, _T("Warning"), MB_ICONWARNING | MB_OK);
 	}
+
+
+	//Create (but don't start) our thread tracker
+	if (highlightKeys) {
+		//Initialize our critical section
+		InitializeCriticalSection(&threadCriticalSec);
+		threadIsActive = false;
+
+		keyTrackThread = CreateThread(
+			NULL,                //Default security attributes
+			0,                   //Default stack size
+			TrackHotkeyReleases, //Threaded function (name)
+			NULL,                //Arguments to threaded function
+			CREATE_SUSPENDED,    //Don't start this thread when it's created
+			&keyTrackThreadID);  //Pointer to return the thread's id into
+		if (keyTrackThread==NULL) {
+			MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that WaitZar will not be able to highlight keys as you press them, which is a useful benefit for beginners."), _T("Warning"), MB_ICONWARNING | MB_OK);
+			highlightKeys = FALSE;
+		}
+	}
+
+
 
 	//Show it's ready by changing the shell icon
 	nid.cbSize = sizeof(NOTIFYICONDATA);

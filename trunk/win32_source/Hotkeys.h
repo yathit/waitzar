@@ -105,8 +105,9 @@
 #define HOTKEY_COMMA 61
 #define HOTKEY_PERIOD 62
 
-//Special help key
+//Special help-related keys
 #define HOTKEY_HELP 63
+#define HOTKEY_SHIFT 64
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
