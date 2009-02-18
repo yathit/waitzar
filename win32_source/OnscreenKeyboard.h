@@ -83,7 +83,7 @@ public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
-	void highlightKey(char keyCode, bool highlightON);
+	bool highlightKey(WPARAM hotkeyCode, bool highlightON);
 
 	int getWidth();
 	int getHeight();
