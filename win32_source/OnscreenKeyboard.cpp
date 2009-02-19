@@ -122,35 +122,165 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 
 /**
  * Returns true if this is an actual key-code that we track
+ *  hotkeyCode must be either a captial letter, or a hotkey code (hotkeys.h)
  */
-bool OnscreenKeyboard::highlightKey(WPARAM hotkeyCode, bool highlightON)
+bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 {
 	//Get the key code
-	int id = 0;
-	switch (hotkeyCode)
-	{
-		case 't':
-			id = 19;
-			break;
-		case 'y':
-			id = 20;
-			break;
-		case 'u':
-			id = 21;
-			break;
-		default:
-			return false;
-	}
-
+	int id = getKeyPosition(hotkeyCode);
+	if (id==-1)
+		return false;
+	
 	//Re-draw this key
-	int pal = keys[id].letterPalette;
-	PulpCoreImage *keyImg = buttonsRegular[pal];
-	if (highlightON)
-		keyImg = buttonsShifted[pal];
-	keyImg->draw(underDC, keyboardOrigin.x+keys[id].location.x, keyboardOrigin.y+keys[id].location.y);
+	//for (int i=0; i<2; i++) {
+	//	int id = ids[i];
+	//	if (id==-1)
+	//		continue;
+
+		int pal = keys[id].letterPalette;
+		PulpCoreImage *keyImg = buttonsRegular[pal];
+		if (highlightON)
+			keyImg = buttonsShifted[pal];
+		keyImg->draw(underDC, keyboardOrigin.x+keys[id].location.x, keyboardOrigin.y+keys[id].location.y);
+	//}
 
 	//Succeeded
 	return true;
+}
+
+
+
+int OnscreenKeyboard::getKeyPosition(UINT hkCode)
+{
+	//For now, we use a switch statement (it's fast, and simple)
+	// Un-tested key codes are commented out for now
+	switch (hkCode)
+	{
+		//case [HOTKEY_COMBINE]:
+		//	return 0;
+		//case '1':
+		//	return 1;
+		//case '2':
+		//	return 2;
+		//case '3':
+		//	return 3
+		//case '4':
+		//	return 4
+		//case '5':
+		//	return 5;
+		//case '6':
+		// return 6;
+		//case '7':
+		//	return 7;
+		//case '8':
+		//	return 8;
+		//case '9':
+		//	return 9;
+		//case '0':
+		//	return 10;
+		//case [HOTKEY_MINUS]:
+		//	return 11;
+		//case [HOTKEY_EQUALS]:
+		//	return 12;
+		//case HOTKEY_BACK:
+		//	return 13;
+		//case [HOTKEY_TAB]:
+		//	return 14;
+		case 'Q':
+			return 15;
+		case 'W':
+			return 16;
+		case 'E':
+			return 17;
+		case 'R':
+			return 18;
+		case 'T':
+			return 19;
+		case 'Y':
+			return 20;
+		case 'U':
+			return 21;
+		case 'I':
+			return 22;
+		case 'O':
+			return 23;
+		case 'P':
+			return 24;
+		//case [HOTKEY_BRACKET_L]:
+		//	return 25;
+		//case [HOTKEY_BRACKET_R]:
+		//	return 26;
+		//case [HOTKEY_BSLASH]:
+		//	return 27;
+		//case [HOTKEY_CAPS]:
+		//	return 28;
+		case 'A':
+			return 29;
+		case 'S':
+			return 30;
+		case 'D':
+			return 31;
+		case 'F':
+			return 32;
+		case 'G':
+			return 33;
+		case 'H':
+			return 34;
+		case 'J':
+			return 35;
+		case 'K':
+			return 36;
+		case 'L':
+			return 37;
+		//case [HOTKEY_SEMI]:
+		//	return 38;
+		//case [HOTKEY_QUOTE]:
+		//	return 39;
+		//case VK_RETURN:
+		//	return 40;
+		case HOTKEY_VIRT_LSHIFT:
+			return 41;
+		case 'Z':
+			return 42;
+		case 'X':
+			return 43;
+		case 'C':
+			return 44;
+		case 'V':
+			return 45;
+		case 'B':
+			return 46;
+		case 'N':
+			return 47;
+		case 'M':
+			return 48;
+		case HOTKEY_COMMA:
+			return 49;
+		case HOTKEY_PERIOD:
+			return 50;
+		//case [HOTKEY_FSLASH]:
+		//	return 51;
+		case HOTKEY_VIRT_RSHIFT:
+		  return 52;
+		//case [HOTKEY_CONTROL_L]:
+		//	return 53;
+		//case [HOTKEY_WIN_L]:
+		//	return 54;
+		//case [HOTKEY_ALT_L]:
+		//	return 55;
+		//case HOTKEY_SPACE:
+		//	return 56;
+		//case [HOTKEY_ALT_R]:
+		//	return 57;
+		//case [HOTKEY_WIN_R]:
+		//	return 58;
+		//case [HOTKEY_CONTEXT_MENU]:
+		//	return 59;
+		//case [HOTKEY_CTRL_R]:
+		//	return 60;
+		default:
+			return -1;
+	}
 }
 
 

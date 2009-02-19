@@ -22,6 +22,7 @@
 
 #include "PulpCoreImage.h"
 #include "PulpCoreFont.h"
+#include "Hotkeys.h"
 
 //Useful constants
 const int BUTTON_KEY       = 0; //33 x 43
@@ -83,7 +84,7 @@ public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
-	bool highlightKey(WPARAM hotkeyCode, bool highlightON);
+	bool highlightKey(UINT hotkeyCode, bool highlightON);
 
 	int getWidth();
 	int getHeight();
@@ -112,6 +113,9 @@ private:
 
 	//Make a button
 	PulpCoreImage* makeButton(int width, int height, int bgARGB, int fgARGB, int borderARGB);
+
+	//Helper
+	int getKeyPosition(UINT hkCode);
 
 
 };

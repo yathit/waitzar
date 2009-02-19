@@ -107,7 +107,9 @@
 
 //Special help-related keys
 #define HOTKEY_HELP 63
-#define HOTKEY_SHIFT 64
+#define HOTKEY_VIRT_LSHIFT 64
+#define HOTKEY_VIRT_RSHIFT 91
+#define HOTKEY_SHIFT 92
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
