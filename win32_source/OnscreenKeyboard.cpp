@@ -132,6 +132,12 @@ bool OnscreenKeyboard::highlightKey(WPARAM hotkeyCode, bool highlightON)
 		case 't':
 			id = 19;
 			break;
+		case 'y':
+			id = 20;
+			break;
+		case 'u':
+			id = 21;
+			break;
 		default:
 			return false;
 	}

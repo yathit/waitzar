@@ -224,6 +224,10 @@ bool mainWindowIsVisible;
 bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
+//Log file, since the debugger doesn't like multi-process threads
+bool isLogging = true;
+FILE *logFile;
+
 
 
 /**
@@ -248,12 +252,20 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 		{
 			EnterCriticalSection(&threadCriticalSec);
 
+			if (isLogging)
+				fprintf(logFile, "Thread:\n");
+
 			//Loop through our list
 			for (std::list<WPARAM>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
 				//Get the state of this key
-				if ((GetKeyState(*keyItr) & 0x8000)==0) {
+				SHORT keyState = GetKeyState('T'); //We need to use CAPITAL letters for virtual keys. Gah!
+				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
+					if (isLogging)
+						fprintf(logFile, "  Key up: %c  (%x)\n", *keyItr, keyState);
+
 					if (PostMessage(mainWindow, UWM_HOTKEY_UP, *keyItr, 0)==0) {
+						//SendMessage(mainWindow, UWM_HOTKEY_UP, *keyItr,0); //Send message seems to make no difference
 						MessageBox(NULL, _T("Couldn't post message to Main Window"), _T("Error"), MB_OK);
 					}
 
@@ -267,11 +279,17 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 			//Sleep, but for how long?
 			if (hotkeysDown.empty()) {
+				if (isLogging)
+					fprintf(logFile, "  Sleep: forever\n");
+
 				//Sleep until woken up
+				threadIsActive = false;
 				LeaveCriticalSection(&threadCriticalSec);
 				SuspendThread(keyTrackThread);
-				threadIsActive = false;
 			} else {
+				if (isLogging)
+					fprintf(logFile, "  Sleep: 10ms\n");
+
 				//Sleep for 10ms, and continue tracking keyboard input
 				LeaveCriticalSection(&threadCriticalSec);
 				Sleep(10);
@@ -1489,8 +1507,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 						//Do we need to start our thread?
 						if (!threadIsActive) {
-							ResumeThread(keyTrackThread);
 							threadIsActive = true;
+
+							ResumeThread(keyTrackThread);
+
+							//GetSystemTimeAsFileTime(&res);
+							//int diff = (res.dwLowDateTime-rL)/10000L; //hectonanoseconds div 10,000 to get ms
 						}
 
 						LeaveCriticalSection(&threadCriticalSec);
@@ -1991,6 +2013,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (highlightKeys) {
 				DeleteCriticalSection(&threadCriticalSec);
 				CloseHandle(keyTrackThread);
+			}
+
+			//Log?
+			if (isLogging) {
+				fprintf(logFile, "WaitZar closed\n");
+				fclose(logFile);
 			}
 
 			PostQuitMessage(0);
@@ -2496,6 +2524,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	PT_ORIGIN.x = 0;
 	PT_ORIGIN.y = 0;
 	helpIsCached = false;
+
+	//Log?
+	if (isLogging) {
+		logFile = fopen("wz_log.txt", "w");
+		if (logFile==NULL) {
+			MessageBox(NULL, _T("Unable to open Log file"), _T("Warning"), MB_ICONWARNING | MB_OK);
+			isLogging = false;
+		} else {
+			fprintf(logFile, "WaitZar was opened\n");
+		}
+	}
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
