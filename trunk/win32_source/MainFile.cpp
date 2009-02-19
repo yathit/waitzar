@@ -88,6 +88,7 @@ BOOL turnOnNumberkeys(BOOL on);
 BOOL turnOnPunctuationkeys(BOOL on);
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
+UINT hotkey2vk(UINT hotkey);
 
 //Unique IDs
 #define LANG_HOTKEY 142
@@ -141,7 +142,7 @@ POINT PT_ORIGIN;
 HANDLE keyTrackThread;   //Handle to our thread
 DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
-std::list<WPARAM> hotkeysDown; //If a wparam is in this list, it is being tracked
+std::list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
 
 //Help window colors
@@ -256,9 +257,10 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 				fprintf(logFile, "Thread:\n");
 
 			//Loop through our list
-			for (std::list<WPARAM>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
+			for (std::list<unsigned int>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
 				//Get the state of this key
-				SHORT keyState = GetKeyState('T'); //We need to use CAPITAL letters for virtual keys. Gah!
+				SHORT keyState = GetKeyState(hotkey2vk(*keyItr)); //We need to use CAPITAL letters for virtual keys. Gah!
+				
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
 					if (isLogging)
@@ -299,6 +301,24 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 	return 0; 
 } 
+
+
+
+
+UINT hotkey2vk(UINT hotkey) {
+	if (hotkey>=HOTKEY_A && hotkey<=HOTKEY_Z)
+		return hotkey;
+
+	switch (hotkey) {
+		case HOTKEY_VIRT_LSHIFT:
+			return VK_LSHIFT;
+		case HOTKEY_VIRT_RSHIFT:
+			return VK_RSHIFT;
+		default:
+			return -1;
+	}
+}
+
 
 
 
@@ -1470,7 +1490,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			//Update our virtual keyboard
 			if (helpKeyboard->highlightKey(wParam, false))
-					reBlitHelp();
+				reBlitHelp();
 
 			break;
 		}
@@ -1493,29 +1513,43 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Should we update the virtual keyboard? This is done independently 
 			//  of actually handling the keypress itself
 			if (helpWindowIsVisible && highlightKeys) {
-				//Is this a valid key? If so, highlight it and repaint the help window
-				if (helpKeyboard->highlightKey(wParam, true)) {
-					reBlitHelp();
+				//If this is a shifted key, get which key is shifted: left or right
+				unsigned int keyCode = wParam;
+				if (keyCode==HOTKEY_SHIFT) {
+					//Well, I like posting fake messages. :D
+					if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
+						PostMessage(mainWindow, WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MOD_SHIFT);
+					if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
+						PostMessage(mainWindow, WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
+				} else {
+					//Get this letter in upper-case
+					if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW)
+						keyCode -= (HOTKEY_A_LOW-HOTKEY_A);
 
-					//CRITICAL SECTION
-					{
-						EnterCriticalSection(&threadCriticalSec);
+					//Is this a valid key? If so, highlight it and repaint the help window
+					if (helpKeyboard->highlightKey(keyCode, true)) {
+						reBlitHelp();
 
-						//Manage our thread's list of currently pressed hotkeys
-						hotkeysDown.remove(wParam);
-						hotkeysDown.push_front(wParam);
+						//CRITICAL SECTION
+						{
+							EnterCriticalSection(&threadCriticalSec);
 
-						//Do we need to start our thread?
-						if (!threadIsActive) {
-							threadIsActive = true;
+							//Manage our thread's list of currently pressed hotkeys
+							hotkeysDown.remove(keyCode);
+							hotkeysDown.push_front(keyCode);
 
-							ResumeThread(keyTrackThread);
+							//Do we need to start our thread?
+							if (!threadIsActive) {
+								threadIsActive = true;
 
-							//GetSystemTimeAsFileTime(&res);
-							//int diff = (res.dwLowDateTime-rL)/10000L; //hectonanoseconds div 10,000 to get ms
+								ResumeThread(keyTrackThread);
+
+								//GetSystemTimeAsFileTime(&res);
+								//int diff = (res.dwLowDateTime-rL)/10000L; //hectonanoseconds div 10,000 to get ms
+							}
+
+							LeaveCriticalSection(&threadCriticalSec);
 						}
-
-						LeaveCriticalSection(&threadCriticalSec);
 					}
 				}
 			}
@@ -1543,10 +1577,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We'll keep our shifted hotkeys, but also add a hotkey for shift itself. 
-					//  I'm not sure if this will actually work...
-					BOOL ret = TRUE;
-					//ret = turnOnHotkeys(FALSE, false, true);
-					if (ret==FALSE || RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE) {
+					//  We need to disambiguate the left and right shift keys later, since 
+					//  registering VK_LSHIFT and VK_RSHIFT doesn't seem to work
+					if (RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE) {
 						MessageBox(mainWindow, _T("Could not turn on shift hotkey, or turn off shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
 					}
 
