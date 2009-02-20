@@ -17,7 +17,7 @@
 
 /** 
  * From Wikipedia:
- * "While it is recommended that virtual function calls in constructors should be avoided for C++"
+ * "It is recommended that virtual function calls in constructors should be avoided for C++"
  */
 PulpCoreImage::PulpCoreImage()
 {
