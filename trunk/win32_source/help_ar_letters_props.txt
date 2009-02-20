@@ -6,9 +6,10 @@
 #PNG chunk: length, chunk_type
 #length (not including type, I think
 # length = short*3 + byte + byte*8 + short*(chars+1)
-#        = 139, in our case (8B)
+#        = 143, in our case (8F)
+#....and, forgot there's a CRC at the end.
 
-00 00 00 8B
+00 00 00 8F
 66 6F 4E 74
 
 #Chunk data
@@ -87,3 +88,5 @@
 02 67
 
 02 78
+
+00 00 00 00
