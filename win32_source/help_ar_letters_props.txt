@@ -1,0 +1,89 @@
+#You should be able to turn this directly into a PNG chunk, with all the necessary PulpCoreFont information
+#Numbers are in hex values
+#There is always one more chara position than actual letters; the last one is just the width of the image
+#Letters are arranged via a one-to-one mapping to their keys; duplicates are allowed, to make this simpler
+
+#PNG chunk: length, chunk_type
+#length (not including type, I think
+# length = short*3 + byte + byte*8 + short*(chars+1)
+#        = 139, in our case (8B)
+
+00 00 00 8B
+66 6F 4E 74
+
+#Chunk data
+
+70 75 6C 70 66 6E 74 0B
+
+00 00
+00 3D
+00 00
+00
+
+00 00
+00 04
+00 09
+00 0F
+00 16
+00 1E
+00 25
+00 2C
+00 33
+00 39
+00 3F
+00 45
+00 49
+00 50
+
+00 83
+00 96
+00 A0
+00 AD
+00 B5
+00 BE
+00 C7
+00 D0
+00 D8
+00 DB
+00 E4
+00 EC
+00 F0
+00 F4
+
+00 F8
+01 2A
+01 34
+01 3C
+01 45
+01 4C
+01 55
+01 5D
+01 64
+01 6D
+01 74
+01 77
+01 79
+
+01 93
+01 A9
+01 B2
+01 BB
+01 C3
+01 CC
+01 D5
+01 DD
+01 E7
+01 EA
+01 ED
+01 F1
+
+02 07
+02 18
+02 29
+02 37
+02 38
+02 46
+02 57
+02 67
+
+02 78
