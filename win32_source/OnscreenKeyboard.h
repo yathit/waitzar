@@ -57,7 +57,6 @@ const int v_gap = 2;
 //Useful struct for our keys
 struct key {
 	POINT location;
-	wchar_t letter;
 	wchar_t lblRegular;
 	wchar_t lblShifted;
 	int letterPalette;
@@ -66,8 +65,9 @@ const int keys_per_row[] = {14, 14, 13, 12, 8};
 const int keys_total = 14 + 14 + 13 + 12 + 8;
 
 //For now, just have this here
-const char letter[] = {'`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'b', 't', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\', 'c', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', 'e', 's', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 's', 'c', 'w', 'a', 's', 'a', 'w', 'm', 'c'};
+//const char letter[] = {'`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'b', 't', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\', 'c', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', 'e', 's', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 's', 'c', 'w', 'a', 's', 'a', 'w', 'm', 'c'};
 const int letter_types[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_BACKSPACE, BUTTON_UTILITY, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_UTILITY, BUTTON_CAPSLOCK, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_ENTER, BUTTON_SHIFT_L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_SHIFT_R, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_SPACEBAR, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY};
+const int offsets_key[] = {0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 3, 1, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0};
 const wchar_t mm_reg[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x1000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 const wchar_t mm_shift[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x1001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 
@@ -81,7 +81,7 @@ const wchar_t mm_shift[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00
 class OnscreenKeyboard
 {
 public:
-	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreImage *cornerImg);
+	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
@@ -96,6 +96,7 @@ private:
 
 	//Cached pics
 	PulpCoreFont *titleFont;
+	PulpCoreFont *keysFont;
 	PulpCoreImage *cornerImg[4];
 
 	//Buttons
@@ -113,6 +114,7 @@ private:
 
 	//Make a button
 	PulpCoreImage* makeButton(int width, int height, int bgARGB, int fgARGB, int borderARGB);
+	void drawKey(key currKey, int keyID, bool isPressed);
 
 	//Helper
 	int getKeyPosition(UINT hkCode);

@@ -8,10 +8,11 @@
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreImage *cornerImg)
+OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreImage *cornerImg)
 {
 	//Save for later
 	this->titleFont = titleFont;
+	this->keysFont = keysFont;
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
 
@@ -26,7 +27,6 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreImage *corne
 	int currRowID = 0;
 	for (int i=0; i<keys_total; i++) {
 		//Get properties
-		keys[i].letter = letter[i];
 		keys[i].lblRegular = mm_reg[i];
 		keys[i].lblShifted = mm_shift[i];
 		keys[i].letterPalette = letter_types[i];
@@ -114,8 +114,28 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 
 	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
 	for (int i=0; i<keys_total; i++) {
-		buttonsRegular[keys[i].letterPalette]->draw(underDC, keyboardOrigin.x+keys[i].location.x, keyboardOrigin.y+keys[i].location.y);
+		drawKey(keys[i], i, false);
 	}
+}
+
+
+
+//Helper function
+void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
+{
+	//Draw the background
+	int pal = currKey.letterPalette;
+	PulpCoreImage *keyImg = buttonsRegular[pal];
+	if (isPressed)
+		keyImg = buttonsShifted[pal];
+	keyImg->draw(underDC, keyboardOrigin.x+currKey.location.x, keyboardOrigin.y+currKey.location.y);
+
+	//Draw the letter labels
+	int xPos = keyboardOrigin.x+currKey.location.x+4;
+	int yPos = keyboardOrigin.y+currKey.location.y+3;
+	if (letter_types[keyID]==BUTTON_KEY) //Center it
+		xPos += (5 - keysFont->getCharWidth(keyID)/2);
+	keysFont->drawChar(underDC, keyID, xPos+offsets_key[keyID], yPos);
 }
 
 
@@ -136,12 +156,7 @@ bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 	//	int id = ids[i];
 	//	if (id==-1)
 	//		continue;
-
-		int pal = keys[id].letterPalette;
-		PulpCoreImage *keyImg = buttonsRegular[pal];
-		if (highlightON)
-			keyImg = buttonsShifted[pal];
-		keyImg->draw(underDC, keyboardOrigin.x+keys[id].location.x, keyboardOrigin.y+keys[id].location.y);
+	drawKey(keys[id], id, highlightON);
 	//}
 
 	//Succeeded
