@@ -71,10 +71,12 @@ public:
 
 	//Drawing functionality
 	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);
+	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
 	
 	//Other useful metrics
     int getStringWidth(TCHAR* str);
 	int getStringWidth(TCHAR* str, int start, int length);
+	int getCharWidth(char letter);
 
 private:
 	//PulpCoreFont-specific properties

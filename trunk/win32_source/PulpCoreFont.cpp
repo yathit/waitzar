@@ -108,6 +108,28 @@ void PulpCoreFont::fontSet()
 }
 
 
+
+void PulpCoreFont::drawChar(HDC bufferDC, char letter, int xPos, int yPos)
+{
+	//Avoid errors
+	if (directPixels==NULL)
+		return;
+
+	//Get metrics
+	int index = getCharIndex(letter);
+	int pos = charPositions[index];
+    int charWidth = charPositions[index+1] - pos;
+
+	//Draw this letter
+	AlphaBlend(
+	   bufferDC, xPos, yPos, charWidth, height,   //Destination
+	   directDC, pos, 0, charWidth, height,    //Source
+	   blendFunc				   //Method
+	);
+}
+
+
+
 void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
 {
 	//Don't loop through null or zero-lengthed strings
@@ -147,7 +169,7 @@ int PulpCoreFont::getCharIndex(TCHAR ch)
 	if (uppercaseOnly && ch>='a' &&ch<= 'z')
 		ch += 'A' - 'a';
 
-	//Bound
+	//Bound (default to last character)
 	if (ch<firstChar || ch>lastChar)
 		ch = lastChar;
 
@@ -172,6 +194,14 @@ bool PulpCoreFont::shouldIgnoreTracking(int index)
     int rsb = bearingRight[index];
     int advance = width + lsb + rsb;
     return advance < width/2;
+}
+
+
+int PulpCoreFont::getCharWidth(char letter)
+{
+	int index = getCharIndex(letter);
+	int pos = charPositions[index];
+	return charPositions[index+1] - pos;
 }
 
 
