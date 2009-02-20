@@ -1,5 +1,7 @@
 #include<stdio.h>
 
+/* Provided under BSD-style licenses, see: http://www.libpng.org/pub/png/spec/1.1/PNG-Credits.html */
+
 /* Table of CRCs of all 8-bit messages. */
    unsigned long crc_table[256];
    
