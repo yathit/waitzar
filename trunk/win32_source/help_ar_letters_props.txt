@@ -1,6 +1,6 @@
 #You should be able to turn this directly into a PNG chunk, with all the necessary PulpCoreFont information
 #Numbers are in hex values
-#There is always one more chara position than actual letters; the last one is just the width of the image
+#Note that "3C" as a final letter means there are "3D" total letters --and one final "char_position" at the end.
 #Letters are arranged via a one-to-one mapping to their keys; duplicates are allowed, to make this simpler
 
 #PNG chunk: length, chunk_type
@@ -17,7 +17,7 @@
 70 75 6C 70 66 6E 74 0B
 
 00 00
-00 3D
+00 3C
 00 00
 00
 
