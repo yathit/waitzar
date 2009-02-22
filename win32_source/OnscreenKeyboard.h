@@ -51,26 +51,36 @@ const int v_gap = 2;
 #define COLOR_KEYBOARD_FOREGRD  0xFF9AA4E2
 #define COLOR_KEYBOARD_BORDER   0xFF000000
 
+#define COLOR_LETTERS_LABEL     0xFF606060
+#define COLOR_LETTERS_REGULAR   0xFF000000
+#define COLOR_LETTERS_SHIFTED   0xFF0019FF
+
+
 #define HELPWND_TITLE           _T("WaitZar Low-Level Input")
 
 
 //Useful struct for our keys
 struct key {
 	POINT location;
-	wchar_t lblRegular;
-	wchar_t lblShifted;
 	int letterPalette;
 };
 const int keys_per_row[] = {14, 14, 13, 12, 8};
 const int keys_total = 14 + 14 + 13 + 12 + 8;
 
-//For now, just have this here
-//const char letter[] = {'`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'b', 't', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\', 'c', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', 'e', 's', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 's', 'c', 'w', 'a', 's', 'a', 'w', 'm', 'c'};
+//What type is each key on the keyboard?
 const int letter_types[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_BACKSPACE, BUTTON_UTILITY, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_UTILITY, BUTTON_CAPSLOCK, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_ENTER, BUTTON_SHIFT_L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_SHIFT_R, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_SPACEBAR, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY};
-const int offsets_key[] = {0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 3, 1, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0};
-const wchar_t mm_reg[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x1000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
-const wchar_t mm_shift[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x1001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 
+//List of offsets for each key, so that they line up perfectly
+//  Second line is for shifted keys, if they exist
+const int offsets_key[] = {0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 3, 1, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0};
+const int offset_fore[] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, -2, 0, -3, 0, 0, 0, 3, 1, 1, 2, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+const int offset_super[] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
 
 
 /**
@@ -81,7 +91,7 @@ const wchar_t mm_shift[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00
 class OnscreenKeyboard
 {
 public:
-	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *forFont, PulpCoreImage *cornerImg);
+	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
@@ -97,17 +107,24 @@ private:
 	//Cached pics
 	PulpCoreFont *titleFont;
 	PulpCoreFont *keysFont;
-	PulpCoreFont *forFont;
+	PulpCoreFont *foreFont;
+	PulpCoreFont *foreFontBlue;
 	PulpCoreImage *cornerImg[4];
 
 	//Buttons
 	key keys[keys_total];
+
+	//Run-time status of buttons
+	bool shiftedKeys[61];
 
 	//Useful helpers
 	POINT keyboardOrigin;
 	int cornerSize;
 	int width;
 	int height;
+
+	//Are we in a shifted state?
+	bool isShifted();
 
 	//Button palettes
 	PulpCoreImage *buttonsRegular[BUTTONS_IN_TOTAL];

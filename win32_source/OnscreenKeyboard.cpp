@@ -8,14 +8,18 @@
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *forFont, PulpCoreImage *cornerImg)
+OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreImage *cornerImg)
 {
 	//Save for later
 	this->titleFont = titleFont;
 	this->keysFont = keysFont;
-	this->forFont = forFont;
+	this->keysFont->tintSelf(COLOR_LETTERS_LABEL);
+	this->foreFont = foreFont;
+	this->foreFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
+	for (int i=0; i<61; i++) 
+		shiftedKeys[i] = false;
 
 	//Determine the necessary size of our background image
 	this->width = (BTN_WIDTHS[BUTTON_KEY]+h_gap)*13 + BTN_WIDTHS[BUTTON_BACKSPACE] + this->cornerSize*2;
@@ -28,8 +32,6 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFo
 	int currRowID = 0;
 	for (int i=0; i<keys_total; i++) {
 		//Get properties
-		keys[i].lblRegular = mm_reg[i];
-		keys[i].lblShifted = mm_shift[i];
 		keys[i].letterPalette = letter_types[i];
 
 		//Lay it out
@@ -61,6 +63,11 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 
 	//Save our device context
 	this->underDC = helperBufferedDC;
+
+	//Color some fonts
+	this->foreFontBlue = new PulpCoreFont();
+	this->foreFontBlue->init(foreFont, helpMainDC);
+	this->foreFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
 
 	//Create rotated copies of our one corner image
 	for (int i=1; i<4; i++) {
@@ -120,6 +127,15 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 }
 
 
+/**
+ * Is the keyboard in a shifted state? Affects what text is drawn.
+ */
+bool OnscreenKeyboard::isShifted()
+{
+	return shiftedKeys[getKeyPosition(HOTKEY_VIRT_LSHIFT)] || shiftedKeys[getKeyPosition(HOTKEY_VIRT_RSHIFT)];
+}
+
+
 
 //Helper function
 void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
@@ -138,8 +154,16 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 		xPos += (5 - keysFont->getCharWidth(keyID)/2);
 	keysFont->drawChar(underDC, keyID, xPos+offsets_key[keyID], yPos);
 
-	//Temp
-	forFont->drawChar(underDC, keyID, xPos+keyImg->getWidth()/2, yPos+keyImg->getHeight()/2);
+	//Draw the key main label
+	int shiftKeyID = keyID;
+	PulpCoreFont *myFont = this->foreFont;
+	if (this->isShifted()) {
+		shiftKeyID += 61;
+		myFont = this->foreFontBlue;
+	}
+	xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-myFont->getCharWidth(shiftKeyID)/2;
+	yPos = keyboardOrigin.y+currKey.location.y+19;
+	myFont->drawChar(underDC, shiftKeyID, xPos+offset_fore[shiftKeyID], yPos);
 }
 
 
@@ -155,13 +179,18 @@ bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 	if (id==-1)
 		return false;
 	
-	//Re-draw this key
-	//for (int i=0; i<2; i++) {
-	//	int id = ids[i];
-	//	if (id==-1)
-	//		continue;
-	drawKey(keys[id], id, highlightON);
-	//}
+	//Mark as "highlighted"
+	bool wasShifted = this->isShifted();
+	shiftedKeys[id] = highlightON;
+	if (wasShifted != this->isShifted()) {
+		//We need to re-print the entire keyboard
+		for (int i=0; i<61; i++) {
+			drawKey(keys[i], i, shiftedKeys[i]);
+		}
+	} else {
+		//Re-draw only this key
+		drawKey(keys[id], id, highlightON);
+	}
 
 	//Succeeded
 	return true;
