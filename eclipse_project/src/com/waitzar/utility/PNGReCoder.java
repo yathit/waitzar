@@ -36,10 +36,10 @@ public class PNGReCoder {
 	
 	public PNGReCoder(String[] args) {
 		//Get our arguments
-		String pngFilePath = "../win32_source/help_zg_main.font.png";
+		String pngFilePath = "../win32_source/help_ar_letters.font.png";
 		if (args.length>0)
 			pngFilePath = args[0];
-		String widthsFilePath = "../win32_source/help_zg_main_widths.txt";
+		String widthsFilePath = "../win32_source/help_ar_letters_widths.txt";
 		if (args.length>1)
 			widthsFilePath = args[1];
 		
@@ -66,7 +66,9 @@ public class PNGReCoder {
 		}
 		byte[] pngSig = new byte[] {(byte)0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
 		byte[] fntChunk = new byte[] {0x66, 0x6f, 0x4e, 0x74};
+		byte[] headChunk = new byte[] {0x49, 0x48, 0x44, 0x52};
 		byte[] pulpFntMagicNum = new byte[] {0x70, 0x75, 0x6c, 0x70, 0x66, 0x6e, 0x74, 0x0b};
+		int width = 0;
 		try {
 			//Read the png signature
 			byte[] checkSig = new byte[pngSig.length];
@@ -101,6 +103,11 @@ public class PNGReCoder {
 					System.out.println("  " + Long.toHexString(resCRC) + " to " + Integer.toHexString(((int)nextCh.crc[0])&0xFF) + "" + Integer.toHexString(((int)nextCh.crc[1])&0xFF) + "" + Integer.toHexString(((int)nextCh.crc[2])&0xFF) + "" + Integer.toHexString(((int)nextCh.crc[3])&0xFF));
 				}
 				
+				//Header?
+				if (nextCh.type[0]==headChunk[0] && nextCh.type[1]==headChunk[1] && nextCh.type[2]==headChunk[2] && nextCh.type[3]==headChunk[3]) {
+					width = ((nextCh.data[0]&0xFF)<<24) | ((nextCh.data[1]&0xFF)<<16) | ((nextCh.data[2]&0xFF)<<8) | (nextCh.data[3]&0xFF);
+				}
+				
 				//Add it?
 				if (nextCh.type[0]==fntChunk[0] && nextCh.type[1]==fntChunk[1] && nextCh.type[2]==fntChunk[2] && nextCh.type[3]==fntChunk[3])
 					System.out.println("Info: Skipping old font chunk");
@@ -131,9 +138,9 @@ public class PNGReCoder {
 				if (line==null) 
 					break;
 				
-				//Comment?
+				//Comment? Empty?
 				line = line.trim();
-				if (line.charAt(0)=='#')
+				if (line.length()==0 || line.charAt(0)=='#')
 					continue;
 				
 				//Number
@@ -189,7 +196,7 @@ public class PNGReCoder {
 		}
 		chunkData.add((byte)((lastBearing>>8)&0xFF));
 		chunkData.add((byte)(lastBearing&0xFF));
-		System.out.println("Image width should be: " + lastBearing + "  (plese check)");
+		System.out.println("Image width should be: " + lastBearing + " is actually " + width);
 		
 		PNGChunk nextCh = new PNGChunk();
 		nextCh.data = new byte[chunkData.size()];
