@@ -81,7 +81,7 @@ const wchar_t mm_shift[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00
 class OnscreenKeyboard
 {
 public:
-	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreImage *cornerImg);
+	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *forFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
@@ -97,6 +97,7 @@ private:
 	//Cached pics
 	PulpCoreFont *titleFont;
 	PulpCoreFont *keysFont;
+	PulpCoreFont *forFont;
 	PulpCoreImage *cornerImg[4];
 
 	//Buttons
