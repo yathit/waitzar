@@ -8,11 +8,12 @@
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreImage *cornerImg)
+OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *forFont, PulpCoreImage *cornerImg)
 {
 	//Save for later
 	this->titleFont = titleFont;
 	this->keysFont = keysFont;
+	this->forFont = forFont;
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
 
@@ -136,6 +137,9 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 	if (letter_types[keyID]==BUTTON_KEY) //Center it
 		xPos += (5 - keysFont->getCharWidth(keyID)/2);
 	keysFont->drawChar(underDC, keyID, xPos+offsets_key[keyID], yPos);
+
+	//Temp
+	forFont->drawChar(underDC, keyID, xPos+keyImg->getWidth()/2, yPos+keyImg->getHeight()/2);
 }
 
 
