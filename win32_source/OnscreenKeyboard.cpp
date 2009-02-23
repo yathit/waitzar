@@ -8,7 +8,7 @@
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreImage *cornerImg)
+OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreImage *cornerImg)
 {
 	//Save for later
 	this->titleFont = titleFont;
@@ -16,6 +16,8 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFo
 	this->keysFont->tintSelf(COLOR_LETTERS_LABEL);
 	this->foreFont = foreFont;
 	this->foreFont->tintSelf(COLOR_LETTERS_REGULAR);
+	this->shiftFont = shiftFont;
+	this->shiftFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
 	for (int i=0; i<61; i++) 
@@ -68,6 +70,9 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 	this->foreFontBlue = new PulpCoreFont();
 	this->foreFontBlue->init(foreFont, helpMainDC);
 	this->foreFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
+	this->shiftFontBlue = new PulpCoreFont();
+	this->shiftFontBlue->init(shiftFont, helpMainDC);
+	this->shiftFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
 
 	//Create rotated copies of our one corner image
 	for (int i=1; i<4; i++) {
@@ -155,15 +160,24 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 	keysFont->drawChar(underDC, keyID, xPos+offsets_key[keyID], yPos);
 
 	//Draw the key main label
-	int shiftKeyID = keyID;
+	int myKeyID = keyID;
+	int myShiftKeyID = keyID + 61;
 	PulpCoreFont *myFont = this->foreFont;
+	PulpCoreFont *myShiftFont = this->shiftFontBlue;
 	if (this->isShifted()) {
-		shiftKeyID += 61;
+		myShiftKeyID = myKeyID;
+		myKeyID += 61;
 		myFont = this->foreFontBlue;
+		myShiftFont = this->shiftFont;
 	}
-	xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-myFont->getCharWidth(shiftKeyID)/2;
+	xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-myFont->getCharWidth(myKeyID)/2;
 	yPos = keyboardOrigin.y+currKey.location.y+19;
-	myFont->drawChar(underDC, shiftKeyID, xPos+offset_fore[shiftKeyID], yPos);
+	myFont->drawChar(underDC, myKeyID, xPos+offset_fore[myKeyID], yPos);
+
+	//Draw the shifted label
+	xPos = keyboardOrigin.x+currKey.location.x+23-myShiftFont->getCharWidth(myShiftKeyID)/2;
+	yPos = keyboardOrigin.y+currKey.location.y+3;
+	myShiftFont->drawChar(underDC, myShiftKeyID, xPos+offset_super[myShiftKeyID], yPos);
 }
 
 
