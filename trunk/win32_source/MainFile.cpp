@@ -1048,7 +1048,7 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 void initCalculateHelp()
 {
 	//Initialize our keyboard
-	helpKeyboard = new OnscreenKeyboard(mmFontSmallBlack, helpFntKeys, helpFntFore, helpCornerImg);
+	helpKeyboard = new OnscreenKeyboard(mmFontSmallBlack, helpFntKeys, helpFntFore, helpFntBack, helpCornerImg);
 }
 
 

@@ -36,10 +36,10 @@ public class PNGReCoder {
 	
 	public PNGReCoder(String[] args) {
 		//Get our arguments
-		String pngFilePath = "../win32_source/help_ar_letters.font.png";
+		String pngFilePath = "../win32_source/help_zg_sub.font.png";
 		if (args.length>0)
 			pngFilePath = args[0];
-		String widthsFilePath = "../win32_source/help_ar_letters_widths.txt";
+		String widthsFilePath = "../win32_source/help_zg_sub_widths.txt";
 		if (args.length>1)
 			widthsFilePath = args[1];
 		
