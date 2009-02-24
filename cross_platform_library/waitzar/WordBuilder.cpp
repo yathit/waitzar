@@ -854,6 +854,13 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsi
 			destStr[0] = 121;
 			destStr[1] = 103;
 			destStr[2] = 104;
+		} else if (encoding==ENCODING_UNICODE && wcscmp(srcStr, L"104E")==0) {
+			//New encoding for "lakaung"
+			wcscpy(destStr, L"1234");
+			destStr[0] = 0x104E;
+			destStr[1] = 0x1004;
+			destStr[2] = 0x103A;
+			destStr[3] = 0x1038;
 		}
 
 		//Now, add a new entry
