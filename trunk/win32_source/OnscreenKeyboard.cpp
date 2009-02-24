@@ -23,6 +23,8 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFo
 	for (int i=0; i<61; i++) 
 		shiftedKeys[i] = false;
 
+	this->setMode(MODE_HELP);
+
 	//Determine the necessary size of our background image
 	this->width = (BTN_WIDTHS[BUTTON_KEY]+h_gap)*13 + BTN_WIDTHS[BUTTON_BACKSPACE] + this->cornerSize*2;
 	this->height = BTN_HEIGHT*5 + v_gap*4 + titleFont->getHeight()-2+2*this->cornerSize-2 + this->cornerSize;
@@ -51,6 +53,12 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFo
 			currRowID = 0;
 		}
 	}
+}
+
+
+void OnscreenKeyboard::setMode(int newMode) 
+{
+	this->mode = newMode;
 }
 
 
@@ -159,7 +167,7 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 		xPos += (5 - keysFont->getCharWidth(keyID)/2);
 	keysFont->drawChar(underDC, keyID, xPos+offsets_key[keyID], yPos);
 
-	//Draw the key main label
+	//Prepare to draw keys
 	int myKeyID = keyID;
 	int myShiftKeyID = keyID + 61;
 	PulpCoreFont *myFont = this->foreFont;
@@ -170,14 +178,20 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 		myFont = this->foreFontBlue;
 		myShiftFont = this->shiftFont;
 	}
-	xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-myFont->getCharWidth(myKeyID)/2;
-	yPos = keyboardOrigin.y+currKey.location.y+19;
-	myFont->drawChar(underDC, myKeyID, xPos+offset_fore[myKeyID], yPos);
+
+	//Draw the main label
+	if (!hide_for_help[myKeyID]) {
+		xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-myFont->getCharWidth(myKeyID)/2;
+		yPos = keyboardOrigin.y+currKey.location.y+19;
+		myFont->drawChar(underDC, myKeyID, xPos+offset_fore[myKeyID], yPos);
+	}
 
 	//Draw the shifted label
-	xPos = keyboardOrigin.x+currKey.location.x+23-myShiftFont->getCharWidth(myShiftKeyID)/2;
-	yPos = keyboardOrigin.y+currKey.location.y+3;
-	myShiftFont->drawChar(underDC, myShiftKeyID, xPos+offset_super[myShiftKeyID], yPos);
+	if (!hide_for_help[myShiftKeyID]) {
+		xPos = keyboardOrigin.x+currKey.location.x+23-myShiftFont->getCharWidth(myShiftKeyID)/2;
+		yPos = keyboardOrigin.y+currKey.location.y+3;
+		myShiftFont->drawChar(underDC, myShiftKeyID, xPos+offset_super[myShiftKeyID], yPos);
+	}
 }
 
 
