@@ -43,9 +43,9 @@ const int v_gap = 2;
 //Useful defines
 #define COLOR_KEY_BKGRD         0xFF9AA4E2
 #define COLOR_KEY_BORDER_REG    0xFF606060
-#define COLOR_KEY_BORDER_SHIFT  0xFFFF0000
+#define COLOR_KEY_BORDER_SHIFT  0xFF440066
 #define COLOR_KEY_FOREGRD_REG   0xFFD3D3D3
-#define COLOR_KEY_FOREGRD_SHIFT 0xFF00FF00
+#define COLOR_KEY_FOREGRD_SHIFT 0xFFFFAAAA
 
 #define COLOR_KEYBOARD_BKGRD    0x00FFFFFF
 #define COLOR_KEYBOARD_FOREGRD  0xFF9AA4E2
@@ -54,6 +54,10 @@ const int v_gap = 2;
 #define COLOR_LETTERS_LABEL     0xFF606060
 #define COLOR_LETTERS_REGULAR   0xFF000000
 #define COLOR_LETTERS_SHIFTED   0xFF0019FF
+
+//Modes
+#define MODE_HELP     0
+#define MODE_INPUT    1
 
 
 #define HELPWND_TITLE           _T("WaitZar Low-Level Input")
@@ -82,6 +86,12 @@ const int offset_super[] = {
 	0, 1, 0, 1, -1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
+//For the "help" function, we don't want users to type invalid words, so we eliminate the equals sign, etc.
+const bool hide_for_help[] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true, true, true, true, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true, 0, true, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true, true, 0, 0, 0, 0, 0, 0, 0, 0, true, true, true, true, true, true, true, true, true, true, true,
+	true, 0, 0, 0, 0, true, true, 0, 0, true, true, true, true, true, true, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true, 0, true, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true, true, 0, 0, 0, 0, 0, 0, 0, true, true, true, true,  true, true, true, true,  true, true, true, true
+};
+
 
 /**
  * This class exists to facilitate display of the on-screen keyboard, 
@@ -95,6 +105,8 @@ public:
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
+
+	void setMode(int newMode);
 
 	int getWidth();
 	int getHeight();
@@ -124,6 +136,7 @@ private:
 	int cornerSize;
 	int width;
 	int height;
+	int mode;
 
 	//Are we in a shifted state?
 	bool isShifted();
