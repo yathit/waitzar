@@ -1530,7 +1530,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
 						PostMessage(mainWindow, WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
 				} else {
-					//Get this letter in upper-case
+					//Capitalize (it won't affect our algorithm anyway)
 					if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW)
 						keyCode -= (HOTKEY_A_LOW-HOTKEY_A);
 
