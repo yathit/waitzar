@@ -88,7 +88,6 @@ BOOL turnOnNumberkeys(BOOL on);
 BOOL turnOnPunctuationkeys(BOOL on);
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
-UINT hotkey2vk(UINT hotkey);
 
 //Unique IDs
 #define LANG_HOTKEY 142
@@ -259,7 +258,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 			//Loop through our list
 			for (std::list<unsigned int>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
 				//Get the state of this key
-				SHORT keyState = GetKeyState(hotkey2vk(*keyItr)); //We need to use CAPITAL letters for virtual keys. Gah!
+				SHORT keyState = GetKeyState(*keyItr); //We need to use CAPITAL letters for virtual keys. Gah!
 
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
@@ -300,23 +299,6 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 	}
 
 	return 0;
-}
-
-
-
-
-UINT hotkey2vk(UINT hotkey) {
-	if (hotkey>=HOTKEY_A && hotkey<=HOTKEY_Z)
-		return hotkey;
-
-	switch (hotkey) {
-		case HOTKEY_VIRT_LSHIFT:
-			return VK_LSHIFT;
-		case HOTKEY_VIRT_RSHIFT:
-			return VK_RSHIFT;
-		default:
-			return -1;
-	}
 }
 
 
