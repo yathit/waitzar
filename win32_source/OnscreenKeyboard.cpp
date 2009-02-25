@@ -225,6 +225,177 @@ bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 }
 
 
+//Instead of returning a key position, returns an ID into a virtual array of such keys, 
+//  with the supered keys from IDs 61 to 121. That is nearly a direct REVERSE of 
+//  getKeyPos, except that number keys and the like remain valid. It's a bit confusing, I admit.
+//We could just use isShifted(), but we don't want to rely on our thread.
+int OnscreenKeyboard::getKeyID(UINT hkCode)
+{
+	int pos = getKeyPosition(hkCode);
+	if (pos != -1)
+		return pos;
+	switch (hkCode) 
+	{
+		//case [HOTKEY_COMBINE]:
+		//	return 0;
+		case HOTKEY_1:
+			return 1;
+		case HOTKEY_2:
+			return 2;
+		case HOTKEY_3:
+			return 3;
+		case HOTKEY_4:
+			return 4;
+		case HOTKEY_5:
+			return 5;
+		case HOTKEY_6:
+			return 6;
+		case HOTKEY_7:
+			return 7;
+		case HOTKEY_8:
+			return 8;
+		case HOTKEY_9:
+			return 9;
+		case HOTKEY_0:
+			return 10;
+		//case [HOTKEY_MINUS]:
+		//	return 11;
+		//case [HOTKEY_EQUALS]:
+		//	return 12;
+		//case [HOTKEY_BACKSPACE]:
+		//	return 13;
+		//case [HOTKEY_TAB]:
+		//	return 14;
+		case 'q':
+			return 15;
+		case 'w':
+			return 16;
+		case 'e':
+			return 17;
+		case 'r':
+			return 18;
+		case 't':
+			return 19;
+		case 'y':
+			return 20;
+		case 'u':
+			return 21;
+		case 'i':
+			return 22;
+		case 'o':
+			return 23;
+		case 'p':
+			return 24;
+		//case [HOTKEY_LEFT_BRACKET]:
+		//	return 25;
+		//case [HOTKEY_RIGHT_BRACKET]:
+		//	return 26;
+		//case [HOTKEY_BACK_SLASH]:
+		//	return 27;
+		//case [HOTKEY_CAPSLOCK]:
+		//	return 28;
+		case 'a':
+			return 29;
+		case 's':
+			return 30;
+		case 'd':
+			return 31;
+		case 'f':
+			return 32;
+		case 'g':
+			return 33;
+		case 'h':
+			return 34;
+		case 'j':
+			return 35;
+		case 'k':
+			return 36;
+		case 'l':
+			return 37;
+		//case [HOTKEY_SEMICOLON]:
+		//	return 38;
+		//case [HOTKEY_SINGLE_QUOTE]:
+		//	return 39;
+		case HOTKEY_ENTER:
+			return 40;
+		case HOTKEY_VIRT_LSHIFT:
+			return 41;
+		case 'z':
+			return 42;
+		case 'x':
+			return 43;
+		case 'c':
+			return 44;
+		case 'v':
+			return 45;
+		case 'b':
+			return 46;
+		case 'n':
+			return 47;
+		case 'm':
+			return 48;
+		case HOTKEY_COMMA:
+			return 49;
+		case HOTKEY_PERIOD:
+			return 50;
+		//case [HOTKEY_FORWARD_SLASH]:
+		//	return 51;
+		case HOTKEY_VIRT_RSHIFT:
+			return 52;
+		//case [HOTKEY_LEFT_CONTROL]:
+		//	return 53;
+		//case [HOTKEY_LEFT_WIN]:
+		//	return 54;
+		//case [HOTKEY_LEFT_ALT]:
+		//	return 55;
+		case HOTKEY_SPACE:
+			return 56;
+		//case [HOTKEY_RIGHT_ALT]:
+		//	return 57;
+		//case [HOTKEY_RIGHT_WIN]:
+		//	return 58;
+		//case [HOTKEY_CMENU]:
+		//	return 59;
+		//case [HOTKEY_RIGHT_CTRL]:
+		//	return 60;
+		//case [HOTKEY_SUP_COMBINE]:
+		//	return 61;
+		//case [HOTKEY_EXCLAMATION]:
+		//	return 62;
+		//case [HOTKEY_AT_SIGN]:
+		//	return 63;
+		//case [HOTKEY_POUND_SIGN]:
+		//	return 64;
+		//case [HOTKEY_DOLLAR_SIGN]:
+		//	return 65;
+		//case [HOTKEY_PERCENT_SIGN]:
+		//	return 66;
+		//case [HOTKEY_CARET]:
+		//	return 67;
+		//case [HOTKEY_AMPERSAND]:
+		//	return 68;
+		//case [HOTKEY_ASTERISK]:
+		//	return 69;
+		//case [HOTKEY_LEFT_PAREN]:
+		//	return 70;
+		//case [HOTKEY_RIGHT_PAREN]:
+		//	return 71;
+		//case [HOTKEY_SUP_MINUS]:
+		//	return 72;
+		//case [HOTKEY_SUP_EQUALS]:
+		//	return 73;
+		//case [HOTKEY_SUP_BACKSPACE]:
+		//	return 74;
+
+		//Continue... next 4 rows
+
+
+		default:
+			return -1;
+	}
+}
+
+
 
 int OnscreenKeyboard::getKeyPosition(UINT hkCode)
 {
@@ -357,6 +528,22 @@ int OnscreenKeyboard::getKeyPosition(UINT hkCode)
 		default:
 			return -1;
 	}
+}
+
+
+wchar_t* OnscreenKeyboard::typeLetter(DWORD hotkeyCode)
+{
+	int id = getKeyID(hotkeyCode);
+	if (id==-1 || typeableLetters[id]==0x0000)
+		return NULL;
+
+	//Special cases
+	if (id==65)
+		return L"";
+
+	lstrcpy(typedString, L"1");
+	typedString[0] = typeableLetters[id];
+	return typedString;
 }
 
 

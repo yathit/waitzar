@@ -186,7 +186,8 @@ bool mainInitDone;
 bool helpInitDone;
 
 //Record-keeping
-TCHAR currStr[50];
+TCHAR currStr[100];
+TCHAR currLetterSt[100];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 BOOL numberKeysOn = FALSE;
@@ -907,7 +908,11 @@ void switchToLanguage(BOOL toMM) {
 	if (toMM==TRUE) {
 		res = turnOnHotkeys(TRUE, true, true) && turnOnPunctuationkeys(TRUE);
 		if (typeBurmeseNumbers==TRUE)
-			res = res && turnOnNumberkeys(TRUE); //JUST numbers, not control.
+			res = turnOnNumberkeys(TRUE) && res; //JUST numbers, not control.
+
+		//Register our help key too
+		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
+			res = FALSE;
 	} else {
 		res = turnOnHotkeys(FALSE, true, true);
 
@@ -918,13 +923,8 @@ void switchToLanguage(BOOL toMM) {
 			turnOnNumberkeys(FALSE);
 		if (punctuationKeysOn == TRUE)
 			turnOnPunctuationkeys(FALSE);
-	}
 
-	//TEMP: Turn on/off our help key
-	if (toMM==TRUE) {
-		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
-			res = FALSE;
-	} else {
+		//Turn off our help key
 		if (UnregisterHotKey(mainWindow, HOTKEY_HELP)==FALSE)
 			res = FALSE;
 	}
@@ -958,6 +958,11 @@ void switchToLanguage(BOOL toMM) {
 	//Any windows left?
 	if (mmOn==FALSE) {
 		ShowBothWindows(SW_HIDE);
+
+		if (helpWindowIsVisible) {
+			helpWindowIsVisible = false;
+			ShowWindow(helpWindow, SW_HIDE);
+		}	
 	}
 }
 
@@ -1519,6 +1524,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				unsigned int keyCode = wParam;
 				if (keyCode==HOTKEY_SHIFT) {
 					//Well, I like posting fake messages. :D
+					// Note that (lParam>>16)&VK_LSHIFT doesn't work here
 					if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
 						PostMessage(mainWindow, WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MOD_SHIFT);
 					if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
@@ -1557,10 +1563,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 
-
-
-			//Handle our help key
-			//TEMP: Just make it work~~~
+			//What to do if our user hits "F1".
 			if (wParam == HOTKEY_HELP) {
 				if (!helpWindowIsVisible) {
 					//Did we even initialize the help window?
@@ -1594,12 +1597,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						MessageBox(mainWindow, _T("Could not turn on shift hotkey, or turn off shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
 					}
 
+					//Clear our current word (not the sentence, though, and keep the trigrams)
+					lstrcpy(currStr, _T(""));
+					model->reset(false);
+					recalculate();
+
 					//Show the help window
 					ShowWindow(helpWindow, SW_SHOW);
 					helpWindowIsVisible = true;
 					reBlitHelp();
 				} else {
-					//Hide it. (We'll need to clear it, later).
+					//Clear our word string
+					lstrcpy(currStr, _T(""));
+					recalculate();
+
+					//Hide it. 
 					if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE) {
 						MessageBox(mainWindow, _T("Could not turn off shift hotkey, or turn on shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
 					}
@@ -1841,71 +1853,82 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 
-			//Handle our individual keystrokes as hotkeys (less registering that way...)
-			int keyCode = (int)wParam;
-			if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z)
-				keyCode += 32;
-			if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW)
-			{
-				//Run this keypress into the model. Accomplish anything?
-				if (!model->typeLetter(keyCode))
-					break;
-
-				//List all possible words
-				recalculate();
-
-
-				//Is this the first keypress of a romanized word? If so, the window is not visible...
-				if (!mainWindowIsVisible)
+			//Handle our individual letter presses as hotkeys
+			if (helpWindowIsVisible) {
+				//Handle our help menu
+				wchar_t* nextBit = helpKeyboard->typeLetter(wParam);
+				if (nextBit != NULL) {
+					//Valid letter
+					lstrcat(currStr, nextBit);
+					recalculate();
+				}
+			} else {
+				//Handle regular letter-presses 
+				int keyCode = (int)wParam;
+				if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) //Seems like we should be doing with this Shift modifiers..
+					keyCode += 32;
+				if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW)
 				{
-					//Reset it...
-					lstrcpy(currStr, _T(""));
+					//Run this keypress into the model. Accomplish anything?
+					if (!model->typeLetter(keyCode))
+						break;
+
+					//List all possible words
 					recalculate();
 
-					//Optionally turn on numerals
-					if (numberKeysOn==FALSE)
-						turnOnNumberkeys(TRUE);
 
-					//TEST: Re-position it
-					//TEST: Use AttachThredInput? Yes!
-					//Still a bit glitchy....
-					if (false) {
-						HWND foreWnd = GetForegroundWindow();
-						DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
-						if (AttachThreadInput(GetCurrentThreadId(), foreID, TRUE)) {
-							POINT mousePos;
-							RECT clientUL;
-							if (GetCaretPos(&mousePos) && GetWindowRect(GetForegroundWindow(), &clientUL)) {
-								int mouseX = clientUL.left + mousePos.x;
-								int mouseY = clientUL.top + mousePos.y;
+					//Is this the first keypress of a romanized word? If so, the window is not visible...
+					if (!mainWindowIsVisible)
+					{
+						//Reset it...
+						lstrcpy(currStr, _T(""));
+						recalculate();
 
-								//Line up our windows
-								MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-								MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+						//Optionally turn on numerals
+						if (numberKeysOn==FALSE)
+							turnOnNumberkeys(TRUE);
+
+						//TEST: Re-position it
+						//TEST: Use AttachThredInput? Yes!
+						//Still a bit glitchy....
+						if (false) {
+							HWND foreWnd = GetForegroundWindow();
+							DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
+							if (AttachThreadInput(GetCurrentThreadId(), foreID, TRUE)) {
+								POINT mousePos;
+								RECT clientUL;
+								if (GetCaretPos(&mousePos) && GetWindowRect(GetForegroundWindow(), &clientUL)) {
+									int mouseX = clientUL.left + mousePos.x;
+									int mouseY = clientUL.top + mousePos.y;
+
+									//Line up our windows
+									MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+									MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+								}
+
+								//Finally
+								AttachThreadInput(GetCurrentThreadId(), foreID, FALSE);
 							}
+						}
 
-							//Finally
-							AttachThreadInput(GetCurrentThreadId(), foreID, FALSE);
+
+						//Show it
+						if (typePhrases==FALSE || !subWindowIsVisible) {
+							//Turn on control keys
+							turnOnControlkeys(TRUE);
+							ShowBothWindows(SW_SHOW);
+						} else {
+							ShowWindow(mainWindow, SW_SHOW);
+							mainWindowIsVisible = true;
 						}
 					}
 
-
-					//Show it
-					if (typePhrases==FALSE || !subWindowIsVisible) {
-						//Turn on control keys
-						turnOnControlkeys(TRUE);
-						ShowBothWindows(SW_SHOW);
-					} else {
-						ShowWindow(mainWindow, SW_SHOW);
-						mainWindowIsVisible = true;
-					}
+					//Now, handle the keypress as per the usual...
+					TCHAR keyStr[50];
+					lstrcpy(keyStr, currStr);
+					swprintf(currStr, _T("%s%c"), keyStr, keyCode);
+					recalculate();
 				}
-
-				//Now, handle the keypress as per the usual...
-				TCHAR keyStr[50];
-				lstrcpy(keyStr, currStr);
-				swprintf(currStr, _T("%s%c"), keyStr, keyCode);
-				recalculate();
 			}
 
 			break;
@@ -2680,6 +2703,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Initialize our romanisation string
 	lstrcpy(currStr, _T(""));
+	lstrcpy(currLetterSt, _T(""));
 
 	//Success?
 	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL) || helpWindow==NULL) {
