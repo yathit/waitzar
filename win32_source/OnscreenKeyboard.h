@@ -162,7 +162,6 @@ private:
 	void drawKey(key currKey, int keyID, bool isPressed);
 
 	//Helper
-	int getKeyPosition(UINT hkCode);
 	int getKeyID(UINT hkCode);
 
 
