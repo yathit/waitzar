@@ -187,7 +187,6 @@ bool helpInitDone;
 
 //Record-keeping
 TCHAR currStr[50];
-TCHAR currPhrase[500];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 BOOL numberKeysOn = FALSE;
@@ -226,24 +225,24 @@ bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = true;
+bool isLogging = false;
 FILE *logFile;
 
 
 
 /**
- * This is our threaded locus-of-control, which is woken when a keypress is detected, and 
- *   put to sleep when all keys have been released. It is very important that this 
+ * This is our threaded locus-of-control, which is woken when a keypress is detected, and
+ *   put to sleep when all keys have been released. It is very important that this
  *   thread run very fast; we operate on the assumption that it completes in less
- *   than 1 Thread cycle, including synchronization. 
+ *   than 1 Thread cycle, including synchronization.
  * This thread is not activated if the "highlight keys" flag is off. This is intended to
  *   allow increased performance on slow systems, decreased annoyance for advanced users,
  *   and an ultimate fall-back if the thread is shown to deadlock or stall with continuous usage.
- * @args = always null. 
+ * @args = always null.
  * @returns = 0 for success (never really returns)
  */
 DWORD WINAPI TrackHotkeyReleases(LPVOID args)
-{ 
+{
 	//Loop forever
 	for (;;) {
 		//Check every key. Since we generally are tracking a very small number of keys, it makes
@@ -260,7 +259,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 			for (std::list<unsigned int>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
 				//Get the state of this key
 				SHORT keyState = GetKeyState(hotkey2vk(*keyItr)); //We need to use CAPITAL letters for virtual keys. Gah!
-				
+
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
 					if (isLogging)
@@ -299,8 +298,8 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 		}
 	}
 
-	return 0; 
-} 
+	return 0;
+}
 
 
 
@@ -495,7 +494,7 @@ void makeFont(HWND currHwnd)
 		//Unlock this resource for later use.
 		UnlockResource(res_handle);
 	}
-	
+
 
 	//Save resources if we don't use the second window
 	if (typePhrases==FALSE)
@@ -1022,10 +1021,13 @@ void initCalculate()
 }
 
 
-void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
+void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newX, int newY, bool noMove, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
 {
 	//Resize the current window; use SetWindowPos() since it's easier...
-	SetWindowPos(hwnd, NULL, 0, 0, newWidth, newHeight, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
+	int flags = SWP_NOZORDER | SWP_NOACTIVATE;
+	if (noMove)
+		flags |= SWP_NOMOVE;
+	SetWindowPos(hwnd, NULL, newX, newY, newWidth, newHeight, flags );
 	RECT r;
 	GetClientRect(hwnd, &r);
 	SAVED_CLIENT_WIDTH = r.right;
@@ -1041,6 +1043,12 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 }
 
 
+void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
+{
+	expandHWND(hwnd, dc, underDC, bmp, 0, 0, true, newWidth, newHeight, SAVED_CLIENT_WIDTH, SAVED_CLIENT_HEIGHT);
+}
+
+
 
 /**
  * Initialize our on-screen keyboard
@@ -1051,12 +1059,6 @@ void initCalculateHelp()
 	helpKeyboard = new OnscreenKeyboard(mmFontSmallBlack, helpFntKeys, helpFntFore, helpFntBack, helpCornerImg);
 }
 
-
-void recalculateHelp()
-{
-	//Paint
-	reBlitHelp();
-}
 
 
 
@@ -1095,7 +1097,6 @@ void recalculate()
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
 
 		//Draw each string
-		lstrcpy(currPhrase, _T(""));
 		std::list<int>::iterator printIT = sentence->begin();
 		int currentPosX = borderWidth + 1;
 		int cursorPosX = currentPosX;
@@ -1291,7 +1292,7 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			helpUnderDC = CreateCompatibleDC(helpDC);
 			helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
 			SelectObject(helpUnderDC, helpBitmap);
-	
+
 			//Initialize our help window
 			if (mainInitDone) {
 				initCalculateHelp();
@@ -1436,6 +1437,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
+
 /**
  * Message-handling code.
  */
@@ -1510,7 +1512,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 
-			//Should we update the virtual keyboard? This is done independently 
+			//Should we update the virtual keyboard? This is done independently
 			//  of actually handling the keypress itself
 			if (helpWindowIsVisible && highlightKeys) {
 				//If this is a shifted key, get which key is shifted: left or right
@@ -1563,10 +1565,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (!helpWindowIsVisible) {
 					//Did we even initialize the help window?
 					if (!helpIsCached) {
-						//Time to re-size our help window
+						//Time to re-size our help window. Might as well center it now, too
+						HWND taskBar = FindWindowW(_T("Shell_TrayWnd"), _T(""));
+						RECT r;
+						GetClientRect(GetDesktopWindow(), &r);
+						int newX = (r.right-r.left)/2-helpKeyboard->getWidth()/2;
+						int newY = (r.bottom-r.top)-helpKeyboard->getHeight();
+						if (taskBar != NULL) {
+							GetClientRect(taskBar, &r);
+							newY -= (r.bottom-r.top);
+						}
 						int newW = 0;
 						int newH = 0;
-						expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
+						expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
 						HELP_CLIENT_SIZE.cx = newW;
 						HELP_CLIENT_SIZE.cy = newH;
 
@@ -1576,8 +1587,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpIsCached = true;
 					}
 
-					//We'll keep our shifted hotkeys, but also add a hotkey for shift itself. 
-					//  We need to disambiguate the left and right shift keys later, since 
+					//We'll keep our shifted hotkeys, but also add a hotkey for shift itself.
+					//  We need to disambiguate the left and right shift keys later, since
 					//  registering VK_LSHIFT and VK_RSHIFT doesn't seem to work
 					if (RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE) {
 						MessageBox(mainWindow, _T("Could not turn on shift hotkey, or turn off shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
@@ -1586,16 +1597,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Show the help window
 					ShowWindow(helpWindow, SW_SHOW);
 					helpWindowIsVisible = true;
-					recalculateHelp();
-				} else {
-					//Temp:
-					TEMP_FLAG = !TEMP_FLAG;
-					helpKeyboard->highlightKey('T', TEMP_FLAG);
 					reBlitHelp();
-
-					//Use this later:
-					//ShowWindow(helpWindow, SW_HIDE);
-					//helpWindowIsVisible = false;
+				} else {
+					//Hide it. (We'll need to clear it, later).
+					if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE) {
+						MessageBox(mainWindow, _T("Could not turn off shift hotkey, or turn on shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
+					}
+					ShowWindow(helpWindow, SW_HIDE);
+					helpWindowIsVisible = false;
 				}
 			}
 
@@ -2339,7 +2348,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 
 	//Create a handle to the window
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
-	//The MSDN docs say this might slow the program down, but I'll reserve 
+	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
 	helpWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
@@ -2354,7 +2363,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 
 
 /**
- * Borrowed from KeyMagic. 
+ * Borrowed from KeyMagic.
  */
 BOOL IsAdmin()
 {
@@ -2515,7 +2524,7 @@ bool IsVistaOrMore()
 }
 
 
-/** 
+/**
  * Elevate and run a new instance of WaitZar
  */
 void elevateWaitZar(LPCWSTR wzFileName)
@@ -2671,7 +2680,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Initialize our romanisation string
 	lstrcpy(currStr, _T(""));
-	lstrcpy(currPhrase, _T(""));
 
 	//Success?
 	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL) || helpWindow==NULL) {
