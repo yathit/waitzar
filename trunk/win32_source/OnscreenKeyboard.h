@@ -101,6 +101,11 @@ const wchar_t typeableLetters[] = {
 	0x0000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x0000, 0x0000, 0x0000, 0x0000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x0000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x0000, 0x0000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
 };
 
+//Helper re-mapping. Unknown codes are -1 for now, please re-map later
+const int keyboard_vk_codes[] = {
+	-1, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', -1, -1, VK_BACK, VK_TAB, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', -1, -1, -1, -1, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', -1, -1, VK_RETURN, VK_LSHIFT, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', VK_OEM_COMMA, VK_OEM_PERIOD, -1, VK_RSHIFT, -1, -1, -1, VK_SPACE, -1, -1, -1, -1
+};
+
 
 /**
  * This class exists to facilitate display of the on-screen keyboard, 
@@ -113,7 +118,7 @@ public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
-	bool highlightKey(UINT hotkeyCode, bool highlightON);
+	int highlightKey(UINT hotkeyCode, bool highlightON);
 
 	void setMode(int newMode);
 

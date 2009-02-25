@@ -197,17 +197,18 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 
 
 /**
- * Returns true if this is an actual key-code that we track
- *  hotkeyCode must be either a captial letter, or a hotkey code (hotkeys.h)
+ * Returns the vkcode if this is an actual key-code that we track
+ *  hotkeyCode must be either a letter, or a hotkey code (hotkeys.h)
+ * Returns -1 if we don't track this
  */
-bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
+int OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 {
 	//Get the key code, unshifted
 	int id = getKeyID(hotkeyCode);
 	if (id>=61)
 		id -= 61;
 	if (id==-1)
-		return false;
+		return -1;
 	
 	//Mark as "highlighted"
 	bool wasShifted = this->isShifted();
@@ -223,7 +224,7 @@ bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 	}
 
 	//Succeeded
-	return true;
+	return keyboard_vk_codes[id];
 }
 
 
