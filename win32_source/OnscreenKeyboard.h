@@ -118,9 +118,11 @@ public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 
-	int highlightKey(UINT hotkeyCode, bool highlightON);
+	bool highlightKey(UINT hotkeyCode, bool highlightON);
 
 	void setMode(int newMode);
+
+	int getVirtualKeyID(UINT hotkeyCode);
 
 	wchar_t* typeLetter(DWORD hotkeyCode);
 
