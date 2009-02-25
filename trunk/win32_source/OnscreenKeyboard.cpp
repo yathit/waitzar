@@ -201,7 +201,7 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
  *  hotkeyCode must be either a letter, or a hotkey code (hotkeys.h)
  * Returns -1 if we don't track this
  */
-int OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
+bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 {
 	//Get the key code, unshifted
 	int id = getKeyID(hotkeyCode);
@@ -224,6 +224,17 @@ int OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 	}
 
 	//Succeeded
+	return true;
+}
+
+int OnscreenKeyboard::getVirtualKeyID(UINT hotkeyCode)
+{
+	int id = getKeyID(hotkeyCode);
+	if (id>=61)
+		id -= 61;
+	if (id==-1)
+		return -1;
+
 	return keyboard_vk_codes[id];
 }
 

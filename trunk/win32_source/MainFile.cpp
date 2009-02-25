@@ -258,7 +258,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 			//Loop through our list
 			for (std::list<unsigned int>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
 				//Get the state of this key
-				SHORT keyState = GetKeyState(*keyItr); //We need to use CAPITAL letters for virtual keys. Gah!
+				SHORT keyState = GetKeyState(helpKeyboard->getVirtualKeyID(*keyItr)); //We need to use CAPITAL letters for virtual keys. Gah!
 
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
@@ -1512,11 +1512,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
 						PostMessage(mainWindow, WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
 				} else {
-					//Attempt to highlight
-					keyCode = helpKeyboard->highlightKey(keyCode, true);
-
 					//Is this a valid key? If so, highlight it and repaint the help window
-					if (keyCode != -1) {
+					if (helpKeyboard->highlightKey(keyCode, true)) {
 						reBlitHelp();
 
 						//CRITICAL SECTION
