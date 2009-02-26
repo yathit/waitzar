@@ -1852,7 +1852,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						break;
 
 					//List all possible words
-					recalculate();
+					//recalculate();
 
 
 					//Is this the first keypress of a romanized word? If so, the window is not visible...
@@ -1860,7 +1860,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						//Reset it...
 						lstrcpy(currStr, _T(""));
-						recalculate();
+						//recalculate();
 
 						//Optionally turn on numerals
 						if (numberKeysOn==FALSE)
