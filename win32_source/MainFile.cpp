@@ -1839,6 +1839,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Valid letter
 					lstrcat(currStr, nextBit);
 					recalculate();
+
+					//Is the main window visible?
+					if (!mainWindowIsVisible) {
+						//Show it
+						if (typePhrases==FALSE || !subWindowIsVisible) {
+							ShowBothWindows(SW_SHOW);
+						} else {
+							ShowWindow(mainWindow, SW_SHOW);
+							mainWindowIsVisible = true;
+						}
+					}
 				}
 			} else {
 				//Handle regular letter-presses 
@@ -1850,10 +1861,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Run this keypress into the model. Accomplish anything?
 					if (!model->typeLetter(keyCode))
 						break;
-
-					//List all possible words
-					//recalculate();
-
 
 					//Is this the first keypress of a romanized word? If so, the window is not visible...
 					if (!mainWindowIsVisible)

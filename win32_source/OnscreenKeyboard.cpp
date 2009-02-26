@@ -502,12 +502,21 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 wchar_t* OnscreenKeyboard::typeLetter(DWORD hotkeyCode)
 {
 	int id = getKeyID(hotkeyCode);
-	if (id==-1 || typeableLetters[id]==0x0000)
+	if (id==-1)
 		return NULL;
 
 	//Special cases
-	if (id==65)
-		return L"";
+	if (typeableLetters[id]==0x0000) {
+		if (id==65)
+			return L"\u1000\u103B\u1015\u103A";
+		else if (id==88)
+			return L"\u100B\u1039\u100C";
+		else if (id==93)
+			return L"\u1004\u103A\u1039";
+		else if (id==99)
+			return L"\u102B\u103A";
+		return NULL;
+	}
 
 	lstrcpy(typedString, L"1");
 	typedString[0] = typeableLetters[id];
