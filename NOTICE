@@ -51,6 +51,11 @@ Contact: Alpha Myanmar
 The Padauk Font: Version 2.4
  Padauk is available from SIL International and Than Lwin Soft under the Open Font License;
  a copy of which has been embedded at the end of the LICENSE file.
+Note that WaitZar's rendering order of letters (in "Help" mode) may appear similar to that of 
+ Padauk's. Our algorithm is based slightly on Padauk's ligature substitution rules, although our
+ behaviour differs subtly and is unique to WaitZar. Should you consider this to be a "derivative work",
+ please note that we choose to license this algorithm under the Apache license like the rest of the project. 
+ This is in conformance with the Open Font License. 
 License: Open Font License
 Site: http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=Padauk
 Contact: SIL International, Than Lwin Soft
