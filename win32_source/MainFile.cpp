@@ -63,6 +63,7 @@
 //Our includes
 #include "../cross_platform_library/waitzar/WordBuilder.h"
 #include "../cross_platform_library/waitzar/SentenceList.h"
+#include "../cross_platform_library/waitzar/wz_utilities.h"
 #include "PulpCoreFont.h"
 #include "OnscreenKeyboard.h"
 #include "resource.h"
@@ -225,7 +226,7 @@ bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = false;
+bool isLogging = true;
 FILE *logFile;
 
 
@@ -2752,6 +2753,44 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that WaitZar will not be able to highlight keys as you press them, which is a useful benefit for beginners."), _T("Warning"), MB_ICONWARNING | MB_OK);
 			highlightKeys = FALSE;
 		}
+	}
+
+
+
+	//TEMP_debug:
+	if (isLogging) {
+		model->setOutputEncoding(ENCODING_UNICODE);
+		wchar_t* testStr = new wchar_t[100];
+		wchar_t* testStrSort = new wchar_t[100];
+		for (UINT i=0; i<500; i++) {
+			std::vector<unsigned short> type = model->getWordKeyStrokes(i);
+			for (size_t i=0; i<type.size(); i++) {
+				testStr[i] = type[i];
+				testStrSort[i] = type[i];
+			}
+			testStr[type.size()] = 0x0000;
+			testStrSort[type.size()] = 0x0000;
+			waitzar::sortMyanmarString(testStrSort);
+
+			//Do the encodings compare?
+			if (lstrcmp(testStr, testStrSort)!=0) {
+				for (size_t x=0; x<wcslen(testStr); x++)
+					fprintf(logFile, "%x", testStr[x]);
+				fprintf(logFile, " !== ");
+				for (size_t x=0; x<wcslen(testStrSort); x++)
+					fprintf(logFile, "%x", testStrSort[x]);
+				fprintf(logFile, "\n");
+			}
+		}
+
+		//Now, some of our own tests
+		wcscpy(testStrSort, L"\u1000\u1031\u103D");
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, " ==>  ");
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, "\n");
 	}
 
 
