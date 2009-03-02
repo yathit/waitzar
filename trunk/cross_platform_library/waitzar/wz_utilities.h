@@ -28,7 +28,17 @@
 namespace waitzar 
 {
 
-
+	/**
+	 * Sort a unicode string according to the rules defined in UTN-11 and K. Soe Min's blog.
+	 *  Works in-place, and has a complexity of O(size(uniString)), single-pass
+	 *  Any non-Myanmar letters are ignored (technically, they cause the sorter to reset, which is expected)
+	 * We do not sort stacked letters together; rather, we sort U+1039 separately and then re-start the 
+	 *  algorithm when the stacked consonant is encountered. This requires special care to be taken for kinzi.
+	 * We assume that U+103A and U+1039 (and consonants, and kinzi) are always properly ordered.
+	 *  We ignore "visible virama" and treat it always like "asat". This is done because it is equivalent for
+	 *  most cases, and exceptions seem to render properly. We will revise this if we find any glaring inconsistencies.
+	 */
+	void sortMyanmarString(wchar_t* uniString);
 
 
 } //End waitzar namespace
