@@ -68,10 +68,11 @@ namespace
 	}
 
 	//There are several other stopping conditions besides a stopping character
+	//For example, the last character in a string triggers a stop.
 	//uniString[i+1]==0x103A catches "vowell_a" followed by "asat". This might be hackish; not sure.
 	bool atStoppingPoint(wchar_t* uniString, size_t id, size_t length)
 	{
-		return (id+1<length && uniString[id+1]==0x103A) || uniString[id]==0x103A || uniString[id]==0x1039;
+		return id==length || (isMyanmar(uniString[id])&&uniString[id+1]==0x103A) || uniString[id]==0x103A || uniString[id]==0x1039;
 	}
 
 	int getRhymeID(wchar_t letter)
@@ -129,9 +130,9 @@ void sortMyanmarString(wchar_t* uniString)
 	size_t len = wcslen(uniString); 
 	size_t destI = 0;    //Allows us to eliminate duplicate letters
 	size_t prevStop = 0; //What was our last-processed letter
-	for (size_t i=0; i<len;) {
+	for (size_t i=0; i<=len;) { //We count up to the trailing 0x0
 		//Does this letter restart our algorithm?
-		if (shouldRestartCount(uniString[i]) || atStoppingPoint(uniString, i, len) || getRhymeID(uniString[i]==-1)) {
+		if (atStoppingPoint(uniString, i, len) || shouldRestartCount(uniString[i]) || getRhymeID(uniString[i])==-1) {
 			//Now that we've counted, sort
 			if (i!=prevStop) {
 				for (int x=0; x<ID_TOTAL; x++) {
@@ -159,7 +160,7 @@ void sortMyanmarString(wchar_t* uniString)
 		i++;
 	}
 
-	//Done
+	//Done. Append an extra zero, in case our new string is too short.
 	uniString[destI] = 0x0000;
 }
 
