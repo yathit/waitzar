@@ -226,7 +226,7 @@ bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = true;
+bool isLogging = false;
 FILE *logFile;
 
 
@@ -2788,6 +2788,34 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		for (size_t x=0; x<wcslen(testStrSort); x++)
 			fprintf(logFile, "0x%X ", testStrSort[x]);
 		fprintf(logFile, " ==>  ");
+		waitzar::sortMyanmarString(testStrSort);
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, "\n");
+
+		wcscpy(testStrSort, L"\u1001\u103D\u103D");
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, " ==>  ");
+		waitzar::sortMyanmarString(testStrSort);
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, "\n");
+
+		wcscpy(testStrSort, L"\u1019\u1004\u103A\u1039\u1002\u101C\u102C\u1015\u102B");
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, " ==>  ");
+		waitzar::sortMyanmarString(testStrSort);
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, "\n");
+
+		wcscpy(testStrSort, L"\u1000 hi \u1031\u1040\u103D");
+		for (size_t x=0; x<wcslen(testStrSort); x++)
+			fprintf(logFile, "0x%X ", testStrSort[x]);
+		fprintf(logFile, " ==>  ");
+		waitzar::sortMyanmarString(testStrSort);
 		for (size_t x=0; x<wcslen(testStrSort); x++)
 			fprintf(logFile, "0x%X ", testStrSort[x]);
 		fprintf(logFile, "\n");
