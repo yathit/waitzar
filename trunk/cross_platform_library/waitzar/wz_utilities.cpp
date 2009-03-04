@@ -24,7 +24,8 @@
 namespace
 {
 	//Constant pseudo-letters
-	#define ZG_DASH         0x2000;
+	#define ZG_DASH         0x2000
+	#define ZG_KINZI        0x2001
 
 	//Constants for our counting sort algorithm
 	#define ID_MED_Y        0
@@ -39,6 +40,25 @@ namespace
 	#define ID_DOW_BELOW    9
 	#define ID_VISARGA     10
 	#define ID_TOTAL       11
+
+	//Bitflags for our zawgyi conversion algorithm
+	#define BF_CONSONANT    2048
+	#define BF_STACKER      1024
+	#define BF_DOT_LOW       512
+    #define BF_DOT_OVER      256
+	#define BF_VOW_AR        128
+	#define BF_LEG_NORM       64
+	#define BF_VOW_OVER       32
+    #define BF_VOW_A          16
+	#define BF_LEG_REV         8
+	#define BF_CIRC_LOW        4
+	#define BF_MED_YA          2
+	#define BF_ASAT            1
+	#define BF_OTHER           0
+
+	//Match into this array
+	const unsigned int matchFlags[] = {0xBDE, 0x801, 0x803, 0x887, 0x80F, 0x89E, 0x93F, 0xB7F, 0x8FF, 0x9FF, 0x800};
+
 
 	//Useful global vars
 	wchar_t zawgyiStr[100];
@@ -117,6 +137,80 @@ namespace
 	}
 
 
+	int getBitflag(wchar_t uniLetter)
+	{
+		switch (uniLetter)
+		{
+			case 0x1039:
+				return BF_STACKER;
+			case 0x1037:
+				return BF_DOT_LOW;
+			case 0x1036:
+				return BF_DOT_OVER;
+			case 0x102B:
+			case 0x102C:
+				return BF_VOW_AR;
+			case 0x102F:
+			case 0x1030:
+				return BF_LEG_NORM;
+			case 0x102D:
+			case 0x102E:
+			case 0x1032:
+				return BF_VOW_OVER;
+			case 0x1031:
+				return BF_VOW_A;
+			case 0x103E:
+				return BF_LEG_REV;
+			case 0x103D:
+				return BF_CIRC_LOW;
+			case 0x103B:
+			case 0x103C:
+				return BF_MED_YA;
+			case 0x103A:
+				return BF_ASAT;
+			case 0x1025:
+			case 0x1027:
+			case 0x1029:
+			case 0x103F:
+			case ZG_DASH:
+				return BF_CONSONANT;
+			default:
+				if (uniLetter>=0x1000 && uniLetter<=0x1021)
+					return BF_CONSONANT;
+				return BF_OTHER;
+		}
+	}
+
+	unsigned int flag2id(unsigned int flag)
+	{
+		switch (flag)
+		{
+			case BF_STACKER:
+				return 10;
+			case BF_DOT_LOW:
+				return 9;
+			case BF_DOT_OVER:
+				return 8;
+			case BF_VOW_AR:
+				return 7;
+			case BF_LEG_NORM:
+				return 6;
+			case BF_VOW_OVER:
+				return 5;
+			case BF_VOW_A:
+				return 4;
+			case BF_LEG_REV:
+				return 3;
+			case BF_CIRC_LOW:
+				return 2;
+			case BF_MED_YA:
+				return 1;
+			case BF_ASAT:
+				return 0;
+			default:
+				return -1;
+		}
+	}
 
 
 
@@ -139,6 +233,8 @@ namespace
 				return 0x1086;
 			case ZG_DASH:
 				return 0x002D;
+			case ZG_KINZI:
+				return 0x1064;
 			default:
 				return uniLetter; //Assume it's correct.
 		}
@@ -206,13 +302,58 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 	//Perform conversion
 	//Step 1: Determine which finals won't likely combine; add
 	// dashes beneath them.
+	wchar_t prevLetter = 0x0000;
+	wchar_t currLetter;
+	int prevType = BF_OTHER;
+	int currType;
+	size_t destID = 0;
+	size_t length = wcslen(uniString);
+	for (size_t i=0; i<length; i++) {
+		//Get the current letter and type
+		currLetter = uniString[i];
+		currType = getBitflag(currLetter);
 
-	wcscpy(zawgyiStr, uniString);
+		//Match
+		bool passed = true;
+		if (currType!=BF_OTHER && currType!=BF_CONSONANT) {
+			//Complex matching (simple ones will work with passed==true)
+			if ((prevType&matchFlags[flag2id(currType)])==0) {
+				//Handle kinzi
+				if (currType==BF_STACKER && prevType==BF_ASAT && i>=2 && uniString[i-2]==0x1004) {
+					//Store this two letters back
+					destID-=2;
 
+					//Kinzi might be considered a "stacker", but since nothing matches
+					//  against stacker in phase 1, it's not necessary. So we'll call it "other"
+					currLetter = ZG_KINZI;
+					currType = BF_OTHER;
+				} else 
+					passed = false;
+			} else {
+				//Handle special cases
+				if (currType==BF_ASAT && prevLetter==0x103C)
+					passed = false;
+				else if (currType==BF_STACKER && prevType==BF_CONSONANT) {
+					if (prevLetter==0x1029 || prevLetter==0x103F)
+						passed = false;
+				}
+			}
+		}
+
+		//Append it, and a dash if necessary
+		if (!passed)
+			zawgyiStr[destID++] = ZG_DASH;
+		zawgyiStr[destID++] = currLetter;
+
+		//Increment
+		prevLetter = currLetter;
+		prevType = currType;
+	}
+	zawgyiStr[destID] = 0x0000;
 
 	//Final Step: Convert each letter to its Zawgyi-equivalent
-	size_t len = wcslen(zawgyiStr);
-	for (size_t i=0; i<len; i++)
+	length = wcslen(zawgyiStr);
+	for (size_t i=0; i<length; i++)
 		zawgyiStr[i] = zawgyiLetter(zawgyiStr[i]);
 	return zawgyiStr;
 }
