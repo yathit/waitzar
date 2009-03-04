@@ -23,7 +23,10 @@
 //A hidden namespace for our "private" methods
 namespace
 {
-	//Useful local constants
+	//Constant pseudo-letters
+	#define ZG_DASH         0x2000;
+
+	//Constants for our counting sort algorithm
 	#define ID_MED_Y        0
 	#define ID_MED_R        1
 	#define ID_MED_W        2
@@ -36,6 +39,9 @@ namespace
 	#define ID_DOW_BELOW    9
 	#define ID_VISARGA     10
 	#define ID_TOTAL       11
+
+	//Useful global vars
+	wchar_t zawgyiStr[100];
 
 
 	bool isMyanmar(wchar_t letter)
@@ -111,6 +117,34 @@ namespace
 	}
 
 
+
+
+
+
+	wchar_t zawgyiLetter(wchar_t uniLetter)
+	{
+		switch (uniLetter)
+		{
+			case 0x103A:
+				return 0x1039;
+			case 0x103B:
+				return 0x103A;
+			case 0x103C:
+				return 0x103B;
+			case 0x103D:
+				return 0x103C;
+			case 0x103E:
+				return 0x103D;
+			case 0x103F:
+				return 0x1086;
+			case ZG_DASH:
+				return 0x002D;
+			default:
+				return uniLetter; //Assume it's correct.
+		}
+	}
+
+
 } //End of hidden namespace
 
 
@@ -165,6 +199,23 @@ void sortMyanmarString(wchar_t* uniString)
 }
 
 
+
+
+wchar_t* renderAsZawgyi(wchar_t* uniString)
+{
+	//Perform conversion
+	//Step 1: Determine which finals won't likely combine; add
+	// dashes beneath them.
+
+	wcscpy(zawgyiStr, uniString);
+
+
+	//Final Step: Convert each letter to its Zawgyi-equivalent
+	size_t len = wcslen(zawgyiStr);
+	for (size_t i=0; i<len; i++)
+		zawgyiStr[i] = zawgyiLetter(zawgyiStr[i]);
+	return zawgyiStr;
+}
 
 
 

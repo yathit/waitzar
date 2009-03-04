@@ -14,6 +14,7 @@
 #include <wchar.h>
 #include <stdio.h>
 
+
 //////////////////////////////////////////////////////////////////////////////////
 // Please note that the wz_utilities library is currently considered
 //   to be UNSTABLE, and is not included in the Linux build by default.
@@ -39,6 +40,9 @@ namespace waitzar
 	 *  most cases, and exceptions seem to render properly. We will revise this if we find any glaring inconsistencies.
 	 */
 	void sortMyanmarString(wchar_t* uniString);
+
+
+	wchar_t* renderAsZawgyi(wchar_t* uniString);
 
 
 } //End waitzar namespace

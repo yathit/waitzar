@@ -1151,11 +1151,15 @@ void recalculate()
 	}
 
 	TCHAR extendedWordString[300];
-	TCHAR* parenStr = model->getParenString();
-	if (parenStr!=NULL && lstrlen(parenStr)>0) {
-		swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr);
+	if (helpWindowIsVisible) {
+		lstrcpy(extendedWordString, waitzar::renderAsZawgyi(currStr));
 	} else {
-		lstrcpy(extendedWordString, currStr);
+		TCHAR* parenStr = model->getParenString();
+		if (parenStr!=NULL && lstrlen(parenStr)>0) {
+			swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr);
+		} else {
+			lstrcpy(extendedWordString, currStr);
+		}
 	}
 
 	mmFontBlack->drawString(mainUnderDC, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
@@ -1638,15 +1642,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Delete: Phrases only
 			if (wParam == HOTKEY_DELETE) {
-				if (!mainWindowIsVisible) {
-					//Delete the next word
-					if (sentence->deleteNext())
-						recalculate();
-					if (sentence->size()==0) {
-						//Kill the entire sentence.
-						sentence->clear();
-						turnOnControlkeys(FALSE);
-						ShowBothWindows(SW_HIDE);
+				if (helpWindowIsVisible) {
+					//Delete the letter in front of you (encoding-wise, not visibly)
+					//ADD LATER
+
+				} else {
+					if (!mainWindowIsVisible) {
+						//Delete the next word
+						if (sentence->deleteNext())
+							recalculate();
+						if (sentence->size()==0) {
+							//Kill the entire sentence.
+							sentence->clear();
+							turnOnControlkeys(FALSE);
+							ShowBothWindows(SW_HIDE);
+						}
 					}
 				}
 			}
@@ -1654,44 +1664,50 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Back up
 			if (wParam == HOTKEY_BACK) {
-				if (!mainWindowIsVisible) {
-					//Delete the previous word
-					if (sentence->deletePrev(model))
-						recalculate();
-					if (sentence->size()==0) {
-						//Kill the entire sentence.
-						sentence->clear();
-						turnOnControlkeys(FALSE);
-						ShowBothWindows(SW_HIDE);
-					}
+				if (helpWindowIsVisible) {
+					//Delete the letter in back of you (encoding-wise, not visibly)
+					//ADD LATER
+
 				} else {
-					if (model->backspace()) {
-						//Truncate...
-						currStr[lstrlen(currStr)-1] = 0;
-						recalculate();
-					} else {
-						//No more numerals.
-						if (typeBurmeseNumbers==FALSE)
-							turnOnNumberkeys(FALSE);
-
-						//Are we using advanced input?
-						if (typePhrases==FALSE) {
-							//Turn off control keys
+					if (!mainWindowIsVisible) {
+						//Delete the previous word
+						if (sentence->deletePrev(model))
+							recalculate();
+						if (sentence->size()==0) {
+							//Kill the entire sentence.
+							sentence->clear();
 							turnOnControlkeys(FALSE);
-
 							ShowBothWindows(SW_HIDE);
+						}
+					} else {
+						if (model->backspace()) {
+							//Truncate...
+							currStr[lstrlen(currStr)-1] = 0;
+							recalculate();
 						} else {
-							//Just hide the typing window for now.
-							ShowWindow(mainWindow, SW_HIDE);
-							mainWindowIsVisible = false;
+							//No more numerals.
+							if (typeBurmeseNumbers==FALSE)
+								turnOnNumberkeys(FALSE);
 
-							if (sentence->size()==0) {
-								//Kill the entire sentence.
-								sentence->clear();
+							//Are we using advanced input?
+							if (typePhrases==FALSE) {
+								//Turn off control keys
 								turnOnControlkeys(FALSE);
 
-								ShowWindow(senWindow, SW_HIDE);
-								subWindowIsVisible = false;
+								ShowBothWindows(SW_HIDE);
+							} else {
+								//Just hide the typing window for now.
+								ShowWindow(mainWindow, SW_HIDE);
+								mainWindowIsVisible = false;
+
+								if (sentence->size()==0) {
+									//Kill the entire sentence.
+									sentence->clear();
+									turnOnControlkeys(FALSE);
+
+									ShowWindow(senWindow, SW_HIDE);
+									subWindowIsVisible = false;
+								}
 							}
 						}
 					}
@@ -1701,70 +1717,84 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle control hotkeys
 			if (wParam == HOTKEY_RIGHT) {
-				if (mainWindowIsVisible) {
-					//Move right/left within the current word.
-					if (model->moveRight(1) == TRUE)
-						recalculate();
+				if (helpWindowIsVisible) {
+					//Move the letter cursor one to the right
+					//ADD LATER
+
 				} else {
-					//Move right/left within the current phrase.
-					if (sentence->moveCursorRight(1, model))
-						recalculate();
+					if (mainWindowIsVisible) {
+						//Move right/left within the current word.
+						if (model->moveRight(1) == TRUE)
+							recalculate();
+					} else {
+						//Move right/left within the current phrase.
+						if (sentence->moveCursorRight(1, model))
+							recalculate();
+					}
 				}
 			} else if (wParam == HOTKEY_LEFT) {
-				if (mainWindowIsVisible) {
-					if (model->moveRight(-1) == TRUE)
-						recalculate();
+				if (helpWindowIsVisible) {
+					//Move the letter cursor one to the left
+					//ADD LATER
+
 				} else {
-					//Move right/left within the current phrase.
-					if (sentence->moveCursorRight(-1, model))
-						recalculate();
+					if (mainWindowIsVisible) {
+						if (model->moveRight(-1) == TRUE)
+							recalculate();
+					} else {
+						//Move right/left within the current phrase.
+						if (sentence->moveCursorRight(-1, model))
+							recalculate();
+					}
 				}
 			}
 
 
 			//Handle numbers
-			int numCode = -1;
-			stopChar = 0;
-			if (wParam>=HOTKEY_0 && wParam<=HOTKEY_9)
-				numCode = (int)wParam - HOTKEY_0;
-			if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
-				numCode = (int)wParam - HOTKEY_NUM0;
-			if (numCode > -1) {
-				//Our key code has been properly transformed.
-				if (mainWindowIsVisible) {
-					//Convert 1..0 to 0..9
-					if (--numCode<0)
-						numCode = 9;
+			if (!helpWindowIsVisible) {
+				int numCode = -1;
+				stopChar = 0;
+				if (wParam>=HOTKEY_0 && wParam<=HOTKEY_9)
+					numCode = (int)wParam - HOTKEY_0;
+				if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
+					numCode = (int)wParam - HOTKEY_NUM0;
+				if (numCode > -1) {
+					//Our key code has been properly transformed.
+					if (mainWindowIsVisible) {
+						//Convert 1..0 to 0..9
+						if (--numCode<0)
+							numCode = 9;
 
-					//The model is visible: select that word
-					BOOL typed = selectWord(numCode);
-					if (typed==TRUE && typePhrases==TRUE) {
-						ShowWindow(mainWindow, SW_HIDE);
-						mainWindowIsVisible = false;
+						//The model is visible: select that word
+						BOOL typed = selectWord(numCode);
+						if (typed==TRUE && typePhrases==TRUE) {
+							ShowWindow(mainWindow, SW_HIDE);
+							mainWindowIsVisible = false;
 
-						lstrcpy(currStr, _T(""));
-						model->reset(false);
-						recalculate();
-					}
-				} else {
-					if (typePhrases==FALSE) {
-						sentence->clear();
-						sentence->insert(numCode);
-						typeCurrentPhrase();
-					} else {
-						//Just type that number directly.
-						sentence->insert(numCode);
-						sentence->moveCursorRight(0, true, model);
-
-						//Is our window even visible?
-						if (!subWindowIsVisible) {
-							turnOnControlkeys(TRUE);
-
-							ShowWindow(senWindow, SW_SHOW);
-							subWindowIsVisible = true;
+							lstrcpy(currStr, _T(""));
+							model->reset(false);
+							recalculate();
 						}
+					} else {
+						if (typePhrases==FALSE) {
+							sentence->clear();
+							sentence->insert(numCode);
+							typeCurrentPhrase();
+						} else {
+							//Just type that number directly.
+							sentence->insert(numCode);
+							sentence->moveCursorRight(0, true, model);
 
-						recalculate();
+							//Is our window even visible?
+							if (!subWindowIsVisible) {
+								turnOnControlkeys(TRUE);
+
+								ShowWindow(senWindow, SW_SHOW);
+								subWindowIsVisible = true;
+							}
+
+							recalculate();
+						}
 					}
 				}
 			}
@@ -1773,61 +1803,83 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle Half-stop/Full-stop
 			if (wParam==HOTKEY_COMMA || wParam==HOTKEY_PERIOD) {
 				stopChar = model->getStopCharacter((wParam==HOTKEY_PERIOD));
-				if (!mainWindowIsVisible) {
-					if (!subWindowIsVisible) {
-						//This should be cleared already, but let's be safe...
-						sentence->clear();
+				if (helpWindowIsVisible) {
+					//Possibly do nothing...
+					//ADD LATER
+
+				} else {
+					if (!mainWindowIsVisible) {
+						if (!subWindowIsVisible) {
+							//This should be cleared already, but let's be safe...
+							sentence->clear();
+						}
+						//Otherwise, we perform the normal "enter" routine.
+						typeCurrentPhrase();
 					}
-					//Otherwise, we perform the normal "enter" routine.
-					typeCurrentPhrase();
 				}
 			}
 
 
 			//Handle Enter
 			if (wParam==HOTKEY_ENTER) {
-				stopChar = 0;
-				if (mainWindowIsVisible) {
-					//The model is visible: select that word
-					BOOL typed = selectWord(-1);
-					if (typed==TRUE && typePhrases==TRUE) {
-						ShowWindow(mainWindow, SW_HIDE);
-						mainWindowIsVisible = false;
+				if (helpWindowIsVisible) {
+					//Select our word, add it to the dictionary temporarily.
+					// Flag the new entry so it can be cleared later when the sentence is selected
+					// (is this possible?)
+					//ADD LATER
 
-						lstrcpy(currStr, _T(""));
-						model->reset(false);
-						recalculate();
-					}
 				} else {
-					//Type the entire sentence
-					typeCurrentPhrase();
+					stopChar = 0;
+					if (mainWindowIsVisible) {
+						//The model is visible: select that word
+						BOOL typed = selectWord(-1);
+						if (typed==TRUE && typePhrases==TRUE) {
+							ShowWindow(mainWindow, SW_HIDE);
+							mainWindowIsVisible = false;
+
+							lstrcpy(currStr, _T(""));
+							model->reset(false);
+							recalculate();
+						}
+					} else {
+						//Type the entire sentence
+						typeCurrentPhrase();
+					}
 				}
 			}
 
 			//Handle Space Bar
 			if (wParam==HOTKEY_SPACE) {
-				stopChar = 0;
-				if (mainWindowIsVisible) {
-					//The model is visible: select that word
-					BOOL typed = selectWord(-1);
-					if (typed==TRUE && typePhrases==TRUE) {
-						ShowWindow(mainWindow, SW_HIDE);
-						mainWindowIsVisible = false;
+				if (helpWindowIsVisible) {
+					//Select our word, add it to the dictionary temporarily.
+					// Flag the new entry so it can be cleared later when the sentence is selected
+					// (is this possible?)
+					//ADD LATER
 
-						model->reset(false);
-						lstrcpy(currStr, _T(""));
-						recalculate();
-					}
 				} else {
-					//A bit tricky here. If the cursor's at the end, we'll
-					//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
-					//Hopefully this won't confuse users so much.
-					if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
-						sentence->moveCursorRight(1, model);
-						recalculate();
+					stopChar = 0;
+					if (mainWindowIsVisible) {
+						//The model is visible: select that word
+						BOOL typed = selectWord(-1);
+						if (typed==TRUE && typePhrases==TRUE) {
+							ShowWindow(mainWindow, SW_HIDE);
+							mainWindowIsVisible = false;
+
+							model->reset(false);
+							lstrcpy(currStr, _T(""));
+							recalculate();
+						}
 					} else {
-						//Type the entire sentence
-						typeCurrentPhrase();
+						//A bit tricky here. If the cursor's at the end, we'll
+						//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
+						//Hopefully this won't confuse users so much.
+						if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
+							sentence->moveCursorRight(1, model);
+							recalculate();
+						} else {
+							//Type the entire sentence
+							typeCurrentPhrase();
+						}
 					}
 				}
 			}
@@ -1839,6 +1891,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (nextBit != NULL) {
 					//Valid letter
 					lstrcat(currStr, nextBit);
+					waitzar::sortMyanmarString(currStr); //TEMP: later, we need to show their errors
 					recalculate();
 
 					//Is the main window visible?
