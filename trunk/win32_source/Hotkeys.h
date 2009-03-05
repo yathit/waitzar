@@ -111,6 +111,10 @@
 #define HOTKEY_VIRT_RSHIFT 91
 #define HOTKEY_SHIFT 92
 
+//More help-related keys
+#define HOTKEY_COMBINE 93
+#define HOTKEY_SHIFT_COMBINE 94
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

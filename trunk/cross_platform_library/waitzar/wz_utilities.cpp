@@ -27,6 +27,44 @@ namespace
 	#define ZG_DASH         0x2000
 	#define ZG_KINZI        0x2001
 
+	//Constant pseudo-letters (stacked)
+	#define ZG_STACK_KA     0x3000
+	#define ZG_STACK_KHA    0x3001
+	#define ZG_STACK_GA     0x3002
+	#define ZG_STACK_GHA    0x3003
+	#define ZG_STACK_NGA    0x3004
+	#define ZG_STACK_SA     0x3005
+	#define ZG_STACK_SSA    0x3006
+	#define ZG_STACK_ZA     0x3007
+	#define ZG_STACK_ZHA    0x3008
+	//Skip one...
+	#define ZG_STACK_NYA    0x3009
+	#define ZG_STACK_TTA    0x300A
+	#define ZG_STACK_HTA1   0x300B
+	#define ZG_STACK_DHA1   0x300C
+	//Skip one...
+	#define ZG_STACK_NHA    0x300D
+	#define ZG_STACK_TA     0x300E
+	#define ZG_STACK_HTA2   0x300F
+	#define ZG_STACK_DDA    0x3010
+	#define ZG_STACK_DHA2   0x3011
+	#define ZG_STACK_NA     0x3012
+	#define ZG_STACK_PA     0x3013
+	#define ZG_STACK_PHA    0x3014
+	#define ZG_STACK_VA     0x3015
+	#define ZG_STACK_BA     0x3016
+	#define ZG_STACK_MA     0x3017
+	//Break sequence
+	#define ZG_STACK_YA     0x3018
+	#define ZG_STACK_LA     0x3019
+	#define ZG_STACK_THA    0x301A
+	#define ZG_STACK_A      0x301B
+	//Special-purpose indented stacked letters
+	#define ZG_STACK_SSA_INDENT     0x301C
+	#define ZG_STACK_TA_INDENT      0x301D
+	#define ZG_STACK_HTA2_INDENT    0x301E
+
+
 	//Constants for our counting sort algorithm
 	#define ID_MED_Y        0
 	#define ID_MED_R        1
@@ -213,12 +251,38 @@ namespace
 	}
 
 
+	wchar_t getStackedVersion(wchar_t uniLetter)
+	{
+		switch (uniLetter) {
+			case 0x101B:
+				return ZG_STACK_YA;
+			case 0x101C:
+				return ZG_STACK_LA;
+			case 0x101E:
+				return ZG_STACK_THA;
+			case 0x1021:
+				return ZG_STACK_A;
+			default:
+				if (uniLetter>=0x1000 && uniLetter<=0x1008) {
+					return (uniLetter-0x1000)+ZG_STACK_KA;
+				} else if (uniLetter>=0x100A && uniLetter<=0x100D) {
+					return (uniLetter-0x100A)+ZG_STACK_NYA;
+				} else if (uniLetter>=0x100E && uniLetter<=0x1019) {
+					return (uniLetter-0x100E)+ZG_STACK_NHA;
+				}
+		}
+		return 0;
+	}
+
+
 
 
 	wchar_t zawgyiLetter(wchar_t uniLetter)
 	{
 		switch (uniLetter)
 		{
+			case 0x1039:
+				return 0x005E; //Leftover stack letters as ^
 			case 0x103A:
 				return 0x1039;
 			case 0x103B:
@@ -235,6 +299,68 @@ namespace
 				return 0x002D;
 			case ZG_KINZI:
 				return 0x1064;
+			case ZG_STACK_KA:
+				return 0x1060;
+			case ZG_STACK_KHA:
+				return 0x1061;
+			case ZG_STACK_GA:
+				return 0x1062;
+			case ZG_STACK_GHA:
+				return 0x1063;
+			case ZG_STACK_NGA:
+				return 0x003F; //It appears Zawgyi cannot stack "NGA"
+			case ZG_STACK_SA:
+				return 0x1065;
+			case ZG_STACK_SSA:
+				return 0x1066;
+			case ZG_STACK_SSA_INDENT:
+				return 0x1067;
+			case ZG_STACK_ZA:
+				return 0x1068;
+			case ZG_STACK_ZHA:
+				return 0x1069;
+			case ZG_STACK_NYA:
+				return 0x003F; //Can't stack "NYA" either
+			case ZG_STACK_TTA:
+				return 0x106C;
+			case ZG_STACK_HTA1:
+				return 0x106D;
+			case ZG_STACK_DHA1:
+				return 0x003F; //Appears we can't stack this either.
+			case ZG_STACK_NHA:
+				return 0x1070;
+			case ZG_STACK_TA:
+				return 0x1071;
+			case ZG_STACK_TA_INDENT:
+				return 0x1072;
+			case ZG_STACK_HTA2:
+				return 0x1073;
+			case ZG_STACK_HTA2_INDENT:
+				return 0x1074;
+			case ZG_STACK_DDA:
+				return 0x1075;
+			case ZG_STACK_DHA2:
+				return 0x1076;
+			case ZG_STACK_NA:
+				return 0x1077;
+			case ZG_STACK_PA:
+				return 0x1078;
+			case ZG_STACK_PHA:
+				return 0x1079;
+			case ZG_STACK_VA:
+				return 0x107A;
+			case ZG_STACK_BA:
+				return 0x107B;
+			case ZG_STACK_MA:
+				return 0x107C;
+			case ZG_STACK_YA:
+				return 0x003F; //Can't stack "ya"
+			case ZG_STACK_LA:
+				return 0x1085;
+			case ZG_STACK_THA:
+				return 0x003F; //Can't stack "tha"
+			case ZG_STACK_A:
+				return 0x003F; //Can't stack "a"
 			default:
 				return uniLetter; //Assume it's correct.
 		}
@@ -341,7 +467,8 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		}
 
 		//Append it, and a dash if necessary
-		if (!passed)
+		//Don't dash our stack letter; it's not necessary
+		if (!passed && currType!=BF_STACKER) 
 			zawgyiStr[destID++] = ZG_DASH;
 		zawgyiStr[destID++] = currLetter;
 
@@ -350,6 +477,41 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		prevType = currType;
 	}
 	zawgyiStr[destID] = 0x0000;
+
+
+
+	//Step 2: Stack letters. This will only reduce the string's length, so
+	//  we can perform it in-place.
+	destID = 0;
+	length = wcslen(zawgyiStr);
+	prevLetter = 0x0000;
+	prevType = BF_OTHER;
+	for (size_t i=0; i<length; i++) {
+		//Get the current letter and type
+		currLetter = zawgyiStr[i];
+		currType = getBitflag(currLetter);
+
+		//Should we stack this?
+		if (prevType==BF_STACKER && currType==BF_CONSONANT) {
+			//Note: We must make an active check for letters with no Zawgyi representation
+			// (0x003F)
+			wchar_t stacked = getStackedVersion(currLetter);
+			if (stacked!=0 && zawgyiLetter(stacked)!=0x003F) {
+				destID--;
+				currLetter = stacked;
+			}
+		}
+
+		//Re-copy this letter
+		zawgyiStr[destID++] = currLetter;
+
+		//Increment
+		prevType = currType;
+		prevLetter = currLetter;
+	}
+	zawgyiStr[destID++] = 0x0000;
+
+
 
 	//Final Step: Convert each letter to its Zawgyi-equivalent
 	length = wcslen(zawgyiStr);
