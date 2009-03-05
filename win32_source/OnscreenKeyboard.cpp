@@ -247,8 +247,8 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 {
 	switch (hkCode) 
 	{
-		//case [HOTKEY_COMBINE]:
-		//	return 0;
+		case HOTKEY_COMBINE:
+			return 0;
 		case HOTKEY_1:
 			return 1;
 		case HOTKEY_2:
@@ -369,8 +369,8 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 		//	return 59;
 		//case [HOTKEY_RIGHT_CTRL]:
 		//	return 60;
-		//case [HOTKEY_SUP_COMBINE]:
-		//	return 61;
+		case HOTKEY_SHIFT_COMBINE:
+			return 61;
 		//case [HOTKEY_EXCLAMATION]:
 		//	return 62;
 		//case [HOTKEY_AT_SIGN]:

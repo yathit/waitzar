@@ -87,6 +87,7 @@ BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase);
 BOOL turnOnControlkeys(BOOL on);
 BOOL turnOnNumberkeys(BOOL on);
 BOOL turnOnPunctuationkeys(BOOL on);
+bool turnOnHelpKeys(bool on);
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
 
@@ -192,6 +193,7 @@ BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 BOOL numberKeysOn = FALSE;
 BOOL punctuationKeysOn = FALSE;
+bool helpKeysOn = false;
 SentenceList *sentence;
 int prevProcessID;
 
@@ -300,6 +302,15 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 	}
 
 	return 0;
+}
+
+
+
+//myWin 2.1 rules for stacking
+bool canStack(wchar_t letter) 
+{
+	return (letter>=0x1000 && letter<=0x1003)
+		|| (letter>=0x1005 && letter<=0x1021);
 }
 
 
@@ -906,6 +917,8 @@ void switchToLanguage(BOOL toMM) {
 			turnOnNumberkeys(FALSE);
 		if (punctuationKeysOn == TRUE)
 			turnOnPunctuationkeys(FALSE);
+		if (helpKeysOn)
+			turnOnHelpKeys(false);
 
 		//Turn off our help key
 		if (UnregisterHotKey(mainWindow, HOTKEY_HELP)==FALSE)
@@ -1573,12 +1586,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpIsCached = true;
 					}
 
-					//We'll keep our shifted hotkeys, but also add a hotkey for shift itself.
-					//  We need to disambiguate the left and right shift keys later, since
-					//  registering VK_LSHIFT and VK_RSHIFT doesn't seem to work
-					if (RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE) {
-						MessageBox(mainWindow, _T("Could not turn on shift hotkey, or turn off shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
-					}
+
+					//Register all hotkeys relevant for the help window
+					if (!turnOnHelpKeys(true))
+						MessageBox(mainWindow, _T("Could not turn on one of the help hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
 
 					//Clear our current word (not the sentence, though, and keep the trigrams)
 					lstrcpy(currStr, _T(""));
@@ -1594,10 +1605,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					lstrcpy(currStr, _T(""));
 					recalculate();
 
-					//Hide it. 
-					if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE) {
-						MessageBox(mainWindow, _T("Could not turn off shift hotkey, or turn on shifted letter keys."), _T("Error"), MB_ICONERROR | MB_OK);
-					}
+					turnOnHelpKeys(false);
 					ShowWindow(helpWindow, SW_HIDE);
 					helpWindowIsVisible = false;
 				}
@@ -1891,6 +1899,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (nextBit != NULL) {
 					//Valid letter
 					lstrcat(currStr, nextBit);
+					size_t len = wcslen(currStr);
+
+					//Special case: combiner functions in reverse
+					if (wcslen(nextBit)==1 && nextBit[0]==L'\u1039') {
+						if (len>1 && canStack(currStr[len-2])) {
+							currStr[len-1] = currStr[len-2];
+							currStr[len-2] = nextBit[0];
+						} else {
+							currStr[len-1] = 0x0000; //Not standard behavior, but let's avoid bad combinations.
+						}
+					}
+
+
+					//Pre-sort unicode strings (should be helpful)
 					waitzar::sortMyanmarString(currStr); //TEMP: later, we need to show their errors
 					recalculate();
 
@@ -2256,6 +2278,37 @@ BOOL turnOnNumberkeys(BOOL on)
 	}
 
 	numberKeysOn = on;
+	return retVal;
+}
+
+
+bool turnOnHelpKeys(bool on) 
+{
+	bool retVal = true;
+
+	//Register help keys
+	if (on) {
+		//We'll keep our shifted hotkeys, but also add a hotkey for shift itself.
+		//  We need to disambiguate the left and right shift keys later, since
+		//  registering VK_LSHIFT and VK_RSHIFT doesn't seem to work
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE)
+			retVal = false;
+
+		//Our combiner key (register shifted, too, to prevent errors)
+		if (RegisterHotKey(mainWindow, HOTKEY_COMBINE, 0, VK_OEM_3)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE, MOD_SHIFT, VK_OEM_3)==FALSE)
+			retVal = false;
+	} else {
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_COMBINE)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE)==FALSE)
+			retVal = false;
+	}
+
+	helpKeysOn = on;
 	return retVal;
 }
 
