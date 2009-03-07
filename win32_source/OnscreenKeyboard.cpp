@@ -208,7 +208,7 @@ bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 	if (id>=61)
 		id -= 61;
 	if (id==-1)
-		return -1;
+		return false;
 	
 	//Mark as "highlighted"
 	bool wasShifted = this->isShifted();
@@ -349,8 +349,8 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 49;
 		case HOTKEY_PERIOD:
 			return 50;
-		//case [HOTKEY_FORWARD_SLASH]:
-		//	return 51;
+		case HOTKEY_FORWARDSLASH:
+			return 51;
 		case HOTKEY_VIRT_RSHIFT:
 			return 52;
 		//case [HOTKEY_LEFT_CONTROL]:
@@ -467,12 +467,12 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 108;
 		case 'M':
 			return 109;
-		//case [HOTKEY_SUP_COMMA]:
-		//	return 110;
-		//case [HOTKEY_SUP_PERIOD]:
-		//	return 111;
-		//case [HOTKEY_SUP_FORWARDSLASH]:
-		//	return 112;
+		case HOTKEY_SHIFT_COMMA:
+			return 110;
+		case HOTKEY_SHIFT_PERIOD:
+			return 111;
+		case HOTKEY_SHIFT_FORWARDSLASH:
+			return 112;
 		//case [HOTKEY_SUP_RSHIFT]:
 		//	return 113;
 		//case [HOTKEY_SUP_LEFT_CONTROL]:
