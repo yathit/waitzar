@@ -2321,6 +2321,14 @@ bool turnOnHelpKeys(bool on)
 			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_APOSTROPHE, MOD_SHIFT, VK_OEM_7)==FALSE)
 			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_FORWARDSLASH, 0, VK_OEM_2)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_FORWARDSLASH, MOD_SHIFT, VK_OEM_2)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_COMMA, MOD_SHIFT, VK_OEM_COMMA)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_PERIOD, MOD_SHIFT, VK_OEM_PERIOD)==FALSE)
+			retVal = false;
 
 		//Even though we won't use them, we should track them in our virtual keyboard
 		if (RegisterHotKey(mainWindow, HOTKEY_MINUS, 0, VK_OEM_MINUS)==FALSE)
@@ -2364,6 +2372,14 @@ bool turnOnHelpKeys(bool on)
 		if (UnregisterHotKey(mainWindow, HOTKEY_APOSTROPHE)==FALSE)
 			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_APOSTROPHE)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_FORWARDSLASH)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_FORWARDSLASH)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMMA)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_PERIOD)==FALSE)
 			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_MINUS)==FALSE)
 			retVal = false;
