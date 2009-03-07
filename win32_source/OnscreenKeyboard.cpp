@@ -371,26 +371,26 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 		//	return 60;
 		case HOTKEY_SHIFT_COMBINE:
 			return 61;
-		//case [HOTKEY_EXCLAMATION]:
-		//	return 62;
-		//case [HOTKEY_AT_SIGN]:
-		//	return 63;
-		//case [HOTKEY_POUND_SIGN]:
-		//	return 64;
-		//case [HOTKEY_DOLLAR_SIGN]:
-		//	return 65;
-		//case [HOTKEY_PERCENT_SIGN]:
-		//	return 66;
-		//case [HOTKEY_CARET]:
-		//	return 67;
-		//case [HOTKEY_AMPERSAND]:
-		//	return 68;
-		//case [HOTKEY_ASTERISK]:
-		//	return 69;
-		//case [HOTKEY_LEFT_PAREN]:
-		//	return 70;
-		//case [HOTKEY_RIGHT_PAREN]:
-		//	return 71;
+		case HOTKEY_SHIFT_1:
+			return 62;
+		case HOTKEY_SHIFT_2:
+			return 63;
+		case HOTKEY_SHIFT_3:
+			return 64;
+		case HOTKEY_SHIFT_4:
+			return 65;
+		case HOTKEY_SHIFT_5:
+			return 66;
+		case HOTKEY_SHIFT_6:
+			return 67;
+		case HOTKEY_SHIFT_7:
+			return 68;
+		case HOTKEY_SHIFT_8:
+			return 69;
+		case HOTKEY_SHIFT_9:
+			return 70;
+		case HOTKEY_SHIFT_0:
+			return 71;
 		//case [HOTKEY_SUP_MINUS]:
 		//	return 72;
 		//case [HOTKEY_SUP_EQUALS]:
@@ -502,7 +502,7 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 wchar_t* OnscreenKeyboard::typeLetter(DWORD hotkeyCode)
 {
 	int id = getKeyID(hotkeyCode);
-	if (id==-1)
+	if (id==-1 || hide_for_help[id])
 		return NULL;
 
 	//Special cases

@@ -2299,6 +2299,12 @@ bool turnOnHelpKeys(bool on)
 			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE, MOD_SHIFT, VK_OEM_3)==FALSE)
 			retVal = false;
+
+		//Number keys shifted
+		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
+			if (RegisterHotKey(mainWindow, i, MOD_SHIFT, (i-HOTKEY_SHIFT_0)+HOTKEY_0)==FALSE)
+				retVal = false;
+		}
 	} else {
 		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE)
 			retVal = false;
@@ -2306,6 +2312,10 @@ bool turnOnHelpKeys(bool on)
 			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE)==FALSE)
 			retVal = false;
+		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
+			if (UnregisterHotKey(mainWindow, i))
+				retVal = false;
+		}
 	}
 
 	helpKeysOn = on;

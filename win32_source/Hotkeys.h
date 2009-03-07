@@ -114,6 +114,16 @@
 //More help-related keys
 #define HOTKEY_COMBINE 93
 #define HOTKEY_SHIFT_COMBINE 94
+#define HOTKEY_SHIFT_0 123
+#define HOTKEY_SHIFT_1 124
+#define HOTKEY_SHIFT_2 125
+#define HOTKEY_SHIFT_3 126
+#define HOTKEY_SHIFT_4 127
+#define HOTKEY_SHIFT_5 128
+#define HOTKEY_SHIFT_6 129
+#define HOTKEY_SHIFT_7 130
+#define HOTKEY_SHIFT_8 131
+#define HOTKEY_SHIFT_9 132
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
