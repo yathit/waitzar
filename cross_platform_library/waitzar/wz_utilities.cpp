@@ -295,6 +295,8 @@ namespace
 				return 0x103D;
 			case 0x103F:
 				return 0x1086;
+			/*case :
+				return 0x1092;*/ //Add later; this is actually a typing issue, not a rendering one.
 			case ZG_DASH:
 				return 0x002D;
 			case ZG_KINZI:

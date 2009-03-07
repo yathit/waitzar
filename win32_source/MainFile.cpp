@@ -2300,6 +2300,39 @@ bool turnOnHelpKeys(bool on)
 		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE, MOD_SHIFT, VK_OEM_3)==FALSE)
 			retVal = false;
 
+		//Various additional keyboard keys
+		if (RegisterHotKey(mainWindow, HOTKEY_LEFT_BRACKET, 0, VK_OEM_4)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_LEFT_BRACKET, MOD_SHIFT, VK_OEM_4)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT_BRACKET, 0, VK_OEM_6)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_RIGHT_BRACKET, MOD_SHIFT, VK_OEM_6)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_BACKSLASH, 0, VK_OEM_5)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_BACKSLASH, MOD_SHIFT, VK_OEM_5)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SEMICOLON, 0, VK_OEM_1)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_SEMICOLON, MOD_SHIFT, VK_OEM_1)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_APOSTROPHE, 0, VK_OEM_7)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_APOSTROPHE, MOD_SHIFT, VK_OEM_7)==FALSE)
+			retVal = false;
+
+		//Even though we won't use them, we should track them in our virtual keyboard
+		if (RegisterHotKey(mainWindow, HOTKEY_MINUS, 0, VK_OEM_MINUS)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_MINUS, MOD_SHIFT, VK_OEM_MINUS)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_EQUALS, 0, VK_OEM_PLUS)==FALSE)
+			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_EQUALS, MOD_SHIFT, VK_OEM_PLUS)==FALSE)
+			retVal = false;
+
+
 		//Number keys shifted
 		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
 			if (RegisterHotKey(mainWindow, i, MOD_SHIFT, (i-HOTKEY_SHIFT_0)+HOTKEY_0)==FALSE)
@@ -2311,6 +2344,34 @@ bool turnOnHelpKeys(bool on)
 		if (UnregisterHotKey(mainWindow, HOTKEY_COMBINE)==FALSE)
 			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT_BRACKET)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT_BRACKET)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_BACKSLASH)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_LEFT_BRACKET)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_RIGHT_BRACKET)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_BACKSLASH)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SEMICOLON)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_SEMICOLON)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_APOSTROPHE)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_APOSTROPHE)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_MINUS)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_MINUS)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_EQUALS)==FALSE)
+			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_EQUALS)==FALSE)
 			retVal = false;
 		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
 			if (UnregisterHotKey(mainWindow, i))

@@ -114,6 +114,8 @@
 //More help-related keys
 #define HOTKEY_COMBINE 93
 #define HOTKEY_SHIFT_COMBINE 94
+#define HOTKEY_LEFT_BRACKET   95
+#define HOTKEY_RIGHT_BRACKET  96
 #define HOTKEY_SHIFT_0 123
 #define HOTKEY_SHIFT_1 124
 #define HOTKEY_SHIFT_2 125
@@ -124,6 +126,19 @@
 #define HOTKEY_SHIFT_7 130
 #define HOTKEY_SHIFT_8 131
 #define HOTKEY_SHIFT_9 132
+#define HOTKEY_BACKSLASH 133
+#define HOTKEY_SHIFT_LEFT_BRACKET 134
+#define HOTKEY_SHIFT_RIGHT_BRACKET 135
+#define HOTKEY_SHIFT_BACKSLASH 136
+#define HOTKEY_SEMICOLON 137
+#define HOTKEY_APOSTROPHE 138
+#define HOTKEY_SHIFT_SEMICOLON 139
+#define HOTKEY_SHIFT_APOSTROPHE 140
+#define HOTKEY_MINUS 141
+//Hotkey 142 somehow crashes our virtual keyboard. Needs looking into...
+#define HOTKEY_SHIFT_MINUS 143
+#define HOTKEY_SHIFT_EQUALS 144
+#define HOTKEY_EQUALS 145
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
