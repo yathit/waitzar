@@ -269,10 +269,10 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 9;
 		case HOTKEY_0:
 			return 10;
-		//case [HOTKEY_MINUS]:
-		//	return 11;
-		//case [HOTKEY_EQUALS]:
-		//	return 12;
+		case HOTKEY_MINUS:
+			return 11;
+		case HOTKEY_EQUALS:
+			return 12;
 		//case [HOTKEY_BACKSPACE]:
 		//	return 13;
 		//case [HOTKEY_TAB]:
@@ -297,12 +297,12 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 23;
 		case 'p':
 			return 24;
-		//case [HOTKEY_LEFT_BRACKET]:
-		//	return 25;
-		//case [HOTKEY_RIGHT_BRACKET]:
-		//	return 26;
-		//case [HOTKEY_BACK_SLASH]:
-		//	return 27;
+		case HOTKEY_LEFT_BRACKET:
+			return 25;
+		case HOTKEY_RIGHT_BRACKET:
+			return 26;
+		case HOTKEY_BACKSLASH:
+			return 27;
 		//case [HOTKEY_CAPSLOCK]:
 		//	return 28;
 		case 'a':
@@ -323,10 +323,10 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 36;
 		case 'l':
 			return 37;
-		//case [HOTKEY_SEMICOLON]:
-		//	return 38;
-		//case [HOTKEY_SINGLE_QUOTE]:
-		//	return 39;
+		case HOTKEY_SEMICOLON:
+			return 38;
+		case HOTKEY_APOSTROPHE:
+			return 39;
 		case HOTKEY_ENTER:
 			return 40;
 		case HOTKEY_VIRT_LSHIFT:
@@ -391,10 +391,10 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 70;
 		case HOTKEY_SHIFT_0:
 			return 71;
-		//case [HOTKEY_SUP_MINUS]:
-		//	return 72;
-		//case [HOTKEY_SUP_EQUALS]:
-		//	return 73;
+		case HOTKEY_SHIFT_MINUS:
+			return 72;
+		case HOTKEY_SHIFT_EQUALS:
+			return 73;
 		//case [HOTKEY_SUP_BACKSPACE]:
 		//	return 74;
 		//case [HOTKEY_SUP_TAB]:
@@ -419,12 +419,12 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 84;
 		case 'P':
 			return 85;
-		//case [HOTKEY_SUP_LEFT_BRACKET]:
-		//	return 86;
-		//case [HOTKEY_SUP_RIGHT_BRACKET]:
-		//	return 87;
-		//case [HOTKEY_SUP_BACKSLASH]:
-		//	return 88;
+		case HOTKEY_SHIFT_LEFT_BRACKET:
+			return 86;
+		case HOTKEY_SHIFT_RIGHT_BRACKET:
+			return 87;
+		case HOTKEY_SHIFT_BACKSLASH:
+			return 88;
 		//case [HOTKEY_SUP_CAPSLOCK]:
 		//	return 89;
 		case 'A':
@@ -445,10 +445,10 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 97;
 		case 'L':
 			return 98;
-		//case [HOTKEY_SUP_SEMICOLON]:
-		//	return 99;
-		//case [HOTKEY_SUP_SINGLEQUOTE]:
-		//	return 100;
+		case HOTKEY_SHIFT_SEMICOLON:
+			return 99;
+		case HOTKEY_SHIFT_APOSTROPHE:
+			return 100;
 		//case [HOTKEY_SUP_ENTER]:
 		//	return 101;
 		//case [HOTKEY_SUP_LSHIFT]:
