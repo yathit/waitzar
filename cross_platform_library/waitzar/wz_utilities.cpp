@@ -64,6 +64,20 @@ namespace
 	#define ZG_STACK_TA_INDENT      0x301D
 	#define ZG_STACK_HTA2_INDENT    0x301E
 
+	//Some complex letters
+	#define ZG_COMPLEX_1            0x4000
+	#define ZG_COMPLEX_NA           0x4001
+
+	//Letters which share similar semantic functionality
+	#define ZG_TALL_WITH_ASAT       0x4002
+	#define ZG_DOTTED_CIRCLE_ABOVE  0x4003
+	#define ZG_LEGGED_CIRCLE_BELOW  0x4004
+	#define ZG_LEGS_BOTH_WAYS       0x4005
+	#define ZG_LEGS_OF_THREE        0x4006
+	#define ZG_KINZI_102D           0x4007
+	#define ZG_KINZI_102E           0x4008
+	#define ZG_KINZI_1036           0x4009
+
 
 	//Constants for our counting sort algorithm
 	#define ID_MED_Y        0
@@ -363,6 +377,26 @@ namespace
 				return 0x003F; //Can't stack "tha"
 			case ZG_STACK_A:
 				return 0x003F; //Can't stack "a"
+			case ZG_COMPLEX_1:
+				return 0x1092;
+			case ZG_COMPLEX_NA:
+				return 0x1091;
+			case ZG_TALL_WITH_ASAT:
+				return 0x105A;
+			case ZG_DOTTED_CIRCLE_ABOVE:
+				return 0x108E;
+			case ZG_LEGGED_CIRCLE_BELOW:
+				return 0x108A;
+			case ZG_LEGS_BOTH_WAYS:
+				return 0x1088;
+			case ZG_LEGS_OF_THREE:
+				return 0x1089;
+			case ZG_KINZI_102D:
+				return 0x108B;
+			case ZG_KINZI_102E:
+				return 0x108C;
+			case ZG_KINZI_1036:
+				return 0x108D;
 			default:
 				return uniLetter; //Assume it's correct.
 		}
@@ -489,6 +523,10 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 	prevLetter = 0x0000;
 	prevType = BF_OTHER;
 	for (size_t i=0; i<length; i++) {
+		//Special: skip "ghost letters" left from previous combines
+		if (zawgyiStr[i]==0x0000)
+			continue;
+
 		//Get the current letter and type
 		currLetter = zawgyiStr[i];
 		currType = getBitflag(currLetter);
@@ -498,9 +536,68 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 			//Note: We must make an active check for letters with no Zawgyi representation
 			// (0x003F)
 			wchar_t stacked = getStackedVersion(currLetter);
-			if (stacked!=0 && zawgyiLetter(stacked)!=0x003F) {
+			if (stacked!=0) {
+				//General case
+				int oldDestID = destID;
+				if (zawgyiLetter(stacked)!=0x003F) {
+					destID--;
+					currLetter = stacked;
+				}
+
+				//Special cases (stacked)
+				if (oldDestID>1) {
+					if (stacked==ZG_STACK_HTA1 && zawgyiStr[oldDestID-2]==L'\u100B') {
+						destID = oldDestID-2;
+						currLetter = ZG_COMPLEX_1;
+					} else if (stacked==ZG_STACK_DHA1 && zawgyiStr[oldDestID-2]==L'\u100F') {
+						destID = oldDestID-2;
+						currLetter = ZG_COMPLEX_NA;
+					}
+				}
+			} 
+		} else {
+			//Additional special cases (general fixes; better to do now)
+			if (currLetter==L'\u103A' && prevLetter==L'\u102B') {
 				destID--;
-				currLetter = stacked;
+				currLetter = ZG_TALL_WITH_ASAT;
+			} else if (currLetter==L'\u1036' && prevLetter==L'\u102D') {
+				destID--;
+				currLetter = ZG_DOTTED_CIRCLE_ABOVE;
+			} else if (currLetter==L'\u103E' && prevLetter==L'\u103D') {
+				destID--;
+				currLetter = ZG_LEGGED_CIRCLE_BELOW;
+			} else if (currLetter==L'\u102F' && prevLetter==L'\u103E') {
+				destID--;
+				currLetter = ZG_LEGS_BOTH_WAYS;
+			} else if (currLetter==L'\u1030' && prevLetter==L'\u103E') {
+				destID--;
+				currLetter = ZG_LEGS_OF_THREE;
+			} else if (currLetter==ZG_KINZI) {
+				//Scan ahead until we find something useful
+				for (size_t k=i+1; k<length; k++) {
+					//Is this a special-case kinzi?
+					wchar_t nextLetter = zawgyiStr[k];
+					if (nextLetter==L'\u102D')
+						currLetter = ZG_KINZI_102D;
+					else if (nextLetter==L'\u102E')
+						currLetter = ZG_KINZI_102E;
+					else if (nextLetter==L'\u1036')
+						currLetter = ZG_KINZI_1036;
+					
+
+					//Remove dashes, etc.
+					if (currLetter == ZG_KINZI_102D || currLetter == ZG_KINZI_102E || currLetter == ZG_KINZI_1036) {
+						zawgyiStr[k] = zawgyiStr[i] = 0x0000;
+						if (zawgyiStr[k-1]==ZG_DASH)
+							zawgyiStr[k-1] = 0x0000;
+					}
+
+					//May we continue?
+					if (!( (nextLetter>=ZG_STACK_KA && nextLetter<=ZG_STACK_HTA2_INDENT)
+						|| (nextLetter>=0x103B && nextLetter<=0x103E)
+						||  nextLetter==ZG_DASH))
+						break;
+				}
 			}
 		}
 
