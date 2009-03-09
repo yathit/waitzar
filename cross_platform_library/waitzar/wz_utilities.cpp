@@ -557,7 +557,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 			} 
 		} else {
 			//Additional special cases (general fixes; better to do now)
-			if (currLetter==L'\u103A' && prevLetter==L'\u102B') {
+			/*if (currLetter==L'\u103A' && prevLetter==L'\u102B') {
 				destID--;
 				currLetter = ZG_TALL_WITH_ASAT;
 			} else if (currLetter==L'\u1036' && prevLetter==L'\u102D') {
@@ -590,6 +590,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 						zawgyiStr[k] = zawgyiStr[i] = 0x0000;
 						if (zawgyiStr[k-1]==ZG_DASH)
 							zawgyiStr[k-1] = 0x0000;
+						break;
 					}
 
 					//May we continue?
@@ -598,7 +599,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 						||  nextLetter==ZG_DASH))
 						break;
 				}
-			}
+			}*/
 		}
 
 		//Re-copy this letter
