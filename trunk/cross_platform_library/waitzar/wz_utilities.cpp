@@ -413,13 +413,22 @@ namespace waitzar
 void sortMyanmarString(wchar_t* uniString)
 {
 	//Count array for use with counting sort
-	//We use a bit array (kind of) to avoid duplicates
-	wchar_t rhyme_flags[ID_TOTAL];
-	for (int res=0; res<ID_TOTAL; res++)
-		rhyme_flags[res] = 0x0000;
+	//We store a count, but we also need separate strings for the types.
+	int rhyme_flags[ID_TOTAL];
+	wchar_t rhyme_vals[ID_TOTAL];
+	size_t len = wcslen(uniString); 
+	wchar_t *vow_above_buffer = new wchar_t[len];
+	wchar_t *vow_below_buffer = new wchar_t[len];
+	wchar_t *vow_ar_buffer = new wchar_t[len];
+	for (int res=0; res<ID_TOTAL; res++) {
+		rhyme_flags[res] = 0;
+		rhyme_vals[res] = 0x0000;
+	}
+	int vow_above_index = 0;
+	int vow_below_index = 0;
+	int vow_ar_index = 0;
 
 	//Scan each letter
-	size_t len = wcslen(uniString); 
 	size_t destI = 0;    //Allows us to eliminate duplicate letters
 	size_t prevStop = 0; //What was our last-processed letter
 	for (size_t i=0; i<=len;) { //We count up to the trailing 0x0
@@ -429,10 +438,22 @@ void sortMyanmarString(wchar_t* uniString)
 			if (i!=prevStop) {
 				for (int x=0; x<ID_TOTAL; x++) {
 					//Add and restart
-					if (rhyme_flags[x]!=0x0000)
-						uniString[destI++] = rhyme_flags[x];
-					rhyme_flags[x] = 0x0000;
+					for (int r_i=0; r_i <rhyme_flags[x]; r_i++) {
+						wchar_t letter = rhyme_vals[x];
+						if (x==ID_VOW_ABOVE)
+							letter = vow_above_buffer[r_i];
+						else if (x==ID_VOW_BELOW)
+							letter = vow_below_buffer[r_i];
+						else if (x==ID_VOW_A)
+							letter = vow_ar_buffer[r_i];
+						uniString[destI++] = letter;
+					}
+					rhyme_flags[x] = 0;
+					rhyme_vals[x] = 0x0000;
 				}
+				vow_above_index = 0;
+				vow_below_index = 0;
+				vow_ar_index = 0;
 			}
 
 			//Increment if this is asat or virama
@@ -446,7 +467,15 @@ void sortMyanmarString(wchar_t* uniString)
 		}
 
 		//Count, if possible. Else, copy in
-		rhyme_flags[getRhymeID(uniString[i])] = uniString[i];
+		int rhymeID = getRhymeID(uniString[i]);
+		rhyme_flags[rhymeID] += 1;
+		rhyme_vals[rhymeID] = uniString[i];
+		if (rhymeID == ID_VOW_ABOVE)
+			vow_above_buffer[vow_above_index++] = uniString[i];
+		else if (rhymeID == ID_VOW_BELOW)
+			vow_below_buffer[vow_below_index++] = uniString[i];
+		else if (rhymeID == ID_VOW_A)
+			vow_ar_buffer[vow_ar_index++] = uniString[i];
 
 		//Standard increment
 		i++;
@@ -454,6 +483,9 @@ void sortMyanmarString(wchar_t* uniString)
 
 	//Done. Append an extra zero, in case our new string is too short.
 	uniString[destI] = 0x0000;
+	delete [] vow_above_buffer;
+	delete [] vow_below_buffer;
+	delete [] vow_ar_buffer;
 }
 
 
