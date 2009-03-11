@@ -946,11 +946,90 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 	// A "minor break" occurs after each killed consonant, which is not tracked. "CONSONANT" always refers
 	// to the main consonant. 
 	int firstOccurrence[S3_TOTAL_FLAGS];
+	__int64 currMatchFlags = 0;
 	for (int i=0; i<S3_TOTAL_FLAGS; i++)
 		firstOccurrence[i] = -1;
 	length = wcslen(zawgyiStr);
-	for (size_t i=0; i<length; i++) {
-		//Scan until the next word.
+	size_t prevConsonant = 0;
+	for (size_t i=0; i<=length; i++) {
+		//Get properties on this letter
+		wchar_t currLetter = zawgyiStr[i];
+		__int64 currFlag = getStage3BitFlags(currLetter);
+		int currFlagID = getStage3ID(currFlag);
+
+		//Are we at a stopping point?
+		if (isConsonant(currLetter)|| i==length) {
+			//Apply our filters, from right-to-left
+			for (size_t x=i-1; x>=prevConsonant; x--) {
+				for (size_t ruleID=0; ruleID<matchRules.size(); ruleID++) {
+					//Unfortunately, we have to apply ALL filters.
+					Rule r = matchRules[ruleID];
+					if (r.at_letter!=currLetter)
+						continue; 
+
+					//First, match the input
+					__int64 matchRes = r.match_flags&currMatchFlags;
+					size_t matchLoc = -1;
+					if (matchRes==0) {
+						bool foundAdditional = false;
+						if (r.match_additional!=NULL) {
+							for (size_t sID=0; sID<wcslen(r.match_additional) && !foundAdditional; sID++) {
+								for (size_t zID=prevConsonant; zID<i && !foundAdditional; zID++) {
+									if (zawgyiStr[zID]==r.match_additional[sID]) {
+										matchLoc = zID;
+										foundAdditional = true;
+									}
+								}
+							}
+						}
+						if (!foundAdditional)
+							continue;
+					} else {
+						//Where did it match?
+						matchLoc = getStage3ID(matchLoc);
+						if (matchLoc!=-1)
+							matchLoc = firstOccurrence[matchLoc];
+					}
+
+					//Then, apply the rule. Make sure to keep our index array up-to-date
+					//Note that protocol specifies that we DON'T re-scan for the next occurrence of a medial
+					//  after modifying or combining it.
+					switch (r.type) {
+						case RULE_MODIFY:
+							if (getStage3ID(matchRes)!=-1)
+								firstOccurrence[getStage3ID(matchRes)] = -1;
+							if (getStage3ID(getStage3BitFlags(r.replace)) != -1)
+								firstOccurrence[getStage3ID(getStage3BitFlags(r.replace))] = x;
+							zawgyiStr[x] = r.replace;
+							currLetter = zawgyiStr[x];
+							currFlag = getStage3BitFlags(currLetter);
+							currFlagID = getStage3ID(currFlag);
+							break;
+						case RULE_ORDER:
+							break;
+						case RULE_COMBINE:
+							break;
+					}
+				}
+			}
+
+			//Is this a soft-stop or a hard stop?
+			bool softStop = (i<length && zawgyiStr[i+1]==0x103A);
+			currMatchFlags &= (S3_CONSONANT_NARROW|S3_CONSONANT_OTHER|S3_CONSONANT_WIDE);
+			for (int x=0; x<S3_TOTAL_FLAGS; x++) {
+				if (softStop && (x==S3_CONSONANT_NARROW || x==S3_CONSONANT_WIDE || x==S3_CONSONANT_OTHER))
+					continue;
+				firstOccurrence[x] = -1;
+			}
+			if (!softStop) {
+				firstOccurrence[currFlagID] = prevConsonant = i;
+				currMatchFlags = 0;
+			}
+		} else {
+			//Just track this letter's location
+			if (firstOccurrence[currFlagID]==-1)
+				firstOccurrence[currFlagID] = i;
+		}
 	}
 
 
