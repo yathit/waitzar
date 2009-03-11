@@ -939,6 +939,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 	if (matchRules.size()==0) {
 		//Add initial rules
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0x1580018C000, L"\u1014", ZG_DOT_BELOW_SHIFT_1));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, NULL, 0x0000));
 	}
 	//We maintain a series of offsets for the most recent match. This is used to speed up the process of 
 	// pattern matching. We only track the first occurrance, from left-to-right, of the given flag.
@@ -1003,15 +1004,33 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							if (replacementID != -1)
 								firstOccurrence[replacementID] = x;
 							zawgyiStr[x] = r->replace;
-							currLetter = zawgyiStr[x];
-							currFlag = getStage3BitFlags(currLetter);
-							currFlagID = getStage3ID(currFlag);
 							break;
 						case RULE_ORDER:
+						{
+							if (matchLoc==-1)
+								break; //Our rules shouldn't have this problem.
+							if (x<matchLoc)
+								break; //Don't shift right
+							wchar_t preLetter = currLetter;
+							for (size_t repID=matchLoc; repID<=x; repID++) {
+								int prevID = getStage3ID(getStage3BitFlags(prevLetter));
+								if (prevID!=-1)
+									firstOccurrence[prevID] = repID;
+								wchar_t cached = zawgyiStr[repID];
+								zawgyiStr[repID] = prevLetter;
+								prevLetter = cached;
+							}
+
 							break;
+						}
 						case RULE_COMBINE:
 							break;
 					}
+
+					//Make sure our cached data is up-to-date
+					currLetter = zawgyiStr[x];
+					currFlag = getStage3BitFlags(currLetter);
+					currFlagID = getStage3ID(currFlag);
 				}
 			}
 
