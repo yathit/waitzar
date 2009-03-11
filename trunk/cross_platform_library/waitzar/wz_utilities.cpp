@@ -987,7 +987,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							continue;
 					} else {
 						//Where did it match?
-						matchLoc = getStage3ID(matchLoc);
+						matchLoc = getStage3ID(matchRes);
 						if (matchLoc!=-1)
 							matchLoc = firstOccurrence[matchLoc];
 					}
@@ -1044,13 +1044,15 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 			}
 			prevConsonant = i;
 			if (!softStop) {
-				if (firstOccurrence[currFlagID]==-1)
+				if (currFlagID!=-1) {
 					firstOccurrence[currFlagID] = i;
-				currMatchFlags = 0;
+					currMatchFlags = currFlag;
+				} else 
+					currMatchFlags = 0;
 			}
 		} else {
 			//Just track this letter's location
-			if (firstOccurrence[currFlagID]==-1)
+			if (currFlagID!=-1 && firstOccurrence[currFlagID]==-1)
 				firstOccurrence[currFlagID] = i;
 		}
 	}
