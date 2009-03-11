@@ -1011,7 +1011,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 								break; //Our rules shouldn't have this problem.
 							if (x<matchLoc)
 								break; //Don't shift right
-							wchar_t preLetter = currLetter;
+							wchar_t prevLetter = zawgyiStr[x];
 							for (size_t repID=matchLoc; repID<=x; repID++) {
 								int prevID = getStage3ID(getStage3BitFlags(prevLetter));
 								if (prevID!=-1)
