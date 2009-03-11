@@ -197,7 +197,7 @@ namespace
 			this->replace = replace;
 		}
 	};
-	std::vector<Rule> matchRules;
+	std::vector<Rule*> matchRules;
 	
 
 
@@ -938,7 +938,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 	//Step 3: Apply a series of specific rules
 	if (matchRules.size()==0) {
 		//Add initial rules
-		matchRules.push_back(Rule(RULE_MODIFY, L'\u1037', 0x1580018C000, L"\u1014", ZG_DOT_BELOW_SHIFT_1));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0x1580018C000, L"\u1014", ZG_DOT_BELOW_SHIFT_1));
 	}
 	//We maintain a series of offsets for the most recent match. This is used to speed up the process of 
 	// pattern matching. We only track the first occurrance, from left-to-right, of the given flag.
@@ -947,7 +947,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 	// to the main consonant. 
 	int firstOccurrence[S3_TOTAL_FLAGS];
 	__int64 currMatchFlags = 0;
-	for (int i=0; i<S3_TOTAL_FLAGS; i++)
+	for (size_t i=0; i<S3_TOTAL_FLAGS; i++)
 		firstOccurrence[i] = -1;
 	length = wcslen(zawgyiStr);
 	size_t prevConsonant = 0;
@@ -960,22 +960,22 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		//Are we at a stopping point?
 		if (isConsonant(currLetter)|| i==length) {
 			//Apply our filters, from right-to-left
-			for (size_t x=i-1; x>=prevConsonant; x--) {
+			for (size_t x=i-1; x>=prevConsonant&&x<length; x--) {
 				for (size_t ruleID=0; ruleID<matchRules.size(); ruleID++) {
 					//Unfortunately, we have to apply ALL filters.
-					Rule r = matchRules[ruleID];
-					if (r.at_letter!=currLetter)
+					Rule *r = matchRules[ruleID];
+					if (r->at_letter!=zawgyiStr[x])
 						continue; 
 
 					//First, match the input
-					__int64 matchRes = r.match_flags&currMatchFlags;
+					__int64 matchRes = r->match_flags&currMatchFlags;
 					size_t matchLoc = -1;
 					if (matchRes==0) {
 						bool foundAdditional = false;
-						if (r.match_additional!=NULL) {
-							for (size_t sID=0; sID<wcslen(r.match_additional) && !foundAdditional; sID++) {
+						if (r->match_additional!=NULL) {
+							for (size_t sID=0; sID<wcslen(r->match_additional) && !foundAdditional; sID++) {
 								for (size_t zID=prevConsonant; zID<i && !foundAdditional; zID++) {
-									if (zawgyiStr[zID]==r.match_additional[sID]) {
+									if (zawgyiStr[zID]==r->match_additional[sID]) {
 										matchLoc = zID;
 										foundAdditional = true;
 									}
@@ -994,13 +994,15 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					//Then, apply the rule. Make sure to keep our index array up-to-date
 					//Note that protocol specifies that we DON'T re-scan for the next occurrence of a medial
 					//  after modifying or combining it.
-					switch (r.type) {
+					int matchResID = getStage3ID(matchRes);
+					int replacementID = getStage3ID(getStage3BitFlags(r->replace));
+					switch (r->type) {
 						case RULE_MODIFY:
-							if (getStage3ID(matchRes)!=-1)
-								firstOccurrence[getStage3ID(matchRes)] = -1;
-							if (getStage3ID(getStage3BitFlags(r.replace)) != -1)
-								firstOccurrence[getStage3ID(getStage3BitFlags(r.replace))] = x;
-							zawgyiStr[x] = r.replace;
+							if (matchResID!=-1)
+								firstOccurrence[matchResID] = -1;
+							if (replacementID != -1)
+								firstOccurrence[replacementID] = x;
+							zawgyiStr[x] = r->replace;
 							currLetter = zawgyiStr[x];
 							currFlag = getStage3BitFlags(currLetter);
 							currFlagID = getStage3ID(currFlag);
@@ -1021,8 +1023,10 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					continue;
 				firstOccurrence[x] = -1;
 			}
+			prevConsonant = i;
 			if (!softStop) {
-				firstOccurrence[currFlagID] = prevConsonant = i;
+				if (firstOccurrence[currFlagID]==-1)
+					firstOccurrence[currFlagID] = i;
 				currMatchFlags = 0;
 			}
 		} else {
