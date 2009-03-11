@@ -940,6 +940,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		//Add initial rules
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0x1580018C000, L"\u1014", ZG_DOT_BELOW_SHIFT_1));
 		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103E', 0x400000, NULL, ZG_LEGGED_CIRCLE_BELOW));
 	}
 	//We maintain a series of offsets for the most recent match. This is used to speed up the process of 
 	// pattern matching. We only track the first occurrance, from left-to-right, of the given flag.
@@ -997,6 +998,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					//  after modifying or combining it.
 					int matchResID = getStage3ID(matchRes);
 					int replacementID = getStage3ID(getStage3BitFlags(r->replace));
+					int currID = getStage3ID(getStage3BitFlags(zawgyiStr[x]));
 					switch (r->type) {
 						case RULE_MODIFY:
 							if (matchResID!=-1)
@@ -1006,7 +1008,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							zawgyiStr[x] = r->replace;
 							break;
 						case RULE_ORDER:
-						{
+						{ //With c+j+c+j, the second syllable doesn't trigger a match at all (Must be incrementing wrongly)
 							if (matchLoc==-1)
 								break; //Our rules shouldn't have this problem.
 							if (x<matchLoc)
@@ -1024,13 +1026,26 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							break;
 						}
 						case RULE_COMBINE:
+							if (matchLoc==-1)
+								break; //Shouldn't exist
+							if (matchResID!=-1)
+								firstOccurrence[matchResID] = -1;
+							if (currID!=-1)
+								firstOccurrence[currID] = -1;
+							if (replacementID != -1)
+								firstOccurrence[replacementID] = x;
+							zawgyiStr[matchLoc] = 0x0000;
+							zawgyiStr[x] = r->replace;
+
+
 							break;
 					}
 
 					//Make sure our cached data is up-to-date
-					currLetter = zawgyiStr[x];
+					//No! Bad Seth!
+					/*currLetter = zawgyiStr[x];
 					currFlag = getStage3BitFlags(currLetter);
-					currFlagID = getStage3ID(currFlag);
+					currFlagID = getStage3ID(currFlag);*/
 				}
 			}
 
@@ -1052,17 +1067,25 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 			}
 		} else {
 			//Just track this letter's location
-			if (currFlagID!=-1 && firstOccurrence[currFlagID]==-1)
-				firstOccurrence[currFlagID] = i;
+			if (currFlagID!=-1) {
+				if (firstOccurrence[currFlagID]==-1)
+					firstOccurrence[currFlagID] = i;
+				currMatchFlags |= currFlag;
+			}
 		}
 	}
 
 
 
 	//Final Step: Convert each letter to its Zawgyi-equivalent
-	length = wcslen(zawgyiStr);
-	for (size_t i=0; i<length; i++)
-		zawgyiStr[i] = zawgyiLetter(zawgyiStr[i]);
+	//length = wcslen(zawgyiStr); //Keep embedded zeroes
+	destID =0;
+	for (size_t i=0; i<length; i++) {
+		if (zawgyiStr[i]==0x0000)
+			continue;
+		zawgyiStr[destID++] = zawgyiLetter(zawgyiStr[i]);
+	}
+	zawgyiStr[destID++] = 0x0000;
 	return zawgyiStr;
 }
 
