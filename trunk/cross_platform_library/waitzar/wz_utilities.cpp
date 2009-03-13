@@ -181,6 +181,7 @@ namespace
 
 	//Useful global vars
 	wchar_t zawgyiStr[100];
+	FILE *wzUtilLogFile = NULL;
 
 	//A fun struct
     #define RULE_MODIFY   1
@@ -203,6 +204,11 @@ namespace
 	};
 	std::vector<Rule*> matchRules;
 	
+
+	bool isLogging()
+	{
+		return wzUtilLogFile != NULL;
+	}
 
 
 	bool isMyanmar(wchar_t letter)
@@ -841,6 +847,11 @@ void sortMyanmarString(wchar_t* uniString)
 }
 
 
+void setLogFile(FILE *logFile)
+{
+	wzUtilLogFile = logFile;
+}
+
 
 
 wchar_t* renderAsZawgyi(wchar_t* uniString)
@@ -973,10 +984,10 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103E', 0x400000, NULL, ZG_LEGGED_CIRCLE_BELOW));
 
 		//15-20
-		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_SA, 0x600000000, NULL, ZG_YA_PIN_SA));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0xFF000000, NULL, 0x0000));
 		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, NULL, 0x0000));
 		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0x7, NULL, 0x0000));
-		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0xFF000000, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_SA, 0x600000000, NULL, ZG_YA_PIN_SA));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103C', 0x4, NULL, ZG_YA_YIT_LONG));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103B', 0x100E00000, NULL, ZG_YA_PIN_CUT));
 
@@ -1051,6 +1062,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					int matchResID = getStage3ID(matchRes);
 					int replacementID = getStage3ID(getStage3BitFlags(r->replace));
 					int currID = getStage3ID(getStage3BitFlags(zawgyiStr[x]));
+					bool checkMissingRules = false;
 					switch (r->type) {
 						case RULE_MODIFY:
 							if (currID!=-1)
@@ -1060,7 +1072,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							zawgyiStr[x] = r->replace;
 
 							//We now have to re-scan old rules
-							ruleID = 0;
+							checkMissingRules = true;
 
 							break;
 						case RULE_ORDER:
@@ -1080,7 +1092,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							}
 
 							//We now have to re-scan old rules
-							ruleID = 0;
+							checkMissingRules = true;
 
 							break;
 						}
@@ -1097,11 +1109,29 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							zawgyiStr[x] = r->replace;
 
 							//We now have to re-scan old rules
-							ruleID = 0;
+							checkMissingRules = true;
 
 
 							break;
 					}
+
+
+					//Double-check for missing rules
+					if (isLogging()) {
+						for (int prevRule=0; prevRule < ruleID; prevRule++) {
+							Rule *r = matchRules[prevRule];
+							if (r->at_letter==zawgyiStr[x] && ((r->match_flags&currMatchFlags)!=0)) {
+								matchLoc = -1;
+								matchLoc = getStage3ID(r->match_flags&currMatchFlags);
+								if (r->type==RULE_ORDER && x<matchLoc)
+									continue;
+
+								fprintf(wzUtilLogFile, "WARNING: Rule %i was skipped after matching rule %i\n", prevRule, ruleID);
+							}
+						}
+					}
+
+
 
 					//Make sure our cached data is up-to-date
 					//No! Bad Seth!

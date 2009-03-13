@@ -228,7 +228,7 @@ bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = false;
+bool isLogging = true;
 FILE *logFile;
 
 
@@ -255,8 +255,8 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 		{
 			EnterCriticalSection(&threadCriticalSec);
 
-			if (isLogging)
-				fprintf(logFile, "Thread:\n");
+			/*if (isLogging)
+				fprintf(logFile, "Thread:\n");*/
 
 			//Loop through our list
 			for (std::list<unsigned int>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
@@ -265,8 +265,8 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
-					if (isLogging)
-						fprintf(logFile, "  Key up: %c  (%x)\n", *keyItr, keyState);
+					/*if (isLogging)
+						fprintf(logFile, "  Key up: %c  (%x)\n", *keyItr, keyState);*/
 
 					if (PostMessage(mainWindow, UWM_HOTKEY_UP, *keyItr, 0)==0) {
 						//SendMessage(mainWindow, UWM_HOTKEY_UP, *keyItr,0); //Send message seems to make no difference
@@ -283,16 +283,16 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 			//Sleep, but for how long?
 			if (hotkeysDown.empty()) {
-				if (isLogging)
-					fprintf(logFile, "  Sleep: forever\n");
+				/*if (isLogging)
+					fprintf(logFile, "  Sleep: forever\n");*/
 
 				//Sleep until woken up
 				threadIsActive = false;
 				LeaveCriticalSection(&threadCriticalSec);
 				SuspendThread(keyTrackThread);
 			} else {
-				if (isLogging)
-					fprintf(logFile, "  Sleep: 10ms\n");
+				/*if (isLogging)
+					fprintf(logFile, "  Sleep: 10ms\n");*/
 
 				//Sleep for 10ms, and continue tracking keyboard input
 				LeaveCriticalSection(&threadCriticalSec);
@@ -2778,7 +2778,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		} else {
 			fprintf(logFile, "WaitZar was opened\n");
 		}
-	}
+	} else 
+		logFile = NULL;
+	waitzar::setLogFile(logFile);
+
 
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
@@ -2977,7 +2980,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 		//Now, some of our own tests
-		wcscpy(testStrSort, L"\u1000\u1031\u103D");
+		/*wcscpy(testStrSort, L"\u1000\u1031\u103D");
 		for (size_t x=0; x<wcslen(testStrSort); x++)
 			fprintf(logFile, "0x%X ", testStrSort[x]);
 		fprintf(logFile, " ==>  ");
@@ -3011,7 +3014,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		waitzar::sortMyanmarString(testStrSort);
 		for (size_t x=0; x<wcslen(testStrSort); x++)
 			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, "\n");
+		fprintf(logFile, "\n");*/
 	}
 
 
