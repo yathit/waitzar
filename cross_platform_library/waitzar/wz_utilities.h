@@ -45,6 +45,8 @@ namespace waitzar
 
 	wchar_t* renderAsZawgyi(wchar_t* uniString);
 
+	void setLogFile(FILE *logFile);
+
 
 } //End waitzar namespace
 
