@@ -1053,8 +1053,8 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					int currID = getStage3ID(getStage3BitFlags(zawgyiStr[x]));
 					switch (r->type) {
 						case RULE_MODIFY:
-							if (matchResID!=-1)
-								firstOccurrence[matchResID] = -1;
+							if (currID!=-1)
+								firstOccurrence[currID] = -1;
 							if (replacementID != -1)
 								firstOccurrence[replacementID] = x;
 							zawgyiStr[x] = r->replace;
@@ -1100,6 +1100,51 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					currFlagID = getStage3ID(currFlag);*/
 				}
 			}
+
+
+			//Final special cases 
+			int yaYitID = firstOccurrence[getStage3ID(S3_MED_YA_YIT)];
+			bool yaLong = false;
+			if (yaYitID==-1) {
+				yaYitID = firstOccurrence[getStage3ID(S3_MED_YA_YIT_LONG)];
+				yaLong = true;
+			}
+			if (yaYitID != -1) {
+				bool cutTop = false;
+				bool cutBottom = false;
+				if ((currMatchFlags&0xFF0)!=0)
+					cutTop = true;
+				if ((currMatchFlags&0x100E00000)!=0)
+					cutBottom = true;
+				wchar_t yaFinal = 'X';
+				if (yaLong) {
+					if (cutTop) {
+						if(cutBottom)
+							yaFinal = ZG_YA_YIT_LONG_BOTHCUT;
+						else
+							yaFinal = ZG_YA_YIT_LONG_HIGHCUT;
+					} else {
+						if(cutBottom)
+							yaFinal = ZG_YA_YIT_LONG_LOWCUT;
+						else
+							yaFinal = ZG_YA_YIT_LONG;
+					}
+				} else {
+					if (cutTop) {
+						if(cutBottom)
+							yaFinal = ZG_YA_YIT_BOTHCUT;
+						else
+							yaFinal = ZG_YA_YIT_HIGHCUT;
+					} else {
+						if(cutBottom)
+							yaFinal = ZG_YA_YIT_LOWCUT;
+						else
+							yaFinal = L'\u103C';
+					}
+				}
+				zawgyiStr[yaYitID] = yaFinal; 
+			}
+
 
 			//Is this a soft-stop or a hard stop?
 			bool softStop = (i<length && zawgyiStr[i+1]==0x103A);
