@@ -84,7 +84,7 @@ namespace
 	#define ZG_TALL_SINGLE_LEG      0x400C
 	#define ZG_TALL_DOUBLE_LEG      0x400D
 	#define ZG_YA_PIN_CUT           0x400E
-	#define ZG_YA_PIN_SSA           0x400F
+	#define ZG_YA_PIN_SA            0x400F
 	#define ZG_YA_YIT_LONG          0x4010
 	#define ZG_YA_YIT_HIGHCUT       0x4011
 	#define ZG_YA_YIT_LONG_HIGHCUT  0x4012
@@ -93,6 +93,10 @@ namespace
 	#define ZG_YA_YIT_BOTHCUT       0x4015
 	#define ZG_YA_YIT_LONG_BOTHCUT  0x4016
 	#define ZG_LEG_FWD_SMALL        0x4017
+	#define ZG_NA_CUT               0x4018
+	#define ZG_YA_CUT               0x4019
+	#define ZG_NYA_CUT              0x401A
+	#define ZG_O_CUT                0x401B
 
 
 	//Constants for our counting sort algorithm
@@ -341,7 +345,7 @@ namespace
 				return S3_MED_YA_PIN;
 			case ZG_YA_PIN_CUT:
 				return S3_MED_YA_PIN_SHORT;
-			case ZG_YA_PIN_SSA:
+			case ZG_YA_PIN_SA:
 				return S3_MED_YA_PIN_SSA_STACK;
 			case 0x103C:
 				return S3_MED_YA_YIT;
@@ -429,15 +433,19 @@ namespace
 			case 0x101B:
 			case 0x101D:
 			case 0x1027:
+			case ZG_NA_CUT:
+			case ZG_YA_CUT:
 				return S3_CONSONANT_NARROW;
 			case 0x1008:
 			case 0x1009:
 			case 0x100A:
+			case ZG_NYA_CUT:
 			case 0x100B:
 			case 0x100C:
 			case 0x100D:
 			case 0x1020:
 			case 0x1025:
+			case ZG_O_CUT:
 			case 0x1029:
 				return S3_CONSONANT_OTHER;
 			default:
@@ -715,7 +723,7 @@ namespace
 				return 0x1034;
 			case ZG_YA_PIN_CUT:
 				return 0x107D;
-			case ZG_YA_PIN_SSA:
+			case ZG_YA_PIN_SA:
 				return 0x1069;
 			case ZG_YA_YIT_LONG:
 				return 0x107E;
@@ -733,6 +741,14 @@ namespace
 				return 0x1084;
 			case ZG_LEG_FWD_SMALL:
 				return 0x1087;
+			case ZG_NA_CUT:
+				return 0x108F;
+			case ZG_YA_CUT:
+				return 0x1090;
+			case ZG_NYA_CUT:
+				return 0x106B;
+			case ZG_O_CUT:
+				return 0x106A;
 			default:
 				return uniLetter; //Assume it's correct.
 		}
@@ -937,10 +953,46 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 
 	//Step 3: Apply a series of specific rules
 	if (matchRules.size()==0) {
-		//Add initial rules
+		//Add initial rules; do this manually for now
+		//1-7
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u102F', 0x7FFE00000, L"\u1009\u1025\u100A", ZG_TALL_SINGLE_LEG));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1030', 0x7FFE00000, L"\u1009\u1025\u100A", ZG_TALL_DOUBLE_LEG));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102F', 0x180000, NULL, ZG_LEGS_BOTH_WAYS));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1030', 0x180000, NULL, ZG_LEGS_OF_THREE));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0x1580018C000, L"\u1014", ZG_DOT_BELOW_SHIFT_1));
-		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0xA7FFE00000, L"\u101B", ZG_DOT_BELOW_SHIFT_2));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103A', 0x8000, NULL, ZG_TALL_WITH_ASAT));
+
+		//8-14
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x800, NULL, ZG_DOTTED_CIRCLE_ABOVE));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x100, NULL, ZG_KINZI_1036));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102D', 0x100, NULL, ZG_KINZI_102D));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102E', 0x100, NULL, ZG_KINZI_102E));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102E', 0, L"\u1025", L'\u1026'));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103E', 0xFF000000, L"\u1020\u100A", ZG_LEG_FWD_SMALL));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103E', 0x400000, NULL, ZG_LEGGED_CIRCLE_BELOW));
+
+		//15-20
+		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_SA, 0x600000000, NULL, ZG_YA_PIN_SA));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0x7, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0xFF000000, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103C', 0x4, NULL, ZG_YA_YIT_LONG));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103B', 0x100E00000, NULL, ZG_YA_PIN_CUT));
+
+		//21-28
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_SSA, 0x2, NULL, ZG_STACK_SSA_INDENT));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_TA, 0x2, NULL, ZG_STACK_TA_INDENT));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_HTA2, 0x2, NULL, ZG_STACK_HTA2_INDENT));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1014', 0x15F00F80000, NULL, ZG_NA_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1009', 0x15800800000, L"\u103A", L'\u1025'));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u101B', 0x1800000000, NULL, ZG_YA_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u100A', 0x4000600000, NULL, ZG_NYA_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1025', 0x800000, NULL, ZG_O_CUT));
+
+
+
+		
 	}
 	//We maintain a series of offsets for the most recent match. This is used to speed up the process of 
 	// pattern matching. We only track the first occurrance, from left-to-right, of the given flag.
