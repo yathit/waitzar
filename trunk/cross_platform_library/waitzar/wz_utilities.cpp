@@ -1058,6 +1058,10 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 							if (replacementID != -1)
 								firstOccurrence[replacementID] = x;
 							zawgyiStr[x] = r->replace;
+
+							//We now have to re-scan old rules
+							ruleID = 0;
+
 							break;
 						case RULE_ORDER:
 						{ //With c+j+c+j, the second syllable doesn't trigger a match at all (Must be incrementing wrongly)
@@ -1075,6 +1079,9 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 								prevLetter = cached;
 							}
 
+							//We now have to re-scan old rules
+							ruleID = 0;
+
 							break;
 						}
 						case RULE_COMBINE:
@@ -1088,6 +1095,9 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 								firstOccurrence[replacementID] = x;
 							zawgyiStr[matchLoc] = 0x0000;
 							zawgyiStr[x] = r->replace;
+
+							//We now have to re-scan old rules
+							ruleID = 0;
 
 
 							break;
