@@ -1165,7 +1165,9 @@ void recalculate()
 
 	TCHAR extendedWordString[300];
 	if (helpWindowIsVisible) {
-		lstrcpy(extendedWordString, waitzar::renderAsZawgyi(currStr));
+		lstrcpy(extendedWordString, currStr);
+		waitzar::sortMyanmarString(extendedWordString);
+		lstrcpy(extendedWordString, waitzar::renderAsZawgyi(extendedWordString));
 	} else {
 		TCHAR* parenStr = model->getParenString();
 		if (parenStr!=NULL && lstrlen(parenStr)>0) {
@@ -1590,6 +1592,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Register all hotkeys relevant for the help window
 					if (!turnOnHelpKeys(true))
 						MessageBox(mainWindow, _T("Could not turn on one of the help hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
+					if (controlKeysOn==FALSE) //We'll need these too.
+						turnOnControlkeys(TRUE);
 
 					//Clear our current word (not the sentence, though, and keep the trigrams)
 					lstrcpy(currStr, _T(""));
@@ -1674,8 +1678,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == HOTKEY_BACK) {
 				if (helpWindowIsVisible) {
 					//Delete the letter in back of you (encoding-wise, not visibly)
-					//ADD LATER
-
+					int len = lstrlen(currStr);
+					if (len>0)
+						currStr[len-1] = 0x0000;
+					recalculate();
 				} else {
 					if (!mainWindowIsVisible) {
 						//Delete the previous word
@@ -1913,7 +1919,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 					//Pre-sort unicode strings (should be helpful)
-					waitzar::sortMyanmarString(currStr); //TEMP: later, we need to show their errors
 					recalculate();
 
 					//Is the main window visible?
