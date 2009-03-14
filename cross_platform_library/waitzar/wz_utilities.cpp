@@ -203,6 +203,7 @@ namespace
 		}
 	};
 	std::vector<Rule*> matchRules;
+	std::vector<wchar_t*> reorderPairs;
 	
 
 	bool isLogging()
@@ -1118,7 +1119,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 
 					//Double-check for missing rules
 					if (isLogging()) {
-						for (int prevRule=0; prevRule < ruleID; prevRule++) {
+						for (size_t prevRule=0; prevRule < ruleID; prevRule++) {
 							Rule *r = matchRules[prevRule];
 							if (r->at_letter==zawgyiStr[x] && ((r->match_flags&currMatchFlags)!=0)) {
 								matchLoc = -1;
@@ -1212,9 +1213,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		}
 	}
 
-
-
-	//Final Step: Convert each letter to its Zawgyi-equivalent
+	//Step 4: Convert each letter to its Zawgyi-equivalent
 	//length = wcslen(zawgyiStr); //Keep embedded zeroes
 	destID =0;
 	for (size_t i=0; i<length; i++) {
@@ -1223,6 +1222,87 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		zawgyiStr[destID++] = zawgyiLetter(zawgyiStr[i]);
 	}
 	zawgyiStr[destID++] = 0x0000;
+
+
+
+	//Stage 5: Apply rules for re-ordering the Zawgyi text to fit our weird model.
+	length = wcslen(zawgyiStr);
+	if (reorderPairs.size()==0) {
+		reorderPairs.push_back(L"\u102F\u102D");
+		reorderPairs.push_back(L"\u103A\u102D");
+		reorderPairs.push_back(L"\u103D\u102D");
+		reorderPairs.push_back(L"\u1075\u102D");
+		reorderPairs.push_back(L"\u102D\u1087");
+		reorderPairs.push_back(L"\u103D\u102E");
+		reorderPairs.push_back(L"\u103D\u103A");
+		reorderPairs.push_back(L"\u1039\u103A");
+		reorderPairs.push_back(L"\u1030\u102D");
+		reorderPairs.push_back(L"\u1037\u1039");
+		reorderPairs.push_back(L"\u1032\u1037");
+		reorderPairs.push_back(L"\u1032\u1094");
+		reorderPairs.push_back(L"\u1064\u1094");
+		reorderPairs.push_back(L"\u102D\u1094");
+		reorderPairs.push_back(L"\u102D\u1071");
+		reorderPairs.push_back(L"\u1036\u1037");
+		reorderPairs.push_back(L"\u1036\u1088");
+		reorderPairs.push_back(L"\u1039\u1037");
+		reorderPairs.push_back(L"\u102D\u1033");
+		reorderPairs.push_back(L"\u103C\u1032");
+		reorderPairs.push_back(L"\u103C\u102D");
+		reorderPairs.push_back(L"\u103C\u102E");
+		reorderPairs.push_back(L"\u1036\u102F");
+		reorderPairs.push_back(L"\u1036\u1088");
+		reorderPairs.push_back(L"\u1036\u103D");
+		reorderPairs.push_back(L"\u1036\u103C");
+		reorderPairs.push_back(L"\u103C\u107D");
+		reorderPairs.push_back(L"\u1088\u102D");
+	}
+	for (size_t i=1; i<length; i++) {
+		//Apply stage-2 rules
+		for (size_t ruleID=0; ruleID<reorderPairs.size(); ruleID++) {
+			wchar_t *rule = reorderPairs[ruleID];
+			if (zawgyiStr[i]==rule[0] && zawgyiStr[i-1]==rule[1]) {
+				zawgyiStr[i-1] = rule[0];
+				zawgyiStr[i] = rule[1];
+			}
+		}
+
+		//Apply stage 3 fixed rules
+		if (i>1) {
+			if (zawgyiStr[i-2]==0x1019 && zawgyiStr[i-1]==0x102C && zawgyiStr[i]==0x107B) {
+				zawgyiStr[i-1]=0x107B;
+				zawgyiStr[i]=0x102C;
+			}
+			if (zawgyiStr[i-2]==0x103A && zawgyiStr[i-1]==0x102D && zawgyiStr[i]==0x1033) {
+				zawgyiStr[i-1]=0x1033;
+				zawgyiStr[i]=0x102D;
+			}
+			if (zawgyiStr[i-2]==0x103C && zawgyiStr[i-1]==0x1033 && zawgyiStr[i]==0x102D) {
+				zawgyiStr[i-1]=0x102D;
+				zawgyiStr[i]=0x1033;
+			}
+		}
+
+		//Apply stage 4 multi-rules
+		if (i>2) {
+			if (zawgyiStr[i-3]==0x1019 &&
+					(   (zawgyiStr[i-2]==0x107B && zawgyiStr[i-1]==0x1037 && zawgyiStr[i]==0x102C)
+					  ||(zawgyiStr[i-2]==0x102C && zawgyiStr[i-1]==0x107B && zawgyiStr[i]==0x1037)
+					  ||(zawgyiStr[i-2]==0x102C && zawgyiStr[i-1]==0x1037 && zawgyiStr[i]==0x107B)
+					  ||(zawgyiStr[i-2]==0x1037 && zawgyiStr[i-1]==0x107B && zawgyiStr[i]==0x102C)
+					)) {
+				zawgyiStr[i-2]=0x107B;
+				zawgyiStr[i-1]=0x102C;
+				zawgyiStr[i]=0x1037;
+			}
+			if (zawgyiStr[i-3]==0x107E && zawgyiStr[i-1]==0x1033 && zawgyiStr[i]==0x1036) {
+				zawgyiStr[i-1]=0x1036;
+				zawgyiStr[i]=0x1033;
+			}
+		}
+	}
+
+
 	return zawgyiStr;
 }
 

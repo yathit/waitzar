@@ -11,10 +11,12 @@
     //If defined, we are running on Linux
     #include <fontconv.h>
     #include <WordBuilder.h>
+	#include <wz_utilities.h>
   #else
     //On windows:
     #include "../cross_platform_library/waitzar/fontconv.h"
     #include "../cross_platform_library/waitzar/WordBuilder.h"
+	#include "../cross_platform_library/waitzar/wz_utilities.h"
   #endif
 #endif
 
@@ -58,7 +60,12 @@ int main(int argc, const char* argv[])
 	
 	//Create your model as an object.
 	//NOTE: You should not mix printf() and wprintf() (it might behave unexpectedly). So, for unicode programs, always use wprintf().
-	WordBuilder *model = new WordBuilder("/usr/local/share/waitzar/model2/Myanmar.model", "/usr/local/share/waitzar/model2/mywords.txt");
+	WordBuilder *model;
+	#ifdef __STDC_ISO_10646__
+		model = new WordBuilder("/usr/local/share/waitzar/model2/Myanmar.model", "/usr/local/share/waitzar/model2/mywords.txt");
+	#else
+	    model = new WordBuilder("..\\win32_source\\Myanmar.model", "..\\win32_source\\mywords.txt");
+	#endif
 	wprintf(L"Model loaded correctly.\n\n");
 
 
@@ -182,6 +189,38 @@ int main(int argc, const char* argv[])
 		wprintf(L"   0x%x", sgpWinInnwa[i]);
 	}
 	wprintf(L"\n\n");
+
+
+	//Additional test case: let's make sure that our wz_util conversion works.
+	int errorCount = 0;
+	FILE *errorFile = NULL;
+	for (unsigned int x=0; x<2426; x++) {
+		wchar_t *origZawgyi = model->getWordString(x);
+		wchar_t *origUnicode = makeStringFromKeystrokes(model->getWordKeyStrokes(x, ENCODING_UNICODE));
+		waitzar::sortMyanmarString(origUnicode);
+		wchar_t *convertZawgyi = waitzar::renderAsZawgyi(origUnicode);
+
+		//Check error
+		if (wcscmp(convertZawgyi, origZawgyi)!=0) {
+			//Print to file
+			if (errorFile==NULL) {
+				errorFile = fopen("wz_convert_errors.txt", "w, ccs=UTF-8");
+				if (errorFile==NULL) {
+					wprintf(L"Cannot open error file for logging!\n", x);
+					break;
+				}
+			}
+
+			fwprintf(errorFile, L"%ls -> %ls\n", origZawgyi, convertZawgyi);
+			errorCount++;
+		}
+	}
+
+	if (errorFile!=NULL)
+		fclose(errorFile);
+
+	if (errorCount>0)
+		wprintf(L"Total Errors: %i of %i\n", errorCount, 2426);
 
 	
 

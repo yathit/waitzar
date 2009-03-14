@@ -186,6 +186,10 @@
 				RelativePath="..\cross_platform_library\waitzar\WordBuilder.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\cross_platform_library\waitzar\wz_utilities.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -210,6 +214,10 @@
 			</File>
 			<File
 				RelativePath="..\cross_platform_library\waitzar\WordBuilder.h"
+				>
+			</File>
+			<File
+				RelativePath="..\cross_platform_library\waitzar\wz_utilities.h"
 				>
 			</File>
 		</Filter>
