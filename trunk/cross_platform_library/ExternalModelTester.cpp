@@ -194,6 +194,7 @@ int main(int argc, const char* argv[])
 	//Additional test case: let's make sure that our wz_util conversion works.
 	int errorCount = 0;
 	FILE *errorFile = NULL;
+	FILE *logFile = NULL;
 	for (unsigned int x=0; x<2426; x++) {
 		wchar_t *origZawgyi = model->getWordString(x);
 		wchar_t *origUnicode = makeStringFromKeystrokes(model->getWordKeyStrokes(x, ENCODING_UNICODE));
@@ -205,19 +206,31 @@ int main(int argc, const char* argv[])
 			//Print to file
 			if (errorFile==NULL) {
 				errorFile = fopen("wz_convert_errors.txt", "w, ccs=UTF-8");
-				if (errorFile==NULL) {
+				logFile = fopen("wz_convert_log.txt", "w");
+				if (errorFile==NULL || logFile==NULL) {
 					wprintf(L"Cannot open error file for logging!\n", x);
 					break;
-				}
+				} else
+					waitzar::setLogFile(logFile);
 			}
 
 			fwprintf(errorFile, L"%ls -> %ls\n", origZawgyi, convertZawgyi);
+			fwprintf(errorFile, L"   ");
+			for (size_t i=0; i<wcslen(origZawgyi); i++)
+				fwprintf(errorFile, L"U+%x ", origZawgyi[i]);
+			fwprintf(errorFile, L" -> ");
+			for (size_t i=0; i<wcslen(convertZawgyi); i++)
+				fwprintf(errorFile, L"U+%x ", convertZawgyi[i]);
+			fwprintf(errorFile, L"\n");
+
 			errorCount++;
 		}
 	}
 
 	if (errorFile!=NULL)
 		fclose(errorFile);
+	if (logFile!=NULL)
+		fclose(logFile);
 
 	if (errorCount>0)
 		wprintf(L"Total Errors: %i of %i\n", errorCount, 2426);

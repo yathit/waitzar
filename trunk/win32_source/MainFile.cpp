@@ -316,6 +316,8 @@ bool canStack(wchar_t letter)
 
 
 
+
+
 /**
  * Create our inner-used Zawgyi-One fonts.
  */
@@ -1907,13 +1909,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					lstrcat(currStr, nextBit);
 					size_t len = wcslen(currStr);
 
-					//Special case: combiner functions in reverse
+					//Special cases
 					if (wcslen(nextBit)==1 && nextBit[0]==L'\u1039') {
+						//Combiner functions in reverse
 						if (len>1 && canStack(currStr[len-2])) {
 							currStr[len-1] = currStr[len-2];
 							currStr[len-2] = nextBit[0];
 						} else {
 							currStr[len-1] = 0x0000; //Not standard behavior, but let's avoid bad combinations.
+						}
+					} else if (wcscmp(nextBit, L"\u1004\u103A\u1039")==0) {
+						//Kinzi can be typed after the consonant instead of before it.
+						//For now, we only cover the general case of typing "kinzi" directly after a consonant
+						if (len>3 && canStack(currStr[len-4])) {
+							currStr[len-1] = currStr[len-4];
+							currStr[len-4] = nextBit[0];
+							currStr[len-3] = nextBit[1];
+							currStr[len-2] = nextBit[2];
 						}
 					}
 
