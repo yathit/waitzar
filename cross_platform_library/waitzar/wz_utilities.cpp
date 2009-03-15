@@ -193,6 +193,7 @@ namespace
 		__int64 match_flags;
 		wchar_t *match_additional;
 		wchar_t replace;
+		bool blacklisted;
 
 		Rule(int type, wchar_t atLetter, __int64 matchFlags, wchar_t *matchAdditional, wchar_t replace) {
 			this->type = type;
@@ -200,6 +201,7 @@ namespace
 			this->match_flags = matchFlags;
 			this->match_additional = matchAdditional;
 			this->replace = replace;
+			this->blacklisted = false;
 		}
 	};
 	std::vector<Rule*> matchRules;
@@ -606,8 +608,8 @@ namespace
 					return (uniLetter-0x1000)+ZG_STACK_KA;
 				} else if (uniLetter>=0x100A && uniLetter<=0x100D) {
 					return (uniLetter-0x100A)+ZG_STACK_NYA;
-				} else if (uniLetter>=0x100E && uniLetter<=0x1019) {
-					return (uniLetter-0x100E)+ZG_STACK_NHA;
+				} else if (uniLetter>=0x100F && uniLetter<=0x1019) {
+					return (uniLetter-0x100F)+ZG_STACK_NHA;
 				}
 		}
 		return 0;
@@ -724,6 +726,8 @@ namespace
 				return 0x108D;
 			case ZG_DOT_BELOW_SHIFT_1:
 				return 0x1094;
+			case ZG_DOT_BELOW_SHIFT_2:
+				return 0x1095;
 			case ZG_TALL_SINGLE_LEG:
 				return 0x1033;
 			case ZG_TALL_DOUBLE_LEG:
@@ -971,8 +975,12 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1030', 0x7FFE00000, L"\u1009\u1025\u100A", ZG_TALL_DOUBLE_LEG));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102F', 0x180000, NULL, ZG_LEGS_BOTH_WAYS));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1030', 0x180000, NULL, ZG_LEGS_OF_THREE));
+		
+		//PROBLEM: These require our "tall single/double leg"s to be matched already...
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0x1580018C000, L"\u1014", ZG_DOT_BELOW_SHIFT_1));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0xA7FFE00000, L"\u101B", ZG_DOT_BELOW_SHIFT_2));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_1, 0xA7FFE00000, L"\u101B", ZG_DOT_BELOW_SHIFT_2));
+		
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103A', 0x8000, NULL, ZG_TALL_WITH_ASAT));
 
 		//8-14
@@ -983,16 +991,18 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102E', 0, L"\u1025", L'\u1026'));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103E', 0xFF000000, L"\u1020\u100A", ZG_LEG_FWD_SMALL));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103E', 0x400000, NULL, ZG_LEGGED_CIRCLE_BELOW));
+		matchRules.push_back(new Rule(RULE_COMBINE, ZG_LEG_FWD_SMALL, 0x400000, NULL, ZG_LEGGED_CIRCLE_BELOW));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1036', 0xFF000000, NULL, 0x0000));
 
 		//15-20
-		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0xFF000000, NULL, 0x0000));
 		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, NULL, 0x0000));
 		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0x7, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0xFF000000, NULL, 0x0000));
 		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_SA, 0x600000000, NULL, ZG_YA_PIN_SA));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103C', 0x4, NULL, ZG_YA_YIT_LONG));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103B', 0x100E00000, NULL, ZG_YA_PIN_CUT));
 
-		//21-28
+		//21-30
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_SSA, 0x2, NULL, ZG_STACK_SSA_INDENT));
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_TA, 0x2, NULL, ZG_STACK_TA_INDENT));
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_HTA2, 0x2, NULL, ZG_STACK_HTA2_INDENT));
@@ -1001,6 +1011,8 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u101B', 0x1800000000, NULL, ZG_YA_CUT));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u100A', 0x4000600000, NULL, ZG_NYA_CUT));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1025', 0x800000, NULL, ZG_O_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_1, 0x2000, NULL, L'\u1037'));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_2, 0x2000, NULL, L'\u1037'));
 
 
 
@@ -1017,6 +1029,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		firstOccurrence[i] = -1;
 	length = wcslen(zawgyiStr);
 	size_t prevConsonant = 0;
+	int kinziCascade = 0;
 	for (size_t i=0; i<=length; i++) {
 		//Get properties on this letter
 		wchar_t currLetter = zawgyiStr[i];
@@ -1027,7 +1040,13 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		if (isConsonant(currLetter)|| i==length) {
 			//Apply our filters, from right-to-left
 			for (size_t x=i-1; x>=prevConsonant&&x<length; x--) {
+				bool resetRules = false;
 				for (size_t ruleID=0; ruleID<matchRules.size(); ruleID++) {
+					if (resetRules) {
+						ruleID = 0;
+						resetRules = false;
+					}
+
 					//Unfortunately, we have to apply ALL filters.
 					Rule *r = matchRules[ruleID];
 					if (r->at_letter!=zawgyiStr[x])
@@ -1082,6 +1101,8 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 								break; //Our rules shouldn't have this problem.
 							if (x<matchLoc)
 								break; //Don't shift right
+							if (r->blacklisted)
+								break; //Avoid cycles
 							wchar_t prevLetter = zawgyiStr[x];
 							for (size_t repID=matchLoc; repID<=x; repID++) {
 								int prevID = getStage3ID(getStage3BitFlags(prevLetter));
@@ -1092,8 +1113,11 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 								prevLetter = cached;
 							}
 
-							//We now have to re-scan old rules
-							checkMissingRules = true;
+							//We actually have to apply rules from the beginning, unfortunately. However,
+							// we prevent an infinite cycle by blacklisting this rule until the next 
+							// consonant occurs.
+							r->blacklisted = true;
+							resetRules = true;
 
 							break;
 						}
@@ -1118,13 +1142,18 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 
 
 					//Double-check for missing rules
-					if (isLogging()) {
+					if (checkMissingRules && isLogging()) {
 						for (size_t prevRule=0; prevRule < ruleID; prevRule++) {
 							Rule *r = matchRules[prevRule];
-							if (r->at_letter==zawgyiStr[x] && ((r->match_flags&currMatchFlags)!=0)) {
+							if (r->at_letter==zawgyiStr[x] && ((r->match_flags&currMatchFlags)!=0) && !r->blacklisted) {
 								matchLoc = -1;
 								matchLoc = getStage3ID(r->match_flags&currMatchFlags);
 								if (r->type==RULE_ORDER && x<matchLoc)
+									continue;
+
+								//Special cases added as we detect them:
+								//Dot below
+								if (matchRules[ruleID]->at_letter==ZG_DOT_BELOW_SHIFT_1 || matchRules[ruleID]->at_letter==ZG_DOT_BELOW_SHIFT_2)
 									continue;
 
 								fprintf(wzUtilLogFile, "WARNING: Rule %i was skipped after matching rule %i\n", prevRule, ruleID);
@@ -1141,7 +1170,6 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					currFlagID = getStage3ID(currFlag);*/
 				}
 			}
-
 
 			//Final special cases 
 			int yaYitID = firstOccurrence[getStage3ID(S3_MED_YA_YIT)];
@@ -1195,14 +1223,29 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 					continue;
 				firstOccurrence[x] = -1;
 			}
-			prevConsonant = i;
 			if (!softStop) {
+				//Special case: re-order "kinzi + consonant"
+				if (i>0 && kinziCascade==0 && zawgyiStr[i-1]==ZG_KINZI && zawgyiStr[i]!=0x0000) {
+					zawgyiStr[i-1] = zawgyiStr[i];
+					zawgyiStr[i] = ZG_KINZI;
+					i--;
+					kinziCascade = 2;
+				}
+
+				//Reset our black-list.
+				for (size_t rID=0; rID<matchRules.size(); rID++)
+					matchRules[rID]->blacklisted = false;
+
 				if (currFlagID!=-1) {
 					firstOccurrence[currFlagID] = i;
 					currMatchFlags = currFlag;
 				} else 
 					currMatchFlags = 0;
+
+				if (kinziCascade>0)
+					kinziCascade--;
 			}
+			prevConsonant = i;
 		} else {
 			//Just track this letter's location
 			if (currFlagID!=-1) {
@@ -1256,6 +1299,7 @@ wchar_t* renderAsZawgyi(wchar_t* uniString)
 		reorderPairs.push_back(L"\u1036\u103C");
 		reorderPairs.push_back(L"\u103C\u107D");
 		reorderPairs.push_back(L"\u1088\u102D");
+		reorderPairs.push_back(L"\u1039\u103D");
 	}
 	for (size_t i=1; i<length; i++) {
 		//Apply stage-2 rules
