@@ -195,6 +195,7 @@ int main(int argc, const char* argv[])
 	int errorCount = 0;
 	FILE *errorFile = NULL;
 	FILE *logFile = NULL;
+	std::vector<unsigned int> knownErrors;
 	for (unsigned int x=0; x<2426; x++) {
 		wchar_t *origZawgyi = model->getWordString(x);
 		wchar_t *origUnicode = makeStringFromKeystrokes(model->getWordKeyStrokes(x, ENCODING_UNICODE));
@@ -214,18 +215,44 @@ int main(int argc, const char* argv[])
 					waitzar::setLogFile(logFile);
 			}
 
-			fwprintf(errorFile, L"%ls -> %ls\n", origZawgyi, convertZawgyi);
-			fwprintf(errorFile, L"   ");
-			for (size_t i=0; i<wcslen(origZawgyi); i++)
-				fwprintf(errorFile, L"U+%x ", origZawgyi[i]);
-			fwprintf(errorFile, L" -> ");
-			for (size_t i=0; i<wcslen(convertZawgyi); i++)
-				fwprintf(errorFile, L"U+%x ", convertZawgyi[i]);
-			fwprintf(errorFile, L"\n");
+			if (   wcscmp(origZawgyi, L"\u106B\u1088\u102D\u1038")==0 
+				|| wcscmp(origZawgyi, L"\u100A\u1088\u102D\u1038")==0
+				|| wcscmp(origZawgyi, L"\u101C\u103D\u1034")==0
+				|| wcscmp(origZawgyi, L"\u101B\u103D\u1034")==0
+				|| wcscmp(origZawgyi, L"\u1000\u1010\u1072\u102C")==0
+				|| wcscmp(origZawgyi, L"\u1019\u102F\u1034\u102D\u1038")==0
+				|| wcscmp(origZawgyi, L"\u107F\u1015\u1032\u1095")==0
+				|| wcscmp(origZawgyi, L"\u104E")==0
+				|| wcscmp(origZawgyi, L"\u101B\u103D\u1034\u1038")==0
+				|| wcscmp(origZawgyi, L"\u1019\u103D\u1034\u1038")==0
+				|| wcscmp(origZawgyi, L"\u1019\u1007\u102D\u1069")==0
+				|| wcscmp(origZawgyi, L"\u1006\u102E\u1019\u1037\u1039")==0
+				|| wcscmp(origZawgyi, L"\u1019\u1088\u1095")==0
+				|| wcscmp(origZawgyi, L"\u1031\u1015\u102B\u1037\u1015\u1039")==0
+				|| wcscmp(origZawgyi, L"\u101B\u103D\u1036")==0
+				) {
+				knownErrors.push_back(x);
+			} else {
+				fwprintf(errorFile, L"%ls -> %ls\n", origZawgyi, convertZawgyi);
+				fwprintf(errorFile, L"   ");
+				for (size_t i=0; i<wcslen(origZawgyi); i++)
+					fwprintf(errorFile, L"U+%x ", origZawgyi[i]);
+				fwprintf(errorFile, L" -> ");
+				for (size_t i=0; i<wcslen(convertZawgyi); i++)
+					fwprintf(errorFile, L"U+%x ", convertZawgyi[i]);
+				fwprintf(errorFile, L"\n");
+			}
 
 			errorCount++;
 		}
 	}
+
+
+	fwprintf(errorFile, L"\nKnown Errors\n------------\n");
+	for (size_t i=0; i<knownErrors.size(); i++) {
+		fwprintf(errorFile, L"  %ls\n", model->getWordString(knownErrors[i]));
+	}
+
 
 	if (errorFile!=NULL)
 		fclose(errorFile);
