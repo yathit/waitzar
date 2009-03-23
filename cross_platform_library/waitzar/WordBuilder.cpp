@@ -41,6 +41,8 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 
 void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userWordsFilePaths) 
 {
+	revLookupOn = false;
+
 	//Step one: open the model file (ASCII)
 	FILE* modelFile = fopen(modelFilePath, "r");
 	if (modelFile == NULL) {
@@ -141,6 +143,8 @@ WordBuilder::WordBuilder(char *model_buff, size_t model_buff_size)
 
 void WordBuilder::init(char *model_buff, size_t model_buff_size)
 {
+	revLookupOn = false;
+
 	//Fix:
 	wcscpy(parenStr, L"");
 	
@@ -445,6 +449,8 @@ WordBuilder::~WordBuilder(void)
 
 void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize)
 {
+	revLookupOn = false;
+
 	//Fix:
 	wcscpy(parenStr, L"");
 	
@@ -501,6 +507,11 @@ void WordBuilder::setOutputEncoding(unsigned int encoding)
 	this->currEncoding = encoding;
 }
 
+
+unsigned int WordBuilder::getTotalDefinedWords()
+{
+	return dictMaxID;
+}
 
 
 unsigned short WordBuilder::getStopCharacter(bool isFull)
@@ -937,6 +948,105 @@ wchar_t* WordBuilder::getWordString(unsigned int id)
 }
 
 
+
+//Allows us to look-up a word and get its romanisation
+void WordBuilder::buildReverseLookup()
+{
+	//Allocate space
+	revLookup = new char*[dictMaxSize];
+	for (int i=0; i<dictMaxSize; i++)
+		revLookup[i] = NULL;
+
+	//Now, we have to jump down out nexus list one-by-one. 
+	// I'd like to avoid recursion with this one.
+	std::vector<unsigned int> nextNexi;
+	std::vector<unsigned int> currNexi;
+	currNexi.push_back(0);
+
+	//Initialize (the cautious way) our list of nexi-strings-to-date
+	std::vector<char*> nexiStrings;
+	for (int i=0; i<nexusMaxSize; i++) {
+		nexiStrings.push_back(new char[100]);
+		strcpy(nexiStrings[nexiStrings.size()-1], "");
+	}
+
+	//Now, "walk" down our list of nexi, appending as we go.
+	char letter[] = {0x0, 0x0};
+	while (!currNexi.empty()) {
+		//Deal with all nexi on this level.
+		for (size_t i=0; i<currNexi.size(); i++) {
+			unsigned int *thisNexus = nexus[currNexi[i]];
+			for (unsigned int x=0; x<thisNexus[0]; x++) {
+				int jmpToID = thisNexus[x+1]>>8;
+				letter[0] = (char)(0xFF&thisNexus[x+1]);
+				if (letter[0]!='~') {
+					strcat(nexiStrings[jmpToID], letter);
+					nextNexi.push_back(jmpToID);
+				}
+			}
+		}
+
+		//Prepare for the next level
+		currNexi.clear();
+		currNexi.insert(currNexi.end(), nextNexi.begin(), nextNexi.end());
+		nextNexi.clear();
+	}
+
+	//Finally, take our allocated strings and assign them to dictionary values (or delete them)
+	// Note that we will duplicate strings to save space. 
+	for (size_t i=0; i<nexusMaxID; i++) {
+		//Find out if this has a prefix entry
+		unsigned int *thisNexus = nexus[i];
+		int prefixID = -1;
+		for (unsigned int x=0; x<thisNexus[0]; x++) {
+			if ((char)(0xFF&thisNexus[x+1])=='~') {
+				prefixID = thisNexus[x+1]>>8;
+				break;
+			}
+		}
+
+		//If there's no entries, just clear this string
+		if (prefixID == -1) {
+			delete [] nexiStrings[i];
+			continue;
+		}
+
+		//Else, reference this string in every prefix this refers to.
+		//  Note that we only have to check prefix level zero, which by 
+		//  definition contains every prefix.
+		unsigned int *thisPrefix = prefix[prefixID];
+		for (unsigned int x=0; x<thisPrefix[1]; x++) {
+			unsigned int dictWord = thisPrefix[2+thisPrefix[0]+x];
+			revLookup[dictWord] = nexiStrings[i];
+		}
+	}
+
+	//Just as a precaution, eliminate dangling nulls
+	char *empty = new char[1];
+	empty[0] = 0x00;
+	for (int i=0; i<dictMaxSize; i++) {
+		if (revLookup[i] == NULL)
+			revLookup[i] = empty;
+	}
+
+	revLookupOn = true;
+}
+
+
+
+char* WordBuilder::reverseLookupWord(unsigned int dictID)
+{
+	if (dictID<0 || dictID >= (unsigned int)dictMaxID)
+		return NULL;
+
+	if (!revLookupOn)
+		buildReverseLookup();
+
+	return revLookup[dictID];
+}
+
+
+
 wchar_t* WordBuilder::getLastError()
 {
 	return mostRecentError;
@@ -980,6 +1090,13 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDupl
 			dictionary[dictMaxID][i+1] = (unsigned short)myanmar[i];
 		}
 		dictMaxID++;
+	}
+
+
+	//Update the reverse lookup?
+	if (revLookupOn) {
+		revLookup[dictID] = new char[100];
+		strcpy(revLookup[dictID], roman);
 	}
 
 
@@ -1083,6 +1200,8 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDupl
 
 	return true;
 }
+
+
 
 
 //Return 0: error
