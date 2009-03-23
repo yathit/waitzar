@@ -1999,6 +1999,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						lstrcpy(currStr, _T(""));
 						recalculate();
 					}
+
+					//We need to reset the trigrams here...
+					sentence->updateTrigrams(model);
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
