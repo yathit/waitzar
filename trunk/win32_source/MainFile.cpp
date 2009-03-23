@@ -1330,6 +1330,10 @@ void typeCurrentPhrase()
 	//Now, reset...
 	model->reset(true);
 	sentence->clear();
+	for (unsigned int i=0; i<userDefinedWords.size(); i++) {
+		delete [] userDefinedWords[i];
+		delete [] userDefinedWordsZg[i];
+	}
 	userDefinedWords.clear();
 	userDefinedWordsZg.clear();
 
@@ -1970,8 +1974,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
 					if (currStrDictID==-1) {
-						userDefinedWords.push_back(currStr);
-						userDefinedWordsZg.push_back(currStrZg);
+						wchar_t *tempStr = new wchar_t[100];
+						wchar_t *tempStrZg = new wchar_t[100];
+						wcscpy(tempStr, currStr);
+						wcscpy(tempStrZg, currStrZg);
+						waitzar::sortMyanmarString(tempStr);
+						userDefinedWords.push_back(tempStr);
+						userDefinedWordsZg.push_back(tempStrZg);
 						currStrDictID = -1*userDefinedWords.size();
 					}
 
