@@ -1188,7 +1188,8 @@ void recalculate()
 
 		//Any match at all?
 		if (currMatchID!=-1) {
-			swprintf(currLetterSt, L"(%s)", model->reverseLookupWord(currMatchID));
+			char *romanWord = model->reverseLookupWord(currMatchID);
+			swprintf(currLetterSt, L"(%S)", romanWord);
 			mmFontGreen->drawString(mainUnderDC, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
 		}
 	} else {
