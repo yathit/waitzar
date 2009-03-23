@@ -44,6 +44,9 @@ public:
 	std::list<int>::iterator begin();
 	std::list<int>::iterator end();
 
+	//Consistency
+	void updateTrigrams(WordBuilder *model);
+
 
 private:
 	//Main wrapped variables
@@ -53,9 +56,6 @@ private:
 
 	//Helper
 	std::list<int>::iterator newCursor;
-
-	//Helper methods
-	void updateTrigrams(WordBuilder *model);
 };
 
 
