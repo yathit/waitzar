@@ -995,7 +995,7 @@ void WordBuilder::buildReverseLookup()
 
 	//Finally, take our allocated strings and assign them to dictionary values (or delete them)
 	// Note that we will duplicate strings to save space. 
-	for (size_t i=0; i<nexusMaxID; i++) {
+	for (int i=0; i<nexusMaxID; i++) {
 		//Find out if this has a prefix entry
 		unsigned int *thisNexus = nexus[i];
 		int prefixID = -1;
@@ -1018,7 +1018,7 @@ void WordBuilder::buildReverseLookup()
 		unsigned int *thisPrefix = prefix[prefixID];
 		for (unsigned int x=0; x<thisPrefix[1]; x++) {
 			unsigned int dictWord = thisPrefix[2+thisPrefix[0]*2+x];
-			if (dictWord>=0 && dictWord<dictMaxID)
+			if (dictWord>=0 && dictWord<(unsigned int)dictMaxID)
 				revLookup[dictWord] = nexiStrings[i];
 		}
 	}

@@ -146,6 +146,9 @@ DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
 std::list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
+std::vector<wchar_t*> userDefinedWords; //Words the user types in. Stored with a negative +1 index
+std::vector<wchar_t*> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
+std::vector<unsigned short> userKeystrokeVector;
 
 //Help window colors
 #define COLOR_HELPFNT_KEYS        0x606060
@@ -189,6 +192,8 @@ bool helpInitDone;
 
 //Record-keeping
 TCHAR currStr[100];
+TCHAR currStrZg[100];
+int currStrDictID;
 TCHAR currLetterSt[100];
 BOOL mmOn;
 BOOL controlKeysOn = FALSE;
@@ -1117,8 +1122,13 @@ void recalculate()
 		int counterCursorID=0;
 		for (;printIT != sentence->end(); printIT++) {
 			//Append this string
-			mmFontSmallBlack->drawString(senUnderDC, model->getWordString(*printIT), currentPosX, borderWidth+1);
-			currentPosX += (mmFontSmallBlack->getStringWidth(model->getWordString(*printIT))+1);
+			wchar_t *strToDraw;
+			if (*printIT>=0)
+				strToDraw = model->getWordString(*printIT);
+			else
+				strToDraw = userDefinedWordsZg[-(*printIT)-1];
+			mmFontSmallBlack->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
+			currentPosX += (mmFontSmallBlack->getStringWidth(strToDraw)+1);
 
 			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
 			if (counterCursorID == sentence->getCursorIndex())
@@ -1154,18 +1164,19 @@ void recalculate()
 	TCHAR extendedWordString[300];
 	if (helpWindowIsVisible) {
 		//Prepare the extended word string a bit early
-		lstrcpy(currLetterSt, currStr);
-		waitzar::sortMyanmarString(currLetterSt);
-		lstrcpy(extendedWordString, waitzar::renderAsZawgyi(currLetterSt));
+		lstrcpy(currStrZg, currStr);
+		waitzar::sortMyanmarString(currStrZg);
+		lstrcpy(currStrZg, waitzar::renderAsZawgyi(currStrZg));
+		lstrcpy(extendedWordString, currStrZg);
 
 		//We only have one word: the guessed romanisation
-		int currMatchID = -1;
+		currStrDictID = -1;
 		for (unsigned int i=0; i<model->getTotalDefinedWords(); i++) {
 			//Does this word match?
 			wchar_t *currWord = model->getWordString(i);
 			if (wcscmp(currWord, extendedWordString)==0) {
 				wcscpy(currLetterSt, currWord);
-				currMatchID = i;
+				currStrDictID = i;
 				break;
 			}
 		}
@@ -1187,8 +1198,8 @@ void recalculate()
 		}*/
 
 		//Any match at all?
-		if (currMatchID!=-1) {
-			char *romanWord = model->reverseLookupWord(currMatchID);
+		if (currStrDictID!=-1) {
+			char *romanWord = model->reverseLookupWord(currStrDictID);
 			swprintf(currLetterSt, L"(%S)", romanWord);
 			mmFontGreen->drawString(mainUnderDC, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
 		}
@@ -1236,6 +1247,33 @@ void recalculate()
 
 
 
+std::vector<unsigned short> getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
+{
+	//Get the string
+	wchar_t *typedStr;
+	wchar_t destStr[200];
+	if (encoding==ENCODING_UNICODE)
+		typedStr = userDefinedWords[id];
+	else if (encoding==ENCODING_ZAWGYI)
+		typedStr = userDefinedWordsZg[id];
+	else if (encoding==ENCODING_WININNWA) {
+		wchar_t* srcStr = userDefinedWords[id];
+		wcscpy(destStr, L"");
+		convertFont(destStr, srcStr, Zawgyi_One, WinInnwa);
+		typedStr = destStr;
+	} else
+		typedStr = L"";
+
+	//Convert
+	size_t length = wcslen(typedStr);
+	for (size_t i=0; i<length; i++) 
+		userKeystrokeVector.push_back((unsigned short) typedStr[i]);
+
+	return userKeystrokeVector;
+}
+
+
+
 void typeCurrentPhrase()
 {
 	//Send key presses to the top-level program.
@@ -1254,7 +1292,10 @@ void typeCurrentPhrase()
 	for (;printIT!=sentence->end() || stopChar!=0;) {
 		//We may or may not have a half/full stop at the end.
 		if (printIT!=sentence->end()) {
-			keyStrokes = model->getWordKeyStrokes(*printIT);
+			if (*printIT>=0)
+				keyStrokes = model->getWordKeyStrokes(*printIT);
+			else
+				keyStrokes = getUserWordKeyStrokes(-(*printIT)-1, model->getOutputEncoding());
 		} else {
 			keyStrokes.clear();
 			keyStrokes.push_back(stopChar);
@@ -1289,6 +1330,9 @@ void typeCurrentPhrase()
 	//Now, reset...
 	model->reset(true);
 	sentence->clear();
+	userDefinedWords.clear();
+	userDefinedWordsZg.clear();
+
 
 	//Technically, this can be called with JUST a stopChar, which implies
 	//  that the window isn't visible. So check this.
@@ -1303,12 +1347,16 @@ void typeCurrentPhrase()
 
 
 
-BOOL selectWord(int id)
+BOOL selectWord(int id, bool isTypingHelp)
 {
 	//Are there any words to use?
-	std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
-	if (typedVal.first == FALSE)
-		return FALSE;
+	int wordID = id;
+	if (!isTypingHelp) {
+		std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
+		if (typedVal.first == FALSE)
+			return FALSE;
+		wordID = typedVal.second;
+	}
 
 	//Optionally turn off numerals
 	if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
@@ -1317,11 +1365,11 @@ BOOL selectWord(int id)
 	if (typePhrases==FALSE) {
 		//Simple Case
 		sentence->clear();
-		sentence->insert(typedVal.second);
+		sentence->insert(wordID);
 		typeCurrentPhrase();
 	} else {
 		//Advanced Case - Insert
-		sentence->insert(typedVal.second);
+		sentence->insert(wordID);
 	}
 
 	return TRUE;
@@ -1834,7 +1882,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							numCode = 9;
 
 						//The model is visible: select that word
-						BOOL typed = selectWord(numCode);
+						BOOL typed = selectWord(numCode, helpWindowIsVisible);
 						if (typed==TRUE && typePhrases==TRUE) {
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
@@ -1900,7 +1948,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					stopChar = 0;
 					if (mainWindowIsVisible) {
 						//The model is visible: select that word
-						BOOL typed = selectWord(-1);
+						BOOL typed = selectWord(-1, helpWindowIsVisible);
 						if (typed==TRUE && typePhrases==TRUE) {
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
@@ -1921,14 +1969,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (helpWindowIsVisible) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
-					// (is this possible?)
-					//ADD LATER
+					if (currStrDictID==-1) {
+						userDefinedWords.push_back(currStr);
+						userDefinedWordsZg.push_back(currStrZg);
+						currStrDictID = -1*userDefinedWords.size();
+					}
 
+					//Hide the help window
+					helpWindowIsVisible = false;
+					turnOnHelpKeys(false);
+					ShowWindow(helpWindow, SW_HIDE);
+
+					//Try to type this word
+					BOOL typed = selectWord(currStrDictID, true);
+					if (typed==TRUE && typePhrases==TRUE) {
+						ShowWindow(mainWindow, SW_HIDE);
+						mainWindowIsVisible = false;
+
+						model->reset(false);
+						lstrcpy(currStr, _T(""));
+						recalculate();
+					}
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
 						//The model is visible: select that word
-						BOOL typed = selectWord(-1);
+						BOOL typed = selectWord(-1, helpWindowIsVisible);
 						if (typed==TRUE && typePhrases==TRUE) {
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
