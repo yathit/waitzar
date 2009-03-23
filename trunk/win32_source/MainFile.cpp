@@ -131,6 +131,7 @@ int numCustomWords;
 INPUT *inputItems;
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
+wchar_t returnVal[500];
 
 //Help Window resources
 PulpCoreFont *helpFntKeys;
@@ -1063,6 +1064,16 @@ void initCalculateHelp()
 }
 
 
+wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
+{
+	for (unsigned int i=0; i<keystrokes.size(); i++) {
+		returnVal[i] = keystrokes[i];
+	}
+	returnVal[keystrokes.size()] = 0x0000;
+	
+	return returnVal;
+}
+
 
 
 /**
@@ -1140,37 +1151,74 @@ void recalculate()
 	PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
 	TCHAR digit[5];
-	for (size_t i=0; i<words.size(); i++) {
-		//If this is the currently-selected word, draw a box under it.
-		int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
-		if (i!=model->getCurrSelectedID())
-			mmFont = mmFontBlack;
-		else {
-			mmFont = mmFontGreen;
-
-			SelectObject(mainUnderDC, g_YellowBkgrd);
-			SelectObject(mainUnderDC, g_GreenPen);
-			Rectangle(mainUnderDC, borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
-		}
-
-		mmFont->drawString(mainUnderDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
-
-		if (i<10) {
-			swprintf(digit, _T("%i"), ((i+1)%10));
-			int digitWidth = mmFont->getStringWidth(digit);
-
-			mmFont->drawString(mainUnderDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
-		}
-
-		xOffset += thisStrWidth + spaceWidth;
-	}
-
 	TCHAR extendedWordString[300];
 	if (helpWindowIsVisible) {
-		lstrcpy(extendedWordString, currStr);
-		waitzar::sortMyanmarString(extendedWordString);
-		lstrcpy(extendedWordString, waitzar::renderAsZawgyi(extendedWordString));
+		//Prepare the extended word string a bit early
+		lstrcpy(currLetterSt, currStr);
+		waitzar::sortMyanmarString(currLetterSt);
+		lstrcpy(extendedWordString, waitzar::renderAsZawgyi(currLetterSt));
+
+		//We only have one word: the guessed romanisation
+		int currMatchID = -1;
+		for (unsigned int i=0; i<model->getTotalDefinedWords(); i++) {
+			//Does this word match?
+			wchar_t *currWord = model->getWordString(i);
+			if (wcscmp(currWord, extendedWordString)==0) {
+				wcscpy(currLetterSt, currWord);
+				currMatchID = i;
+				break;
+			}
+		}
+
+		//Try a less-strict filtering
+		// We leave this out... it shouldn't be necessary if we're filtering our strings.
+		/*if (currMatchID==-1) {
+			unsigned int currEnc = model->getOutputEncoding();
+			model->setOutputEncoding(ENCODING_UNICODE);
+			for (unsigned int i=0; i<model->getTotalDefinedWords(); i++) {
+				wchar_t *currUni = makeStringFromKeystrokes(model->getWordKeyStrokes(i));
+				if (wcscmp(currUni, currLetterSt)==0) {
+					wcscpy(currLetterSt, currUni);
+					currMatchID = i;
+					break;
+				}
+			}
+			model->setOutputEncoding(currEnc);
+		}*/
+
+		//Any match at all?
+		if (currMatchID!=-1) {
+			swprintf(currLetterSt, L"(%s)", model->reverseLookupWord(currMatchID));
+			mmFontGreen->drawString(mainUnderDC, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
+		}
 	} else {
+		for (size_t i=0; i<words.size(); i++) {
+			//If this is the currently-selected word, draw a box under it.
+			int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
+			if (i!=model->getCurrSelectedID())
+				mmFont = mmFontBlack;
+			else {
+				mmFont = mmFontGreen;
+
+				SelectObject(mainUnderDC, g_YellowBkgrd);
+				SelectObject(mainUnderDC, g_GreenPen);
+				Rectangle(mainUnderDC, borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
+			}
+
+			mmFont->drawString(mainUnderDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
+
+			if (i<10) {
+				swprintf(digit, _T("%i"), ((i+1)%10));
+				int digitWidth = mmFont->getStringWidth(digit);
+
+				mmFont->drawString(mainUnderDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
+			}
+
+			xOffset += thisStrWidth + spaceWidth;
+		}
+	}
+
+	if (!helpWindowIsVisible) {
 		TCHAR* parenStr = model->getParenString();
 		if (parenStr!=NULL && lstrlen(parenStr)>0) {
 			swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr);
@@ -1583,6 +1631,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
 						HELP_CLIENT_SIZE.cx = newW;
 						HELP_CLIENT_SIZE.cy = newH;
+
+						//Might as well build the reverse lookup
+						model->reverseLookupWord(0);
 
 						//...and now we can properly initialize its drawing surface
 						helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
@@ -2995,43 +3046,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				fprintf(logFile, "\n");
 			}
 		}
-
-		//Now, some of our own tests
-		/*wcscpy(testStrSort, L"\u1000\u1031\u103D");
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, " ==>  ");
-		waitzar::sortMyanmarString(testStrSort);
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, "\n");
-
-		wcscpy(testStrSort, L"\u1001\u103D\u103D");
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, " ==>  ");
-		waitzar::sortMyanmarString(testStrSort);
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, "\n");
-
-		wcscpy(testStrSort, L"\u1019\u1004\u103A\u1039\u1002\u101C\u102C\u1015\u102B");
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, " ==>  ");
-		waitzar::sortMyanmarString(testStrSort);
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, "\n");
-
-		wcscpy(testStrSort, L"\u1000 hi \u1031\u1040\u103D");
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, " ==>  ");
-		waitzar::sortMyanmarString(testStrSort);
-		for (size_t x=0; x<wcslen(testStrSort); x++)
-			fprintf(logFile, "0x%X ", testStrSort[x]);
-		fprintf(logFile, "\n");*/
 	}
 
 

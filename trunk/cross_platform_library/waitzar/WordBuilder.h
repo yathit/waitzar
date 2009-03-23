@@ -78,7 +78,8 @@ public:
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull);
-	//void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet);
+	unsigned int getTotalDefinedWords();
+	char* reverseLookupWord(unsigned int dictID);
 
 	//Re-order the model
 	bool addRomanization(wchar_t* myanmar, char* roman);
@@ -96,6 +97,8 @@ private:
 	unsigned short **dictionary;
 	unsigned int **nexus;
 	unsigned int **prefix;
+	char **revLookup;
+	bool revLookupOn;
 
 	//Cached lookups
 	unsigned short **winInnwaDictionary;
@@ -132,8 +135,8 @@ private:
 
 	//Staged Init
 	void init (char * model_buff, size_t model_buff_size);
-        void init (const char* modelFile, std::vector<std::string> userWordsFiles);
-        void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
+    void init (const char* modelFile, std::vector<std::string> userWordsFiles);
+    void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
 
 	//Internal stuff
 	std::vector<char> possibleChars;
@@ -154,6 +157,7 @@ private:
 	bool vectorContains(std::vector<unsigned int> vec, unsigned int val);
 	void addPrefix(unsigned int latestPrefix);
 	void setCurrSelected(int id);
+	void buildReverseLookup();
 
 };
 
