@@ -409,7 +409,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size)
 
 /**
  * Construction of a word builder requires three things. All of these are 2-D jagged arrays;
- *   the first entry in each row is the size of that row.
+ *   the first entry in each row is the size of that row. Prefixes have two size entries.
  * NOTE: Please see the alternative constructor for a (usually preferred) helper to load from files.
  * @param dictionary is an array of character sequences. For example,
  *     {"ka", "ko", "sa"} becomes {{1,0x1000}, {3,0x1000,0x102D,0x102F}, {2,0x1005,0x1032}}
@@ -965,7 +965,7 @@ void WordBuilder::buildReverseLookup()
 
 	//Initialize (the cautious way) our list of nexi-strings-to-date
 	std::vector<char*> nexiStrings;
-	for (int i=0; i<nexusMaxSize; i++) {
+	for (int i=0; i<nexusMaxID; i++) {
 		nexiStrings.push_back(new char[100]);
 		strcpy(nexiStrings[nexiStrings.size()-1], "");
 	}
@@ -980,6 +980,7 @@ void WordBuilder::buildReverseLookup()
 				int jmpToID = thisNexus[x+1]>>8;
 				letter[0] = (char)(0xFF&thisNexus[x+1]);
 				if (letter[0]!='~') {
+					strcat(nexiStrings[jmpToID], nexiStrings[currNexi[i]]);
 					strcat(nexiStrings[jmpToID], letter);
 					nextNexi.push_back(jmpToID);
 				}
@@ -1016,19 +1017,21 @@ void WordBuilder::buildReverseLookup()
 		//  definition contains every prefix.
 		unsigned int *thisPrefix = prefix[prefixID];
 		for (unsigned int x=0; x<thisPrefix[1]; x++) {
-			unsigned int dictWord = thisPrefix[2+thisPrefix[0]+x];
-			revLookup[dictWord] = nexiStrings[i];
+			unsigned int dictWord = thisPrefix[2+thisPrefix[0]*2+x];
+			if (dictWord>=0 && dictWord<dictMaxID)
+				revLookup[dictWord] = nexiStrings[i];
 		}
 	}
 
 	//Just as a precaution, eliminate dangling nulls
 	char *empty = new char[1];
 	empty[0] = 0x00;
-	for (int i=0; i<dictMaxSize; i++) {
+	for (int i=0; i<dictMaxID; i++) {
 		if (revLookup[i] == NULL)
 			revLookup[i] = empty;
 	}
 
+	nexiStrings.clear();
 	revLookupOn = true;
 }
 
