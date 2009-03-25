@@ -124,7 +124,8 @@ HICON engIcon;
 WordBuilder *model;
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
-PulpCoreFont *mmFontSmallBlack;
+PulpCoreFont *mmFontSmallWhite;
+PulpCoreFont *mmFontSmallGray;
 PAINTSTRUCT Ps;
 WORD stopChar;
 int numConfigOptions;
@@ -235,7 +236,7 @@ bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = true;
+bool isLogging = false;
 FILE *logFile;
 
 
@@ -518,11 +519,11 @@ void makeFont(HWND currHwnd)
         return;
 	}
 
-	mmFontSmallBlack = new PulpCoreFont();
-	mmFontSmallBlack->init(fontRes2, res_handle_2, senDC);
-	if (mmFontSmallBlack->isInError()==TRUE) {
+	mmFontSmallWhite = new PulpCoreFont();
+	mmFontSmallWhite->init(fontRes2, res_handle_2, senDC);
+	if (mmFontSmallWhite->isInError()==TRUE) {
 		TCHAR errorStr[600];
-		swprintf(errorStr, _T("WZ Small Font didn't load correctly: %s"), mmFontSmallBlack->getErrorMsg());
+		swprintf(errorStr, _T("WZ Small Font didn't load correctly: %s"), mmFontSmallWhite->getErrorMsg());
 
 		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
 		return;
@@ -532,7 +533,13 @@ void makeFont(HWND currHwnd)
 	UnlockResource(res_handle_2);
 
 	//Tint
-	mmFontSmallBlack->tintSelf(0xFFFFFF); //White is better
+	mmFontSmallWhite->tintSelf(0xFFFFFF);
+
+	//New copy
+	mmFontSmallGray = new PulpCoreFont();
+	mmFontSmallGray->init(mmFontSmallWhite, mainDC);
+	mmFontSmallGray->tintSelf(0x333333);
+	
 }
 
 
@@ -1066,7 +1073,7 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 void initCalculateHelp()
 {
 	//Initialize our keyboard
-	helpKeyboard = new OnscreenKeyboard(mmFontSmallBlack, helpFntKeys, helpFntFore, helpFntBack, helpCornerImg);
+	helpKeyboard = new OnscreenKeyboard(mmFontSmallWhite, helpFntKeys, helpFntFore, helpFntBack, helpCornerImg);
 }
 
 
@@ -1128,8 +1135,8 @@ void recalculate()
 				strToDraw = model->getWordString(*printIT);
 			else
 				strToDraw = userDefinedWordsZg[-(*printIT)-1];
-			mmFontSmallBlack->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
-			currentPosX += (mmFontSmallBlack->getStringWidth(strToDraw)+1);
+			mmFontSmallWhite->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
+			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
 
 			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
 			if (counterCursorID == sentence->getCursorIndex())
@@ -1144,11 +1151,11 @@ void recalculate()
 		LineTo(senUnderDC, cursorPosX-1, SUB_C_HEIGHT-borderWidth-1);
 
 		//Draw the current encoding
-		int encStrWidth = mmFontSmallBlack->getStringWidth(currEncStr);
+		int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
 		SelectObject(senUnderDC, g_BlackPen);
 		SelectObject(senUnderDC, g_GreenBkgrd);
 		Rectangle(senUnderDC, SUB_C_WIDTH-encStrWidth-3, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
-		mmFontSmallBlack->drawString(senUnderDC, currEncStr, SUB_C_WIDTH-encStrWidth-2, SUB_C_HEIGHT/2-mmFontSmallBlack->getHeight()/2);
+		mmFontSmallWhite->drawString(senUnderDC, currEncStr, SUB_C_WIDTH-encStrWidth-2, SUB_C_HEIGHT/2-mmFontSmallWhite->getHeight()/2);
 	}
 
 	//White overlays
@@ -1204,6 +1211,9 @@ void recalculate()
 			swprintf(currLetterSt, L"(%S)", romanWord);
 			mmFontGreen->drawString(mainUnderDC, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
 		}
+
+		//Helper text
+		mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 	} else {
 		for (size_t i=0; i<words.size(); i++) {
 			//If this is the currently-selected word, draw a box under it.
@@ -1598,11 +1608,11 @@ void updateHelpWindow()
 	} else {
 		//Clear our word string
 		lstrcpy(currStr, _T(""));
-		recalculate();
 
 		turnOnHelpKeys(false);
 		ShowWindow(helpWindow, SW_HIDE);
 		helpWindowIsVisible = false;
+		recalculate();
 	}
 }
 
