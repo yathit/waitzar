@@ -161,7 +161,7 @@ public class WordSearcher {
 			necessaryRhmes.add(currRhyme);
 			totalCaptured += rhymeToWords.get(currRhyme).size();
 			
-			System.out.println(necessaryRhmes.size() + ":" + rhymeToWords.get(currRhyme));
+			//System.out.println(necessaryRhmes.size() + ":" + rhymeToWords.get(currRhyme));
 			
 			//Count up
 			for (String s : rhymeToWords.get(currRhyme)) {
@@ -177,6 +177,16 @@ public class WordSearcher {
 		System.out.println("Words: " + totalCaptured + " of " + totalWords);
 		System.out.println("Instances: " + instancesCaptured + " of " + totalInstances);
 		
+		ArrayList<ZawgyiWord> sortedNecRhymes = new ArrayList<ZawgyiWord>();
+		for (String s : necessaryRhmes) {
+			try {
+				sortedNecRhymes.add(new ZawgyiWord(s));
+			} catch (RuntimeException ex)  {
+				System.out.println("Bad word.");
+			}
+		}
+		
+		Collections.sort(sortedNecRhymes, ZawgyiWord.getComparator());
 		BufferedWriter rhymeOutfile = null;
 		try {
 			rhymeOutfile = new BufferedWriter(new PrintWriter("rhymelist.top90.txt", "UTF-8"));
@@ -186,9 +196,9 @@ public class WordSearcher {
 			System.out.println("Out file encoding not supported (UTF-8).");
 		}
 	
-		for (String s : necessaryRhmes) {
+		for (ZawgyiWord s : sortedNecRhymes) {
 			try {
-				rhymeOutfile.write(s + "\n");
+				rhymeOutfile.write(s.toString() + "\n");
 			} catch (IOException ex) {
 				System.out.println("Error writing: " + ex.toString());
 			}
