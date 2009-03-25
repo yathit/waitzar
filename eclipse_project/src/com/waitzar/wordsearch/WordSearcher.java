@@ -198,7 +198,7 @@ public class WordSearcher {
 	
 		for (ZawgyiWord s : sortedNecRhymes) {
 			try {
-				rhymeOutfile.write(s.toString() + "\n");
+				rhymeOutfile.write(s.toString() + " = " + rhymes.get(s.toString())  + "\n");
 			} catch (IOException ex) {
 				System.out.println("Error writing: " + ex.toString());
 			}
