@@ -1724,34 +1724,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Close the window?
 			if (wParam == HOTKEY_ESC) {
-				if (!mainWindowIsVisible) {
-					//Kill the entire sentence.
-					sentence->clear();
-					model->reset(true);
-					turnOnControlkeys(FALSE);
-					ShowBothWindows(SW_HIDE);
+				if (helpWindowIsVisible) {
+					//Clear our word string
+					lstrcpy(currStr, _T(""));
+					recalculate();
+
+					turnOnHelpKeys(false);
+					ShowWindow(helpWindow, SW_HIDE);
+					helpWindowIsVisible = false;
 				} else {
-					model->reset(false);
-
-					//No more numbers
-					if (typeBurmeseNumbers==FALSE)
-						turnOnNumberkeys(FALSE);
-
-					//Are we using advanced input?
-					if (typePhrases==FALSE) {
-						//Turn off control keys
+					if (!mainWindowIsVisible) {
+						//Kill the entire sentence.
+						sentence->clear();
+						model->reset(true);
 						turnOnControlkeys(FALSE);
 						ShowBothWindows(SW_HIDE);
 					} else {
-						//Just hide the typing window for now.
-						ShowWindow(mainWindow, SW_HIDE);
-						mainWindowIsVisible = false;
+						model->reset(false);
 
-						if (sentence->size()==0) {
-							//Kill the entire sentence.
-							sentence->clear();
-							ShowBothWindows(SW_HIDE);
+						//No more numbers
+						if (typeBurmeseNumbers==FALSE)
+							turnOnNumberkeys(FALSE);
+
+						//Are we using advanced input?
+						if (typePhrases==FALSE) {
+							//Turn off control keys
 							turnOnControlkeys(FALSE);
+							ShowBothWindows(SW_HIDE);
+						} else {
+							//Just hide the typing window for now.
+							ShowWindow(mainWindow, SW_HIDE);
+							mainWindowIsVisible = false;
+
+							if (sentence->size()==0) {
+								//Kill the entire sentence.
+								sentence->clear();
+								ShowBothWindows(SW_HIDE);
+								turnOnControlkeys(FALSE);
+							}
 						}
 					}
 				}
@@ -1945,9 +1955,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (helpWindowIsVisible) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
-					// (is this possible?)
-					//ADD LATER
+					if (currStrDictID==-1) {
+						wchar_t *tempStr = new wchar_t[100];
+						wchar_t *tempStrZg = new wchar_t[100];
+						wcscpy(tempStr, currStr);
+						wcscpy(tempStrZg, currStrZg);
+						waitzar::sortMyanmarString(tempStr);
+						userDefinedWords.push_back(tempStr);
+						userDefinedWordsZg.push_back(tempStrZg);
+						currStrDictID = -1*userDefinedWords.size();
+					}
 
+					//Hide the help window
+					helpWindowIsVisible = false;
+					turnOnHelpKeys(false);
+					ShowWindow(helpWindow, SW_HIDE);
+
+					//Try to type this word
+					BOOL typed = selectWord(currStrDictID, true);
+					if (typed==TRUE && typePhrases==TRUE) {
+						ShowWindow(mainWindow, SW_HIDE);
+						mainWindowIsVisible = false;
+
+						model->reset(false);
+						lstrcpy(currStr, _T(""));
+						recalculate();
+					}
+
+					//We need to reset the trigrams here...
+					sentence->updateTrigrams(model);
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
