@@ -89,6 +89,7 @@ BEGIN
             MENUITEM "Zawgyi-One",                  ID_ENCODING_ZAWGYI
             MENUITEM "Win Innwa",                   ID_ENCODING_WININNWA
         END
+        MENUITEM "&Look Up Word (F1)",        	IDM_LOOKUP
     END
 END
 
