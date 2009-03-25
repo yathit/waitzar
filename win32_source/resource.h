@@ -23,13 +23,14 @@
 #define ID_ENCODING_UNICODE5            40012
 #define ID_ENCODING_ZAWGYI              40013
 #define ID_ENCODING_WININNWA            40014
+#define IDM_LOOKUP                      40015
 
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        113
-#define _APS_NEXT_COMMAND_VALUE         40015
+#define _APS_NEXT_COMMAND_VALUE         40016
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -81,6 +81,7 @@ bool TEMP_FLAG = false;
 TCHAR* POPUP_UNI = _T("Unicode 5.1");
 TCHAR* POPUP_ZG = _T("Zawgyi-One");
 TCHAR* POPUP_WIN = _T("Win Innwa");
+TCHAR* POPUP_LOOKUP = _T("&Look Up Word (F1)");
 
 //Prototypes
 BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase);
@@ -1548,6 +1549,65 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 
+void updateHelpWindow()
+{
+	if (!helpWindowIsVisible) {
+		//Did we even initialize the help window?
+		if (!helpIsCached) {
+			//Time to re-size our help window. Might as well center it now, too
+			HWND taskBar = FindWindowW(_T("Shell_TrayWnd"), _T(""));
+			RECT r;
+			GetClientRect(GetDesktopWindow(), &r);
+			int newX = (r.right-r.left)/2-helpKeyboard->getWidth()/2;
+			int newY = (r.bottom-r.top)-helpKeyboard->getHeight();
+			if (taskBar != NULL) {
+				GetClientRect(taskBar, &r);
+				newY -= (r.bottom-r.top);
+			}
+			int newW = 0;
+			int newH = 0;
+			expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
+			HELP_CLIENT_SIZE.cx = newW;
+			HELP_CLIENT_SIZE.cy = newH;
+
+			//Might as well build the reverse lookup
+			model->reverseLookupWord(0);
+
+			//...and now we can properly initialize its drawing surface
+			helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
+
+			helpIsCached = true;
+		}
+
+
+		//Register all hotkeys relevant for the help window
+		if (!turnOnHelpKeys(true))
+			MessageBox(mainWindow, _T("Could not turn on one of the help hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
+		if (controlKeysOn==FALSE) //We'll need these too.
+			turnOnControlkeys(TRUE);
+
+		//Clear our current word (not the sentence, though, and keep the trigrams)
+		lstrcpy(currStr, _T(""));
+		model->reset(false);
+		recalculate();
+
+		//Show the help window
+		ShowWindow(helpWindow, SW_SHOW);
+		helpWindowIsVisible = true;
+		reBlitHelp();
+	} else {
+		//Clear our word string
+		lstrcpy(currStr, _T(""));
+		recalculate();
+
+		turnOnHelpKeys(false);
+		ShowWindow(helpWindow, SW_HIDE);
+		helpWindowIsVisible = false;
+	}
+}
+
+
+
 /**
  * Message-handling code.
  */
@@ -1666,59 +1726,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//What to do if our user hits "F1".
 			if (wParam == HOTKEY_HELP) {
-				if (!helpWindowIsVisible) {
-					//Did we even initialize the help window?
-					if (!helpIsCached) {
-						//Time to re-size our help window. Might as well center it now, too
-						HWND taskBar = FindWindowW(_T("Shell_TrayWnd"), _T(""));
-						RECT r;
-						GetClientRect(GetDesktopWindow(), &r);
-						int newX = (r.right-r.left)/2-helpKeyboard->getWidth()/2;
-						int newY = (r.bottom-r.top)-helpKeyboard->getHeight();
-						if (taskBar != NULL) {
-							GetClientRect(taskBar, &r);
-							newY -= (r.bottom-r.top);
-						}
-						int newW = 0;
-						int newH = 0;
-						expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
-						HELP_CLIENT_SIZE.cx = newW;
-						HELP_CLIENT_SIZE.cy = newH;
-
-						//Might as well build the reverse lookup
-						model->reverseLookupWord(0);
-
-						//...and now we can properly initialize its drawing surface
-						helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
-
-						helpIsCached = true;
-					}
-
-
-					//Register all hotkeys relevant for the help window
-					if (!turnOnHelpKeys(true))
-						MessageBox(mainWindow, _T("Could not turn on one of the help hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
-					if (controlKeysOn==FALSE) //We'll need these too.
-						turnOnControlkeys(TRUE);
-
-					//Clear our current word (not the sentence, though, and keep the trigrams)
-					lstrcpy(currStr, _T(""));
-					model->reset(false);
-					recalculate();
-
-					//Show the help window
-					ShowWindow(helpWindow, SW_SHOW);
-					helpWindowIsVisible = true;
-					reBlitHelp();
-				} else {
-					//Clear our word string
-					lstrcpy(currStr, _T(""));
-					recalculate();
-
-					turnOnHelpKeys(false);
-					ShowWindow(helpWindow, SW_HIDE);
-					helpWindowIsVisible = false;
-				}
+				updateHelpWindow();
 			}
 
 
@@ -2233,6 +2241,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG);
 				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN);
 
+				//Set a check for the "Look Up Word" function
+				UINT flagL = helpWindowIsVisible ? MF_CHECKED : 0;
+				ModifyMenu(hmenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP);
+
 
 				//Cause our popup to appear in front of any other window.
 				SetForegroundWindow(hwnd);
@@ -2271,6 +2283,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Reset the model
 					sentence->clear();
 					model->reset(true);
+				} else if (retVal == IDM_LOOKUP) {
+					//Manage our help window
+					if (mmOn==FALSE)
+						switchToLanguage(TRUE);
+					updateHelpWindow();
 				} else if (retVal == IDM_EXIT) {
 					DestroyWindow(hwnd);
 				} else if (retVal == ID_ENCODING_UNICODE5) {
