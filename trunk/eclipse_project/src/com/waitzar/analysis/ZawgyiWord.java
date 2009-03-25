@@ -102,8 +102,9 @@ public class ZawgyiWord {
 		if (text.length()>0) {
 			unknownBit = text;
 		}
-
 	}
+	
+
 
 	
 	private String extractNumeral(String text) {
