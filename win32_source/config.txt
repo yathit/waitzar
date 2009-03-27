@@ -41,6 +41,12 @@ ballooononstart = yes
 alwayselevate = no
 
 
+# If "yes", we try to position the WaitZar window over the caret
+#  when the user first types. If "no", we just put the window anywhere
+trackcaret = yes
+
+
+
 # If "yes", the sentence window will always display below the 
 #  current word window.
 #NO_LINUX: Windows auto-lock to the text you're entering in Linux, so this option makes no sense.
@@ -60,4 +66,7 @@ burmesenumerals = yes
 #  all of which default to "unicode"
 #LINUX: This option works under Linux.
 defaultencoding = unicode
+
+
+
 
