@@ -156,6 +156,11 @@ std::vector<wchar_t*> userDefinedWords; //Words the user types in. Stored with a
 std::vector<wchar_t*> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
 std::vector<unsigned short> userKeystrokeVector;
 
+//Special resources for tracking the caret
+HANDLE caretTrackThread;
+DWORD caretTrackThreadID;
+POINT caretLatestPosition;
+
 //Help window colors
 #define COLOR_HELPFNT_KEYS        0x606060
 #define COLOR_HELPFNT_FORE        0x000000
@@ -241,8 +246,68 @@ bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = true;
+bool isLogging = false;
 FILE *logFile;
+
+
+
+/** 
+ * This thread is our locus-of-control for carets
+ * It should probably always be run synchronously, to prevent another window from 
+ *   grabbing focus while it's waiting.
+ */
+DWORD WINAPI UpdateCaretPosition(LPVOID args)
+{
+	//Loop forever
+	//for (;;) {
+		/*if (isLogging)
+			fprintf(logFile, "Update caret called.\n");*/
+
+		HWND foreWnd = GetForegroundWindow();
+		if (IsWindowVisible(foreWnd)==TRUE) {
+			DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
+			if (AttachThreadInput(caretTrackThreadID, foreID, TRUE)) {
+				HWND focusWnd = GetFocus();
+				HWND activeWnd = GetActiveWindow();
+
+				//Debug
+				/*TCHAR wndTitle[200];
+				WINDOWINFO wndInfo;
+				GetWindowText(activeWnd, wndTitle, 200);
+				GetWindowInfo(activeWnd, &wndInfo);
+				if (isLogging)
+					fprintf(logFile, "  Active Window: %S (%i,%i)\n", wndTitle, wndInfo.rcWindow.right, wndInfo.rcWindow.bottom);*/
+
+				if (IsWindowVisible(focusWnd)) {
+					POINT mousePos;
+					RECT clientUL;
+					if (GetCaretPos(&mousePos) && GetWindowRect(focusWnd, &clientUL)!=0) {
+						caretLatestPosition.x = clientUL.left + mousePos.x;
+						caretLatestPosition.y = clientUL.top + mousePos.y;
+
+						//We actually want the window slightly below this...
+						caretLatestPosition.x += 1;
+						caretLatestPosition.y -= WINDOW_HEIGHT;
+
+						//fprintf(logFile, "  x and y: (%i,%i)\n", caretLatestPosition.x, caretLatestPosition.y);
+					}
+
+					//We might have accidentally gained focus:
+					//SetForegroundWindow(foreWnd);
+					//SetActiveWindow(activeWnd);
+					//SetFocus(focusWnd);
+				}
+
+				//Finally
+				AttachThreadInput(caretTrackThreadID, foreID, FALSE);
+			}
+		}
+
+		//Sleep until woken
+		//SuspendThread(caretTrackThread);
+	//}
+		return 0;
+}
 
 
 
@@ -2233,47 +2298,34 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to 
 						//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
 						if (experimentalTextCursorTracking==TRUE) {
-							HWND foreWnd = GetForegroundWindow();
-							//int wndID = GetDlgCtrlID(HWND);
-							if (IsWindowVisible(foreWnd)==TRUE) {
-								DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
-								if (AttachThreadInput(GetCurrentThreadId(), foreID, TRUE)) {
-									HWND focusWnd = GetFocus();
-									HWND activeWnd = GetActiveWindow();
+							//Reset parameters for our thread
+							caretLatestPosition.x = 0;
+							caretLatestPosition.y = 0;
 
-									//Debug
-									TCHAR wndTitle[200];
-									WINDOWINFO wndInfo;
-									GetWindowText(activeWnd, wndTitle, 200);
-									GetWindowInfo(activeWnd, &wndInfo);
-									if (isLogging)
-										fprintf(logFile, "Active Window: %S (%i,%i)\n", wndTitle, wndInfo.rcWindow.right, wndInfo.rcWindow.bottom);
+							//Create and start our thread for tracking the caret
+							caretTrackThread = CreateThread(
+								NULL,                //Default security attributes
+								0,                   //Default stack size
+								UpdateCaretPosition, //Threaded function (name)
+								NULL,                //Arguments to threaded function
+								0,
+								&caretTrackThreadID);//Pointer to return the thread's id into
+							if (caretTrackThread==NULL) {
+								MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
+								experimentalTextCursorTracking = FALSE;
+							}
 
-									if (IsWindowVisible(focusWnd)) {
-										POINT mousePos;
-										RECT clientUL;
-										if (GetCaretPos(&mousePos) && GetWindowRect(focusWnd, &clientUL)!=0) {
-											int mouseX = clientUL.left + mousePos.x;
-											int mouseY = clientUL.top + mousePos.y;
+							//Wait for it.
+							WaitForSingleObject(caretTrackThread, 1000);
 
-											//This should actually be our senWindow's position
-											/*mouseX += 1;
-											mouseY += WINDOW_HEIGHT + SUB_WINDOW_HEIGHT/2;*/
+							//Close it 
+							CloseHandle(caretTrackThread);
 
-											//Line up our windows
-											MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-											MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
-										}
-
-										//We might have accidentally gained focus:
-										SetForegroundWindow(foreWnd);
-										SetActiveWindow(activeWnd);
-										//SetFocus(focusWnd);
-									}
-
-									//Finally
-									AttachThreadInput(GetCurrentThreadId(), foreID, FALSE);
-								}
+							//Ready?
+							if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
+								//Line up our windows
+								MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+								MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
 							}
 						}
 
@@ -2490,6 +2542,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (highlightKeys) {
 				DeleteCriticalSection(&threadCriticalSec);
 				CloseHandle(keyTrackThread);
+				CloseHandle(caretTrackThread);
 			}
 
 			//Log?
@@ -3302,7 +3355,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			highlightKeys = FALSE;
 		}
 	}
-
 
 
 	//TEMP_debug:
