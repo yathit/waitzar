@@ -385,6 +385,10 @@
 			RelativePath=".\waitzar.font.png"
 			>
 		</File>
+		<File
+			RelativePath=".\wz_log.txt"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

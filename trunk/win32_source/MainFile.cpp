@@ -241,7 +241,7 @@ bool subWindowIsVisible;
 bool helpWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = false;
+bool isLogging = true;
 FILE *logFile;
 
 
@@ -1294,7 +1294,7 @@ void typeCurrentPhrase()
 {
 	//Send key presses to the top-level program.
 	HWND fore = GetForegroundWindow();
-	SetActiveWindow(fore);
+	SetActiveWindow(fore); //This probably won't do anything, since we're not attached to this window's message queue.
 
 
 	//Use SendInput instead of SendMessage, since SendMessage requires the actual
@@ -2230,12 +2230,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//TEST: Re-position it
 						//TEST: Use AttachThredInput? Yes!
 						//Still a bit glitchy....
+						//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to 
+						//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
 						if (experimentalTextCursorTracking==TRUE) {
 							HWND foreWnd = GetForegroundWindow();
+							//int wndID = GetDlgCtrlID(HWND);
 							if (IsWindowVisible(foreWnd)==TRUE) {
 								DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
 								if (AttachThreadInput(GetCurrentThreadId(), foreID, TRUE)) {
 									HWND focusWnd = GetFocus();
+									HWND activeWnd = GetActiveWindow();
+
+									//Debug
+									TCHAR wndTitle[200];
+									WINDOWINFO wndInfo;
+									GetWindowText(activeWnd, wndTitle, 200);
+									GetWindowInfo(activeWnd, &wndInfo);
+									if (isLogging)
+										fprintf(logFile, "Active Window: %S (%i,%i)\n", wndTitle, wndInfo.rcWindow.right, wndInfo.rcWindow.bottom);
+
 									if (IsWindowVisible(focusWnd)) {
 										POINT mousePos;
 										RECT clientUL;
@@ -2251,6 +2264,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 											MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
 											MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
 										}
+
+										//We might have accidentally gained focus:
+										SetForegroundWindow(foreWnd);
+										SetActiveWindow(activeWnd);
+										//SetFocus(focusWnd);
 									}
 
 									//Finally
