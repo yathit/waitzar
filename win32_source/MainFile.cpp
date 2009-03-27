@@ -178,6 +178,10 @@ BOOL showBalloonOnStart = TRUE;
 BOOL alwaysRunElevated = FALSE;
 BOOL highlightKeys = TRUE;
 BOOL experimentalTextCursorTracking = TRUE;
+BOOL dontLoadModel = FALSE;
+unsigned int maxDictionaryEntries = 0;
+unsigned int maxNexusEntries = 0;
+unsigned int maxPrefixEntries = 0;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -836,6 +840,14 @@ void loadConfigOptions()
 				experimentalTextCursorTracking = FALSE;
 			else
 				numConfigOptions--;
+		} else if (strcmp(name, "ignoremodel")==0) {
+			numConfigOptions++;
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				dontLoadModel = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				dontLoadModel = FALSE;
+			else
+				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "wininnwa")==0)
@@ -850,6 +862,24 @@ void loadConfigOptions()
 			//Set it later
 			strcpy(langHotkeyRaw, value);
 			numConfigOptions++;
+		} else if (strcmp(name, "dictionarysize")==0) {
+			long val = atol(value);
+			if (val>=0 && val<UINT_MAX) {
+				maxDictionaryEntries = (unsigned int)val;
+				numConfigOptions++;
+			}
+		} else if (strcmp(name, "nexussize")==0) {
+			long val = atol(value);
+			if (val>=0 && val<UINT_MAX) {
+				maxNexusEntries = (unsigned int)val;
+				numConfigOptions++;
+			}
+		} else if (strcmp(name, "prefixsize")==0) {
+			long val = atol(value);
+			if (val>=0 && val<UINT_MAX) {
+				maxPrefixEntries = (unsigned int)val;
+				numConfigOptions++;
+			}
 		}
 
 	}
@@ -954,26 +984,52 @@ BOOL loadModel() {
 	//Special...
 	int numberCheck = 0;
 
-	//Load the resource as a byte array and get its size, etc.
-	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
-	if (!res) {
-		MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-        return FALSE;
-	}
-    res_handle = LoadResource(NULL, res);
-	if (!res_handle) {
-		MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-        return FALSE;
-	}
-    res_data = (char*)LockResource(res_handle);
-    res_size = SizeofResource(NULL, res);
+	if (dontLoadModel==TRUE) {
+		//For any of the "size" values that are set to "default", let's see
+		//   if we can come up with sensible defaults
+		if (maxDictionaryEntries==0)
+			maxDictionaryEntries = 3000; //WaitZar has only 2,400 words
+		if (maxNexusEntries==0)
+			maxNexusEntries = maxDictionaryEntries*2-maxDictionaryEntries/3; //Assume an even distribution of 3000 words of 5 letters each on 26 keys, then take 20% of this
+		if (maxPrefixEntries==0)
+			maxPrefixEntries = maxDictionaryEntries+maxDictionaryEntries/3; //Assume the same, and cut it by 5
 
-	//Save our "model"
-	model = new WordBuilder(res_data, res_size);
+		//Create our data structures
+		//In total, this uses 41KB of raw memory just for storing our skeleton, so
+		//  I estimate about 1MB of memory for actually storing the data. 
+		//  That's a lot, but it's worth it so that people's custom mywords files don't crash randomly.
+		unsigned short **dictionary = new unsigned short*[maxDictionaryEntries];
+		unsigned int **nexus = new unsigned int*[maxNexusEntries];
+		unsigned int **prefix = new unsigned int*[maxPrefixEntries];
 
-	//Done - This shouldn't matter, though, since the process only
-	//       accesses it once and, fortunately, this is not an external file.
-	UnlockResource(res_handle);
+		//Of all these, only nexus is assumed to have anything in it
+		nexus[0] = new unsigned int[1];
+		nexus[0][0] = 0;
+
+		//This should totally work :P (yes, I tested it rigorously)
+		model = new WordBuilder(dictionary, 0, maxDictionaryEntries, nexus, 1, maxNexusEntries, prefix, 0, maxPrefixEntries);
+	} else {
+		//Load the resource as a byte array and get its size, etc.
+		res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
+		if (!res) {
+			MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
+			return FALSE;
+		}
+		res_handle = LoadResource(NULL, res);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
+			return FALSE;
+		}
+		res_data = (char*)LockResource(res_handle);
+		res_size = SizeofResource(NULL, res);
+
+		//Save our "model"
+		model = new WordBuilder(res_data, res_size);
+
+		//Done - This shouldn't matter, though, since the process only
+		//       accesses it once and, fortunately, this is not an external file.
+		UnlockResource(res_handle);
+	}
 
 	return TRUE;
 }
@@ -3375,7 +3431,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//TEMP_debug:
-	if (isLogging) {
+	/*if (isLogging) {
 		model->setOutputEncoding(ENCODING_UNICODE);
 		wchar_t* testStr = new wchar_t[100];
 		wchar_t* testStrSort = new wchar_t[100];
@@ -3399,7 +3455,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				fprintf(logFile, "\n");
 			}
 		}
-	}
+	}*/
 
 
 

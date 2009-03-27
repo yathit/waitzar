@@ -68,5 +68,16 @@ burmesenumerals = yes
 defaultencoding = unicode
 
 
+# If "yes", we do not load Myanmar.model, and instead only load words from mywords.txt
+ignoremodel = no
+
+#Settings for a custom dictionary
+# 0 = default
+# Anything else means make it that size
+dictionarysize = 0
+nexussize = 0
+prefixsize = 0
+
+
 
 
