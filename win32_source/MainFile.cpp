@@ -92,6 +92,10 @@ bool turnOnHelpKeys(bool on);
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
 
+//Better support for dragging
+bool isDragging;
+POINT dragFrom;
+
 //Unique IDs
 #define LANG_HOTKEY 142
 #define STATUS_NID 144
@@ -1424,13 +1428,49 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_NCHITTEST: //Allow dragging of the client area...
+		/*case WM_NCHITTEST: //Allow dragging of the client area...
 		{
 			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
 			if(uHitTest == HTCLIENT) {
 				return HTCAPTION;
 			} else
 				return uHitTest;
+			break;
+		}*/
+		case WM_LBUTTONDOWN:
+		{
+			//Thanks to dr. Carbon for suggesting this method.
+			if (SetCapture(hwnd)!=NULL)
+				break;
+
+			//Drag the mosue
+			isDragging = true;
+			GetCursorPos(&dragFrom);
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{ //Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
+			if (isDragging) {
+				RECT rect;
+				POINT dragTo;
+				GetWindowRect(hwnd, &rect);
+				GetCursorPos(&dragTo);
+				
+				//Constantly update its position
+				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
+					(dragTo.y - dragFrom.y) + rect.top,
+					rect.right - rect.left, rect.bottom - rect.top, FALSE);
+
+				dragFrom = dragTo;
+			}
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			if (isDragging) {
+				isDragging = false;
+				ReleaseCapture();
+			}
 			break;
 		}
 		case WM_MOVE:
@@ -1503,13 +1543,49 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SelectObject(senUnderDC, senBitmap);
 			break;
 		}
-		case WM_NCHITTEST: //Allow dragging of the client area...
+		/*case WM_NCHITTEST: //Allow dragging of the client area...
 		{
 			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
 			if(uHitTest == HTCLIENT) {
 				return HTCAPTION;
 			} else
 				return uHitTest;
+			break;
+		}*/
+		case WM_LBUTTONDOWN:
+		{
+			//Thanks to dr. Carbon for suggesting this method.
+			if (SetCapture(hwnd)!=NULL)
+				break;
+
+			//Drag the mosue
+			isDragging = true;
+			GetCursorPos(&dragFrom);
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{ //Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
+			if (isDragging) {
+				RECT rect;
+				POINT dragTo;
+				GetWindowRect(hwnd, &rect);
+				GetCursorPos(&dragTo);
+				
+				//Constantly update its position
+				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
+					(dragTo.y - dragFrom.y) + rect.top,
+					rect.right - rect.left, rect.bottom - rect.top, FALSE);
+
+				dragFrom = dragTo;
+			}
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			if (isDragging) {
+				isDragging = false;
+				ReleaseCapture();
+			}
 			break;
 		}
 		case WM_MOVE:
@@ -2213,13 +2289,50 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_NCHITTEST: //Allow dragging of the client area...
+		/*case WM_NCHITTEST: //Allow dragging of the client area...
 		{
 			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
 			if(uHitTest == HTCLIENT) {
 				return HTCAPTION;
 			} else
 				return uHitTest;
+			break;
+		}*/
+		case WM_LBUTTONDOWN:
+		{
+			//Thanks to dr. Carbon for suggesting this method.
+			if (SetCapture(hwnd)!=NULL)
+				break;
+
+			//Drag the mosue
+			isDragging = true;
+			GetCursorPos(&dragFrom);
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{
+			//Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
+			if (isDragging) {
+				RECT rect;
+				POINT dragTo;
+				GetWindowRect(hwnd, &rect);
+				GetCursorPos(&dragTo);
+				
+				//Constantly update its position
+				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
+					(dragTo.y - dragFrom.y) + rect.top,
+					rect.right - rect.left, rect.bottom - rect.top, FALSE);
+
+				dragFrom = dragTo;
+			}
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			if (isDragging) {
+				isDragging = false;
+				ReleaseCapture();
+			}
 			break;
 		}
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
@@ -2673,7 +2786,7 @@ void makeMainWindow(LPCWSTR windowClassName)
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInst;
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
 	wc.hbrBackground = g_DarkGrayBkgrd;
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = windowClassName;
@@ -2712,7 +2825,7 @@ void makeSubWindow(LPCWSTR windowClassName)
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInst;
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
 	wc.hbrBackground = g_DarkGrayBkgrd;
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = windowClassName;
@@ -2748,7 +2861,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInst;
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
 	wc.hbrBackground = g_GreenBkgrd;
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = windowClassName;
@@ -2978,6 +3091,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	PT_ORIGIN.x = 0;
 	PT_ORIGIN.y = 0;
 	helpIsCached = false;
+	isDragging = false;
 
 	//Log?
 	if (isLogging) {
