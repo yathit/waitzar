@@ -7,13 +7,14 @@
 
 #Words reported by our users (will be incorporated into the main dictionary later).
 ဆီမ့္ = seint
-#၎ = lakaung
+ခြန္႔ = khont
+ခစ္ = khit
 
 #Words which cannot be added to the model, as they already have a standard romanisation.
+# These will be included perpetually for convenience
 ဖုိင္ = file
+ဥစ္ = oait
+ဥ = ou
 
-#Testing...
+#Added as a reminder to make patsint words easier to type
 မဂၤလာပါ = minggalarpar
-super-long-ish-super-long-word = super
-
-#kyan, pat are longest words...
