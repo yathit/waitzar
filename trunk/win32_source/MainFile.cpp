@@ -41,7 +41,7 @@
 #define NOSCROLL            //- SB_and scrolling routines
 #define NOSERVICE           //- All Service Controller routines, SERVICE_ equates, etc.
 #define NOSOUND             //- Sound driver routines
-#define NOTEXTMETRIC        //- typedef TEXTMETRIC and associated routines
+//#define NOTEXTMETRIC        //- typedef TEXTMETRIC and associated routines
 #define NOWH                //- SetWindowsHook and WH_*
 #define NOWINOFFSETS        //- GWL_*, GCL_*, associated routines
 #define NOCOMM              //- COMM driver routines
@@ -55,6 +55,7 @@
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
 #include <psapi.h> //For getting a list of currently running processes
+//#include <wingdi.h> //For the TEXTINFO stuff
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
@@ -285,9 +286,16 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 						caretLatestPosition.x = clientUL.left + mousePos.x;
 						caretLatestPosition.y = clientUL.top + mousePos.y;
 
+						int caretHeight = SUB_WINDOW_HEIGHT;
+						TEXTMETRICW tm;
+						HFONT currFont = (HFONT)SendMessage(focusWnd, WM_GETFONT, 0, 0);
+						if (GetTextMetrics(mainDC, &tm)!=0)
+							caretHeight = tm.tmHeight;
+
 						//We actually want the window slightly below this...
-						caretLatestPosition.x += 1;
+						caretLatestPosition.x -= 1;
 						caretLatestPosition.y -= WINDOW_HEIGHT;
+						caretLatestPosition.y -= (SUB_WINDOW_HEIGHT-caretHeight)/2;
 
 						//fprintf(logFile, "  x and y: (%i,%i)\n", caretLatestPosition.x, caretLatestPosition.y);
 					}
