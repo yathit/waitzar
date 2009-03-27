@@ -2307,6 +2307,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
 						if (experimentalTextCursorTracking==TRUE) {
 							//Reset parameters for our thread
+							//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
 							caretLatestPosition.x = 0;
 							caretLatestPosition.y = 0;
 
