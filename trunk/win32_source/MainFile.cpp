@@ -820,6 +820,14 @@ void loadConfigOptions()
 				alwaysRunElevated = FALSE;
 			else
 				numConfigOptions--;
+		} else if (strcmp(name, "trackcaret")==0) {
+			numConfigOptions++;
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				experimentalTextCursorTracking = TRUE;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				experimentalTextCursorTracking = FALSE;
+			else
+				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "wininnwa")==0)
