@@ -171,6 +171,7 @@ BOOL typeBurmeseNumbers = TRUE;
 BOOL showBalloonOnStart = TRUE;
 BOOL alwaysRunElevated = FALSE;
 BOOL highlightKeys = TRUE;
+BOOL experimentalTextCursorTracking = TRUE;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -1821,11 +1822,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (helpWindowIsVisible) {
 					//Clear our word string
 					lstrcpy(currStr, _T(""));
-					recalculate();
 
 					turnOnHelpKeys(false);
 					ShowWindow(helpWindow, SW_HIDE);
 					helpWindowIsVisible = false;
+					recalculate();
 				} else {
 					if (!mainWindowIsVisible) {
 						//Kill the entire sentence.
@@ -2229,23 +2230,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//TEST: Re-position it
 						//TEST: Use AttachThredInput? Yes!
 						//Still a bit glitchy....
-						if (false) {
+						if (experimentalTextCursorTracking==TRUE) {
 							HWND foreWnd = GetForegroundWindow();
-							DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
-							if (AttachThreadInput(GetCurrentThreadId(), foreID, TRUE)) {
-								POINT mousePos;
-								RECT clientUL;
-								if (GetCaretPos(&mousePos) && GetWindowRect(GetForegroundWindow(), &clientUL)) {
-									int mouseX = clientUL.left + mousePos.x;
-									int mouseY = clientUL.top + mousePos.y;
+							if (IsWindowVisible(foreWnd)==TRUE) {
+								DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
+								if (AttachThreadInput(GetCurrentThreadId(), foreID, TRUE)) {
+									HWND focusWnd = GetFocus();
+									if (IsWindowVisible(focusWnd)) {
+										POINT mousePos;
+										RECT clientUL;
+										if (GetCaretPos(&mousePos) && GetWindowRect(focusWnd, &clientUL)!=0) {
+											int mouseX = clientUL.left + mousePos.x;
+											int mouseY = clientUL.top + mousePos.y;
 
-									//Line up our windows
-									MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-									MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+											//This should actually be our senWindow's position
+											/*mouseX += 1;
+											mouseY += WINDOW_HEIGHT + SUB_WINDOW_HEIGHT/2;*/
+
+											//Line up our windows
+											MoveWindow(mainWindow, mouseX, mouseY, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+											MoveWindow(senWindow, mouseX, mouseY+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+										}
+									}
+
+									//Finally
+									AttachThreadInput(GetCurrentThreadId(), foreID, FALSE);
 								}
-
-								//Finally
-								AttachThreadInput(GetCurrentThreadId(), foreID, FALSE);
 							}
 						}
 
