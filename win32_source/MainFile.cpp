@@ -2416,7 +2416,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						waitzar::sortMyanmarString(tempStr);
 						userDefinedWords.push_back(tempStr);
 						userDefinedWordsZg.push_back(tempStrZg);
-						currStrDictID = -1*userDefinedWords.size();
+						currStrDictID = -1*(strlen(systemDefinedWords)+userDefinedWords.size());
 					}
 
 					//Hide the help window
