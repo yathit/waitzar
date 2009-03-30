@@ -449,8 +449,8 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 			return 99;
 		case HOTKEY_SHIFT_APOSTROPHE:
 			return 100;
-		//case [HOTKEY_SUP_ENTER]:
-		//	return 101;
+		case HOTKEY_SHIFT_ENTER:
+			return 101;
 		//case [HOTKEY_SUP_LSHIFT]:
 		//	return 102;
 		case 'Z':
@@ -481,8 +481,8 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 		//	return 115;
 		//case [HOTKEY_SUP_LEFT_ALT]:
 		//	return 116;
-		//case [HOTKEY_SUP_SPACE]:
-		//	return 117;
+		case HOTKEY_SHIFT_SPACE:
+			return 117;
 		//case [HOTKEY_SUP_RIGHT_ALT]:
 		//	return 118;
 		//case [HOTKEY_SUP_RIGHT_WIN]:

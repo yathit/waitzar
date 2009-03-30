@@ -143,6 +143,8 @@
 #define HOTKEY_SHIFT_FORWARDSLASH 147
 #define HOTKEY_SHIFT_COMMA 148
 #define HOTKEY_SHIFT_PERIOD 149
+#define HOTKEY_SHIFT_SPACE 150
+#define HOTKEY_SHIFT_ENTER 151
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

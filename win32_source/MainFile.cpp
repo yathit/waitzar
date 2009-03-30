@@ -89,7 +89,8 @@ BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase);
 BOOL turnOnControlkeys(BOOL on);
 BOOL turnOnNumberkeys(BOOL on);
 BOOL turnOnPunctuationkeys(BOOL on);
-bool turnOnHelpKeys(bool on);
+bool turnOnExtendedKeys(bool on); //"Help keys"
+bool turnOnHelpKeys(bool on); //Reduced to contain only the shift key
 void switchToLanguage(BOOL toMM);
 BOOL loadModel(HINSTANCE hInst);
 
@@ -156,6 +157,8 @@ bool threadIsActive; //If "false", this thread must be woken to do anything usef
 std::vector<wchar_t*> userDefinedWords; //Words the user types in. Stored with a negative +1 index
 std::vector<wchar_t*> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
 std::vector<unsigned short> userKeystrokeVector;
+const char* systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? "; //Special "words" used in our keyboard, like "(" and "`"
+std::vector< std::pair <int, unsigned short>* > systemWordLookup;
 
 //Special resources for tracking the caret
 HANDLE caretTrackThread;
@@ -216,6 +219,7 @@ BOOL mmOn;
 BOOL controlKeysOn = FALSE;
 BOOL numberKeysOn = FALSE;
 BOOL punctuationKeysOn = FALSE;
+bool extendedKeysOn = false;
 bool helpKeysOn = false;
 SentenceList *sentence;
 int prevProcessID;
@@ -392,6 +396,112 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 	}
 
 	return 0;
+}
+
+
+void buildSystemWordLookup()
+{
+	for (size_t i=0; i<strlen(systemDefinedWords); i++) {
+		char c = systemDefinedWords[i];
+		int hotkey_id = 0;
+		switch (c) {
+			case '`':
+				hotkey_id = HOTKEY_COMBINE;
+				break;
+			case '~':
+				hotkey_id = HOTKEY_SHIFT_COMBINE;
+				break;
+			case '!':
+				hotkey_id = HOTKEY_SHIFT_1;
+				break;
+			case '@':
+				hotkey_id = HOTKEY_SHIFT_2;
+				break;
+			case '#':
+				hotkey_id = HOTKEY_SHIFT_3;
+				break;
+			case '$':
+				hotkey_id = HOTKEY_SHIFT_4;
+				break;
+			case '%':
+				hotkey_id = HOTKEY_SHIFT_5;
+				break;
+			case '^':
+				hotkey_id = HOTKEY_SHIFT_6;
+				break;
+			case '&':
+				hotkey_id = HOTKEY_SHIFT_7;
+				break;
+			case '*':
+				hotkey_id = HOTKEY_SHIFT_8;
+				break;
+			case '(':
+				hotkey_id = HOTKEY_SHIFT_9;
+				break;
+			case ')':
+				hotkey_id = HOTKEY_SHIFT_0;
+				break;
+			case '-':
+				hotkey_id = HOTKEY_MINUS;
+				break;
+			case '_':
+				hotkey_id = HOTKEY_SHIFT_MINUS;
+				break;
+			case '=':
+				hotkey_id = HOTKEY_EQUALS;
+				break;
+			case '+':
+				hotkey_id = HOTKEY_SHIFT_EQUALS;
+				break;
+			case '[':
+				hotkey_id = HOTKEY_LEFT_BRACKET;
+				break;
+			case '{':
+				hotkey_id = HOTKEY_SHIFT_LEFT_BRACKET;
+				break;
+			case ']':
+				hotkey_id = HOTKEY_RIGHT_BRACKET;
+				break;
+			case '}':
+				hotkey_id = HOTKEY_SHIFT_RIGHT_BRACKET;
+				break;
+			case ';':
+				hotkey_id = HOTKEY_SEMICOLON;
+				break;
+			case ':':
+				hotkey_id = HOTKEY_SHIFT_SEMICOLON;
+				break;
+			case '\'':
+				hotkey_id = HOTKEY_APOSTROPHE;
+				break;
+			case '"':
+				hotkey_id = HOTKEY_SHIFT_APOSTROPHE;
+				break;
+			case '\\':
+				hotkey_id = HOTKEY_BACKSLASH;
+				break;
+			case '|':
+				hotkey_id = HOTKEY_SHIFT_BACKSLASH;
+				break;
+			case '<':
+				hotkey_id = HOTKEY_SHIFT_COMMA;
+				break;
+			case '>':
+				hotkey_id = HOTKEY_SHIFT_PERIOD;
+				break;
+			case '/':
+				hotkey_id = HOTKEY_FORWARDSLASH;
+				break;
+			case '?':
+				hotkey_id = HOTKEY_SHIFT_FORWARDSLASH;
+				break;
+			case ' ':
+				hotkey_id = HOTKEY_SHIFT_SPACE;
+				break;
+		}
+
+		systemWordLookup.push_back(new std::pair<int, unsigned short>(hotkey_id, i));
+	}
 }
 
 
@@ -1062,6 +1172,9 @@ void switchToLanguage(BOOL toMM) {
 		if (typeBurmeseNumbers==TRUE)
 			res = turnOnNumberkeys(TRUE) && res; //JUST numbers, not control.
 
+		//Turno on our extended key set, too, to capture things like "("
+		res = turnOnExtendedKeys(true) && res;
+
 		//Register our help key too
 		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
 			res = FALSE;
@@ -1075,6 +1188,8 @@ void switchToLanguage(BOOL toMM) {
 			turnOnNumberkeys(FALSE);
 		if (punctuationKeysOn == TRUE)
 			turnOnPunctuationkeys(FALSE);
+		if (extendedKeysOn)
+			turnOnExtendedKeys(false);
 		if (helpKeysOn)
 			turnOnHelpKeys(false);
 
@@ -1273,12 +1388,25 @@ void recalculate()
 		for (;printIT != sentence->end(); printIT++) {
 			//Append this string
 			wchar_t *strToDraw;
+			bool delLater = false;
 			if (*printIT>=0)
 				strToDraw = model->getWordString(*printIT);
-			else
-				strToDraw = userDefinedWordsZg[-(*printIT)-1];
+			else {
+				int numSystemWords = strlen(systemDefinedWords);
+				int id = -(*printIT)-1;
+				if (id<numSystemWords) {
+					strToDraw = new wchar_t[2];
+					delLater = true;
+					strToDraw[0] = systemDefinedWords[id];
+					strToDraw[1] = 0x0000;
+				} else
+					strToDraw = userDefinedWordsZg[id-numSystemWords];
+			}
 			mmFontSmallWhite->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
 			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
+
+			if (delLater)
+				delete [] strToDraw;
 
 			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
 			if (counterCursorID == sentence->getCursorIndex())
@@ -1356,9 +1484,10 @@ void recalculate()
 
 		//Helper text
 		mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
-	} else {
+	} else if (mainWindowIsVisible) { //Crashes otherwise
 		for (size_t i=0; i<words.size(); i++) {
 			//If this is the currently-selected word, draw a box under it.
+			//int x = words[i];
 			int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
 			if (i!=model->getCurrSelectedID())
 				mmFont = mmFontBlack;
@@ -1405,17 +1534,25 @@ std::vector<unsigned short> getUserWordKeyStrokes(unsigned int id, unsigned int 
 	//Get the string
 	wchar_t *typedStr;
 	wchar_t destStr[200];
-	if (encoding==ENCODING_UNICODE)
-		typedStr = userDefinedWords[id];
-	else if (encoding==ENCODING_ZAWGYI)
-		typedStr = userDefinedWordsZg[id];
-	else if (encoding==ENCODING_WININNWA) {
-		wchar_t* srcStr = userDefinedWords[id];
-		wcscpy(destStr, L"");
-		convertFont(destStr, srcStr, Zawgyi_One, WinInnwa);
+	unsigned int numSystemDefWords = strlen(systemDefinedWords);
+	if (id<numSystemDefWords) {
+		destStr[0] = systemDefinedWords[id];
+		destStr[1] = 0x0000;
 		typedStr = destStr;
-	} else
-		typedStr = L"";
+	} else {
+		id -= numSystemDefWords;
+		if (encoding==ENCODING_UNICODE)
+			typedStr = userDefinedWords[id];
+		else if (encoding==ENCODING_ZAWGYI)
+			typedStr = userDefinedWordsZg[id];
+		else if (encoding==ENCODING_WININNWA) {
+			wchar_t* srcStr = userDefinedWords[id];
+			wcscpy(destStr, L"");
+			convertFont(destStr, srcStr, Zawgyi_One, WinInnwa);
+			typedStr = destStr;
+		} else
+			typedStr = L"";
+	}
 
 	//Convert
 	size_t length = wcslen(typedStr);
@@ -1504,11 +1641,11 @@ void typeCurrentPhrase()
 
 
 
-BOOL selectWord(int id, bool isTypingHelp)
+BOOL selectWord(int id, bool indexNegativeEntries)
 {
 	//Are there any words to use?
 	int wordID = id;
-	if (!isTypingHelp) {
+	if (!indexNegativeEntries) {
 		std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
 		if (typedVal.first == FALSE)
 			return FALSE;
@@ -1805,10 +1942,12 @@ void updateHelpWindow()
 
 
 		//Register all hotkeys relevant for the help window
-		if (!turnOnHelpKeys(true))
-			MessageBox(mainWindow, _T("Could not turn on one of the help hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
+		bool res = true;
 		if (controlKeysOn==FALSE) //We'll need these too.
-			turnOnControlkeys(TRUE);
+			res = (turnOnControlkeys(TRUE)==TRUE);
+		if (!turnOnHelpKeys(true) || !res)
+			MessageBox(mainWindow, _T("Could not turn on the shift/control hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
+
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
 		lstrcpy(currStr, _T(""));
@@ -1892,6 +2031,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_HOTKEY:
 		{
+			//Added to help us avoid multiple reactions, if necessary
+			// (probably only necessary for the number/myanmar numbers distinction)
+			bool keyWasUsed = false;
+
 			//Handle our main language hotkey
 			if(wParam == LANG_HOTKEY) {
 				//Switch language
@@ -1903,6 +2046,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Reset the model
 				sentence->clear();
 				model->reset(true);
+
+				keyWasUsed = true;
 			}
 
 
@@ -1945,12 +2090,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 					}
 				}
+
+				//Doesn't consume a keypress
+				//keyWasUsed = keyWasUsed;
 			}
 
 
 			//What to do if our user hits "F1".
 			if (wParam == HOTKEY_HELP) {
 				updateHelpWindow();
+
+				keyWasUsed = true;
 			}
 
 
@@ -1997,6 +2147,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 					}
 				}
+
+				keyWasUsed = true;
 			}
 
 
@@ -2019,6 +2171,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 					}
 				}
+
+				keyWasUsed = true;
 			}
 
 
@@ -2074,6 +2228,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 					}
 				}
+
+				keyWasUsed = true;
 			}
 
 
@@ -2094,6 +2250,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							recalculate();
 					}
 				}
+
+				keyWasUsed = true;
 			} else if (wParam == HOTKEY_LEFT) {
 				if (helpWindowIsVisible) {
 					//Move the letter cursor one to the left
@@ -2109,7 +2267,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							recalculate();
 					}
 				}
+
+				keyWasUsed = true;
 			}
+
 
 
 			//Handle numbers
@@ -2158,6 +2319,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							recalculate();
 						}
 					}
+
+					keyWasUsed = true;
 				}
 			}
 
@@ -2179,11 +2342,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						typeCurrentPhrase();
 					}
 				}
+
+				keyWasUsed = true;
 			}
 
 
 			//Handle Enter
-			if (wParam==HOTKEY_ENTER) {
+			if (wParam==HOTKEY_ENTER || wParam==HOTKEY_SHIFT_ENTER) {
 				if (helpWindowIsVisible) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
@@ -2195,7 +2360,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						waitzar::sortMyanmarString(tempStr);
 						userDefinedWords.push_back(tempStr);
 						userDefinedWordsZg.push_back(tempStrZg);
-						currStrDictID = -1*userDefinedWords.size();
+						currStrDictID = -1*(strlen(systemDefinedWords)+userDefinedWords.size());
 					}
 
 					//Hide the help window
@@ -2234,10 +2399,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						typeCurrentPhrase();
 					}
 				}
+
+				keyWasUsed = true;
 			}
 
 			//Handle Space Bar
-			if (wParam==HOTKEY_SPACE) {
+			if (wParam==HOTKEY_SPACE || wParam==HOTKEY_SHIFT_SPACE) {
 				if (helpWindowIsVisible) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
@@ -2270,6 +2437,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					//We need to reset the trigrams here...
 					sentence->updateTrigrams(model);
+
+					keyWasUsed = true;
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
@@ -2283,16 +2452,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							lstrcpy(currStr, _T(""));
 							recalculate();
 						}
+
+						keyWasUsed = true;
 					} else {
 						//A bit tricky here. If the cursor's at the end, we'll
 						//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
 						//Hopefully this won't confuse users so much.
-						if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
-							sentence->moveCursorRight(1, model);
-							recalculate();
-						} else {
-							//Type the entire sentence
-							typeCurrentPhrase();
+						if (wParam==HOTKEY_SPACE) {
+							if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
+								sentence->moveCursorRight(1, model);
+								recalculate();
+							} else {
+								//Type the entire sentence
+								typeCurrentPhrase();
+							}
+
+							keyWasUsed = true;
 						}
 					}
 				}
@@ -2341,13 +2516,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							mainWindowIsVisible = true;
 						}
 					}
+
+					keyWasUsed = true;
 				}
 			} else {
 				//Handle regular letter-presses 
 				int keyCode = (int)wParam;
 				if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) //Seems like we should be doing with this Shift modifiers..
 					keyCode += 32;
-				if (wParam >= HOTKEY_A_LOW && wParam <= HOTKEY_Z_LOW)
+				if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW)
 				{
 					//Run this keypress into the model. Accomplish anything?
 					if (!model->typeLetter(keyCode))
@@ -2419,6 +2596,48 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					lstrcpy(keyStr, currStr);
 					swprintf(currStr, _T("%s%c"), keyStr, keyCode);
 					recalculate();
+
+					keyWasUsed = true;
+				}
+			}
+
+
+
+			//If this letter/number/etc. wasn't processed, see if we can type any of our
+			// system-defined keys
+			if (!helpWindowIsVisible && !mainWindowIsVisible && !keyWasUsed) {
+				int newID = -1;
+				for (size_t i=0; i<systemWordLookup.size(); i++) {
+					if (systemWordLookup[i]->first==wParam) {
+						newID = i;
+						break;
+					}
+				}
+
+				//Did we get anything?
+				if (newID!=-1) {
+					newID = -1-newID;
+					
+					//Try to type this word
+					BOOL typed = selectWord(newID, true);
+					if (typed==TRUE && typePhrases==TRUE) {
+						//ShowWindow(mainWindow, SW_HIDE);
+						//mainWindowIsVisible = false;
+						//model->reset(false);
+						//lstrcpy(currStr, _T(""));
+
+						if (!subWindowIsVisible) {
+							turnOnControlkeys(TRUE);
+
+							ShowWindow(senWindow, SW_SHOW);
+							subWindowIsVisible = true;
+						}
+
+						recalculate();
+					}
+
+					//We need to reset the trigrams here...
+					sentence->updateTrigrams(model);
 				}
 			}
 
@@ -2763,14 +2982,28 @@ bool turnOnHelpKeys(bool on)
 {
 	bool retVal = true;
 
-	//Register help keys
 	if (on) {
 		//We'll keep our shifted hotkeys, but also add a hotkey for shift itself.
 		//  We need to disambiguate the left and right shift keys later, since
 		//  registering VK_LSHIFT and VK_RSHIFT doesn't seem to work
 		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE)
 			retVal = false;
+	} else {
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE)
+			retVal = false;
+	}
 
+	helpKeysOn = on;
+	return retVal;
+}
+
+
+bool turnOnExtendedKeys(bool on) 
+{
+	bool retVal = true;
+
+	//Register help keys
+	if (on) {
 		//Our combiner key (register shifted, too, to prevent errors)
 		if (RegisterHotKey(mainWindow, HOTKEY_COMBINE, 0, VK_OEM_3)==FALSE)
 			retVal = false;
@@ -2806,6 +3039,10 @@ bool turnOnHelpKeys(bool on)
 			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_PERIOD, MOD_SHIFT, VK_OEM_PERIOD)==FALSE)
 			retVal = false;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_SPACE, MOD_SHIFT, HOTKEY_SPACE)==FALSE)
+			retVal = FALSE;
+		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_ENTER, MOD_SHIFT, VK_RETURN)==FALSE)
+			retVal = FALSE;
 
 		//Even though we won't use them, we should track them in our virtual keyboard
 		if (RegisterHotKey(mainWindow, HOTKEY_MINUS, 0, VK_OEM_MINUS)==FALSE)
@@ -2824,8 +3061,6 @@ bool turnOnHelpKeys(bool on)
 				retVal = false;
 		}
 	} else {
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE)
-			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_COMBINE)==FALSE)
 			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE)==FALSE)
@@ -2866,13 +3101,17 @@ bool turnOnHelpKeys(bool on)
 			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_EQUALS)==FALSE)
 			retVal = false;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_SPACE)==FALSE)
+			retVal = FALSE;
+		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_ENTER)==FALSE)
+			retVal = FALSE;
 		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
 			if (UnregisterHotKey(mainWindow, i))
 				retVal = false;
 		}
 	}
 
-	helpKeysOn = on;
+	extendedKeysOn = on;
 	return retVal;
 }
 
@@ -3246,6 +3485,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	PT_ORIGIN.y = 0;
 	helpIsCached = false;
 	isDragging = false;
+
+	//Also...
+	buildSystemWordLookup();
 
 	//Log?
 	if (isLogging) {
