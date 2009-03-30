@@ -1556,6 +1556,7 @@ std::vector<unsigned short> getUserWordKeyStrokes(unsigned int id, unsigned int 
 
 	//Convert
 	size_t length = wcslen(typedStr);
+	userKeystrokeVector.clear();
 	for (size_t i=0; i<length; i++) 
 		userKeystrokeVector.push_back((unsigned short) typedStr[i]);
 
@@ -1584,8 +1585,9 @@ void typeCurrentPhrase()
 		if (printIT!=sentence->end()) {
 			if (*printIT>=0)
 				keyStrokes = model->getWordKeyStrokes(*printIT);
-			else
+			else {
 				keyStrokes = getUserWordKeyStrokes(-(*printIT)-1, model->getOutputEncoding());
+			}
 		} else {
 			keyStrokes.clear();
 			keyStrokes.push_back(stopChar);
