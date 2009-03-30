@@ -53,7 +53,7 @@ trackcaret = yes
 lockwindows = yes
 
 
-# If "yes", typing 0..9 will yield Burmese numbers 0 to 9. If "no", Wait Zar won't process numbers.
+# If "yes", typing 0..9 will yield Burmese numbers 0 to 9. If "no", Wait Zar will type (and catch) Arabic numerals.
 #LINUX: This option works under Linux.
 burmesenumerals = yes
 

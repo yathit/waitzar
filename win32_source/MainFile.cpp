@@ -157,7 +157,7 @@ bool threadIsActive; //If "false", this thread must be woken to do anything usef
 std::vector<wchar_t*> userDefinedWords; //Words the user types in. Stored with a negative +1 index
 std::vector<wchar_t*> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
 std::vector<unsigned short> userKeystrokeVector;
-const char* systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? "; //Special "words" used in our keyboard, like "(" and "`"
+const char* systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890"; //Special "words" used in our keyboard, like "(" and "`"
 std::vector< std::pair <int, unsigned short>* > systemWordLookup;
 
 //Special resources for tracking the caret
@@ -497,6 +497,36 @@ void buildSystemWordLookup()
 				break;
 			case ' ':
 				hotkey_id = HOTKEY_SHIFT_SPACE;
+				break;
+			case '1':
+				hotkey_id = HOTKEY_1;
+				break;
+			case '2':
+				hotkey_id = HOTKEY_2;
+				break;
+			case '3':
+				hotkey_id = HOTKEY_3;
+				break;
+			case '4':
+				hotkey_id = HOTKEY_4;
+				break;
+			case '5':
+				hotkey_id = HOTKEY_5;
+				break;
+			case '6':
+				hotkey_id = HOTKEY_6;
+				break;
+			case '7':
+				hotkey_id = HOTKEY_7;
+				break;
+			case '8':
+				hotkey_id = HOTKEY_8;
+				break;
+			case '9':
+				hotkey_id = HOTKEY_9;
+				break;
+			case '0':
+				hotkey_id = HOTKEY_0;
 				break;
 		}
 
@@ -1169,8 +1199,8 @@ void switchToLanguage(BOOL toMM) {
 	BOOL res;
 	if (toMM==TRUE) {
 		res = turnOnHotkeys(TRUE, true, true) && turnOnPunctuationkeys(TRUE);
-		if (typeBurmeseNumbers==TRUE)
-			res = turnOnNumberkeys(TRUE) && res; //JUST numbers, not control.
+		//if (typeBurmeseNumbers==TRUE)
+		res = turnOnNumberkeys(TRUE) && res; //JUST numbers, not control.
 
 		//Turno on our extended key set, too, to capture things like "("
 		res = turnOnExtendedKeys(true) && res;
@@ -1655,8 +1685,8 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	}
 
 	//Optionally turn off numerals
-	if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
-		turnOnNumberkeys(FALSE);
+	//if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
+	//	turnOnNumberkeys(FALSE);
 
 	if (typePhrases==FALSE) {
 		//Simple Case
@@ -2127,8 +2157,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						model->reset(false);
 
 						//No more numbers
-						if (typeBurmeseNumbers==FALSE)
-							turnOnNumberkeys(FALSE);
+						//if (typeBurmeseNumbers==FALSE)
+						//	turnOnNumberkeys(FALSE);
 
 						//Are we using advanced input?
 						if (typePhrases==FALSE) {
@@ -2204,8 +2234,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							recalculate();
 						} else {
 							//No more numerals.
-							if (typeBurmeseNumbers==FALSE)
-								turnOnNumberkeys(FALSE);
+							//if (typeBurmeseNumbers==FALSE)
+							//	turnOnNumberkeys(FALSE);
 
 							//Are we using advanced input?
 							if (typePhrases==FALSE) {
@@ -2274,17 +2304,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 
+			//Determine what number, if any, was pressed
+			int numCode = -1;
+			if (wParam>=HOTKEY_0 && wParam<=HOTKEY_9)
+				numCode = (int)wParam - HOTKEY_0;
+			if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
+				numCode = (int)wParam - HOTKEY_NUM0;
 
 			//Handle numbers
 			if (!helpWindowIsVisible) {
-				int numCode = -1;
-				stopChar = 0;
-				if (wParam>=HOTKEY_0 && wParam<=HOTKEY_9)
-					numCode = (int)wParam - HOTKEY_0;
-				if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
-					numCode = (int)wParam - HOTKEY_NUM0;
+				stopChar=0;
 				if (numCode > -1) {
-					//Our key code has been properly transformed.
 					if (mainWindowIsVisible) {
 						//Convert 1..0 to 0..9
 						if (--numCode<0)
@@ -2300,7 +2330,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							model->reset(false);
 							recalculate();
 						}
-					} else {
+
+						keyWasUsed = true;
+					} else if (typeBurmeseNumbers) {
 						if (typePhrases==FALSE) {
 							sentence->clear();
 							sentence->insert(numCode);
@@ -2320,9 +2352,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 							recalculate();
 						}
-					}
 
-					keyWasUsed = true;
+						keyWasUsed = true;
+					}
 				}
 			}
 
@@ -2607,10 +2639,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//If this letter/number/etc. wasn't processed, see if we can type any of our
 			// system-defined keys
+			if (numCode==-1)
+				numCode = wParam;
+			else
+				numCode = HOTKEY_0 + numCode;
 			if (!helpWindowIsVisible && !mainWindowIsVisible && !keyWasUsed) {
 				int newID = -1;
 				for (size_t i=0; i<systemWordLookup.size(); i++) {
-					if (systemWordLookup[i]->first==wParam) {
+					if (systemWordLookup[i]->first==numCode) {
 						newID = i;
 						break;
 					}
