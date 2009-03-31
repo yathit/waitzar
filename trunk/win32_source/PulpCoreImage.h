@@ -134,9 +134,12 @@ protected:
 	void premultiply(UINT* arbg, int argb_len);
 	void inflateFully(Inflater* inflater, char* result, int res_length);
 
-	//Now updated to returned unsigned values (makes more sense, since otherwise int x = readInt() doesn't work)
-	unsigned int readInt();
-    unsigned short readShort();
-	unsigned char readByte();
+	//Now updated to allow unsigned values (makes more sense for "size" parameters)
+	int readInt();
+    short readShort();
+	char readByte();
+	unsigned int readUnsignedInt();
+    unsigned short readUnsignedShort();
+	unsigned char readUnsignedByte();
 
 };

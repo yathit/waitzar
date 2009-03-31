@@ -663,21 +663,40 @@ int PulpCoreImage::premultiply(UINT arbg)
 }
 
 
-unsigned int PulpCoreImage::readInt()
+int PulpCoreImage::readInt()
 {
 	unsigned int retVal = (((0xFF&res_data[currPos])<<24)  | ((0xFF&res_data[currPos+1])<<16) | ((0xFF&res_data[currPos+2])<<8) | ((0xFF&res_data[currPos+3]))) ;
 	currPos += 4;
 	return retVal;
 }
 
-unsigned short PulpCoreImage::readShort()
+short PulpCoreImage::readShort()
 {
 	int retVal = (((0xFF&res_data[currPos])<<8)  | ((0xFF&res_data[currPos+1])));
 	currPos += 2;
 	return retVal;
 }
 
-unsigned char PulpCoreImage::readByte()
+char PulpCoreImage::readByte()
+{
+	return (0xFF&res_data[currPos++]);
+}
+
+unsigned int PulpCoreImage::readUnsignedInt()
+{
+	unsigned int retVal = (((0xFF&res_data[currPos])<<24)  | ((0xFF&res_data[currPos+1])<<16) | ((0xFF&res_data[currPos+2])<<8) | ((0xFF&res_data[currPos+3]))) ;
+	currPos += 4;
+	return retVal;
+}
+
+unsigned short PulpCoreImage::readUnsignedShort()
+{
+	int retVal = (((0xFF&res_data[currPos])<<8)  | ((0xFF&res_data[currPos+1])));
+	currPos += 2;
+	return retVal;
+}
+
+unsigned char PulpCoreImage::readUnsignedByte()
 {
 	return (0xFF&res_data[currPos++]);
 }
