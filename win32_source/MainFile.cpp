@@ -186,6 +186,8 @@ BOOL allowNonBurmeseLetters = FALSE;
 unsigned int maxDictionaryEntries = 0;
 unsigned int maxNexusEntries = 0;
 unsigned int maxPrefixEntries = 0;
+char *fontFileRegular;
+char *fontFileSmall;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -556,22 +558,70 @@ void makeFont(HWND currHwnd)
 {
 	//Load our font resource (main fonts)
 	{
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT"));
-		if (!fontRes) {
-			MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
+		//Try to load our user-specified font image.
+		if (fontFileRegular!=NULL) {
+			size_t fLen = strlen(fontFileRegular);
+			bool validFont = true;
+
+			//Is the file a PNG file by name?
+			if (fLen<5 || fontFileRegular[fLen-4]!='.' || fontFileRegular[fLen-3]!='p' || fontFileRegular[fLen-2]!='n' || fontFileRegular[fLen-1]!='g') {
+				validFont = false;
+			} else {
+				//Does the file exist?
+				FILE* fontFile = fopen(fontFileRegular, "r");
+				if (fontFile == NULL)
+					validFont = false;
+				else {
+					//Try to read its data into a char[] array; get the size, too
+					fseek (fontFile, 0, SEEK_END);
+					long fileSize = ftell(fontFile);
+					rewind(fontFile);
+					char * file_buff = new char[fileSize];
+					size_t file_buff_size = fread(file_buff, 1, fileSize, fontFile);
+					fclose(fontFile);
+
+					if (file_buff_size==0)
+						validFont = false;
+					else {
+						//Ok, load our font
+						mmFontBlack = new PulpCoreFont();
+						mmFontBlack->init(file_buff, file_buff_size, mainDC);
+					}
+				}
+			}
+
+			//Did we make it?
+			if (!validFont) {
+				delete [] fontFileRegular;
+				fontFileRegular = NULL;
+			}
 		}
 
-		//Get a handle from this resource.
-		HGLOBAL res_handle = LoadResource(NULL, fontRes);
-		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
+
+		//Do we need to load the internal font?
+		if (fontFileRegular==NULL) {
+			HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT"));
+			if (!fontRes) {
+				MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+				return;
+			}
+
+			//Get a handle from this resource.
+			HGLOBAL res_handle = LoadResource(NULL, fontRes);
+			if (!res_handle) {
+				MessageBox(NULL, _T("Couldn't get a handle on WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+				return;
+			}
+
+			//Create our PulpCoreFont (it's white when we load it, not black, by the way)
+			mmFontBlack = new PulpCoreFont();
+			mmFontBlack->init(fontRes, res_handle, mainDC);
+
+			//Unlock this resource for later use.
+			UnlockResource(res_handle);
 		}
 
-		//Create our PulpCoreFont (it's white when we load it, not black, by the way)
-		mmFontBlack = new PulpCoreFont();
-		mmFontBlack->init(fontRes, res_handle, mainDC);
+		//Is our font (loaded either way) in error?
 		if (mmFontBlack->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
@@ -579,9 +629,6 @@ void makeFont(HWND currHwnd)
 			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
-
-		//Unlock this resource for later use.
-		UnlockResource(res_handle);
 
 		//Copy-construct a new font
 		mmFontGreen = new PulpCoreFont();
@@ -895,6 +942,10 @@ void loadConfigOptions()
 	//Default encoding
 	setEncoding(ENCODING_UNICODE);
 
+	//Default font files
+	fontFileRegular = NULL;
+	fontFileSmall = NULL;
+
 	//Read our config file, if it exists.
 	numConfigOptions = -1;
 	FILE* configFile = fopen("config.txt", "r");
@@ -1029,6 +1080,20 @@ void loadConfigOptions()
 				maxPrefixEntries = (unsigned int)val;
 				numConfigOptions++;
 			}
+		} else if (strcmp(name, "fontfileregular")==0) {
+			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
+			} else {
+				fontFileRegular = new char[strlen(value)];
+				strcpy(fontFileRegular, value);
+			}
+			numConfigOptions++;
+		} else if (strcmp(name, "fontfilesmall")==0) {
+			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
+			} else {
+				fontFileSmall = new char[strlen(value)];
+				strcpy(fontFileSmall, value);
+			}
+			numConfigOptions++;
 		}
 
 	}

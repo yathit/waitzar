@@ -68,6 +68,7 @@ public:
 	//Initializers
 	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
 	void init(PulpCoreFont* copyFrom, HDC currDC);
+	void init(char *data, DWORD size, HDC currDC);
 
 	//Drawing functionality
 	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);
