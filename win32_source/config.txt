@@ -79,5 +79,14 @@ nexussize = 0
 prefixsize = 0
 
 
+# Can be set to "burmese" or "myanmar", which enables the "Help" feature and permits only MM letters
+# in our word file. Or, set to "any" to allow a mappying from roman to ANY letters. 
+charaset = burmese
 
 
+
+# Set to "default" or "embedded" to load the fonts that come with waitzar. Or, set to the name of the font
+#  file for the "large" and "small" fonts we wish to load externally. These fonts must be placed in the same
+#  directory as WaitZar.
+fontfileregular = embedded
+fontfilesmall = embedded

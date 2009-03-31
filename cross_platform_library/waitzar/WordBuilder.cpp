@@ -41,6 +41,8 @@ WordBuilder::WordBuilder (const char* modelFilePath, const char* userWordsFilePa
 
 void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userWordsFilePaths) 
 {
+	this->restrictToMyanmar = true;
+
 	revLookupOn = false;
 
 	//Step one: open the model file (ASCII)
@@ -58,7 +60,7 @@ void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userW
 	size_t model_buff_size = fread(model_buff, 1, modelFileSize, modelFile);
 	fclose(modelFile);
 
-	init(model_buff, model_buff_size);
+	init(model_buff, model_buff_size, !this->restrictToMyanmar);
 
 	//Reclaim memory
 	delete [] model_buff;
@@ -116,7 +118,7 @@ void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userW
 	  char* value = new char[100];
 	  while (currPosition<numUniChars) {
 	    //Get the name/value pair using our nifty template function....
-	    readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, name, value);
+		  readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, !this->restrictToMyanmar, name, value);
 
 	    //Make sure both name and value are non-empty
 	    if (strlen(value)==0 || wcslen(name)==0)
@@ -135,14 +137,16 @@ void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userW
 }
 
 
-WordBuilder::WordBuilder(char *model_buff, size_t model_buff_size)
+WordBuilder::WordBuilder(char *model_buff, size_t model_buff_size, bool allowAnyChar)
 {
-	init(model_buff, model_buff_size);
+	init(model_buff, model_buff_size, allowAnyChar);
 }
 
 
-void WordBuilder::init(char *model_buff, size_t model_buff_size)
+void WordBuilder::init(char *model_buff, size_t model_buff_size, bool allowAnyChar)
 {
+	this->restrictToMyanmar = !allowAnyChar;
+
 	revLookupOn = false;
 
 	//Fix:
