@@ -49,7 +49,7 @@
 里 = li
 后 = hou
 小 = xiao
-么 = me/mo
+么 = me
 心 = xin
 多 = duo
 天 = tian

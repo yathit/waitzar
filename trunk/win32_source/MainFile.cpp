@@ -182,6 +182,7 @@ BOOL alwaysRunElevated = FALSE;
 BOOL highlightKeys = TRUE;
 BOOL experimentalTextCursorTracking = TRUE;
 BOOL dontLoadModel = FALSE;
+BOOL allowNonBurmeseLetters = FALSE;
 unsigned int maxDictionaryEntries = 0;
 unsigned int maxNexusEntries = 0;
 unsigned int maxPrefixEntries = 0;
@@ -843,7 +844,7 @@ void readUserWords() {
 		char* value = new char[100];
 		while (currPosition<numUniChars) {
 			//Get the name/value pair using our nifty template function....
-			readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, name, value);
+			readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, (allowNonBurmeseLetters==TRUE), name, value);
 
 			//Make sure both name and value are non-empty
 			if (strlen(value)==0 || lstrlen(name)==0)
@@ -917,7 +918,7 @@ void loadConfigOptions()
 	char* value = new char[100];
 	for (size_t i=0; i<buff_size;) {
 		//Read name/value
-		readLine(buffer, i, buff_size, true, false, false, true, false, true, name, value);
+		readLine(buffer, i, buff_size, true, false, false, true, false, true, false, name, value);
 
 		//Are both name and value non-zero?
 		if (strlen(name)==0 || strlen(value)==0)
@@ -986,6 +987,14 @@ void loadConfigOptions()
 				dontLoadModel = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				dontLoadModel = FALSE;
+			else
+				numConfigOptions--;
+		} else if (strcmp(name, "charaset")==0) {
+			numConfigOptions++;
+			if (strcmp(value, "any")==0)
+				allowNonBurmeseLetters = TRUE;
+			else if (strcmp(value, "burmese")==0 || strcmp(value, "myanmar")==0)
+				allowNonBurmeseLetters = FALSE;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
@@ -1164,7 +1173,7 @@ BOOL loadModel() {
 		res_size = SizeofResource(NULL, res);
 
 		//Save our "model"
-		model = new WordBuilder(res_data, res_size);
+		model = new WordBuilder(res_data, res_size, (allowNonBurmeseLetters==TRUE));
 
 		//Done - This shouldn't matter, though, since the process only
 		//       accesses it once and, fortunately, this is not an external file.
@@ -2129,7 +2138,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 			//What to do if our user hits "F1".
-			if (wParam == HOTKEY_HELP) {
+			if (wParam == HOTKEY_HELP && allowNonBurmeseLetters==FALSE) {
 				updateHelpWindow();
 
 				keyWasUsed = true;

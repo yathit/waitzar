@@ -51,7 +51,7 @@ namespace waitzar
 class WordBuilder
 {
 public:
-	WordBuilder (char * model_buff, size_t model_buff_size);
+	WordBuilder (char * model_buff, size_t model_buff_size, bool allowAnyChar);
 	WordBuilder (const char* modelFile, const char* userWordsFile);
         WordBuilder (const char* modelFile, std::vector<std::string> userWordsFiles);
 	WordBuilder (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize);
@@ -100,6 +100,9 @@ private:
 	char **revLookup;
 	bool revLookupOn;
 
+	//If true, filter words
+	bool restrictToMyanmar;
+
 	//Cached lookups
 	unsigned short **winInnwaDictionary;
 	unsigned short **unicodeDictionary;
@@ -134,7 +137,7 @@ private:
 	int currSelectedID;
 
 	//Staged Init
-	void init (char * model_buff, size_t model_buff_size);
+	void init (char * model_buff, size_t model_buff_size, bool allowAnyChar);
     void init (const char* modelFile, std::vector<std::string> userWordsFiles);
     void init (unsigned short **dictionary, int dictMaxID, int dictMaxSize, unsigned int **nexus, int nexusMaxID, int nexusMaxSize, unsigned int **prefix, int prefixMaxID, int prefixMaxSize) ;
 
@@ -177,7 +180,7 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount);
  * @param nameRet, valRet The return strings for name/value pairs. Should be big enough to hold the name/value strings
  */
 template <class T, class S>
-void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, T* nameRet, S* valRet)
+void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bool nameHasMyanmar, bool nameHasSymbols, bool valueHasASCII, bool valueHasMyanmar, bool valueHasSymbols, bool valueHasAnything, T* nameRet, S* valRet)
 {
 	//Init --note: 0x0000 is necessary, see:
 	//http://msdn.microsoft.com/en-us/library/ms776431(VS.85).aspx
@@ -227,7 +230,9 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 			if (
 			   (hasASCII==true && currChar>='a' && currChar<='z') ||
 			   (hasMyanmar==true && currChar>=(T)0x1000 && currChar<=(T)0x109F) ||
-			   (hasSymbols==true && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+'))) {
+			   (hasSymbols==true && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+')) ||
+			   (nameDone==true && valueHasAnything==true)
+			   ) {
 				  //This test exists for hotkey configurations
 				  if (hasSymbols==true)
 				    currChar = prevCaseChar;
