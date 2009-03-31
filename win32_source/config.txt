@@ -69,7 +69,7 @@ defaultencoding = unicode
 
 
 # If "yes", we do not load Myanmar.model, and instead only load words from mywords.txt
-ignoremodel = yes
+ignoremodel = no
 
 #Settings for a custom dictionary
 # 0 = default
@@ -81,12 +81,12 @@ prefixsize = 0
 
 # Can be set to "burmese" or "myanmar", which enables the "Help" feature and permits only MM letters
 # in our word file. Or, set to "any" to allow a mappying from roman to ANY letters. 
-charaset = any
+charaset = myanmar
 
 
 
 # Set to "default" or "embedded" to loa5d the fonts that come with waitzar. Or, set to the name of the font
 #  file for the "large" and "small" fonts we wish to load externally. These fonts must be placed in the same
 #  directory as WaitZar.
-fontfileregular = chinesefont.png
-fontfilesmall = chinesefontsmall.png
+fontfileregular = default
+fontfilesmall = default

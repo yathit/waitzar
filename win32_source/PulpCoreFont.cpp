@@ -79,9 +79,9 @@ void PulpCoreFont::fontSet()
 	}
 
 	//"shorts" are always BIG_ENDIAN
-	firstChar = readShort();
-    lastChar = readShort();
-    tracking = readShort();
+	firstChar = readUnsignedShort();
+    lastChar = readUnsignedShort();
+    tracking = readUnsignedShort();
 	bool hasBearing = (readByte()!=0);
 
 	//Initialize arrays
