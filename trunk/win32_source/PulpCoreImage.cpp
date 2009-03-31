@@ -663,21 +663,21 @@ int PulpCoreImage::premultiply(UINT arbg)
 }
 
 
-int PulpCoreImage::readInt()
+unsigned int PulpCoreImage::readInt()
 {
-	int retVal = (((0xFF&res_data[currPos])<<24)  | ((0xFF&res_data[currPos+1])<<16) | ((0xFF&res_data[currPos+2])<<8) | ((0xFF&res_data[currPos+3]))) ;
+	unsigned int retVal = (((0xFF&res_data[currPos])<<24)  | ((0xFF&res_data[currPos+1])<<16) | ((0xFF&res_data[currPos+2])<<8) | ((0xFF&res_data[currPos+3]))) ;
 	currPos += 4;
 	return retVal;
 }
 
-short PulpCoreImage::readShort()
+unsigned short PulpCoreImage::readShort()
 {
 	int retVal = (((0xFF&res_data[currPos])<<8)  | ((0xFF&res_data[currPos+1])));
 	currPos += 2;
 	return retVal;
 }
 
-char PulpCoreImage::readByte()
+unsigned char PulpCoreImage::readByte()
 {
 	return (0xFF&res_data[currPos++]);
 }
