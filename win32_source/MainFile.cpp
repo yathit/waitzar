@@ -958,7 +958,7 @@ void readUserWords() {
 		char* value = new char[100];
 		while (currPosition<numUniChars) {
 			//Get the name/value pair using our nifty template function....
-			readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, (allowNonBurmeseLetters==TRUE), name, value);
+			readLine(uniBuffer, currPosition, numUniChars, true, true, false, (allowNonBurmeseLetters==TRUE), true, false, false, false, name, value);
 
 			//Make sure both name and value are non-empty
 			if (strlen(value)==0 || lstrlen(name)==0)
@@ -1036,7 +1036,7 @@ void loadConfigOptions()
 	char* value = new char[100];
 	for (size_t i=0; i<buff_size;) {
 		//Read name/value
-		readLine(buffer, i, buff_size, true, false, false, true, false, true, false, name, value);
+		readLine(buffer, i, buff_size, true, false, false, false, true, false, true, false, name, value);
 
 		//Are both name and value non-zero?
 		if (strlen(name)==0 || strlen(value)==0)

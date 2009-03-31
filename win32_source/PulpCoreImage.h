@@ -132,9 +132,11 @@ protected:
 	int paethPredictor(int a, int b, int c);
 	int premultiply(UINT arbg);
 	void premultiply(UINT* arbg, int argb_len);
-    int readInt();
-    short readShort();
-	char readByte();
 	void inflateFully(Inflater* inflater, char* result, int res_length);
+
+	//Now updated to returned unsigned values (makes more sense, since otherwise int x = readInt() doesn't work)
+	unsigned int readInt();
+    unsigned short readShort();
+	unsigned char readByte();
 
 };

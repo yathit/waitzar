@@ -118,7 +118,7 @@ void WordBuilder::init(const char* modelFilePath, std::vector<std::string> userW
 	  char* value = new char[100];
 	  while (currPosition<numUniChars) {
 	    //Get the name/value pair using our nifty template function....
-		  readLine(uniBuffer, currPosition, numUniChars, true, true, false, true, false, false, !this->restrictToMyanmar, name, value);
+		  readLine(uniBuffer, currPosition, numUniChars, true, true, false, !this->restrictToMyanmar, true, false, false, false, name, value);
 
 	    //Make sure both name and value are non-empty
 	    if (strlen(value)==0 || wcslen(name)==0)
@@ -840,12 +840,14 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsi
 	//Determine our dictionary
 	unsigned short** myDict = dictionary;
 	int destFont = Zawgyi_One;
-	if (encoding==ENCODING_WININNWA) {
-		myDict = winInnwaDictionary;
-		destFont = WinInnwa;
-	} else if (encoding==ENCODING_UNICODE) {
-		myDict = unicodeDictionary;
-		destFont = Myanmar3;
+	if (this->restrictToMyanmar) {
+		if (encoding==ENCODING_WININNWA) {
+			myDict = winInnwaDictionary;
+			destFont = WinInnwa;
+		} else if (encoding==ENCODING_UNICODE) {
+			myDict = unicodeDictionary;
+			destFont = Myanmar3;
+		}
 	}
 
 	//Does this word exist in the dictionary? If not, add it
