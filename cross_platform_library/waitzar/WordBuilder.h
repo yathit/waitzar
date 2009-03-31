@@ -230,7 +230,7 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 			if (
 			   (hasASCII==true && currChar>='a' && currChar<='z') ||
 			   (hasMyanmar==true && currChar>=(T)0x1000 && currChar<=(T)0x109F) ||
-			   (hasSymbols==true && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+')) ||
+			   (hasSymbols==true && (currChar=='_' || currChar=='!' || currChar=='^' || currChar=='+' || currChar=='.' || currChar=='-')) ||
 			   (nameDone==true && valueHasAnything==true)
 			   ) {
 				  //This test exists for hotkey configurations

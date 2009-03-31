@@ -186,8 +186,8 @@ BOOL allowNonBurmeseLetters = FALSE;
 unsigned int maxDictionaryEntries = 0;
 unsigned int maxNexusEntries = 0;
 unsigned int maxPrefixEntries = 0;
-char *fontFileRegular;
-char *fontFileSmall;
+char fontFileRegular[512];
+char fontFileSmall[512];
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
@@ -559,7 +559,7 @@ void makeFont(HWND currHwnd)
 	//Load our font resource (main fonts)
 	{
 		//Try to load our user-specified font image.
-		if (fontFileRegular!=NULL) {
+		if (strlen(fontFileRegular)>0) {
 			size_t fLen = strlen(fontFileRegular);
 			bool validFont = true;
 
@@ -568,7 +568,7 @@ void makeFont(HWND currHwnd)
 				validFont = false;
 			} else {
 				//Does the file exist?
-				FILE* fontFile = fopen(fontFileRegular, "r");
+				FILE* fontFile = fopen(fontFileRegular, "rb");
 				if (fontFile == NULL)
 					validFont = false;
 				else {
@@ -580,26 +580,35 @@ void makeFont(HWND currHwnd)
 					size_t file_buff_size = fread(file_buff, 1, fileSize, fontFile);
 					fclose(fontFile);
 
-					if (file_buff_size==0)
+					if (file_buff_size!=fileSize)
 						validFont = false;
 					else {
 						//Ok, load our font
 						mmFontBlack = new PulpCoreFont();
 						mmFontBlack->init(file_buff, file_buff_size, mainDC);
+
+						//Is our font in error? If so, load the embedded font
+						if (mmFontBlack->isInError()==TRUE) {
+							TCHAR errorStr[600];
+							swprintf(errorStr, _T("Custom font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
+							MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+
+							validFont = false;
+							delete mmFontBlack;
+						}
 					}
 				}
 			}
 
 			//Did we make it?
 			if (!validFont) {
-				delete [] fontFileRegular;
-				fontFileRegular = NULL;
+				strcpy(fontFileRegular, "");
 			}
 		}
 
 
 		//Do we need to load the internal font?
-		if (fontFileRegular==NULL) {
+		if (strlen(fontFileRegular)==0) {
 			HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT"));
 			if (!fontRes) {
 				MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
@@ -621,7 +630,7 @@ void makeFont(HWND currHwnd)
 			UnlockResource(res_handle);
 		}
 
-		//Is our font (loaded either way) in error?
+		//Is our embedded font in error?
 		if (mmFontBlack->isInError()==TRUE) {
 			TCHAR errorStr[600];
 			swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
@@ -775,22 +784,81 @@ void makeFont(HWND currHwnd)
 	if (typePhrases==FALSE)
 		return;
 
-	//Now, our small font (resource first!)
-	HRSRC fontRes2 = FindResource(hInst, MAKEINTRESOURCE(WZ_SMALL_FONT), _T("COREFONT"));
-	if (!fontRes2) {
-		MessageBox(NULL, _T("Couldn't find WZ_SMALL_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-        return;
+
+	//Try to load our user-specified font image.
+	if (strlen(fontFileSmall)>0) {
+		size_t fLen = strlen(fontFileSmall);
+		bool validFont = true;
+
+		//Is the file a PNG file by name?
+		if (fLen<5 || fontFileSmall[fLen-4]!='.' || fontFileSmall[fLen-3]!='p' || fontFileSmall[fLen-2]!='n' || fontFileSmall[fLen-1]!='g') {
+			validFont = false;
+		} else {
+			//Does the file exist?
+			FILE* fontFile = fopen(fontFileSmall, "rb");
+			if (fontFile == NULL)
+				validFont = false;
+			else {
+				//Try to read its data into a char[] array; get the size, too
+				fseek (fontFile, 0, SEEK_END);
+				long fileSize = ftell(fontFile);
+				rewind(fontFile);
+				char * file_buff = new char[fileSize];
+				size_t file_buff_size = fread(file_buff, 1, fileSize, fontFile);
+				fclose(fontFile);
+
+				if (file_buff_size!=fileSize)
+					validFont = false;
+				else {
+					//Ok, load our font
+					mmFontSmallWhite = new PulpCoreFont();
+					mmFontSmallWhite->init(file_buff, file_buff_size, senDC);
+
+					//Is our font in error? If so, load the embedded font
+					if (mmFontSmallWhite->isInError()==TRUE) {
+						TCHAR errorStr[600];
+						swprintf(errorStr, _T("Custom (small) font didn't load correctly: %s"), mmFontSmallWhite->getErrorMsg());
+						MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+
+						validFont = false;
+						delete mmFontSmallWhite;
+					}
+				}
+			}
+		}
+
+		//Did we make it?
+		if (!validFont) {
+			strcpy(fontFileSmall, "");
+		}
 	}
 
-	//Get a handle from this resource.
-    HGLOBAL res_handle_2 = LoadResource(NULL, fontRes2);
-	if (!res_handle_2) {
-		MessageBox(NULL, _T("Couldn't get a handle on WZ_SMALL_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
-        return;
+
+	//Do we need to load the embedded font as backup?
+	if (strlen(fontFileSmall)==0) {
+		//Now, our small font (resource first!)
+		HRSRC fontRes2 = FindResource(hInst, MAKEINTRESOURCE(WZ_SMALL_FONT), _T("COREFONT"));
+		if (!fontRes2) {
+			MessageBox(NULL, _T("Couldn't find WZ_SMALL_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle_2 = LoadResource(NULL, fontRes2);
+		if (!res_handle_2) {
+			MessageBox(NULL, _T("Couldn't get a handle on WZ_SMALL_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		mmFontSmallWhite = new PulpCoreFont();
+		mmFontSmallWhite->init(fontRes2, res_handle_2, senDC);
+
+		//Unlock this resource for later use.
+		UnlockResource(res_handle_2);
 	}
 
-	mmFontSmallWhite = new PulpCoreFont();
-	mmFontSmallWhite->init(fontRes2, res_handle_2, senDC);
+
+	//Is our embedded font in error?
 	if (mmFontSmallWhite->isInError()==TRUE) {
 		TCHAR errorStr[600];
 		swprintf(errorStr, _T("WZ Small Font didn't load correctly: %s"), mmFontSmallWhite->getErrorMsg());
@@ -799,8 +867,7 @@ void makeFont(HWND currHwnd)
 		return;
 	}
 
-	//Unlock this resource for later use.
-	UnlockResource(res_handle_2);
+
 
 	//Tint
 	mmFontSmallWhite->tintSelf(0xFFFFFF);
@@ -943,8 +1010,8 @@ void loadConfigOptions()
 	setEncoding(ENCODING_UNICODE);
 
 	//Default font files
-	fontFileRegular = NULL;
-	fontFileSmall = NULL;
+	strcpy(fontFileRegular, "");
+	strcpy(fontFileSmall, "");
 
 	//Read our config file, if it exists.
 	numConfigOptions = -1;
@@ -1083,14 +1150,12 @@ void loadConfigOptions()
 		} else if (strcmp(name, "fontfileregular")==0) {
 			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
 			} else {
-				fontFileRegular = new char[strlen(value)];
 				strcpy(fontFileRegular, value);
 			}
 			numConfigOptions++;
 		} else if (strcmp(name, "fontfilesmall")==0) {
 			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
 			} else {
-				fontFileSmall = new char[strlen(value)];
 				strcpy(fontFileSmall, value);
 			}
 			numConfigOptions++;
@@ -2088,6 +2153,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			//Make our font?
 			makeFont(hwnd);
+
+			//Did it work? If so, init. If not, exit.
+			if (mmFontBlack->isInError()) {
+				DestroyWindow(hwnd);
+				break;
+			}
 			initCalculate();
 
 			//Resize our window?
