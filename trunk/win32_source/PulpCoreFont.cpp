@@ -52,6 +52,12 @@ void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 }
 
 
+void PulpCoreFont::init(char *data, DWORD size, HDC currDC)
+{
+	PulpCoreImage::init(data, size, currDC);
+}
+
+
 void PulpCoreFont::readChunk(int chunkType, int length, HDC currDC)
 {
 	if (chunkType == CHUNK_FONT)

@@ -88,5 +88,5 @@ charaset = burmese
 # Set to "default" or "embedded" to load the fonts that come with waitzar. Or, set to the name of the font
 #  file for the "large" and "small" fonts we wish to load externally. These fonts must be placed in the same
 #  directory as WaitZar.
-fontfileregular = embedded
+fontfileregular = waitzar.font.png
 fontfilesmall = embedded

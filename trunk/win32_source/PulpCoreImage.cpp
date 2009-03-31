@@ -211,17 +211,17 @@ void PulpCoreImage::rotateSelf90DegreesClockwise()
 
 
 /**
- * Resource initializer
+ * Specific resource initializer
  */
-void PulpCoreImage::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
+void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
 {
 	//Init
 	this->error = FALSE;
 	lstrcpy(this->errorMsg, _T(""));
 
-	//Get raw data
-    res_data = (char*)LockResource(dataHandle);
-    res_size = SizeofResource(NULL, resource);
+	//Copy reference...
+	this->res_data = data;
+	this->res_size = size;
 
 	//Loop through all bytes...
 	currPos = 0;
@@ -271,6 +271,22 @@ void PulpCoreImage::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 	//Note: Absolutely NEVER do this:
 	//SelectObject(directDC, previousObject);
 	//If you do, the bitmap will no longer be valid to write to.
+}
+
+
+
+
+/**
+ * Resource initializer
+ */
+void PulpCoreImage::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
+{
+	//Get raw data
+    res_data = (char*)LockResource(dataHandle);
+    res_size = SizeofResource(NULL, resource);
+
+	//Loop through and read this data
+	this->init(res_data, res_size, currDC);
 }
 
 
