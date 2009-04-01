@@ -13,7 +13,7 @@ def main():
 		print "<br>&nbsp;\n"
 		print "<br>&nbsp;\n"
 		print "<br>&nbsp;\n"
-		print "<h1 style=\"color:#999999;\">Error Specifics</h1>\n<span style=\"color:#999999; font=weight:bold;\">"
+		print "<h1 style=\"color:#999999;\">Error Specifics</h1>\n<span style=\"color:#996666;\">"
 		
 		#Print our error in a safe way
 		cgi.print_exception()
