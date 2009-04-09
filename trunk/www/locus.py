@@ -49,6 +49,10 @@ def render_a_page(pagename):
 			raise Exception
 	except (AttributeError, ImportError):
 		bodyTxt = FallbackTemplate()
+	
+	# Return only the necessary part with AJAX
+	print bodyTxt
+	return
 
 	# Render tha page, inserting our text where the main div would be.
 	fMain = open('index.html', 'r')
