@@ -18,6 +18,9 @@ class FallbackTemplate(templet.Template):
 
 	body_template = r'''
 		Sorry, the page you followed does not seem to exist.
+		<br>Fortunately, the fact that you found this message (instead of a generic error page) means
+		that the developers are working on adding this page right now. Please try back in a few hours,
+		and you should see something new here.
 		<div class="hrsep"><img src="img/hr.jpg"/></div>
 	'''
 
