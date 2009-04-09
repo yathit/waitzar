@@ -43,11 +43,11 @@ def render_a_page(pagename):
 			moduleName = mtch.group(1)
 			className = moduleName[0].capitalize() + moduleName[1:] + "Template"
 			
-			classInst = forname(moduleName, className)
+			classInst = forname(moduleName + "_w", className)
 			bodyTxt = classInst()
 		else:
 			raise Exception
-	except AttributeError:
+	except (AttributeError, ImportError):
 		bodyTxt = FallbackTemplate()
 
 	# Render tha page, inserting our text where the main div would be.
