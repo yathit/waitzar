@@ -46,17 +46,93 @@
 		  text-align: left;
 		}
 
+		.sidelink {
+		  text-decoration: none;
+		  color: cyan;
+		  position: relative;
+		  left: 0px;
+		  top: 0px;
+		  text-shadow: #0000DD -1.5px -1.5px 1.5px;
+		}
+
 	</style>
+
+    <script type="text/javascript" language="javascript">
+    <!--
+      //Pre-load the images, so that we don't see a broken link on the first mouse-over.
+      // Borrowed from http://www.softouch.on.ca/scratch/js-roll2.htm
+      if (document.images) {
+        //(width, height)
+        var img1=new Image(300,76);
+        var img2=new Image(300,76);
+        var img3=new Image(300,76);
+
+        //Location
+        img1.src="img/spotlight.png";
+        img2.src="img/spotlight_over.png";
+        img3.src="img/spotlight_down.png";
+      }
+
+
+      //An array of our buttons
+      var buttons=new Array (
+        "img/spotlight.png",
+        "img/spotlight_over.png",
+        "img/spotlight_down.png"
+      );
+
+
+      //Swap image "name" with button id "item"
+      function swapImage(name,item)
+      {
+        if (document.images) {
+          document.images[name].src=buttons[item];
+        }
+      }
+
+      //Shortcut handlers
+      function highlightLink(name)
+      {
+        swapImage(name, 1);
+        document.getElementById(name+"Txt").style.color = "yellow";
+        document.getElementById(name+"Txt").style.textShadow = "#AA0000 -1.5px -1.5px 1.5px";
+
+        return true;
+      }
+      function pressLink(name)
+      {
+        swapImage(name, 2);
+        document.getElementById(name+"Txt").style.left = "2px";
+        document.getElementById(name+"Txt").style.top = "2px";
+        return true;
+      }
+      function releaseLink(name)
+      {
+        swapImage(name, 1);
+        document.getElementById(name+"Txt").style.left = "0px";
+        document.getElementById(name+"Txt").style.top = "0px";
+        return true;
+      }
+      function leaveLink(name)
+      {
+        swapImage(name, 0);
+        document.getElementById(name+"Txt").style.color = "cyan";
+        document.getElementById(name+"Txt").style.textShadow = "#0000DD -1.5px -1.5px 1.5px";
+        return true;
+      }
+    //-->
+</script>
+
 </head>
-<body bgcolor="black">
+<body bgcolor="black" onUnload="leaveLink('aDownload');">
 <table border="0" align="center" width="1000">
   <tr>
     <td colspan="2" align="center" background="img/skyline.jpg" width="1000" height="350"/>
       <div class="sidebar">
-        <div><img src="img/spotlight.png"/><span class="linktxt">Download</span></div>
-        <div><img src="img/spotlight.png"/><span class="linktxt">Instructions</span></div>
-        <div><img src="img/spotlight.png"/><span class="linktxt">Get Involved</span></div>
-        <div><img src="img/spotlight.png"/><span class="linktxt">Contact Us</span></div>
+        <div onMouseOver="return highlightLink('aDownload');" onMouseOut="return leaveLink('aDownload');"><img name="aDownload" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aDownload');" onMouseOut="return releaseLink('aDownload');" onMouseDown="return pressLink('aDownload');" class="sidelink" id="aDownloadTxt" href="download.py">Download</a></span></div>
+        <div onMouseOver="return highlightLink('aInstructions');" onMouseOut="return leaveLink('aInstructions');"><img name="aInstructions" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aInstructions');" onMouseOut="return releaseLink('aInstructions');" onMouseDown="return pressLink('aInstructions');" class="sidelink" id="aInstructionsTxt" href="instructions.py">Instructions</a></span></div>
+        <div onMouseOver="return highlightLink('aGetInvolved');" onMouseOut="return leaveLink('aGetInvolved');"><img name="aGetInvolved" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aGetInvolved');" onMouseOut="return releaseLink('aGetInvolved');" onMouseDown="return pressLink('aGetInvolved');" class="sidelink" id="aGetInvolvedTxt" href="getinvolved.py">Get Involved</a></span></div>
+        <div onMouseOver="return highlightLink('aContactUs');" onMouseOut="return leaveLink('aContactUs');"><img name="aContactUs" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aContactUs');" onMouseOut="return releaseLink('aContactUs');" onMouseDown="return pressLink('aContactUs');" class="sidelink" id="aContactUsTxt" href="contactus.py">Contact Us</a></span></div>
       </div>
       <div class="upabit" style="width:300; height: 248; float: left;"><img src="img/logo.png"/></div>
     </td>
