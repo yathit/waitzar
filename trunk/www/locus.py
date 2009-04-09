@@ -51,7 +51,7 @@ def render_a_page(pagename):
 		bodyTxt = FallbackTemplate()
 
 	print "Arguments: \n"
-	print cgi.FieldStorage()
+	print "partial: " , cgi.FieldStorage().has_key("partial")
 	return
 
 	if cgi.FieldStorage().getfirst('partial'):
