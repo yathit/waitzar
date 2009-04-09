@@ -50,6 +50,10 @@ def render_a_page(pagename):
 	except (AttributeError, ImportError):
 		bodyTxt = FallbackTemplate()
 
+	print "Arguments: \n"
+	cgi.print_arguments()
+	return
+
 	if cgi.FieldStorage().getfirst('partial'):
 		# Return only the necessary part with AJAX
 		print bodyTxt
