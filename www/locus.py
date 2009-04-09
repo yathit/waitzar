@@ -10,12 +10,12 @@ import re
 def render_a_page(pagename):
 	fMain = open('index.html', 'r')
 	showLines = 0
-	for lin in fMain:
+	for line in fMain:
 		#Track our counter?
 		if showLines > 0:
-			if re.search('<div'):
+			if re.search('<div', line):
 				showLines += 1
-			elif re.search('</div'):
+			elif re.search('</div', line):
 				showLines -= 1
 		
 		#Output this line?
@@ -23,5 +23,5 @@ def render_a_page(pagename):
 			print line
 		
 		#Have we reached our special main div?
-		if re.search('<div +id *= *"main"'):
+		if re.search('<div +id *= *"main"', line):
 			showLines = 1

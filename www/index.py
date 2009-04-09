@@ -10,7 +10,7 @@ import cgi
 def safe_render(pagename):
 	print "Content-Type: text/html\n"
 	try:
-		import locus
+		from locus import render_a_page
 		render_a_page(pagename)
 	except:
 		print "<html><head><title>Server-Side Error</title></head>\n<body>"
