@@ -90,6 +90,25 @@
         self.xmlHttpReq.send(getquerystring());
       }
 
+      function xmlhttpGet(strURL) {
+        var xmlHttpReq = false;
+        var self = this;
+        if (window.XMLHttpRequest) {
+          //Mozilla/Safari
+          self.xmlHttpReq = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+          //IE
+          self.xmlHttpReq = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        self.xmlHttpReq.open('GET', strURL, true);
+        self.xmlHttpReq.onreadystatechange = function() {
+          if (self.xmlHttpReq.readyState == 4) {
+            updatepage(self.xmlHttpReq.responseText);
+          }
+        }
+        self.xmlHttpReq.send("?partial");
+      }
+
       function getquerystring() {
         var form     = document.forms['f1'];
         var word = form.word.value;
@@ -171,10 +190,10 @@
   <tr>
     <td colspan="2" align="center" background="img/skyline.jpg" width="1000" height="350"/>
       <div class="sidebar">
-        <div onMouseOver="return highlightLink('aDownload');" onMouseOut="return leaveLink('aDownload');"><img name="aDownload" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aDownload');" onMouseOut="return releaseLink('aDownload');" onMouseDown="return pressLink('aDownload');" class="sidelink" id="aDownloadTxt" href="#" onclick='JavaScript:xmlhttpPost("download.py");'>Download</a></span></div>
-        <div onMouseOver="return highlightLink('aInstructions');" onMouseOut="return leaveLink('aInstructions');"><img name="aInstructions" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aInstructions');" onMouseOut="return releaseLink('aInstructions');" onMouseDown="return pressLink('aInstructions');" class="sidelink" id="aInstructionsTxt" href="#" onclick='JavaScript:xmlhttpPost("instructions.py");'>Instructions</a></span></div>
-        <div onMouseOver="return highlightLink('aGetInvolved');" onMouseOut="return leaveLink('aGetInvolved');"><img name="aGetInvolved" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aGetInvolved');" onMouseOut="return releaseLink('aGetInvolved');" onMouseDown="return pressLink('aGetInvolved');" class="sidelink" id="aGetInvolvedTxt" href="#" onclick='JavaScript:xmlhttpPost("getinvolved.py");'>Get Involved</a></span></div>
-        <div onMouseOver="return highlightLink('aContactUs');" onMouseOut="return leaveLink('aContactUs');"><img name="aContactUs" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aContactUs');" onMouseOut="return releaseLink('aContactUs');" onMouseDown="return pressLink('aContactUs');" class="sidelink" id="aContactUsTxt" href="#" onclick='JavaScript:xmlhttpPost("contactus.py");'>Contact Us</a></span></div>
+        <div onMouseOver="return highlightLink('aDownload');" onMouseOut="return leaveLink('aDownload');"><img name="aDownload" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aDownload');" onMouseOut="return releaseLink('aDownload');" onMouseDown="return pressLink('aDownload');" class="sidelink" id="aDownloadTxt" href="#" onclick='JavaScript:xmlhttpGet("download.py");'>Download</a></span></div>
+        <div onMouseOver="return highlightLink('aInstructions');" onMouseOut="return leaveLink('aInstructions');"><img name="aInstructions" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aInstructions');" onMouseOut="return releaseLink('aInstructions');" onMouseDown="return pressLink('aInstructions');" class="sidelink" id="aInstructionsTxt" href="#" onclick='JavaScript:xmlhttpGet("instructions.py");'>Instructions</a></span></div>
+        <div onMouseOver="return highlightLink('aGetInvolved');" onMouseOut="return leaveLink('aGetInvolved');"><img name="aGetInvolved" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aGetInvolved');" onMouseOut="return releaseLink('aGetInvolved');" onMouseDown="return pressLink('aGetInvolved');" class="sidelink" id="aGetInvolvedTxt" href="#" onclick='JavaScript:xmlhttpGet("getinvolved.py");'>Get Involved</a></span></div>
+        <div onMouseOver="return highlightLink('aContactUs');" onMouseOut="return leaveLink('aContactUs');"><img name="aContactUs" src="img/spotlight.png" width="300" height="76"/><span class="linktxt"><a onMouseUp="return releaseLink('aContactUs');" onMouseOut="return releaseLink('aContactUs');" onMouseDown="return pressLink('aContactUs');" class="sidelink" id="aContactUsTxt" href="#" onclick='JavaScript:xmlhttpGet("contactus.py");'>Contact Us</a></span></div>
       </div>
       <a href="index.html"><div class="upabit" style="width:300; height: 248; float: left;"><img border="0" src="img/logo.png"/></div></a>
     </td>

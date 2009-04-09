@@ -49,27 +49,27 @@ def render_a_page(pagename):
 			raise Exception
 	except (AttributeError, ImportError):
 		bodyTxt = FallbackTemplate()
-	
-	# Return only the necessary part with AJAX
-	print bodyTxt
-	return
 
-	# Render tha page, inserting our text where the main div would be.
-	fMain = open('index.html', 'r')
-	showLines = 0
-	for line in fMain:
-		#Track our counter?
-		if showLines > 0:
-			if re.search('<div', line):
-				showLines += 1
-			if re.search('</div', line):
-				showLines -= 1
-		
-		#Output this line?
-		if showLines == 0:
-			print line
-		
-		#Have we reached our special main div?
-		if re.search('<div +id *= *"main"', line):
-			print bodyTxt
-			showLines = 1
+	if cgi.FieldStorage().getfirst('partial'):
+		# Return only the necessary part with AJAX
+		print bodyTxt
+	else:
+		# Render tha page, inserting our text where the main div would be.
+		fMain = open('index.html', 'r')
+		showLines = 0
+		for line in fMain:
+			#Track our counter?
+			if showLines > 0:
+				if re.search('<div', line):
+					showLines += 1
+				if re.search('</div', line):
+					showLines -= 1
+
+			#Output this line?
+			if showLines == 0:
+				print line
+
+			#Have we reached our special main div?
+			if re.search('<div +id *= *"main"', line):
+				print bodyTxt
+				showLines = 1
