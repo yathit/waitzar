@@ -40,11 +40,14 @@ def render_a_page(pagename):
 	try:
 		mtch = re.search('([a-z]+)\.py', pagename)
 		if mtch:
-			moduleName = mtch.group()
-			className = mtch.group(0)[0].capitalize() + mtch.group(0)[1:] + Template
+			moduleName = mtch.group(1)
+			className = moduleName[0].capitalize() + moduleName[1:] + "Template"
+			
 			classInst = forname(moduleName, className)
 			bodyTxt = classInst()
-	except:
+		else:
+			raise Exception
+	except AttributeError:
 		bodyTxt = FallbackTemplate()
 
 	# Render tha page, inserting our text where the main div would be.
