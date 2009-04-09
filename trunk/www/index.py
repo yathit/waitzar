@@ -2,10 +2,16 @@
 
 import cgi
 
-def main():
+
+# We need this file to be as simple as possible, so that all 
+#  normal errors are caught and printed. We do this by 
+#  giving it only one method, only one import, and one print
+#  statement before the "try" branch
+def safe_render(pagename):
 	print "Content-Type: text/html\n"
 	try:
 		import locus
+		render_my_page(pagename)
 	except:
 		print "<html><head><title>Server-Side Error</title></head>\n<body>"
 		print "<!-- --><h1>Sorry, An Error Occurred</h1>\n"
@@ -19,7 +25,3 @@ def main():
 		cgi.print_exception()
 		
 		print "</span></body></html>"
-
-
-if __name__ == '__main__':
-	main()
