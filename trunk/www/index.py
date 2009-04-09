@@ -11,7 +11,7 @@ def safe_render(pagename):
 	print "Content-Type: text/html\n"
 	try:
 		import locus
-		render_my_page(pagename)
+		render_a_page(pagename)
 	except:
 		print "<html><head><title>Server-Side Error</title></head>\n<body>"
 		print "<!-- --><h1>Sorry, An Error Occurred</h1>\n"
