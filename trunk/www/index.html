@@ -72,7 +72,7 @@
 
 
       //Simple AJAX functionality
-      function xmlhttpPost(strURL) {
+      function xmlhttpPost(strURL, formName) {
         var xmlHttpReq = false;
         var self = this;
         if (window.XMLHttpRequest) {
@@ -89,7 +89,7 @@
             updatepage(self.xmlHttpReq.responseText);
           }
         }
-        self.xmlHttpReq.send(getquerystring());
+        self.xmlHttpReq.send(getquerystring(formName));
       }
 
       function xmlhttpGet(strURL) {
@@ -113,8 +113,8 @@
         self.xmlHttpReq.send("");
       }
 
-      function getquerystring() {
-        var form     = document.forms['f1'];
+      function getquerystring(formName) {
+        var form     = document.forms[formName];
         var name = form.userName.value;
         var email = form.userEmail.value;
         var comments = form.comments.value;
