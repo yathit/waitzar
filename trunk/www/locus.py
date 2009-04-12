@@ -10,6 +10,7 @@ class FallbackTemplate(templet.Template):
 	template = r'''
 		$<header_template>
 		$<body_template>
+		$<hrule_template>
 		'''
 	
 	header_template = r'''
@@ -21,6 +22,9 @@ class FallbackTemplate(templet.Template):
 		<br>Fortunately, the fact that you found this message (instead of a generic error page) means
 		that the developers are working on adding this page right now. Please try back in a few hours,
 		and you should see something new here.
+	'''
+	
+	hrule_template = r'''
 		<div class="hrsep"><img src="img/hr.jpg"/></div>
 	'''
 
