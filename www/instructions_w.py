@@ -1,6 +1,6 @@
 from locus import FallbackTemplate
 
-class DownloadTemplate(FallbackTemplate):
+class InstructionsTemplate(FallbackTemplate):
 	template = r'''
         <map name="amln_map">
           <area alt="Download WaitZar" title="Download WaitZar"
