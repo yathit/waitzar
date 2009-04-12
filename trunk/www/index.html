@@ -131,6 +131,78 @@
     //-->
 	</script>
 
+
+		<script type="text/javascript" language="javascript">
+		<!--
+			//This script is used by contactus.py, since AJAX-ing it doesn't seem to work.
+		  //Set the text of our labels based on the context
+		  function setLabels(){
+		    if (document.getElementById("requestType").selectedIndex == 0) {
+				document.getElementById("commentsTag").innerHTML = "Please type your feedback here:";
+				document.getElementById("emailTag").innerHTML = "Your Email Address: (optional)";
+				document.getElementById("submitButton").value = "Submit Feedback";
+		    } else {
+				document.getElementById("commentsTag").innerHTML = "Please describe what you need help with:";
+				document.getElementById("emailTag").innerHTML = "Your Email Address:";
+				document.getElementById("submitButton").value = "Ask For Help";
+		    }
+		  }
+
+		  var errorCount = 0;
+
+
+		  function validateRequest() {
+		    //Reset all borders
+		  	errorCount = 0;
+
+		  	if (document.getElementById("comments").value.length==0) {
+  		  		document.getElementById("comments").style.border = "3px solid red";
+  		  		document.getElementById("comments").style.backgroundColor = "#FFCCCC";
+  		  		document.getElementById("comments").value = "Please enter a brief description.";
+  		  		errorCount = errorCount + 1;
+		  	}
+
+		  	if (document.getElementById("userName").value.length==0) {
+  		  		document.getElementById("userName").style.border = "3px solid red";
+  		  		document.getElementById("userName").style.backgroundColor = "#FFCCCC";
+  		  		document.getElementById("userName").value = "Please type your name.";
+  		  		errorCount = errorCount + 1;
+		  	}
+
+		  	if (document.getElementById("userEmail").value.length==0 && document.getElementById("requestType").selectedIndex == 1) {
+  		  		document.getElementById("userEmail").style.border = "3px solid red";
+  		  		document.getElementById("userEmail").style.backgroundColor = "#FFCCCC";
+  		  		document.getElementById("userEmail").value = "Please type your email.";
+  		  		errorCount = errorCount + 1;
+		  	}
+
+
+
+		    if (errorCount==0) {
+				xmlhttpPost("contactus.py", "wzRespForm");
+			} else {
+				document.getElementById("submitButton").disabled = true;
+			}
+		  }
+
+
+		  function unRedElement(elem) {
+		    if (document.getElementById(elem).style.border.match("red")) {
+				document.getElementById(elem).style.border = "";
+				document.getElementById(elem).style.backgroundColor = "";
+				document.getElementById(elem).value = "";
+				errorCount = errorCount - 1;
+			}
+
+		    if (errorCount==0) {
+				document.getElementById("submitButton").disabled = false;
+			}
+		  }
+
+		//-->
+		</script>
+
+
 	<style type="text/css">
 		div, span {
 		  color: white;
