@@ -60,7 +60,7 @@ def render_a_page(pagename):
 		print bodyTxt
 	else:
 		#DEBUG
-		print "REQUEST_METHOD:", environ["REQUEST_METHOD"] , "\n"
+		print "REQUEST_METHOD:", os.environ["REQUEST_METHOD"] , "\n"
 		print "Values:\n"
 		f = cgi.FieldStorage()
 		for k in f.keys():
