@@ -124,7 +124,7 @@
         var comments = form.comments.value;
 
         // NOTE: no '?' before querystring
-        qstr = 'name=' + escape(name) + '&email=' + escape(email) + '&comments=' + escape(comments);
+        qstr = 'name=' + escape(name) + '&email=' + escape(email) + '&comments=' + escape(comments) + '&partial=yes';
         return qstr;
       }
 
