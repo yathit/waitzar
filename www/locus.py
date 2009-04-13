@@ -54,7 +54,7 @@ def render_a_page(pagename):
 			classInst = forname(moduleName + "_w", className)
 			
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				bodyTxt = classInst(name=f.getfirst('name'), email=f.getfirst('email'), comments=f.getfirst('comments'))
+				bodyTxt = classInst(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))
 			else:
 				bodyTxt = classInst()
 		else:
