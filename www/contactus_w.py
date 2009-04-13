@@ -38,6 +38,7 @@ class ContactusTemplate(FallbackTemplate):
 				<tr>
 					<td style="border-right:1px solid green; border-bottom:1px solid green;" valign="middle" align="center">
 						<input style="font-size: 18px;" id="submitButton" value="Submit Feedback" type="button" onclick='JavaScript:validateRequest();'/>
+						<div id="submitLoader"></div>
 					</td>
 				</tr>
 			</table>
@@ -47,6 +48,6 @@ class ContactusTemplate(FallbackTemplate):
 		
 	def reloadText(self, name, email, comments):
 		#Form post-back
-		ret = "<h1>Message Sent</h1>\nThanks for contacting us, " + name + ". We will read your message as soon as we can.<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;"
+		ret = "<h1>Message Sent</h1>\nThanks for contacting us, " + name + ". We will read your message as soon as we can.<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;"
 		
 		return ret
