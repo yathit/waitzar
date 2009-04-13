@@ -45,7 +45,7 @@ class ContactusTemplate(FallbackTemplate):
         $<hrule_template>
 		'''
 		
-	def reloadText(name, email, comments):
+	def reloadText(self, name, email, comments):
 		#Form post-back
 		print 'POST-BACK'
 		
