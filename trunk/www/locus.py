@@ -46,7 +46,7 @@ def render_a_page(pagename):
 			className = moduleName[0].capitalize() + moduleName[1:] + "Template"
 			
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				classInst = getattr(__import__(moduleName + "_w"), className)(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))
+				classInst = getattr(__import__(moduleName + "_w"), className+"(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))")
 				bodyTxt = classInst
 			else:
 				classInst = getattr(__import__(moduleName + "_w"), className)
