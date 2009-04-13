@@ -73,6 +73,10 @@
 
       //Simple AJAX functionality
       function xmlhttpPost(strURL, formName) {
+      	document.getElementById("submitButton").disabled = true;
+      	document.getElementById("submitButton").value = "Please Wait"
+      	document.getElementById("submitLoader").innerHTML = "<img src=\"img/loading.gif\"/>";
+
         var xmlHttpReq = false;
         var self = this;
         var params = getquerystring(formName);
