@@ -47,10 +47,10 @@ def render_a_page(pagename):
 			
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
 				classInst = getattr(__import__(moduleName + "_w"), className)(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))
+				bodyTxt = classInst
 			else:
 				classInst = getattr(__import__(moduleName + "_w"), className)
-
-			bodyTxt = classInst()
+				bodyTxt = classInst()
 		else:
 			raise Exception
 	except (AttributeError, ImportError):
