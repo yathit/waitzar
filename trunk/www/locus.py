@@ -30,12 +30,6 @@ class FallbackTemplate(templet.Template):
 	'''
 
 
-# Load a class by name, from its module
-def forname(modname, attname):
-    return getattr(__import__(modname), attname)
-
-
-
 # This works by pulling apart index.html and then subsituting a proper
 #  python template (well, a templet...) based on what we are trying to render.
 def render_a_page(pagename):
@@ -51,13 +45,12 @@ def render_a_page(pagename):
 			moduleName = mtch.group(1)
 			className = moduleName[0].capitalize() + moduleName[1:] + "Template"
 			
-			classInst = forname(moduleName + "_w", className)
-
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				#bodyTxt = classInst(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))
-				bodyTxt = classInst(name='hi', email='hi', comments='hi')
+				classInst = getattr(__import__(moduleName + "_w"), className)(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))
 			else:
-				bodyTxt = classInst()
+				classInst = getattr(__import__(moduleName + "_w"), className)
+
+			bodyTxt = classInst()
 		else:
 			raise Exception
 	except (AttributeError, ImportError):
