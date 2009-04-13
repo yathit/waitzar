@@ -39,6 +39,9 @@ def forname(modname, attname):
 # This works by pulling apart index.html and then subsituting a proper
 #  python template (well, a templet...) based on what we are trying to render.
 def render_a_page(pagename):
+	#Read field-storage ONCE
+	fields = cgi.FieldStorage()
+
 	# Try to load a properly-named class file with the given URL name; if not, 
 	#  fall back to a generic error message.
 	bodyTxt = None
@@ -49,28 +52,28 @@ def render_a_page(pagename):
 			className = moduleName[0].capitalize() + moduleName[1:] + "Template"
 			
 			classInst = forname(moduleName + "_w", className)
-			bodyTxt = classInst()
+			
+			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
+				bodyTxt = classInst(name=f.getfirst('name'), email=f.getfirst('email'), comments=f.getfirst('comments'))
+			else:
+				bodyTxt = classInst()
 		else:
 			raise Exception
 	except (AttributeError, ImportError):
 		bodyTxt = FallbackTemplate()
 		
-	#Read field-storage ONCE
-	fields = cgi.FieldStorage()
-
 	if fields.has_key("partial"):
 		# Return only the necessary part with AJAX
 		print bodyTxt
 	else:
 		#DEBUG
-		print "REQUEST_METHOD:", os.environ["REQUEST_METHOD"] , "<br>"
-		print "Values: <br>"
-		f = fields
-		for k in f.keys():
-			print "%s: %s<br>" % (k, f.getfirst(k))
-		print "Done<br>"
-
-		return
+		#print "REQUEST_METHOD:", os.environ["REQUEST_METHOD"] , "<br>"
+		#print "Values: <br>"
+		#f = fields
+		#for k in f.keys():
+		#	print "%s: %s<br>" % (k, f.getfirst(k))
+		#print "Done<br>"
+		#return
 	
 		# Render tha page, inserting our text where the main div would be.
 		fMain = open('index.html', 'r')

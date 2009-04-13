@@ -1,7 +1,21 @@
 from locus import FallbackTemplate
 
 class ContactusTemplate(FallbackTemplate):
-	template = r'''
+	#Form post-back
+	isPost = True
+	try:
+    		name
+    		email
+    		comments
+	except NameError:
+    		isPost = False
+
+	if (isPost):
+		template = r'''
+		Yay~~~
+		'''
+	else:
+		template = r'''
         <h1>Contact Us</h1>
         Thank you for using WaitZar. Please let us know if you have any questions, or any suggestions. You can email <a href="mailto:help@waitzar.com">help@waitzar.com</a>, or just fill in the form below.
 
