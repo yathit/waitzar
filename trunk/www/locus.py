@@ -54,18 +54,21 @@ def render_a_page(pagename):
 			raise Exception
 	except (AttributeError, ImportError):
 		bodyTxt = FallbackTemplate()
+		
+	#Read field-storage ONCE
+	fields = cgi.FieldStorage()
 
-	if cgi.FieldStorage().has_key("partial"):
+	if fields.has_key("partial"):
 		# Return only the necessary part with AJAX
 		print bodyTxt
 	else:
 		#DEBUG
-		print "REQUEST_METHOD:", os.environ["REQUEST_METHOD"] , "\n"
-		print "Values:\n"
-		f = cgi.FieldStorage()
+		print "REQUEST_METHOD:", os.environ["REQUEST_METHOD"] , "<br>"
+		print "Values: <br>"
+		f = fields
 		for k in f.keys():
-			print "%s: %s\n" % (k, f.getfirst(k))
-		print "Done\n"
+			print "%s: %s<br>" % (k, f.getfirst(k))
+		print "Done<br>"
 
 		return
 	
