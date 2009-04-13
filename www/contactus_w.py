@@ -5,16 +5,19 @@ class ContactusTemplate(FallbackTemplate):
 	isPost = True
 	try:
     		name
+    		print "NAME: " , name
     		email
     		comments
 	except NameError:
     		isPost = False
 
 	if (isPost):
+		print "IS POST"
 		template = r'''
 		Yay~~~
 		'''
 	else:
+		print "IS NOT POST"
 		template = r'''
         <h1>Contact Us</h1>
         Thank you for using WaitZar. Please let us know if you have any questions, or any suggestions. You can email <a href="mailto:help@waitzar.com">help@waitzar.com</a>, or just fill in the form below.

@@ -53,14 +53,10 @@ def render_a_page(pagename):
 			
 			classInst = forname(moduleName + "_w", className)
 
-			print "GOING"			
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				print "GOING2"
 				bodyTxt = classInst(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))
-				print "GOING2.5"
 			else:
 				bodyTxt = classInst()
-			print "GOING3"
 		else:
 			raise Exception
 	except (AttributeError, ImportError):
