@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import cgi
+import os
 import templet
 import re
 
@@ -60,6 +61,7 @@ def render_a_page(pagename):
 	else:
 		#DEBUG
 		print cgi.FieldStorage()
+		print os.environ
 		return
 	
 		# Render tha page, inserting our text where the main div would be.
