@@ -49,7 +49,7 @@ def render_a_page(pagename):
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
 				#Send the email
 				emailField = fields.getfirst('email')
-				if len(emailField)==0
+				if len(emailField)==0:
 					emailField = "help@waitzar.com"
 				from mailer import *
 				resVal = sendAMail(emailField, fields.getfirst('name'), 'seth.hetu@gmail.com', fields.getfirst('comments'))
