@@ -47,7 +47,12 @@ def render_a_page(pagename):
 
 			classInst = getattr(__import__(moduleName + "_w"), className)
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				bodyTxt = classInst.reloadText(classInst(), fields.getfirst('name'), fields.getfirst('email'), fields.getfirst('comments'))
+				#Send the email
+				from mailer import *
+				resVal = sendAMail(fields.getfirst('email'), fields.getfirst('name'), 'seth.hetu@gmail.com', fields.getfirst('comments'))
+			
+				#Reload our page text
+				bodyTxt = classInst.reloadText(classInst(), fields.getfirst('name'), resVal==SENDRESP_BAD_EMAIL_ADDRESS, resVal==SENDRESP_SERVER_DOWN)
 			else:
 				bodyTxt = classInst()
 

@@ -46,8 +46,19 @@ class ContactusTemplate(FallbackTemplate):
         $<hrule_template>
 		'''
 		
-	def reloadText(self, name, email, comments):
+	def reloadText(self, name, invalidEmail, emailServerError):
 		#Form post-back
-		ret = "<h1>Message Sent</h1>\nThanks for contacting us, " + name + ". We will read your message as soon as we can.<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;"
+		head = "Message Sent"
+		if invalidEmail or emailServerError:
+			head = "Error Sending Message"
+			
+		body = "Thanks for contacting us, " + name + ". We will read your message as soon as we can."
+		if invalidEmail:
+			body = "The email address that you specified was invalid."
+		elif emailServerError:
+			body = "The feedback server is currently experiencing some difficulties."
+		if invalidEmail or emailServerError:
+			body += "<br>Your email could not be sent.Why not try contacting <a href=\"mailto:help@waitzar.com\">help@waitzar.com</a> directly?"
+		ret = "<h1>" + head + "</h1>\n" + body +"<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;"
 		
 		return ret
