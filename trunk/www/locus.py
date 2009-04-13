@@ -60,8 +60,13 @@ def render_a_page(pagename):
 		print bodyTxt
 	else:
 		#DEBUG
-		print cgi.FieldStorage()
-		print os.environ
+		print "REQUEST_METHOD:", environ["REQUEST_METHOD"] , "\n"
+		print "Values:\n"
+		f = cgi.FieldStorage()
+		for k in f.keys():
+			print "%s: %s\n" % (k, f.getfirst(k))
+		print "Done\n"
+
 		return
 	
 		# Render tha page, inserting our text where the main div would be.
