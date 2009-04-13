@@ -44,13 +44,13 @@ def render_a_page(pagename):
 		if mtch:
 			moduleName = mtch.group(1)
 			className = moduleName[0].capitalize() + moduleName[1:] + "Template"
-			
+
+			classInst = getattr(__import__(moduleName + "_w"), className)
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				classInst = getattr(__import__(moduleName + "_w"), className+"(name=fields.getfirst('name'), email=fields.getfirst('email'), comments=fields.getfirst('comments'))")
-				bodyTxt = classInst
+				bodyTxt = classInst.reloadText(fields.getfirst('name'), fields.getfirst('email'), fields.getfirst('comments'))
 			else:
-				classInst = getattr(__import__(moduleName + "_w"), className)
 				bodyTxt = classInst()
+
 		else:
 			raise Exception
 	except (AttributeError, ImportError):
