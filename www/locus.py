@@ -47,7 +47,7 @@ def render_a_page(pagename):
 
 			classInst = getattr(__import__(moduleName + "_w"), className)
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				bodyTxt = classInst.reloadText(fields.getfirst('name'), fields.getfirst('email'), fields.getfirst('comments'))
+				bodyTxt = classInst.reloadText(classInst, fields.getfirst('name'), fields.getfirst('email'), fields.getfirst('comments'))
 			else:
 				bodyTxt = classInst()
 
