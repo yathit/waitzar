@@ -67,13 +67,14 @@ def render_a_page(pagename):
 		print bodyTxt
 	else:
 		#DEBUG
-		#print "REQUEST_METHOD:", os.environ["REQUEST_METHOD"] , "<br>"
-		#print "Values: <br>"
-		#f = fields
-		#for k in f.keys():
-		#	print "%s: %s<br>" % (k, f.getfirst(k))
-		#print "Done<br>"
-		#return
+		if True:
+			print "REQUEST_METHOD:", os.environ["REQUEST_METHOD"] , "<br>"
+			print "Values: <br>"
+			f = fields
+			for k in f.keys():
+				print "%s: %s<br>" % (k, f.getfirst(k))
+			print "Done<br>"
+			return
 	
 		# Render tha page, inserting our text where the main div would be.
 		fMain = open('index.html', 'r')
