@@ -58,6 +58,10 @@ def render_a_page(pagename):
 		# Return only the necessary part with AJAX
 		print bodyTxt
 	else:
+		#DEBUG
+		print cgi.FieldStorage()
+		return
+	
 		# Render tha page, inserting our text where the main div would be.
 		fMain = open('index.html', 'r')
 		showLines = 0
