@@ -47,6 +47,6 @@ class ContactusTemplate(FallbackTemplate):
 		
 	def reloadText(self, name, email, comments):
 		#Form post-back
-		print 'POST-BACK'
+		ret = "<h1>Message Sent</h1>\nThanks for contacting us, " + name + ". We will read your message as soon as we can.<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;"
 		
-		return 'name = ' + name
+		return ret
