@@ -98,3 +98,4 @@ class GetinvolvedTemplate(FallbackTemplate):
 
 
         $<hrule_template>
+        '''
