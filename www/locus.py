@@ -52,7 +52,7 @@ def render_a_page(pagename):
 				if len(emailField)==0:
 					emailField = "help@waitzar.com"
 				from mailer import *
-				resVal = sendAMail(emailField, fields.getfirst('name'), 'seth.hetu@gmail.com', fields.getfirst('comments'))
+				resVal = sendAMail(emailField, fields.getfirst('name'), 'help@waitzar.com', fields.getfirst('comments'))
 			
 				#Reload our page text
 				bodyTxt = classInst.reloadText(classInst(), fields.getfirst('name'), resVal==SENDRESP_BAD_EMAIL_ADDRESS, resVal==SENDRESP_SERVER_DOWN)
