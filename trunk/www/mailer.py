@@ -59,13 +59,12 @@ def sendAMail(fromEmail, frName, toEmail, message):
 			 + "Subject: WZ Feedback and Help Request\n\n" \
 			 + message
 
-		try:
-			smtpObj = smtplib.SMTP('localhost')
-			smtpObj.set_debuglevel(1)
-			smtpObj.sendmail(fromEmail, toList, fullMsg)
-		except Exception:
-			print "EXCEPTION"
-			return SENDRESP_SERVER_DOWN
+		#try:
+		smtpObj = smtplib.SMTP('localhost')
+		smtpObj.sendmail(fromEmail, toList, fullMsg)
+		#except Exception:
+		#	print "EXCEPTION"
+		return SENDRESP_SERVER_DOWN
 	else:
 		return SENDRESP_BAD_EMAIL_ADDRESS
 	return SENDRESP_SUCCESS
