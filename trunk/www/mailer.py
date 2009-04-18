@@ -62,7 +62,9 @@ def sendAMail(fromEmail, frName, toEmail, message):
 		try:
 			smtpObj = smtplib.SMTP('localhost')
 			smtpObj.sendmail(fromEmail, toList, fullMsg)
-		except Exception:
+		except Exception as inst:
+			print "EXCEPTION: " , type(inst) , inst.args
+			print inst
 			return SENDRESP_SERVER_DOWN
 	else:
 		return SENDRESP_BAD_EMAIL_ADDRESS
