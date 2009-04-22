@@ -1832,9 +1832,10 @@ void recalculate()
 			//Fix the pen if this is a post word
 			// Also, fix the ID
 			int wordID = (int)i;
-			if (i==0 && model->hasPostStr()) {
-				mmFont = mmFontRed;
+			if (model->hasPostStr()) {
 				wordID--;
+				if (i==0)
+					mmFont = mmFontRed;
 			}
 
 			mmFont->drawString(mainUnderDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
@@ -2662,11 +2663,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle numbers
 			if (!helpWindowIsVisible) {
 				stopChar=0;
-				if (numCode > -1) {
+				if (numCode>-1 || wParam==HOTKEY_COMBINE) {
 					if (mainWindowIsVisible) {
 						//Convert 1..0 to 0..9
 						if (--numCode<0)
 							numCode = 9;
+
+						//Mangle as usual...
+						if (wParam==HOTKEY_COMBINE) {
+							numCode = -1;
+							patSintIDModifier = -1;
+						}
 
 						//The model is visible: select that word
 						BOOL typed = selectWord(numCode, helpWindowIsVisible);
@@ -3313,6 +3320,10 @@ BOOL turnOnNumberkeys(BOOL on)
 
 	//Register numbers
 	if (on==TRUE) {
+		//Special case: combiner key
+		if (RegisterHotKey(mainWindow, HOTKEY_COMBINE, 0, VK_OEM_3)==FALSE)
+			retVal = FALSE;
+
 		//Numbers are no longer control keys.
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM0, NULL, VK_NUMPAD0)==FALSE)
 			retVal = FALSE;
@@ -3339,6 +3350,10 @@ BOOL turnOnNumberkeys(BOOL on)
 				retVal = FALSE;
 		}
 	} else {
+		//Combiner
+		if (UnregisterHotKey(mainWindow, HOTKEY_COMBINE)==FALSE)
+			retVal = FALSE;
+
 		//Numbers
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM0)==FALSE)
 			retVal = FALSE;
@@ -3398,8 +3413,6 @@ bool turnOnExtendedKeys(bool on)
 	//Register help keys
 	if (on) {
 		//Our combiner key (register shifted, too, to prevent errors)
-		if (RegisterHotKey(mainWindow, HOTKEY_COMBINE, 0, VK_OEM_3)==FALSE)
-			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE, MOD_SHIFT, VK_OEM_3)==FALSE)
 			retVal = false;
 
@@ -3454,8 +3467,6 @@ bool turnOnExtendedKeys(bool on)
 				retVal = false;
 		}
 	} else {
-		if (UnregisterHotKey(mainWindow, HOTKEY_COMBINE)==FALSE)
-			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE)==FALSE)
 			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT_BRACKET)==FALSE)
