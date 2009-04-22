@@ -1,0 +1,57 @@
+		div, span {
+		  color: white;
+		  font-family: Trebuchet MS, sans;
+		  font-size: 0.95em;
+		}
+
+		h1 {
+		  font-family: Garamond, Serif;
+		  font-size: 2.2em;
+		}
+
+		.spacer {
+		  height: 100px;
+		}
+
+		.upabit {
+		  position:relative;
+		  top:0px;
+		  left:9px;
+		}
+
+		.upatinybit {
+		  position:relative;
+		  top:-35px;
+		  left:0px;
+		}
+
+		.linktxt {
+		  position:relative;
+		  top:-35px;
+		  left:-195px;
+		  color:cyan;
+		  font-family: Arial, sans;
+		  font-size: 1.8em;
+		}
+
+		.sidebar {
+		  float: right;
+		  position: relative;
+		  top: 450px;
+		  left: -630px;
+		  text-align: left;
+		}
+
+		.sidelink {
+		  text-decoration: none;
+		  color: #44FFAA;
+		  position: relative;
+		  left: 0px;
+		  top: 0px;
+		  text-shadow: #000088 -1.5px -1.5px 1.5px;
+		}
+
+		.hrsep {
+		padding-top: 30px;
+		  padding-bottom: 30px;
+		}
