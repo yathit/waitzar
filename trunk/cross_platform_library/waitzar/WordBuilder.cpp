@@ -1003,6 +1003,11 @@ unsigned int WordBuilder::getPostID()
 	return this->postID;
 }
 
+bool WordBuilder::hasPostStr()
+{
+	return this->postStr[0] != 0x0000;
+}
+
 
 
 /**

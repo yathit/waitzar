@@ -81,6 +81,7 @@ public:
 	wchar_t* getParenString();
 	wchar_t* getPostString();
 	unsigned int getPostID();
+	bool hasPostStr();
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull);

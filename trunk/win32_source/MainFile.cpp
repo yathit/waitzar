@@ -143,6 +143,9 @@ KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
 wchar_t returnVal[500];
 
+//For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
+int patSintIDModifier = 0;
+
 //Help Window resources
 PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
@@ -1668,7 +1671,7 @@ void recalculate()
 	}
 
 	//Extra width for pat-sint suggestion?
-	if (wcslen(model->getPostString())>0) {
+	if (model->hasPostStr()) {
 		cumulativeWidth += mmFontBlack->getStringWidth(model->getPostString());
 		cumulativeWidth += spaceWidth;
 	}
@@ -1698,12 +1701,11 @@ void recalculate()
 		int currentPosX = borderWidth + 1;
 		int cursorPosX = currentPosX;
 		int counterCursorID=0;
-		size_t countdown = sentence->size();
+		int countup = 0;
 		for (;printIT != sentence->end(); printIT++) {
 			//Append this string
 			wchar_t *strToDraw;
 			bool delLater = false;
-			countdown--;
 			PulpCoreFont* colorFont = mmFontSmallWhite;
 			if (*printIT>=0)
 				strToDraw = model->getWordString(*printIT);
@@ -1718,8 +1720,11 @@ void recalculate()
 				} else
 					strToDraw = userDefinedWordsZg[id-numSystemWords];
 			}
-			if (countdown==0 && wcslen(model->getPostString())>0)
+			if (countup++ == sentence->getCursorIndex() && model->hasPostStr()) {
 				colorFont = mmFontSmallRed;
+				if (patSintIDModifier==-1)
+					strToDraw = model->getPostString();
+			}
 			colorFont->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
 			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
 
@@ -1804,14 +1809,17 @@ void recalculate()
 		mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 	} else if (mainWindowIsVisible) { //Crashes otherwise
 		//Add the post-processed word, if it exists...
-		if (wcslen(model->getPostString())>0)
+		int mySelectedID = ((int)model->getCurrSelectedID()) + patSintIDModifier;
+		if (model->hasPostStr()) {
 			words.insert(words.begin(), model->getPostID());
+			mySelectedID++;
+		}
 
 		for (size_t i=0; i<words.size(); i++) {
 			//If this is the currently-selected word, draw a box under it.
 			//int x = words[i];
 			int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
-			if (i!=model->getCurrSelectedID())
+			if (i!=mySelectedID)
 				mmFont = mmFontBlack;
 			else {
 				mmFont = mmFontGreen;
@@ -1822,13 +1830,27 @@ void recalculate()
 			}
 
 			//Fix the pen if this is a post word
-			if (i==0 && wcslen(model->getPostString())>0)
+			// Also, fix the ID
+			int wordID = (int)i;
+			if (i==0 && model->hasPostStr()) {
 				mmFont = mmFontRed;
+				wordID--;
+			}
 
 			mmFont->drawString(mainUnderDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
-			if (i<10) {
-				swprintf(digit, _T("%i"), ((i+1)%10));
+			if (wordID<10) {
+				if (wordID>=0)
+					swprintf(digit, _T("%i"), ((wordID+1)%10));
+				else {
+					digit[0] = '`';
+					digit[1] = 0x0000;
+					if (i!=mySelectedID)
+						mmFont = mmFontBlack;
+					else
+						mmFont = mmFontGreen;
+				}
+				
 				int digitWidth = mmFont->getStringWidth(digit);
 
 				mmFont->drawString(mainUnderDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
@@ -1946,6 +1968,7 @@ void typeCurrentPhrase()
 
 
 	//Now, reset...
+	patSintIDModifier = 0;
 	model->reset(true);
 	sentence->clear();
 	for (unsigned int i=0; i<userDefinedWords.size(); i++) {
@@ -1974,10 +1997,16 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	//Are there any words to use?
 	int wordID = id;
 	if (!indexNegativeEntries) {
-		std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
-		if (typedVal.first == FALSE)
-			return FALSE;
-		wordID = typedVal.second;
+		//One last check: are we doing a pat-sint shortcut?
+		if (patSintIDModifier==-1) {
+			wordID = model->getPostID();
+		} else {
+			//Ok, look it up in the model as usual
+			std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
+			if (typedVal.first == FALSE)
+				return FALSE;
+			wordID = typedVal.second;
+		}
 	}
 
 	//Optionally turn off numerals
@@ -1990,6 +2019,10 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 		sentence->insert(wordID);
 		typeCurrentPhrase();
 	} else {
+		//Pat-sint clears the previous word
+		if (patSintIDModifier==-1)
+			sentence->deletePrev(model);
+
 		//Advanced Case - Insert
 		sentence->insert(wordID);
 	}
@@ -2279,6 +2312,7 @@ void updateHelpWindow()
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
 		lstrcpy(currStr, _T(""));
+		patSintIDModifier = 0;
 		model->reset(false);
 		recalculate();
 
@@ -2379,6 +2413,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Reset the model
 				sentence->clear();
+				patSintIDModifier = 0;
 				model->reset(true);
 
 				keyWasUsed = true;
@@ -2452,10 +2487,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (!mainWindowIsVisible) {
 						//Kill the entire sentence.
 						sentence->clear();
+						patSintIDModifier = 0;
 						model->reset(true);
 						turnOnControlkeys(FALSE);
 						ShowBothWindows(SW_HIDE);
 					} else {
+						patSintIDModifier = 0;
 						model->reset(false);
 
 						//No more numbers
@@ -2477,7 +2514,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								sentence->clear();
 								ShowBothWindows(SW_HIDE);
 								turnOnControlkeys(FALSE);
-							}
+							} else 
+								recalculate();
 						}
 					}
 				}
@@ -2576,7 +2614,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else {
 					if (mainWindowIsVisible) {
 						//Move right/left within the current word.
-						if (model->moveRight(1) == TRUE)
+						if (patSintIDModifier==-1) {
+							patSintIDModifier = 0;
+							recalculate();
+						} else if (model->moveRight(1) == TRUE)
 							recalculate();
 					} else {
 						//Move right/left within the current phrase.
@@ -2595,6 +2636,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (mainWindowIsVisible) {
 						if (model->moveRight(-1) == TRUE)
 							recalculate();
+						else if (model->hasPostStr() && patSintIDModifier==0) {
+							//Move left to our "pat-sint shortcut"
+							patSintIDModifier = -1;
+							recalculate();
+						}
 					} else {
 						//Move right/left within the current phrase.
 						if (sentence->moveCursorRight(-1, model))
@@ -2629,6 +2675,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							mainWindowIsVisible = false;
 
 							lstrcpy(currStr, _T(""));
+							patSintIDModifier = 0;
 							model->reset(false);
 							recalculate();
 						}
@@ -2710,6 +2757,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						ShowWindow(mainWindow, SW_HIDE);
 						mainWindowIsVisible = false;
 
+						patSintIDModifier = 0;
 						model->reset(false);
 						lstrcpy(currStr, _T(""));
 						recalculate();
@@ -2727,6 +2775,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							mainWindowIsVisible = false;
 
 							lstrcpy(currStr, _T(""));
+							patSintIDModifier = 0;
 							model->reset(false);
 							recalculate();
 						}
@@ -2766,6 +2815,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						ShowWindow(mainWindow, SW_HIDE);
 						mainWindowIsVisible = false;
 
+						patSintIDModifier = 0;
 						model->reset(false);
 						lstrcpy(currStr, _T(""));
 						recalculate();
@@ -2784,6 +2834,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
+							patSintIDModifier = 0;
 							model->reset(false);
 							lstrcpy(currStr, _T(""));
 							recalculate();
@@ -3111,12 +3162,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					//Reset the model
 					sentence->clear();
+					patSintIDModifier = 0;
 					model->reset(true);
 				} else if (retVal == IDM_MYANMAR) {
 					switchToLanguage(TRUE);
 
 					//Reset the model
 					sentence->clear();
+					patSintIDModifier = 0;
 					model->reset(true);
 				} else if (retVal == IDM_LOOKUP) {
 					//Manage our help window
