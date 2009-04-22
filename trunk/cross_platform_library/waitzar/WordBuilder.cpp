@@ -151,6 +151,7 @@ void WordBuilder::init(char *model_buff, size_t model_buff_size, bool allowAnyCh
 
 	//Fix:
 	wcscpy(parenStr, L"");
+	wcscpy(postStr, L"");
 	
 	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
 	unsigned short **dictionary;
@@ -457,6 +458,7 @@ void WordBuilder::init (unsigned short **dictionary, int dictMaxID, int dictMaxS
 
 	//Fix:
 	wcscpy(parenStr, L"");
+	wcscpy(postStr, L"");
 	
 	/*printf("dictionary: %i\n", dictMaxID);
 	printf("nexus: %i\n", nexusMaxID);
@@ -556,8 +558,8 @@ bool WordBuilder::addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resu
 		if (prefixID!=0) {
 			//Now, test this prefix to see if its base pair contains our word in question.
 			for (unsigned int x=0; x<prefix[prefixID][1]; x++) {
-				unsigned int wordID = prefix[prefixID][0]*2 + x + 2;
-				if (wordID == toStackNexusID) {
+				unsigned int wordID = prefix[prefixID][prefix[prefixID][0]*2 + x + 2];
+				if (wordID == toStackID) {
 					considerThisNexus = true;
 					break;
 				}
@@ -745,6 +747,7 @@ void WordBuilder::reset(bool fullReset)
 	this->possibleChars.clear();
 	this->possibleWords.clear();
 	wcscpy(parenStr, L"");
+	wcscpy(postStr, L"");
 
 	//Full reset: remove all prefixes
 	if (fullReset)
@@ -784,6 +787,7 @@ void WordBuilder::resolveWords(void)
 {
 	//Init
 	wcscpy(parenStr, L"");
+	wcscpy(postStr, L"");
 	int pStrOffset = 0;
 
 	//If there are no words possible, can we jump to a point that doesn't diverge?
@@ -840,6 +844,16 @@ void WordBuilder::resolveWords(void)
 			int val = prefix[lowestPrefix][2+prefix[lowestPrefix][0]*2+i];
 			if (!vectorContains(possibleWords, val))
 				possibleWords.push_back(val);
+		}
+	}
+
+	//Finally, check if this nexus and the previously-typed word lines up; if so, we have a "post" match
+	postStr[0] = 0x0000;
+	if (shortcuts.count(currNexus)>0 && trigramCount>0) {
+		std::pair<unsigned int, unsigned int> *postCheck = shortcuts[currNexus];
+		if (postCheck->first == trigram[0]) {
+			wcscpy(postStr, getWordString(postCheck->second));
+			postID = postCheck->second;
 		}
 	}
 
@@ -975,6 +989,18 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsi
 wchar_t* WordBuilder::getParenString()
 {
 	return this->parenStr;
+}
+
+
+wchar_t* WordBuilder::getPostString()
+{
+	return this->postStr;
+}
+
+
+unsigned int WordBuilder::getPostID()
+{
+	return this->postID;
 }
 
 
