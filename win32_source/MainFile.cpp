@@ -130,8 +130,10 @@ HICON engIcon;
 WordBuilder *model;
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
+PulpCoreFont *mmFontRed;
 PulpCoreFont *mmFontSmallWhite;
 PulpCoreFont *mmFontSmallGray;
+PulpCoreFont *mmFontSmallRed;
 PAINTSTRUCT Ps;
 WORD stopChar;
 int numConfigOptions;
@@ -643,9 +645,13 @@ void makeFont(HWND currHwnd)
 		mmFontGreen = new PulpCoreFont();
 		mmFontGreen->init(mmFontBlack, mainDC);
 
+		mmFontRed = new PulpCoreFont();
+		mmFontRed->init(mmFontBlack, mainDC);
+
 		//Tint both to their respective colors
 		mmFontGreen->tintSelf(0x008000);
 		mmFontBlack->tintSelf(0x000000);
+		mmFontRed->tintSelf(0xFF0000);
 	}
 
 
@@ -876,6 +882,11 @@ void makeFont(HWND currHwnd)
 	mmFontSmallGray = new PulpCoreFont();
 	mmFontSmallGray->init(mmFontSmallWhite, mainDC);
 	mmFontSmallGray->tintSelf(0x333333);
+
+	//New copy
+	mmFontSmallRed = new PulpCoreFont();
+	mmFontSmallRed->init(mmFontSmallWhite, mainDC);
+	mmFontSmallRed->tintSelf(0xFF0000);
 	
 }
 
@@ -1656,6 +1667,12 @@ void recalculate()
 		cumulativeWidth += spaceWidth;
 	}
 
+	//Extra width for pat-sint suggestion?
+	if (wcslen(model->getPostString())>0) {
+		cumulativeWidth += mmFontBlack->getStringWidth(model->getPostString());
+		cumulativeWidth += spaceWidth;
+	}
+
 	//If not, resize. Also, keep the size small when possible.
 	if (cumulativeWidth>C_WIDTH)
 		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
@@ -1681,10 +1698,13 @@ void recalculate()
 		int currentPosX = borderWidth + 1;
 		int cursorPosX = currentPosX;
 		int counterCursorID=0;
+		size_t countdown = sentence->size();
 		for (;printIT != sentence->end(); printIT++) {
 			//Append this string
 			wchar_t *strToDraw;
 			bool delLater = false;
+			countdown--;
+			PulpCoreFont* colorFont = mmFontSmallWhite;
 			if (*printIT>=0)
 				strToDraw = model->getWordString(*printIT);
 			else {
@@ -1698,7 +1718,9 @@ void recalculate()
 				} else
 					strToDraw = userDefinedWordsZg[id-numSystemWords];
 			}
-			mmFontSmallWhite->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
+			if (countdown==0 && wcslen(model->getPostString())>0)
+				colorFont = mmFontSmallRed;
+			colorFont->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
 			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
 
 			if (delLater)
@@ -1781,6 +1803,10 @@ void recalculate()
 		//Helper text
 		mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 	} else if (mainWindowIsVisible) { //Crashes otherwise
+		//Add the post-processed word, if it exists...
+		if (wcslen(model->getPostString())>0)
+			words.insert(words.begin(), model->getPostID());
+
 		for (size_t i=0; i<words.size(); i++) {
 			//If this is the currently-selected word, draw a box under it.
 			//int x = words[i];
@@ -1794,6 +1820,10 @@ void recalculate()
 				SelectObject(mainUnderDC, g_GreenPen);
 				Rectangle(mainUnderDC, borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
 			}
+
+			//Fix the pen if this is a post word
+			if (i==0 && wcslen(model->getPostString())>0)
+				mmFont = mmFontRed;
 
 			mmFont->drawString(mainUnderDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 

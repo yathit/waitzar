@@ -79,6 +79,8 @@ public:
 	std::vector<unsigned short> getWordKeyStrokes(unsigned int id, unsigned int encoding);
 	wchar_t* getWordString(unsigned int id);
 	wchar_t* getParenString();
+	wchar_t* getPostString();
+	unsigned int getPostID();
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull);
@@ -155,6 +157,8 @@ private:
 
 	//Extension: guessing the next bit
 	wchar_t parenStr[100];
+	wchar_t postStr[100];
+	unsigned int postID;
 
 	//For error messages
 	wchar_t mostRecentError[200];
