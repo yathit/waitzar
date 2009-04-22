@@ -569,14 +569,19 @@ bool WordBuilder::addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resu
 			continue;
 
 
-		if (shortcuts.count(toStackNexusID)!=0) {
+		//Add a new map, if needed
+		if (shortcuts.count(toStackNexusID)==0) {
+			shortcuts[toStackNexusID] = new std::map<unsigned int, unsigned int>;
+		}
+
+		if (shortcuts[toStackNexusID]->count(baseWordID)>0) {
 			//Some word's already claimed this nexus.
-			swprintf(mostRecentError, L"Nexus already in use: %i", toStackNexusID);
+			swprintf(mostRecentError, L"Nexus & prefix already in use: %i %i", toStackNexusID, baseWordID);
 			return false;
 		}
 
 		//Add this nexus
-		shortcuts[toStackNexusID] = new std::pair<unsigned int, unsigned int>(baseWordID, resultStackedID);
+		(*shortcuts[toStackNexusID])[baseWordID] = resultStackedID;
 	}
 
 	return true;
@@ -850,10 +855,9 @@ void WordBuilder::resolveWords(void)
 	//Finally, check if this nexus and the previously-typed word lines up; if so, we have a "post" match
 	postStr[0] = 0x0000;
 	if (shortcuts.count(currNexus)>0 && trigramCount>0) {
-		std::pair<unsigned int, unsigned int> *postCheck = shortcuts[currNexus];
-		if (postCheck->first == trigram[0]) {
-			wcscpy(postStr, getWordString(postCheck->second));
-			postID = postCheck->second;
+		if (shortcuts[currNexus]->count(trigram[0])>0) {
+			postID = (*shortcuts[currNexus])[trigram[0]];
+			wcscpy(postStr, getWordString(postID));
 		}
 	}
 

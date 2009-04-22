@@ -1342,27 +1342,29 @@ BOOL loadModel() {
 			res_data = (char*)LockResource(res_handle);
 			res_size = SizeofResource(NULL, res);
 
+			//We, unfortunately, have to convert this to unicode now...
+			wchar_t *uniData = new wchar_t[res_size];
+			mymbstowcs(uniData, res_data, res_size);
+			DWORD uniSize = wcslen(uniData);
+
 			//Now, read through each line and add it to the external words list.
-			char pre[200];
-			char curr[200];
-			char post[200];
-			wchar_t pre_uni[100];
-			wchar_t curr_uni[100];
-			wchar_t post_uni[100];
+			wchar_t pre[200];
+			wchar_t curr[200];
+			wchar_t post[200];
 			size_t index = 0;
 
 			//Skip the BOM
 			//if (res_data[index] == 0xFE && res_data[index+1]==0xFF)
 			//	index += 2;
 
-			for (;index<res_size;) {
+			for (;index<uniSize;) {
 				//Left-trim
-				while (res_data[index] == ' ')
+				while (uniData[index] == ' ')
 					index++;
 
 				//Comment? Empty line? If so, skip...
-				if (res_data[index]=='#' || res_data[index]=='\n') {
-					while (res_data[index] != '\n')
+				if (uniData[index]=='#' || uniData[index]=='\n') {
+					while (uniData[index] != '\n')
 						index++;
 					index++;
 					continue;
@@ -1379,31 +1381,31 @@ BOOL loadModel() {
 				int post_pos = 0;
 
 				//Ok, look for pre + curr = post
-				while (index<res_size) {
-					if (res_data[index] == '\n') {
+				while (index<uniSize) {
+					if (uniData[index] == '\n') {
 						index++;
 						break;
-					} else if (res_data[index] == '+') {
+					} else if (uniData[index] == '+') {
 						//Switch modes
 						pre_done = true;
 						index++;
-					} else if (res_data[index] == '=') {
+					} else if (uniData[index] == '=') {
 						//Switch modes
 						pre_done = true;
 						curr_done = true;
 						index++;
-					} else if (res_data[index] == ' ' || res_data[index] == '\t') {
-						//Indrement
-						index++;
-					} else {
+					} else if (uniData[index] >= 0x1000 && uniData[index] <= 0x109F) {
 						//Add this to the current string
 						if (curr_done) {
-							post[post_pos++] = res_data[index++];
+							post[post_pos++] = uniData[index++];
 						} else if (pre_done) {
-							curr[curr_pos++] = res_data[index++];
+							curr[curr_pos++] = uniData[index++];
 						} else {
-							pre[pre_pos++] = res_data[index++];
+							pre[pre_pos++] = uniData[index++];
 						}
+					} else {
+						//Ignore it; avoid weird errors
+						index++;
 					}
 				}
 
@@ -1412,31 +1414,26 @@ BOOL loadModel() {
 				curr[curr_pos++] = 0x0000;
 				pre[pre_pos++] = 0x0000;
 
-				//We now have to convert them to unicode...
-				mymbstowcs(pre_uni, pre, 200);
-				mymbstowcs(curr_uni, curr, 200);
-				mymbstowcs(post_uni, post, 200);
-
 				//Do we have anything?
-				if (wcslen(post_uni)!=0 && wcslen(curr_uni)!=0 && wcslen(pre_uni)!=0) {
+				if (wcslen(post)!=0 && wcslen(curr)!=0 && wcslen(pre)!=0) {
 					//Ok, process these strings and store them
-					if (!model->addShortcut(pre_uni, curr_uni, post_uni)) {
+					if (!model->addShortcut(pre, curr, post)) {
 						MessageBox(NULL, model->getLastError(), _T("Error"), MB_ICONERROR | MB_OK);
 
 						if (isLogging) {
 							fprintf(logFile, "pre: ");
-							for (unsigned int x=0; x<wcslen(pre_uni); x++)
-								fprintf(logFile, "U+%x ", pre_uni[x]);
+							for (unsigned int x=0; x<wcslen(pre); x++)
+								fprintf(logFile, "U+%x ", pre[x]);
 							fprintf(logFile, "\n");
 
 							fprintf(logFile, "curr: ");
-							for (unsigned int x=0; x<wcslen(curr_uni); x++)
-								fprintf(logFile, "U+%x ", curr_uni[x]);
+							for (unsigned int x=0; x<wcslen(curr); x++)
+								fprintf(logFile, "U+%x ", curr[x]);
 							fprintf(logFile, "\n");
 
 							fprintf(logFile, "post: ");
-							for (unsigned int x=0; x<wcslen(post_uni); x++)
-								fprintf(logFile, "U+%x ", post_uni[x]);
+							for (unsigned int x=0; x<wcslen(post); x++)
+								fprintf(logFile, "U+%x ", post[x]);
 							fprintf(logFile, "\n");
 						}
 
@@ -1444,6 +1441,9 @@ BOOL loadModel() {
 					}
 				}
 			}
+
+			//Free memory
+			delete [] uniData;
 
 			//Done - This shouldn't matter, though, since the process only
 			//       accesses it once and, fortunately, this is not an external file.
