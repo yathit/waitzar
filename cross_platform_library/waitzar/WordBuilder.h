@@ -107,7 +107,10 @@ private:
 	unsigned int **prefix;
 	char **revLookup;
 	bool revLookupOn;
-	std::map<unsigned int, std::pair<unsigned int, unsigned int>* > shortcuts;
+
+	//We could use a multimap of pairs, but I think a map of maps works better.
+	// This is arranged as: nexus -> pre_word_id -> combined_word_id
+	std::map<unsigned int, std::map<unsigned int, unsigned int>* > shortcuts;
 
 	//If true, filter words
 	bool restrictToMyanmar;

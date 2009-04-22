@@ -2,4 +2,26 @@
 # This must be pre-processed by WaitZar, to allow the model to present 
 # a pat-sint option, where applicable, attached to key "`"
 
+#Words I'm not sure about
+#သေကၤတ = tinkayta
+#တိရစၧာန္ = teyutesan	
+
+##### --ၻ
+ကမ္ + ဘာ့ = ကမၻာ့
+ကမ္ + ဘ = ကမၻ
+ကမ္ + ဘာ = ကမၻာ
+ကမ္ + ေဘာ = ကေမၻာ
+
+#ဘာ့  = ba
+#ဘ = ba
+#How to manage the conflict?
+
+
+
+#Un-sorted....
 မန္ + တ = မႏၲ
+စန္ + တ = စႏၲ
+
+
+
+
