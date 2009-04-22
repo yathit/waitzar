@@ -10,6 +10,9 @@
 //Don't let Visual Studio warn us to use the _s functions
 #define _CRT_SECURE_NO_WARNINGS
 
+//Ignore new swprintf semantics
+#define _CRT_NON_CONFORMING_SWPRINTFS
+
 //Necessary libraries
 #include <wchar.h>
 #include <string.h>
@@ -17,6 +20,7 @@
 #include <stdlib.h> //strtol
 #include <vector>
 #include <string>
+#include <map>
 #include "fontconv.h"
 
 namespace waitzar 
@@ -80,6 +84,7 @@ public:
 	unsigned short getStopCharacter(bool isFull);
 	unsigned int getTotalDefinedWords();
 	char* reverseLookupWord(unsigned int dictID);
+	bool addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resultStacked);
 
 	//Re-order the model
 	bool addRomanization(wchar_t* myanmar, char* roman);
@@ -99,6 +104,7 @@ private:
 	unsigned int **prefix;
 	char **revLookup;
 	bool revLookupOn;
+	std::map<unsigned int, std::pair<unsigned int, unsigned int>* > shortcuts;
 
 	//If true, filter words
 	bool restrictToMyanmar;
@@ -161,6 +167,7 @@ private:
 	void addPrefix(unsigned int latestPrefix);
 	void setCurrSelected(int id);
 	void buildReverseLookup();
+	unsigned int getWordID(wchar_t* wordStr);
 
 };
 
@@ -184,6 +191,7 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 {
 	//Init --note: 0x0000 is necessary, see:
 	//http://msdn.microsoft.com/en-us/library/ms776431(VS.85).aspx
+	//....er, actually, it should probably be \u0000; I think 0x00 would work. But no matter, really.
 	nameRet[0] = (T)0x0000;
 	valRet[0] = (S)0x0000;
 

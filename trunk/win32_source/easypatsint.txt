@@ -1,4 +1,4 @@
-﻿#Every pat-sint word is recorded into the model as pre + curr = post
+#Every pat-sint word is recorded into the model as pre + curr = post
 # This must be pre-processed by WaitZar, to allow the model to present 
 # a pat-sint option, where applicable, attached to key "`"
 

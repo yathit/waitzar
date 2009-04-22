@@ -15,6 +15,7 @@
 #define WZ_HELP_FORE_FONT               110
 #define WZ_HELP_BACK_FONT               111
 #define WZ_HELP_CORNER                  112
+#define WZ_EASYPS						113
 #define IDM_HELP                        40004
 #define IDM_MYANMAR                     40006
 #define IDM_EXIT                        40008
@@ -29,7 +30,7 @@
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        113
+#define _APS_NEXT_RESOURCE_VALUE        114
 #define _APS_NEXT_COMMAND_VALUE         40016
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

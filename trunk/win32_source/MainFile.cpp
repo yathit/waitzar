@@ -1288,26 +1288,153 @@ BOOL loadModel() {
 		//This should totally work :P (yes, I tested it rigorously)
 		model = new WordBuilder(dictionary, 0, maxDictionaryEntries, nexus, 1, maxNexusEntries, prefix, 0, maxPrefixEntries);
 	} else {
-		//Load the resource as a byte array and get its size, etc.
-		res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
-		if (!res) {
-			MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-			return FALSE;
-		}
-		res_handle = LoadResource(NULL, res);
-		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-			return FALSE;
-		}
-		res_data = (char*)LockResource(res_handle);
-		res_size = SizeofResource(NULL, res);
+		{
+			//Load the resource as a byte array and get its size, etc.
+			res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
+			if (!res) {
+				MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
+				return FALSE;
+			}
+			res_handle = LoadResource(NULL, res);
+			if (!res_handle) {
+				MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
+				return FALSE;
+			}
+			res_data = (char*)LockResource(res_handle);
+			res_size = SizeofResource(NULL, res);
 
-		//Save our "model"
-		model = new WordBuilder(res_data, res_size, (allowNonBurmeseLetters==TRUE));
+			//Save our "model"
+			model = new WordBuilder(res_data, res_size, (allowNonBurmeseLetters==TRUE));
 
-		//Done - This shouldn't matter, though, since the process only
-		//       accesses it once and, fortunately, this is not an external file.
-		UnlockResource(res_handle);
+			//Done - This shouldn't matter, though, since the process only
+			//       accesses it once and, fortunately, this is not an external file.
+			UnlockResource(res_handle);
+		}
+
+
+		//We also need to load our easy pat-sint combinations
+		{
+			//Load the resource as a byte array and get its size, etc.
+			res = FindResource(hInst, MAKEINTRESOURCE(WZ_EASYPS), _T("Model"));
+			if (!res) {
+				MessageBox(NULL, _T("Couldn't find WZ_EASYPS"), _T("Error"), MB_ICONERROR | MB_OK);
+				return FALSE;
+			}
+			res_handle = LoadResource(NULL, res);
+			if (!res_handle) {
+				MessageBox(NULL, _T("Couldn't get a handle on WZ_EASYPS"), _T("Error"), MB_ICONERROR | MB_OK);
+				return FALSE;
+			}
+			res_data = (char*)LockResource(res_handle);
+			res_size = SizeofResource(NULL, res);
+
+			//Now, read through each line and add it to the external words list.
+			char pre[200];
+			char curr[200];
+			char post[200];
+			wchar_t pre_uni[100];
+			wchar_t curr_uni[100];
+			wchar_t post_uni[100];
+			size_t index = 0;
+
+			//Skip the BOM
+			//if (res_data[index] == 0xFE && res_data[index+1]==0xFF)
+			//	index += 2;
+
+			for (;index<res_size;) {
+				//Left-trim
+				while (res_data[index] == ' ')
+					index++;
+
+				//Comment? Empty line? If so, skip...
+				if (res_data[index]=='#' || res_data[index]=='\n') {
+					while (res_data[index] != '\n')
+						index++;
+					index++;
+					continue;
+				}
+
+				//Init
+				pre[0] = 0x0000;
+				int pre_pos = 0;
+				bool pre_done = false;
+				curr[0] = 0x0000;
+				int curr_pos = 0;
+				bool curr_done = false;
+				post[0] = 0x0000;
+				int post_pos = 0;
+
+				//Ok, look for pre + curr = post
+				while (index<res_size) {
+					if (res_data[index] == '\n') {
+						index++;
+						break;
+					} else if (res_data[index] == '+') {
+						//Switch modes
+						pre_done = true;
+						index++;
+					} else if (res_data[index] == '=') {
+						//Switch modes
+						pre_done = true;
+						curr_done = true;
+						index++;
+					} else if (res_data[index] == ' ' || res_data[index] == '\t') {
+						//Indrement
+						index++;
+					} else {
+						//Add this to the current string
+						if (curr_done) {
+							post[post_pos++] = res_data[index++];
+						} else if (pre_done) {
+							curr[curr_pos++] = res_data[index++];
+						} else {
+							pre[pre_pos++] = res_data[index++];
+						}
+					}
+				}
+
+				//Ok, seal the strings
+				post[post_pos++] = 0x0000;
+				curr[curr_pos++] = 0x0000;
+				pre[pre_pos++] = 0x0000;
+
+				//We now have to convert them to unicode...
+				mymbstowcs(pre_uni, pre, 200);
+				mymbstowcs(curr_uni, curr, 200);
+				mymbstowcs(post_uni, post, 200);
+
+				//Do we have anything?
+				if (wcslen(post_uni)!=0 && wcslen(curr_uni)!=0 && wcslen(pre_uni)!=0) {
+					//Ok, process these strings and store them
+					if (!model->addShortcut(pre_uni, curr_uni, post_uni)) {
+						MessageBox(NULL, model->getLastError(), _T("Error"), MB_ICONERROR | MB_OK);
+
+						if (isLogging) {
+							fprintf(logFile, "pre: ");
+							for (unsigned int x=0; x<wcslen(pre_uni); x++)
+								fprintf(logFile, "U+%x ", pre_uni[x]);
+							fprintf(logFile, "\n");
+
+							fprintf(logFile, "curr: ");
+							for (unsigned int x=0; x<wcslen(curr_uni); x++)
+								fprintf(logFile, "U+%x ", curr_uni[x]);
+							fprintf(logFile, "\n");
+
+							fprintf(logFile, "post: ");
+							for (unsigned int x=0; x<wcslen(post_uni); x++)
+								fprintf(logFile, "U+%x ", post_uni[x]);
+							fprintf(logFile, "\n");
+						}
+
+						return FALSE;
+					}
+				}
+			}
+
+			//Done - This shouldn't matter, though, since the process only
+			//       accesses it once and, fortunately, this is not an external file.
+			UnlockResource(res_handle);
+		}
 	}
 
 	return TRUE;
