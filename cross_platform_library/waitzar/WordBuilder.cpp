@@ -518,6 +518,70 @@ unsigned int WordBuilder::getTotalDefinedWords()
 }
 
 
+//Given baseword + tostack = resultstacked, add this shortcut to our own internal storage
+//return false in error
+bool WordBuilder::addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resultStacked)
+{
+	//Make sure all 3 words exist in the dictionary
+	// NOTE: Technically, toStack need not be in the dictionary. However, we need to know
+	//       how to spell it, at least, which would mean a kludge if the word wasn't catalogued.
+	unsigned int baseWordID = getWordID(baseWord);
+	unsigned int toStackID = getWordID(toStack);
+	unsigned int resultStackedID = getWordID(resultStacked);
+	if (baseWordID==dictMaxID || toStackID==dictMaxID || resultStackedID==dictMaxID) {
+		swprintf(mostRecentError, L"pre/post/curr word does not exist in the dictionary (%i, %i, %i : %i)", baseWordID, toStackID, resultStackedID, dictMaxID);
+		return false;
+	}
+
+	//For now (assuming no collisions, which is a bit broad of us) we need to say that from
+	//  any given nexus that has toStackID in the base set, we set an "if,then" clause;
+	//  namely, if baseWordID is the previous trigram entry, then resultStacked is the word of choice.
+	//There aren't many pat-sint words, so an ordered list of some sort (or, I guess, a map) should do the
+	// trick.
+	for (unsigned int toStackNexusID = 0; toStackNexusID<(unsigned int)nexusMaxID; toStackNexusID++) {
+		//Is this nexus ID valid?
+		unsigned int *thisNexus = nexus[toStackNexusID];
+		int prefixID = 0;
+		bool considerThisNexus = false;
+		for (unsigned int x=0; x<thisNexus[0]; x++) {
+			//Is this the resolving letter?
+			char letter = (char)(0xFF&thisNexus[x+1]);
+			if (letter!='~')
+				continue;
+
+			//Ok, save it
+			prefixID = thisNexus[x+1]>>8;
+			break;
+		}
+		if (prefixID!=0) {
+			//Now, test this prefix to see if its base pair contains our word in question.
+			for (unsigned int x=0; x<prefix[prefixID][1]; x++) {
+				unsigned int wordID = prefix[prefixID][0]*2 + x + 2;
+				if (wordID == toStackNexusID) {
+					considerThisNexus = true;
+					break;
+				}
+			}
+		}
+		if (!considerThisNexus)
+			continue;
+
+
+		if (shortcuts.count(toStackNexusID)!=0) {
+			//Some word's already claimed this nexus.
+			swprintf(mostRecentError, L"Nexus already in use: %i", toStackNexusID);
+			return false;
+		}
+
+		//Add this nexus
+		shortcuts[toStackNexusID] = new std::pair<unsigned int, unsigned int>(baseWordID, resultStackedID);
+	}
+
+	return true;
+}
+
+
+
 unsigned short WordBuilder::getStopCharacter(bool isFull)
 {
 	if (isFull) {
@@ -1066,26 +1130,38 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
   return this->addRomanization(myanmar, roman, false);
 }
 
-bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDuplicates)
+//returns dictMaxID if no word is found
+unsigned int WordBuilder::getWordID(wchar_t* wordStr)
 {
-	//First task: find the word; add it if necessary
-	int dictID;
-	size_t mmLen = wcslen(myanmar);
-	for (dictID=0; dictID<dictMaxID; dictID++) {
-		if (mmLen != dictionary[dictID][0])
+	size_t mmLen = wcslen(wordStr);
+	for (size_t canID=0; canID<(unsigned int)dictMaxID; canID++) {
+		//Easy check: different lengths
+		if (mmLen != dictionary[canID][0])
 			continue;
 
+		//Complex check: different letters
 		bool found = true;
-		for (int i=0; i<dictionary[dictID][0]; i++) {
-			if (dictionary[dictID][i+1] != (unsigned short)myanmar[i]) {
+		for (int i=0; i<dictionary[canID][0]; i++) {
+			if (dictionary[canID][i+1] != (unsigned short)wordStr[i]) {
 				found = false;
 				break;
 			}
 		}
-		if (found) {
-			break;
-		}
+
+		//Does it match?
+		if (found)
+			return canID;
 	}
+
+	//Not found
+	return dictMaxID;
+}
+
+bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDuplicates)
+{
+	//First task: find the word; add it if necessary
+	int dictID = getWordID(myanmar);
+	size_t mmLen = wcslen(myanmar);
 	if (dictID==dictMaxID) {
 		//Need to add... we DO have a limit, though.
 		if (dictMaxID == dictMaxSize) {
