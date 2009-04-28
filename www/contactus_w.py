@@ -30,7 +30,7 @@ class ContactusTemplate(FallbackTemplate):
 					</td>
 				</tr>
 				<tr>
-					<td class="glr" style="height="1">
+					<td class="glr" height="1">
 						<span id="emailTag" style="font-size: 12px;">Your Email Address: (optional)</span>
 						<br><input id="userEmail"  onmousedown="unRedElement('userEmail');"  name="userEmail" type="text" style="width: 200px;"/>
 					</td>
