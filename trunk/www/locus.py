@@ -47,6 +47,8 @@ def render_a_page(pagename):
 
 			classInst = getattr(__import__(moduleName + "_w"), className)
 			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
+				print "EMAIL: " , fields.getfirst('email')
+			
 				#Send the email
 				emailField = fields.getfirst('email')
 				if len(emailField)==0:
