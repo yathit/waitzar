@@ -24,7 +24,7 @@ class ContactusTemplate(FallbackTemplate):
 						<span id="commentsTag" style="font-size: 12px;">Please type your feedback here:</span>
 						<textarea id="comments" onmousedown="unRedElement('comments');" name="comments" cols="40" rows="10"></textarea>
 					</td>
-					<td class="glr" style="height="1">
+					<td class="glr" height="1">
 						<span id="nameTag" style="font-size: 12px;">Your Name:</span>
 						<br><input id="userName"  onmousedown="unRedElement('userName');"  name="userName" type="text" style="width: 200px;"/>
 					</td>
