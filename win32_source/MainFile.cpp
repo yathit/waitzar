@@ -1357,6 +1357,7 @@ BOOL loadModel() {
 			//if (res_data[index] == 0xFE && res_data[index+1]==0xFF)
 			//	index += 2;
 
+			bool inError = false;
 			for (;index<uniSize;) {
 				//Left-trim
 				while (uniData[index] == ' ')
@@ -1418,29 +1419,34 @@ BOOL loadModel() {
 				if (wcslen(post)!=0 && wcslen(curr)!=0 && wcslen(pre)!=0) {
 					//Ok, process these strings and store them
 					if (!model->addShortcut(pre, curr, post)) {
-						MessageBox(NULL, model->getLastError(), _T("Error"), MB_ICONERROR | MB_OK);
+						if (!inError)
+							MessageBox(NULL, model->getLastError(), _T("Error"), MB_ICONERROR | MB_OK);
+						inError = true;
 
 						if (isLogging) {
-							fprintf(logFile, "pre: ");
+							for (size_t q=0; q<wcslen(model->getLastError()); q++) 
+								fprintf(logFile, "%c", model->getLastError()[q]);
+							fprintf(logFile, "\n  pre: ");
 							for (unsigned int x=0; x<wcslen(pre); x++)
 								fprintf(logFile, "U+%x ", pre[x]);
 							fprintf(logFile, "\n");
 
-							fprintf(logFile, "curr: ");
+							fprintf(logFile, "  curr: ");
 							for (unsigned int x=0; x<wcslen(curr); x++)
 								fprintf(logFile, "U+%x ", curr[x]);
 							fprintf(logFile, "\n");
 
-							fprintf(logFile, "post: ");
+							fprintf(logFile, "  post: ");
 							for (unsigned int x=0; x<wcslen(post); x++)
 								fprintf(logFile, "U+%x ", post[x]);
-							fprintf(logFile, "\n");
+							fprintf(logFile, "\n\n");
 						}
-
-						return FALSE;
 					}
 				}
 			}
+
+			if (inError)
+				return FALSE;
 
 			//Free memory
 			delete [] uniData;
