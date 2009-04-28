@@ -118,6 +118,10 @@
         var name = form.userName.value;
         var email = form.userEmail.value;
         var comments = form.comments.value;
+        
+        if (email.length==0) {
+          email = "help@waitzar.com"
+        }
 
         // NOTE: no '?' before querystring
         qstr = 'name=' + escape(name) + '&email=' + escape(email) + '&comments=' + escape(comments) + '&partial=yes';
