@@ -2,12 +2,12 @@
 # This must be pre-processed by WaitZar, to allow the model to present 
 # a pat-sint option, where applicable, attached to key "`"
 
-#Words I'm not sure about
-#ဘ႑ာ = bandar
-#သ႑ာန္ = thatan
-#သ႑န္ = thandan
-#ဒ႑ာ = dantar
-#က႑ = kanda
+#### --stacked ဍ
+ဘဏ္ + ဍာ = ဘ႑ာ
+သဏ္ + ဍာန္ = သ႑ာန္
+သဏ္ + ဍန္ = သ႑န္
+ဒဏ္ + ဍာ = ဒ႑ာ
+ကဏ္ + ဍ = က႑
 
 #### --ၻ
 ကမ္ + ဘာ့ = ကမၻာ့
@@ -106,7 +106,7 @@
 မဇ္ + စ်ိ = မဇိၩ
 
 #### --ြ
-#သိက္ + ဝာ = သိကြာ
+#သိက္ + ဝာ = သိကြာ  ##Possibly invalid word
 
 #### --ၡ
 ဒုက္ + ခ = ဒုကၡ
