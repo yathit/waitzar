@@ -1,57 +1,142 @@
-		div, span {
-		  color: white;
-		  font-family: Trebuchet MS, sans;
-		  font-size: 0.95em;
-		}
+div, span {
+  color: white;
+  font-family: Trebuchet MS, sans;
+  font-size: 0.95em;
+}
 
-		h1 {
-		  font-family: Garamond, Serif;
-		  font-size: 2.2em;
-		}
+h1 {
+  font-family: Garamond, Serif;
+  font-size: 2.2em;
+}
 
-		.spacer {
-		  height: 100px;
-		}
 
-		.upabit {
-		  position:relative;
-		  top:0px;
-		  left:9px;
-		}
+a:link {
+  color:#88FF99;
+}
+a:visited {
+  color:#FFFF00;
+}
+a:active {
+  color:#88FF99;
+}
 
-		.upatinybit {
-		  position:relative;
-		  top:-35px;
-		  left:0px;
-		}
+.pl10 {
+  padding-left: 10px;
+}
+.pr10 {
+  padding-right: 10px;
+}
+.pt10 {
+  padding-top: 10px;
+}
+.pb10 {
+  padding-bottom: 10px;
+}
 
-		.linktxt {
-		  position:relative;
-		  top:-35px;
-		  left:-195px;
-		  color:cyan;
-		  font-family: Arial, sans;
-		  font-size: 1.8em;
-		}
+.mt40 {
+  margin-top:40px;
+}
+.mb40 {
+  margin-bottom:40px;
+}
+.ml40 {
+  margin-left:40px;
+}
+.mr40 {
+  margin-right:40px;
+}
 
-		.sidebar {
-		  float: right;
-		  position: relative;
-		  top: 450px;
-		  left: -630px;
-		  text-align: left;
-		}
+.spacer {
+  height: 100px;
+}
 
-		.sidelink {
-		  text-decoration: none;
-		  color: #44FFAA;
-		  position: relative;
-		  left: 0px;
-		  top: 0px;
-		  text-shadow: #000088 -1.5px -1.5px 1.5px;
-		}
+.upabit {
+  position:relative;
+  float: left;
+  top:0px;
+  left:9px;
+  width:300; 
+  height: 248;
+}
 
-		.hrsep {
-		padding-top: 30px;
-		  padding-bottom: 30px;
-		}
+.upatinybit {
+  position:relative;
+  top:-35px;
+  left:0px;
+}
+
+.linktxt {
+  position:relative;
+  top:-35px;
+  left:-195px;
+  color:cyan;
+  font-family: Arial, sans;
+  font-size: 1.8em;
+}
+
+.sidebar {
+  float: right;
+  position: relative;
+  top: 450px;
+  left: -630px;
+  text-align: left;
+}
+
+.sidelink {
+  text-decoration: none;
+  color: #44FFAA;
+  position: relative;
+  left: 0px;
+  top: 0px;
+  text-shadow: #000088 -1.5px -1.5px 1.5px;
+}
+
+.hrsep {
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+.helptbl {
+  margin-bottom:20px; 
+  margin-top:10px;
+}
+
+.ninjalink {
+  text-decoration: none;
+}
+
+.helpbigtxt {
+  font-size: 1.25em; 
+  color: #00CCFF;
+}
+
+.helptinytxt {
+  color:white; 
+  padding-left: 10px; 
+  padding-bottom:10px; 
+  padding-top: 8px;
+}
+
+.downloadlink {
+  font-size: 12px; 
+  position:relative; 
+  top:3px;
+}
+
+.glwt {
+  border: 1px solid green; 
+  color:white;
+}
+
+.glr {
+  border-right: 1px solid green; 
+}
+.gll {
+  border-left: 1px solid green; 
+}
+.glt {
+  border-top: 1px solid green; 
+}
+.glb {
+  border-bottom: 1px solid green; 
+}
