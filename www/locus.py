@@ -46,9 +46,7 @@ def render_a_page(pagename):
 			className = moduleName[0].capitalize() + moduleName[1:] + "Template"
 
 			classInst = getattr(__import__(moduleName + "_w"), className)
-			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):
-				print "EMAIL: " , fields.getfirst('email')
-			
+			if fields.has_key("name") and fields.has_key("comments") and fields.has_key("email"):			
 				#Send the email
 				emailField = fields.getfirst('email')
 				if len(emailField)==0:
