@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Hyperlinks.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OnscreenKeyboard.cpp"
 				>
 			</File>
@@ -289,6 +293,10 @@
 				>
 				<File
 					RelativePath=".\Hotkeys.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Hyperlinks.h"
 					>
 				</File>
 				<File
