@@ -94,6 +94,20 @@ BEGIN
 END
 
 
+
+//Help Dialog
+IDD_WZ_HELP DIALOG DISCARDABLE 0, 0, 239, 66
+	STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+	CAPTION "About"
+	FONT 8, "MS Sans Serif"
+	BEGIN
+		CTEXT "Sample Text 2",ID_HELP_L1,16,18,144,33
+		CTEXT "",ID_HELP_BKGRD,10,30,130,30
+		DEFPUSHBUTTON "&Ok",ID_HELP_OK,174,18,50,14
+	END
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // MODEL

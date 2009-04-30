@@ -69,6 +69,7 @@
 #include "OnscreenKeyboard.h"
 #include "resource.h"
 #include "Hotkeys.h"
+#include "Hyperlinks.h"
 
 using namespace waitzar;
 
@@ -119,6 +120,8 @@ HBRUSH g_WhiteBkgrd;
 HBRUSH g_DarkGrayBkgrd;
 HBRUSH g_YellowBkgrd;
 HBRUSH g_GreenBkgrd;
+HBRUSH g_DlgHelpBkgrd;
+HBRUSH g_DlgHelpSlash;
 HPEN g_GreenPen;
 HPEN g_BlackPen;
 HPEN g_EmptyPen;
@@ -268,9 +271,9 @@ FILE *logFile;
 
 
 
-/** 
+/**
  * This thread is our locus-of-control for carets
- * It should probably always be run synchronously, to prevent another window from 
+ * It should probably always be run synchronously, to prevent another window from
  *   grabbing focus while it's waiting.
  */
 DWORD WINAPI UpdateCaretPosition(LPVOID args)
@@ -545,7 +548,7 @@ void buildSystemWordLookup()
 
 
 //myWin 2.1 rules for stacking
-bool canStack(wchar_t letter) 
+bool canStack(wchar_t letter)
 {
 	return (letter>=0x1000 && letter<=0x1003)
 		|| (letter>=0x1005 && letter<=0x1021);
@@ -890,7 +893,7 @@ void makeFont(HWND currHwnd)
 	mmFontSmallRed = new PulpCoreFont();
 	mmFontSmallRed->init(mmFontSmallWhite, mainDC);
 	mmFontSmallRed->tintSelf(0xFF0000);
-	
+
 }
 
 
@@ -1289,7 +1292,7 @@ BOOL loadModel() {
 
 		//Create our data structures
 		//In total, this uses 41KB of raw memory just for storing our skeleton, so
-		//  I estimate about 1MB of memory for actually storing the data. 
+		//  I estimate about 1MB of memory for actually storing the data.
 		//  That's a lot, but it's worth it so that people's custom mywords files don't crash randomly.
 		unsigned short **dictionary = new unsigned short*[maxDictionaryEntries];
 		unsigned int **nexus = new unsigned int*[maxNexusEntries];
@@ -1424,7 +1427,7 @@ BOOL loadModel() {
 						inError = true;
 
 						if (isLogging) {
-							for (size_t q=0; q<wcslen(model->getLastError()); q++) 
+							for (size_t q=0; q<wcslen(model->getLastError()); q++)
 								fprintf(logFile, "%c", model->getLastError()[q]);
 							fprintf(logFile, "\n  pre: ");
 							for (unsigned int x=0; x<wcslen(pre); x++)
@@ -1547,7 +1550,7 @@ void switchToLanguage(BOOL toMM) {
 		if (helpWindowIsVisible) {
 			helpWindowIsVisible = false;
 			ShowWindow(helpWindow, SW_HIDE);
-		}	
+		}
 	}
 }
 
@@ -1656,7 +1659,7 @@ wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
 		returnVal[i] = keystrokes[i];
 	}
 	returnVal[keystrokes.size()] = 0x0000;
-	
+
 	return returnVal;
 }
 
@@ -1857,7 +1860,7 @@ void recalculate()
 					else
 						mmFont = mmFontGreen;
 				}
-				
+
 				int digitWidth = mmFont->getStringWidth(digit);
 
 				mmFont->drawString(mainUnderDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
@@ -1912,7 +1915,7 @@ std::vector<unsigned short> getUserWordKeyStrokes(unsigned int id, unsigned int 
 	//Convert
 	size_t length = wcslen(typedStr);
 	userKeystrokeVector.clear();
-	for (size_t i=0; i<length; i++) 
+	for (size_t i=0; i<length; i++)
 		userKeystrokeVector.push_back((unsigned short) typedStr[i]);
 
 	return userKeystrokeVector;
@@ -2039,6 +2042,58 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 
 
 
+//Message handling for our dialog box
+BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	switch(Message)
+	{
+		case WM_INITDIALOG:
+		{
+			//Resize the help dialog; keep it at the same position.
+			RECT r;
+			GetWindowRect(hwnd, &r);
+			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);
+
+			//Move our background label into position
+			HWND lblBack = GetDlgItem(hwnd, ID_HELP_BKGRD);
+			MoveWindow(lblBack, 0, 188, 467, 48, TRUE);
+
+			//Move our Ok Button
+			HWND lblHelp = GetDlgItem(hwnd, ID_HELP_OK);
+			MoveWindow(lblHelp, 370, 198, 60, 26, TRUE);
+			
+
+			return TRUE;
+		}
+		case WM_CTLCOLORDLG:
+			return (BOOL)g_DlgHelpBkgrd;
+		case WM_CTLCOLORSTATIC:
+		{
+			if (GetDlgCtrlID((HWND)lParam)==ID_HELP_BKGRD) {
+				//Set the background color of our static item
+				return (BOOL)g_DlgHelpSlash;
+			}
+			break;
+		}
+		case WM_COMMAND:
+			switch(LOWORD(wParam))
+			{
+				case ID_HELP_OK:
+					EndDialog(hwnd, IDOK);
+					break;
+			}
+			break;
+		case WM_CLOSE:
+			EndDialog(hwnd, IDCANCEL);
+			break;
+		default:
+			return FALSE;
+	}
+	return TRUE;
+}
+
+
+
 
 //Message handling for our help window
 LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -2098,7 +2153,7 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				POINT dragTo;
 				GetWindowRect(hwnd, &rect);
 				GetCursorPos(&dragTo);
-				
+
 				//Constantly update its position
 				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
 					(dragTo.y - dragFrom.y) + rect.top,
@@ -2213,7 +2268,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				POINT dragTo;
 				GetWindowRect(hwnd, &rect);
 				GetCursorPos(&dragTo);
-				
+
 				//Constantly update its position
 				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
 					(dragTo.y - dragFrom.y) + rect.top,
@@ -2521,7 +2576,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								sentence->clear();
 								ShowBothWindows(SW_HIDE);
 								turnOnControlkeys(FALSE);
-							} else 
+							} else
 								recalculate();
 						}
 					}
@@ -2920,7 +2975,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					keyWasUsed = true;
 				}
 			} else {
-				//Handle regular letter-presses 
+				//Handle regular letter-presses
 				int keyCode = (int)wParam;
 				if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) //Seems like we should be doing with this Shift modifiers..
 					keyCode += 32;
@@ -2944,7 +2999,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//TEST: Re-position it
 						//TEST: Use AttachThredInput? Yes!
 						//Still a bit glitchy....
-						//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to 
+						//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to
 						//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
 						if (experimentalTextCursorTracking==TRUE) {
 							//Reset parameters for our thread
@@ -2968,7 +3023,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							//Wait for it.
 							WaitForSingleObject(caretTrackThread, 1000);
 
-							//Close it 
+							//Close it
 							CloseHandle(caretTrackThread);
 
 							//Ready?
@@ -3021,7 +3076,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Did we get anything?
 				if (newID!=-1) {
 					newID = -1-newID;
-					
+
 					//Try to type this word
 					BOOL typed = selectWord(newID, true);
 					if (typed==TRUE && typePhrases==TRUE) {
@@ -3065,15 +3120,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		/*case WM_NCHITTEST: //Allow dragging of the client area...
-		{
-			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
-			if(uHitTest == HTCLIENT) {
-				return HTCAPTION;
-			} else
-				return uHitTest;
-			break;
-		}*/
 		case WM_LBUTTONDOWN:
 		{
 			//Thanks to dr. Carbon for suggesting this method.
@@ -3093,7 +3139,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				POINT dragTo;
 				GetWindowRect(hwnd, &rect);
 				GetCursorPos(&dragTo);
-				
+
 				//Constantly update its position
 				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
 					(dragTo.y - dragFrom.y) + rect.top,
@@ -3165,7 +3211,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Show our box
 					TCHAR temp[550];
 					swprintf(temp, _T("WaitZar version %s - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have the relevant fonts installed, if they want to see what they type after it's chosen.\nPlease see the User's Guide for more information."), WAIT_ZAR_VERSION, langHotkeyString);
-					MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
+					
+					
+					//MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
+					DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_HELP), hwnd, HelpDlgProc);
 
 					//Hotkeys again
 					if  (refreshControl==TRUE)
@@ -3392,7 +3441,7 @@ BOOL turnOnNumberkeys(BOOL on)
 }
 
 
-bool turnOnHelpKeys(bool on) 
+bool turnOnHelpKeys(bool on)
 {
 	bool retVal = true;
 
@@ -3412,7 +3461,7 @@ bool turnOnHelpKeys(bool on)
 }
 
 
-bool turnOnExtendedKeys(bool on) 
+bool turnOnExtendedKeys(bool on)
 {
 	bool retVal = true;
 
@@ -3908,7 +3957,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		} else {
 			fprintf(logFile, "WaitZar was opened\n");
 		}
-	} else 
+	} else
 		logFile = NULL;
 	waitzar::setLogFile(logFile);
 
@@ -3918,6 +3967,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_DarkGrayBkgrd = CreateSolidBrush(RGB(128, 128, 128));
 	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
 	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
+	g_DlgHelpBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
+	g_DlgHelpSlash = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
