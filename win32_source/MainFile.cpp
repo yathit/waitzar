@@ -1729,7 +1729,7 @@ void recalculate()
 				} else
 					strToDraw = userDefinedWordsZg[id-numSystemWords];
 			}
-			if (countup++ == sentence->getCursorIndex() && model->hasPostStr()) {
+			if (countup++ == sentence->getCursorIndex() && model->hasPostStr() && patSintIDModifier==-1) {
 				colorFont = mmFontSmallRed;
 				if (patSintIDModifier==-1)
 					strToDraw = model->getPostString();
