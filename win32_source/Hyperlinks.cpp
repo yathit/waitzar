@@ -4,7 +4,7 @@
 // All rights reserved.
 //
 // http://www.awesoftware.com
-// http://www.olivierlanglois.net/hyperlinkdemo.htm
+// http://www.codeguru.com/Cpp/controls/staticctrl/article.php/c5803/
 //
 
 #include <windows.h>
