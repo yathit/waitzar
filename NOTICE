@@ -61,6 +61,18 @@ Site: http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=Padauk
 Contact: SIL International, Than Lwin Soft
 
 
+The Hyperlink Files
+ The files Hyperlinks.[cpp|h] have been retrieved from CodeGurus; the CodeGurus license is a
+ bit vague, but they state:
+ "While we are talking about copyrights, you retain copyright of your article and code, but by submitting 
+ it to CodeGuru you give permission to use it in a fair manner and also permit all developers to freely use 
+ the code in their own applications -even if they are commercial."
+ ...thus, we choose to include the Hyperlinks code in our project.
+License: Code Gurus-specific, 2009
+Site: http://www.codeguru.com/Cpp/controls/staticctrl/article.php/c5803/
+Contact: Neal Stublen
+
+
 The Prince Ka Naung Project: svn revision 700
  The files:
  - fontmap.(cpp|h)
