@@ -31,13 +31,21 @@
 #define ID_HELP_BKGRD                   40019
 #define ID_HELP_H1                      40020
 #define ID_HELP_IC                      40021
+#define ID_HELP_L2                      40022
+#define ID_HELP_L3                      40023
+#define ID_HELP_L4                      40024
+#define ID_HELP_L5A                     40025
+#define ID_HELP_L5B                     40026
+#define ID_HELP_H5                      40027
+#define ID_HELP_L6                      40028
+#define ID_HELP_H6                      40029
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        115
-#define _APS_NEXT_COMMAND_VALUE         40022
+#define _APS_NEXT_COMMAND_VALUE         40030
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

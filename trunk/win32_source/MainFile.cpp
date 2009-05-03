@@ -2054,15 +2054,26 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			GetWindowRect(hwnd, &r);
 			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);
 
-			//Change the font?
-			//HFONT hFont = CreateFont(8, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_CHARACTER_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH|FF_SWISS, L"MS Sans Serif");
-			//SetWindowFont(hwnd, hFont,FALSE);
+			//Change the text of our dialog box
+			TCHAR line1Txt[200];
+			swprintf(line1Txt, _T("WaitZar version %s - for the latest news, visit "), WAIT_ZAR_VERSION);
+			SetWindowText(GetDlgItem(hwnd, ID_HELP_L1), line1Txt);
+
+			TCHAR line2Txt[200];
+			swprintf(line2Txt, _T("%s - Switch between Myanmar and English"), langHotkeyString);
+			SetWindowText(GetDlgItem(hwnd, ID_HELP_L2), line2Txt);
+
+			//Convert hyperlinks
+			ConvertStaticToHyperlink(hwnd, ID_HELP_H1);
+			ConvertStaticToHyperlink(hwnd, ID_HELP_H5);
+			ConvertStaticToHyperlink(hwnd, ID_HELP_H6);
 
 			//Get font size...
 			HFONT hFont = GetWindowFont(hwnd);
 			HDC currDC = GetDC(hwnd);
 			SelectObject(currDC, hFont);
 			int fHeight = HIWORD(GetTabbedTextExtent(currDC, L"[Wp]", 4, 0, NULL));
+			int buff = 3;
 
 			//Move our Ok Button
 			{
@@ -2088,22 +2099,118 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			//Determine our new client area
 			RECT txtR;
 			txtR.left = fHeight*2 + r.right + fHeight/2;
-			txtR.top = fHeight*2 + 3;
+			txtR.top = fHeight*2 + buff;
 			GetClientRect(hwnd, &r);
 			txtR.right = r.right-txtR.left - fHeight*2 - fHeight/2;
 			txtR.bottom = r.bottom-txtR.top - fHeight;
 			GetClientRect(GetDlgItem(hwnd, ID_HELP_BKGRD), &r);
 			txtR.bottom -= r.bottom;
+			int accY = txtR.top;
 
-			//Move our text around... we have to do everything manually...
+			//Move the first line
 			{
 			HWND hw = GetDlgItem(hwnd, ID_HELP_L1);
-			MoveWindow(hw, txtR.left, txtR.top, txtR.right, txtR.bottom, TRUE);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
 			GetClientRect(hw, &r);
 			}
 
-			//lblHelp = GetDlgItem(hwnd, ID_HELP_H1);
-			//MoveWindow(lblHelp, 25+r.right, 25+r.top, 60, 26, TRUE);
+			//Move the first line's link.
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_H1);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
+			accY += fHeight + fHeight;
+			}
+
+			//Move the second line's text
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_L2);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
+			accY += fHeight;
+			}
+
+			//Move the third line's text
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_L3);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
+			accY += fHeight*2;
+			}
+
+			//Move the fourth line's text
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_L4);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left, accY, width, fHeight*2, TRUE);
+			GetClientRect(hw, &r);
+			accY += r.bottom;
+			}
+
+			//Move the fifth line's text, part 1
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_L5A);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
+			GetClientRect(hw, &r);
+			}
+
+			//Move the fifth line's link.
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_H5);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
+			int oldW = r.right;
+			GetClientRect(hw, &r);
+			r.right += oldW;
+			}
+
+			//Move the fifth line's text, part 2
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_L5B);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
+			GetClientRect(hw, &r);
+			accY += fHeight*2;
+			}
+
+			//Move the sixth line's text
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_L6);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
+			GetClientRect(hw, &r);
+			}
+
+			//Move the sixth line's link.
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_H6);
+			TCHAR temp[200];
+			GetWindowText(hw, temp, 200);
+			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
+			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
+			//accY += fHeight + fHeight;
+			}
+
 
 			
 
@@ -2117,15 +2224,39 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				//Set the background color of our static item
 				return (BOOL)g_DlgHelpSlash;
 			}
-			//TEMP:
-			return (BOOL)g_GreenBkgrd;
+			if (GetDlgCtrlID((HWND)lParam)==ID_HELP_H1) {
+				//Make it blue
+				SetTextColor((HDC)wParam, RGB(255, 0, 0));
+			}
 
+			//Transparent? Ugh.
+			SetBkColor((HDC)wParam, RGB(0xEE, 0xFF, 0xEE));
+			return (BOOL)g_DlgHelpBkgrd;
 			break;
 		}
 		case WM_COMMAND:
 			switch(LOWORD(wParam))
 			{
 				case ID_HELP_OK:
+					EndDialog(hwnd, IDOK);
+					break;
+				case ID_HELP_H1:
+					//Load the WaitZar web site.
+					ShellExecute(hwnd, L"open", L"http://www.waitzar.com", NULL, NULL, SW_SHOWNORMAL);
+					EndDialog(hwnd, IDOK);
+					break;
+				case ID_HELP_H5:
+					//Load the feedback form
+					ShellExecute(hwnd, L"open", L"http://www.waitzar.com/contactus.py", NULL, NULL, SW_SHOWNORMAL);
+					EndDialog(hwnd, IDOK);
+					break;
+				case ID_HELP_H6:
+					//Slightly more complex: try to load the User's Guide locally if it exists; if not, 
+					// then simply open the user's browser to the latest guide.
+					int retVal = (int)ShellExecute(hwnd, L"open", L"WaitZar User's Guide.doc", NULL, NULL, SW_SHOWNORMAL);
+					if (retVal<=32) {
+						ShellExecute(hwnd, L"open", L"http://waitzar.googlecode.com/svn/trunk/WaitZar%20User%27s%20Guide.doc", NULL, NULL, SW_SHOWNORMAL);
+					}
 					EndDialog(hwnd, IDOK);
 					break;
 			}
@@ -3256,8 +3387,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						turnOnControlkeys(FALSE);
 
 					//Show our box
-					TCHAR temp[550];
-					swprintf(temp, _T("WaitZar version %s - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have the relevant fonts installed, if they want to see what they type after it's chosen.\nPlease see the User's Guide for more information."), WAIT_ZAR_VERSION, langHotkeyString);
+					//TCHAR temp[550];
+					//swprintf(temp, _T("WaitZar version %s - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have the relevant fonts installed, if they want to see what they type after it's chosen.\nPlease see the User's Guide for more information."), WAIT_ZAR_VERSION, langHotkeyString);
 					
 					
 					//MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
