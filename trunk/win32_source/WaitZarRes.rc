@@ -7,7 +7,9 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-
+#ifndef APSTUDIO_INVOKED
+//#include "targetver.h"
+#endif
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include "windows.h"
 #undef APSTUDIO_HIDDEN_SYMBOLS
@@ -84,28 +86,31 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Enc&oding"
         BEGIN
-            MENUITEM "Unicode 5.1",                 ID_ENCODING_UNICODE5
-            , CHECKED
+            MENUITEM "Unicode 5.1",                 ID_ENCODING_UNICODE5, CHECKED
             MENUITEM "Zawgyi-One",                  ID_ENCODING_ZAWGYI
             MENUITEM "Win Innwa",                   ID_ENCODING_WININNWA
         END
-        MENUITEM "&Look Up Word (F1)",        	IDM_LOOKUP
+        MENUITEM "&Look Up Word (F1)",          IDM_LOOKUP
     END
 END
 
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
 
-//Help Dialog
-IDD_WZ_HELP DIALOG DISCARDABLE 0, 0, 239, 66
-	STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-	CAPTION "About"
-	FONT 8, "MS Sans Serif"
-	BEGIN
-		CTEXT "Sample Text 2",ID_HELP_L1,16,18,144,33
-		CTEXT "",ID_HELP_BKGRD,10,30,130,30
-		DEFPUSHBUTTON "&Ok",ID_HELP_OK,174,18,50,14
-	END
-
+IDD_WZ_HELP DIALOGEX 0, 0, 239, 66
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About"
+FONT 8, "MS Sans Serif", 400, 0, 0x0
+BEGIN
+    LTEXT           "Sample Text 2",ID_HELP_L1,16,18,81,33
+    LTEXT           "Sample Link Link Link",ID_HELP_H1,16,18,30,33
+    LTEXT           "",ID_HELP_BKGRD,0,31,108,30
+    DEFPUSHBUTTON   "&Ok",ID_HELP_OK,174,18,50,14
+    ICON            ICON_WZ,ID_HELP_IC,117,33,20,20
+END
 
 
 /////////////////////////////////////////////////////////////////////////////

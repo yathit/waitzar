@@ -181,11 +181,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\MainFile.cpp"
+				RelativePath=".\Hyperlinks.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Hyperlinks.cpp"
+				RelativePath=".\MainFile.cpp"
 				>
 			</File>
 			<File
@@ -266,6 +266,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\icon1.ico"
+				>
+			</File>
 			<File
 				RelativePath=".\loading.ico"
 				>
@@ -382,6 +386,26 @@
 			>
 		</File>
 		<File
+			RelativePath=".\easypatsint.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\help_ar_letters.font.png"
+			>
+		</File>
+		<File
+			RelativePath=".\help_zg_main.font.png"
+			>
+		</File>
+		<File
+			RelativePath=".\help_zg_sub.font.png"
+			>
+		</File>
+		<File
+			RelativePath=".\keybd_corner.png"
+			>
+		</File>
+		<File
 			RelativePath=".\Myanmar.model"
 			>
 		</File>
@@ -391,6 +415,10 @@
 		</File>
 		<File
 			RelativePath=".\waitzar.font.png"
+			>
+		</File>
+		<File
+			RelativePath=".\waitzar_small.font.png"
 			>
 		</File>
 		<File

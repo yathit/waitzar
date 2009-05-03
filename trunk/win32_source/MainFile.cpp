@@ -2054,13 +2054,57 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			GetWindowRect(hwnd, &r);
 			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);
 
-			//Move our background label into position
-			HWND lblBack = GetDlgItem(hwnd, ID_HELP_BKGRD);
-			MoveWindow(lblBack, 0, 188, 467, 48, TRUE);
+			//Change the font?
+			//HFONT hFont = CreateFont(8, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_CHARACTER_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH|FF_SWISS, L"MS Sans Serif");
+			//SetWindowFont(hwnd, hFont,FALSE);
+
+			//Get font size...
+			HFONT hFont = GetWindowFont(hwnd);
+			HDC currDC = GetDC(hwnd);
+			SelectObject(currDC, hFont);
+			int fHeight = HIWORD(GetTabbedTextExtent(currDC, L"[Wp]", 4, 0, NULL));
 
 			//Move our Ok Button
-			HWND lblHelp = GetDlgItem(hwnd, ID_HELP_OK);
-			MoveWindow(lblHelp, 370, 198, 60, 26, TRUE);
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_OK);
+			GetClientRect(hw, &r);
+			MoveWindow(hw, 430-r.right, 224-r.bottom, r.right, r.bottom, TRUE);
+			}
+
+			//Move our background label into position, and resize it
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_BKGRD);
+			int newH = r.bottom+(fHeight-1)*2;
+			MoveWindow(hw, 0, 236-newH, 467, newH, TRUE);
+			}
+
+			//Move our icon into position
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_IC);
+			GetClientRect(hw, &r);
+			MoveWindow(hw, fHeight*2, fHeight*2, r.right, r.bottom, TRUE);
+			}
+
+			//Determine our new client area
+			RECT txtR;
+			txtR.left = fHeight*2 + r.right + fHeight/2;
+			txtR.top = fHeight*2 + 3;
+			GetClientRect(hwnd, &r);
+			txtR.right = r.right-txtR.left - fHeight*2 - fHeight/2;
+			txtR.bottom = r.bottom-txtR.top - fHeight;
+			GetClientRect(GetDlgItem(hwnd, ID_HELP_BKGRD), &r);
+			txtR.bottom -= r.bottom;
+
+			//Move our text around... we have to do everything manually...
+			{
+			HWND hw = GetDlgItem(hwnd, ID_HELP_L1);
+			MoveWindow(hw, txtR.left, txtR.top, txtR.right, txtR.bottom, TRUE);
+			GetClientRect(hw, &r);
+			}
+
+			//lblHelp = GetDlgItem(hwnd, ID_HELP_H1);
+			//MoveWindow(lblHelp, 25+r.right, 25+r.top, 60, 26, TRUE);
+
 			
 
 			return TRUE;
@@ -2073,6 +2117,9 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				//Set the background color of our static item
 				return (BOOL)g_DlgHelpSlash;
 			}
+			//TEMP:
+			return (BOOL)g_GreenBkgrd;
+
 			break;
 		}
 		case WM_COMMAND:
