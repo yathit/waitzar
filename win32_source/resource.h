@@ -15,7 +15,7 @@
 #define WZ_HELP_FORE_FONT               110
 #define WZ_HELP_BACK_FONT               111
 #define WZ_HELP_CORNER                  112
-#define WZ_EASYPS						113
+#define WZ_EASYPS                       113
 #define IDM_HELP                        40004
 #define IDM_MYANMAR                     40006
 #define IDM_EXIT                        40008
@@ -25,17 +25,19 @@
 #define ID_ENCODING_ZAWGYI              40013
 #define ID_ENCODING_WININNWA            40014
 #define IDM_LOOKUP                      40015
-#define IDD_WZ_HELP						40016
+#define IDD_WZ_HELP                     40016
 #define ID_HELP_OK                      40017
 #define ID_HELP_L1                      40018
 #define ID_HELP_BKGRD                   40019
+#define ID_HELP_H1                      40020
+#define ID_HELP_IC                      40021
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        114
-#define _APS_NEXT_COMMAND_VALUE         40020
+#define _APS_NEXT_RESOURCE_VALUE        115
+#define _APS_NEXT_COMMAND_VALUE         40022
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
