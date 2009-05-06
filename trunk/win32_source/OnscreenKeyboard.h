@@ -118,7 +118,7 @@ class OnscreenKeyboard
 public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
-	void initMemory(HDC memoryDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap);
+	void initMemory(HDC memoryMainDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap);
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
 

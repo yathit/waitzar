@@ -1560,6 +1560,7 @@ void switchToLanguage(BOOL toMM) {
 		if (helpWindowIsVisible) {
 			helpWindowIsVisible = false;
 			ShowWindow(helpWindow, SW_HIDE);
+			ShowWindow(memoryWindow, SW_HIDE);
 		}
 	}
 }
@@ -2442,7 +2443,7 @@ LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			MEMORY_CLIENT_SIZE.cy = r.bottom;
 			memoryDC = GetDC(hwnd);
 
-			//Our expanding code is a bit fragile, so we'll have to initialize helpUnderDC and helpBitmap here.
+			//Our expanding code is a bit fragile, so we'll have to initialize memoryUnderDC and memoryBitmap here.
 			memoryUnderDC = CreateCompatibleDC(memoryDC);
 			memoryBitmap = CreateCompatibleBitmap(memoryDC, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT);
 			SelectObject(memoryUnderDC, memoryBitmap);

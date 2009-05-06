@@ -145,11 +145,11 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 
 
 
-void OnscreenKeyboard::initMemory(HDC memoryDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap)
+void OnscreenKeyboard::initMemory(HDC memoryMainDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap)
 {
 	//Create a new device context
 	memoryImg = new PulpCoreImage();
-	memoryImg->init(this->memWidth, this->memHeight, 0x00000000, memoryDC, memoryBuffDC, memoryBitmap);
+	memoryImg->init(this->memWidth, this->memHeight, 0x00000000, memoryMainDC, memoryBuffDC, memoryBitmap);
 
 	//Save our device context
 	this->memoryDC = memoryBuffDC;
@@ -168,6 +168,11 @@ void OnscreenKeyboard::initMemory(HDC memoryDC, HDC &memoryBuffDC, HBITMAP &memo
 	//Delete their un-necessary resources
 	delete headerButton;
 	delete bodyButton;
+
+	//Draw the title string
+	this->titleFont->tintSelf(0x000000);
+	this->titleFont->drawString(memoryDC, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
+	this->titleFont->tintSelf(0xFFFFFF);
 }
 
 
