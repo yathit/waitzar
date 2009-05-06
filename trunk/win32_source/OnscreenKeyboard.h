@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include <string>
+#include <list>
 
 #include "PulpCoreImage.h"
 #include "PulpCoreFont.h"
@@ -116,7 +117,7 @@ const int keyboard_vk_codes[] = {
 class OnscreenKeyboard
 {
 public:
-	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreImage *cornerImg);
+	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
 	void initMemory(HDC memoryMainDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap);
 
@@ -127,6 +128,9 @@ public:
 	int getVirtualKeyID(UINT hotkeyCode);
 
 	wchar_t* typeLetter(DWORD hotkeyCode);
+
+	void addMemoryEntry(wchar_t* my, char* rom);
+	size_t getMaxMemoryEntries();
 
 	int getWidth();
 	int getHeight();
@@ -142,11 +146,15 @@ private:
 	HDC memoryDC;
 	PulpCoreImage *memoryImg;
 
+	//The actual memory list
+	std::list<std::pair<wchar_t*, char*> > memoryList;
+
 	//Cached pics
 	PulpCoreFont *titleFont;
 	PulpCoreFont *keysFont;
 	PulpCoreFont *foreFont;
 	PulpCoreFont *shiftFont;
+	PulpCoreFont *memoryFont;
 	PulpCoreFont *foreFontBlue;
 	PulpCoreFont *shiftFontBlue;
 	PulpCoreImage *cornerImg[4];
@@ -164,6 +172,9 @@ private:
 	int height;
 	int memWidth;
 	int memHeight;
+	int memEntriesStartY;
+	int memEntriesYPlus;
+	int memEntriesMax;
 	int mode;
 	wchar_t typedString[20]; //Temp
 

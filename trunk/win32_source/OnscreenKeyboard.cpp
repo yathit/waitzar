@@ -8,7 +8,7 @@
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreImage *cornerImg)
+OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg)
 {
 	//Save for later
 	this->titleFont = titleFont;
@@ -18,6 +18,8 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFo
 	this->foreFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->shiftFont = shiftFont;
 	this->shiftFont->tintSelf(COLOR_LETTERS_REGULAR);
+	this->memoryFont = memoryFont;
+	this->memoryFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
 	for (int i=0; i<61; i++) 
@@ -172,7 +174,22 @@ void OnscreenKeyboard::initMemory(HDC memoryMainDC, HDC &memoryBuffDC, HBITMAP &
 	//Draw the title string
 	this->titleFont->tintSelf(0x000000);
 	this->titleFont->drawString(memoryDC, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
+
+	//Draw some heading strings
+	this->titleFont->drawString(memoryDC, L"Myanmar", this->cornerSize, keyboardOrigin.y+1);
+	this->titleFont->drawString(memoryDC, L"Roman", this->getMemoryWidth()/2+5/2, keyboardOrigin.y+1);
 	this->titleFont->tintSelf(0xFFFFFF);
+
+	//Underline
+	int yPos = keyboardOrigin.y+1+this->titleFont->getHeight() - 3;
+	memoryImg->fillRectangle(this->cornerSize, yPos, this->titleFont->getStringWidth(L"Myanmar"), 1, 0xFF333333);
+	memoryImg->fillRectangle(this->cornerSize, 1+yPos, this->titleFont->getStringWidth(L"Myanmar"), 1, 0xFF666666);
+	memoryImg->fillRectangle(this->getMemoryWidth()/2+5/2, yPos, this->titleFont->getStringWidth(L"Roman"), 1, 0xFF333333);
+	memoryImg->fillRectangle(this->getMemoryWidth()/2+5/2, 1+yPos, this->titleFont->getStringWidth(L"Roman"), 1, 0xFF666666);
+
+	this->memEntriesYPlus = this->memoryFont->getHeight()-1;
+	this->memEntriesStartY = yPos + memEntriesYPlus*4/9 + 2;	
+	this->memEntriesMax = (this->getMemoryHeight()-this->cornerSize-memEntriesStartY)/memEntriesYPlus;	
 }
 
 
@@ -608,6 +625,47 @@ PulpCoreImage* OnscreenKeyboard::makeButton(int width, int height, int bgARGB, i
 
 	//There, that was easy
 	return result;
+}
+
+
+void OnscreenKeyboard::addMemoryEntry(wchar_t* my, char* rom)
+{
+	//Does the list contain this word?
+	for (std::list<std::pair<wchar_t*,char*> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
+		if (wcscmp((*keyItr).first, my)==0 && strcmp((*keyItr).second, rom)==0)
+			return;
+	}
+
+	//Add the word to the end
+	wchar_t* newMy = new wchar_t[wcslen(my)];
+	char* newRom = new char[strlen(rom)];
+	wcscpy(newMy, my);
+	strcpy(newRom, rom);
+	memoryList.push_back(std::pair<wchar_t*,char*>(newMy, newRom));
+
+	//Too many words?
+	if (memoryList.size()>getMaxMemoryEntries()) {
+		wchar_t* oldMy = memoryList.front().first;
+		char* oldRom = memoryList.front().second;
+		memoryList.pop_front();
+		delete [] oldMy;
+		delete [] oldRom;
+	}
+
+	//Either way, we need to re-draw the word list
+	memoryImg->fillRectangle(this->cornerSize, memEntriesStartY, this->getMemoryWidth()-this->cornerSize*2, this->getMemoryHeight()-memEntriesStartY-this->cornerSize, COLOR_KEYBOARD_FOREGRD);
+	int currY = memEntriesStartY;
+	for (std::list<std::pair<wchar_t*,char*> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
+		this->memoryFont->drawString(memoryDC, keyItr->first, this->cornerSize, currY);
+		this->memoryFont->drawString(memoryDC, keyItr->second, this->getMemoryWidth()/2+5/2, currY);
+		currY += memEntriesYPlus;
+	}
+}
+
+
+size_t OnscreenKeyboard::getMaxMemoryEntries() 
+{
+	return this->memEntriesMax;
 }
 
 int OnscreenKeyboard::getWidth()

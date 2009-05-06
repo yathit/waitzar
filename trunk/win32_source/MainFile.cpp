@@ -153,6 +153,7 @@ int patSintIDModifier = 0;
 PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
+PulpCoreFont *helpFntMemory;
 PulpCoreImage *helpCornerImg;
 OnscreenKeyboard *helpKeyboard;
 BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
@@ -803,8 +804,8 @@ void makeFont(HWND currHwnd)
 
 
 	//Save resources if we don't use the second window
-	if (typePhrases==FALSE)
-		return;
+	/*if (typePhrases==FALSE)
+		return;*/
 
 
 	//Try to load our user-specified font image.
@@ -889,6 +890,10 @@ void makeFont(HWND currHwnd)
 		return;
 	}
 
+
+	//Copy this font for use in the memory box
+	helpFntMemory = new PulpCoreFont();
+	helpFntMemory->init(mmFontSmallWhite, mainDC);
 
 
 	//Tint
@@ -1681,7 +1686,7 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, in
 void initCalculateHelp()
 {
 	//Initialize our keyboard
-	helpKeyboard = new OnscreenKeyboard(mmFontSmallWhite, helpFntKeys, helpFntFore, helpFntBack, helpCornerImg);
+	helpKeyboard = new OnscreenKeyboard(mmFontSmallWhite, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
 }
 
 
@@ -3130,6 +3135,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						userDefinedWords.push_back(tempStr);
 						userDefinedWordsZg.push_back(tempStrZg);
 						currStrDictID = -1*(strlen(systemDefinedWords)+userDefinedWords.size());
+						
+						//Add it to the memory list
+						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
+					} else {
+						//Add it to the memory list
+						helpKeyboard->addMemoryEntry(currStrZg, model->reverseLookupWord(currStrDictID));
 					}
 
 					//Hide the help window
@@ -3189,6 +3200,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						userDefinedWords.push_back(tempStr);
 						userDefinedWordsZg.push_back(tempStrZg);
 						currStrDictID = -1*(strlen(systemDefinedWords)+userDefinedWords.size());
+
+						//Add it to the memory list
+						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
+					} else {
+						//Add it to the memory list
+						helpKeyboard->addMemoryEntry(currStrZg, model->reverseLookupWord(currStrDictID));
 					}
 
 					//Hide the help window

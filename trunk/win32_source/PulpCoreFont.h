@@ -72,6 +72,7 @@ public:
 
 	//Drawing functionality
 	void drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos);
+	void drawString(HDC bufferDC, char* str, int xPos, int yPos);
 	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
 	
 	//Other useful metrics
@@ -94,7 +95,9 @@ private:
 	void readChunk(int chunkType, int length, HDC currDC);
 	void fontSet();
 	int getCharIndex(TCHAR ch);
-	int getKerning(TCHAR left, TCHAR right);
+	int getCharIndex(char ch);
+	//int getKerning(TCHAR left, TCHAR right);
+	//int getKerning(char left, char right);
 	int getKerning(int leftIndex, int rightIndex);
 	bool shouldIgnoreTracking(int index);
 };
