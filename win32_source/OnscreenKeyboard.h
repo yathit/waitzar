@@ -62,7 +62,8 @@ const int v_gap = 2;
 #define MODE_INPUT    1
 
 
-#define HELPWND_TITLE           _T("WaitZar Low-Level Input")
+#define HELPWND_TITLE           _T("WaitZar Word Finder")
+#define MEMLIST_TITLE           _T("Memory List")
 
 
 //Useful struct for our keys
@@ -117,6 +118,7 @@ class OnscreenKeyboard
 public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreImage *cornerImg);
 	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
+	void initMemory(HDC memoryDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap);
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
 
@@ -128,11 +130,17 @@ public:
 
 	int getWidth();
 	int getHeight();
+	int getMemoryWidth();
+	int getMemoryHeight();
 
 private:
 	//Help window context & image
 	HDC underDC;
 	PulpCoreImage *bkgrdImg;
+
+	//Memory list context & image
+	HDC memoryDC;
+	PulpCoreImage *memoryImg;
 
 	//Cached pics
 	PulpCoreFont *titleFont;
@@ -154,6 +162,8 @@ private:
 	int cornerSize;
 	int width;
 	int height;
+	int memWidth;
+	int memHeight;
 	int mode;
 	wchar_t typedString[20]; //Temp
 

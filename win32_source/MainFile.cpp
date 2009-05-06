@@ -217,9 +217,16 @@ HDC helpDC;
 HDC helpUnderDC;
 HBITMAP helpBitmap;
 
+//Double-buffering stuff, memory window
+HWND memoryWindow;
+HDC memoryDC;
+HDC memoryUnderDC;
+HBITMAP memoryBitmap;
+
 //Init properly
 bool mainInitDone;
 bool helpInitDone;
+bool memoryInitDone;
 
 //Record-keeping
 TCHAR currStr[100];
@@ -242,6 +249,8 @@ int SUB_WINDOW_WIDTH = 300;
 int SUB_WINDOW_HEIGHT = 26;
 int HELP_WINDOW_WIDTH = 200;
 int HELP_WINDOW_HEIGHT = 200;
+int MEMORY_WINDOW_WIDTH = 200;
+int MEMORY_WINDOW_HEIGHT = 200;
 
 //Width/height of client area
 int C_WIDTH;
@@ -251,6 +260,7 @@ int SUB_C_HEIGHT;
 
 //Try it differently for the help menu
 SIZE HELP_CLIENT_SIZE;
+SIZE MEMORY_CLIENT_SIZE;
 
 //Calculate's integers
 int firstLineStart;
@@ -1567,9 +1577,18 @@ void reBlit()
 //Can't just blit it; we have to use updatelayeredwindow
 void reBlitHelp()
 {
+	//Help Window
 	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
 		TCHAR msg[500];
 		swprintf(msg, _T("Help window failed to update: %i"), GetLastError());
+		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		DestroyWindow(mainWindow);
+	}
+
+	//Memory Window
+	if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+		TCHAR msg[500];
+		swprintf(msg, _T("Memory window failed to update: %i"), GetLastError());
 		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		DestroyWindow(mainWindow);
 	}
@@ -1591,9 +1610,18 @@ void reBlit(RECT blitArea)
 //NOTE: Seems like it's never called.
 void reBlitHelp(RECT blitArea)
 {
+	//Help Window
 	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
 		TCHAR msg[500];
 		swprintf(msg, _T("Help window failed to update: %i"), GetLastError());
+		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		DestroyWindow(mainWindow);
+	}
+
+	//Memory Window
+	if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+		TCHAR msg[500];
+		swprintf(msg, _T("Memory window failed to update: %i"), GetLastError());
 		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		DestroyWindow(mainWindow);
 	}
@@ -1616,6 +1644,9 @@ void initCalculate()
 
 void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newX, int newY, bool noMove, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
 {
+	if (hwnd==memoryWindow)
+		int x = 10;
+
 	//Resize the current window; use SetWindowPos() since it's easier...
 	int flags = SWP_NOZORDER | SWP_NOACTIVATE;
 	if (noMove)
@@ -2295,7 +2326,7 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SelectObject(helpUnderDC, helpBitmap);
 
 			//Initialize our help window
-			if (mainInitDone) {
+			if (mainInitDone && memoryInitDone) {
 				initCalculateHelp();
 			}
 			helpInitDone = true;
@@ -2361,6 +2392,103 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			senWindowSkipMove = FALSE;*/
+			break;
+		}
+		case WM_PAINT:
+		{
+			//Update only if there's an area which needs updating (e.g., a higher-level
+			//  window has dragged over this one's client area... it can happen only with popups,
+			//  but let's do it just to be safe.
+			RECT updateRect;
+			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
+			{
+				//Blitting every tick will slow us down... we should validate the
+				//  rectangle after drawing it.
+				reBlitHelp(updateRect);
+
+				//Validate the client area
+				ValidateRect(hwnd, NULL);
+			}
+
+			break;
+		}
+		case WM_CLOSE:
+			DestroyWindow(hwnd);
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		default:
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+
+//Message handling for our memory window
+LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg) {
+		case WM_CREATE:
+		{
+			//Resize our window?
+			MoveWindow(hwnd, 400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT, FALSE);
+
+			//Now, create all our buffering objects
+			RECT r;
+			GetClientRect(hwnd, &r);
+			MEMORY_CLIENT_SIZE.cx = r.right;
+			MEMORY_CLIENT_SIZE.cy = r.bottom;
+			memoryDC = GetDC(hwnd);
+
+			//Our expanding code is a bit fragile, so we'll have to initialize helpUnderDC and helpBitmap here.
+			memoryUnderDC = CreateCompatibleDC(memoryDC);
+			memoryBitmap = CreateCompatibleBitmap(memoryDC, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT);
+			SelectObject(memoryUnderDC, memoryBitmap);
+
+			//Init properly
+			if (mainInitDone && helpInitDone) {
+				initCalculateHelp();
+			}
+			memoryInitDone = true;
+
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		{
+			//Thanks to dr. Carbon for suggesting this method.
+			if (SetCapture(hwnd)!=NULL)
+				break;
+
+			//Drag the mosue
+			isDragging = true;
+			GetCursorPos(&dragFrom);
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{ //Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
+			if (isDragging) {
+				RECT rect;
+				POINT dragTo;
+				GetWindowRect(hwnd, &rect);
+				GetCursorPos(&dragTo);
+
+				//Constantly update its position
+				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
+					(dragTo.y - dragFrom.y) + rect.top,
+					rect.right - rect.left, rect.bottom - rect.top, FALSE);
+
+				dragFrom = dragTo;
+			}
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			if (isDragging) {
+				isDragging = false;
+				ReleaseCapture();
+			}
 			break;
 		}
 		case WM_PAINT:
@@ -2532,11 +2660,19 @@ void updateHelpWindow()
 			HELP_CLIENT_SIZE.cx = newW;
 			HELP_CLIENT_SIZE.cy = newH;
 
+			//Move the memory window, too
+			int newWMem = 0;
+			int newHMem = 0;
+			expandHWND(memoryWindow, memoryDC, memoryUnderDC, memoryBitmap, newX+helpKeyboard->getWidth(), newY, false, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), newWMem, newHMem);
+			MEMORY_CLIENT_SIZE.cx = newWMem;
+			MEMORY_CLIENT_SIZE.cy = newHMem;
+
 			//Might as well build the reverse lookup
 			model->reverseLookupWord(0);
 
 			//...and now we can properly initialize its drawing surface
 			helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
+			helpKeyboard->initMemory(memoryDC, memoryUnderDC, memoryBitmap);
 
 			helpIsCached = true;
 		}
@@ -2558,6 +2694,7 @@ void updateHelpWindow()
 
 		//Show the help window
 		ShowWindow(helpWindow, SW_SHOW);
+		ShowWindow(memoryWindow, SW_SHOW);
 		helpWindowIsVisible = true;
 		reBlitHelp();
 	} else {
@@ -2566,6 +2703,7 @@ void updateHelpWindow()
 
 		turnOnHelpKeys(false);
 		ShowWindow(helpWindow, SW_HIDE);
+		ShowWindow(memoryWindow, SW_HIDE);
 		helpWindowIsVisible = false;
 		recalculate();
 	}
@@ -2608,7 +2746,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SelectObject(mainUnderDC, mainBitmap);
 
 			//Init our helper window
-			if (helpInitDone) {
+			if (helpInitDone && memoryInitDone) {
 				initCalculateHelp();
 			}
 			mainInitDone = true;
@@ -2721,6 +2859,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					turnOnHelpKeys(false);
 					ShowWindow(helpWindow, SW_HIDE);
+					ShowWindow(memoryWindow, SW_HIDE);
 					helpWindowIsVisible = false;
 					recalculate();
 				} else {
@@ -2996,6 +3135,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					helpWindowIsVisible = false;
 					turnOnHelpKeys(false);
 					ShowWindow(helpWindow, SW_HIDE);
+					ShowWindow(memoryWindow, SW_HIDE);
 
 					//Try to type this word
 					BOOL typed = selectWord(currStrDictID, true);
@@ -3054,6 +3194,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					helpWindowIsVisible = false;
 					turnOnHelpKeys(false);
 					ShowWindow(helpWindow, SW_HIDE);
+					ShowWindow(memoryWindow, SW_HIDE);
 
 					//Try to type this word
 					BOOL typed = selectWord(currStrDictID, true);
@@ -3917,6 +4058,43 @@ void makeHelpWindow(LPCWSTR windowClassName)
 
 
 
+void makeMemoryWindow(LPCWSTR windowClassName)
+{
+	//Set a window class's parameters
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = MemoryWndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInst;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
+	wc.hbrBackground = g_GreenBkgrd;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = windowClassName;
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	if(!RegisterClassEx(&wc)) {
+		MessageBox(NULL, _T("Memory-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		return;
+	}
+
+	//Create a handle to the window
+	// We use LAYERED to allow for alpha blending on a per-pixel basis.
+	//The MSDN docs say this might slow the program down, but I'll reserve
+	// any optimizations until we have actual reported slowdown.
+	memoryWindow = CreateWindowEx(
+		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
+		windowClassName,
+		_T("WaitZar"),
+		WS_POPUP, //No border or title bar
+		400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT,
+		NULL, NULL, hInst, NULL
+	);
+}
+
+
+
 /**
  * Borrowed from KeyMagic.
  */
@@ -4173,6 +4351,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	makeMainWindow(_T("waitZarMainWindow"));
 	makeSubWindow(_T("waitZarSentenceWindow"));
 	makeHelpWindow(_T("waitZarHelpWindow"));
+	makeMemoryWindow(_T("waitZarMemoryWindow"));
 
 	//Our vector is used to store typed words for later...
 	sentence = new SentenceList();
@@ -4247,7 +4426,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(currLetterSt, _T(""));
 
 	//Success?
-	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL) || helpWindow==NULL) {
+	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL) || helpWindow==NULL || memoryWindow==NULL) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
@@ -4258,6 +4437,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (typePhrases==TRUE)
 			DestroyWindow(senWindow);
 		DestroyWindow(helpWindow);
+		DestroyWindow(memoryWindow);
 		return 1;
 	}
 
