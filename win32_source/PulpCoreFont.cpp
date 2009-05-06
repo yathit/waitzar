@@ -183,6 +183,54 @@ int PulpCoreFont::getCharIndex(TCHAR ch)
 }
 
 
+
+void PulpCoreFont::drawString(HDC bufferDC, char* str, int xPos, int yPos)
+{
+	//Don't loop through null or zero-lengthed strings
+	int numChars = strlen(str);
+	if (str==NULL || numChars==0 || directPixels==NULL)
+		return;
+
+
+	//Loop through all letters...
+	int nextIndex = getCharIndex(str[0]);
+	int startX = xPos;
+    for (int i=0; i<numChars; i++) {
+		int index = nextIndex;
+        int pos = charPositions[index];
+        int charWidth = charPositions[index+1] - pos;
+
+		//Draw this letter
+		AlphaBlend(
+			   bufferDC, startX, yPos, charWidth, height,   //Destination
+			   directDC, pos, 0, charWidth, height,    //Source
+			   blendFunc				   //Method
+		);
+
+		//Prepare next character.... if any
+        if (i < numChars-1) {
+            nextIndex = getCharIndex(str[i + 1]);
+            int dx = charWidth + getKerning(index, nextIndex);
+			startX += dx;
+        }
+    }
+}
+
+int PulpCoreFont::getCharIndex(char ch)
+{
+	//Special-case (not in WZ)
+	if (uppercaseOnly && ch>='a' &&ch<= 'z')
+		ch += 'A' - 'a';
+
+	//Bound (default to last character)
+	if (ch<firstChar || ch>lastChar)
+		ch = lastChar;
+
+	return ch - firstChar;
+}
+
+
+
 int PulpCoreFont::getKerning(int leftIndex, int rightIndex)
 {
 	// Future versions of this method might handle kerning pairs, like "WA" and "Yo"
@@ -191,6 +239,7 @@ int PulpCoreFont::getKerning(int leftIndex, int rightIndex)
 	else
 		return bearingRight[leftIndex] + tracking + bearingLeft[rightIndex];
 }
+
 
 
 bool PulpCoreFont::shouldIgnoreTracking(int index)
