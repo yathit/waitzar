@@ -29,6 +29,10 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFo
 	this->width = (BTN_WIDTHS[BUTTON_KEY]+h_gap)*13 + BTN_WIDTHS[BUTTON_BACKSPACE] + this->cornerSize*2;
 	this->height = BTN_HEIGHT*5 + v_gap*4 + titleFont->getHeight()-2+2*this->cornerSize-2 + this->cornerSize;
 
+	//Determine the necessary size of our memory image
+	this->memWidth = this->foreFont->getStringWidth(L"\u1005\u1000\u1064\u102C\u1015\u1030") + this->keysFont->getStringWidth(L"singapore") + cornerImg->getWidth()*2 + 5;
+	this->memHeight = this->height;
+
 	//Init our keys
 	int currY = 0;
 	int currX = 0;
@@ -138,6 +142,35 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 		drawKey(keys[i], i, false);
 	}
 }
+
+
+
+void OnscreenKeyboard::initMemory(HDC memoryDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap)
+{
+	//Create a new device context
+	memoryImg = new PulpCoreImage();
+	memoryImg->init(this->memWidth, this->memHeight, 0x00000000, memoryDC, memoryBuffDC, memoryBitmap);
+
+	//Save our device context
+	this->memoryDC = memoryBuffDC;
+
+	//Make our header/body buttons, to be drawn once, and draw them
+	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(MEMLIST_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	PulpCoreImage *bodyButton = makeButton(this->memWidth, this->memHeight-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	headerButton->draw(memoryDC, 0, 0);
+	bodyButton->draw(memoryDC, 0, headerButton->getHeight()-this->cornerSize);
+
+	//Fix their messy intersection
+	memoryImg->fillRectangle(2, headerButton->getHeight()-this->cornerSize, headerButton->getWidth()-4, this->cornerSize, COLOR_KEYBOARD_FOREGRD);
+	memoryImg->fillRectangle(0, headerButton->getHeight()-this->cornerSize, 2, this->cornerSize, COLOR_KEYBOARD_BORDER);
+	memoryImg->fillRectangle(headerButton->getWidth()-2, headerButton->getHeight()-this->cornerSize, 2, 2, COLOR_KEYBOARD_BORDER);
+
+	//Delete their un-necessary resources
+	delete headerButton;
+	delete bodyButton;
+}
+
+
 
 
 /**
@@ -582,6 +615,15 @@ int OnscreenKeyboard::getHeight()
 	return this->height;
 }
 
+int OnscreenKeyboard::getMemoryWidth()
+{
+	return this->memWidth;
+}
+
+int OnscreenKeyboard::getMemoryHeight()
+{
+	return this->memHeight;
+}
 
 
 /*
