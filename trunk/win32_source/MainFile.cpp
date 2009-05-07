@@ -77,7 +77,7 @@ using namespace waitzar;
 bool TEMP_FLAG = false;
 
 //Current version
-#define WAIT_ZAR_VERSION _T("1.6")
+#define WAIT_ZAR_VERSION _T("1.7")
 
 //Menu item texts
 TCHAR* POPUP_UNI = _T("Unicode 5.1");
