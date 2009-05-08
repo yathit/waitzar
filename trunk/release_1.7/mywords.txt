@@ -1,0 +1,20 @@
+﻿#Add all words according to the following notation:
+# mm = roman
+# where mm is the word in Burmese, in the encoding of your choice (Zawgyi for now)
+# ...and roman is the romanisation of that word. For example:
+#အား = ar
+#ဣတ္ = ate
+
+#Words reported by our users (will be incorporated into the main dictionary later).
+ဆီမ့္ = seint
+ခြန္႔ = khont
+ခစ္ = khit
+
+#Words which cannot be added to the model, as they already have a standard romanisation.
+# These will be included perpetually for convenience
+ဖုိင္ = file
+ဥစ္ = oait
+ဥ = ou
+
+#Added as a reminder to make patsint words easier to type
+မဂၤလာပါ = minggalarpar
