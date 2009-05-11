@@ -3120,14 +3120,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle numbers
 			if (!helpWindowIsVisible) {
 				stopChar=0;
-				if (numCode>-1 || wParam==HOTKEY_COMBINE) {
+				if (numCode>-1 || wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
 					if (mainWindowIsVisible) {
 						//Convert 1..0 to 0..9
 						if (--numCode<0)
 							numCode = 9;
 
 						//Mangle as usual...
-						if (wParam==HOTKEY_COMBINE) {
+						if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
 							numCode = -1;
 							patSintIDModifier = -1;
 						}
