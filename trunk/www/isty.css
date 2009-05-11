@@ -105,6 +105,10 @@ a:active {
   text-decoration: none;
 }
 
+.linkclr {
+  color: #00CCFF;
+}
+
 .helpbigtxt {
   font-size: 1.25em; 
   color: #00CCFF;

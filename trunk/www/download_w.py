@@ -5,7 +5,7 @@ class DownloadTemplate(FallbackTemplate):
         <h1>Download WaitZar</h1>
 		<table align="left" border="0" cellpadding="8" cellspacing="0" style="background-color:#444400; border: 6px solid green; color:white;">
 			<tr>
-				<td width="100" align="center"style="background-color:#FFFF33; border-right: 3px solid green;"><a class="ninjalink" href="http://waitzar.googlecode.com/files/waitzar_release_1.6.zip">
+				<td width="100" align="center"style="background-color:#FFFF33; border-right: 3px solid green;"><a class="ninjalink linkclr" href="http://waitzar.googlecode.com/files/waitzar_release_1.6.zip">
 					<img src="img/wz_icon_zipped.png" border="0"/>
 					<br><div class="downloadlink">WaitZar_1.6.zip</div>
 				</a></td>
@@ -27,7 +27,7 @@ class DownloadTemplate(FallbackTemplate):
 
 		<br><table align="left" border="0" cellpadding="8" cellspacing="0" class="glwt mt40">
 			<tr>
-				<td width="100" align="center" class="glr"><a class="ninjalink" href="http://waitzar.googlecode.com/svn/trunk/release_1.6/WaitZar%20User%27s%20Guide.doc">
+				<td width="100" align="center" class="glr"><a class="ninjalink linkclr" href="http://waitzar.googlecode.com/svn/trunk/release_1.6/WaitZar%20User%27s%20Guide.doc">
 					<img src="img/wz_icon_guide.png" border="0"/>
 					<br><div class="downloadlink">User's Guide 1.6.exe</div>
 				</a></td>
@@ -38,7 +38,7 @@ class DownloadTemplate(FallbackTemplate):
 
 		<br><table align="left" border="0" cellpadding="8" cellspacing="0" class="glwt mt40">
 			<tr>
-				<td width="100" align="center" class="glr"><a class="ninjalink" href="http://waitzar.googlecode.com/svn/trunk/nightly/WaitZar.exe">
+				<td width="100" align="center" class="glr"><a class="ninjalink linkclr" href="http://waitzar.googlecode.com/svn/trunk/nightly/WaitZar.exe">
 					<img src="img/wz_icon.png" border="0"/>
 					<br><div class="downloadlink">WaitZar.exe</div>
 				</a></td>
@@ -49,7 +49,7 @@ class DownloadTemplate(FallbackTemplate):
 
 		<br><table align="left" border="0" cellpadding="8" cellspacing="0" class="glwt mt40">
 			<tr>
-				<td width="100" align="center" class="glr"><class="ninjalink" href="http://scim-waitzar.googlecode.com/files/scim-waitzar-1.0.0.deb.zip">
+				<td width="100" align="center" class="glr"><a class="ninjalink linkclr" href="http://scim-waitzar.googlecode.com/files/scim-waitzar-1.0.0.deb.zip">
 					<img src="img/wz_icon_scim.png" border="0"/>
 					<br><div class="downloadlink">scim-waitzar 1.0.0.zip</div>
 				</a></td>
