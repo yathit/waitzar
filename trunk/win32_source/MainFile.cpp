@@ -2046,6 +2046,8 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	if (!indexNegativeEntries) {
 		//One last check: are we doing a pat-sint shortcut?
 		if (patSintIDModifier==-1) {
+			if (!model->hasPostStr())
+				return FALSE;
 			wordID = model->getPostID();
 		} else {
 			//Ok, look it up in the model as usual
@@ -2059,7 +2061,6 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	//Optionally turn off numerals
 	//if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
 	//	turnOnNumberkeys(FALSE);
-
 	if (typePhrases==FALSE) {
 		//Simple Case
 		sentence->clear();
@@ -2703,6 +2704,51 @@ void updateHelpWindow()
 		ShowWindow(memoryWindow, SW_SHOW);
 		helpWindowIsVisible = true;
 		reBlitHelp();
+
+		//Show the main/sentence windows; this is just good practice.
+		if (!mainWindowIsVisible) {
+			//Re-position this near the caret
+			if (experimentalTextCursorTracking==TRUE) {
+				//Reset parameters for our thread
+				//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
+				caretLatestPosition.x = 0;
+				caretLatestPosition.y = 0;
+
+				//Create and start our thread for tracking the caret
+				caretTrackThread = CreateThread(
+					NULL,                //Default security attributes
+					0,                   //Default stack size
+					UpdateCaretPosition, //Threaded function (name)
+					NULL,                //Arguments to threaded function
+					0,
+					&caretTrackThreadID);//Pointer to return the thread's id into
+				if (caretTrackThread==NULL) {
+					MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
+					experimentalTextCursorTracking = FALSE;
+				}
+
+				//Wait for it.
+				WaitForSingleObject(caretTrackThread, 1000);
+
+				//Close it
+				CloseHandle(caretTrackThread);
+
+				//Ready?
+				if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
+					//Line up our windows
+					MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+					MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+				}
+			}
+
+			//Show it.
+			ShowWindow(mainWindow, SW_SHOW);
+			mainWindowIsVisible = false;
+		}
+		if (!subWindowIsVisible) {
+			ShowWindow(senWindow, SW_SHOW);
+			subWindowIsVisible = false;
+		}
 	} else {
 		//Clear our word string
 		lstrcpy(currStr, _T(""));
@@ -2711,6 +2757,15 @@ void updateHelpWindow()
 		ShowWindow(helpWindow, SW_HIDE);
 		ShowWindow(memoryWindow, SW_HIDE);
 		helpWindowIsVisible = false;
+
+		//Hide the main window, too, and possibly the secondary window
+		ShowWindow(mainWindow, SW_HIDE);
+		mainWindowIsVisible = false;
+		if (sentence->size()==0) {
+			ShowWindow(senWindow, SW_HIDE);
+			subWindowIsVisible = false;
+		}
+
 		recalculate();
 	}
 }
@@ -2867,6 +2922,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					ShowWindow(helpWindow, SW_HIDE);
 					ShowWindow(memoryWindow, SW_HIDE);
 					helpWindowIsVisible = false;
+
+					//Hide the main window, too, and possibly the secondary window
+					ShowWindow(mainWindow, SW_HIDE);
+					mainWindowIsVisible = false;
+					if (sentence->size()==0) {
+						ShowWindow(senWindow, SW_HIDE);
+						subWindowIsVisible = false;
+					}
+
 					recalculate();
 				} else {
 					if (!mainWindowIsVisible) {
@@ -3312,6 +3376,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					keyWasUsed = true;
 				}
 			} else {
+				//Reset pat-sint choice
+				patSintIDModifier = 0;
+
 				//Handle regular letter-presses
 				int keyCode = (int)wParam;
 				if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) //Seems like we should be doing with this Shift modifiers..

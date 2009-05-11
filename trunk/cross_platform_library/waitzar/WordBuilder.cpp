@@ -827,6 +827,7 @@ void WordBuilder::resolveWords(void)
 	//What words are possible given this point?
 	possibleWords.clear();
 	this->currSelectedID = -1;
+	this->postStr[0] = 0x0000;
 	if (lowestPrefix == -1)
 		return;
 
@@ -853,7 +854,6 @@ void WordBuilder::resolveWords(void)
 	}
 
 	//Finally, check if this nexus and the previously-typed word lines up; if so, we have a "post" match
-	postStr[0] = 0x0000;
 	if (shortcuts.count(currNexus)>0 && trigramCount>0) {
 		if (shortcuts[currNexus]->count(trigram[0])>0) {
 			postID = (*shortcuts[currNexus])[trigram[0]];
