@@ -19,6 +19,11 @@ hotkey = ^+
 mywordswarning = no
 
 
+# If "yes", then any warnings/errors which come from adding a word in mywords.txt to the model will
+#  be ignored. 
+silencemywordserrors = no
+
+
 # If "yes", each typed word becomes part of a phrase; the user
 #  must type "Space" again to enter the entire phrase. The benefit of doing it this way is 
 #  that Wait Zar can "figure out" what word you want based on the previous words.

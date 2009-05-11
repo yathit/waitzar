@@ -192,6 +192,7 @@ BOOL highlightKeys = TRUE;
 BOOL experimentalTextCursorTracking = TRUE;
 BOOL dontLoadModel = FALSE;
 BOOL allowNonBurmeseLetters = FALSE;
+bool ignoreMywordsWarnings = false;
 unsigned int maxDictionaryEntries = 0;
 unsigned int maxNexusEntries = 0;
 unsigned int maxPrefixEntries = 0;
@@ -997,7 +998,7 @@ void readUserWords() {
 				continue;
 
 			//Add this romanization
-			if (!model->addRomanization(name, value)) {
+			if (!model->addRomanization(name, value) && !ignoreMywordsWarnings) {
 				MessageBox(NULL, model->getLastError(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
 			}
 			numCustomWords++;
@@ -1137,6 +1138,14 @@ void loadConfigOptions()
 				dontLoadModel = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				dontLoadModel = FALSE;
+			else
+				numConfigOptions--;
+		} else if (strcmp(name, "silencemywordserrors")==0) {
+			numConfigOptions++;
+			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+				ignoreMywordsWarnings = true;
+			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
+				ignoreMywordsWarnings = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "charaset")==0) {
