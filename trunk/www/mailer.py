@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
 import smtplib
-from email.mime.text import MIMEText
 from string import *
-import email.Charset
-email.Charset.add_charset( 'utf-8', email.Charset.SHORTEST, None, None )
 
 
 
@@ -75,6 +72,11 @@ def sendAMail(fromEmail, frName, toEmail, message):
 
 
 def sendAHelpResponse(toEmail, toName, subject, msgFile):
+	#Hackishness
+	from email.mime.text import MIMEText
+	import email.Charset
+	email.Charset.add_charset( 'utf-8', email.Charset.SHORTEST, None, None )
+
 	# Open a plain text file for reading; should be UTF-8
 	fp = open(msgFile, 'rb')
 	fromEmail = "help@waitzar.com"
