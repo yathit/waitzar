@@ -2752,11 +2752,11 @@ void updateHelpWindow()
 
 			//Show it.
 			ShowWindow(mainWindow, SW_SHOW);
-			mainWindowIsVisible = false;
+			mainWindowIsVisible = true;
 		}
 		if (!subWindowIsVisible) {
 			ShowWindow(senWindow, SW_SHOW);
-			subWindowIsVisible = false;
+			subWindowIsVisible = true;
 		}
 	} else {
 		//Clear our word string
