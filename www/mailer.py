@@ -73,24 +73,30 @@ def sendAMail(fromEmail, frName, toEmail, message):
 
 def sendAHelpResponse(toEmail, toName, subject, msgFile):
 	#Hackishness
-	from email.mime.text import MIMEText
-	import email.Charset
-	email.Charset.add_charset( 'utf-8', email.Charset.SHORTEST, None, None )
+	try:
+		from email.mime.text import MIMEText
+		import email.Charset
+		email.Charset.add_charset( 'utf-8', email.Charset.SHORTEST, None, None )
 
-	# Open a plain text file for reading; should be UTF-8
-	fp = open(msgFile, 'rb')
-	fromEmail = "help@waitzar.com"
-	
-	# Create a text/plain message
-	msg = MIMEText(fp.read())
-	fp.close()
+		# Open a plain text file for reading; should be UTF-8
+		fp = open(msgFile, 'rb')
+		fromEmail = "help@waitzar.com"
 
-	#Prepare to send the message
-	msg['Subject'] = subject
-	msg['From'] = "WaitZar Help <" + fromEmail + ">"
-	msg['To'] = toName + " <" + toEmail + ">"
+		# Create a text/plain message
+		msg = MIMEText(fp.read())
+		fp.close()
 
-	# Send the message via our own SMTP server, but don't include the envelope header.
-	s = smtplib.SMTP('localhost')
-	s.sendmail(fromEmail, [toEmail], msg.as_string())
-	s.quit()
+		#Prepare to send the message
+		msg['Subject'] = subject
+		msg['From'] = "WaitZar Help <" + fromEmail + ">"
+		msg['To'] = toName + " <" + toEmail + ">"
+
+		# Send the message via our own SMTP server, but don't include the envelope header.
+		s = smtplib.SMTP('localhost')
+		s.sendmail(fromEmail, [toEmail], msg.as_string())
+		s.quit()
+		
+		print "Email sent"
+	except Exception:
+		print "Didn't work"
+
