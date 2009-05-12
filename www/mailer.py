@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 import smtplib
+from email.mime.text import MIMEText
 from string import *
+import email.Charset
+email.Charset.add_charset( 'utf-8', email.Charset.SHORTEST, None, None )
+
 
 
 # Ported from Recipe 3.9 in Secure Programming Cookbook for C and C++ by
@@ -62,8 +66,29 @@ def sendAMail(fromEmail, frName, toEmail, message):
 		try:
 			smtpObj = smtplib.SMTP('localhost')
 			smtpObj.sendmail(fromEmail, toList, fullMsg)
+			smtpObj.quit()
 		except Exception:
 			return SENDRESP_SERVER_DOWN
 	else:
 		return SENDRESP_BAD_EMAIL_ADDRESS
 	return SENDRESP_SUCCESS
+
+
+def sendAHelpResponse(toEmail, toName, subject, msgFile):
+	# Open a plain text file for reading; should be UTF-8
+	fp = open(msgFile, 'rb')
+	fromEmail = "help@waitzar.com"
+	
+	# Create a text/plain message
+	msg = MIMEText(fp.read())
+	fp.close()
+
+	#Prepare to send the message
+	msg['Subject'] = subject
+	msg['From'] = "WaitZar Help <" + fromEmail + ">"
+	msg['To'] = toName + " <" + toEmail + ">"
+
+	# Send the message via our own SMTP server, but don't include the envelope header.
+	s = smtplib.SMTP('localhost')
+	s.sendmail(fromEmail, [toEmail], msg.as_string())
+	s.quit()
