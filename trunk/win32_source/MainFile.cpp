@@ -75,8 +75,6 @@
 
 using namespace waitzar;
 
-//TEMP:
-bool TEMP_FLAG = false;
 
 //Current version
 #define WAIT_ZAR_VERSION _T("1.7")
@@ -453,6 +451,47 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 	return 0;
 }
+
+
+//False on some error 
+bool testAllWordsByHand() 
+{
+	//First, ensure that the reverse-lookup is ready
+	model->reverseLookupWord(0);
+
+	//Time
+	GetSystemTimeAsFileTime(&startTime);
+
+	//For each typable word
+	char* revWord;
+	for (unsigned int wordID=0; revWord=model->reverseLookupWord(wordID); wordID++) {
+		//Type this
+		model->reset(false);
+		while (*revWord) {
+			//Just check that our romanisation is stored properly.
+			if (!model->typeLetter(*revWord))
+				return false;
+			revWord++;
+		}
+
+		//Test "output" it
+		std::pair<bool, unsigned int> ret = model->typeSpace(-1);
+		if (!ret.first)
+			return false;
+		model->getWordKeyStrokes(ret.second);
+	}
+
+
+	//Done, display a message box
+	GetSystemTimeAsFileTime(&endTime);
+	DWORD timeMS = getTimeDifferenceMS(startTime, endTime);
+
+	wchar_t msg[500];
+	swprintf(msg, L"Type All total time:   %dms", timeMS);
+	MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
+	return true;
+}
+
 
 
 void buildSystemWordLookup()
@@ -1044,6 +1083,11 @@ void readUserWords() {
 		if (numCustomWords>0 && customDictWarning==TRUE)
 			MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n(You may disable this warning by setting mywordswarning = no in config.txt).\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
 
+	} else {
+		//Special case if testing
+		if (currTest == mywords) {
+			MessageBox(NULL, _T("Error! Custom mywords file does not exist!"), _T("Test-Related Error"), MB_ICONWARNING | MB_OK);
+		}
 	}
 }
 
@@ -4464,6 +4508,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Load our configuration file now; save some headaches later
 	loadConfigOptions();
 
+	//Modify our config options?
+	if (currTest == mywords) {
+		dontLoadModel = TRUE;
+		mywordsFileName = "D:\\Open Source Projects\\Waitzar\\eclipse_project\\MyanmarList_v2.txt";
+	}
+
+
 	//Should we run a UAC test on startup?
 	if (alwaysRunElevated) {
 		//Will elevating help?
@@ -4579,8 +4630,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		cachedEncoding = -1;
 	}
 
+	//Testing mywords?
+	if (currTest == mywords)
+		GetSystemTimeAsFileTime(&startTime);
+
 	//Also load user-specific words
 	readUserWords();
+
+	//Logging mywords?
+	if (currTest == mywords) {
+		GetSystemTimeAsFileTime(&endTime);
+		DWORD timeMS = getTimeDifferenceMS(startTime, endTime);
+
+		wchar_t msg[500];
+		swprintf(msg, L"Mywords total time:   %dms", timeMS);
+		MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
+
+		return 0;
+	}
 
 	//Did we get any?
 	TCHAR noConfigWarningMsg[1500];
@@ -4676,6 +4743,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		swprintf(msg, L"Time to start up:   %dms", timeMS);
 		MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 
+		return 0;
+	}
+
+
+	//Logging total time to type all words?
+	if (currTest == type_all) {
+		if (!testAllWordsByHand())
+			MessageBox(NULL, L"Error running type_all check!", L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 		return 0;
 	}
 
