@@ -52,6 +52,7 @@
 #define NOMCX               //- Modem Configuration Extensions
 
 //System includes
+#define NOMINMAX
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
 #include <psapi.h> //For getting a list of currently running processes
@@ -60,6 +61,7 @@
 #include <tchar.h>
 #include <string>
 #include <list>
+#include <limits>
 
 //Our includes
 #include "../cross_platform_library/waitzar/WordBuilder.h"
@@ -145,6 +147,7 @@ INPUT *inputItems;
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
 wchar_t returnVal[500];
+char* mywordsFileName = "mywords.txt";
 
 //For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
 int patSintIDModifier = 0;
@@ -280,6 +283,36 @@ bool helpWindowIsVisible;
 //Log file, since the debugger doesn't like multi-process threads
 bool isLogging = false;
 FILE *logFile;
+
+//For testing
+FILETIME startTime;
+FILETIME endTime;
+enum test_type {
+	none,
+	start_up,
+	mywords,
+	type_all
+};
+test_type currTest = none;
+
+
+
+//Ugh, Windows
+template< typename T >
+inline T max(const T & a, const T & b) { return std::max(a, b); }
+
+//Ugh, Windows
+template< typename T >
+inline T min(const T & a, const T & b) { return std::min(a, b); }
+
+
+
+unsigned long getTimeDifferenceMS(const FILETIME &st, const FILETIME &end)
+{
+	if (st.dwHighDateTime != end.dwHighDateTime)
+		return std::numeric_limits<DWORD>::max();
+	return (end.dwLowDateTime - st.dwLowDateTime)/10000L;
+}
 
 
 
@@ -950,7 +983,7 @@ BOOL waitzarAlreadyStarted()
 void readUserWords() {
 	//Read our words file, if it exists.
 	numCustomWords = -1;
-	FILE* userFile = fopen("mywords.txt", "r");
+	FILE* userFile = fopen(mywordsFileName, "r");
 	if (userFile != NULL) {
 		//Get file size
 		fseek (userFile, 0, SEEK_END);
@@ -2617,7 +2650,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
 				mainWindowSkipMove = TRUE;
-				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0L), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0L), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			senWindowSkipMove = FALSE;
 			break;
@@ -2832,7 +2865,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
 				senWindowSkipMove = TRUE;
-				SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0L), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			mainWindowSkipMove = FALSE;
 			break;
@@ -4380,6 +4413,11 @@ void elevateWaitZar(LPCWSTR wzFileName)
  */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	//Logging time to start?
+	if (currTest == start_up)
+		GetSystemTimeAsFileTime(&startTime);
+
+
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
@@ -4626,6 +4664,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		TCHAR eTemp[200];
 		swprintf(eTemp, _T("Can't load initial icon.\nError code: %x"), GetLastError());
 		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
+	}
+
+
+	//Logging time to start?
+	if (currTest == start_up) {
+		GetSystemTimeAsFileTime(&endTime);
+		DWORD timeMS = getTimeDifferenceMS(startTime, endTime);
+
+		wchar_t msg[500];
+		swprintf(msg, L"Time to start up:   %dms", timeMS);
+		MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
+
+		return 0;
 	}
 
 
