@@ -298,12 +298,12 @@ test_type currTest = none;
 //Ugh, Windows
 template< typename T >
 inline T max(const T & a, const T & b) { return std::max(a, b); }
-inline long max(const long &a, const long &b) { return max<long>(a, b); }
+inline long max(const long &a, const int &b) { return max<long>(a, b); }
 
 //Ugh, Windows
 template< typename T >
 inline T min(const T & a, const T & b) { return std::min(a, b); }
-inline long min (const long &a, const long &b) { return min<long>(a,b); }
+inline long min (const long &a, const int &b) { return min<long>(a,b); }
 
 
 
