@@ -298,10 +298,12 @@ test_type currTest = none;
 //Ugh, Windows
 template< typename T >
 inline T max(const T & a, const T & b) { return std::max(a, b); }
+inline long max(const long &a, const long &b) { return max<long>(a, b); }
 
 //Ugh, Windows
 template< typename T >
 inline T min(const T & a, const T & b) { return std::min(a, b); }
+inline long min (const long &a, const long &b) { return min<long>(a,b); }
 
 
 
@@ -2694,7 +2696,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
 				mainWindowSkipMove = TRUE;
-				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0L), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0L), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			senWindowSkipMove = FALSE;
 			break;
@@ -2909,7 +2911,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
 				senWindowSkipMove = TRUE;
-				SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0L), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			mainWindowSkipMove = FALSE;
 			break;
