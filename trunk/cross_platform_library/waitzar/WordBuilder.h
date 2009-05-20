@@ -23,7 +23,7 @@
 #include <map>
 #include "fontconv.h"
 
-namespace waitzar 
+namespace waitzar
 {
 
 //If defined, we are running on Linux
@@ -190,6 +190,8 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount);
  * Read a line from a file. Yay! First template function!
  *  Note that this function automatically converts all upper case to lower case before checking.
  * NOTE: Template implementations must be defined in the same file they are declared; hence, this must be in the .h file.
+ *       This is because Visual Studio does not support "export" on templates; otherwise, we could separate it.
+ *       http://msdn.microsoft.com/en-us/library/4w5cfxs1.aspx
  * @param stream - TCHAR* or char*
  * @param index,streamSize - current position, max pos
  * @param nameRet, valRet The return strings for name/value pairs. Should be big enough to hold the name/value strings
