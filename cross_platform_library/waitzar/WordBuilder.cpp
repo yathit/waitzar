@@ -164,17 +164,6 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 	//The user has passed in the option to use any character or only myanmar ones
 	this->restrictToMyanmar = !allowAnyChar;
 
-	//Step zero: prepare jagged arrays (and bookkeeping data related to them)
-	//unsigned short **dictionary;
-	//unsigned int **nexus;
-	//unsigned int **prefix;
-	//int dictMaxID;
-	//int dictMaxSize;
-	//int nexusMaxID;
-	//int nexusMaxSize;
-	//int prefixMaxID;
-	//int prefixMaxSize;
-
 	//Step three: Read each line
 	size_t currLineStart = 0;
 	unsigned short count;
@@ -255,14 +244,14 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				//Keep reading until the terminating bracket.
 				//  Each "word" is of the form DD(-DD)*,
 				//newWordSz = 0;
-				vector<unsigned short> newWord;
+				wstring newWord;
 				for(;;) {
 					//Read a "pair"
 					currLetter[2] = model_buff[currLineStart++];
 					currLetter[3] = model_buff[currLineStart++];
 
 					//Translate/Add this letter
-					newWord.push_back((unsigned short)strtol(currLetter, NULL, 16));
+					newWord.push_back((wchar_t)strtol(currLetter, NULL, 16));
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
@@ -434,7 +423,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
  *       few profile runs) tiny hash tables offer virtually no performance improvement at a
  *       substantial increase in the memory footprint. So, deal with the C-style arrays.
  */
-WordBuilder::WordBuilder(const vector< vector<unsigned short> > &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix)
+WordBuilder::WordBuilder(const vector<wstring> &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix)
 {
     //Load the model
 	loadModel(dictionary, nexus, prefix);
@@ -454,7 +443,7 @@ WordBuilder::~WordBuilder(void)
 	//      those kinds of things.)
 	//Although, it should probably be virtual if WordBuilder is ever overloaded and stored in a vector...
 }
-void WordBuilder::loadModel(const vector< vector<unsigned short> > &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix)
+void WordBuilder::loadModel(const vector<wstring> &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix)
 {
 	//Assume the user only wants Burmese words
 	this->restrictToMyanmar = true;
@@ -464,14 +453,6 @@ void WordBuilder::loadModel(const vector< vector<unsigned short> > &dictionary, 
 	this->dictionary = dictionary;
 	this->nexus = nexus;
 	this->prefix = prefix;
-	//this->dictionary.reserve(dictionary.size());
-	//this->dictionary.assign(dictionary.begin(), dictionary.end());
-
-	//this->nexus.reserve(nexus.size());
-	//this->nexus.assign(nexus.begin(), nexus.end());
-
-	//this->prefix.reserve(prefix.size());
-	//this->prefix.assign(prefix.begin(), prefix.end());
 }
 
 
@@ -484,9 +465,9 @@ void WordBuilder::initModel()
 	revLookupOn = false;
 
 	//Initialize our strings
-	wcscpy(parenStr, L"");
-	wcscpy(postStr, L"");
-	wcscpy(mostRecentError, L"");
+	//wcscpy(parenStr, L"");
+	//wcscpy(postStr, L"");
+	//wcscpy(mostRecentError, L"");
 
 	//Set the default encoding
 	this->currEncoding = ENCODING_UNICODE;
@@ -498,8 +479,8 @@ void WordBuilder::initModel()
 	punctFullStopWinInnwa = 47;
 
 	//Initialize our dictionaries to null entries
-	winInnwaDictionary.assign(dictionary.size(), vector<unsigned short>());
-	unicodeDictionary.assign(dictionary.size(), vector<unsigned short>());
+	winInnwaDictionary.assign(dictionary.size(), wstring());
+	unicodeDictionary.assign(dictionary.size(), wstring());
 
 	//Start off
 	this->reset(true);
@@ -526,7 +507,7 @@ unsigned int WordBuilder::getTotalDefinedWords()
 
 //Given baseword + tostack = resultstacked, add this shortcut to our own internal storage
 //return false in error
-bool WordBuilder::addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resultStacked)
+bool WordBuilder::addShortcut(const wstring &baseWord, const wstring &toStack, const wstring &resultStacked)
 {
 	//Make sure all 3 words exist in the dictionary
 	// NOTE: Technically, toStack need not be in the dictionary. However, we need to know
@@ -536,7 +517,10 @@ bool WordBuilder::addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resu
 	unsigned int resultStackedID = getWordID(resultStacked);
 	unsigned int invalidID = dictionary.size();
 	if (baseWordID==invalidID || toStackID==invalidID || resultStackedID==invalidID) {
-		swprintf(mostRecentError, L"pre/post/curr word does not exist in the dictionary (%i, %i, %i : %i)", baseWordID, toStackID, resultStackedID, invalidID);
+		wstringstream msg;
+		msg <<"pre/post/curr word does not exist in the dictionary (" <<baseWordID
+			<<", " <<toStackID <<", " <<resultStackedID <<" : " <<invalidID <<")";
+		mostRecentError = msg.str();
 		return false;
 	}
 
@@ -575,15 +559,12 @@ bool WordBuilder::addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resu
 			continue;
 
 
-		//Add a new map, if needed
-		/*if (shortcuts.count(toStackNexusID)==0) {
-			shortcuts[toStackNexusID] = new std::map<unsigned int, unsigned int>;
-		}*/
-
 		//A new entry should be added by using the [] syntax
 		if (shortcuts[toStackNexusID].count(baseWordID)>0) {
 			//Some word's already claimed this nexus.
-			swprintf(mostRecentError, L"Nexus & prefix already in use: %i %i", toStackNexusID, baseWordID);
+			wstringstream msg;
+			msg <<"Nexus & prefix already in use: " <<toStackNexusID <<" " <<baseWordID;
+			mostRecentError = msg.str();
 			return false;
 		}
 
@@ -629,7 +610,7 @@ bool WordBuilder::typeLetter(char letter)
 			//Start at "aung" if we haven't already typed "a"
 			char test[5];
 			strcpy(test, "aung");
-			if (pastNexusID==1 && jumpToNexus(pastNexus[pastNexusID-1], 'a')==currNexus) {
+			if (pastNexus.size()==1 && jumpToNexus(pastNexus[pastNexus.size()-1], 'a')==currNexus) {
 				strcpy(test, "ung");
 			}
 			size_t stLen = strlen(test);
@@ -649,7 +630,7 @@ bool WordBuilder::typeLetter(char letter)
 	}
 
 	//Save the path to this point and continue
-	pastNexus[pastNexusID++] = currNexus;
+	pastNexus.push_back(currNexus);
 	currNexus = nextNexus;
 
 	//Update the external state of the WordBuilder
@@ -688,13 +669,14 @@ int WordBuilder::getCurrSelectedID() {
 //Returns true if the window is still visible.
 bool WordBuilder::backspace()
 {
-	if (pastNexusID == 0)
+	if (pastNexus.empty())
 		return false;
 
-	currNexus = pastNexus[--pastNexusID];
+	currNexus = pastNexus[pastNexus.size()-1];
+	pastNexus.pop_back();
 	this->resolveWords();
 
-	if (pastNexusID == 0)
+	if (pastNexus.empty())
 		return false;
 	return true;
 }
@@ -748,12 +730,12 @@ void WordBuilder::reset(bool fullReset)
 {
 	//Partial reset
 	this->currNexus = 0;
-	this->pastNexusID = 0;
+	this->pastNexus.clear();
 	this->currSelectedID = -1;
 	this->possibleChars.clear();
 	this->possibleWords.clear();
-	wcscpy(parenStr, L"");
-	wcscpy(postStr, L"");
+	this->parenStr.clear();
+	this->postStr.clear();
 
 	//Full reset: remove all prefixes
 	if (fullReset)
@@ -792,8 +774,8 @@ int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID)
 void WordBuilder::resolveWords()
 {
 	//Init
-	wcscpy(parenStr, L"");
-	wcscpy(postStr, L"");
+	parenStr.clear();
+	postStr.clear();
 	int pStrOffset = 0;
 
 	//If there are no words possible, can we jump to a point that doesn't diverge?
@@ -811,7 +793,7 @@ void WordBuilder::resolveWords()
 	} else {
 		//Reset
 		speculativeNexusID = currNexus;
-		wcscpy(parenStr, L"");
+		parenStr.clear();
 	}
 
 	//What possible characters are available after this point?
@@ -860,8 +842,7 @@ void WordBuilder::resolveWords()
 	//Finally, check if this nexus and the previously-typed word lines up; if so, we have a "post" match
 	if (shortcuts.count(currNexus)>0 && trigramCount>0) {
 		if (shortcuts[currNexus].count(trigram[0])>0) {
-			postID = shortcuts[currNexus][trigram[0]];
-			wcscpy(postStr, getWordString(postID));
+			postStr = getWordString(shortcuts[currNexus][trigram[0]]);
 		}
 	}
 
@@ -915,16 +896,16 @@ void WordBuilder::insertTrigram(unsigned short* trigram_ids, int num_used_trigra
 }
 
 
-std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id)
+wstring WordBuilder::getWordKeyStrokes(unsigned int id)
 {
 	return this->getWordKeyStrokes(id, this->getOutputEncoding());
 }
 
 
-std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
+wstring WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
 {
 	//Determine our dictionary
-	vector< vector<unsigned short> > &myDict = dictionary;
+	vector<wstring> &myDict = dictionary;
 	int destFont = Zawgyi_One;
 	if (this->restrictToMyanmar) {
 		if (encoding==ENCODING_WININNWA) {
@@ -939,7 +920,7 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsi
 	//Does this word exist in the dictionary? If not, add it
 	if (encoding!=ENCODING_ZAWGYI && myDict[id].size() == 0) {
 		//First, convert
-		wchar_t* srcStr = this->getWordString(id);
+		const wchar_t* srcStr = this->getWordString(id).c_str();
 		wchar_t destStr[200];
 		wcscpy(destStr, L"");
 		convertFont(destStr, srcStr, Zawgyi_One, destFont);
@@ -967,13 +948,13 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsi
 		}
 
 		//Now, add a new entry
-		size_t stLen = wcslen(destStr);
-		vector<unsigned short> newEncoding;
-		for (size_t i=0; i<stLen; i++) {
-			newEncoding.push_back((unsigned short)destStr[i]);
+		//size_t stLen = wcslen(destStr);
+		//wstring newEncoding(destStr);
+		//for (size_t i=0; i<stLen; i++) {
+		//	newEncoding.push_back(destStr[i]);
 			//wprintf(L"   test: %x   %x  %x\n", newEncoding[i+1], destStr[i], srcStr[i]);
-		}
-		myDict[id] = newEncoding;
+		//}
+		myDict[id] = wstring(destStr);
 	}
 
 	//Return-by-value should copy the vector
@@ -984,13 +965,13 @@ std::vector<unsigned short> WordBuilder::getWordKeyStrokes(unsigned int id, unsi
 /**
  * Get the remaining letters to type to arrive at the guessed word (if any)
  */
-wchar_t* WordBuilder::getParenString()
+wstring WordBuilder::getParenString()
 {
 	return this->parenStr;
 }
 
 
-wchar_t* WordBuilder::getPostString()
+wstring WordBuilder::getPostString()
 {
 	return this->postStr;
 }
@@ -998,7 +979,7 @@ wchar_t* WordBuilder::getPostString()
 
 unsigned int WordBuilder::getPostID()
 {
-	return this->postID;
+	return this->getWordID(this->getPostString());
 }
 
 bool WordBuilder::hasPostStr()
@@ -1023,16 +1004,16 @@ bool WordBuilder::hasPostStr()
  *   lstrcpy(temp2, wb->getWordString(2));
  *   ...etc.
  */
-wchar_t* WordBuilder::getWordString(unsigned int id)
+wstring WordBuilder::getWordString(unsigned int id)
 {
-	wcscpy(currStr, L"");
+	this->currStr = this->dictionary[id];
 
 	//Try with for_each later?
 
-	for (size_t i=0; i<this->dictionary[id].size(); i++)  {
-		this->currStr[i] = this->dictionary[id][i];
-	}
-	this->currStr[this->dictionary[id].size()] = 0x0000; //Note: must be full-width 0000, lest the string not be properly terminated.
+	//for (size_t i=0; i<this->dictionary[id].size(); i++)  {
+	//	this->currStr[i] = this->dictionary[id][i];
+	//}
+	//this->currStr[this->dictionary[id].size()] = 0x0000; //Note: must be full-width 0000, lest the string not be properly terminated.
 
 	return this->currStr;
 }
@@ -1043,7 +1024,7 @@ wchar_t* WordBuilder::getWordString(unsigned int id)
 void WordBuilder::buildReverseLookup()
 {
 	//Allocate space
-	revLookup.assign(dictionary.size(), vector<char>());
+	revLookup.assign(dictionary.size(), string());
 
 	//Now, we have to jump down out nexus list one-by-one. 
 	// I'd like to avoid recursion with this one.
@@ -1103,20 +1084,12 @@ void WordBuilder::buildReverseLookup()
 		std::advance(currWord, prefix[prefixID][0]*2+1);
 		for (; currWord!=prefix[prefixID].end(); currWord++) {
 			if (*currWord>=0 && *currWord<dictionary.size()) {
-				revLookup[*currWord] = vector<char>();
+				revLookup[*currWord] = string();
 				for (size_t q=0; q<nexiStrings[i].size(); q++)
 					revLookup[*currWord].push_back(nexiStrings[i][q]);
 			}
 		}
 	}
-
-	//Just as a precaution, eliminate dangling nulls
-	/*char *empty = new char[1];
-	empty[0] = 0x00;
-	for (int i=0; i<dictMaxID; i++) {
-		if (revLookup[i] == NULL)
-			revLookup[i] = empty;
-	}*/
 
 	nexiStrings.clear();
 	revLookupOn = true;
@@ -1124,7 +1097,7 @@ void WordBuilder::buildReverseLookup()
 
 
 
-vector<char> WordBuilder::reverseLookupWord(unsigned int dictID)
+string WordBuilder::reverseLookupWord(unsigned int dictID)
 {
 	if (!revLookupOn)
 		buildReverseLookup();
@@ -1134,24 +1107,27 @@ vector<char> WordBuilder::reverseLookupWord(unsigned int dictID)
 
 
 
-wchar_t* WordBuilder::getLastError()
+wstring WordBuilder::getLastError()
 {
 	return mostRecentError;
 }
 
 
-bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman)
+bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman)
 {
   return this->addRomanization(myanmar, roman, false);
 }
 
 //returns dictionary.size()
-unsigned int WordBuilder::getWordID(wchar_t* wordStr)
+unsigned int WordBuilder::getWordID(const wstring &wordStr)
 {
-	size_t mmLen = wcslen(wordStr);
+	//size_t mmLen = wordStr.length();
 	for (size_t canID=0; canID<dictionary.size(); canID++) {
+		if (wordStr == dictionary[canID])
+			return canID;
+
 		//Easy check: different lengths
-		if (mmLen != dictionary[canID].size())
+		/*if (mmLen != dictionary[canID].size())
 			continue;
 
 		//Complex check: different letters
@@ -1165,45 +1141,45 @@ unsigned int WordBuilder::getWordID(wchar_t* wordStr)
 
 		//Does it match?
 		if (found)
-			return canID;
+			return canID;*/
 	}
 
 	//Not found
 	return dictionary.size();
 }
 
-bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDuplicates)
+bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, bool ignoreDuplicates)
 {
 	//First task: find the word; add it if necessary
 	int dictID = getWordID(myanmar);
-	size_t mmLen = wcslen(myanmar);
+	size_t mmLen = myanmar.length();
 	if (dictID==dictionary.size()) {
 		//Need to add... we DO have a limit, though.
 		if (dictionary.size() == std::numeric_limits<size_t>::max()) {
-			wcscpy(mostRecentError, L"Too many custom words!");
+			mostRecentError = L"Too many custom words!";
 			return false;
 		}
 
-		vector<unsigned short> newWord;
+		/*wstring newWord;
 		for (size_t i=0; i<mmLen; i++) {
 			newWord.push_back((unsigned short)myanmar[i]);
-		}
-		dictionary.push_back(newWord);
+		}*/
+		dictionary.push_back(myanmar);
 	}
 
 
 	//Update the reverse lookup?
 	if (revLookupOn) {
-		vector<char> newRoman;
+		/*vector<char> newRoman;
 		for (size_t q=0; q<strlen(roman); q++) 
-			newRoman.push_back(roman[q]);
-		revLookup.push_back(newRoman);
+			newRoman.push_back(roman[q]);*/
+		revLookup.push_back(roman);
 	}
 
 
 	//Next task: add the romanized mappings
 	size_t currNodeID = 0;
-	size_t romanLen = strlen(roman);
+	size_t romanLen = roman.length();
 	for (size_t rmID=0; rmID<romanLen; rmID++) {
 		//Does a path exist from our current node to the next step?
 		size_t nextNexusID;
@@ -1215,7 +1191,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDupl
 		if (nextNexusID==nexus[currNodeID].size()) {
 			//First step: make a blank nexus entry at the END of this list
 			if (nexus.size() == std::numeric_limits<size_t>::max()) {
-				wcscpy(mostRecentError, L"Too many custom nexi!");
+				mostRecentError = L"Too many custom nexi!";
 				return false;
 			}
 			nexus.push_back(vector<unsigned int>());
@@ -1238,7 +1214,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDupl
 	if (currPrefixID == nexus[currNodeID].size()) {
 		//We need to add a prefix entry
 		if (prefix.size() == std::numeric_limits<size_t>::max()) {
-			wcscpy(mostRecentError, L"Too many custom prefixes!");
+			mostRecentError = L"Too many custom prefixes!";
 			return false;
 		}
 		prefix.push_back(vector<unsigned int>(1, 0));
@@ -1256,7 +1232,7 @@ bool WordBuilder::addRomanization(wchar_t* myanmar, char* roman, bool ignoreDupl
 	for (; currWord!=prefix[currPrefixID].end(); currWord++) {
 		if (*currWord == dictID) {
 			if (!ignoreDuplicates) {
-			  wcscpy(mostRecentError, L"Word is already in dictionary!");
+				mostRecentError = L"Word is already in dictionary at ID: " + *currWord;
 			  return false;
 			} else {
 			  return true;

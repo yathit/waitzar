@@ -21,6 +21,8 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <iostream>
+#include <sstream>
 #include <map>
 #include <limits>
 #include "fontconv.h"
@@ -28,6 +30,8 @@
 //I prefer to only shorthand STL components I use a lot, 
 // rather than the whole namespace.
 using std::string;
+using std::wstringstream;
+using std::wstring;
 using std::vector;
 using std::pair;
 using std::map;
@@ -58,43 +62,43 @@ public:
 	WordBuilder(char * model_buff, size_t model_buff_size, bool allowAnyChar);
 	WordBuilder(const char* modelFile, const char* userWordsFile);
     WordBuilder(const char* modelFile, vector<string> userWordsFiles);
-	WordBuilder(const vector< vector<unsigned short> > &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix);
+	WordBuilder(const vector<wstring> &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix);
 	~WordBuilder(void);
 
 	//State-changing functions. Use these to respond to keypresses.
 	bool typeLetter(char letter);
-	std::pair<bool, unsigned int> typeSpace(int quickJumpID);
+	pair<bool, unsigned int> typeSpace(int quickJumpID);
 	bool backspace();
 	void reset(bool fullReset);
 	bool moveRight(int amt);
 
 	//Information on the model's state
 	int getCurrSelectedID();
-	std::vector<char> getPossibleChars(void);
-	std::vector<unsigned int> getPossibleWords(void);
+	vector<char> getPossibleChars();
+	vector<unsigned int> getPossibleWords();
 	void insertTrigram(unsigned short* trigram_ids, int num_used_trigrams);
 
 	//Get information about a particular unsigned short given its ID
-	vector<unsigned short> getWordKeyStrokes(unsigned int id);
-	vector<unsigned short> getWordKeyStrokes(unsigned int id, unsigned int encoding);
-	wchar_t* getWordString(unsigned int id);
-	wchar_t* getParenString();
-	wchar_t* getPostString();
+	wstring getWordKeyStrokes(unsigned int id);
+	wstring getWordKeyStrokes(unsigned int id, unsigned int encoding);
+	wstring getWordString(unsigned int id);
+	wstring getParenString();
+	wstring getPostString();
 	unsigned int getPostID();
 	bool hasPostStr();
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull);
 	unsigned int getTotalDefinedWords();
-	vector<char> reverseLookupWord(unsigned int dictID);
-	bool addShortcut(wchar_t* baseWord, wchar_t* toStack, wchar_t* resultStacked);
+	string reverseLookupWord(unsigned int dictID);
+	bool addShortcut(const wstring &baseWord, const wstring &toStack, const wstring &resultStacked);
 
 	//Re-order the model
-	bool addRomanization(wchar_t* myanmar, char* roman);
-	bool addRomanization(wchar_t* myanmar, char* roman, bool ignoreDuplicates);
+	bool addRomanization(const wstring &myanmar, const string &roman);
+	bool addRomanization(const wstring &myanmar, const string &roman, bool ignoreDuplicates);
 
 	//In case of error
-	wchar_t* getLastError();
+	wstring getLastError();
 
 	//Change the encoding
 	void setOutputEncoding(ENCODING encoding);
@@ -102,10 +106,10 @@ public:
 
 private:
 	//Essential static data
-	vector< vector<unsigned short> > dictionary;
+	vector<wstring> dictionary;
 	vector< vector<unsigned int> > nexus;
 	vector< vector<unsigned int> > prefix;
-	vector< vector<char> > revLookup;
+	vector<string> revLookup;
 	bool revLookupOn;
 
 	//We could use a multimap of pairs, but I think a map of maps works better.
@@ -116,8 +120,8 @@ private:
 	bool restrictToMyanmar;
 
 	//Cached lookups
-	vector< vector<unsigned short> > winInnwaDictionary;
-	vector< vector<unsigned short> > unicodeDictionary;
+	vector<wstring> winInnwaDictionary;
+	vector<wstring> unicodeDictionary;
 
 	//Cached
 	unsigned short punctHalfStopUni;
@@ -128,18 +132,9 @@ private:
 	//Encoding of output text only
 	ENCODING currEncoding;
 
-	//Also, for expansion
-	/*int dictMaxID;
-	int dictMaxSize;
-	int nexusMaxID;
-	int nexusMaxSize;
-	int prefixMaxID;
-	int prefixMaxSize;*/
-
 	//Tracking the current unsigned short
 	unsigned int currNexus;
-	unsigned int pastNexus[200];
-	int pastNexusID;
+	vector<unsigned int> pastNexus;
 
 	//Tracking previous unsigned shorts
 	unsigned int trigram[3];
@@ -151,32 +146,31 @@ private:
 	//Code for loading the model specifically from a variety of options, and the initialization code
 	void loadModel(char * model_buff, size_t model_buff_size, bool allowAnyChar);
     void loadModel(const char* modelFile, std::vector<std::string> userWordsFiles);
-    void loadModel(const vector< vector<unsigned short> > &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix);
+    void loadModel(const vector<wstring> &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix);
 	void initModel();
 
 	//Internal stuff
-	std::vector<char> possibleChars;
-	std::vector<unsigned int> possibleWords;
-	//std::vector<unsigned short> keystrokeVector;
-	wchar_t currStr[200];
+	vector<char> possibleChars;
+	vector<unsigned int> possibleWords;
+	wstring currStr;
 
 	//Extension: guessing the next bit
-	wchar_t parenStr[100];
-	wchar_t postStr[100];
-	unsigned int postID;
+	wstring parenStr;
+	wstring postStr;
+	//unsigned int postID; //Not sure...
 
 	//For error messages
-	wchar_t mostRecentError[200];
+	wstring mostRecentError;
 
 	//Internal functions
 	void resolveWords(void);
 	int jumpToNexus(int fromNexus, char jumpChar);
 	int jumpToPrefix(int fromPrefix, int jumpID);
-	bool vectorContains(std::vector<unsigned int> vec, unsigned int val);
+	bool vectorContains(vector<unsigned int> vec, unsigned int val);
 	void addPrefix(unsigned int latestPrefix);
 	void setCurrSelected(int id);
 	void buildReverseLookup();
-	unsigned int getWordID(wchar_t* wordStr);
+	unsigned int getWordID(const wstring &wordStr);
 
 };
 

@@ -628,7 +628,7 @@ PulpCoreImage* OnscreenKeyboard::makeButton(int width, int height, int bgARGB, i
 }
 
 
-void OnscreenKeyboard::addMemoryEntry(wchar_t* my, char* rom)
+void OnscreenKeyboard::addMemoryEntry(const wchar_t* my, const char* rom)
 {
 	//Does the list contain this word?
 	for (std::list<std::pair<wchar_t*,char*> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {

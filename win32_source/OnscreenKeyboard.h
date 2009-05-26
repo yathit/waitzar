@@ -129,7 +129,7 @@ public:
 
 	wchar_t* typeLetter(DWORD hotkeyCode);
 
-	void addMemoryEntry(wchar_t* my, char* rom);
+	void addMemoryEntry(const wchar_t* my, const char* rom);
 	size_t getMaxMemoryEntries();
 
 	int getWidth();

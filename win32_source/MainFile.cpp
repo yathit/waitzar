@@ -166,7 +166,7 @@ std::list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being 
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
 std::vector<wchar_t*> userDefinedWords; //Words the user types in. Stored with a negative +1 index
 std::vector<wchar_t*> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
-std::vector<unsigned short> userKeystrokeVector;
+wstring userKeystrokeVector;
 const char* systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890"; //Special "words" used in our keyboard, like "(" and "`"
 std::vector< std::pair <int, unsigned short>* > systemWordLookup;
 
@@ -465,16 +465,16 @@ bool testAllWordsByHand()
 	GetSystemTimeAsFileTime(&startTime);
 
 	//For each typable word
-	vector<char> revWord;
+	string revWord;
 	for (unsigned int wordID=0; ; wordID++) {
 		//Check
 		revWord=model->reverseLookupWord(wordID);
-		if (revWord.size()==0)
+		if (revWord.empty())
 			break;
 
 		//Type this
 		model->reset(false);
-		for (std::vector<char>::iterator rom = revWord.begin(); rom!=revWord.end(); rom++) {
+		for (string::iterator rom = revWord.begin(); rom!=revWord.end(); rom++) {
 			//Just check that our romanisation is stored properly.
 			if (!model->typeLetter(*rom))
 				return false;
@@ -1077,7 +1077,7 @@ void readUserWords() {
 
 			//Add this romanization
 			if (!model->addRomanization(name, value) && !ignoreMywordsWarnings) {
-				MessageBox(NULL, model->getLastError(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
+				MessageBox(NULL, model->getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
 			}
 			numCustomWords++;
 		}
@@ -1401,7 +1401,7 @@ BOOL loadModel() {
 		//In total, this uses 41KB of raw memory just for storing our skeleton, so
 		//  I estimate about 1MB of memory for actually storing the data.
 		//  That's a lot, but it's worth it so that people's custom mywords files don't crash randomly.
-		std::vector< std::vector<unsigned short> > dictionary;
+		std::vector<std::wstring> dictionary;
 		std::vector< std::vector<unsigned int> > nexus;
 		std::vector< std::vector<unsigned int> >  prefix;
 
@@ -1529,11 +1529,11 @@ BOOL loadModel() {
 					//Ok, process these strings and store them
 					if (!model->addShortcut(pre, curr, post)) {
 						if (!inError)
-							MessageBox(NULL, model->getLastError(), _T("Error"), MB_ICONERROR | MB_OK);
+							MessageBox(NULL, model->getLastError().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 						inError = true;
 
 						if (isLogging) {
-							for (size_t q=0; q<wcslen(model->getLastError()); q++)
+							for (size_t q=0; q<model->getLastError().size(); q++)
 								fprintf(logFile, "%c", model->getLastError()[q]);
 							fprintf(logFile, "\n  pre: ");
 							for (unsigned int x=0; x<wcslen(pre); x++)
@@ -1841,8 +1841,7 @@ void recalculate()
 		int countup = 0;
 		for (;printIT != sentence->end(); printIT++) {
 			//Append this string
-			wchar_t *strToDraw;
-			bool delLater = false;
+			wstring strToDraw;
 			PulpCoreFont* colorFont = mmFontSmallWhite;
 			if (*printIT>=0)
 				strToDraw = model->getWordString(*printIT);
@@ -1850,10 +1849,7 @@ void recalculate()
 				int numSystemWords = strlen(systemDefinedWords);
 				int id = -(*printIT)-1;
 				if (id<numSystemWords) {
-					strToDraw = new wchar_t[2];
-					delLater = true;
-					strToDraw[0] = systemDefinedWords[id];
-					strToDraw[1] = 0x0000;
+					strToDraw = systemDefinedWords[id];
 				} else
 					strToDraw = userDefinedWordsZg[id-numSystemWords];
 			}
@@ -1864,9 +1860,6 @@ void recalculate()
 			}
 			colorFont->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
 			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
-
-			if (delLater)
-				delete [] strToDraw;
 
 			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
 			if (counterCursorID == sentence->getCursorIndex())
@@ -1911,9 +1904,9 @@ void recalculate()
 		currStrDictID = -1;
 		for (unsigned int i=0; i<model->getTotalDefinedWords(); i++) {
 			//Does this word match?
-			wchar_t *currWord = model->getWordString(i);
-			if (wcscmp(currWord, extendedWordString)==0) {
-				wcscpy(currLetterSt, currWord);
+			wstring currWord = model->getWordString(i);
+			if (wcscmp(currWord.c_str(), extendedWordString)==0) {
+				wcscpy(currLetterSt, currWord.c_str());
 				currStrDictID = i;
 				break;
 			}
@@ -1937,7 +1930,7 @@ void recalculate()
 
 		//Any match at all?
 		if (currStrDictID!=-1) {
-			vector<char> romanWord = model->reverseLookupWord(currStrDictID);
+			string romanWord = model->reverseLookupWord(currStrDictID);
 
 			currLetterSt[0] = L'(';
 			for (size_t q=0; q<romanWord.size(); q++)
@@ -2005,9 +1998,9 @@ void recalculate()
 	}
 
 	if (!helpWindowIsVisible) {
-		TCHAR* parenStr = model->getParenString();
-		if (parenStr!=NULL && lstrlen(parenStr)>0) {
-			swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr);
+		wstring parenStr = model->getParenString();
+		if (!parenStr.empty()) {
+			swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr.c_str());
 		} else {
 			lstrcpy(extendedWordString, currStr);
 		}
@@ -2021,7 +2014,7 @@ void recalculate()
 
 
 
-std::vector<unsigned short> getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
+wstring getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
 {
 	//Get the string
 	wchar_t *typedStr;
@@ -2070,7 +2063,7 @@ void typeCurrentPhrase()
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
 	std::list<int>::iterator printIT = sentence->begin();
-	std::vector<WORD> keyStrokes;
+	wstring keyStrokes;
 	int number_of_key_events = 0;
 	for (;printIT!=sentence->end() || stopChar!=0;) {
 		//We may or may not have a half/full stop at the end.
@@ -2088,7 +2081,7 @@ void typeCurrentPhrase()
 		//Buffer each key-stroke
 		for (size_t i=0; i<keyStrokes.size(); i++) {
 			//Send keydown
-			keyInputPrototype.wScan = keyStrokes[i];
+			keyInputPrototype.wScan = (WORD)keyStrokes[i];
 			keyInputPrototype.dwFlags = KEYEVENTF_UNICODE;
 			inputItems[number_of_key_events++].ki = keyInputPrototype;
 
@@ -3301,12 +3294,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
 					} else {
 						//Add it to the memory list
-						vector<char> revWord = model->reverseLookupWord(currStrDictID);
-						char tempW[100];
-						for (size_t q=0; q<revWord.size(); q++)
-							tempW[q] = revWord[q];
-						tempW[revWord.size()] = 0x0000;
-						helpKeyboard->addMemoryEntry(currStrZg, tempW);
+						string revWord = model->reverseLookupWord(currStrDictID);
+						helpKeyboard->addMemoryEntry(currStrZg, revWord.c_str());
 					}
 
 					//Hide the help window
@@ -3371,13 +3360,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
 					} else {
 						//Add it to the memory list
-						vector<char> revWord = model->reverseLookupWord(currStrDictID);
-						char tempW[100];
-						for (size_t q=0; q<revWord.size(); q++)
-							tempW[q] = revWord[q];
-						tempW[revWord.size()] = 0x0000;
-
-						helpKeyboard->addMemoryEntry(currStrZg, tempW);
+						string revWord = model->reverseLookupWord(currStrDictID);
+						helpKeyboard->addMemoryEntry(currStrZg, revWord.c_str());
 					}
 
 					//Hide the help window
