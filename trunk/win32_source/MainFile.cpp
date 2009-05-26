@@ -465,15 +465,19 @@ bool testAllWordsByHand()
 	GetSystemTimeAsFileTime(&startTime);
 
 	//For each typable word
-	char* revWord;
-	for (unsigned int wordID=0; revWord=model->reverseLookupWord(wordID); wordID++) {
+	vector<char> revWord;
+	for (unsigned int wordID=0; ; wordID++) {
+		//Check
+		revWord=model->reverseLookupWord(wordID);
+		if (revWord.size()==0)
+			break;
+
 		//Type this
 		model->reset(false);
-		while (*revWord) {
+		for (std::vector<char>::iterator rom = revWord.begin(); rom!=revWord.end(); rom++) {
 			//Just check that our romanisation is stored properly.
-			if (!model->typeLetter(*revWord))
+			if (!model->typeLetter(*rom))
 				return false;
-			revWord++;
 		}
 
 		//Test "output" it
@@ -1094,7 +1098,7 @@ void readUserWords() {
 }
 
 
-void setEncoding(UINT encoding)
+void setEncoding(ENCODING encoding)
 {
 	if (encoding==ENCODING_WININNWA)
 		lstrcpy(currEncStr, _T("WI"));
@@ -1397,16 +1401,15 @@ BOOL loadModel() {
 		//In total, this uses 41KB of raw memory just for storing our skeleton, so
 		//  I estimate about 1MB of memory for actually storing the data.
 		//  That's a lot, but it's worth it so that people's custom mywords files don't crash randomly.
-		unsigned short **dictionary = new unsigned short*[maxDictionaryEntries];
-		unsigned int **nexus = new unsigned int*[maxNexusEntries];
-		unsigned int **prefix = new unsigned int*[maxPrefixEntries];
+		std::vector< std::vector<unsigned short> > dictionary;
+		std::vector< std::vector<unsigned int> > nexus;
+		std::vector< std::vector<unsigned int> >  prefix;
 
 		//Of all these, only nexus is assumed to have anything in it
-		nexus[0] = new unsigned int[1];
-		nexus[0][0] = 0;
+		nexus.push_back(std::vector<unsigned int>());
 
 		//This should totally work :P (yes, I tested it rigorously)
-		model = new WordBuilder(dictionary, 0, maxDictionaryEntries, nexus, 1, maxNexusEntries, prefix, 0, maxPrefixEntries);
+		model = new WordBuilder(dictionary, nexus, prefix);
 	} else {
 		{
 			//Load the resource as a byte array and get its size, etc.
@@ -1934,8 +1937,14 @@ void recalculate()
 
 		//Any match at all?
 		if (currStrDictID!=-1) {
-			char *romanWord = model->reverseLookupWord(currStrDictID);
-			swprintf(currLetterSt, L"(%S)", romanWord);
+			vector<char> romanWord = model->reverseLookupWord(currStrDictID);
+
+			currLetterSt[0] = L'(';
+			for (size_t q=0; q<romanWord.size(); q++)
+				currLetterSt[1+q] = romanWord[q];
+			currLetterSt[1+romanWord.size()] = L')';
+			currLetterSt[1+romanWord.size() + 1] = 0x0000;
+
 			mmFontGreen->drawString(mainUnderDC, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
 		}
 
@@ -3292,7 +3301,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
 					} else {
 						//Add it to the memory list
-						helpKeyboard->addMemoryEntry(currStrZg, model->reverseLookupWord(currStrDictID));
+						vector<char> revWord = model->reverseLookupWord(currStrDictID);
+						char tempW[100];
+						for (size_t q=0; q<revWord.size(); q++)
+							tempW[q] = revWord[q];
+						tempW[revWord.size()] = 0x0000;
+						helpKeyboard->addMemoryEntry(currStrZg, tempW);
 					}
 
 					//Hide the help window
@@ -3357,7 +3371,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
 					} else {
 						//Add it to the memory list
-						helpKeyboard->addMemoryEntry(currStrZg, model->reverseLookupWord(currStrDictID));
+						vector<char> revWord = model->reverseLookupWord(currStrDictID);
+						char tempW[100];
+						for (size_t q=0; q<revWord.size(); q++)
+							tempW[q] = revWord[q];
+						tempW[revWord.size()] = 0x0000;
+
+						helpKeyboard->addMemoryEntry(currStrZg, tempW);
 					}
 
 					//Hide the help window
@@ -4628,7 +4648,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//We might have a cached encoding level set...
 	if (cachedEncoding!=-1) {
-		model->setOutputEncoding(cachedEncoding);
+		model->setOutputEncoding(ENCODING(cachedEncoding));
 		cachedEncoding = -1;
 	}
 
