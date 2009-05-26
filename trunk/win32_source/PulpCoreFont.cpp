@@ -136,11 +136,11 @@ void PulpCoreFont::drawChar(HDC bufferDC, char letter, int xPos, int yPos)
 
 
 
-void PulpCoreFont::drawString(HDC bufferDC, TCHAR* str, int xPos, int yPos)
+void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yPos)
 {
 	//Don't loop through null or zero-lengthed strings
-	int numChars = lstrlen(str);
-	if (str==NULL || numChars==0 || directPixels==NULL)
+	int numChars = str.length();
+	if (str.empty() || numChars==0 || directPixels==NULL)
 		return;
 
 
@@ -260,13 +260,13 @@ int PulpCoreFont::getCharWidth(char letter)
 }
 
 
-int PulpCoreFont::getStringWidth(TCHAR* str)
+int PulpCoreFont::getStringWidth(const wstring &str)
 {
-	return getStringWidth(str, 0, lstrlen(str));
+	return getStringWidth(str, 0, str.length());
 }
 
 
-int PulpCoreFont::getStringWidth(TCHAR* str, int start, int end)
+int PulpCoreFont::getStringWidth(const wstring &str, int start, int end)
 {
         if (end <= start) {
             return 0;

@@ -22,7 +22,7 @@ namespace waitzar
 {
 
 
-void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
+void convertFont(wchar_t* dst, const wchar_t* src, int srcFont, int dstFont){
 	/* declare hash style buffers */
 	wchar_t srcValHash[CHAR_RANGE]={0};
 	/*wchar_t dstValHash[CHAR_RANGE]={0};*/
@@ -52,7 +52,7 @@ void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont){
 	//	dstExtHash[_f[dstFont].ext[i].key] = (0xff & dstValHash[_f[dstFont].ext[i].key]) + (i << 8);
 	//}
 	
-	wchar_t* srcTmp = src;
+	const wchar_t* srcTmp = src;
 	wchar_t* dstTmp = dst;
 	
 	/* Convert from source font to Global Font  

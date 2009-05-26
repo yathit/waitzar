@@ -2,6 +2,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
+#include <string>
+
+using std::string;
+using std::wstring;
 
 #ifdef TEST_FLAG
   #include <fontconv.h>
@@ -24,7 +28,7 @@ using namespace waitzar;
 
 
 //Function prototype:
-wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes);
+//wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes);
 
 //Useful global...
 wchar_t returnVal[500];
@@ -85,8 +89,8 @@ int main(int argc, const char* argv[])
 	model->typeLetter('e'); //Transition (k-->o-->t) --> 'e'
 	
 	//We have arrived at "kote", so we now just list all possible values.
-	std::vector<unsigned short> currWord;
-	wchar_t* printWord;
+	wstring currWord;
+	//wchar_t* printWord;
 	std::vector<unsigned int> possWords = model->getPossibleWords();
 	wprintf(L"\"kote\" can be one of the following %i words \n", possWords.size());
 	for (unsigned int i=0; i<possWords.size(); i++) {
@@ -95,9 +99,9 @@ int main(int argc, const char* argv[])
 		//  If you wish to actually print out the Myanmar text, you can use a converter function, like
 		//  we do here.
 		currWord = model->getWordKeyStrokes(possWords[i]);
-		printWord = makeStringFromKeystrokes(currWord);
+		//printWord = makeStringFromKeystrokes(currWord);
 		
-		wprintf(L"  %ls  (", printWord);
+		wprintf(L"  %ls  (", currWord.c_str());
 		for (unsigned int x=0; x<currWord.size(); x++) {
 			wprintf(L" %x", currWord[x]);
 		}
@@ -129,7 +133,7 @@ int main(int argc, const char* argv[])
 		}
 
 		//Have we typed enough?
-		if (wcslen(model->getParenString())>0 && !flagOn) {
+		if (model->getParenString().length()>0 && !flagOn) {
 			wprintf(L"%c", hello[i]);
 			flagOn = true;
 		}
@@ -160,7 +164,7 @@ int main(int argc, const char* argv[])
 	//Retrieve all three output encodings
 	wchar_t* sgpZawgyi = new wchar_t[100];
 	model->setOutputEncoding(ENCODING_ZAWGYI);
-	wcscpy(sgpZawgyi, makeStringFromKeystrokes(model->getWordKeyStrokes(wordID)));
+	wcscpy(sgpZawgyi, model->getWordKeyStrokes(wordID).c_str());
 	
 	//Compare all three output encodings:	
 	wprintf(L"\n\"singapore\" in three different output encodings:\n");
@@ -172,11 +176,11 @@ int main(int argc, const char* argv[])
 
 	wchar_t* sgpUnicode = new wchar_t[100];
 	model->setOutputEncoding(ENCODING_UNICODE);
-	wcscpy(sgpUnicode, makeStringFromKeystrokes(model->getWordKeyStrokes(wordID)));
+	wcscpy(sgpUnicode, model->getWordKeyStrokes(wordID).c_str());
 	
 	wchar_t* sgpWinInnwa = new wchar_t[100];
 	model->setOutputEncoding(ENCODING_WININNWA);
-	wcscpy(sgpWinInnwa, makeStringFromKeystrokes(model->getWordKeyStrokes(wordID)));
+	wcscpy(sgpWinInnwa, model->getWordKeyStrokes(wordID).c_str());
 	
 	wprintf(L"Unicode 5.1:");
 	for (unsigned int i=0; i<wcslen(sgpUnicode); i++) {
@@ -197,13 +201,14 @@ int main(int argc, const char* argv[])
 	FILE *logFile = NULL;
 	std::vector<unsigned int> knownErrors;
 	for (unsigned int x=0; x<2426; x++) {
-		wchar_t *origZawgyi = model->getWordString(x);
-		wchar_t *origUnicode = makeStringFromKeystrokes(model->getWordKeyStrokes(x, ENCODING_UNICODE));
+		wstring origZawgyi = model->getWordString(x);
+		wchar_t origUnicode[500];
+		wcscpy(origUnicode, model->getWordKeyStrokes(x, ENCODING_UNICODE).c_str());
 		waitzar::sortMyanmarString(origUnicode);
 		wchar_t *convertZawgyi = waitzar::renderAsZawgyi(origUnicode);
 
 		//Check error
-		if (wcscmp(convertZawgyi, origZawgyi)!=0) {
+		if (wcscmp(convertZawgyi, origZawgyi.c_str())!=0) {
 			//Print to file
 			if (errorFile==NULL) {
 				errorFile = fopen("wz_convert_errors.txt", "w, ccs=UTF-8");
@@ -215,27 +220,28 @@ int main(int argc, const char* argv[])
 					waitzar::setLogFile(logFile);
 			}
 
-			if (   wcscmp(origZawgyi, L"\u106B\u1088\u102D\u1038")==0 
-				|| wcscmp(origZawgyi, L"\u100A\u1088\u102D\u1038")==0
-				|| wcscmp(origZawgyi, L"\u101C\u103D\u1034")==0
-				|| wcscmp(origZawgyi, L"\u101B\u103D\u1034")==0
-				|| wcscmp(origZawgyi, L"\u1000\u1010\u1072\u102C")==0
-				|| wcscmp(origZawgyi, L"\u1019\u102F\u1034\u102D\u1038")==0
-				|| wcscmp(origZawgyi, L"\u107F\u1015\u1032\u1095")==0
-				|| wcscmp(origZawgyi, L"\u104E")==0
-				|| wcscmp(origZawgyi, L"\u101B\u103D\u1034\u1038")==0
-				|| wcscmp(origZawgyi, L"\u1019\u103D\u1034\u1038")==0
-				|| wcscmp(origZawgyi, L"\u1019\u1007\u102D\u1069")==0
-				|| wcscmp(origZawgyi, L"\u1006\u102E\u1019\u1037\u1039")==0
-				|| wcscmp(origZawgyi, L"\u1019\u1088\u1095")==0
-				|| wcscmp(origZawgyi, L"\u1031\u1015\u102B\u1037\u1015\u1039")==0
-				|| wcscmp(origZawgyi, L"\u101B\u103D\u1036")==0
+			if (
+				origZawgyi == L"\u106B\u1088\u102D\u1038"
+				|| origZawgyi == L"\u100A\u1088\u102D\u1038"
+				|| origZawgyi == L"\u101C\u103D\u1034"
+				|| origZawgyi == L"\u101B\u103D\u1034"
+				|| origZawgyi == L"\u1000\u1010\u1072\u102C"
+				|| origZawgyi == L"\u1019\u102F\u1034\u102D\u1038"
+				|| origZawgyi == L"\u107F\u1015\u1032\u1095"
+				|| origZawgyi == L"\u104E"
+				|| origZawgyi == L"\u101B\u103D\u1034\u1038"
+				|| origZawgyi == L"\u1019\u103D\u1034\u1038"
+				|| origZawgyi == L"\u1019\u1007\u102D\u1069"
+				|| origZawgyi == L"\u1006\u102E\u1019\u1037\u1039"
+				|| origZawgyi == L"\u1019\u1088\u1095"
+				|| origZawgyi == L"\u1031\u1015\u102B\u1037\u1015\u1039"
+				|| origZawgyi == L"\u101B\u103D\u1036"
 				) {
 				knownErrors.push_back(x);
 			} else {
 				fwprintf(errorFile, L"%ls -> %ls\n", origZawgyi, convertZawgyi);
 				fwprintf(errorFile, L"   ");
-				for (size_t i=0; i<wcslen(origZawgyi); i++)
+				for (size_t i=0; i<origZawgyi.size(); i++)
 					fwprintf(errorFile, L"U+%x ", origZawgyi[i]);
 				fwprintf(errorFile, L" -> ");
 				for (size_t i=0; i<wcslen(convertZawgyi); i++)
@@ -269,7 +275,7 @@ int main(int argc, const char* argv[])
 }
 
 
-wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
+/*wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
 {
 	for (unsigned int i=0; i<keystrokes.size(); i++) {
 		returnVal[i] = keystrokes[i];
@@ -277,4 +283,4 @@ wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
 	returnVal[keystrokes.size()] = 0x0000; //Note: we need to terminate with a FULL-width zero (not just '\0') to ensure that we actually end the string.
 	
 	return returnVal;
-}
+}*/

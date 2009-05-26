@@ -34,7 +34,7 @@ namespace waitzar
 	#define HIBYTE(a)           ((unsigned char)((((unsigned long)(a)) >> 8) & 0xff))
 #endif
 
-void convertFont(wchar_t* dst, wchar_t* src, int srcFont, int dstFont);
+void convertFont(wchar_t* dst, const wchar_t* src, int srcFont, int dstFont);
 
 } //End waitzar namespace
 	
