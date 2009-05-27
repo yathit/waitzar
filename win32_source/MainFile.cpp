@@ -296,7 +296,7 @@ enum test_type {
 	type_all,
 	model_print
 };
-test_type currTest = none;
+test_type currTest = mywords;
 
 
 

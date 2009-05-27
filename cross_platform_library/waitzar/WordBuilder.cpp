@@ -451,6 +451,11 @@ void WordBuilder::loadModel(const vector<wstring> &dictionary, const vector< vec
 	this->dictionary = dictionary;
 	this->nexus = nexus;
 	this->prefix = prefix;
+
+	//Reserve space, to avoid a slow startup
+	this->dictionary.reserve(2000);
+	this->nexus.reserve(4000);
+	this->prefix.reserve(3000);
 }
 
 
@@ -1077,7 +1082,10 @@ string WordBuilder::reverseLookupWord(unsigned int dictID)
 	if (!revLookupOn)
 		buildReverseLookup();
 
-	return revLookup.at(dictID);
+	if (dictID<0 || dictID>=revLookup.size())
+		return string();
+
+	return revLookup[dictID];
 }
 
 
@@ -1121,6 +1129,8 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 			return false;
 		}
 		dictionary.push_back(myanmar);
+		unicodeDictionary.push_back(wstring());
+		winInnwaDictionary.push_back(wstring());
 	}
 
 
