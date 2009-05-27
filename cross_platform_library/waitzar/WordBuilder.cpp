@@ -6,6 +6,17 @@
 
 #include "WordBuilder.h"
 
+
+//I prefer to only shorthand STL components I use a lot, 
+// rather than the whole namespace.
+using std::string;
+using std::wstringstream;
+using std::wstring;
+using std::vector;
+using std::pair;
+using std::map;
+
+
 namespace waitzar 
 {
 
@@ -468,8 +479,10 @@ void WordBuilder::initModel()
 	punctFullStopWinInnwa = 47;
 
 	//Initialize our dictionaries to null entries
-	winInnwaDictionary.assign(dictionary.size(), wstring());
-	unicodeDictionary.assign(dictionary.size(), wstring());
+	if (winInnwaDictionary.size() != dictionary.size())
+		winInnwaDictionary.assign(dictionary.size(), wstring());
+	if (unicodeDictionary.size() != dictionary.size())
+		unicodeDictionary.assign(dictionary.size(), wstring());
 
 	//Start off
 	this->reset(true);
@@ -477,7 +490,7 @@ void WordBuilder::initModel()
 
 
 
-ENCODING WordBuilder::getOutputEncoding()
+ENCODING WordBuilder::getOutputEncoding() const
 {
 	return this->currEncoding;
 }
@@ -488,7 +501,7 @@ void WordBuilder::setOutputEncoding(ENCODING encoding)
 }
 
 
-unsigned int WordBuilder::getTotalDefinedWords()
+unsigned int WordBuilder::getTotalDefinedWords() const
 {
 	return dictionary.size();
 }
@@ -566,7 +579,7 @@ bool WordBuilder::addShortcut(const wstring &baseWord, const wstring &toStack, c
 
 
 
-unsigned short WordBuilder::getStopCharacter(bool isFull)
+unsigned short WordBuilder::getStopCharacter(bool isFull) const
 {
 	if (isFull) {
 		if (currEncoding==ENCODING_WININNWA)
@@ -650,7 +663,7 @@ bool WordBuilder::moveRight(int amt) {
 }
 
 
-int WordBuilder::getCurrSelectedID() {
+int WordBuilder::getCurrSelectedID() const {
 	return currSelectedID;
 }
 
@@ -736,7 +749,7 @@ void WordBuilder::reset(bool fullReset)
  * Given a "fromNexus", find the link leading out on character "jumpChar" and take it.
  *   Returns -1 if no such nexus could be found.
  */
-int WordBuilder::jumpToNexus(int fromNexus, char jumpChar)
+int WordBuilder::jumpToNexus(int fromNexus, char jumpChar) const
 {
 	for (unsigned int i=0; i<this->nexus[fromNexus].size(); i++) {
 		if ( (this->nexus[fromNexus][i]&0xFF) == jumpChar )
@@ -746,7 +759,7 @@ int WordBuilder::jumpToNexus(int fromNexus, char jumpChar)
 }
 
 
-int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID)
+int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID) const
 {
 	for (unsigned int i=0; i<this->prefix[fromPrefix].size(); i++) {
 		if ( this->prefix[fromPrefix][i*2] == jumpID )
@@ -839,7 +852,7 @@ void WordBuilder::resolveWords()
 }
 
 
-bool WordBuilder::vectorContains(std::vector<unsigned int> vec, unsigned int val)
+bool WordBuilder::vectorContains(const vector<unsigned int> &vec, unsigned int val) const
 {
 	for (size_t i=0; i<vec.size(); i++) {
 		if (vec[i] == val)
@@ -861,12 +874,12 @@ void WordBuilder::addPrefix(unsigned int latestPrefix)
 }
 
 
-std::vector<char> WordBuilder::getPossibleChars(void)
+vector<char> WordBuilder::getPossibleChars() const
 {
 	return this->possibleChars;
 }
 
-std::vector<unsigned int> WordBuilder::getPossibleWords(void)
+vector<unsigned int> WordBuilder::getPossibleWords() const
 {
 	return this->possibleWords;
 }
@@ -954,24 +967,24 @@ wstring WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
 /**
  * Get the remaining letters to type to arrive at the guessed word (if any)
  */
-wstring WordBuilder::getParenString()
+wstring WordBuilder::getParenString() const
 {
 	return this->parenStr;
 }
 
 
-wstring WordBuilder::getPostString()
+wstring WordBuilder::getPostString() const
 {
 	return this->postStr;
 }
 
 
-unsigned int WordBuilder::getPostID()
+unsigned int WordBuilder::getPostID() const
 {
 	return this->getWordID(this->getPostString());
 }
 
-bool WordBuilder::hasPostStr()
+bool WordBuilder::hasPostStr() const
 {
 	return this->postStr[0] != 0x0000;
 }
@@ -993,9 +1006,9 @@ bool WordBuilder::hasPostStr()
  *   lstrcpy(temp2, wb->getWordString(2));
  *   ...etc.
  */
-wstring WordBuilder::getWordString(unsigned int id)
+wstring WordBuilder::getWordString(unsigned int id) const
 {
-	this->currStr = this->dictionary[id];
+	//this->currStr = this->dictionary[id];
 
 	//Try with for_each later?
 
@@ -1004,7 +1017,8 @@ wstring WordBuilder::getWordString(unsigned int id)
 	//}
 	//this->currStr[this->dictionary[id].size()] = 0x0000; //Note: must be full-width 0000, lest the string not be properly terminated.
 
-	return this->currStr;
+	//return this->currStr;
+	return this->dictionary[id];
 }
 
 
@@ -1096,7 +1110,7 @@ string WordBuilder::reverseLookupWord(unsigned int dictID)
 
 
 
-wstring WordBuilder::getLastError()
+wstring WordBuilder::getLastError() const
 {
 	return mostRecentError;
 }
@@ -1108,7 +1122,7 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman)
 }
 
 //returns dictionary.size()
-unsigned int WordBuilder::getWordID(const wstring &wordStr)
+unsigned int WordBuilder::getWordID(const wstring &wordStr) const
 {
 	//size_t mmLen = wordStr.length();
 	for (size_t canID=0; canID<dictionary.size(); canID++) {

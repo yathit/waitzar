@@ -27,15 +27,6 @@
 #include <limits>
 #include "fontconv.h"
 
-//I prefer to only shorthand STL components I use a lot, 
-// rather than the whole namespace.
-using std::string;
-using std::wstringstream;
-using std::wstring;
-using std::vector;
-using std::pair;
-using std::map;
-
 
 
 namespace waitzar
@@ -61,67 +52,67 @@ class WordBuilder
 public:
 	WordBuilder(char * model_buff, size_t model_buff_size, bool allowAnyChar);
 	WordBuilder(const char* modelFile, const char* userWordsFile);
-    WordBuilder(const char* modelFile, vector<string> userWordsFiles);
-	WordBuilder(const vector<wstring> &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix);
+	WordBuilder(const char* modelFile, std::vector<std::string> userWordsFiles);
+	WordBuilder(const std::vector<std::wstring> &dictionary, const std::vector< std::vector<unsigned int> > &nexus, const std::vector< std::vector<unsigned int> > &prefix);
 	~WordBuilder(void);
 
 	//State-changing functions. Use these to respond to keypresses.
 	bool typeLetter(char letter);
-	pair<bool, unsigned int> typeSpace(int quickJumpID);
+	std::pair<bool, unsigned int> typeSpace(int quickJumpID);
 	bool backspace();
 	void reset(bool fullReset);
 	bool moveRight(int amt);
 
 	//Information on the model's state
-	int getCurrSelectedID();
-	vector<char> getPossibleChars();
-	vector<unsigned int> getPossibleWords();
+	int getCurrSelectedID() const;
+	std::vector<char> getPossibleChars() const;
+	std::vector<unsigned int> getPossibleWords() const;
 	void insertTrigram(unsigned short* trigram_ids, int num_used_trigrams);
 
 	//Get information about a particular unsigned short given its ID
-	wstring getWordKeyStrokes(unsigned int id);
-	wstring getWordKeyStrokes(unsigned int id, unsigned int encoding);
-	wstring getWordString(unsigned int id);
-	wstring getParenString();
-	wstring getPostString();
-	unsigned int getPostID();
-	bool hasPostStr();
+	std::wstring getWordKeyStrokes(unsigned int id);
+	std::wstring getWordKeyStrokes(unsigned int id, unsigned int encoding);
+	std::wstring getWordString(unsigned int id) const;
+	std::wstring getParenString() const;
+	std::wstring getPostString() const;
+	unsigned int getPostID() const;
+	bool hasPostStr() const;
 
 	//Some additional useful info
-	unsigned short getStopCharacter(bool isFull);
-	unsigned int getTotalDefinedWords();
-	string reverseLookupWord(unsigned int dictID);
-	bool addShortcut(const wstring &baseWord, const wstring &toStack, const wstring &resultStacked);
+	unsigned short getStopCharacter(bool isFull) const;
+	unsigned int getTotalDefinedWords() const;
+	std::string reverseLookupWord(unsigned int dictID);
+	bool addShortcut(const std::wstring &baseWord, const std::wstring &toStack, const std::wstring &resultStacked);
 
 	//Re-order the model
-	bool addRomanization(const wstring &myanmar, const string &roman);
-	bool addRomanization(const wstring &myanmar, const string &roman, bool ignoreDuplicates);
+	bool addRomanization(const std::wstring &myanmar, const std::string &roman);
+	bool addRomanization(const std::wstring &myanmar, const std::string &roman, bool ignoreDuplicates);
 
 	//In case of error
-	wstring getLastError();
+	std::wstring getLastError() const;
 
 	//Change the encoding
 	void setOutputEncoding(ENCODING encoding);
-	ENCODING getOutputEncoding();
+	ENCODING getOutputEncoding() const;
 
 private:
 	//Essential static data
-	vector<wstring> dictionary;
-	vector< vector<unsigned int> > nexus;
-	vector< vector<unsigned int> > prefix;
-	vector<string> revLookup;
+	std::vector<std::wstring> dictionary;
+	std::vector< std::vector<unsigned int> > nexus;
+	std::vector< std::vector<unsigned int> > prefix;
+	std::vector<std::string> revLookup;
 	bool revLookupOn;
 
 	//We could use a multimap of pairs, but I think a map of maps works better.
 	// This is arranged as: nexus -> pre_word_id -> combined_word_id
-	map<unsigned int, map<unsigned int, unsigned int> > shortcuts;
+	std::map<unsigned int, std::map<unsigned int, unsigned int> > shortcuts;
 
 	//If true, filter words
 	bool restrictToMyanmar;
 
 	//Cached lookups
-	vector<wstring> winInnwaDictionary;
-	vector<wstring> unicodeDictionary;
+	std::vector<std::wstring> winInnwaDictionary;
+	std::vector<std::wstring> unicodeDictionary;
 
 	//Cached
 	unsigned short punctHalfStopUni;
@@ -134,7 +125,7 @@ private:
 
 	//Tracking the current unsigned short
 	unsigned int currNexus;
-	vector<unsigned int> pastNexus;
+	std::vector<unsigned int> pastNexus;
 
 	//Tracking previous unsigned shorts
 	unsigned int trigram[3];
@@ -146,31 +137,31 @@ private:
 	//Code for loading the model specifically from a variety of options, and the initialization code
 	void loadModel(char * model_buff, size_t model_buff_size, bool allowAnyChar);
     void loadModel(const char* modelFile, std::vector<std::string> userWordsFiles);
-    void loadModel(const vector<wstring> &dictionary, const vector< vector<unsigned int> > &nexus, const vector< vector<unsigned int> > &prefix);
+    void loadModel(const std::vector<std::wstring> &dictionary, const std::vector< std::vector<unsigned int> > &nexus, const std::vector< std::vector<unsigned int> > &prefix);
 	void initModel();
 
 	//Internal stuff
-	vector<char> possibleChars;
-	vector<unsigned int> possibleWords;
-	wstring currStr;
+	std::vector<char> possibleChars;
+	std::vector<unsigned int> possibleWords;
+	//std::wstring currStr;
 
 	//Extension: guessing the next bit
-	wstring parenStr;
-	wstring postStr;
+	std::wstring parenStr;
+	std::wstring postStr;
 	//unsigned int postID; //Not sure...
 
 	//For error messages
-	wstring mostRecentError;
+	std::wstring mostRecentError;
 
 	//Internal functions
 	void resolveWords(void);
-	int jumpToNexus(int fromNexus, char jumpChar);
-	int jumpToPrefix(int fromPrefix, int jumpID);
-	bool vectorContains(vector<unsigned int> vec, unsigned int val);
+	int jumpToNexus(int fromNexus, char jumpChar) const;
+	int jumpToPrefix(int fromPrefix, int jumpID) const;
+	bool vectorContains(const std::vector<unsigned int> &vec, unsigned int val) const;
 	void addPrefix(unsigned int latestPrefix);
 	void setCurrSelected(int id);
 	void buildReverseLookup();
-	unsigned int getWordID(const wstring &wordStr);
+	unsigned int getWordID(const std::wstring &wordStr) const;
 
 };
 
