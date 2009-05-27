@@ -177,11 +177,9 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 	//Step three: Read each line
 	size_t currLineStart = 0;
-	unsigned short count;
 	unsigned short lastCommentedNumber;
 	unsigned short mode = 0;
 	char currLetter[] = "1000";
-	int numberCheck = 0; //Special...
 
 	//For global usage; should be faster
 	wstring newWord;
@@ -191,9 +189,10 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 
 	while (currLineStart < model_buff_size) {
-		//Step 3-A: left-trim spaces
-		while (model_buff[currLineStart] == ' ')
+		//Step 3-A: left-trim whitespace
+		while (model_buff[currLineStart]==' ' || model_buff[currLineStart]=='\t')
 			currLineStart++;
+		if (currLineStart >= model_buff_size) break; //NOTE: Re-write the loop later to fix this
 
 		//Step 3-B: Deal with coments and empty lines
 		if (model_buff[currLineStart] == '\n') {
@@ -202,7 +201,6 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 			continue;
 		} else if (model_buff[currLineStart] == '#') {
 			//Step 3-B-ii: Handle comments (find the number which is commented out)
-			count = 0;
 			mode++;
 			lastCommentedNumber = 0;
 			for (;;) {
@@ -216,21 +214,16 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 			}
 
 			//Step 3-B-iii: use this number to initialize our data structures
+			//Avoid un-necessary resizing by reserving space in our vector.
 			switch (mode) {
 				case 1: //Words
-					//Avoid un-necessary resizing by reserving space in our vector.
 					dictionary.reserve(lastCommentedNumber);
-
 					break;
 				case 2: //Nexi
-					//Avoid un-necessary resizing by reserving space in our vector.
 					nexus.reserve(lastCommentedNumber);
-
 					break;
 				case 3: //Prefixes
-					//Avoid un-necessary resizing by reserving space in our vector.
 					prefix.reserve(lastCommentedNumber);
-
 					break;
 			}
 			continue;
@@ -247,8 +240,6 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 				//Keep reading until the terminating bracket.
 				//  Each "word" is of the form DD(-DD)*,
-				//newWordSz = 0;
-				//wstring newWord;
 				newWord.clear();
 				for(;;) {
 					//Read a "pair"
@@ -262,13 +253,15 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
 					if (nextChar == ',' || nextChar == ']') {
-						//Double check
-						if (numberCheck<10) {
-							if (newWord.length()!=1 || newWord[0]!=0x1040+numberCheck) {
-								printf("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i", newWord[0], newWord.length());
+						//Double check our digits
+						if (dictionary.size() < 10) {
+							if (newWord.length()!=1 || newWord[0] != 0x1040+dictionary.size()) {
+								wstringstream msg;
+								msg << "Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons"
+									<< " of parsimony.\nFound: [" <<(int)newWord[0]  <<"] at " <<newWord.length();
+								mostRecentError = msg.str();
 								return;
 							}
-							numberCheck++;
 						}
 
 						//Add this word to the dictionary (copy semantics)
@@ -280,6 +273,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 							break;
 					}
 				}
+
 				break;
 			}
 			case 2: //Mappings (nexi)
@@ -1101,6 +1095,11 @@ string WordBuilder::reverseLookupWord(unsigned int dictID)
 wstring WordBuilder::getLastError() const
 {
 	return mostRecentError;
+}
+
+bool WordBuilder::isInError() const
+{
+	return !mostRecentError.empty();
 }
 
 
