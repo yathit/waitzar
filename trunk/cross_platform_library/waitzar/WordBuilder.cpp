@@ -398,23 +398,25 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 
 /**
- * Construction of a word builder requires three things. All of these are 2-D jagged arrays;
- *   the first entry in each row is the size of that row. Prefixes have two size entries.
- * NOTE: Please see the alternative constructor for a (usually preferred) helper to load from files.
- * @param dictionary is an array of character sequences. For example,
- *     {"ka", "ko", "sa"} becomes {{1,0x1000}, {3,0x1000,0x102D,0x102F}, {2,0x1005,0x1032}}
- * @param nexus is an array of links. The first entry, of course, is the count. After that,
- *     there are a series of integers, of the form 0xXXYY, where XX is the nexus to jump to
- *     if character YY is pressed. The whole structure is very much a flattened tree.
- *     Finally, if the character YY is "~", then the integer XX is actually an index into
- *     the "prefix" array.
- * @param prefix is an array of links, similar to nexus. However, it is much simpler. The first
- *     entry in each row is the the "pair count". The second entry is the "match count". The
- *     "pair count" determines the number of pairs of entries that follow. The first item in each
- *     pair is the "key", and is an id into the dictionary list. If that "key" is a prefix word
- *     of the current word, then the "value" is an index into the prefix array to jump to.
- *     Following these pairs are a number of "matches", which are indices into the dictionary
- *     array; each match is a potential word.
+ * Construction of a word builder requires three things:
+ *   (NOTE: Please see the alternative constructor for a (usually preferred) helper to load from files.)
+ * @param dictionary is a vector of wide character strings. For example:
+ *     {"ka", "ko", "sa"} becomes {L"\u1000", L"\u1000\u102D\u102F", L"\u1005\u1032"}
+ * @param nexus is a vector of links. Each integer following is stored as:
+ *     0xYY...YYZZ (the number of Ys depends on the width of an integer on the current platform)
+ *     Z is the index of the nexus to jump to if character Y is present, EXCEPT when Y is '~', in which case
+ *     Z represents the index of the prefix to jump to for word resolution.
+ * @param prefix is a vector of links, similar to nexus, followed by a vector of resolutions. The first entry
+ *     in this vector is the number of link PAIRS in the first half of the array. So, if we have:
+ *     prefix = [5, ..., ], prefix.size()==23
+ *     ...then we know that 5 pairs (10 values) follow the "5", and that the remaining 23-1-10==12 values
+ *     are resolutions.
+ *     The first item in each pair is the "key", and is an id into the dictionary list. If that "key" is a 
+ *     prefix word of the current word, then the "value" is an index into the prefix array to jump to.
+ *     Each resolution following the pairs is an index into the dictionary array; each match is a potential word.
+ *     The "lowest" prefix entry (the one referred to by '~' in the nexus list) MUST contain all possilbe matches;
+ *     any subsequent prefix entries should merely present the reordered sequences and let the lowest entry provide
+ *     "all the rest". See the resolveWords() function for an example of this in action.
  * NOTE: Hash tables make more sense for these data structures, but in my experience (and in a
  *       few profile runs) tiny hash tables offer virtually no performance improvement at a
  *       substantial increase in the memory footprint. So, deal with the C-style arrays.
@@ -460,11 +462,6 @@ void WordBuilder::initModel()
 {
 	//Start with our reverse lookup off by default
 	revLookupOn = false;
-
-	//Initialize our strings
-	//wcscpy(parenStr, L"");
-	//wcscpy(postStr, L"");
-	//wcscpy(mostRecentError, L"");
 
 	//Set the default encoding
 	this->currEncoding = ENCODING_UNICODE;
@@ -758,9 +755,10 @@ int WordBuilder::jumpToNexus(int fromNexus, char jumpChar) const
 
 int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID) const
 {
-	for (unsigned int i=0; i<this->prefix[fromPrefix].size(); i++) {
-		if ( this->prefix[fromPrefix][i*2] == jumpID )
-			return this->prefix[fromPrefix][i*2+1];
+	size_t numPrefixPairs = this->prefix[fromPrefix][0];
+	for (size_t i=0; i<numPrefixPairs; i++) {
+		if ( this->prefix[fromPrefix][i*2+1] == jumpID )
+			return this->prefix[fromPrefix][i*2+2];
 	}
 	return -1;
 }
@@ -775,20 +773,19 @@ void WordBuilder::resolveWords()
 	//Init
 	parenStr.clear();
 	postStr.clear();
-	int pStrOffset = 0;
+	//int pStrOffset = 0;
 
 	//If there are no words possible, can we jump to a point that doesn't diverge?
 	int speculativeNexusID = currNexus;
-	while (nexus[speculativeNexusID].size()==1 && ((nexus[speculativeNexusID][0])&0xFF)!='~') {
+	while ((nexus[speculativeNexusID].size()==1) && ((nexus[speculativeNexusID][0]&0xFF)!='~')) {
 		//Append this to our string
-		parenStr[pStrOffset++] = (nexus[speculativeNexusID][0]&0xFF);
+		parenStr += (wchar_t)(nexus[speculativeNexusID][0]&0xFF);
 
 		//Move on this
 		speculativeNexusID = ((nexus[speculativeNexusID][0])>>8);
 	}
 	if (nexus[speculativeNexusID].size()==1 && (nexus[speculativeNexusID][0]&0xFF)=='~') {
-		//Finalize our string
-		parenStr[pStrOffset] = 0x0000;
+		//ok
 	} else {
 		//Reset
 		speculativeNexusID = currNexus;
@@ -797,7 +794,7 @@ void WordBuilder::resolveWords()
 
 	//What possible characters are available after this point?
 	int lowestPrefix = -1;
-	this->possibleChars.clear();
+	possibleChars.clear();
 	for (unsigned int i=0; i<this->nexus[speculativeNexusID].size(); i++) {
 		char currChar = (this->nexus[speculativeNexusID][i]&0xFF);
 		if (currChar == '~')
@@ -809,7 +806,7 @@ void WordBuilder::resolveWords()
 	//What words are possible given this point?
 	possibleWords.clear();
 	this->currSelectedID = -1;
-	this->postStr[0] = 0x0000;
+	this->postStr.clear();
 	if (lowestPrefix == -1)
 		return;
 
