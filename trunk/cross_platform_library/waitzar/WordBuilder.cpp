@@ -1295,6 +1295,17 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 	return destIndex;
 }
 
+
+//Print our model, to check if it's the same as the one we input
+void WordBuilder::debugOut(FILE *out)
+{
+	fprintf(out, "#DEFINE:%i", this->dictionary.size());
+
+
+}
+
+
+
 } //End waitzar namespace
 
 
