@@ -293,9 +293,10 @@ enum test_type {
 	none,
 	start_up,
 	mywords,
-	type_all
+	type_all,
+	model_print
 };
-test_type currTest = none;
+test_type currTest = model_print;
 
 
 
@@ -1031,72 +1032,74 @@ BOOL waitzarAlreadyStarted()
 
 void readUserWords() {
 	//Read our words file, if it exists.
-	numCustomWords = -1;
-	FILE* userFile = fopen(mywordsFileName, "r");
-	if (userFile != NULL) {
-		//Get file size
-		fseek (userFile, 0, SEEK_END);
-		long fileSize = ftell(userFile);
-		rewind(userFile);
+	if (currTest != model_print) {
+		numCustomWords = -1;
+		FILE* userFile = fopen(mywordsFileName, "r");
+		if (userFile != NULL) {
+			//Get file size
+			fseek (userFile, 0, SEEK_END);
+			long fileSize = ftell(userFile);
+			rewind(userFile);
 
-		//Read it all into an array, close the file.
-		char * buffer = (char*) malloc(sizeof(char)*fileSize);
-		size_t buff_size = fread(buffer, 1, fileSize, userFile);
-		fclose(userFile);
+			//Read it all into an array, close the file.
+			char * buffer = (char*) malloc(sizeof(char)*fileSize);
+			size_t buff_size = fread(buffer, 1, fileSize, userFile);
+			fclose(userFile);
 
-		numCustomWords = 0;
-		if (buff_size==0) {
-			return; //Empty file.
-		}
-
-		//Finally, convert this array to unicode
-		TCHAR * uniBuffer;
-		size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
-		uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
-		if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars)) {
-			MessageBox(NULL, _T("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
-			return;
-		}
-		delete [] buffer;
-
-		//Skip the BOM, if it exists
-		size_t currPosition = 0;
-		if (uniBuffer[currPosition] == UNICOD_BOM)
-			currPosition++;
-		else if (uniBuffer[currPosition] == BACKWARDS_BOM) {
-			MessageBox(NULL, _T("mywords.txt appears to be backwards. You should fix the Unicode encoding using Notepad or another Windows-based text utility.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
-			return;
-		}
-
-		//Read each line
-		TCHAR* name = new TCHAR[100];
-		char* value = new char[100];
-		while (currPosition<numUniChars) {
-			//Get the name/value pair using our nifty template function....
-			readLine(uniBuffer, currPosition, numUniChars, true, true, false, (allowNonBurmeseLetters==TRUE), true, false, false, false, name, value);
-
-			//Make sure both name and value are non-empty
-			if (strlen(value)==0 || lstrlen(name)==0)
-				continue;
-
-			//Add this romanization
-			if (!model->addRomanization(name, value) && !ignoreMywordsWarnings) {
-				MessageBox(NULL, model->getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
+			numCustomWords = 0;
+			if (buff_size==0) {
+				return; //Empty file.
 			}
-			numCustomWords++;
-		}
-		delete [] uniBuffer;
-		delete [] name;
-		delete [] value;
+
+			//Finally, convert this array to unicode
+			TCHAR * uniBuffer;
+			size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
+			uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
+			if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars)) {
+				MessageBox(NULL, _T("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
+				return;
+			}
+			delete [] buffer;
+
+			//Skip the BOM, if it exists
+			size_t currPosition = 0;
+			if (uniBuffer[currPosition] == UNICOD_BOM)
+				currPosition++;
+			else if (uniBuffer[currPosition] == BACKWARDS_BOM) {
+				MessageBox(NULL, _T("mywords.txt appears to be backwards. You should fix the Unicode encoding using Notepad or another Windows-based text utility.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
+				return;
+			}
+
+			//Read each line
+			TCHAR* name = new TCHAR[100];
+			char* value = new char[100];
+			while (currPosition<numUniChars) {
+				//Get the name/value pair using our nifty template function....
+				readLine(uniBuffer, currPosition, numUniChars, true, true, false, (allowNonBurmeseLetters==TRUE), true, false, false, false, name, value);
+
+				//Make sure both name and value are non-empty
+				if (strlen(value)==0 || lstrlen(name)==0)
+					continue;
+
+				//Add this romanization
+				if (!model->addRomanization(name, value) && !ignoreMywordsWarnings) {
+					MessageBox(NULL, model->getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
+				}
+				numCustomWords++;
+			}
+			delete [] uniBuffer;
+			delete [] name;
+			delete [] value;
 
 
-		if (numCustomWords>0 && customDictWarning==TRUE)
-			MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n(You may disable this warning by setting mywordswarning = no in config.txt).\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
+			if (numCustomWords>0 && customDictWarning==TRUE)
+				MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n(You may disable this warning by setting mywordswarning = no in config.txt).\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
 
-	} else {
-		//Special case if testing
-		if (currTest == mywords) {
-			MessageBox(NULL, _T("Error! Custom mywords file does not exist!"), _T("Test-Related Error"), MB_ICONWARNING | MB_OK);
+		} else {
+			//Special case if testing
+			if (currTest == mywords) {
+				MessageBox(NULL, _T("Error! Custom mywords file does not exist!"), _T("Test-Related Error"), MB_ICONWARNING | MB_OK);
+			}
 		}
 	}
 }
@@ -1440,7 +1443,7 @@ BOOL loadModel() {
 
 
 		//We also need to load our easy pat-sint combinations
-		{
+		if (currTest != model_print) {
 			//Load the resource as a byte array and get its size, etc.
 			res = FindResource(hInst, MAKEINTRESOURCE(WZ_EASYPS), _T("Model"));
 			if (!res) {
@@ -4664,25 +4667,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//Did we get any?
-	TCHAR noConfigWarningMsg[1500];
-	lstrcpy(noConfigWarningMsg, _T(""));
-	if (numConfigOptions==0) {
-		lstrcpy(noConfigWarningMsg, _T("config.txt contained no valid configuration options."));
+	if (currTest != model_print) {
+		TCHAR noConfigWarningMsg[1500];
+		lstrcpy(noConfigWarningMsg, _T(""));
+		if (numConfigOptions==0) {
+			lstrcpy(noConfigWarningMsg, _T("config.txt contained no valid configuration options."));
+		}
+		if (numCustomWords==0) {
+			if (lstrlen(noConfigWarningMsg)==0)
+				lstrcpy(noConfigWarningMsg, _T("mywords.txt contained no Burmese words."));
+			else
+				lstrcat(noConfigWarningMsg, _T(" Also, mywords.txt contained no Burmese words."));
+		}
+		if (lstrlen(noConfigWarningMsg)>0) {
+			lstrcat(noConfigWarningMsg, _T("\nThis could be caused by a number of things:\n   + config.txt should be ASCII-encoded. mywords.txt should be UTF-8-encoded. Possibly you used another encoding?"));
+			lstrcat(noConfigWarningMsg, _T("\n   + Perhaps you mis-spelled a configuration option. Check the Wait Zar manual to make sure you spelled each configuration option correctly.\n   + Maybe you commented out a line by mistake? The \"#\" key means to ignore a line."));
+			lstrcat(noConfigWarningMsg, _T("\n   + Maybe your line-endings are wrong? Wait Zar can handle \\n OR \\r\\l (Windows or Linux) but that's all..."));
+			lstrcat(noConfigWarningMsg, _T("\n\nIf you think this was caused by a bug in Wait Zar, please post an issue at http://code.google.com/p/waitzar/issues/list\n\nThis is just a warning --Wait Zar will still work fine without any config.txt or mywords.txt files."));
+			MessageBox(NULL, noConfigWarningMsg, _T("Warning"), MB_ICONWARNING | MB_OK);
+		}
 	}
-	if (numCustomWords==0) {
-		if (lstrlen(noConfigWarningMsg)==0)
-			lstrcpy(noConfigWarningMsg, _T("mywords.txt contained no Burmese words."));
-		else
-			lstrcat(noConfigWarningMsg, _T(" Also, mywords.txt contained no Burmese words."));
-	}
-	if (lstrlen(noConfigWarningMsg)>0) {
-		lstrcat(noConfigWarningMsg, _T("\nThis could be caused by a number of things:\n   + config.txt should be ASCII-encoded. mywords.txt should be UTF-8-encoded. Possibly you used another encoding?"));
-		lstrcat(noConfigWarningMsg, _T("\n   + Perhaps you mis-spelled a configuration option. Check the Wait Zar manual to make sure you spelled each configuration option correctly.\n   + Maybe you commented out a line by mistake? The \"#\" key means to ignore a line."));
-		lstrcat(noConfigWarningMsg, _T("\n   + Maybe your line-endings are wrong? Wait Zar can handle \\n OR \\r\\l (Windows or Linux) but that's all..."));
-		lstrcat(noConfigWarningMsg, _T("\n\nIf you think this was caused by a bug in Wait Zar, please post an issue at http://code.google.com/p/waitzar/issues/list\n\nThis is just a warning --Wait Zar will still work fine without any config.txt or mywords.txt files."));
-		MessageBox(NULL, noConfigWarningMsg, _T("Warning"), MB_ICONWARNING | MB_OK);
-	}
-
 
 	//Create (but don't start) our thread tracker
 	if (highlightKeys) {
@@ -4704,32 +4708,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 
-	//TEMP_debug:
-	/*if (isLogging) {
-		model->setOutputEncoding(ENCODING_UNICODE);
-		wchar_t* testStr = new wchar_t[100];
-		wchar_t* testStrSort = new wchar_t[100];
-		for (UINT i=0; i<500; i++) {
-			std::vector<unsigned short> type = model->getWordKeyStrokes(i);
-			for (size_t i=0; i<type.size(); i++) {
-				testStr[i] = type[i];
-				testStrSort[i] = type[i];
-			}
-			testStr[type.size()] = 0x0000;
-			testStrSort[type.size()] = 0x0000;
-			waitzar::sortMyanmarString(testStrSort);
-
-			//Do the encodings compare?
-			if (lstrcmp(testStr, testStrSort)!=0) {
-				for (size_t x=0; x<wcslen(testStr); x++)
-					fprintf(logFile, "%x", testStr[x]);
-				fprintf(logFile, " !== ");
-				for (size_t x=0; x<wcslen(testStrSort); x++)
-					fprintf(logFile, "%x", testStrSort[x]);
-				fprintf(logFile, "\n");
-			}
+	//Potential debug loop (useful)
+	if (currTest == model_print) {
+		if (isLogging) {
+			fclose(logFile);
+			isLogging = false;
 		}
-	}*/
+		logFile = fopen("wz_log.txt", "w");
+
+		model->debugOut(logFile);
+
+		MessageBox(NULL, L"Model saved to output.", _T("Notice"), MB_ICONERROR | MB_OK);
+		return 1;
+	}
 
 
 

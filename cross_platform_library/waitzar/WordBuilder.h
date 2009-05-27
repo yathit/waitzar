@@ -96,6 +96,9 @@ public:
 	void setOutputEncoding(ENCODING encoding);
 	ENCODING getOutputEncoding() const;
 
+	//For now
+	void debugOut(FILE *out);
+
 private:
 	//Essential static data
 	std::vector< std::wstring > dictionary;
