@@ -1105,23 +1105,6 @@ unsigned int WordBuilder::getWordID(const wstring &wordStr) const
 	for (size_t canID=0; canID<dictionary.size(); canID++) {
 		if (wordStr == dictionary[canID])
 			return canID;
-
-		//Easy check: different lengths
-		/*if (mmLen != dictionary[canID].size())
-			continue;
-
-		//Complex check: different letters
-		bool found = true;
-		for (size_t i=0; i<dictionary[canID].size(); i++) {
-			if (dictionary[canID][i] != (unsigned short)wordStr[i]) {
-				found = false;
-				break;
-			}
-		}
-
-		//Does it match?
-		if (found)
-			return canID;*/
 	}
 
 	//Not found
