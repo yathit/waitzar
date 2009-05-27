@@ -1570,6 +1570,10 @@ BOOL loadModel() {
 		}
 	}
 
+	//One final check
+	if (model->isInError())
+		return FALSE;
+
 	return TRUE;
 }
 

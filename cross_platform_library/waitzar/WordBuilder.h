@@ -90,6 +90,7 @@ public:
 
 	//In case of error
 	std::wstring getLastError() const;
+	bool isInError() const;
 
 	//Change the encoding
 	void setOutputEncoding(ENCODING encoding);
