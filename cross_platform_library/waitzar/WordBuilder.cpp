@@ -229,7 +229,9 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				//Keep reading until the terminating bracket.
 				//  Each "word" is of the form DD(-DD)*,
 				//newWordSz = 0;
-				wstring newWord;
+				//wstring newWord;
+				wchar_t newWordCstr[150];
+				size_t newWordPos = 0;
 				for(;;) {
 					//Read a "pair"
 					currLetter[2] = model_buff[currLineStart++];
@@ -237,23 +239,24 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 					//Translate/Add this letter
 					wchar_t nextLetter = (wchar_t)strtol(currLetter, NULL, 16);
-					newWord += nextLetter;
+					newWordCstr[newWordPos++] = nextLetter;
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
 					if (nextChar == ',' || nextChar == ']') {
 						//Double check
 						if (numberCheck<10) {
-							if (newWord.size()!=1 || newWord[0]!=0x1040+numberCheck) {
-								printf("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i", newWord[0], newWord.size());
+							if (newWordPos!=1 || newWordCstr[0]!=0x1040+numberCheck) {
+								printf("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i", newWordCstr[0], newWordPos);
 								return;
 							}
 							numberCheck++;
 						}
 
 						//Add this word to the dictionary (copy semantics)
-						dictionary.push_back(newWord);
-						newWord.clear();
+						newWordCstr[newWordPos++] = 0x0000;
+						dictionary.push_back(newWordCstr);
+						newWordPos = 0;
 
 						//Continue?
 						if (nextChar == ']')
@@ -270,7 +273,9 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				currLineStart++;
 
 				//A new hashtable for this entry.
-				vector<unsigned int> newWord;
+				nexus.push_back(vector<unsigned int>());
+				vector<unsigned int> &newWord = nexus[nexus.size()-1];
+				//newWord.reserve(150);
 				while (model_buff[currLineStart] != '}') {
 					//Read a hashed mapping: character
 					int nextInt = 0;
@@ -293,9 +298,6 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 						currLineStart++;
 				}
 
-				//Add this to the current nexus (copy semantics)
-				nexus.push_back(newWord);
-
 				break;
 			}
 			case 3: //Prefixes (mapped)
@@ -307,7 +309,9 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 				//A new hashtable for this entry.
 				//newWordSz = 0;
-				vector<unsigned int> newWord;
+				prefix.push_back(vector<unsigned int>());
+				vector<unsigned int> &newWord = prefix[prefix.size()-1];
+				//newWord.reserve(150);
 				//Reserve a spot for our "halfway" marker
 				newWord.push_back(0);
 				int nextVal;
@@ -364,9 +368,6 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 				//Set the halfway marker
 				newWord[0] = lastCommentedNumber/2;
-
-				//Add this entry (copy semantics)
-				prefix.push_back(newWord);
 
 				break;
 			}
