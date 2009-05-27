@@ -168,10 +168,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 	size_t currLineStart = 0;
 	unsigned short count;
 	unsigned short lastCommentedNumber;
-	//unsigned int currDictionaryID;
-	//unsigned short newWordSz;
 	unsigned short mode = 0;
-	//unsigned int newWord[1000];
 	char currLetter[] = "1000";
 	int numberCheck = 0; //Special...
 	while (currLineStart < model_buff_size) {
@@ -205,28 +202,16 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 					//Avoid un-necessary resizing by reserving space in our vector.
 					dictionary.reserve(lastCommentedNumber);
 
-					//dictMaxID = lastCommentedNumber;
-					//dictMaxSize = (dictMaxID*3)/2;
-					//dictionary = new unsigned short*[dictMaxSize]; //(unsigned short **)malloc(dictMaxSize * sizeof(unsigned short *));
-					//currDictionaryID = 0;
 					break;
 				case 2: //Nexi
 					//Avoid un-necessary resizing by reserving space in our vector.
 					nexus.reserve(lastCommentedNumber);
 
-					//nexusMaxID = lastCommentedNumber;
-					//nexusMaxSize = (nexusMaxID*3)/2;
-					//nexus = new unsigned int*[nexusMaxSize]; // (unsigned int **)malloc(nexusMaxSize * sizeof(unsigned int *));
-					//currDictionaryID = 0;
 					break;
 				case 3: //Prefixes
 					//Avoid un-necessary resizing by reserving space in our vector.
 					prefix.reserve(lastCommentedNumber);
-					
-					//prefixMaxID = lastCommentedNumber;
-					//prefixMaxSize = (prefixMaxID*3)/2;
-					//prefix = new unsigned int*[prefixMaxSize]; // (unsigned int **)malloc(prefixMaxSize * sizeof(unsigned int *));
-					//currDictionaryID = 0;
+
 					break;
 			}
 			continue;
@@ -251,7 +236,8 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 					currLetter[3] = model_buff[currLineStart++];
 
 					//Translate/Add this letter
-					newWord.push_back((wchar_t)strtol(currLetter, NULL, 16));
+					wchar_t nextLetter = (wchar_t)strtol(currLetter, NULL, 16);
+					newWord += nextLetter;
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
@@ -267,6 +253,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 						//Add this word to the dictionary (copy semantics)
 						dictionary.push_back(newWord);
+						newWord.clear();
 
 						//Continue?
 						if (nextChar == ']')
@@ -458,6 +445,7 @@ void WordBuilder::loadModel(const vector<wstring> &dictionary, const vector< vec
 
 /** 
  * All constructors pass through this function before returning.
+ *   It's ok to call this twice, by mistake or design.
  */
 void WordBuilder::initModel()
 {
@@ -799,10 +787,10 @@ void WordBuilder::resolveWords()
 	//What possible characters are available after this point?
 	int lowestPrefix = -1;
 	this->possibleChars.clear();
-	for (unsigned int i=0; i<this->nexus[speculativeNexusID][0]; i++) {
-		char currChar = (this->nexus[speculativeNexusID][i+1]&0xFF);
+	for (unsigned int i=0; i<this->nexus[speculativeNexusID].size(); i++) {
+		char currChar = (this->nexus[speculativeNexusID][i]&0xFF);
 		if (currChar == '~')
-			lowestPrefix = (this->nexus[speculativeNexusID][i+1]>>8);
+			lowestPrefix = (this->nexus[speculativeNexusID][i]>>8);
 		else
 			this->possibleChars.push_back(currChar);
 	}
