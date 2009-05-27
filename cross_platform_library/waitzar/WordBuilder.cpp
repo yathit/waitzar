@@ -1299,9 +1299,75 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 //Print our model, to check if it's the same as the one we input
 void WordBuilder::debugOut(FILE *out)
 {
+	//Words
 	fprintf(out, "#DEFINE:%i", this->dictionary.size());
+	for (size_t i=0; i<dictionary.size(); i++) {
+		//Split every 50 words
+		if (i%50==0) {
+			fprintf(out, "\n%i[", i);
+		}
 
+		//Print this word
+		for (size_t x=0; x<dictionary[i].length(); x++) {
+			if (x!=0)
+				fprintf(out, "-");
+			fprintf(out, "%02X", dictionary[i][x]-0x1000);
+		}
 
+		//Print either a comma or the closing bracket
+		if ((i+1)%50==0 || (i+1)==dictionary.size())
+			fprintf(out, "]");
+		else
+			fprintf(out, ",");
+	}
+
+	//Nexi
+	fprintf(out, "\n#MAP:%i", this->nexus.size());
+	for (size_t i=0; i<nexus.size(); i++) {
+		fprintf(out, "\n{");
+
+		//Print this mapping
+		for (size_t x=0; x<nexus[i].size(); x++) {
+			if (x!=0)
+				fprintf(out, ",");
+
+			unsigned int val = nexus[i][x];
+			fprintf(out, "%c:%i", (val&0xFF), (val>>8));
+		}
+
+		fprintf(out, "}");
+	}
+
+	//Prefixes
+	fprintf(out, "\n#SEGMENT%i", this->prefix.size());
+	for (size_t i=0; i<prefix.size(); i++) {
+		fprintf(out, "\n{");
+
+		//First half: further mappings
+		for (size_t x=0; x<prefix[i][0]; x++) {
+			if (x!=0)
+				fprintf(out, ",");
+
+			fprintf(out, "%i:%i", prefix[i][x*2+1], prefix[i][x*2+2]);
+		}
+
+		fprintf(out, "} [");
+
+		vector<unsigned int>::iterator prefWord = prefix[i].begin();
+		std::advance(prefWord, prefix[i][0]*2+1);
+		bool comma = false;
+		for (; prefWord!=prefix[i].end(); prefWord++) {
+			if (comma)
+				fprintf(out, ",");
+			comma = true;
+
+			fprintf(out, "%i", *prefWord);
+		}
+
+		fprintf(out, "]");
+	}
+
+	fprintf(out, "\n");
 }
 
 
