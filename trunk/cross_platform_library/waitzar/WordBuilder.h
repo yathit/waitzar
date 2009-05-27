@@ -97,10 +97,10 @@ public:
 
 private:
 	//Essential static data
-	std::vector<std::wstring> dictionary;
+	std::vector< std::wstring > dictionary;
 	std::vector< std::vector<unsigned int> > nexus;
 	std::vector< std::vector<unsigned int> > prefix;
-	std::vector<std::string> revLookup;
+	std::vector< std::string > revLookup;
 	bool revLookupOn;
 
 	//We could use a multimap of pairs, but I think a map of maps works better.
