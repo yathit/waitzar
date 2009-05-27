@@ -74,6 +74,10 @@
 #include "Hyperlinks.h"
 
 using namespace waitzar;
+using std::string;
+using std::wstring;
+using std::vector;
+using std::pair;
 
 
 //Current version
