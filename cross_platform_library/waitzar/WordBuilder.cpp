@@ -182,6 +182,14 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 	unsigned short mode = 0;
 	char currLetter[] = "1000";
 	int numberCheck = 0; //Special...
+
+	//For global usage; should be faster
+	wstring newWord;
+	newWord.reserve(150);
+	vector<unsigned int> newArr;
+	newArr.reserve(150);
+
+
 	while (currLineStart < model_buff_size) {
 		//Step 3-A: left-trim spaces
 		while (model_buff[currLineStart] == ' ')
@@ -241,8 +249,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				//  Each "word" is of the form DD(-DD)*,
 				//newWordSz = 0;
 				//wstring newWord;
-				wchar_t newWordCstr[150];
-				size_t newWordPos = 0;
+				newWord.clear();
 				for(;;) {
 					//Read a "pair"
 					currLetter[2] = model_buff[currLineStart++];
@@ -250,24 +257,23 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 					//Translate/Add this letter
 					wchar_t nextLetter = (wchar_t)strtol(currLetter, NULL, 16);
-					newWordCstr[newWordPos++] = nextLetter;
+					newWord += nextLetter;
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
 					if (nextChar == ',' || nextChar == ']') {
 						//Double check
 						if (numberCheck<10) {
-							if (newWordPos!=1 || newWordCstr[0]!=0x1040+numberCheck) {
-								printf("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i", newWordCstr[0], newWordPos);
+							if (newWord.length()!=1 || newWord[0]!=0x1040+numberCheck) {
+								printf("Model MUST begin with numbers 0 through 9 (e.g., 1040 through 1049) for reasons of parsimony.\nFound: [%x] at %i", newWord[0], newWord.length());
 								return;
 							}
 							numberCheck++;
 						}
 
 						//Add this word to the dictionary (copy semantics)
-						newWordCstr[newWordPos++] = 0x0000;
-						dictionary.push_back(newWordCstr);
-						newWordPos = 0;
+						dictionary.push_back(newWord);
+						newWord.clear();
 
 						//Continue?
 						if (nextChar == ']')
@@ -284,9 +290,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				currLineStart++;
 
 				//A new hashtable for this entry.
-				nexus.push_back(vector<unsigned int>());
-				vector<unsigned int> &newWord = nexus[nexus.size()-1];
-				//newWord.reserve(150);
+				newArr.clear();
 				while (model_buff[currLineStart] != '}') {
 					//Read a hashed mapping: character
 					int nextInt = 0;
@@ -302,12 +306,15 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 					}
 
 					//Add that entry to the hash
-					newWord.push_back(((nextInt<<8) | (0xFF&nextChar)));
+					newArr.push_back(((nextInt<<8) | (0xFF&nextChar)));
 
 					//Continue?
 					if (model_buff[currLineStart] == ',')
 						currLineStart++;
 				}
+
+				//Push-back copies and shrinks the array.
+				nexus.push_back(newArr);
 
 				break;
 			}
@@ -319,12 +326,12 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				currLineStart++;
 
 				//A new hashtable for this entry.
-				//newWordSz = 0;
-				prefix.push_back(vector<unsigned int>());
-				vector<unsigned int> &newWord = prefix[prefix.size()-1];
+				//prefix.push_back(vector<unsigned int>());
+				//vector<unsigned int> &newWord = prefix[prefix.size()-1];
 				//newWord.reserve(150);
+				newArr.clear();
 				//Reserve a spot for our "halfway" marker
-				newWord.push_back(0);
+				newArr.push_back(0);
 				int nextVal;
 				while (model_buff[currLineStart] != '}') {
 					//Read a hashed mapping: number
@@ -336,7 +343,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 					currLineStart++;
 
 					//Store: key
-					newWord.push_back(nextVal);
+					newArr.push_back(nextVal);
 
 					//Read a hashed mapping: number
 					nextVal = 0;
@@ -345,7 +352,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 						nextVal += (model_buff[currLineStart++] - '0');
 					}
 					//Store: val
-					newWord.push_back(nextVal);
+					newArr.push_back(nextVal);
 
 					//Continue
 					if (model_buff[currLineStart] == ',')
@@ -353,7 +360,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				}
 
 				//Used to mark our "halfway" boundary.
-				lastCommentedNumber = newWord.size();
+				lastCommentedNumber = newArr.size();
 
 				//Skip until the first letter inside the square bracket
 				while (model_buff[currLineStart] != '[')
@@ -370,7 +377,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 					}
 
 					//Add it
-					newWord.push_back(nextVal);
+					newArr.push_back(nextVal);
 
 					//Continue
 					if (model_buff[currLineStart] == ',')
@@ -378,7 +385,10 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				}
 
 				//Set the halfway marker
-				newWord[0] = lastCommentedNumber/2;
+				newArr[0] = lastCommentedNumber/2;
+
+				//Copy and shrink & store
+				prefix.push_back(newArr);
 
 				break;
 			}
@@ -992,32 +1002,10 @@ bool WordBuilder::hasPostStr() const
 
 
 /**
- * Get the actual characters in a string (by ID). Note that
- *  this returns a single (global) object, so if multiple strings are to be
- *  dealt with, they must be copied into local variables -something like:
- *    wchar_t *temp1 = wb->getWordString(1);
- *    wchar_t *temp2 = wb->getWordString(2);
- *    wchar_t *temp3 = wb->getWordString(3);
- * ...will FAIL; temp1, temp2, and temp3 will ALL have the value of string 3.
- * Do something like this instead:
- *   wchar_t temp1[50];
- *   lstrcpy(temp1, wb->getWordString(1));
- *   wchar_t temp2[50];
- *   lstrcpy(temp2, wb->getWordString(2));
- *   ...etc.
+ * Get the actual characters in a string (by ID).
  */
 wstring WordBuilder::getWordString(unsigned int id) const
 {
-	//this->currStr = this->dictionary[id];
-
-	//Try with for_each later?
-
-	//for (size_t i=0; i<this->dictionary[id].size(); i++)  {
-	//	this->currStr[i] = this->dictionary[id][i];
-	//}
-	//this->currStr[this->dictionary[id].size()] = 0x0000; //Note: must be full-width 0000, lest the string not be properly terminated.
-
-	//return this->currStr;
 	return this->dictionary[id];
 }
 
