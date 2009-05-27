@@ -1101,7 +1101,6 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman)
 //returns dictionary.size()
 unsigned int WordBuilder::getWordID(const wstring &wordStr) const
 {
-	//size_t mmLen = wordStr.length();
 	for (size_t canID=0; canID<dictionary.size(); canID++) {
 		if (wordStr == dictionary[canID])
 			return canID;
@@ -1115,18 +1114,12 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 {
 	//First task: find the word; add it if necessary
 	int dictID = getWordID(myanmar);
-	size_t mmLen = myanmar.length();
 	if (dictID==dictionary.size()) {
 		//Need to add... we DO have a limit, though.
 		if (dictionary.size() == std::numeric_limits<size_t>::max()) {
 			mostRecentError = L"Too many custom words!";
 			return false;
 		}
-
-		/*wstring newWord;
-		for (size_t i=0; i<mmLen; i++) {
-			newWord.push_back((unsigned short)myanmar[i]);
-		}*/
 		dictionary.push_back(myanmar);
 	}
 
@@ -1142,8 +1135,7 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 
 	//Next task: add the romanized mappings
 	size_t currNodeID = 0;
-	size_t romanLen = roman.length();
-	for (size_t rmID=0; rmID<romanLen; rmID++) {
+	for (size_t rmID=0; rmID<roman.length(); rmID++) {
 		//Does a path exist from our current node to the next step?
 		size_t nextNexusID;
 		for (nextNexusID=0; nextNexusID<nexus[currNodeID].size(); nextNexusID++) {
@@ -1160,7 +1152,7 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 			nexus.push_back(vector<unsigned int>());
 
 			//Now, link to this from the current nexus list.
-			nexus[currNodeID].push_back((nextNexusID<<8) | (0xFF&roman[rmID]));
+			nexus[currNodeID].push_back(((nexus.size()-1)<<8) | (0xFF&roman[rmID]));
 		}
 
 		currNodeID = ((nexus[currNodeID][nextNexusID])>>8);
@@ -1183,7 +1175,7 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 		prefix.push_back(vector<unsigned int>(1, 0));
 
 		//Now, point the nexus to this entry
-		nexus[currNodeID].push_back((unsigned int) ((currPrefixID<<8) | ('~')));
+		nexus[currNodeID].push_back((unsigned int) (((prefix.size()-1)<<8) | ('~')));
 	}
 
 	//Translate
