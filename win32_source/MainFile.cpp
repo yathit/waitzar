@@ -291,7 +291,7 @@ enum test_type {
 	mywords,
 	type_all
 };
-test_type currTest = start_up;
+test_type currTest = none;
 
 
 
