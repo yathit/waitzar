@@ -320,16 +320,12 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				currLineStart++;
 
 				//A new hashtable for this entry.
-				//prefix.push_back(vector<unsigned int>());
-				//vector<unsigned int> &newWord = prefix[prefix.size()-1];
-				//newWord.reserve(150);
 				newArr.clear();
 				//Reserve a spot for our "halfway" marker
 				newArr.push_back(0);
-				int nextVal;
 				while (model_buff[currLineStart] != '}') {
 					//Read a hashed mapping: number
-					nextVal = 0;
+					unsigned int nextVal = 0;
 					while (model_buff[currLineStart] != ':') {
 						nextVal *= 10;
 						nextVal += (model_buff[currLineStart++] - '0');
@@ -354,7 +350,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				}
 
 				//Used to mark our "halfway" boundary.
-				lastCommentedNumber = newArr.size();
+				lastCommentedNumber = newArr.size()-1; //-1 for the first placeholder value
 
 				//Skip until the first letter inside the square bracket
 				while (model_buff[currLineStart] != '[')
@@ -364,7 +360,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				//Add a new vector for these
 				while (model_buff[currLineStart] != ']') {
 					//Read a hashed mapping: number
-					nextVal = 0;
+					unsigned int nextVal = 0;
 					while (model_buff[currLineStart] != ',' && model_buff[currLineStart] != ']') {
 						nextVal *= 10;
 						nextVal += (model_buff[currLineStart++] - '0');
@@ -378,7 +374,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 						currLineStart++;
 				}
 
-				//Set the halfway marker
+				//Set the halfway marker to the number of PAIRS
 				newArr[0] = lastCommentedNumber/2;
 
 				//Copy and shrink & store
@@ -396,9 +392,6 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 			currLineStart++;
 		currLineStart++;
 	}
-
-	//Initialize the model
-	//init(dictionary, dictMaxID, dictMaxSize, nexus, nexusMaxID, nexusMaxSize, prefix, prefixMaxID, prefixMaxSize);
 }
 
 
