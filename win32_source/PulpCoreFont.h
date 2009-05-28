@@ -30,8 +30,6 @@
 
 #include <string>
 
-using std::wstring;
-
 #include "PulpCoreImage.h"
 
 //Magic number for Pulp Core font header.
@@ -75,13 +73,13 @@ public:
 	void init(char *data, DWORD size, HDC currDC);
 
 	//Drawing functionality
-	void drawString(HDC bufferDC, const wstring &str, int xPos, int yPos);
-	void drawString(HDC bufferDC, char* str, int xPos, int yPos);
+	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos);
+	void drawString(HDC bufferDC, const std::string &str, int xPos, int yPos);
 	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
 	
 	//Other useful metrics
-    int getStringWidth(const wstring &str);
-	int getStringWidth(const wstring &str, int start, int length);
+	int getStringWidth(const std::wstring &str);
+	int getStringWidth(const std::wstring &str, int start, int length);
 	int getCharWidth(char letter);
 
 private:

@@ -6,6 +6,11 @@
 
 #include ".\onscreenkeyboard.h"
 
+using std::wstring;
+using std::string;
+using std::list;
+using std::pair;
+
 
 //Our main goal is to figure out the width/height
 OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg)
@@ -632,30 +637,21 @@ void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string 
 {
 	//Does the list contain this word?
 	for (list< pair<wstring,string> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
-		if (keyItr.first==my && keyItr.second==rom)
+		if (keyItr->first==my && keyItr->second==rom)
 			return;
 	}
 
 	//Add the word to the end
-	//wchar_t* newMy = new wchar_t[wcslen(my)];
-	//char* newRom = new char[strlen(rom)];
-	//wcscpy(newMy, my);
-	//strcpy(newRom, rom);
 	memoryList.push_back(pair<wstring,string>(my, rom));
 
 	//Too many words?
-	if (memoryList.size()>getMaxMemoryEntries()) {
-		wchar_t* oldMy = memoryList.front().first;
-		char* oldRom = memoryList.front().second;
+	if (memoryList.size()>getMaxMemoryEntries())
 		memoryList.pop_front();
-		delete [] oldMy;
-		delete [] oldRom;
-	}
 
 	//Either way, we need to re-draw the word list
 	memoryImg->fillRectangle(this->cornerSize, memEntriesStartY, this->getMemoryWidth()-this->cornerSize*2, this->getMemoryHeight()-memEntriesStartY-this->cornerSize, COLOR_KEYBOARD_FOREGRD);
 	int currY = memEntriesStartY;
-	for (std::list<std::pair<wchar_t*,char*> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
+	for (list< pair<wstring,string> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
 		this->memoryFont->drawString(memoryDC, keyItr->first, this->cornerSize, currY);
 		this->memoryFont->drawString(memoryDC, keyItr->second, this->getMemoryWidth()/2+5/2, currY);
 		currY += memEntriesYPlus;

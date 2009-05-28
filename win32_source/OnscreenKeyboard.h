@@ -65,8 +65,8 @@ enum {
 };
 
 
-const wstring HELPWND_TITLE = L"WaitZar Word Finder";
-const wstring MEMLIST_TITLE = L"Memory List";
+const std::wstring HELPWND_TITLE = L"WaitZar Word Finder";
+const std::wstring MEMLIST_TITLE = L"Memory List";
 
 
 //Useful struct for our keys
