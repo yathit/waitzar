@@ -43,7 +43,7 @@ namespace waitzar
 	std::wstring sortMyanmarString(const std::wstring &uniString);
 
 
-	wchar_t* renderAsZawgyi(const wchar_t* uniString);
+	std::wstring renderAsZawgyi(const std::wstring &uniString);
 
 	void setLogFile(FILE *logFile);
 

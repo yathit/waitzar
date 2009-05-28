@@ -202,13 +202,11 @@ int main(int argc, const char* argv[])
 	std::vector<unsigned int> knownErrors;
 	for (unsigned int x=0; x<2426; x++) {
 		wstring origZawgyi = model->getWordString(x);
-		wchar_t origUnicode[500];
-		wcscpy(origUnicode, model->getWordKeyStrokes(x, ENCODING_UNICODE).c_str());
-		waitzar::sortMyanmarString(origUnicode);
-		wchar_t *convertZawgyi = waitzar::renderAsZawgyi(origUnicode);
+		wstring origUnicode = waitzar::sortMyanmarString(model->getWordKeyStrokes(x, ENCODING_UNICODE));
+		wstring convertZawgyi = waitzar::renderAsZawgyi(origUnicode);
 
 		//Check error
-		if (wcscmp(convertZawgyi, origZawgyi.c_str())!=0) {
+		if (convertZawgyi != origZawgyi) {
 			//Print to file
 			if (errorFile==NULL) {
 				errorFile = fopen("wz_convert_errors.txt", "w, ccs=UTF-8");
@@ -244,7 +242,7 @@ int main(int argc, const char* argv[])
 				for (size_t i=0; i<origZawgyi.size(); i++)
 					fwprintf(errorFile, L"U+%x ", origZawgyi[i]);
 				fwprintf(errorFile, L" -> ");
-				for (size_t i=0; i<wcslen(convertZawgyi); i++)
+				for (size_t i=0; i<convertZawgyi.length(); i++)
 					fwprintf(errorFile, L"U+%x ", convertZawgyi[i]);
 				fwprintf(errorFile, L"\n");
 			}
