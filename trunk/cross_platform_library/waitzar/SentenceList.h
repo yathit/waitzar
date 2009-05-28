@@ -33,19 +33,19 @@ public:
 	//Extracted interface
 	void clear();
 	void insert(int val);
-	int getCursorIndex();
-	bool moveCursorRight(int amt, bool allowSameIndex, WordBuilder *model);
-	bool moveCursorRight(int amt, WordBuilder *model);
-	size_t size();
+	int getCursorIndex() const;
+	bool moveCursorRight(int amt, bool allowSameIndex, WordBuilder &model);
+	bool moveCursorRight(int amt, WordBuilder &model);
+	size_t size() const;
 	bool deleteNext();
-	bool deletePrev(WordBuilder *model);
+	bool deletePrev(WordBuilder &model);
 
 	//Iterating
-	std::list<int>::iterator begin();
-	std::list<int>::iterator end();
+	std::list<int>::const_iterator begin() const;
+	std::list<int>::const_iterator end() const;
 
 	//Consistency
-	void updateTrigrams(WordBuilder *model);
+	void updateTrigrams(WordBuilder &model);
 
 
 private:
