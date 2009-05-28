@@ -193,37 +193,40 @@ POINT caretLatestPosition;
 
 //Configuration variables.
 BOOL customDictWarning = FALSE;
+
+//These two will take some serious fixing later.
 TCHAR langHotkeyString[100];
 char langHotkeyRaw[100];
-BOOL typePhrases = TRUE;
-BOOL dragBothWindowsTogether = TRUE;
-BOOL typeBurmeseNumbers = TRUE;
-BOOL showBalloonOnStart = TRUE;
-BOOL alwaysRunElevated = FALSE;
-BOOL highlightKeys = TRUE;
-BOOL experimentalTextCursorTracking = TRUE;
-BOOL dontLoadModel = FALSE;
-BOOL allowNonBurmeseLetters = FALSE;
+
+bool typePhrases = true;
+bool dragBothWindowsTogether = true;
+bool typeBurmeseNumbers = true;
+bool showBalloonOnStart = true;
+bool alwaysRunElevated = false;
+bool highlightKeys = true;
+bool experimentalTextCursorTracking = true;
+bool dontLoadModel = false;
+bool allowNonBurmeseLetters = false;
 bool ignoreMywordsWarnings = false;
 unsigned int maxDictionaryEntries = 0;
 unsigned int maxNexusEntries = 0;
 unsigned int maxPrefixEntries = 0;
-char fontFileRegular[512];
-char fontFileSmall[512];
+string fontFileRegular;
+string fontFileSmall;
 
 //Double-buffering stuff - mainWindow
 HWND mainWindow;
 HDC mainDC;
 HDC mainUnderDC;
 HBITMAP mainBitmap;
-BOOL mainWindowSkipMove = FALSE;
+bool mainWindowSkipMove = false;
 
 //Double-buffering stuff - secondaryWindow
 HWND senWindow;
 HDC senDC;
 HDC senUnderDC;
 HBITMAP senBitmap;
-BOOL senWindowSkipMove = FALSE;
+bool senWindowSkipMove = false;
 
 //Double-buffering stuff, tertiary window
 HWND helpWindow;
@@ -253,7 +256,7 @@ bool numberKeysOn = false;
 bool punctuationKeysOn = false;
 bool extendedKeysOn = false;
 bool helpKeysOn = false;
-SentenceList *sentence;
+SentenceList sentence;
 int prevProcessID;
 
 //Default client sizes for our windows
@@ -669,8 +672,8 @@ void makeFont(HWND currHwnd)
 	//Load our font resource (main fonts)
 	{
 		//Try to load our user-specified font image.
-		if (strlen(fontFileRegular)>0) {
-			size_t fLen = strlen(fontFileRegular);
+		if (!fontFileRegular.empty()) {
+			size_t fLen = fontFileRegular.length();
 			bool validFont = true;
 
 			//Is the file a PNG file by name?
@@ -678,7 +681,7 @@ void makeFont(HWND currHwnd)
 				validFont = false;
 			} else {
 				//Does the file exist?
-				FILE* fontFile = fopen(fontFileRegular, "rb");
+				FILE* fontFile = fopen(fontFileRegular.c_str(), "rb");
 				if (fontFile == NULL)
 					validFont = false;
 				else {
@@ -712,13 +715,13 @@ void makeFont(HWND currHwnd)
 
 			//Did we make it?
 			if (!validFont) {
-				strcpy(fontFileRegular, "");
+				fontFileRegular = "";
 			}
 		}
 
 
 		//Do we need to load the internal font?
-		if (strlen(fontFileRegular)==0) {
+		if (fontFileRegular.empty()) {
 			HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_FONT), _T("COREFONT"));
 			if (!fontRes) {
 				MessageBox(NULL, _T("Couldn't find WZ_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
@@ -900,8 +903,8 @@ void makeFont(HWND currHwnd)
 
 
 	//Try to load our user-specified font image.
-	if (strlen(fontFileSmall)>0) {
-		size_t fLen = strlen(fontFileSmall);
+	if (!fontFileSmall.empty()) {
+		size_t fLen = fontFileSmall.length();
 		bool validFont = true;
 
 		//Is the file a PNG file by name?
@@ -909,7 +912,7 @@ void makeFont(HWND currHwnd)
 			validFont = false;
 		} else {
 			//Does the file exist?
-			FILE* fontFile = fopen(fontFileSmall, "rb");
+			FILE* fontFile = fopen(fontFileSmall.c_str(), "rb");
 			if (fontFile == NULL)
 				validFont = false;
 			else {
@@ -943,13 +946,13 @@ void makeFont(HWND currHwnd)
 
 		//Did we make it?
 		if (!validFont) {
-			strcpy(fontFileSmall, "");
+			fontFileSmall = "";
 		}
 	}
 
 
 	//Do we need to load the embedded font as backup?
-	if (strlen(fontFileSmall)==0) {
+	if (fontFileSmall.empty()) {
 		//Now, our small font (resource first!)
 		HRSRC fontRes2 = FindResource(hInst, MAKEINTRESOURCE(WZ_SMALL_FONT), _T("COREFONT"));
 		if (!fontRes2) {
@@ -1082,7 +1085,7 @@ void readUserWords() {
 			char* value = new char[100];
 			while (currPosition<numUniChars) {
 				//Get the name/value pair using our nifty template function....
-				readLine(uniBuffer, currPosition, numUniChars, true, true, false, (allowNonBurmeseLetters==TRUE), true, false, false, false, name, value);
+				readLine(uniBuffer, currPosition, numUniChars, true, true, false, allowNonBurmeseLetters, true, false, false, false, name, value);
 
 				//Make sure both name and value are non-empty
 				if (strlen(value)==0 || lstrlen(name)==0)
@@ -1137,8 +1140,8 @@ void loadConfigOptions()
 	setEncoding(ENCODING_UNICODE);
 
 	//Default font files
-	strcpy(fontFileRegular, "");
-	strcpy(fontFileSmall, "");
+	fontFileRegular = "";
+	fontFileSmall = "";
 
 	//Read our config file, if it exists.
 	numConfigOptions = -1;
@@ -1181,57 +1184,57 @@ void loadConfigOptions()
 		} else if (strcmp(name, "lockwindows")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				dragBothWindowsTogether = TRUE;
+				dragBothWindowsTogether = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				dragBothWindowsTogether = FALSE;
+				dragBothWindowsTogether = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "powertyping")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				typePhrases = TRUE;
+				typePhrases = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				typePhrases = FALSE;
+				typePhrases = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "burmesenumerals")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				typeBurmeseNumbers = TRUE;
+				typeBurmeseNumbers = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				typeBurmeseNumbers = FALSE;
+				typeBurmeseNumbers = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "ballooononstart")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				showBalloonOnStart = TRUE;
+				showBalloonOnStart = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				showBalloonOnStart = FALSE;
+				showBalloonOnStart = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "alwayselevate")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				alwaysRunElevated = TRUE;
+				alwaysRunElevated = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				alwaysRunElevated = FALSE;
+				alwaysRunElevated = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "trackcaret")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				experimentalTextCursorTracking = TRUE;
+				experimentalTextCursorTracking = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				experimentalTextCursorTracking = FALSE;
+				experimentalTextCursorTracking = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "ignoremodel")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				dontLoadModel = TRUE;
+				dontLoadModel = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				dontLoadModel = FALSE;
+				dontLoadModel = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "silencemywordserrors")==0) {
@@ -1245,9 +1248,9 @@ void loadConfigOptions()
 		} else if (strcmp(name, "charaset")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "any")==0)
-				allowNonBurmeseLetters = TRUE;
+				allowNonBurmeseLetters = true;
 			else if (strcmp(value, "burmese")==0 || strcmp(value, "myanmar")==0)
-				allowNonBurmeseLetters = FALSE;
+				allowNonBurmeseLetters = false;
 			else
 				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
@@ -1285,13 +1288,13 @@ void loadConfigOptions()
 		} else if (strcmp(name, "fontfileregular")==0) {
 			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
 			} else {
-				strcpy(fontFileRegular, value);
+				fontFileRegular = string(value);
 			}
 			numConfigOptions++;
 		} else if (strcmp(name, "fontfilesmall")==0) {
 			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
 			} else {
-				strcpy(fontFileSmall, value);
+				fontFileSmall = string(value);
 			}
 			numConfigOptions++;
 		}
@@ -1398,7 +1401,7 @@ bool loadModel() {
 	//Special...
 	int numberCheck = 0;
 
-	if (dontLoadModel==TRUE) {
+	if (dontLoadModel) {
 		//For any of the "size" values that are set to "default", let's see
 		//   if we can come up with sensible defaults
 		if (maxDictionaryEntries==0)
@@ -1438,7 +1441,7 @@ bool loadModel() {
 			res_size = SizeofResource(NULL, res);
 
 			//Save our "model"
-			model = WordBuilder(res_data, res_size, (allowNonBurmeseLetters==TRUE));
+			model = WordBuilder(res_data, res_size, allowNonBurmeseLetters);
 
 			//Done - This shouldn't matter, though, since the process only
 			//       accesses it once and, fortunately, this is not an external file.
@@ -1592,7 +1595,7 @@ void ShowBothWindows(int cmdShow)
 	ShowWindow(mainWindow, cmdShow);
 	mainWindowIsVisible = show;
 
-	if (typePhrases==TRUE) {
+	if (typePhrases) {
 		ShowWindow(senWindow, cmdShow);
 		subWindowIsVisible = show;
 	}
@@ -1681,7 +1684,7 @@ void reBlit()
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
-	if (typePhrases==TRUE)
+	if (typePhrases)
 		BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
 }
 
@@ -1712,7 +1715,7 @@ void reBlit(RECT blitArea)
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
-	if (typePhrases==TRUE)
+	if (typePhrases)
 		BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
@@ -1842,19 +1845,19 @@ void recalculate()
 	Rectangle(mainUnderDC, 0, 0, C_WIDTH, C_HEIGHT);
 
 	//Background -second window
-	if (typePhrases==TRUE) {
+	if (typePhrases) {
 		//Draw the background
 		SelectObject(senUnderDC, g_BlackPen);
 		SelectObject(senUnderDC, g_DarkGrayBkgrd);
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
 
 		//Draw each string
-		std::list<int>::const_iterator printIT = sentence->begin();
+		std::list<int>::const_iterator printIT = sentence.begin();
 		int currentPosX = borderWidth + 1;
 		int cursorPosX = currentPosX;
 		int counterCursorID=0;
 		int countup = 0;
-		for (;printIT != sentence->end(); printIT++) {
+		for (;printIT != sentence.end(); printIT++) {
 			//Append this string
 			wstring strToDraw;
 			PulpCoreFont* colorFont = mmFontSmallWhite;
@@ -1868,7 +1871,7 @@ void recalculate()
 				} else
 					strToDraw = userDefinedWordsZg[id-numSystemWords];
 			}
-			if (countup++ == sentence->getCursorIndex() && model.hasPostStr() && patSintIDModifier==-1) {
+			if (countup++ == sentence.getCursorIndex() && model.hasPostStr() && patSintIDModifier==-1) {
 				colorFont = mmFontSmallRed;
 				if (patSintIDModifier==-1)
 					strToDraw = model.getPostString();
@@ -1877,7 +1880,7 @@ void recalculate()
 			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
 
 			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
-			if (counterCursorID == sentence->getCursorIndex())
+			if (counterCursorID == sentence.getCursorIndex())
 				cursorPosX = currentPosX;
 
 			//Increment
@@ -2074,12 +2077,12 @@ void typeCurrentPhrase()
 	//  requires the top-level window. We could probably hack in SendMessage now that
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
-	std::list<int>::const_iterator printIT = sentence->begin();
+	std::list<int>::const_iterator printIT = sentence.begin();
 	wstring keyStrokes;
 	int number_of_key_events = 0;
-	for (;printIT!=sentence->end() || stopChar!=0;) {
+	for (;printIT!=sentence.end() || stopChar!=0;) {
 		//We may or may not have a half/full stop at the end.
-		if (printIT!=sentence->end()) {
+		if (printIT!=sentence.end()) {
 			if (*printIT>=0)
 				keyStrokes = model.getWordKeyStrokes(*printIT);
 			else {
@@ -2102,7 +2105,7 @@ void typeCurrentPhrase()
 		}
 
 		//Increment
-		if (printIT!=sentence->end())
+		if (printIT!=sentence.end())
 			printIT++;
 		else
 			stopChar = 0;
@@ -2122,7 +2125,7 @@ void typeCurrentPhrase()
 	//Now, reset...
 	patSintIDModifier = 0;
 	model.reset(true);
-	sentence->clear();
+	sentence.clear();
 	/*for (unsigned int i=0; i<userDefinedWords.size(); i++) {
 		delete [] userDefinedWords[i];
 		delete [] userDefinedWordsZg[i];
@@ -2166,18 +2169,18 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	//Optionally turn off numerals
 	//if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
 	//	turnOnNumberkeys(FALSE);
-	if (typePhrases==FALSE) {
+	if (!typePhrases) {
 		//Simple Case
-		sentence->clear();
-		sentence->insert(wordID);
+		sentence.clear();
+		sentence.insert(wordID);
 		typeCurrentPhrase();
 	} else {
 		//Pat-sint clears the previous word
 		if (patSintIDModifier==-1)
-			sentence->deletePrev(model);
+			sentence.deletePrev(model);
 
 		//Advanced Case - Insert
-		sentence->insert(wordID);
+		sentence.insert(wordID);
 	}
 
 	return TRUE;
@@ -2707,15 +2710,15 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE:
 		{
 			//Move the main window?
-			if (senWindowSkipMove==FALSE && (mainWindowIsVisible || subWindowIsVisible) && dragBothWindowsTogether==TRUE) {
+			if (!senWindowSkipMove && (mainWindowIsVisible || subWindowIsVisible) && dragBothWindowsTogether) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
-				mainWindowSkipMove = TRUE;
+				mainWindowSkipMove = true;
 				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
-			senWindowSkipMove = FALSE;
+			senWindowSkipMove = false;
 			break;
 		}
 		case WM_PAINT:
@@ -2813,7 +2816,7 @@ void updateHelpWindow()
 		//Show the main/sentence windows; this is just good practice.
 		if (!mainWindowIsVisible) {
 			//Re-position this near the caret
-			if (experimentalTextCursorTracking==TRUE) {
+			if (experimentalTextCursorTracking) {
 				//Reset parameters for our thread
 				//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
 				caretLatestPosition.x = 0;
@@ -2829,7 +2832,7 @@ void updateHelpWindow()
 					&caretTrackThreadID);//Pointer to return the thread's id into
 				if (caretTrackThread==NULL) {
 					MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
-					experimentalTextCursorTracking = FALSE;
+					experimentalTextCursorTracking = false;
 				}
 
 				//Wait for it.
@@ -2866,7 +2869,7 @@ void updateHelpWindow()
 		//Hide the main window, too, and possibly the secondary window
 		ShowWindow(mainWindow, SW_HIDE);
 		mainWindowIsVisible = false;
-		if (sentence->size()==0) {
+		if (sentence.size()==0) {
 			ShowWindow(senWindow, SW_HIDE);
 			subWindowIsVisible = false;
 		}
@@ -2922,15 +2925,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE:
 		{
 			//Move the sentence window?
-			if (typePhrases==TRUE && mainWindowSkipMove==FALSE && subWindowIsVisible && dragBothWindowsTogether==TRUE) {
+			if (typePhrases && !mainWindowSkipMove && subWindowIsVisible && dragBothWindowsTogether) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
-				senWindowSkipMove = TRUE;
+				senWindowSkipMove = true;
 				SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
-			mainWindowSkipMove = FALSE;
+			mainWindowSkipMove = false;
 			break;
 		}
 		case UWM_HOTKEY_UP: //HOTKEY_UP is defined by us, it is just like HOTKEY_DOWN except it doesn't use the lparam
@@ -2956,7 +2959,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(true);
 
 				//Reset the model
-				sentence->clear();
+				sentence.clear();
 				patSintIDModifier = 0;
 				model.reset(true);
 
@@ -3010,7 +3013,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 			//What to do if our user hits "F1".
-			if (wParam == HOTKEY_HELP && allowNonBurmeseLetters==FALSE) {
+			if (wParam == HOTKEY_HELP && !allowNonBurmeseLetters) {
 				updateHelpWindow();
 
 				keyWasUsed = true;
@@ -3031,7 +3034,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Hide the main window, too, and possibly the secondary window
 					ShowWindow(mainWindow, SW_HIDE);
 					mainWindowIsVisible = false;
-					if (sentence->size()==0) {
+					if (sentence.size()==0) {
 						ShowWindow(senWindow, SW_HIDE);
 						subWindowIsVisible = false;
 					}
@@ -3040,7 +3043,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else {
 					if (!mainWindowIsVisible) {
 						//Kill the entire sentence.
-						sentence->clear();
+						sentence.clear();
 						patSintIDModifier = 0;
 						model.reset(true);
 						turnOnControlkeys(false);
@@ -3054,7 +3057,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//	turnOnNumberkeys(FALSE);
 
 						//Are we using advanced input?
-						if (typePhrases==FALSE) {
+						if (!typePhrases) {
 							//Turn off control keys
 							turnOnControlkeys(false);
 							ShowBothWindows(SW_HIDE);
@@ -3063,9 +3066,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
-							if (sentence->size()==0) {
+							if (sentence.size()==0) {
 								//Kill the entire sentence.
-								sentence->clear();
+								sentence.clear();
 								ShowBothWindows(SW_HIDE);
 								turnOnControlkeys(false);
 							} else
@@ -3087,11 +3090,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else {
 					if (!mainWindowIsVisible) {
 						//Delete the next word
-						if (sentence->deleteNext())
+						if (sentence.deleteNext())
 							recalculate();
-						if (sentence->size()==0) {
+						if (sentence.size()==0) {
 							//Kill the entire sentence.
-							sentence->clear();
+							sentence.clear();
 							turnOnControlkeys(false);
 							ShowBothWindows(SW_HIDE);
 						}
@@ -3113,11 +3116,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else {
 					if (!mainWindowIsVisible) {
 						//Delete the previous word
-						if (sentence->deletePrev(model))
+						if (sentence.deletePrev(model))
 							recalculate();
-						if (sentence->size()==0) {
+						if (sentence.size()==0) {
 							//Kill the entire sentence.
-							sentence->clear();
+							sentence.clear();
 							turnOnControlkeys(false);
 							ShowBothWindows(SW_HIDE);
 						}
@@ -3132,7 +3135,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							//	turnOnNumberkeys(FALSE);
 
 							//Are we using advanced input?
-							if (typePhrases==FALSE) {
+							if (!typePhrases) {
 								//Turn off control keys
 								turnOnControlkeys(false);
 
@@ -3142,9 +3145,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								ShowWindow(mainWindow, SW_HIDE);
 								mainWindowIsVisible = false;
 
-								if (sentence->size()==0) {
+								if (sentence.size()==0) {
 									//Kill the entire sentence.
-									sentence->clear();
+									sentence.clear();
 									turnOnControlkeys(false);
 
 									ShowWindow(senWindow, SW_HIDE);
@@ -3175,7 +3178,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							recalculate();
 					} else {
 						//Move right/left within the current phrase.
-						if (sentence->moveCursorRight(1, model))
+						if (sentence.moveCursorRight(1, model))
 							recalculate();
 					}
 				}
@@ -3197,7 +3200,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 					} else {
 						//Move right/left within the current phrase.
-						if (sentence->moveCursorRight(-1, model))
+						if (sentence.moveCursorRight(-1, model))
 							recalculate();
 					}
 				}
@@ -3230,7 +3233,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 						//The model is visible: select that word
 						BOOL typed = selectWord(numCode, helpWindowIsVisible);
-						if (typed==TRUE && typePhrases==TRUE) {
+						if (typed==TRUE && typePhrases) {
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
@@ -3242,14 +3245,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 						keyWasUsed = true;
 					} else if (typeBurmeseNumbers) {
-						if (typePhrases==FALSE) {
-							sentence->clear();
-							sentence->insert(numCode);
+						if (!typePhrases) {
+							sentence.clear();
+							sentence.insert(numCode);
 							typeCurrentPhrase();
 						} else {
 							//Just type that number directly.
-							sentence->insert(numCode);
-							sentence->moveCursorRight(0, true, model);
+							sentence.insert(numCode);
+							sentence.moveCursorRight(0, true, model);
 
 							//Is our window even visible?
 							if (!subWindowIsVisible) {
@@ -3279,7 +3282,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (!mainWindowIsVisible) {
 						if (!subWindowIsVisible) {
 							//This should be cleared already, but let's be safe...
-							sentence->clear();
+							sentence.clear();
 						}
 						//Otherwise, we perform the normal "enter" routine.
 						typeCurrentPhrase();
@@ -3321,7 +3324,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					//Try to type this word
 					BOOL typed = selectWord(currStrDictID, true);
-					if (typed==TRUE && typePhrases==TRUE) {
+					if (typed==TRUE && typePhrases) {
 						ShowWindow(mainWindow, SW_HIDE);
 						mainWindowIsVisible = false;
 
@@ -3332,13 +3335,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(model);
+					sentence.updateTrigrams(model);
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
 						//The model is visible: select that word
 						BOOL typed = selectWord(-1, helpWindowIsVisible);
-						if (typed==TRUE && typePhrases==TRUE) {
+						if (typed==TRUE && typePhrases) {
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
@@ -3387,7 +3390,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					//Try to type this word
 					BOOL typed = selectWord(currStrDictID, true);
-					if (typed==TRUE && typePhrases==TRUE) {
+					if (typed==TRUE && typePhrases) {
 						ShowWindow(mainWindow, SW_HIDE);
 						mainWindowIsVisible = false;
 
@@ -3398,7 +3401,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(model);
+					sentence.updateTrigrams(model);
 
 					keyWasUsed = true;
 				} else {
@@ -3406,7 +3409,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (mainWindowIsVisible) {
 						//The model is visible: select that word
 						BOOL typed = selectWord(-1, helpWindowIsVisible);
-						if (typed==TRUE && typePhrases==TRUE) {
+						if (typed==TRUE && typePhrases) {
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
@@ -3422,8 +3425,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
 						//Hopefully this won't confuse users so much.
 						if (wParam==HOTKEY_SPACE) {
-							if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
-								sentence->moveCursorRight(1, model);
+							if (sentence.getCursorIndex()==-1 || sentence.getCursorIndex()<((int)sentence.size()-1)) {
+								sentence.moveCursorRight(1, model);
 								recalculate();
 							} else {
 								//Type the entire sentence
@@ -3472,7 +3475,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Is the main window visible?
 					if (!mainWindowIsVisible) {
 						//Show it
-						if (typePhrases==FALSE || !subWindowIsVisible) {
+						if (!typePhrases || !subWindowIsVisible) {
 							ShowBothWindows(SW_SHOW);
 						} else {
 							ShowWindow(mainWindow, SW_SHOW);
@@ -3513,7 +3516,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							//Still a bit glitchy....
 							//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to
 							//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
-							if (experimentalTextCursorTracking==TRUE) {
+							if (experimentalTextCursorTracking) {
 								//Reset parameters for our thread
 								//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
 								caretLatestPosition.x = 0;
@@ -3529,7 +3532,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 									&caretTrackThreadID);//Pointer to return the thread's id into
 								if (caretTrackThread==NULL) {
 									MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
-									experimentalTextCursorTracking = FALSE;
+									experimentalTextCursorTracking = false;
 								}
 
 								//Wait for it.
@@ -3548,7 +3551,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 							//Show it
-							if (typePhrases==FALSE || !subWindowIsVisible) {
+							if (!typePhrases || !subWindowIsVisible) {
 								//Turn on control keys
 								turnOnControlkeys(true);
 								ShowBothWindows(SW_SHOW);
@@ -3592,7 +3595,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					//Try to type this word
 					BOOL typed = selectWord(newID, true);
-					if (typed==TRUE && typePhrases==TRUE) {
+					if (typed==TRUE && typePhrases) {
 						//ShowWindow(mainWindow, SW_HIDE);
 						//mainWindowIsVisible = false;
 						//model->reset(false);
@@ -3609,7 +3612,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(model);
+					sentence.updateTrigrams(model);
 				}
 			}
 
@@ -3736,14 +3739,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(false);
 
 					//Reset the model
-					sentence->clear();
+					sentence.clear();
 					patSintIDModifier = 0;
 					model.reset(true);
 				} else if (retVal == IDM_MYANMAR) {
 					switchToLanguage(true);
 
 					//Reset the model
-					sentence->clear();
+					sentence.clear();
 					patSintIDModifier = 0;
 					model.reset(true);
 				} else if (retVal == IDM_LOOKUP) {
@@ -4178,7 +4181,7 @@ void makeMainWindow(LPCWSTR windowClassName)
 
 void makeSubWindow(LPCWSTR windowClassName)
 {
-	if (typePhrases==FALSE)
+	if (!typePhrases)
 		return;
 
 	//Set a window class's parameters
@@ -4533,7 +4536,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Modify our config options?
 	if (currTest == mywords) {
-		dontLoadModel = TRUE;
+		dontLoadModel = true;
 		mywordsFileName = "D:\\Open Source Projects\\Waitzar\\eclipse_project\\MyanmarList_v2.txt";
 	}
 
@@ -4560,7 +4563,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	makeMemoryWindow(_T("waitZarMemoryWindow"));
 
 	//Our vector is used to store typed words for later...
-	sentence = new SentenceList();
+	//sentence = new SentenceList();
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
@@ -4598,7 +4601,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	mmOn = false;
 
 	//Edit: Add support for balloon tooltips
-	if (showBalloonOnStart==TRUE) {
+	if (showBalloonOnStart) {
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
 		swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
@@ -4632,7 +4635,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(currLetterSt, _T(""));
 
 	//Success?
-	if(mainWindow==NULL || (typePhrases==TRUE && senWindow==NULL) || helpWindow==NULL || memoryWindow==NULL) {
+	if(mainWindow==NULL || (typePhrases && senWindow==NULL) || helpWindow==NULL || memoryWindow==NULL) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
@@ -4640,7 +4643,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//If we got this far, let's try to load our file.
 	if (!loadModel()) {
 		DestroyWindow(mainWindow);
-		if (typePhrases==TRUE)
+		if (typePhrases)
 			DestroyWindow(senWindow);
 		DestroyWindow(helpWindow);
 		DestroyWindow(memoryWindow);
@@ -4706,7 +4709,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			&keyTrackThreadID);  //Pointer to return the thread's id into
 		if (keyTrackThread==NULL) {
 			MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that WaitZar will not be able to highlight keys as you press them, which is a useful benefit for beginners."), _T("Warning"), MB_ICONWARNING | MB_OK);
-			highlightKeys = FALSE;
+			highlightKeys = false;
 		}
 	}
 
