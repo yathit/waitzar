@@ -40,10 +40,10 @@ namespace waitzar
 	 *  We ignore "visible virama" and treat it always like "asat". This is done because it is equivalent for
 	 *  most cases, and exceptions seem to render properly. We will revise this if we find any glaring inconsistencies.
 	 */
-	void sortMyanmarString(wchar_t* uniString);
+	std::wstring sortMyanmarString(const std::wstring &uniString);
 
 
-	wchar_t* renderAsZawgyi(wchar_t* uniString);
+	wchar_t* renderAsZawgyi(const wchar_t* uniString);
 
 	void setLogFile(FILE *logFile);
 
