@@ -338,25 +338,12 @@ unsigned long getTimeDifferenceMS(const FILETIME &st, const FILETIME &end)
  */
 DWORD WINAPI UpdateCaretPosition(LPVOID args)
 {
-	//Loop forever
-	//for (;;) {
-		/*if (isLogging)
-			fprintf(logFile, "Update caret called.\n");*/
-
 		HWND foreWnd = GetForegroundWindow();
 		if (IsWindowVisible(foreWnd)==TRUE) {
 			DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
 			if (AttachThreadInput(caretTrackThreadID, foreID, TRUE)) {
 				HWND focusWnd = GetFocus();
 				HWND activeWnd = GetActiveWindow();
-
-				//Debug
-				/*TCHAR wndTitle[200];
-				WINDOWINFO wndInfo;
-				GetWindowText(activeWnd, wndTitle, 200);
-				GetWindowInfo(activeWnd, &wndInfo);
-				if (isLogging)
-					fprintf(logFile, "  Active Window: %S (%i,%i)\n", wndTitle, wndInfo.rcWindow.right, wndInfo.rcWindow.bottom);*/
 
 				if (IsWindowVisible(focusWnd)) {
 					POINT mousePos;
@@ -376,13 +363,9 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 						caretLatestPosition.y -= WINDOW_HEIGHT;
 						caretLatestPosition.y -= (SUB_WINDOW_HEIGHT-caretHeight)/2;
 
-						//fprintf(logFile, "  x and y: (%i,%i)\n", caretLatestPosition.x, caretLatestPosition.y);
+
 					}
 
-					//We might have accidentally gained focus:
-					//SetForegroundWindow(foreWnd);
-					//SetActiveWindow(activeWnd);
-					//SetFocus(focusWnd);
 				}
 
 				//Finally
@@ -390,9 +373,6 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 			}
 		}
 
-		//Sleep until woken
-		//SuspendThread(caretTrackThread);
-	//}
 		return 0;
 }
 
@@ -702,9 +682,9 @@ void makeFont(HWND currHwnd)
 
 						//Is our font in error? If so, load the embedded font
 						if (mmFontBlack->isInError()==TRUE) {
-							TCHAR errorStr[600];
-							swprintf(errorStr, _T("Custom font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
-							MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+							wstringstream msg;
+							msg <<"Custom font didn't load correctly: " <<mmFontBlack->getErrorMsg();
+							MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 
 							validFont = false;
 							delete mmFontBlack;
@@ -745,10 +725,10 @@ void makeFont(HWND currHwnd)
 
 		//Is our embedded font in error?
 		if (mmFontBlack->isInError()==TRUE) {
-			TCHAR errorStr[600];
-			swprintf(errorStr, _T("WZ Font didn't load correctly: %s"), mmFontBlack->getErrorMsg());
+			wstringstream msg;
+			msg <<"WZ Font didn't load correctly: " <<mmFontBlack->getErrorMsg();
 
-			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -785,10 +765,10 @@ void makeFont(HWND currHwnd)
 		helpFntKeys = new PulpCoreFont();
 		helpFntKeys->init(fontRes, res_handle, helpDC);
 		if (helpFntKeys->isInError()==TRUE) {
-			TCHAR errorStr[600];
-			swprintf(errorStr, _T("WZ Help Font (keys) didn't load correctly: %s"), helpFntKeys->getErrorMsg());
+			wstringstream msg;
+			msg <<"WZ Help Font (keys) didn't load correctly: " <<helpFntKeys->getErrorMsg();
 
-			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -818,10 +798,10 @@ void makeFont(HWND currHwnd)
 		helpFntFore = new PulpCoreFont();
 		helpFntFore->init(fontRes, res_handle, helpDC);
 		if (helpFntFore->isInError()==TRUE) {
-			TCHAR errorStr[600];
-			swprintf(errorStr, _T("WZ Help Font (foreground) didn't load correctly: %s"), helpFntFore->getErrorMsg());
+			wstringstream msg;
+			msg <<"WZ Help Font (foreground) didn't load correctly: " <<helpFntFore->getErrorMsg();
 
-			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -851,10 +831,10 @@ void makeFont(HWND currHwnd)
 		helpFntBack = new PulpCoreFont();
 		helpFntBack->init(fontRes, res_handle, helpDC);
 		if (helpFntBack->isInError()==TRUE) {
-			TCHAR errorStr[600];
-			swprintf(errorStr, _T("WZ Help Font (background) didn't load correctly: %s"), helpFntBack->getErrorMsg());
+			wstringstream msg;
+			msg <<"WZ Help Font (background) didn't load correctly: " <<helpFntBack->getErrorMsg();
 
-			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -885,10 +865,10 @@ void makeFont(HWND currHwnd)
 		helpCornerImg = new PulpCoreImage();
 		helpCornerImg->init(imgRes, res_handle, helpDC);
 		if (helpCornerImg->isInError()==TRUE) {
-			TCHAR errorStr[600];
-			swprintf(errorStr, _T("WZ Corner Image File didn't load correctly: %s"), helpCornerImg->getErrorMsg());
+			wstringstream msg;
+			msg <<"WZ Corner Image File didn't load correctly: " <<helpCornerImg->getErrorMsg();
 
-			MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -933,9 +913,9 @@ void makeFont(HWND currHwnd)
 
 					//Is our font in error? If so, load the embedded font
 					if (mmFontSmallWhite->isInError()==TRUE) {
-						TCHAR errorStr[600];
-						swprintf(errorStr, _T("Custom (small) font didn't load correctly: %s"), mmFontSmallWhite->getErrorMsg());
-						MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+						wstringstream msg;
+						msg <<"Custom (small) font didn't load correctly: " <<mmFontSmallWhite->getErrorMsg();
+						MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 
 						validFont = false;
 						delete mmFontSmallWhite;
@@ -977,10 +957,10 @@ void makeFont(HWND currHwnd)
 
 	//Is our embedded font in error?
 	if (mmFontSmallWhite->isInError()==TRUE) {
-		TCHAR errorStr[600];
-		swprintf(errorStr, _T("WZ Small Font didn't load correctly: %s"), mmFontSmallWhite->getErrorMsg());
+		wstringstream msg;
+		msg <<"WZ Small Font didn't load correctly: " <<mmFontSmallWhite->getErrorMsg();
 
-		MessageBox(NULL, errorStr, _T("Error"), MB_ICONERROR | MB_OK);
+		MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 		return;
 	}
 
@@ -1662,9 +1642,9 @@ void switchToLanguage(bool toMM) {
 		nid.hIcon = engIcon;
 
 	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
-		TCHAR eTemp[200];
-		swprintf(eTemp, _T("Can't switch icon.\nError code: %x"), GetLastError());
-		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
+		wstringstream msg;
+		msg <<"Can't switch icon.\nError code: " <<GetLastError();
+		MessageBox(NULL, msg.str().c_str(), _T("Warning"), MB_ICONERROR | MB_OK);
 	}
 
 	//Any windows left?
@@ -1694,17 +1674,17 @@ void reBlitHelp()
 {
 	//Help Window
 	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
-		TCHAR msg[500];
-		swprintf(msg, _T("Help window failed to update: %i"), GetLastError());
-		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		wstringstream msg;
+		msg <<"Help window failed to update: " <<GetLastError();
+		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		DestroyWindow(mainWindow);
 	}
 
 	//Memory Window
 	if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
-		TCHAR msg[500];
-		swprintf(msg, _T("Memory window failed to update: %i"), GetLastError());
-		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		wstringstream msg;
+		msg <<"Memory window failed to update: " <<GetLastError();
+		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		DestroyWindow(mainWindow);
 	}
 }
@@ -1727,17 +1707,17 @@ void reBlitHelp(RECT blitArea)
 {
 	//Help Window
 	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
-		TCHAR msg[500];
-		swprintf(msg, _T("Help window failed to update: %i"), GetLastError());
-		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		wstringstream msg;
+		msg <<"Help window failed to update: " <<GetLastError();
+		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		DestroyWindow(mainWindow);
 	}
 
 	//Memory Window
 	if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
-		TCHAR msg[500];
-		swprintf(msg, _T("Memory window failed to update: %i"), GetLastError());
-		MessageBox(NULL, msg, _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		wstringstream msg;
+		msg <<"Memory window failed to update: " <<GetLastError();
+		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		DestroyWindow(mainWindow);
 	}
 }
@@ -3218,7 +3198,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle numbers
 			if (!helpWindowIsVisible) {
 				stopChar=0;
-				if (numCode>-1 || wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
+				if (numCode>-1 || wParam==HOTKEY_COMBINE || (wParam==HOTKEY_SHIFT_COMBINE&&mainWindowIsVisible)) {
 					if (mainWindowIsVisible) {
 						//Convert 1..0 to 0..9
 						if (--numCode<0)
