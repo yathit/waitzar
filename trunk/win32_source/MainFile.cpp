@@ -3437,14 +3437,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle our individual letter presses as hotkeys
 			if (helpWindowIsVisible) {
 				//Handle our help menu
-				wchar_t* nextBit = helpKeyboard->typeLetter(wParam);
-				if (nextBit != NULL) {
+				wstring nextBit = helpKeyboard->typeLetter(wParam);
+				if (!nextBit.empty()) {
 					//Valid letter
 					currStr += nextBit;
 					size_t len = currStr.length();
 
 					//Special cases
-					if (wcslen(nextBit)==1 && nextBit[0]==L'\u1039') {
+					if (nextBit.length()==1 && nextBit[0]==L'\u1039') {
 						//Combiner functions in reverse
 						if (len>1 && canStack(currStr[len-2])) {
 							currStr[len-1] = currStr[len-2];
@@ -3452,7 +3452,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						} else {
 							currStr.erase(currStr.length()-1); //Not standard behavior, but let's avoid bad combinations.
 						}
-					} else if (wcscmp(nextBit, L"\u1004\u103A\u1039")==0) {
+					} else if (nextBit == wstring(L"\u1004\u103A\u1039")) {
 						//Kinzi can be typed after the consonant instead of before it.
 						//For now, we only cover the general case of typing "kinzi" directly after a consonant
 						if (len>3 && canStack(currStr[len-4])) {

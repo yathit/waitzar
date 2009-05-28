@@ -554,11 +554,11 @@ int OnscreenKeyboard::getKeyID(UINT hkCode)
 
 
 
-wchar_t* OnscreenKeyboard::typeLetter(DWORD hotkeyCode)
+wstring OnscreenKeyboard::typeLetter(DWORD hotkeyCode)
 {
 	int id = getKeyID(hotkeyCode);
 	if (id==-1 || hide_for_help[id])
-		return NULL;
+		return L"";
 
 	//Special cases
 	if (typeableLetters[id]==0x0000) {
@@ -573,9 +573,9 @@ wchar_t* OnscreenKeyboard::typeLetter(DWORD hotkeyCode)
 		return NULL;
 	}
 
-	lstrcpy(typedString, L"1");
-	typedString[0] = typeableLetters[id];
-	return typedString;
+	wstring ret;
+	ret += typeableLetters[id];
+	return ret;
 }
 
 
@@ -628,20 +628,20 @@ PulpCoreImage* OnscreenKeyboard::makeButton(int width, int height, int bgARGB, i
 }
 
 
-void OnscreenKeyboard::addMemoryEntry(const wchar_t* my, const char* rom)
+void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string &rom)
 {
 	//Does the list contain this word?
-	for (std::list<std::pair<wchar_t*,char*> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
-		if (wcscmp((*keyItr).first, my)==0 && strcmp((*keyItr).second, rom)==0)
+	for (list< pair<wstring,string> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
+		if (keyItr.first==my && keyItr.second==rom)
 			return;
 	}
 
 	//Add the word to the end
-	wchar_t* newMy = new wchar_t[wcslen(my)];
-	char* newRom = new char[strlen(rom)];
-	wcscpy(newMy, my);
-	strcpy(newRom, rom);
-	memoryList.push_back(std::pair<wchar_t*,char*>(newMy, newRom));
+	//wchar_t* newMy = new wchar_t[wcslen(my)];
+	//char* newRom = new char[strlen(rom)];
+	//wcscpy(newMy, my);
+	//strcpy(newRom, rom);
+	memoryList.push_back(pair<wstring,string>(my, rom));
 
 	//Too many words?
 	if (memoryList.size()>getMaxMemoryEntries()) {
