@@ -287,7 +287,7 @@ bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 	return true;
 }
 
-int OnscreenKeyboard::getVirtualKeyID(UINT hotkeyCode)
+int OnscreenKeyboard::getVirtualKeyID(UINT hotkeyCode) const
 {
 	int id = getKeyID(hotkeyCode);
 	if (id>=61)
@@ -303,7 +303,7 @@ int OnscreenKeyboard::getVirtualKeyID(UINT hotkeyCode)
 //  with the supered keys from IDs 61 to 121.
 //We could just use isShifted() for the super keys, but we don't want to rely on our thread.
 //Also, some keys will never be used, like HOTKEY_SUPER_ENTER; we're just adding them for completeness.
-int OnscreenKeyboard::getKeyID(UINT hkCode)
+int OnscreenKeyboard::getKeyID(UINT hkCode) const
 {
 	switch (hkCode) 
 	{
@@ -659,27 +659,27 @@ void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string 
 }
 
 
-size_t OnscreenKeyboard::getMaxMemoryEntries() 
+size_t OnscreenKeyboard::getMaxMemoryEntries() const
 {
 	return this->memEntriesMax;
 }
 
-int OnscreenKeyboard::getWidth()
+int OnscreenKeyboard::getWidth() const
 {
 	return this->width;
 }
 
-int OnscreenKeyboard::getHeight()
+int OnscreenKeyboard::getHeight() const
 {
 	return this->height;
 }
 
-int OnscreenKeyboard::getMemoryWidth()
+int OnscreenKeyboard::getMemoryWidth() const
 {
 	return this->memWidth;
 }
 
-int OnscreenKeyboard::getMemoryHeight()
+int OnscreenKeyboard::getMemoryHeight() const
 {
 	return this->memHeight;
 }

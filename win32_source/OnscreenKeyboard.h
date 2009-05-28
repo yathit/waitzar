@@ -127,17 +127,17 @@ public:
 
 	void setMode(int newMode);
 
-	int getVirtualKeyID(UINT hotkeyCode);
+	int getVirtualKeyID(UINT hotkeyCode) const;
 
 	std::wstring typeLetter(DWORD hotkeyCode);
 
 	void addMemoryEntry(const std::wstring &my, const std::string &rom);
-	size_t getMaxMemoryEntries();
+	size_t getMaxMemoryEntries() const;
 
-	int getWidth();
-	int getHeight();
-	int getMemoryWidth();
-	int getMemoryHeight();
+	int getWidth() const;
+	int getHeight() const;
+	int getMemoryWidth() const;
+	int getMemoryHeight() const;
 
 private:
 	//Help window context & image
@@ -178,7 +178,6 @@ private:
 	int memEntriesYPlus;
 	int memEntriesMax;
 	int mode;
-	//wchar_t typedString[20]; //Temp
 
 	//Are we in a shifted state?
 	bool isShifted();
@@ -192,7 +191,7 @@ private:
 	void drawKey(key currKey, int keyID, bool isPressed);
 
 	//Helper
-	int getKeyID(UINT hkCode);
+	int getKeyID(UINT hkCode) const;
 
 
 };
