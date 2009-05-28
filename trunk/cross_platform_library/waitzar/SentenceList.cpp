@@ -127,18 +127,17 @@ bool SentenceList::deletePrev(WordBuilder *model)
 
 void SentenceList::updateTrigrams(WordBuilder *model)
 {
-	unsigned short trigram[3];
-	int trigram_count = 0;
+	std::vector<unsigned int> trigrams;
 	std::list<int>::iterator considered = cursor;
-	while (considered!=prevTypedWords.begin() && trigram_count<3) {
+	while (considered!=prevTypedWords.begin() && trigrams.size()<3) {
 		considered--;
 
 		if (*considered<0)
 			break;
 
-		trigram[trigram_count++] = *considered;
+		trigrams.push_back(*considered);
 	}
-	model->insertTrigram(trigram, trigram_count);
+	model->insertTrigram(trigrams);
 }
 
 

@@ -67,7 +67,7 @@ public:
 	int getCurrSelectedID() const;
 	std::vector<char> getPossibleChars() const;
 	std::vector<unsigned int> getPossibleWords() const;
-	void insertTrigram(unsigned short* trigram_ids, int num_used_trigrams);
+	void insertTrigram(const std::vector<unsigned int> &trigrams);
 
 	//Get information about a particular unsigned short given its ID
 	std::wstring getWordKeyStrokes(unsigned int id);
@@ -132,8 +132,9 @@ private:
 	std::vector<unsigned int> pastNexus;
 
 	//Tracking previous unsigned shorts
-	unsigned int trigram[3];
-	unsigned int trigramCount;
+	std::vector<unsigned int> trigrams;
+	//unsigned int trigram[3];
+	//unsigned int trigramCount;
 
 	//Tracking user selection
 	int currSelectedID;
@@ -165,6 +166,7 @@ private:
 	void addPrefix(unsigned int latestPrefix);
 	void setCurrSelected(int id);
 	void buildReverseLookup();
+	void addReverseLookupItem(int wordID, const std::string &roman);
 	unsigned int getWordID(const std::wstring &wordStr) const;
 
 };
