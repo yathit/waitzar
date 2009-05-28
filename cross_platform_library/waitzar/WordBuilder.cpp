@@ -530,10 +530,10 @@ bool WordBuilder::addShortcut(const wstring &baseWord, const wstring &toStack, c
 	//  namely, if baseWordID is the previous trigram entry, then resultStacked is the word of choice.
 	//There aren't many pat-sint words, so an ordered list of some sort (or, I guess, a map) should do the
 	// trick.
-	for (unsigned int toStackNexusID = 0; toStackNexusID<nexus.size(); toStackNexusID++) {
+	for (unsigned int toStackNexusID=0; toStackNexusID<nexus.size(); toStackNexusID++) {
 		//Is this nexus ID valid?
 		vector<unsigned int> &thisNexus = nexus[toStackNexusID];
-		int prefixID = 0;
+		unsigned int prefixID = 0;
 		bool considerThisNexus = false;
 		for (unsigned int x=0; x<thisNexus.size(); x++) {
 			//Is this the resolving letter?
@@ -542,11 +542,13 @@ bool WordBuilder::addShortcut(const wstring &baseWord, const wstring &toStack, c
 				continue;
 
 			//Ok, save it
-			prefixID = thisNexus[x]>>8;
+			prefixID = (thisNexus[x]>>8);
+			considerThisNexus = true;
 			break;
 		}
-		if (prefixID!=0) {
+		if (considerThisNexus) {
 			//Now, test this prefix to see if its base pair contains our word in question.
+			considerThisNexus = false;
 			vector<unsigned int>::iterator prefWord = prefix[prefixID].begin();
 			std::advance(prefWord, prefix[prefixID][0]*2+1);
 			for (; prefWord!=prefix[prefixID].end(); prefWord++) {
@@ -740,7 +742,7 @@ void WordBuilder::reset(bool fullReset)
 
 	//Full reset: remove all prefixes
 	if (fullReset)
-		this->trigramCount = 0;
+		this->trigrams.clear();
 }
 
 
@@ -817,8 +819,8 @@ void WordBuilder::resolveWords()
 
 	//Hop to the most informative and least informative prefixes
 	int highPrefix = lowestPrefix;
-	for (unsigned int i=0; i<trigramCount; i++) {
-		int newHigh = jumpToPrefix(highPrefix, trigram[i]);
+	for (unsigned int i=0; i<trigrams.size(); i++) {
+		int newHigh = jumpToPrefix(highPrefix, trigrams[i]);
 		if (newHigh==-1)
 			break;
 		highPrefix = newHigh;
@@ -841,9 +843,9 @@ void WordBuilder::resolveWords()
 	}
 
 	//Finally, check if this nexus and the previously-typed word lines up; if so, we have a "post" match
-	if (shortcuts.count(currNexus)>0 && trigramCount>0) {
-		if (shortcuts[currNexus].count(trigram[0])>0) {
-			postStr = getWordString(shortcuts[currNexus][trigram[0]]);
+	if (shortcuts.count(currNexus)>0 && trigrams.size()>0) {
+		if (shortcuts[currNexus].count(trigrams[0])>0) {
+			postStr = getWordString(shortcuts[currNexus][trigrams[0]]);
 		}
 	}
 
@@ -864,12 +866,11 @@ bool WordBuilder::vectorContains(const vector<unsigned int> &vec, unsigned int v
 void WordBuilder::addPrefix(unsigned int latestPrefix)
 {
 	//Latest prefixes go in the FRONT
-	trigram[2] = trigram[1];
-	trigram[1] = trigram[0];
-	trigram[0] = latestPrefix;
+	this->trigrams.insert(trigrams.begin(), latestPrefix);
 
-	if (trigramCount<3)
-		trigramCount++;
+	//Trim
+	while (this->trigrams.size()>3)
+		this->trigrams.pop_back();
 }
 
 
@@ -886,14 +887,16 @@ vector<unsigned int> WordBuilder::getPossibleWords() const
 /**
  * The trigram_ids is organized as [0,1,2], where "0" is the most recently-typed word.
  * In the event that no previous words are available (e.g., beginning of a sentence)
- *  set num_used_trigrams to 0. If a unigram/bigram is available, set it to 1 or 2.
+ *  send an empty vector (size==0). If a unigram/bigram is available, send one or two-element vectors
  */
-void WordBuilder::insertTrigram(unsigned short* trigram_ids, int num_used_trigrams)
+void WordBuilder::insertTrigram(const vector<unsigned int> &trigrams)
 {
-	trigramCount = num_used_trigrams;
-	for (size_t i=0; i<trigramCount; i++) {
-		this->trigram[i] = trigram_ids[i];
-	}
+	//Assign
+	this->trigrams = trigrams;
+
+	//Limit to 3 elements
+	while (this->trigrams.size()>3)
+		this->trigrams.pop_back();
 }
 
 
@@ -1016,14 +1019,13 @@ void WordBuilder::buildReverseLookup()
 	vector<string> nexiStrings(nexus.size(), string());
 
 	//Now, "walk" down our list of nexi, appending as we go.
-	char letter = 0x0;
 	while (!currNexi.empty()) {
 		//Deal with all nexi on this level.
 		for (size_t i=0; i<currNexi.size(); i++) {
 			const vector<unsigned int> &thisNexus = nexus[currNexi[i]];
 			for (unsigned int x=0; x<thisNexus.size(); x++) {
 				int jmpToID = thisNexus[x]>>8;
-				letter = (char)(0xFF&thisNexus[x]);
+				char letter = (char)(0xFF&thisNexus[x]);
 				if (letter != '~') {
 					nexiStrings[jmpToID] += nexiStrings[currNexi[i]];
 					nexiStrings[jmpToID] += letter;
@@ -1034,8 +1036,7 @@ void WordBuilder::buildReverseLookup()
 		}
 
 		//Prepare for the next level
-		currNexi.clear();
-		currNexi.insert(currNexi.end(), nextNexi.begin(), nextNexi.end());
+		currNexi = nextNexi;
 		nextNexi.clear();
 	}
 
@@ -1064,15 +1065,30 @@ void WordBuilder::buildReverseLookup()
 		std::advance(currWord, prefix[prefixID][0]*2+1);
 		for (; currWord!=prefix[prefixID].end(); currWord++) {
 			if (*currWord>=0 && *currWord<dictionary.size()) {
-				revLookup[*currWord] = string();
-				for (size_t q=0; q<nexiStrings[i].size(); q++)
-					revLookup[*currWord].push_back(nexiStrings[i][q]);
+				addReverseLookupItem(*currWord, nexiStrings[i]);
 			}
 		}
 	}
 
 	nexiStrings.clear();
 	revLookupOn = true;
+}
+
+
+//Add a word, avoid duplicate strings
+void WordBuilder::addReverseLookupItem(int wordID, const std::string &roman)
+{
+	for (size_t x=0; x<revLookup.size(); x++) {
+		if (revLookup[x] == roman) {
+			//For now, copy by value. However, this isolates changes so that an 
+			//  optimization is easy in the future if we want it.
+			revLookup[wordID] = revLookup[x];
+			return;
+		}
+	}
+
+	//Store by value
+	revLookup[wordID] = roman;
 }
 
 
@@ -1136,10 +1152,8 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 
 	//Update the reverse lookup?
 	if (revLookupOn) {
-		/*vector<char> newRoman;
-		for (size_t q=0; q<strlen(roman); q++) 
-			newRoman.push_back(roman[q]);*/
-		revLookup.push_back(roman);
+		revLookup.push_back(string());
+		addReverseLookupItem(revLookup.size()-1, roman);
 	}
 
 
