@@ -77,6 +77,7 @@ using namespace waitzar;
 using std::string;
 using std::wstring;
 using std::vector;
+using std::list;
 using std::pair;
 using std::wstringstream;
 
@@ -152,31 +153,33 @@ int numCustomWords;
 INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
-wchar_t returnVal[500];
-char* mywordsFileName = "mywords.txt";
+//wstring returnVal;
+string mywordsFileName = "mywords.txt";
 
 //For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
 int patSintIDModifier = 0;
 
 //Help Window resources
+//Leave as pointers for now.
 PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
 PulpCoreFont *helpFntMemory;
 PulpCoreImage *helpCornerImg;
 OnscreenKeyboard *helpKeyboard;
+
 BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 POINT PT_ORIGIN;
 HANDLE keyTrackThread;   //Handle to our thread
 DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
-std::list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked
+list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
-std::vector<wchar_t*> userDefinedWords; //Words the user types in. Stored with a negative +1 index
-std::vector<wchar_t*> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
+vector<wstring> userDefinedWords; //Words the user types in. Stored with a negative +1 index
+vector<wstring> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
 wstring userKeystrokeVector;
-const char* systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890"; //Special "words" used in our keyboard, like "(" and "`"
-std::vector< std::pair <int, unsigned short>* > systemWordLookup;
+const string systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890"; //Special "words" used in our keyboard, like "(" and "`"
+vector< pair <int, unsigned short> > systemWordLookup;
 
 //Special resources for tracking the caret
 HANDLE caretTrackThread;
@@ -511,7 +514,7 @@ bool testAllWordsByHand()
 
 void buildSystemWordLookup()
 {
-	for (size_t i=0; i<strlen(systemDefinedWords); i++) {
+	for (size_t i=0; i<systemDefinedWords.size(); i++) {
 		char c = systemDefinedWords[i];
 		int hotkey_id = 0;
 		switch (c) {
@@ -640,7 +643,7 @@ void buildSystemWordLookup()
 				break;
 		}
 
-		systemWordLookup.push_back(new std::pair<int, unsigned short>(hotkey_id, i));
+		systemWordLookup.push_back(pair<int, unsigned short>(hotkey_id, i));
 	}
 }
 
@@ -1038,7 +1041,7 @@ void readUserWords() {
 	//Read our words file, if it exists.
 	if (currTest != model_print) {
 		numCustomWords = -1;
-		FILE* userFile = fopen(mywordsFileName, "r");
+		FILE* userFile = fopen(mywordsFileName.c_str(), "r");
 		if (userFile != NULL) {
 			//Get file size
 			fseek (userFile, 0, SEEK_END);
@@ -1793,7 +1796,7 @@ void initCalculateHelp()
 }
 
 
-wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
+/*wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
 {
 	for (unsigned int i=0; i<keystrokes.size(); i++) {
 		returnVal[i] = keystrokes[i];
@@ -1801,7 +1804,7 @@ wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
 	returnVal[keystrokes.size()] = 0x0000;
 
 	return returnVal;
-}
+}*/
 
 
 
@@ -1858,7 +1861,7 @@ void recalculate()
 			if (*printIT>=0)
 				strToDraw = model.getWordString(*printIT);
 			else {
-				int numSystemWords = strlen(systemDefinedWords);
+				int numSystemWords = systemDefinedWords.size();
 				int id = -(*printIT)-1;
 				if (id<numSystemWords) {
 					strToDraw = systemDefinedWords[id];
@@ -2029,13 +2032,10 @@ void recalculate()
 wstring getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
 {
 	//Get the string
-	wchar_t *typedStr;
-	wchar_t destStr[200];
-	unsigned int numSystemDefWords = strlen(systemDefinedWords);
+	wstring typedStr;
+	unsigned int numSystemDefWords = systemDefinedWords.size();
 	if (id<numSystemDefWords) {
-		destStr[0] = systemDefinedWords[id];
-		destStr[1] = 0x0000;
-		typedStr = destStr;
+		typedStr = systemDefinedWords[id];
 	} else {
 		id -= numSystemDefWords;
 		if (encoding==ENCODING_UNICODE)
@@ -2043,16 +2043,16 @@ wstring getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
 		else if (encoding==ENCODING_ZAWGYI)
 			typedStr = userDefinedWordsZg[id];
 		else if (encoding==ENCODING_WININNWA) {
-			wchar_t* srcStr = userDefinedWords[id];
-			wcscpy(destStr, L"");
-			convertFont(destStr, srcStr, Zawgyi_One, WinInnwa);
+			wstring srcStr = userDefinedWords[id];
+			wchar_t destStr[200];
+			convertFont(destStr, srcStr.c_str(), Zawgyi_One, WinInnwa);
 			typedStr = destStr;
 		} else
 			typedStr = L"";
 	}
 
 	//Convert
-	size_t length = wcslen(typedStr);
+	size_t length = typedStr.length();
 	userKeystrokeVector.clear();
 	for (size_t i=0; i<length; i++)
 		userKeystrokeVector.push_back((unsigned short) typedStr[i]);
@@ -2123,10 +2123,10 @@ void typeCurrentPhrase()
 	patSintIDModifier = 0;
 	model.reset(true);
 	sentence->clear();
-	for (unsigned int i=0; i<userDefinedWords.size(); i++) {
+	/*for (unsigned int i=0; i<userDefinedWords.size(); i++) {
 		delete [] userDefinedWords[i];
 		delete [] userDefinedWordsZg[i];
-	}
+	}*/
 	userDefinedWords.clear();
 	userDefinedWordsZg.clear();
 
@@ -3303,7 +3303,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						waitzar::sortMyanmarString(tempStr);
 						userDefinedWords.push_back(tempStr);
 						userDefinedWordsZg.push_back(tempStrZg);
-						currStrDictID = -1*(strlen(systemDefinedWords)+userDefinedWords.size());
+						currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
 						
 						//Add it to the memory list
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
@@ -3369,7 +3369,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						waitzar::sortMyanmarString(tempStr);
 						userDefinedWords.push_back(tempStr);
 						userDefinedWordsZg.push_back(tempStrZg);
-						currStrDictID = -1*(strlen(systemDefinedWords)+userDefinedWords.size());
+						currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
 
 						//Add it to the memory list
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
@@ -3580,7 +3580,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (!helpWindowIsVisible && !mainWindowIsVisible && !keyWasUsed) {
 				int newID = -1;
 				for (size_t i=0; i<systemWordLookup.size(); i++) {
-					if (systemWordLookup[i]->first==numCode) {
+					if (systemWordLookup[i].first==numCode) {
 						newID = i;
 						break;
 					}
