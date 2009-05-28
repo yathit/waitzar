@@ -208,9 +208,9 @@ bool experimentalTextCursorTracking = true;
 bool dontLoadModel = false;
 bool allowNonBurmeseLetters = false;
 bool ignoreMywordsWarnings = false;
-unsigned int maxDictionaryEntries = 0;
-unsigned int maxNexusEntries = 0;
-unsigned int maxPrefixEntries = 0;
+//unsigned int maxDictionaryEntries = 0;
+//unsigned int maxNexusEntries = 0;
+//unsigned int maxPrefixEntries = 0;
 string fontFileRegular;
 string fontFileSmall;
 
@@ -1247,7 +1247,7 @@ void loadConfigOptions()
 			//Set it later
 			strcpy(langHotkeyRaw, value);
 			numConfigOptions++;
-		} else if (strcmp(name, "dictionarysize")==0) {
+		/*} else if (strcmp(name, "dictionarysize")==0) {
 			long val = atol(value);
 			if (val>=0 && val<UINT_MAX) {
 				maxDictionaryEntries = (unsigned int)val;
@@ -1264,7 +1264,7 @@ void loadConfigOptions()
 			if (val>=0 && val<UINT_MAX) {
 				maxPrefixEntries = (unsigned int)val;
 				numConfigOptions++;
-			}
+			}*/
 		} else if (strcmp(name, "fontfileregular")==0) {
 			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
 			} else {
@@ -1384,23 +1384,23 @@ bool loadModel() {
 	if (dontLoadModel) {
 		//For any of the "size" values that are set to "default", let's see
 		//   if we can come up with sensible defaults
-		if (maxDictionaryEntries==0)
+		/*if (maxDictionaryEntries==0)
 			maxDictionaryEntries = 3000; //WaitZar has only 2,400 words
 		if (maxNexusEntries==0)
 			maxNexusEntries = maxDictionaryEntries*2-maxDictionaryEntries/3; //Assume an even distribution of 3000 words of 5 letters each on 26 keys, then take 20% of this
 		if (maxPrefixEntries==0)
-			maxPrefixEntries = maxDictionaryEntries+maxDictionaryEntries/3; //Assume the same, and cut it by 5
+			maxPrefixEntries = maxDictionaryEntries+maxDictionaryEntries/3; //Assume the same, and cut it by 5*/
 
 		//Create our data structures
 		//In total, this uses 41KB of raw memory just for storing our skeleton, so
 		//  I estimate about 1MB of memory for actually storing the data.
 		//  That's a lot, but it's worth it so that people's custom mywords files don't crash randomly.
-		std::vector<std::wstring> dictionary;
-		std::vector< std::vector<unsigned int> > nexus;
-		std::vector< std::vector<unsigned int> >  prefix;
+		vector<wstring> dictionary;
+		vector< vector<unsigned int> > nexus;
+		vector< vector<unsigned int> >  prefix;
 
 		//Of all these, only nexus is assumed to have anything in it
-		nexus.push_back(std::vector<unsigned int>());
+		nexus.push_back(vector<unsigned int>());
 
 		//This should totally work :P (yes, I tested it rigorously)
 		model = WordBuilder(dictionary, nexus, prefix);

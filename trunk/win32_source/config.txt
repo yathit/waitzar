@@ -76,13 +76,6 @@ defaultencoding = unicode
 # If "yes", we do not load Myanmar.model, and instead only load words from mywords.txt
 ignoremodel = no
 
-#Settings for a custom dictionary
-# 0 = default
-# Anything else means make it that size
-dictionarysize = 0
-nexussize = 0
-prefixsize = 0
-
 
 # Can be set to "burmese" or "myanmar", which enables the "Help" feature and permits only MM letters
 # in our word file. Or, set to "any" to allow a mappying from roman to ANY letters. 
