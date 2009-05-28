@@ -183,7 +183,6 @@ namespace
 
 
 	//Useful global vars
-	wchar_t zawgyiStr[100];
 	FILE *wzUtilLogFile = NULL;
 
 	//A fun struct
@@ -859,8 +858,13 @@ void setLogFile(FILE *logFile)
 
 
 
-wchar_t* renderAsZawgyi(const wchar_t* uniString)
+wstring renderAsZawgyi(const wstring &uniString)
 {
+	//For now, just wrap a low-level data structure.
+	//  I want to re-write the entire algorithm to use
+	//  bitflags, so for now we'll just preserve the STL interface.
+	wchar_t zawgyiStr[100];
+
 	//Perform conversion
 	//Step 1: Determine which finals won't likely combine; add
 	// dashes beneath them.
@@ -869,7 +873,7 @@ wchar_t* renderAsZawgyi(const wchar_t* uniString)
 	int prevType = BF_OTHER;
 	int currType;
 	size_t destID = 0;
-	size_t length = wcslen(uniString);
+	size_t length = uniString.length();
 	for (size_t i=0; i<length; i++) {
 		//Get the current letter and type
 		currLetter = uniString[i];
@@ -1409,7 +1413,7 @@ wchar_t* renderAsZawgyi(const wchar_t* uniString)
 	}
 
 
-	return zawgyiStr;
+	return wstring(zawgyiStr);
 }
 
 
