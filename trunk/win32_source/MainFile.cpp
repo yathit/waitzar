@@ -136,12 +136,15 @@ HINSTANCE hInst;
 HICON mmIcon;
 HICON engIcon;
 WordBuilder model;
+
+//These need to be pointers, for now...
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
 PulpCoreFont *mmFontRed;
 PulpCoreFont *mmFontSmallWhite;
 PulpCoreFont *mmFontSmallGray;
 PulpCoreFont *mmFontSmallRed;
+
 PAINTSTRUCT Ps;
 WORD stopChar;
 int numConfigOptions;
@@ -2107,8 +2110,11 @@ void typeCurrentPhrase()
 
 
 	//Send all the keystrokes at once to avoid a weird bug with single-letter repetitions.
-	if(!SendInput(number_of_key_events,inputItems,sizeof(INPUT))) {
-		MessageBox(NULL, _T("Couldn't send input"), _T("Error"), MB_OK|MB_ICONERROR);
+	UINT numSent = SendInput(number_of_key_events,inputItems,sizeof(INPUT));
+	if(numSent!=number_of_key_events || number_of_key_events==0) {
+		wstringstream msg;
+		msg <<"Couldn't send input, only sent " <<numSent <<" of " <<number_of_key_events <<" events. Error code: " <<GetLastError();
+		MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_OK|MB_ICONERROR);
 	}
 
 
