@@ -78,6 +78,7 @@ using std::string;
 using std::wstring;
 using std::vector;
 using std::pair;
+using std::wstringstream;
 
 
 //Current version
@@ -90,34 +91,34 @@ const wstring POPUP_WIN = L"Win Innwa";
 const wstring POPUP_LOOKUP = L"&Look Up Word (F1)";
 
 //Prototypes
-BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase);
-BOOL turnOnControlkeys(BOOL on);
-BOOL turnOnNumberkeys(BOOL on);
-BOOL turnOnPunctuationkeys(BOOL on);
+bool turnOnHotkeys(bool on, bool affectLowercase, bool affectUppercase);
+bool turnOnControlkeys(bool on);
+bool turnOnNumberkeys(bool on);
+bool turnOnPunctuationkeys(bool on);
 bool turnOnExtendedKeys(bool on); //"Help keys"
 bool turnOnHelpKeys(bool on); //Reduced to contain only the shift key
-void switchToLanguage(BOOL toMM);
-BOOL loadModel(HINSTANCE hInst);
+void switchToLanguage(bool toMM);
+bool loadModel(HINSTANCE hInst);
 
 //Better support for dragging
 bool isDragging;
 POINT dragFrom;
 
 //Unique IDs
-#define LANG_HOTKEY 142
-#define STATUS_NID 144
+const unsigned int LANG_HOTKEY = 142;
+const unsigned int STATUS_NID = 144;
 
 //Custom message IDs
-#define UWM_SYSTRAY    (WM_USER + 1)
-#define UWM_HOTKEY_UP  (WM_USER + 2)
+const unsigned int UWM_SYSTRAY = WM_USER+1;
+const unsigned int UWM_HOTKEY_UP = WM_USER+2;
 
 //Grr... notepad...
-#define UNICOD_BOM 0xFEFF
-#define BACKWARDS_BOM 0xFFFE
+const unsigned int UNICOD_BOM = 0xFEFF;
+const unsigned int BACKWARDS_BOM = 0xFFFE;
 
 //Font conversion
-int cachedEncoding;
-TCHAR currEncStr[10];
+wstring currEncStr;
+ENCODING mostRecentEncoding = ENCODING_UNICODE;
 
 //Brushes & Pens
 HBRUSH g_WhiteBkgrd;
@@ -134,7 +135,7 @@ HPEN g_EmptyPen;
 HINSTANCE hInst;
 HICON mmIcon;
 HICON engIcon;
-WordBuilder *model;
+WordBuilder model;
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
 PulpCoreFont *mmFontRed;
@@ -240,10 +241,10 @@ TCHAR currStr[100];
 TCHAR currStrZg[100];
 int currStrDictID;
 TCHAR currLetterSt[100];
-BOOL mmOn;
-BOOL controlKeysOn = FALSE;
-BOOL numberKeysOn = FALSE;
-BOOL punctuationKeysOn = FALSE;
+bool mmOn;
+bool controlKeysOn = false;
+bool numberKeysOn = false;
+bool punctuationKeysOn = false;
 bool extendedKeysOn = false;
 bool helpKeysOn = false;
 SentenceList *sentence;
@@ -464,7 +465,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 bool testAllWordsByHand() 
 {
 	//First, ensure that the reverse-lookup is ready
-	model->reverseLookupWord(0);
+	model.reverseLookupWord(0);
 
 	//Time
 	GetSystemTimeAsFileTime(&startTime);
@@ -473,23 +474,23 @@ bool testAllWordsByHand()
 	string revWord;
 	for (unsigned int wordID=0; ; wordID++) {
 		//Check
-		revWord=model->reverseLookupWord(wordID);
+		revWord=model.reverseLookupWord(wordID);
 		if (revWord.empty())
 			break;
 
 		//Type this
-		model->reset(false);
+		model.reset(false);
 		for (string::iterator rom = revWord.begin(); rom!=revWord.end(); rom++) {
 			//Just check that our romanisation is stored properly.
-			if (!model->typeLetter(*rom))
+			if (!model.typeLetter(*rom))
 				return false;
 		}
 
 		//Test "output" it
-		std::pair<bool, unsigned int> ret = model->typeSpace(-1);
+		std::pair<bool, unsigned int> ret = model.typeSpace(-1);
 		if (!ret.first)
 			return false;
-		model->getWordKeyStrokes(ret.second);
+		model.getWordKeyStrokes(ret.second);
 	}
 
 
@@ -1082,8 +1083,8 @@ void readUserWords() {
 					continue;
 
 				//Add this romanization
-				if (!model->addRomanization(name, value) && !ignoreMywordsWarnings) {
-					MessageBox(NULL, model->getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
+				if (!model.addRomanization(name, value) && !ignoreMywordsWarnings) {
+					MessageBox(NULL, model.getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
 				}
 				numCustomWords++;
 			}
@@ -1108,18 +1109,15 @@ void readUserWords() {
 void setEncoding(ENCODING encoding)
 {
 	if (encoding==ENCODING_WININNWA)
-		lstrcpy(currEncStr, _T("WI"));
+		currEncStr = L"WI";
 	else if (encoding==ENCODING_ZAWGYI)
-		lstrcpy(currEncStr, _T("ZG"));
+		currEncStr = L"ZG";
 	else if (encoding==ENCODING_UNICODE)
-		lstrcpy(currEncStr, _T("UNI"));
+		currEncStr = L"UNI";
 
-	if (model==NULL)
-		cachedEncoding = encoding;
-	else {
-		model->setOutputEncoding(encoding);
-		cachedEncoding = -1;
-	}
+	//Set this encoding, and save its value (in case we haven't loaded the model yet)
+	mostRecentEncoding = encoding;
+	model.setOutputEncoding(encoding);
 }
 
 
@@ -1380,7 +1378,7 @@ BOOL registerInitialHotkey()
 /**
  * Load the Wait Zar language model.
  */
-BOOL loadModel() {
+bool loadModel() {
 	//Load our embedded resource, the WaitZar model
 	HGLOBAL     res_handle = NULL;
 	HRSRC       res;
@@ -1416,25 +1414,25 @@ BOOL loadModel() {
 		nexus.push_back(std::vector<unsigned int>());
 
 		//This should totally work :P (yes, I tested it rigorously)
-		model = new WordBuilder(dictionary, nexus, prefix);
+		model = WordBuilder(dictionary, nexus, prefix);
 	} else {
 		{
 			//Load the resource as a byte array and get its size, etc.
 			res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
 			if (!res) {
 				MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-				return FALSE;
+				return false;
 			}
 			res_handle = LoadResource(NULL, res);
 			if (!res_handle) {
 				MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-				return FALSE;
+				return false;
 			}
 			res_data = (char*)LockResource(res_handle);
 			res_size = SizeofResource(NULL, res);
 
 			//Save our "model"
-			model = new WordBuilder(res_data, res_size, (allowNonBurmeseLetters==TRUE));
+			model = WordBuilder(res_data, res_size, (allowNonBurmeseLetters==TRUE));
 
 			//Done - This shouldn't matter, though, since the process only
 			//       accesses it once and, fortunately, this is not an external file.
@@ -1448,12 +1446,12 @@ BOOL loadModel() {
 			res = FindResource(hInst, MAKEINTRESOURCE(WZ_EASYPS), _T("Model"));
 			if (!res) {
 				MessageBox(NULL, _T("Couldn't find WZ_EASYPS"), _T("Error"), MB_ICONERROR | MB_OK);
-				return FALSE;
+				return false;
 			}
 			res_handle = LoadResource(NULL, res);
 			if (!res_handle) {
 				MessageBox(NULL, _T("Couldn't get a handle on WZ_EASYPS"), _T("Error"), MB_ICONERROR | MB_OK);
-				return FALSE;
+				return false;
 			}
 			res_data = (char*)LockResource(res_handle);
 			res_size = SizeofResource(NULL, res);
@@ -1534,14 +1532,14 @@ BOOL loadModel() {
 				//Do we have anything?
 				if (wcslen(post)!=0 && wcslen(curr)!=0 && wcslen(pre)!=0) {
 					//Ok, process these strings and store them
-					if (!model->addShortcut(pre, curr, post)) {
+					if (!model.addShortcut(pre, curr, post)) {
 						if (!inError)
-							MessageBox(NULL, model->getLastError().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+							MessageBox(NULL, model.getLastError().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 						inError = true;
 
 						if (isLogging) {
-							for (size_t q=0; q<model->getLastError().size(); q++)
-								fprintf(logFile, "%c", model->getLastError()[q]);
+							for (size_t q=0; q<model.getLastError().size(); q++)
+								fprintf(logFile, "%c", model.getLastError()[q]);
 							fprintf(logFile, "\n  pre: ");
 							for (unsigned int x=0; x<wcslen(pre); x++)
 								fprintf(logFile, "U+%x ", pre[x]);
@@ -1562,7 +1560,7 @@ BOOL loadModel() {
 			}
 
 			if (inError)
-				return FALSE;
+				return false;
 
 			//Free memory
 			delete [] uniData;
@@ -1574,10 +1572,10 @@ BOOL loadModel() {
 	}
 
 	//One final check
-	if (model->isInError())
-		return FALSE;
+	if (model.isInError())
+		return false;
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1596,34 +1594,34 @@ void ShowBothWindows(int cmdShow)
 
 
 
-void switchToLanguage(BOOL toMM) {
+void switchToLanguage(bool toMM) {
 	//Don't do anything if we are switching to the SAME language.
 	if (toMM == mmOn)
 		return;
 
 	//Ok, switch
-	BOOL res;
-	if (toMM==TRUE) {
-		res = turnOnHotkeys(TRUE, true, true) && turnOnPunctuationkeys(TRUE);
+	bool res;
+	if (toMM) {
+		res = turnOnHotkeys(true, true, true) && turnOnPunctuationkeys(true);
 		//if (typeBurmeseNumbers==TRUE)
-		res = turnOnNumberkeys(TRUE) && res; //JUST numbers, not control.
+		res = turnOnNumberkeys(true) && res; //JUST numbers, not control.
 
 		//Turno on our extended key set, too, to capture things like "("
 		res = turnOnExtendedKeys(true) && res;
 
 		//Register our help key too
 		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
-			res = FALSE;
+			res = false;
 	} else {
-		res = turnOnHotkeys(FALSE, true, true);
+		res = turnOnHotkeys(false, true, true);
 
 		//It's possible we still have some hotkeys left on...
-		if (controlKeysOn == TRUE)
-			turnOnControlkeys(FALSE);
-		if (numberKeysOn == TRUE)
-			turnOnNumberkeys(FALSE);
-		if (punctuationKeysOn == TRUE)
-			turnOnPunctuationkeys(FALSE);
+		if (controlKeysOn)
+			turnOnControlkeys(false);
+		if (numberKeysOn)
+			turnOnNumberkeys(false);
+		if (punctuationKeysOn)
+			turnOnPunctuationkeys(false);
 		if (extendedKeysOn)
 			turnOnExtendedKeys(false);
 		if (helpKeysOn)
@@ -1631,11 +1629,11 @@ void switchToLanguage(BOOL toMM) {
 
 		//Turn off our help key
 		if (UnregisterHotKey(mainWindow, HOTKEY_HELP)==FALSE)
-			res = FALSE;
+			res = false;
 	}
 
 	//Any errors?
-	if (res==FALSE)
+	if (!res)
 		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
 
 	//Switch to our target language.
@@ -1661,7 +1659,7 @@ void switchToLanguage(BOOL toMM) {
 	}
 
 	//Any windows left?
-	if (mmOn==FALSE) {
+	if (!mmOn) {
 		ShowBothWindows(SW_HIDE);
 
 		if (helpWindowIsVisible) {
@@ -1812,15 +1810,15 @@ void recalculate()
 {
 	//First things first: can we fit this in the current background?
 	int cumulativeWidth = (borderWidth+1)*2;
-	std::vector<UINT32> words =  model->getPossibleWords();
+	std::vector<UINT32> words =  model.getPossibleWords();
 	for (size_t i=0; i<words.size(); i++) {
-		cumulativeWidth += mmFontBlack->getStringWidth(model->getWordString(words[i]));
+		cumulativeWidth += mmFontBlack->getStringWidth(model.getWordString(words[i]));
 		cumulativeWidth += spaceWidth;
 	}
 
 	//Extra width for pat-sint suggestion?
-	if (model->hasPostStr()) {
-		cumulativeWidth += mmFontBlack->getStringWidth(model->getPostString());
+	if (model.hasPostStr()) {
+		cumulativeWidth += mmFontBlack->getStringWidth(model.getPostString());
 		cumulativeWidth += spaceWidth;
 	}
 
@@ -1855,7 +1853,7 @@ void recalculate()
 			wstring strToDraw;
 			PulpCoreFont* colorFont = mmFontSmallWhite;
 			if (*printIT>=0)
-				strToDraw = model->getWordString(*printIT);
+				strToDraw = model.getWordString(*printIT);
 			else {
 				int numSystemWords = strlen(systemDefinedWords);
 				int id = -(*printIT)-1;
@@ -1864,10 +1862,10 @@ void recalculate()
 				} else
 					strToDraw = userDefinedWordsZg[id-numSystemWords];
 			}
-			if (countup++ == sentence->getCursorIndex() && model->hasPostStr() && patSintIDModifier==-1) {
+			if (countup++ == sentence->getCursorIndex() && model.hasPostStr() && patSintIDModifier==-1) {
 				colorFont = mmFontSmallRed;
 				if (patSintIDModifier==-1)
-					strToDraw = model->getPostString();
+					strToDraw = model.getPostString();
 			}
 			colorFont->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
 			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
@@ -1913,9 +1911,9 @@ void recalculate()
 
 		//We only have one word: the guessed romanisation
 		currStrDictID = -1;
-		for (unsigned int i=0; i<model->getTotalDefinedWords(); i++) {
+		for (unsigned int i=0; i<model.getTotalDefinedWords(); i++) {
 			//Does this word match?
-			wstring currWord = model->getWordString(i);
+			wstring currWord = model.getWordString(i);
 			if (wcscmp(currWord.c_str(), extendedWordString)==0) {
 				wcscpy(currLetterSt, currWord.c_str());
 				currStrDictID = i;
@@ -1941,7 +1939,7 @@ void recalculate()
 
 		//Any match at all?
 		if (currStrDictID!=-1) {
-			string romanWord = model->reverseLookupWord(currStrDictID);
+			string romanWord = model.reverseLookupWord(currStrDictID);
 
 			currLetterSt[0] = L'(';
 			for (size_t q=0; q<romanWord.size(); q++)
@@ -1956,16 +1954,16 @@ void recalculate()
 		mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 	} else if (mainWindowIsVisible) { //Crashes otherwise
 		//Add the post-processed word, if it exists...
-		int mySelectedID = ((int)model->getCurrSelectedID()) + patSintIDModifier;
-		if (model->hasPostStr()) {
-			words.insert(words.begin(), model->getPostID());
+		int mySelectedID = ((int)model.getCurrSelectedID()) + patSintIDModifier;
+		if (model.hasPostStr()) {
+			words.insert(words.begin(), model.getPostID());
 			mySelectedID++;
 		}
 
 		for (size_t i=0; i<words.size(); i++) {
 			//If this is the currently-selected word, draw a box under it.
 			//int x = words[i];
-			int thisStrWidth = mmFont->getStringWidth(model->getWordString(words[i]));
+			int thisStrWidth = mmFont->getStringWidth(model.getWordString(words[i]));
 			if (i!=mySelectedID)
 				mmFont = mmFontBlack;
 			else {
@@ -1979,13 +1977,13 @@ void recalculate()
 			//Fix the pen if this is a post word
 			// Also, fix the ID
 			int wordID = (int)i;
-			if (model->hasPostStr()) {
+			if (model.hasPostStr()) {
 				wordID--;
 				if (i==0)
 					mmFont = mmFontRed;
 			}
 
-			mmFont->drawString(mainUnderDC, model->getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
+			mmFont->drawString(mainUnderDC, model.getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 			if (wordID<10) {
 				if (wordID>=0)
@@ -2009,7 +2007,7 @@ void recalculate()
 	}
 
 	if (!helpWindowIsVisible) {
-		wstring parenStr = model->getParenString();
+		wstring parenStr = model.getParenString();
 		if (!parenStr.empty()) {
 			swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr.c_str());
 		} else {
@@ -2080,9 +2078,9 @@ void typeCurrentPhrase()
 		//We may or may not have a half/full stop at the end.
 		if (printIT!=sentence->end()) {
 			if (*printIT>=0)
-				keyStrokes = model->getWordKeyStrokes(*printIT);
+				keyStrokes = model.getWordKeyStrokes(*printIT);
 			else {
-				keyStrokes = getUserWordKeyStrokes(-(*printIT)-1, model->getOutputEncoding());
+				keyStrokes = getUserWordKeyStrokes(-(*printIT)-1, model.getOutputEncoding());
 			}
 		} else {
 			keyStrokes.clear();
@@ -2117,7 +2115,7 @@ void typeCurrentPhrase()
 
 	//Now, reset...
 	patSintIDModifier = 0;
-	model->reset(true);
+	model.reset(true);
 	sentence->clear();
 	for (unsigned int i=0; i<userDefinedWords.size(); i++) {
 		delete [] userDefinedWords[i];
@@ -2131,7 +2129,7 @@ void typeCurrentPhrase()
 	//  that the window isn't visible. So check this.
 	if (controlKeysOn) {
 		//Turn off control keys
-		turnOnControlkeys(FALSE);
+		turnOnControlkeys(false);
 
 		//Hide the window(s)
 		ShowBothWindows(SW_HIDE);
@@ -2147,12 +2145,12 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	if (!indexNegativeEntries) {
 		//One last check: are we doing a pat-sint shortcut?
 		if (patSintIDModifier==-1) {
-			if (!model->hasPostStr())
+			if (!model.hasPostStr())
 				return FALSE;
-			wordID = model->getPostID();
+			wordID = model.getPostID();
 		} else {
 			//Ok, look it up in the model as usual
-			std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
+			std::pair<BOOL, UINT32> typedVal = model.typeSpace(id);
 			if (typedVal.first == FALSE)
 				return FALSE;
 			wordID = typedVal.second;
@@ -2170,7 +2168,7 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	} else {
 		//Pat-sint clears the previous word
 		if (patSintIDModifier==-1)
-			sentence->deletePrev(*model);
+			sentence->deletePrev(model);
 
 		//Advanced Case - Insert
 		sentence->insert(wordID);
@@ -2194,13 +2192,13 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);
 
 			//Change the text of our dialog box
-			TCHAR line1Txt[200];
-			swprintf(line1Txt, _T("WaitZar version %s - for the latest news, visit "), WAIT_ZAR_VERSION.c_str());
-			SetWindowText(GetDlgItem(hwnd, ID_HELP_L1), line1Txt);
+			wstringstream txt;
+			txt << "WaitZar version " <<WAIT_ZAR_VERSION <<" - for the latest news, visit ";
+			SetWindowText(GetDlgItem(hwnd, ID_HELP_L1), txt.str().c_str());
 
-			TCHAR line2Txt[200];
-			swprintf(line2Txt, _T("%s - Switch between Myanmar and English"), langHotkeyString);
-			SetWindowText(GetDlgItem(hwnd, ID_HELP_L2), line2Txt);
+			txt.str(L"");
+			txt <<langHotkeyString <<" - Switch between Myanmar and English";
+			SetWindowText(GetDlgItem(hwnd, ID_HELP_L2), txt.str().c_str());
 
 			//Convert hyperlinks
 			ConvertStaticToHyperlink(hwnd, ID_HELP_H1);
@@ -2776,7 +2774,7 @@ void updateHelpWindow()
 			MEMORY_CLIENT_SIZE.cy = newHMem;
 
 			//Might as well build the reverse lookup
-			model->reverseLookupWord(0);
+			model.reverseLookupWord(0);
 
 			//...and now we can properly initialize its drawing surface
 			helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
@@ -2788,8 +2786,8 @@ void updateHelpWindow()
 
 		//Register all hotkeys relevant for the help window
 		bool res = true;
-		if (controlKeysOn==FALSE) //We'll need these too.
-			res = (turnOnControlkeys(TRUE)==TRUE);
+		if (!controlKeysOn) //We'll need these too.
+			res = turnOnControlkeys(true);
 		if (!turnOnHelpKeys(true) || !res)
 			MessageBox(mainWindow, _T("Could not turn on the shift/control hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
 
@@ -2797,7 +2795,7 @@ void updateHelpWindow()
 		//Clear our current word (not the sentence, though, and keep the trigrams)
 		lstrcpy(currStr, _T(""));
 		patSintIDModifier = 0;
-		model->reset(false);
+		model.reset(false);
 		recalculate();
 
 		//Show the help window
@@ -2946,15 +2944,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle our main language hotkey
 			if(wParam == LANG_HOTKEY) {
 				//Switch language
-				if (mmOn==TRUE)
-					switchToLanguage(FALSE);
+				if (mmOn)
+					switchToLanguage(false);
 				else
-					switchToLanguage(TRUE);
+					switchToLanguage(true);
 
 				//Reset the model
 				sentence->clear();
 				patSintIDModifier = 0;
-				model->reset(true);
+				model.reset(true);
 
 				keyWasUsed = true;
 			}
@@ -3038,12 +3036,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Kill the entire sentence.
 						sentence->clear();
 						patSintIDModifier = 0;
-						model->reset(true);
-						turnOnControlkeys(FALSE);
+						model.reset(true);
+						turnOnControlkeys(false);
 						ShowBothWindows(SW_HIDE);
 					} else {
 						patSintIDModifier = 0;
-						model->reset(false);
+						model.reset(false);
 
 						//No more numbers
 						//if (typeBurmeseNumbers==FALSE)
@@ -3052,7 +3050,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Are we using advanced input?
 						if (typePhrases==FALSE) {
 							//Turn off control keys
-							turnOnControlkeys(FALSE);
+							turnOnControlkeys(false);
 							ShowBothWindows(SW_HIDE);
 						} else {
 							//Just hide the typing window for now.
@@ -3063,7 +3061,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								//Kill the entire sentence.
 								sentence->clear();
 								ShowBothWindows(SW_HIDE);
-								turnOnControlkeys(FALSE);
+								turnOnControlkeys(false);
 							} else
 								recalculate();
 						}
@@ -3088,7 +3086,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (sentence->size()==0) {
 							//Kill the entire sentence.
 							sentence->clear();
-							turnOnControlkeys(FALSE);
+							turnOnControlkeys(false);
 							ShowBothWindows(SW_HIDE);
 						}
 					}
@@ -3109,16 +3107,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else {
 					if (!mainWindowIsVisible) {
 						//Delete the previous word
-						if (sentence->deletePrev(*model))
+						if (sentence->deletePrev(model))
 							recalculate();
 						if (sentence->size()==0) {
 							//Kill the entire sentence.
 							sentence->clear();
-							turnOnControlkeys(FALSE);
+							turnOnControlkeys(false);
 							ShowBothWindows(SW_HIDE);
 						}
 					} else {
-						if (model->backspace()) {
+						if (model.backspace()) {
 							//Truncate...
 							currStr[lstrlen(currStr)-1] = 0;
 							recalculate();
@@ -3130,7 +3128,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							//Are we using advanced input?
 							if (typePhrases==FALSE) {
 								//Turn off control keys
-								turnOnControlkeys(FALSE);
+								turnOnControlkeys(false);
 
 								ShowBothWindows(SW_HIDE);
 							} else {
@@ -3141,7 +3139,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								if (sentence->size()==0) {
 									//Kill the entire sentence.
 									sentence->clear();
-									turnOnControlkeys(FALSE);
+									turnOnControlkeys(false);
 
 									ShowWindow(senWindow, SW_HIDE);
 									subWindowIsVisible = false;
@@ -3167,11 +3165,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (patSintIDModifier==-1) {
 							patSintIDModifier = 0;
 							recalculate();
-						} else if (model->moveRight(1) == TRUE)
+						} else if (model.moveRight(1) == TRUE)
 							recalculate();
 					} else {
 						//Move right/left within the current phrase.
-						if (sentence->moveCursorRight(1, *model))
+						if (sentence->moveCursorRight(1, model))
 							recalculate();
 					}
 				}
@@ -3184,16 +3182,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				} else {
 					if (mainWindowIsVisible) {
-						if (model->moveRight(-1) == TRUE)
+						if (model.moveRight(-1) == TRUE)
 							recalculate();
-						else if (model->hasPostStr() && patSintIDModifier==0) {
+						else if (model.hasPostStr() && patSintIDModifier==0) {
 							//Move left to our "pat-sint shortcut"
 							patSintIDModifier = -1;
 							recalculate();
 						}
 					} else {
 						//Move right/left within the current phrase.
-						if (sentence->moveCursorRight(-1, *model))
+						if (sentence->moveCursorRight(-1, model))
 							recalculate();
 					}
 				}
@@ -3232,7 +3230,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 							lstrcpy(currStr, _T(""));
 							patSintIDModifier = 0;
-							model->reset(false);
+							model.reset(false);
 							recalculate();
 						}
 
@@ -3245,11 +3243,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						} else {
 							//Just type that number directly.
 							sentence->insert(numCode);
-							sentence->moveCursorRight(0, true, *model);
+							sentence->moveCursorRight(0, true, model);
 
 							//Is our window even visible?
 							if (!subWindowIsVisible) {
-								turnOnControlkeys(TRUE);
+								turnOnControlkeys(true);
 
 								ShowWindow(senWindow, SW_SHOW);
 								subWindowIsVisible = true;
@@ -3266,7 +3264,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle Half-stop/Full-stop
 			if (wParam==HOTKEY_COMMA || wParam==HOTKEY_PERIOD) {
-				stopChar = model->getStopCharacter((wParam==HOTKEY_PERIOD));
+				stopChar = model.getStopCharacter((wParam==HOTKEY_PERIOD));
 				if (helpWindowIsVisible) {
 					//Possibly do nothing...
 					//ADD LATER
@@ -3305,7 +3303,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
 					} else {
 						//Add it to the memory list
-						string revWord = model->reverseLookupWord(currStrDictID);
+						string revWord = model.reverseLookupWord(currStrDictID);
 						helpKeyboard->addMemoryEntry(currStrZg, revWord.c_str());
 					}
 
@@ -3322,13 +3320,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						mainWindowIsVisible = false;
 
 						patSintIDModifier = 0;
-						model->reset(false);
+						model.reset(false);
 						lstrcpy(currStr, _T(""));
 						recalculate();
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(*model);
+					sentence->updateTrigrams(model);
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
@@ -3340,7 +3338,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 							lstrcpy(currStr, _T(""));
 							patSintIDModifier = 0;
-							model->reset(false);
+							model.reset(false);
 							recalculate();
 						}
 					} else {
@@ -3371,7 +3369,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
 					} else {
 						//Add it to the memory list
-						string revWord = model->reverseLookupWord(currStrDictID);
+						string revWord = model.reverseLookupWord(currStrDictID);
 						helpKeyboard->addMemoryEntry(currStrZg, revWord.c_str());
 					}
 
@@ -3388,13 +3386,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						mainWindowIsVisible = false;
 
 						patSintIDModifier = 0;
-						model->reset(false);
+						model.reset(false);
 						lstrcpy(currStr, _T(""));
 						recalculate();
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(*model);
+					sentence->updateTrigrams(model);
 
 					keyWasUsed = true;
 				} else {
@@ -3407,7 +3405,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							mainWindowIsVisible = false;
 
 							patSintIDModifier = 0;
-							model->reset(false);
+							model.reset(false);
 							lstrcpy(currStr, _T(""));
 							recalculate();
 						}
@@ -3419,7 +3417,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Hopefully this won't confuse users so much.
 						if (wParam==HOTKEY_SPACE) {
 							if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
-								sentence->moveCursorRight(1, *model);
+								sentence->moveCursorRight(1, model);
 								recalculate();
 							} else {
 								//Type the entire sentence
@@ -3490,7 +3488,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW)
 					{
 						//Run this keypress into the model. Accomplish anything?
-						if (!model->typeLetter(keyCode))
+						if (!model.typeLetter(keyCode))
 							break;
 
 						//Is this the first keypress of a romanized word? If so, the window is not visible...
@@ -3501,8 +3499,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							//recalculate();
 
 							//Optionally turn on numerals
-							if (numberKeysOn==FALSE)
-								turnOnNumberkeys(TRUE);
+							if (!numberKeysOn)
+								turnOnNumberkeys(true);
 
 							//TEST: Re-position it
 							//TEST: Use AttachThredInput? Yes!
@@ -3546,7 +3544,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							//Show it
 							if (typePhrases==FALSE || !subWindowIsVisible) {
 								//Turn on control keys
-								turnOnControlkeys(TRUE);
+								turnOnControlkeys(true);
 								ShowBothWindows(SW_SHOW);
 							} else {
 								ShowWindow(mainWindow, SW_SHOW);
@@ -3595,7 +3593,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//lstrcpy(currStr, _T(""));
 
 						if (!subWindowIsVisible) {
-							turnOnControlkeys(TRUE);
+							turnOnControlkeys(true);
 
 							ShowWindow(senWindow, SW_SHOW);
 							subWindowIsVisible = true;
@@ -3605,7 +3603,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(*model);
+					sentence->updateTrigrams(model);
 				}
 			}
 
@@ -3688,9 +3686,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ModifyMenu(hmenu, IDM_MYANMAR, MF_BYCOMMAND|flagM, IDM_MYANMAR, temp);
 
 				//Set checks for our sub-menus:
-				UINT flagU = model->getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
-				UINT flagZ = model->getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
-				UINT flagW = model->getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
+				UINT flagU = model.getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
+				UINT flagZ = model.getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
+				UINT flagW = model.getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
 				ModifyMenu(hmenu, ID_ENCODING_UNICODE5, MF_BYCOMMAND|flagU, ID_ENCODING_UNICODE5, POPUP_UNI.c_str());
 				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG.c_str());
 				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN.c_str());
@@ -3713,9 +3711,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                  NULL);            //MSDN: Ignored
 				if (retVal == IDM_HELP) {
 					//Properly handle hotkeys
-					BOOL refreshControl = controlKeysOn;
-					if  (refreshControl==TRUE)
-						turnOnControlkeys(FALSE);
+					bool refreshControl = controlKeysOn;
+					if  (refreshControl==true)
+						turnOnControlkeys(false);
 
 					//Show our box
 					//TCHAR temp[550];
@@ -3726,26 +3724,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_HELP), hwnd, HelpDlgProc);
 
 					//Hotkeys again
-					if  (refreshControl==TRUE)
-						turnOnControlkeys(TRUE);
+					if  (refreshControl)
+						turnOnControlkeys(true);
 				} else if (retVal == IDM_ENGLISH) {
-					switchToLanguage(FALSE);
+					switchToLanguage(false);
 
 					//Reset the model
 					sentence->clear();
 					patSintIDModifier = 0;
-					model->reset(true);
+					model.reset(true);
 				} else if (retVal == IDM_MYANMAR) {
-					switchToLanguage(TRUE);
+					switchToLanguage(true);
 
 					//Reset the model
 					sentence->clear();
 					patSintIDModifier = 0;
-					model->reset(true);
+					model.reset(true);
 				} else if (retVal == IDM_LOOKUP) {
 					//Manage our help window
-					if (mmOn==FALSE)
-						switchToLanguage(TRUE);
+					if (!mmOn)
+						switchToLanguage(true);
 					updateHelpWindow();
 				} else if (retVal == IDM_EXIT) {
 					DestroyWindow(hwnd);
@@ -3781,8 +3779,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Cleanup
 			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE)
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
-			if (mmOn==TRUE) {
-				if (turnOnHotkeys(FALSE, true, true) == FALSE)
+			if (mmOn) {
+				if (!turnOnHotkeys(false, true, true))
 					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			}
 
@@ -3817,34 +3815,34 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase)
+bool turnOnHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 {
 	int low_code;
 	int high_code;
-	BOOL retVal = TRUE;
+	bool retVal = TRUE;
 
 	for (low_code=HOTKEY_A_LOW; low_code<=HOTKEY_Z_LOW; low_code++)
 	{
 		high_code = low_code - 32;
-		if (on==TRUE)  {
+		if (on)  {
 			//Register this as an uppercase/lowercase letter
 			if (affectUppercase) {
 				if (RegisterHotKey(mainWindow, high_code, MOD_SHIFT, high_code)==FALSE)
-					retVal = FALSE;
+					retVal = false;
 			}
 			if (affectLowercase) {
 				if (RegisterHotKey(mainWindow, low_code, NULL, high_code)==FALSE)
-					retVal = FALSE;
+					retVal = false;
 			}
 		} else {
 			//De-register this as an uppercase/lowercase letter
 			if (affectUppercase) {
 				if (UnregisterHotKey(mainWindow, high_code)==FALSE)
-					retVal = FALSE;
+					retVal = false;
 			}
 			if (affectLowercase) {
 				if (UnregisterHotKey(mainWindow, low_code)==FALSE)
-					retVal = FALSE;
+					retVal = false;
 			}
 		}
 	}
@@ -3854,22 +3852,22 @@ BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase)
 
 
 
-BOOL turnOnPunctuationkeys(BOOL on)
+bool turnOnPunctuationkeys(bool on)
 {
-	BOOL retVal = true;
+	bool retVal = true;
 
 	if (on==TRUE) {
 		//Punctuation keys
 		if (RegisterHotKey(mainWindow, HOTKEY_COMMA, NULL, VK_OEM_COMMA)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_PERIOD, NULL, VK_OEM_PERIOD)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 	} else {
 		//Additional punctuation keys
 		if (UnregisterHotKey(mainWindow, HOTKEY_COMMA)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_PERIOD)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 	}
 
 	//Return
@@ -3878,70 +3876,70 @@ BOOL turnOnPunctuationkeys(BOOL on)
 }
 
 
-BOOL turnOnNumberkeys(BOOL on)
+bool turnOnNumberkeys(bool on)
 {
-	BOOL retVal = true;
+	bool retVal = true;
 
 	//Register numbers
-	if (on==TRUE) {
+	if (on) {
 		//Special case: combiner key
 		if (RegisterHotKey(mainWindow, HOTKEY_COMBINE, 0, VK_OEM_3)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 
 		//Numbers are no longer control keys.
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM0, NULL, VK_NUMPAD0)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM1, NULL, VK_NUMPAD1)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM2, NULL, VK_NUMPAD2)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM3, NULL, VK_NUMPAD3)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM4, NULL, VK_NUMPAD4)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM5, NULL, VK_NUMPAD5)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM6, NULL, VK_NUMPAD6)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM7, NULL, VK_NUMPAD7)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM8, NULL, VK_NUMPAD8)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_NUM9, NULL, VK_NUMPAD9)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
 			if (RegisterHotKey(mainWindow, i, NULL, i)==FALSE)
-				retVal = FALSE;
+				retVal = false;
 		}
 	} else {
 		//Combiner
 		if (UnregisterHotKey(mainWindow, HOTKEY_COMBINE)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 
 		//Numbers
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM0)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM1)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM2)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM3)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM4)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM5)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM6)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM7)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM8)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_NUM9)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
 			if (UnregisterHotKey(mainWindow, i)==FALSE)
-				retVal = FALSE;
+				retVal = false;
 		}
 	}
 
@@ -4085,49 +4083,49 @@ bool turnOnExtendedKeys(bool on)
 
 
 
-BOOL turnOnControlkeys(BOOL on)
+bool turnOnControlkeys(bool on)
 {
-	BOOL retVal = true;
+	bool retVal = true;
 
 	//Register control keys
-	if (on==TRUE) {
+	if (on) {
 		if (RegisterHotKey(mainWindow, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_ENTER, NULL, VK_RETURN)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_DELETE, NULL, VK_DELETE)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_UP, NULL, VK_UP)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (RegisterHotKey(mainWindow, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 	} else {
 		if (UnregisterHotKey(mainWindow, HOTKEY_SPACE)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_ENTER)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_ESC)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_BACK)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_DELETE)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_UP)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 		if (UnregisterHotKey(mainWindow, HOTKEY_DOWN)==FALSE)
-			retVal = FALSE;
+			retVal = false;
 	}
 
 	controlKeysOn = on;
@@ -4591,7 +4589,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 	}
-	mmOn = FALSE;
+	mmOn = false;
 
 	//Edit: Add support for balloon tooltips
 	if (showBalloonOnStart==TRUE) {
@@ -4634,7 +4632,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//If we got this far, let's try to load our file.
-	if (loadModel() == FALSE) {
+	if (!loadModel()) {
 		DestroyWindow(mainWindow);
 		if (typePhrases==TRUE)
 			DestroyWindow(senWindow);
@@ -4644,10 +4642,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//We might have a cached encoding level set...
-	if (cachedEncoding!=-1) {
-		model->setOutputEncoding(ENCODING(cachedEncoding));
-		cachedEncoding = -1;
-	}
+	model.setOutputEncoding(mostRecentEncoding);
 
 	//Testing mywords?
 	if (currTest == mywords)
@@ -4718,7 +4713,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		logFile = fopen("wz_log.txt", "w");
 
-		model->debugOut(logFile);
+		model.debugOut(logFile);
 
 		MessageBox(NULL, L"Model saved to output.", _T("Notice"), MB_ICONERROR | MB_OK);
 		return 1;

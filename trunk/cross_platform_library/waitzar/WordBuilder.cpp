@@ -21,6 +21,11 @@ namespace waitzar
 {
 
 
+/**
+ * Empty constructor. Intended only to allow use of WordBuilder by value (not reference)
+ */
+WordBuilder::WordBuilder() {}
+
 
 /**
  * Load a model given the Wait Zar binary model and a series of text files containing user additions.
@@ -1078,14 +1083,16 @@ void WordBuilder::buildReverseLookup()
 //Add a word, avoid duplicate strings
 void WordBuilder::addReverseLookupItem(int wordID, const std::string &roman)
 {
-	for (size_t x=0; x<revLookup.size(); x++) {
+	//NOTE: Searching pre-existing entries is slow (in debug mode)! We might consider a hash-table
+	//       instead, or something like a set.
+	/*for (size_t x=0; x<revLookup.size(); x++) {
 		if (revLookup[x] == roman) {
 			//For now, copy by value. However, this isolates changes so that an 
 			//  optimization is easy in the future if we want it.
 			revLookup[wordID] = revLookup[x];
 			return;
 		}
-	}
+	}*/
 
 	//Store by value
 	revLookup[wordID] = roman;
