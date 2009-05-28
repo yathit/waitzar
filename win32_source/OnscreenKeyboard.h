@@ -44,27 +44,29 @@ const int h_gap = 1;
 const int v_gap = 2;
 
 //Useful defines
-#define COLOR_KEY_BKGRD         0xFF9AA4E2
-#define COLOR_KEY_BORDER_REG    0xFF606060
-#define COLOR_KEY_BORDER_SHIFT  0xFF440066
-#define COLOR_KEY_FOREGRD_REG   0xFFD3D3D3
-#define COLOR_KEY_FOREGRD_SHIFT 0xFFFFAAAA
+const unsigned int COLOR_KEY_BKGRD =          0xFF9AA4E2;
+const unsigned int COLOR_KEY_BORDER_REG =     0xFF606060;
+const unsigned int COLOR_KEY_BORDER_SHIFT =   0xFF440066;
+const unsigned int COLOR_KEY_FOREGRD_REG =    0xFFD3D3D3;
+const unsigned int COLOR_KEY_FOREGRD_SHIFT =  0xFFFFAAAA;
 
-#define COLOR_KEYBOARD_BKGRD    0x00FFFFFF
-#define COLOR_KEYBOARD_FOREGRD  0xFF9AA4E2
-#define COLOR_KEYBOARD_BORDER   0xFF000000
+const unsigned int COLOR_KEYBOARD_BKGRD =     0x00FFFFFF;
+const unsigned int COLOR_KEYBOARD_FOREGRD =   0xFF9AA4E2;
+const unsigned int COLOR_KEYBOARD_BORDER =    0xFF000000;
 
-#define COLOR_LETTERS_LABEL     0xFF606060
-#define COLOR_LETTERS_REGULAR   0xFF000000
-#define COLOR_LETTERS_SHIFTED   0xFF0019FF
+const unsigned int COLOR_LETTERS_LABEL =      0xFF606060;
+const unsigned int COLOR_LETTERS_REGULAR =    0xFF000000;
+const unsigned int COLOR_LETTERS_SHIFTED =    0xFF0019FF;
 
 //Modes
-#define MODE_HELP     0
-#define MODE_INPUT    1
+enum {
+	MODE_HELP = 0,
+    MODE_INPUT
+};
 
 
-#define HELPWND_TITLE           _T("WaitZar Word Finder")
-#define MEMLIST_TITLE           _T("Memory List")
+const wstring HELPWND_TITLE = L"WaitZar Word Finder";
+const wstring MEMLIST_TITLE = L"Memory List";
 
 
 //Useful struct for our keys
@@ -127,9 +129,9 @@ public:
 
 	int getVirtualKeyID(UINT hotkeyCode);
 
-	wchar_t* typeLetter(DWORD hotkeyCode);
+	std::wstring typeLetter(DWORD hotkeyCode);
 
-	void addMemoryEntry(const wchar_t* my, const char* rom);
+	void addMemoryEntry(const std::wstring &my, const std::string &rom);
 	size_t getMaxMemoryEntries();
 
 	int getWidth();
@@ -147,7 +149,7 @@ private:
 	PulpCoreImage *memoryImg;
 
 	//The actual memory list
-	std::list<std::pair<wchar_t*, char*> > memoryList;
+	std::list< std::pair<std::wstring, std::string> > memoryList;
 
 	//Cached pics
 	PulpCoreFont *titleFont;
@@ -176,7 +178,7 @@ private:
 	int memEntriesYPlus;
 	int memEntriesMax;
 	int mode;
-	wchar_t typedString[20]; //Temp
+	//wchar_t typedString[20]; //Temp
 
 	//Are we in a shifted state?
 	bool isShifted();
