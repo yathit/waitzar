@@ -137,7 +137,7 @@ HICON mmIcon;
 HICON engIcon;
 WordBuilder model;
 
-//These need to be pointers, for now...
+//These need to be pointers, for now. Reference semantics are just too complex.
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
 PulpCoreFont *mmFontRed;
@@ -149,7 +149,7 @@ PAINTSTRUCT Ps;
 WORD stopChar;
 int numConfigOptions;
 int numCustomWords;
-INPUT *inputItems;
+INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
 wchar_t returnVal[500];
@@ -4611,7 +4611,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Initialize our keyboard input structures
-	inputItems = new INPUT[1000];
+	//inputItems = new INPUT[1000];
 	for (int i=0; i<1000; i++) {
 		//We expect an input of type "keyboard"
 		inputItems[i].type = INPUT_KEYBOARD;
