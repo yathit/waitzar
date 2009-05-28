@@ -81,13 +81,13 @@ using std::pair;
 
 
 //Current version
-#define WAIT_ZAR_VERSION _T("1.7")
+const wstring WAIT_ZAR_VERSION = L"1.7";
 
 //Menu item texts
-TCHAR* POPUP_UNI = _T("Unicode 5.1");
-TCHAR* POPUP_ZG = _T("Zawgyi-One");
-TCHAR* POPUP_WIN = _T("Win Innwa");
-TCHAR* POPUP_LOOKUP = _T("&Look Up Word (F1)");
+const wstring POPUP_UNI = L"Unicode 5.1";
+const wstring POPUP_ZG = L"Zawgyi-One";
+const wstring POPUP_WIN = L"Win Innwa";
+const wstring POPUP_LOOKUP = L"&Look Up Word (F1)";
 
 //Prototypes
 BOOL turnOnHotkeys(BOOL on, bool affectLowercase, bool affectUppercase);
@@ -2195,7 +2195,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			//Change the text of our dialog box
 			TCHAR line1Txt[200];
-			swprintf(line1Txt, _T("WaitZar version %s - for the latest news, visit "), WAIT_ZAR_VERSION);
+			swprintf(line1Txt, _T("WaitZar version %s - for the latest news, visit "), WAIT_ZAR_VERSION.c_str());
 			SetWindowText(GetDlgItem(hwnd, ID_HELP_L1), line1Txt);
 
 			TCHAR line2Txt[200];
@@ -3691,13 +3691,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				UINT flagU = model->getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
 				UINT flagZ = model->getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
 				UINT flagW = model->getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
-				ModifyMenu(hmenu, ID_ENCODING_UNICODE5, MF_BYCOMMAND|flagU, ID_ENCODING_UNICODE5, POPUP_UNI);
-				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG);
-				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN);
+				ModifyMenu(hmenu, ID_ENCODING_UNICODE5, MF_BYCOMMAND|flagU, ID_ENCODING_UNICODE5, POPUP_UNI.c_str());
+				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG.c_str());
+				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN.c_str());
 
 				//Set a check for the "Look Up Word" function
 				UINT flagL = helpWindowIsVisible ? MF_CHECKED : 0;
-				ModifyMenu(hmenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP);
+				ModifyMenu(hmenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP.c_str());
 
 
 				//Cause our popup to appear in front of any other window.
