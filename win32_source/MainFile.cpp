@@ -296,7 +296,7 @@ enum test_type {
 	type_all,
 	model_print
 };
-test_type currTest = mywords;
+test_type currTest = none;
 
 
 
@@ -3479,87 +3479,89 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					keyWasUsed = true;
 				}
 			} else {
-				//Reset pat-sint choice
-				patSintIDModifier = 0;
+				if (!keyWasUsed) {
+					//Reset pat-sint choice
+					patSintIDModifier = 0;
 
-				//Handle regular letter-presses
-				int keyCode = (int)wParam;
-				if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) //Seems like we should be doing with this Shift modifiers..
-					keyCode += 32;
-				if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW)
-				{
-					//Run this keypress into the model. Accomplish anything?
-					if (!model->typeLetter(keyCode))
-						break;
-
-					//Is this the first keypress of a romanized word? If so, the window is not visible...
-					if (!mainWindowIsVisible)
+					//Handle regular letter-presses
+					int keyCode = (int)wParam;
+					if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) //Seems like we should be doing with this Shift modifiers..
+						keyCode += 32;
+					if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW)
 					{
-						//Reset it...
-						lstrcpy(currStr, _T(""));
-						//recalculate();
+						//Run this keypress into the model. Accomplish anything?
+						if (!model->typeLetter(keyCode))
+							break;
 
-						//Optionally turn on numerals
-						if (numberKeysOn==FALSE)
-							turnOnNumberkeys(TRUE);
+						//Is this the first keypress of a romanized word? If so, the window is not visible...
+						if (!mainWindowIsVisible)
+						{
+							//Reset it...
+							lstrcpy(currStr, _T(""));
+							//recalculate();
 
-						//TEST: Re-position it
-						//TEST: Use AttachThredInput? Yes!
-						//Still a bit glitchy....
-						//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to
-						//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
-						if (experimentalTextCursorTracking==TRUE) {
-							//Reset parameters for our thread
-							//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
-							caretLatestPosition.x = 0;
-							caretLatestPosition.y = 0;
+							//Optionally turn on numerals
+							if (numberKeysOn==FALSE)
+								turnOnNumberkeys(TRUE);
 
-							//Create and start our thread for tracking the caret
-							caretTrackThread = CreateThread(
-								NULL,                //Default security attributes
-								0,                   //Default stack size
-								UpdateCaretPosition, //Threaded function (name)
-								NULL,                //Arguments to threaded function
-								0,
-								&caretTrackThreadID);//Pointer to return the thread's id into
-							if (caretTrackThread==NULL) {
-								MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
-								experimentalTextCursorTracking = FALSE;
+							//TEST: Re-position it
+							//TEST: Use AttachThredInput? Yes!
+							//Still a bit glitchy....
+							//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to
+							//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
+							if (experimentalTextCursorTracking==TRUE) {
+								//Reset parameters for our thread
+								//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
+								caretLatestPosition.x = 0;
+								caretLatestPosition.y = 0;
+
+								//Create and start our thread for tracking the caret
+								caretTrackThread = CreateThread(
+									NULL,                //Default security attributes
+									0,                   //Default stack size
+									UpdateCaretPosition, //Threaded function (name)
+									NULL,                //Arguments to threaded function
+									0,
+									&caretTrackThreadID);//Pointer to return the thread's id into
+								if (caretTrackThread==NULL) {
+									MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
+									experimentalTextCursorTracking = FALSE;
+								}
+
+								//Wait for it.
+								WaitForSingleObject(caretTrackThread, 1000);
+
+								//Close it
+								CloseHandle(caretTrackThread);
+
+								//Ready?
+								if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
+									//Line up our windows
+									MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+									MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+								}
 							}
 
-							//Wait for it.
-							WaitForSingleObject(caretTrackThread, 1000);
 
-							//Close it
-							CloseHandle(caretTrackThread);
-
-							//Ready?
-							if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
-								//Line up our windows
-								MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-								MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+							//Show it
+							if (typePhrases==FALSE || !subWindowIsVisible) {
+								//Turn on control keys
+								turnOnControlkeys(TRUE);
+								ShowBothWindows(SW_SHOW);
+							} else {
+								ShowWindow(mainWindow, SW_SHOW);
+								mainWindowIsVisible = true;
 							}
 						}
 
+						//Now, handle the keypress as per the usual...
+						TCHAR keyStr[50];
+						lstrcpy(keyStr, currStr);
+						swprintf(currStr, _T("%s%c"), keyStr, keyCode);
+						recalculate();
 
-						//Show it
-						if (typePhrases==FALSE || !subWindowIsVisible) {
-							//Turn on control keys
-							turnOnControlkeys(TRUE);
-							ShowBothWindows(SW_SHOW);
-						} else {
-							ShowWindow(mainWindow, SW_SHOW);
-							mainWindowIsVisible = true;
-						}
+						keyWasUsed = true;
 					}
-
-					//Now, handle the keypress as per the usual...
-					TCHAR keyStr[50];
-					lstrcpy(keyStr, currStr);
-					swprintf(currStr, _T("%s%c"), keyStr, keyCode);
-					recalculate();
-
-					keyWasUsed = true;
 				}
 			}
 
