@@ -246,10 +246,10 @@ bool helpInitDone;
 bool memoryInitDone;
 
 //Record-keeping
-TCHAR currStr[100];
-TCHAR currStrZg[100];
+wstring currStr;
+wstring currStrZg;
 int currStrDictID;
-TCHAR currLetterSt[100];
+wstring currLetterSt;
 bool mmOn;
 bool controlKeysOn = false;
 bool numberKeysOn = false;
@@ -1910,21 +1910,20 @@ void recalculate()
 	PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
 	TCHAR digit[5];
-	TCHAR extendedWordString[300];
+	wstring extendedWordString;
 	if (helpWindowIsVisible) {
 		//Prepare the extended word string a bit early
-		lstrcpy(currStrZg, currStr);
-		waitzar::sortMyanmarString(currStrZg);
-		lstrcpy(currStrZg, waitzar::renderAsZawgyi(currStrZg));
-		lstrcpy(extendedWordString, currStrZg);
+		currStrZg = waitzar::sortMyanmarString(currStr);
+		currStrZg = wstring(waitzar::renderAsZawgyi(currStrZg.c_str()));
+		extendedWordString = currStrZg;
 
 		//We only have one word: the guessed romanisation
 		currStrDictID = -1;
 		for (unsigned int i=0; i<model.getTotalDefinedWords(); i++) {
 			//Does this word match?
 			wstring currWord = model.getWordString(i);
-			if (wcscmp(currWord.c_str(), extendedWordString)==0) {
-				wcscpy(currLetterSt, currWord.c_str());
+			if (currWord == extendedWordString) {
+				currLetterSt = currWord;
 				currStrDictID = i;
 				break;
 			}
@@ -1950,17 +1949,17 @@ void recalculate()
 		if (currStrDictID!=-1) {
 			string romanWord = model.reverseLookupWord(currStrDictID);
 
-			currLetterSt[0] = L'(';
+			currLetterSt = L'(';
 			for (size_t q=0; q<romanWord.size(); q++)
-				currLetterSt[1+q] = romanWord[q];
-			currLetterSt[1+romanWord.size()] = L')';
-			currLetterSt[1+romanWord.size() + 1] = 0x0000;
+				currLetterSt += romanWord[q];
+			currLetterSt += L')';
 
 			mmFontGreen->drawString(mainUnderDC, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
 		}
 
 		//Helper text
-		mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
+		if (currStrZg.length()>0)
+			mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 	} else if (mainWindowIsVisible) { //Crashes otherwise
 		//Add the post-processed word, if it exists...
 		int mySelectedID = ((int)model.getCurrSelectedID()) + patSintIDModifier;
@@ -2017,11 +2016,12 @@ void recalculate()
 
 	if (!helpWindowIsVisible) {
 		wstring parenStr = model.getParenString();
+		wstringstream line;
+		line <<currStr;
 		if (!parenStr.empty()) {
-			swprintf(extendedWordString, _T("%s (%s)"), currStr, parenStr.c_str());
-		} else {
-			lstrcpy(extendedWordString, currStr);
+			line <<" (" <<parenStr <<")";
 		}
+		extendedWordString = line.str();
 	}
 
 	mmFontBlack->drawString(mainUnderDC, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
@@ -2802,8 +2802,8 @@ void updateHelpWindow()
 
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
-		lstrcpy(currStr, _T(""));
 		patSintIDModifier = 0;
+		currStr.clear();
 		model.reset(false);
 		recalculate();
 
@@ -2859,7 +2859,7 @@ void updateHelpWindow()
 		}
 	} else {
 		//Clear our word string
-		lstrcpy(currStr, _T(""));
+		currStr.clear();
 
 		turnOnHelpKeys(false);
 		ShowWindow(helpWindow, SW_HIDE);
@@ -3024,7 +3024,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == HOTKEY_ESC) {
 				if (helpWindowIsVisible) {
 					//Clear our word string
-					lstrcpy(currStr, _T(""));
+					currStr.clear();
 
 					turnOnHelpKeys(false);
 					ShowWindow(helpWindow, SW_HIDE);
@@ -3109,9 +3109,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == HOTKEY_BACK) {
 				if (helpWindowIsVisible) {
 					//Delete the letter in back of you (encoding-wise, not visibly)
-					int len = lstrlen(currStr);
-					if (len>0)
-						currStr[len-1] = 0x0000;
+					if (!currStr.empty())
+						currStr.erase(currStr.length()-1);
 					recalculate();
 				} else {
 					if (!mainWindowIsVisible) {
@@ -3127,7 +3126,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					} else {
 						if (model.backspace()) {
 							//Truncate...
-							currStr[lstrlen(currStr)-1] = 0;
+							currStr.erase(currStr.length()-1);
 							recalculate();
 						} else {
 							//No more numerals.
@@ -3237,7 +3236,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
-							lstrcpy(currStr, _T(""));
+							currStr.clear();
 							patSintIDModifier = 0;
 							model.reset(false);
 							recalculate();
@@ -3298,44 +3297,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (helpWindowIsVisible) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
-					if (currStrDictID==-1) {
-						wchar_t *tempStr = new wchar_t[100];
-						wchar_t *tempStrZg = new wchar_t[100];
-						wcscpy(tempStr, currStr);
-						wcscpy(tempStrZg, currStrZg);
-						waitzar::sortMyanmarString(tempStr);
-						userDefinedWords.push_back(tempStr);
-						userDefinedWordsZg.push_back(tempStrZg);
-						currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
-						
-						//Add it to the memory list
-						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
-					} else {
-						//Add it to the memory list
-						string revWord = model.reverseLookupWord(currStrDictID);
-						helpKeyboard->addMemoryEntry(currStrZg, revWord.c_str());
+					if (currStrZg.length()>0) {
+						if (currStrDictID==-1) {
+							wstring tempStr = waitzar::sortMyanmarString(currStr);
+							userDefinedWords.push_back(tempStr);
+							userDefinedWordsZg.push_back(currStrZg);
+							currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
+							
+							//Add it to the memory list
+							helpKeyboard->addMemoryEntry(currStrZg.c_str(), "<no entry>");
+						} else {
+							//Add it to the memory list
+							string revWord = model.reverseLookupWord(currStrDictID);
+							helpKeyboard->addMemoryEntry(currStrZg.c_str(), revWord.c_str());
+						}
+
+						//Hide the help window
+						helpWindowIsVisible = false;
+						turnOnHelpKeys(false);
+						ShowWindow(helpWindow, SW_HIDE);
+						ShowWindow(memoryWindow, SW_HIDE);
+
+						//Try to type this word
+						BOOL typed = selectWord(currStrDictID, true);
+						if (typed==TRUE && typePhrases) {
+							ShowWindow(mainWindow, SW_HIDE);
+							mainWindowIsVisible = false;
+
+							patSintIDModifier = 0;
+							model.reset(false);
+							currStr.clear();
+							recalculate();
+						}
+
+						//We need to reset the trigrams here...
+						sentence.updateTrigrams(model);
 					}
-
-					//Hide the help window
-					helpWindowIsVisible = false;
-					turnOnHelpKeys(false);
-					ShowWindow(helpWindow, SW_HIDE);
-					ShowWindow(memoryWindow, SW_HIDE);
-
-					//Try to type this word
-					BOOL typed = selectWord(currStrDictID, true);
-					if (typed==TRUE && typePhrases) {
-						ShowWindow(mainWindow, SW_HIDE);
-						mainWindowIsVisible = false;
-
-						patSintIDModifier = 0;
-						model.reset(false);
-						lstrcpy(currStr, _T(""));
-						recalculate();
-					}
-
-					//We need to reset the trigrams here...
-					sentence.updateTrigrams(model);
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
@@ -3345,7 +3342,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowWindow(mainWindow, SW_HIDE);
 							mainWindowIsVisible = false;
 
-							lstrcpy(currStr, _T(""));
+							currStr.clear();
 							patSintIDModifier = 0;
 							model.reset(false);
 							recalculate();
@@ -3364,46 +3361,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (helpWindowIsVisible) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
-					if (currStrDictID==-1) {
-						wchar_t *tempStr = new wchar_t[100];
-						wchar_t *tempStrZg = new wchar_t[100];
-						wcscpy(tempStr, currStr);
-						wcscpy(tempStrZg, currStrZg);
-						waitzar::sortMyanmarString(tempStr);
-						userDefinedWords.push_back(tempStr);
-						userDefinedWordsZg.push_back(tempStrZg);
-						currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
+					if (currStrZg.length()>0) {
+						if (currStrDictID==-1) {
+							wstring tempStr = waitzar::sortMyanmarString(currStr);
+							userDefinedWords.push_back(tempStr);
+							userDefinedWordsZg.push_back(currStrZg);
+							currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
 
-						//Add it to the memory list
-						helpKeyboard->addMemoryEntry(currStrZg, "<no entry>");
-					} else {
-						//Add it to the memory list
-						string revWord = model.reverseLookupWord(currStrDictID);
-						helpKeyboard->addMemoryEntry(currStrZg, revWord.c_str());
+							//Add it to the memory list
+							helpKeyboard->addMemoryEntry(currStrZg.c_str(), "<no entry>");
+						} else {
+							//Add it to the memory list
+							string revWord = model.reverseLookupWord(currStrDictID);
+							helpKeyboard->addMemoryEntry(currStrZg.c_str(), revWord.c_str());
+						}
+
+						//Hide the help window
+						helpWindowIsVisible = false;
+						turnOnHelpKeys(false);
+						ShowWindow(helpWindow, SW_HIDE);
+						ShowWindow(memoryWindow, SW_HIDE);
+
+						//Try to type this word
+						BOOL typed = selectWord(currStrDictID, true);
+						if (typed==TRUE && typePhrases) {
+							ShowWindow(mainWindow, SW_HIDE);
+							mainWindowIsVisible = false;
+
+							patSintIDModifier = 0;
+							model.reset(false);
+							currStr.clear();
+							recalculate();
+						}
+
+						//We need to reset the trigrams here...
+						sentence.updateTrigrams(model);
+
+						keyWasUsed = true;
 					}
-
-					//Hide the help window
-					helpWindowIsVisible = false;
-					turnOnHelpKeys(false);
-					ShowWindow(helpWindow, SW_HIDE);
-					ShowWindow(memoryWindow, SW_HIDE);
-
-					//Try to type this word
-					BOOL typed = selectWord(currStrDictID, true);
-					if (typed==TRUE && typePhrases) {
-						ShowWindow(mainWindow, SW_HIDE);
-						mainWindowIsVisible = false;
-
-						patSintIDModifier = 0;
-						model.reset(false);
-						lstrcpy(currStr, _T(""));
-						recalculate();
-					}
-
-					//We need to reset the trigrams here...
-					sentence.updateTrigrams(model);
-
-					keyWasUsed = true;
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
@@ -3415,7 +3410,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 							patSintIDModifier = 0;
 							model.reset(false);
-							lstrcpy(currStr, _T(""));
+							currStr.clear();
 							recalculate();
 						}
 
@@ -3445,8 +3440,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				wchar_t* nextBit = helpKeyboard->typeLetter(wParam);
 				if (nextBit != NULL) {
 					//Valid letter
-					lstrcat(currStr, nextBit);
-					size_t len = wcslen(currStr);
+					currStr += nextBit;
+					size_t len = currStr.length();
 
 					//Special cases
 					if (wcslen(nextBit)==1 && nextBit[0]==L'\u1039') {
@@ -3455,7 +3450,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							currStr[len-1] = currStr[len-2];
 							currStr[len-2] = nextBit[0];
 						} else {
-							currStr[len-1] = 0x0000; //Not standard behavior, but let's avoid bad combinations.
+							currStr.erase(currStr.length()-1); //Not standard behavior, but let's avoid bad combinations.
 						}
 					} else if (wcscmp(nextBit, L"\u1004\u103A\u1039")==0) {
 						//Kinzi can be typed after the consonant instead of before it.
@@ -3504,7 +3499,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (!mainWindowIsVisible)
 						{
 							//Reset it...
-							lstrcpy(currStr, _T(""));
+							currStr.clear();
 							//recalculate();
 
 							//Optionally turn on numerals
@@ -3562,9 +3557,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 
 						//Now, handle the keypress as per the usual...
-						TCHAR keyStr[50];
-						lstrcpy(keyStr, currStr);
-						swprintf(currStr, _T("%s%c"), keyStr, keyCode);
+						wstringstream msg;
+						msg <<currStr <<(char)keyCode;
+						currStr = msg.str();
 						recalculate();
 
 						keyWasUsed = true;
@@ -4629,10 +4624,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//No extra info
 		keyInputPrototype.dwExtraInfo=0;
 	}
-
-	//Initialize our romanisation string
-	lstrcpy(currStr, _T(""));
-	lstrcpy(currLetterSt, _T(""));
 
 	//Success?
 	if(mainWindow==NULL || (typePhrases && senWindow==NULL) || helpWindow==NULL || memoryWindow==NULL) {

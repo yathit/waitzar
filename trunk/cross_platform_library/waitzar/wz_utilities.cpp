@@ -6,6 +6,9 @@
 
 #include "wz_utilities.h"
 
+using std::wstringstream;
+using std::wstring;
+
 
 //////////////////////////////////////////////////////////////////////////////////
 // Please note that the wz_utilities library is currently considered
@@ -246,7 +249,7 @@ namespace
 	//There are several other stopping conditions besides a stopping character
 	//For example, the last character in a string triggers a stop.
 	//uniString[i+1]==0x103A catches "vowell_a" followed by "asat". This might be hackish; not sure.
-	bool atStoppingPoint(wchar_t* uniString, size_t id, size_t length)
+	bool atStoppingPoint(const wstring &uniString, size_t id, size_t length)
 	{
 		return id==length || (isMyanmar(uniString[id])&&uniString[id+1]==0x103A) || uniString[id]==0x103A || uniString[id]==0x1039;
 	}
@@ -773,26 +776,24 @@ namespace
 namespace waitzar 
 {
 
-void sortMyanmarString(wchar_t* uniString)
+std::wstring sortMyanmarString(const std::wstring &uniString)
 {
 	//Count array for use with counting sort
 	//We store a count, but we also need separate strings for the types.
+	wstring res;
 	int rhyme_flags[ID_TOTAL];
 	wchar_t rhyme_vals[ID_TOTAL];
-	size_t len = wcslen(uniString); 
-	wchar_t *vow_above_buffer = new wchar_t[len];
-	wchar_t *vow_below_buffer = new wchar_t[len];
-	wchar_t *vow_ar_buffer = new wchar_t[len];
+	size_t len = uniString.length();
+	wstring vow_above_buffer;
+	wstring vow_below_buffer;
+	wstring vow_ar_buffer;
 	for (int res=0; res<ID_TOTAL; res++) {
 		rhyme_flags[res] = 0;
 		rhyme_vals[res] = 0x0000;
 	}
-	int vow_above_index = 0;
-	int vow_below_index = 0;
-	int vow_ar_index = 0;
-
+	
 	//Scan each letter
-	size_t destI = 0;    //Allows us to eliminate duplicate letters
+	//size_t destI = 0;    //Allows us to eliminate duplicate letters
 	size_t prevStop = 0; //What was our last-processed letter
 	for (size_t i=0; i<=len;) { //We count up to the trailing 0x0
 		//Does this letter restart our algorithm?
@@ -809,20 +810,23 @@ void sortMyanmarString(wchar_t* uniString)
 							letter = vow_below_buffer[r_i];
 						else if (x==ID_VOW_A)
 							letter = vow_ar_buffer[r_i];
-						uniString[destI++] = letter;
+						res += letter;
 					}
 					rhyme_flags[x] = 0;
 					rhyme_vals[x] = 0x0000;
 				}
-				vow_above_index = 0;
-				vow_below_index = 0;
-				vow_ar_index = 0;
+				vow_above_buffer.clear();
+				vow_below_buffer.clear();
+				vow_ar_buffer.clear();
+				//vow_above_index = 0;
+				//vow_below_index = 0;
+				//vow_ar_index = 0;
 			}
 
 			//Increment if this is asat or virama
-			uniString[destI++] = uniString[i++];
+			res += uniString[i++];
 			while (i<len && (uniString[i]==0x103A||uniString[i]==0x1039||shouldRestartCount(uniString[i])))
-				 uniString[destI++] = uniString[i++];
+				 res += uniString[i++];
 
 			//Don't sort until after this point
 			prevStop = i;
@@ -834,21 +838,17 @@ void sortMyanmarString(wchar_t* uniString)
 		rhyme_flags[rhymeID] += 1;
 		rhyme_vals[rhymeID] = uniString[i];
 		if (rhymeID == ID_VOW_ABOVE)
-			vow_above_buffer[vow_above_index++] = uniString[i];
+			vow_above_buffer.push_back(uniString[i]);
 		else if (rhymeID == ID_VOW_BELOW)
-			vow_below_buffer[vow_below_index++] = uniString[i];
+			vow_below_buffer.push_back(uniString[i]);
 		else if (rhymeID == ID_VOW_A)
-			vow_ar_buffer[vow_ar_index++] = uniString[i];
+			vow_ar_buffer.push_back(uniString[i]);
 
 		//Standard increment
 		i++;
 	}
 
-	//Done. Append an extra zero, in case our new string is too short.
-	uniString[destI] = 0x0000;
-	delete [] vow_above_buffer;
-	delete [] vow_below_buffer;
-	delete [] vow_ar_buffer;
+	return res;
 }
 
 
@@ -859,7 +859,7 @@ void setLogFile(FILE *logFile)
 
 
 
-wchar_t* renderAsZawgyi(wchar_t* uniString)
+wchar_t* renderAsZawgyi(const wchar_t* uniString)
 {
 	//Perform conversion
 	//Step 1: Determine which finals won't likely combine; add
