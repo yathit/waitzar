@@ -199,7 +199,7 @@ void PulpCoreFont::drawString(HDC bufferDC, const string &str, int xPos, int yPo
 	//Loop through all letters...
 	int nextIndex = getCharIndex(str[0]);
 	int startX = xPos;
-	for (int i=0; i<str.length(); i++) {
+	for (size_t i=0; i<str.length(); i++) {
 		int index = nextIndex;
         int pos = charPositions[index];
         int charWidth = charPositions[index+1] - pos;
