@@ -54,6 +54,7 @@ public:
 	WordBuilder(const char* modelFile, const char* userWordsFile);
 	WordBuilder(const char* modelFile, std::vector<std::string> userWordsFiles);
 	WordBuilder(const std::vector<std::wstring> &dictionary, const std::vector< std::vector<unsigned int> > &nexus, const std::vector< std::vector<unsigned int> > &prefix);
+	WordBuilder();
 	~WordBuilder(void);
 
 	//State-changing functions. Use these to respond to keypresses.
