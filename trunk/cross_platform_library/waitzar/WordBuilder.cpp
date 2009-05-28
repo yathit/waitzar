@@ -184,7 +184,6 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 	size_t currLineStart = 0;
 	unsigned short lastCommentedNumber;
 	unsigned short mode = 0;
-	char currLetter[] = "1000";
 
 	//For global usage; should be faster
 	wstring newWord;
@@ -247,13 +246,11 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				//  Each "word" is of the form DD(-DD)*,
 				newWord.clear();
 				for(;;) {
-					//Read a "pair"
-					currLetter[2] = model_buff[currLineStart++];
-					currLetter[3] = model_buff[currLineStart++];
-
-					//Translate/Add this letter
-					wchar_t nextLetter = (wchar_t)strtol(currLetter, NULL, 16);
-					newWord += nextLetter;
+					//Read a "pair", add this letter
+					wchar_t currLetter = 0x1000;
+					currLetter |= (toHex(model_buff[currLineStart++])<<4);
+					currLetter |= (toHex(model_buff[currLineStart++]));
+					newWord += currLetter;
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];

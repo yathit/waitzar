@@ -166,6 +166,31 @@ private:
 	void addReverseLookupItem(int wordID, const std::string &roman);
 	unsigned int getWordID(const std::wstring &wordStr) const;
 
+	//Inline
+	unsigned int toHex(char letter) const {
+		switch(letter) {
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				return (letter-'0');
+			case 'A':
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'E':
+			case 'F':
+				return (letter-'A')+10;
+			default:
+				return 0;
+		}
+	}
+
 };
 
 
