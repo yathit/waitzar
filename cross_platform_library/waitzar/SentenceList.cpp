@@ -34,17 +34,17 @@ void SentenceList::insert(int val)
 	cursorIndex++;
 }
 
-int SentenceList::getCursorIndex()
+int SentenceList::getCursorIndex() const
 {
 	return cursorIndex;
 }
 
-size_t SentenceList::size()
+size_t SentenceList::size() const
 {
 	return prevTypedWords.size();
 }
 
-bool SentenceList::moveCursorRight(int amt, bool allowSameIndex, WordBuilder *model)
+bool SentenceList::moveCursorRight(int amt, bool allowSameIndex, WordBuilder &model)
 {
 	//Any words?
 	if (prevTypedWords.size()==0)
@@ -81,7 +81,7 @@ bool SentenceList::moveCursorRight(int amt, bool allowSameIndex, WordBuilder *mo
 	return true;
 }
 
-bool SentenceList::moveCursorRight(int amt, WordBuilder *model)
+bool SentenceList::moveCursorRight(int amt, WordBuilder &model)
 {
 	return this->moveCursorRight(amt, false, model);
 }
@@ -103,7 +103,7 @@ bool SentenceList::deleteNext()
 }
 
 
-bool SentenceList::deletePrev(WordBuilder *model)
+bool SentenceList::deletePrev(WordBuilder &model)
 {
 	//No words?
 	if (prevTypedWords.size()==0) 
@@ -125,7 +125,7 @@ bool SentenceList::deletePrev(WordBuilder *model)
 
 
 
-void SentenceList::updateTrigrams(WordBuilder *model)
+void SentenceList::updateTrigrams(WordBuilder &model)
 {
 	std::vector<unsigned int> trigrams;
 	std::list<int>::iterator considered = cursor;
@@ -137,18 +137,18 @@ void SentenceList::updateTrigrams(WordBuilder *model)
 
 		trigrams.push_back(*considered);
 	}
-	model->insertTrigram(trigrams);
+	model.insertTrigram(trigrams);
 }
 
 
 
 
 //Iterate
-std::list<int>::iterator SentenceList::begin()
+std::list<int>::const_iterator SentenceList::begin() const
 {
 	return prevTypedWords.begin();
 }
-std::list<int>::iterator SentenceList::end()
+std::list<int>::const_iterator SentenceList::end() const
 {
 	return prevTypedWords.end();
 }

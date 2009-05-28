@@ -133,8 +133,6 @@ private:
 
 	//Tracking previous unsigned shorts
 	std::vector<unsigned int> trigrams;
-	//unsigned int trigram[3];
-	//unsigned int trigramCount;
 
 	//Tracking user selection
 	int currSelectedID;
@@ -148,12 +146,10 @@ private:
 	//Internal stuff
 	std::vector<char> possibleChars;
 	std::vector<unsigned int> possibleWords;
-	//std::wstring currStr;
 
 	//Extension: guessing the next bit
 	std::wstring parenStr;
 	std::wstring postStr;
-	//unsigned int postID; //Not sure...
 
 	//For error messages
 	std::wstring mostRecentError;

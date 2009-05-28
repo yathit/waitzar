@@ -1845,7 +1845,7 @@ void recalculate()
 		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
 
 		//Draw each string
-		std::list<int>::iterator printIT = sentence->begin();
+		std::list<int>::const_iterator printIT = sentence->begin();
 		int currentPosX = borderWidth + 1;
 		int cursorPosX = currentPosX;
 		int counterCursorID=0;
@@ -2073,7 +2073,7 @@ void typeCurrentPhrase()
 	//  requires the top-level window. We could probably hack in SendMessage now that
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
-	std::list<int>::iterator printIT = sentence->begin();
+	std::list<int>::const_iterator printIT = sentence->begin();
 	wstring keyStrokes;
 	int number_of_key_events = 0;
 	for (;printIT!=sentence->end() || stopChar!=0;) {
@@ -2170,7 +2170,7 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	} else {
 		//Pat-sint clears the previous word
 		if (patSintIDModifier==-1)
-			sentence->deletePrev(model);
+			sentence->deletePrev(*model);
 
 		//Advanced Case - Insert
 		sentence->insert(wordID);
@@ -3109,7 +3109,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else {
 					if (!mainWindowIsVisible) {
 						//Delete the previous word
-						if (sentence->deletePrev(model))
+						if (sentence->deletePrev(*model))
 							recalculate();
 						if (sentence->size()==0) {
 							//Kill the entire sentence.
@@ -3171,7 +3171,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							recalculate();
 					} else {
 						//Move right/left within the current phrase.
-						if (sentence->moveCursorRight(1, model))
+						if (sentence->moveCursorRight(1, *model))
 							recalculate();
 					}
 				}
@@ -3193,7 +3193,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 					} else {
 						//Move right/left within the current phrase.
-						if (sentence->moveCursorRight(-1, model))
+						if (sentence->moveCursorRight(-1, *model))
 							recalculate();
 					}
 				}
@@ -3245,7 +3245,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						} else {
 							//Just type that number directly.
 							sentence->insert(numCode);
-							sentence->moveCursorRight(0, true, model);
+							sentence->moveCursorRight(0, true, *model);
 
 							//Is our window even visible?
 							if (!subWindowIsVisible) {
@@ -3328,7 +3328,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(model);
+					sentence->updateTrigrams(*model);
 				} else {
 					stopChar = 0;
 					if (mainWindowIsVisible) {
@@ -3394,7 +3394,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(model);
+					sentence->updateTrigrams(*model);
 
 					keyWasUsed = true;
 				} else {
@@ -3419,7 +3419,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Hopefully this won't confuse users so much.
 						if (wParam==HOTKEY_SPACE) {
 							if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
-								sentence->moveCursorRight(1, model);
+								sentence->moveCursorRight(1, *model);
 								recalculate();
 							} else {
 								//Type the entire sentence
@@ -3605,7 +3605,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					//We need to reset the trigrams here...
-					sentence->updateTrigrams(model);
+					sentence->updateTrigrams(*model);
 				}
 			}
 
