@@ -913,24 +913,29 @@ wstring WordBuilder::getWordKeyStrokes(unsigned int id)
 
 wstring WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
 {
-	//Determine our dictionary
-	vector<wstring> &myDict = dictionary;
+	//Can we skip the whole process?
+	if (!this->restrictToMyanmar)
+		return getWordString(id);
+
+	//Get a reference to our dictionary value... it looks a bit odd, but changing this
+	//  WILL change the word itself.
+	wstring &myWord = (encoding==ENCODING_WININNWA) ? winInnwaDictionary[id] : (encoding==ENCODING_UNICODE) ? unicodeDictionary[id] : dictionary[id];
+	
+	//Determine our font... use Soe Min's names
 	int destFont = Zawgyi_One;
-	if (this->restrictToMyanmar) {
-		if (encoding==ENCODING_WININNWA) {
-			myDict = winInnwaDictionary;
-			destFont = WinInnwa;
-		} else if (encoding==ENCODING_UNICODE) {
-			myDict = unicodeDictionary;
-			destFont = Myanmar3;
-		}
+	if (encoding==ENCODING_WININNWA) {
+		destFont = WinInnwa;
+	} else if (encoding==ENCODING_UNICODE) {
+		destFont = Myanmar3;
 	}
 
 	//Does this word exist in the dictionary? If not, add it
-	if (encoding!=ENCODING_ZAWGYI && myDict[id].size() == 0) {
+	if (myWord.empty()) {
 		//First, convert
-		const wchar_t* srcStr = this->getWordString(id).c_str();
+		wchar_t srcStr[200];
 		wchar_t destStr[200];
+		wstring wordStr = this->getWordString(id);
+		wcscpy(srcStr, wordStr.c_str());
 		wcscpy(destStr, L"");
 		convertFont(destStr, srcStr, Zawgyi_One, destFont);
 
@@ -957,17 +962,11 @@ wstring WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
 		}
 
 		//Now, add a new entry
-		//size_t stLen = wcslen(destStr);
-		//wstring newEncoding(destStr);
-		//for (size_t i=0; i<stLen; i++) {
-		//	newEncoding.push_back(destStr[i]);
-			//wprintf(L"   test: %x   %x  %x\n", newEncoding[i+1], destStr[i], srcStr[i]);
-		//}
-		myDict[id] = wstring(destStr);
+		myWord = wstring(destStr);
 	}
 
 	//Return-by-value should copy the vector
-	return myDict[id];
+	return myWord;
 }
 
 
