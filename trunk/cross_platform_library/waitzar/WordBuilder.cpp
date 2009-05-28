@@ -247,10 +247,10 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 				newWord.clear();
 				for(;;) {
 					//Read a "pair", add this letter
-					wchar_t currLetter = 0x1000;
+					unsigned int currLetter = 0x1000;
 					currLetter |= (toHex(model_buff[currLineStart++])<<4);
 					currLetter |= (toHex(model_buff[currLineStart++]));
-					newWord += currLetter;
+					newWord += (wchar_t)currLetter;
 
 					//Continue?
 					char nextChar = model_buff[currLineStart++];
