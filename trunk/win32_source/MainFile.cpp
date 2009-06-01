@@ -362,10 +362,17 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 						caretLatestPosition.x -= 1;
 						caretLatestPosition.y -= WINDOW_HEIGHT;
 						caretLatestPosition.y -= (SUB_WINDOW_HEIGHT-caretHeight)/2;
-
-
 					}
+				}
 
+				//Is this inside the main window?
+				RECT desktopW;
+				GetWindowRect(GetDesktopWindow(), &desktopW);
+				if (   caretLatestPosition.x<0 || caretLatestPosition.x+WINDOW_WIDTH>desktopW.right
+					|| caretLatestPosition.y<0 || caretLatestPosition.y+WINDOW_HEIGHT>desktopW.bottom) {
+					//Better set it to zero, rather than try moving it into range.
+					caretLatestPosition.x = 0;
+					caretLatestPosition.y = 0;
 				}
 
 				//Finally
