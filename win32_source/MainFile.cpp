@@ -89,7 +89,8 @@ const wstring WAIT_ZAR_VERSION = L"1.7";
 const wstring POPUP_UNI = L"Unicode 5.1";
 const wstring POPUP_ZG = L"Zawgyi-One";
 const wstring POPUP_WIN = L"Win Innwa";
-const wstring POPUP_LOOKUP = L"&Look Up Word (F1)";
+const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
+const wstring POPUP_LOOKUP_EN = L"&Look Up Word";
 
 //Prototypes
 bool turnOnHotkeys(bool on, bool affectLowercase, bool affectUppercase);
@@ -3685,7 +3686,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN.c_str());
 
 				//Set a check for the "Look Up Word" function
+				//  Also remove the "F1" if not applicable.
 				UINT flagL = helpWindowIsVisible ? MF_CHECKED : 0;
+				const wstring & POPUP_LOOKUP = mmOn ? POPUP_LOOKUP_MM : POPUP_LOOKUP_EN;
 				ModifyMenu(hmenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP.c_str());
 
 
