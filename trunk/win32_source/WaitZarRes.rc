@@ -78,7 +78,7 @@ WZ_MENU MENU
 BEGIN
     POPUP "Main"
     BEGIN
-        MENUITEM "&Help",                       IDM_HELP
+        MENUITEM "&Help/About",                 IDM_HELP
         MENUITEM "E&xit",                       IDM_EXIT
         MENUITEM SEPARATOR
         MENUITEM "&English (Alt+Shift)",        IDM_ENGLISH, CHECKED
