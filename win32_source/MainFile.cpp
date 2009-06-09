@@ -259,6 +259,7 @@ bool extendedKeysOn = false;
 bool helpKeysOn = false;
 SentenceList sentence;
 int prevProcessID;
+bool showingHelpPopup = false;
 
 //Default client sizes for our windows
 int WINDOW_WIDTH = 240;
@@ -3709,13 +3710,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if  (refreshControl==true)
 						turnOnControlkeys(false);
 
-					//Show our box
-					//TCHAR temp[550];
-					//swprintf(temp, _T("WaitZar version %s - for more information, see: http://code.google.com/p/waitzar/\n\n%s - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".\n\nWaitZar users should have the relevant fonts installed, if they want to see what they type after it's chosen.\nPlease see the User's Guide for more information."), WAIT_ZAR_VERSION, langHotkeyString);
-					
-					
+
 					//MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
-					DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_HELP), hwnd, HelpDlgProc);
+					if (!showingHelpPopup) {
+						showingHelpPopup = true;
+						DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_HELP), hwnd, HelpDlgProc);
+						showingHelpPopup = false;
+					}
 
 					//Hotkeys again
 					if  (refreshControl)
