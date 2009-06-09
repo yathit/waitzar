@@ -293,6 +293,7 @@ int spaceWidth;
 bool mainWindowIsVisible;
 bool subWindowIsVisible;
 bool helpWindowIsVisible;
+bool memoryWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
 bool isLogging = false;
@@ -1577,17 +1578,93 @@ bool loadModel() {
 }
 
 
+//Re-position this near the caret
+void positionAtCaret() 
+{
+	//Default "off" flag
+	if (!experimentalTextCursorTracking)
+		return;
+
+	//Reset parameters for our thread
+	//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
+	caretLatestPosition.x = 0;
+	caretLatestPosition.y = 0;
+
+	//Create and start our thread for tracking the caret
+	caretTrackThread = CreateThread(
+		NULL,                //Default security attributes
+		0,                   //Default stack size
+		UpdateCaretPosition, //Threaded function (name)
+		NULL,                //Arguments to threaded function
+		0,
+		&caretTrackThreadID);//Pointer to return the thread's id into
+	if (caretTrackThread==NULL) {
+		MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
+		experimentalTextCursorTracking = false;
+	}
+
+	//Wait for it.
+	WaitForSingleObject(caretTrackThread, 1000);
+
+	//Close it
+	CloseHandle(caretTrackThread);
+
+	//Ready?
+	if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
+		//Line up our windows
+		MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+		MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+	}
+}
+
+
+//Keeps all variables in sync, and allows repositioning
+void ShowAWindow(const HWND &windowToShow, bool &flagToSet, int cmdShow, bool doReposition)
+{
+	//Avoid duplicate commands
+	bool show = (cmdShow==SW_SHOW);
+	if (flagToSet==show)
+		return;
+
+	//Re-position?
+	if (!flagToSet && doReposition)
+		positionAtCaret();
+
+	//Set flags, perform move
+	ShowWindow(windowToShow, cmdShow);
+	flagToSet = show;
+}
+
+
+
+//Wrapper for MainWindow
+void ShowMainWindow(int cmdShow)
+{
+	ShowAWindow(mainWindow, mainWindowIsVisible, cmdShow, true);
+}
+
+//Wrapper for SenWindow
+void ShowSubWindow(int cmdShow)
+{
+	ShowAWindow(senWindow, subWindowIsVisible, cmdShow, true);
+}
+
+//Wrapper for HelpWindow
+void ShowHelpWindow(int cmdShow)
+{
+	ShowAWindow(helpWindow, helpWindowIsVisible, cmdShow, false);
+	ShowAWindow(memoryWindow, memoryWindowIsVisible, cmdShow, false);
+}
+
+
+
+//Helpful wrapper
 void ShowBothWindows(int cmdShow)
 {
-	bool show = (cmdShow==SW_SHOW);
+	ShowMainWindow(cmdShow);
 
-	ShowWindow(mainWindow, cmdShow);
-	mainWindowIsVisible = show;
-
-	if (typePhrases) {
-		ShowWindow(senWindow, cmdShow);
-		subWindowIsVisible = show;
-	}
+	if (typePhrases)
+		ShowSubWindow(cmdShow);
 }
 
 
@@ -1661,9 +1738,7 @@ void switchToLanguage(bool toMM) {
 		ShowBothWindows(SW_HIDE);
 
 		if (helpWindowIsVisible) {
-			helpWindowIsVisible = false;
-			ShowWindow(helpWindow, SW_HIDE);
-			ShowWindow(memoryWindow, SW_HIDE);
+			ShowHelpWindow(SW_HIDE);
 		}
 	}
 }
@@ -2434,8 +2509,6 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				initCalculateHelp();
 			}
 			helpInitDone = true;
-			//ShowWindow(hwnd, SW_SHOW);
-			//helpWindowIsVisible = true;
 
 			break;
 		}
@@ -2797,70 +2870,28 @@ void updateHelpWindow()
 		recalculate();
 
 		//Show the help window
-		ShowWindow(helpWindow, SW_SHOW);
-		ShowWindow(memoryWindow, SW_SHOW);
-		helpWindowIsVisible = true;
+		ShowHelpWindow(SW_SHOW);
 		reBlitHelp();
 
 		//Show the main/sentence windows; this is just good practice.
 		if (!mainWindowIsVisible) {
-			//Re-position this near the caret
-			if (experimentalTextCursorTracking) {
-				//Reset parameters for our thread
-				//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
-				caretLatestPosition.x = 0;
-				caretLatestPosition.y = 0;
-
-				//Create and start our thread for tracking the caret
-				caretTrackThread = CreateThread(
-					NULL,                //Default security attributes
-					0,                   //Default stack size
-					UpdateCaretPosition, //Threaded function (name)
-					NULL,                //Arguments to threaded function
-					0,
-					&caretTrackThreadID);//Pointer to return the thread's id into
-				if (caretTrackThread==NULL) {
-					MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
-					experimentalTextCursorTracking = false;
-				}
-
-				//Wait for it.
-				WaitForSingleObject(caretTrackThread, 1000);
-
-				//Close it
-				CloseHandle(caretTrackThread);
-
-				//Ready?
-				if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
-					//Line up our windows
-					MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-					MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
-				}
-			}
-
 			//Show it.
-			ShowWindow(mainWindow, SW_SHOW);
-			mainWindowIsVisible = true;
+			ShowMainWindow(SW_SHOW);
 		}
 		if (!subWindowIsVisible) {
-			ShowWindow(senWindow, SW_SHOW);
-			subWindowIsVisible = true;
+			ShowSubWindow(SW_SHOW);
 		}
 	} else {
 		//Clear our word string
 		currStr.clear();
 
 		turnOnHelpKeys(false);
-		ShowWindow(helpWindow, SW_HIDE);
-		ShowWindow(memoryWindow, SW_HIDE);
-		helpWindowIsVisible = false;
+		ShowHelpWindow(SW_HIDE);
 
 		//Hide the main window, too, and possibly the secondary window
-		ShowWindow(mainWindow, SW_HIDE);
-		mainWindowIsVisible = false;
+		ShowMainWindow(SW_HIDE);
 		if (sentence.size()==0) {
-			ShowWindow(senWindow, SW_HIDE);
-			subWindowIsVisible = false;
+			ShowSubWindow(SW_HIDE);
 		}
 
 		recalculate();
@@ -3016,17 +3047,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					currStr.clear();
 
 					turnOnHelpKeys(false);
-					ShowWindow(helpWindow, SW_HIDE);
-					ShowWindow(memoryWindow, SW_HIDE);
-					helpWindowIsVisible = false;
+					ShowHelpWindow(SW_HIDE);
 
 					//Hide the main window, too, and possibly the secondary window
-					ShowWindow(mainWindow, SW_HIDE);
-					mainWindowIsVisible = false;
-					if (sentence.size()==0) {
-						ShowWindow(senWindow, SW_HIDE);
-						subWindowIsVisible = false;
-					}
+					ShowMainWindow(SW_HIDE);
+					if (sentence.size()==0)
+						ShowSubWindow(SW_HIDE);
 
 					recalculate();
 				} else {
@@ -3052,8 +3078,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowBothWindows(SW_HIDE);
 						} else {
 							//Just hide the typing window for now.
-							ShowWindow(mainWindow, SW_HIDE);
-							mainWindowIsVisible = false;
+							ShowMainWindow(SW_HIDE);
 
 							if (sentence.size()==0) {
 								//Kill the entire sentence.
@@ -3130,16 +3155,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								ShowBothWindows(SW_HIDE);
 							} else {
 								//Just hide the typing window for now.
-								ShowWindow(mainWindow, SW_HIDE);
-								mainWindowIsVisible = false;
+								ShowMainWindow(SW_HIDE);
 
 								if (sentence.size()==0) {
 									//Kill the entire sentence.
 									sentence.clear();
 									turnOnControlkeys(false);
 
-									ShowWindow(senWindow, SW_HIDE);
-									subWindowIsVisible = false;
+									ShowSubWindow(SW_HIDE);
 								}
 							}
 						}
@@ -3222,8 +3245,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//The model is visible: select that word
 						BOOL typed = selectWord(numCode, helpWindowIsVisible);
 						if (typed==TRUE && typePhrases) {
-							ShowWindow(mainWindow, SW_HIDE);
-							mainWindowIsVisible = false;
+							ShowMainWindow(SW_HIDE);
 
 							currStr.clear();
 							patSintIDModifier = 0;
@@ -3246,8 +3268,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							if (!subWindowIsVisible) {
 								turnOnControlkeys(true);
 
-								ShowWindow(senWindow, SW_SHOW);
-								subWindowIsVisible = true;
+								ShowSubWindow(SW_SHOW);
 							}
 
 							recalculate();
@@ -3302,16 +3323,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 
 						//Hide the help window
-						helpWindowIsVisible = false;
 						turnOnHelpKeys(false);
-						ShowWindow(helpWindow, SW_HIDE);
-						ShowWindow(memoryWindow, SW_HIDE);
+						ShowHelpWindow(SW_HIDE);
 
 						//Try to type this word
 						BOOL typed = selectWord(currStrDictID, true);
 						if (typed==TRUE && typePhrases) {
-							ShowWindow(mainWindow, SW_HIDE);
-							mainWindowIsVisible = false;
+							ShowMainWindow(SW_HIDE);
 
 							patSintIDModifier = 0;
 							model.reset(false);
@@ -3328,8 +3346,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//The model is visible: select that word
 						BOOL typed = selectWord(-1, helpWindowIsVisible);
 						if (typed==TRUE && typePhrases) {
-							ShowWindow(mainWindow, SW_HIDE);
-							mainWindowIsVisible = false;
+							ShowMainWindow(SW_HIDE);
 
 							currStr.clear();
 							patSintIDModifier = 0;
@@ -3366,16 +3383,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 
 						//Hide the help window
-						helpWindowIsVisible = false;
 						turnOnHelpKeys(false);
-						ShowWindow(helpWindow, SW_HIDE);
-						ShowWindow(memoryWindow, SW_HIDE);
+						ShowHelpWindow(SW_HIDE);
 
 						//Try to type this word
 						BOOL typed = selectWord(currStrDictID, true);
 						if (typed==TRUE && typePhrases) {
-							ShowWindow(mainWindow, SW_HIDE);
-							mainWindowIsVisible = false;
+							ShowMainWindow(SW_HIDE);
 
 							patSintIDModifier = 0;
 							model.reset(false);
@@ -3394,8 +3408,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//The model is visible: select that word
 						BOOL typed = selectWord(-1, helpWindowIsVisible);
 						if (typed==TRUE && typePhrases) {
-							ShowWindow(mainWindow, SW_HIDE);
-							mainWindowIsVisible = false;
+							ShowMainWindow(SW_HIDE);
 
 							patSintIDModifier = 0;
 							model.reset(false);
@@ -3462,8 +3475,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (!typePhrases || !subWindowIsVisible) {
 							ShowBothWindows(SW_SHOW);
 						} else {
-							ShowWindow(mainWindow, SW_SHOW);
-							mainWindowIsVisible = true;
+							ShowMainWindow(SW_SHOW);
 						}
 					}
 
@@ -3495,53 +3507,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							if (!numberKeysOn)
 								turnOnNumberkeys(true);
 
-							//TEST: Re-position it
-							//TEST: Use AttachThredInput? Yes!
-							//Still a bit glitchy....
-							//NOTE: We can probably use GetForegroundWindow() + AttachThreadInput() + GetFocus() to
-							//      avoid SendInput() and just use PostMessage(). This will help us support Windows 98, etc.
-							if (experimentalTextCursorTracking) {
-								//Reset parameters for our thread
-								//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
-								caretLatestPosition.x = 0;
-								caretLatestPosition.y = 0;
-
-								//Create and start our thread for tracking the caret
-								caretTrackThread = CreateThread(
-									NULL,                //Default security attributes
-									0,                   //Default stack size
-									UpdateCaretPosition, //Threaded function (name)
-									NULL,                //Arguments to threaded function
-									0,
-									&caretTrackThreadID);//Pointer to return the thread's id into
-								if (caretTrackThread==NULL) {
-									MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
-									experimentalTextCursorTracking = false;
-								}
-
-								//Wait for it.
-								WaitForSingleObject(caretTrackThread, 1000);
-
-								//Close it
-								CloseHandle(caretTrackThread);
-
-								//Ready?
-								if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
-									//Line up our windows
-									MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-									MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
-								}
-							}
-
-
 							//Show it
 							if (!typePhrases || !subWindowIsVisible) {
 								//Turn on control keys
 								turnOnControlkeys(true);
 								ShowBothWindows(SW_SHOW);
 							} else {
-								ShowWindow(mainWindow, SW_SHOW);
-								mainWindowIsVisible = true;
+								ShowMainWindow(SW_SHOW);
 							}
 						}
 
@@ -3580,16 +3552,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Try to type this word
 					BOOL typed = selectWord(newID, true);
 					if (typed==TRUE && typePhrases) {
-						//ShowWindow(mainWindow, SW_HIDE);
-						//mainWindowIsVisible = false;
-						//model->reset(false);
-						//lstrcpy(currStr, _T(""));
-
 						if (!subWindowIsVisible) {
 							turnOnControlkeys(true);
 
-							ShowWindow(senWindow, SW_SHOW);
-							subWindowIsVisible = true;
+							ShowSubWindow(SW_SHOW);
 						}
 
 						recalculate();
@@ -4480,6 +4446,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	mainWindowIsVisible = false;
 	subWindowIsVisible = false;
 	helpWindowIsVisible = false;
+	memoryWindowIsVisible = false;
 	mainInitDone = false;
 	helpInitDone = false;
 
