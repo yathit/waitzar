@@ -1585,6 +1585,10 @@ void positionAtCaret()
 	if (!experimentalTextCursorTracking)
 		return;
 
+	//Also skip if one window is already visible
+	if (mainWindowIsVisible || subWindowIsVisible)
+		return;
+
 	//Reset parameters for our thread
 	//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
 	caretLatestPosition.x = 0;
