@@ -225,7 +225,7 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 
 	//Comment? Empty line? If so, skip...
 	if (stream[index]=='#' || stream[index]=='\n') {
-		while (stream[index] != '\n')
+		while (stream[index] != '\n' && index<streamSize)
 			index++;
 		index++;
 		return;
