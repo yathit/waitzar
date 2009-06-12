@@ -2116,7 +2116,7 @@ wstring getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
 		else if (encoding==ENCODING_WININNWA) {
 			wstring srcStr = userDefinedWords[id];
 			wchar_t destStr[200];
-			convertFont(destStr, srcStr.c_str(), Zawgyi_One, WinInnwa);
+			convertFont(destStr, srcStr.c_str(), Myanmar3, WinInnwa);
 			typedStr = destStr;
 		} else
 			typedStr = L"";
