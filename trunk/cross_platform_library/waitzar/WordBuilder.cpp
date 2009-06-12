@@ -1214,7 +1214,9 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 	for (; currWord!=prefix[currPrefixID].end(); currWord++) {
 		if (*currWord == dictID) {
 			if (!ignoreDuplicates) {
-				mostRecentError = L"Word is already in dictionary at ID: " + *currWord;
+				wstringstream msg;
+				msg << "Word is already in dictionary at ID: " << (*currWord);
+				mostRecentError = msg.str();
 			  return false;
 			} else {
 			  return true;
