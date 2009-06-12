@@ -3244,7 +3244,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
 							numCode = -1;
 							patSintIDModifier = -1;
-						}
+						} else 
+							patSintIDModifier = 0;
 
 						//The model is visible: select that word
 						BOOL typed = selectWord(numCode, helpWindowIsVisible);
@@ -3255,7 +3256,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							patSintIDModifier = 0;
 							model.reset(false);
 							recalculate();
-						}
+						} else 
+							patSintIDModifier = 0;
 
 						keyWasUsed = true;
 					} else if (typeBurmeseNumbers) {
