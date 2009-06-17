@@ -5,9 +5,9 @@ class DownloadTemplate(FallbackTemplate):
         <h1>Download WaitZar</h1>
 		<table align="left" border="0" cellpadding="8" cellspacing="0" style="background-color:#444400; border: 6px solid green; color:white;">
 			<tr>
-				<td width="100" align="center"style="background-color:#FFFF33; border-right: 3px solid green;"><a class="ninjalink" href="http://waitzar.googlecode.com/files/waitzar_release_1.6.zip">
+				<td width="100" align="center"style="background-color:#FFFF33; border-right: 3px solid green;"><a class="ninjalink" href="http://waitzar.googlecode.com/files/waitzar_release_1.7.zip">
 					<img src="img/wz_icon_zipped.png" border="0"/>
-					<br><div class="downloadlink linkclr">WaitZar_1.6.zip</div>
+					<br><div class="downloadlink linkclr">WaitZar_1.7.zip</div>
 				</a></td>
 				<td valign="top">The latest full release of WaitZar. This zipped folder contains <span style="color:#FF3333;"><b><i>everything you need</i></b></span> to get started: the WaitZar program, the User's Guide, and a sample mywords.txt and config.txt.
 								 This realease is fully tested for bugs and misbehaviour. It is considered safe for serious users (e.g., office environments).
@@ -27,9 +27,9 @@ class DownloadTemplate(FallbackTemplate):
 
 		<br><table align="left" border="0" cellpadding="8" cellspacing="0" class="glwt mt40">
 			<tr>
-				<td width="100" align="center" class="glr"><a class="ninjalink" href="http://waitzar.googlecode.com/svn/trunk/release_1.6/WaitZar%20User%27s%20Guide.doc">
+				<td width="100" align="center" class="glr"><a class="ninjalink" href="http://waitzar.googlecode.com/svn/trunk/release_1.7/WaitZar%20User%27s%20Guide.doc">
 					<img src="img/wz_icon_guide.png" border="0"/>
-					<br><div class="downloadlink linkclr">User's Guide 1.6.exe</div>
+					<br><div class="downloadlink linkclr">User's Guide 1.7.exe</div>
 				</a></td>
 				<td valign="top">The WaitZar User's Guide, which explains how to configure and use the software. Download this if you need any help using WaitZar; it is very informative.
 				</td>
