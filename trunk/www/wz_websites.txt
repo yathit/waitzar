@@ -1,6 +1,5 @@
 [
-{name:"John's Page", link:"http://www.x.com", img:"http://www.us/temp.png"}
-{name:"Another Page", link:"http://www.xy.com"}
-{name:"One More Page", link:"http://www.xyz.com", img:"http://www.us/big_pic.png"}
-
+{"link":"http://www.x.com","name":"John\'s Page","img":"http://www.us/temp.png"},
+{"link":"http://www.xy.com","name":"Another Page"},
+{"link":"http://www.xyz.com","name":"One Final Page","img":"http://www.us/temp.png"}
 ]

@@ -10,71 +10,14 @@ class SitelinksTemplate(FallbackTemplate):
 
         <h1 style="margin-top: 0px;">Web Sites</h1>
 
-	<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1" style="margin-left:70px;">
-		<tr style="background:#114411;">
-			<td width="1" valign="top" align="left"  class="pl10 pt10" style="border-left: 4px solid #2A2;">
-				<a class="ninjalink" href="http://www.x.com">
-					<div style="width:80px; height:80px; padding-bottom:10px;">
-						<img src="http://www.overdrawn.net/mario/demo/mario.gif" border="0"
-						style="display: block; margin-left: auto; margin-right: auto;
-												max-width:80px;max-height:80px;
-												width: expression(this.width > 80 ? 80: true);
-												height: expression(this.height > 80 ? 80: true);
-						"/>
-					</div>
-				</a>
-			</td>
-			<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
-				<a class="ninjalink" href="http://www.x.com">
-					<span class="helpbigtxt">John's Site</span>
-				</a>
-				<br>http://www.x.com
-			</td>
-		</tr>
-		<tr style="background:#666600;">
-			<td width="1" valign="top" align="left"  class="pl10 pt10" style="border-left: 4px solid #CC2;">
-				<a class="ninjalink" href="http://www.x.com">
-					<div style="width:80px; height:80px; padding-bottom:10px;">
-						&nbsp;
-					</div>
-				</a>
-			</td>
-			<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
-				<a class="ninjalink" href="http://www.x.com">
-					<span class="helpbigtxt">Another Site</span>
-				</a>
-				<br>http://www.xy.com
-			</td>
-		</tr>
-		<tr style="background:#114411;">
-			<td width="1" valign="top" align="left"  class="pl10 pt10" style="border-left: 4px solid #2A2;">
-				<a class="ninjalink" href="http://www.x.com">
-					<div style="max-width:80px; max-height:80px; padding-bottom:10px;">
-						<img src="http://freepages.genealogy.rootsweb.ancestry.com/~genealogylinks/dmst/-symbols/-sym-gfx/Montana/montanauc.gif" border="0"
-						style="display: block; margin-left: auto; margin-right: auto;
-						max-width:80px;max-height:80px;
-						width: expression(this.width > 80 ? 80: true);
-						height: expression(this.height > 80 ? 80: true);
-						"/>
-					</div>
-				</a>
-			</td>
-			<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
-				<a class="ninjalink" href="http://www.x.com">
-					<span class="helpbigtxt">One More Site</span>
-				</a>
-				<br>http://www.x.com
-			</td>
-		</tr>
-	</table>
-
+	${{generateLinksTable()}}
 
         $<hrule_template>
 
 
-		<h1 style="margin-top: 0px;">Suggest a Site to Add</h1>
+	<h1 style="margin-top: 0px;">Suggest a Site to Add</h1>
 
-		If you do not see your favorite site on the list, please add it! We only have one requirement: each web site on the list <b>must</b> showcase the WaitZar sticker on their main page.
+	If you do not see your favorite site on the list, please add it! We only have one requirement: each web site on the list <b>must</b> showcase the WaitZar sticker on their main page.
 
         <br>&nbsp;<br>To add the WaitZar sticker to your site, use the following html code:
         <br>
@@ -241,7 +184,60 @@ class SitelinksTemplate(FallbackTemplate):
 
 		$<hrule_template>
 		'''
+	
+	def tabs(amt)
+		return '\n' + '\t'*amt
+	
+	def generateLinksTable():
+		#Get our objects
+		ourLinks = [{'link': 'http://www.x.com', 'name': "John's Page", 'img': 'http://www.us/temp.png'}, {'link': 'http://www.xy.com', 'name': 'Another Page'}, {'link': 'http://www.xyz.com', 'name': 'One Final Page', 'img': 'http://www.us/temp.png'}]
+	
+		#General template start
+		out.append(tabs(2) + '<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1" style="margin-left:70px;">')
 		
+		#Print each row
+		colorID = 2
+		for line in ourLinks:
+			#Manage hash
+			name = line['name'] if 'name' in line else 'Error'
+			link = line['link'] if 'link' in line else 'Error'
+			img = line['img'] if 'img' in line else ''
+		
+			#Increment colors
+			colorID = 2 if colorID==1 else 2
+			
+			#Row
+			out.append(tabs(3) + '<tr class="sitelinkrow%d">' % (colorID,))
+			
+			#Cell 1
+			out.append(tabs(4) + '<td width="1" valign="top" align="left"  class="pl10 pt10 sitelinkbord%d">' % (colorID,))
+			out.append(tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
+			out.append(tabs(6) + '<div class="linkimgbkgrd">')
+			if len(img) > 0:
+				out.append(tabs(7) + '<img src="%s" border="0" class="linkimgfore" ' % (img,))
+				out.append(tabs(7) + 'style="width: expression(this.width > 80 ? 80: true); height: expression(this.height > 80 ? 80: true);"/>')
+			else
+				out.append(tabs(7) + '&nbsp;')
+			out.append(tabs(6) + '</div>')
+			out.append(tabs(5) + '</a>')
+			out.append(tabs(4) + '</td>')
+			
+			#Cell 2
+			out.append(tabs(4) + '<td width="100%" valign="top" align="left"  class="pl10 pt10 sitelinkname">')
+			out.append(tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
+			out.append(tabs(6) + '<span class="helpbigtxt">%s</span>' % (name,))
+			out.append(tabs(5) + '</a>')
+			out.append(tabs(5) + '<br>%s' % (link,))
+			out.append(tabs(4) + '</td>')
+
+			#End row
+			out.append('</tr>')
+		
+		#General template end
+		out.append(tabs(2) + '</table>')
+
+	
+	
 	def reloadText(self, emailServerError):
 		#Form post-back
 		head = "Request Sent"
