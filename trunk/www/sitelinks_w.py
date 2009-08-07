@@ -185,7 +185,7 @@ class SitelinksTemplate(FallbackTemplate):
 		$<hrule_template>
 		'''
 	
-	def tabs(amt)
+	def tabs(amt):
 		return '\n' + '\t'*amt
 	
 	def generateLinksTable():
@@ -216,7 +216,7 @@ class SitelinksTemplate(FallbackTemplate):
 			if len(img) > 0:
 				out.append(tabs(7) + '<img src="%s" border="0" class="linkimgfore" ' % (img,))
 				out.append(tabs(7) + 'style="width: expression(this.width > 80 ? 80: true); height: expression(this.height > 80 ? 80: true);"/>')
-			else
+			else:
 				out.append(tabs(7) + '&nbsp;')
 			out.append(tabs(6) + '</div>')
 			out.append(tabs(5) + '</a>')
