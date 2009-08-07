@@ -216,8 +216,12 @@ class SitelinksTemplate(FallbackTemplate):
 				img = line['img']
 			
 
-			#Increment colors
-			colorID = 2 if colorID==1 else 2
+			#Increment colors -why aren't ternary operators working?
+			if colorID==1:
+				colorID = 2
+			else:
+				colorID = 1
+			#colorID = 2 if colorID==1 else 2
 
 			#Row
 			self.out.append(self.tabs(3) + '<tr class="sitelinkrow%d">' % (colorID,))
