@@ -1,5 +1,6 @@
 from locus import FallbackTemplate
 
+
 class SitelinksTemplate(FallbackTemplate):
 	template = r'''
         <h1>Sites That Use WaitZar</h1>
@@ -10,7 +11,7 @@ class SitelinksTemplate(FallbackTemplate):
 
         <h1 style="margin-top: 0px;">Web Sites</h1>
 
-	${{generateLinksTable()}}
+	${{self.generateLinksTable()}}
 
         $<hrule_template>
 
@@ -183,18 +184,18 @@ class SitelinksTemplate(FallbackTemplate):
 
 
 		$<hrule_template>
-		'''
-	
-	def tabs(amt):
+		'''	
+		
+	def tabs(self, amt):
 		return '\n' + '\t'*amt
-	
-	def generateLinksTable():
+
+	def generateLinksTable(self, ):
 		#Get our objects
 		ourLinks = [{'link': 'http://www.x.com', 'name': "John's Page", 'img': 'http://www.us/temp.png'}, {'link': 'http://www.xy.com', 'name': 'Another Page'}, {'link': 'http://www.xyz.com', 'name': 'One Final Page', 'img': 'http://www.us/temp.png'}]
-	
+
 		#General template start
-		out.append(tabs(2) + '<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1" style="margin-left:70px;">')
-		
+		self.out.append(self.tabs(2) + '<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1" style="margin-left:70px;">')
+
 		#Print each row
 		colorID = 2
 		for line in ourLinks:
@@ -202,41 +203,40 @@ class SitelinksTemplate(FallbackTemplate):
 			name = line['name'] if 'name' in line else 'Error'
 			link = line['link'] if 'link' in line else 'Error'
 			img = line['img'] if 'img' in line else ''
-		
+
 			#Increment colors
 			colorID = 2 if colorID==1 else 2
-			
+
 			#Row
-			out.append(tabs(3) + '<tr class="sitelinkrow%d">' % (colorID,))
-			
+			self.out.append(self.tabs(3) + '<tr class="sitelinkrow%d">' % (colorID,))
+
 			#Cell 1
-			out.append(tabs(4) + '<td width="1" valign="top" align="left"  class="pl10 pt10 sitelinkbord%d">' % (colorID,))
-			out.append(tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
-			out.append(tabs(6) + '<div class="linkimgbkgrd">')
+			self.out.append(self.tabs(4) + '<td width="1" valign="top" align="left"  class="pl10 pt10 sitelinkbord%d">' % (colorID,))
+			self.out.append(self.tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
+			self.out.append(self.tabs(6) + '<div class="linkimgbkgrd">')
 			if len(img) > 0:
-				out.append(tabs(7) + '<img src="%s" border="0" class="linkimgfore" ' % (img,))
-				out.append(tabs(7) + 'style="width: expression(this.width > 80 ? 80: true); height: expression(this.height > 80 ? 80: true);"/>')
+				self.out.append(self.tabs(7) + '<img src="%s" border="0" class="linkimgfore" ' % (img,))
+				self.out.append(self.tabs(7) + 'style="width: expression(this.width > 80 ? 80: true); height: expression(this.height > 80 ? 80: true);"/>')
 			else:
-				out.append(tabs(7) + '&nbsp;')
-			out.append(tabs(6) + '</div>')
-			out.append(tabs(5) + '</a>')
-			out.append(tabs(4) + '</td>')
-			
+				self.out.append(self.tabs(7) + '&nbsp;')
+			self.out.append(self.tabs(6) + '</div>')
+			self.out.append(self.tabs(5) + '</a>')
+			self.out.append(self.tabs(4) + '</td>')
+
 			#Cell 2
-			out.append(tabs(4) + '<td width="100%" valign="top" align="left"  class="pl10 pt10 sitelinkname">')
-			out.append(tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
-			out.append(tabs(6) + '<span class="helpbigtxt">%s</span>' % (name,))
-			out.append(tabs(5) + '</a>')
-			out.append(tabs(5) + '<br>%s' % (link,))
-			out.append(tabs(4) + '</td>')
+			self.out.append(self.tabs(4) + '<td width="100%" valign="top" align="left"  class="pl10 pt10 sitelinkname">')
+			self.out.append(self.tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
+			self.out.append(self.tabs(6) + '<span class="helpbigtxt">%s</span>' % (name,))
+			self.out.append(self.tabs(5) + '</a>')
+			self.out.append(self.tabs(5) + '<br>%s' % (link,))
+			self.out.append(self.tabs(4) + '</td>')
 
 			#End row
-			out.append('</tr>')
-		
-		#General template end
-		out.append(tabs(2) + '</table>')
+			self.out.append(self.tabs(3) + '</tr>')
 
-	
+		#General template end
+		self.out.append(self.tabs(2) + '</table>')
+
 	
 	def reloadText(self, emailServerError):
 		#Form post-back
