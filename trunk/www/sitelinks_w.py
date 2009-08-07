@@ -1,6 +1,11 @@
 from locus import FallbackTemplate
 from json import *
 
+def onlyascii(char):
+	if ord(char) < 48 or ord(char) > 127 or char=='_': 
+		return ''
+	else: 
+		return char
 
 class SitelinksTemplate(FallbackTemplate):
 	template = r'''
@@ -144,9 +149,7 @@ class SitelinksTemplate(FallbackTemplate):
 						<span style="font-size: 12px;">Site to Remove:</span>
 						<br><select id="removeSite" name="removeSite" style="width:160;">
 							<option selected value="none">Please choose...</option>
-							<option value="johns_site">John's Site</option>
-							<option value="another_site">Another Site</option>
-							<option value="one_more_site">One More Site</option>
+							${{self.generateRemovalLists()}}
 						</select>
 					</td>
 					<td class="glr glb" height="1" rowspan="3" colspan="2" valign="top">
@@ -196,10 +199,26 @@ class SitelinksTemplate(FallbackTemplate):
 		return JsonReader().read(allLines)
 	
 	
+	def generateRemovalLists(self):
+		#Get our objects
+		ourLinks = self.readLinksFromFile()
+	
+		#Write each option
+		for line in ourLinks:
+			#Manage hash
+			name = 'Error'
+			if 'name' in line:
+				name = line['name']
+			temp = string.replace(string.lower(name), " ", "_")
+			namesmall = filter(onlyascii, temp)
+			
+			self.out.append(self.tabs(5) + '<option value="%s">%s</option>' % (namesmall, name))
+		
+	
 	def tabs(self, amt):
 		return '\n' + '\t'*amt
 
-	def generateLinksTable(self, ):
+	def generateLinksTable(self):
 		#Get our objects
 		ourLinks = self.readLinksFromFile()
 
