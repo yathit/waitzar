@@ -1,4 +1,5 @@
 from locus import FallbackTemplate
+from json import *
 
 
 class SitelinksTemplate(FallbackTemplate):
@@ -185,13 +186,22 @@ class SitelinksTemplate(FallbackTemplate):
 
 		$<hrule_template>
 		'''	
-		
+	
+	
+	def readLinksFromFile(self):
+		#We need to concatenate all lines in the wz_websites file, and then
+		#   use our json parser on it
+		f = open('wz_websites.txt', 'r')
+		allLines = string.join(f.readlines(), ' ')
+		return JsonReader().read(allLines)
+	
+	
 	def tabs(self, amt):
 		return '\n' + '\t'*amt
 
 	def generateLinksTable(self, ):
 		#Get our objects
-		ourLinks = [{'link': 'http://www.x.com', 'name': "John's Page", 'img': 'http://www.us/temp.png'}, {'link': 'http://www.xy.com', 'name': 'Another Page'}, {'link': 'http://www.xyz.com', 'name': 'One Final Page', 'img': 'http://www.us/temp.png'}]
+		ourLinks = self.readLinksFromFile()
 
 		#General template start
 		self.out.append(self.tabs(2) + '<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1" style="margin-left:70px;">')
