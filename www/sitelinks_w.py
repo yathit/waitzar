@@ -199,10 +199,22 @@ class SitelinksTemplate(FallbackTemplate):
 		#Print each row
 		colorID = 2
 		for line in ourLinks:
+			#Manage hash - Doesn't work server side...
+			#name = line['name'] if 'name' in line else 'Error'
+			#link = line['link'] if 'link' in line else 'Error'
+			#img = line['img'] if 'img' in line else ''
+			
 			#Manage hash
-			name = line['name'] if 'name' in line else 'Error'
-			link = line['link'] if 'link' in line else 'Error'
-			img = line['img'] if 'img' in line else ''
+			name = 'Error'
+			if 'name' in line:
+				name = line['name']
+			link = 'Error'
+			if 'link' in line:
+				link = line['link']
+			img = ''
+			if 'img' in line:
+				img = line['img']
+			
 
 			#Increment colors
 			colorID = 2 if colorID==1 else 2
