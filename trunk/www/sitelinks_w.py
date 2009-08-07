@@ -1,0 +1,258 @@
+from locus import FallbackTemplate
+
+class SitelinksTemplate(FallbackTemplate):
+	template = r'''
+        <h1>Sites That Use WaitZar</h1>
+
+        Quite a lot of people already use WaitZar for their web sites and web logs. Here's a list of the ones we know. Please add your favorite pages to the bottom of the list; our only requirement is that they display the WaitZar sticker on the main page of their site.
+
+        $<hrule_template>
+
+        <h1 style="margin-top: 0px;">Web Sites</h1>
+
+	<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1" style="margin-left:70px;">
+		<tr style="background:#114411;">
+			<td width="1" valign="top" align="left"  class="pl10 pt10" style="border-left: 4px solid #2A2;">
+				<a class="ninjalink" href="http://www.x.com">
+					<div style="width:80px; height:80px; padding-bottom:10px;">
+						<img src="http://www.overdrawn.net/mario/demo/mario.gif" border="0"
+						style="display: block; margin-left: auto; margin-right: auto;
+												max-width:80px;max-height:80px;
+												width: expression(this.width > 80 ? 80: true);
+												height: expression(this.height > 80 ? 80: true);
+						"/>
+					</div>
+				</a>
+			</td>
+			<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
+				<a class="ninjalink" href="http://www.x.com">
+					<span class="helpbigtxt">John's Site</span>
+				</a>
+				<br>http://www.x.com
+			</td>
+		</tr>
+		<tr style="background:#666600;">
+			<td width="1" valign="top" align="left"  class="pl10 pt10" style="border-left: 4px solid #CC2;">
+				<a class="ninjalink" href="http://www.x.com">
+					<div style="width:80px; height:80px; padding-bottom:10px;">
+						&nbsp;
+					</div>
+				</a>
+			</td>
+			<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
+				<a class="ninjalink" href="http://www.x.com">
+					<span class="helpbigtxt">Another Site</span>
+				</a>
+				<br>http://www.xy.com
+			</td>
+		</tr>
+		<tr style="background:#114411;">
+			<td width="1" valign="top" align="left"  class="pl10 pt10" style="border-left: 4px solid #2A2;">
+				<a class="ninjalink" href="http://www.x.com">
+					<div style="max-width:80px; max-height:80px; padding-bottom:10px;">
+						<img src="http://freepages.genealogy.rootsweb.ancestry.com/~genealogylinks/dmst/-symbols/-sym-gfx/Montana/montanauc.gif" border="0"
+						style="display: block; margin-left: auto; margin-right: auto;
+						max-width:80px;max-height:80px;
+						width: expression(this.width > 80 ? 80: true);
+						height: expression(this.height > 80 ? 80: true);
+						"/>
+					</div>
+				</a>
+			</td>
+			<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
+				<a class="ninjalink" href="http://www.x.com">
+					<span class="helpbigtxt">One More Site</span>
+				</a>
+				<br>http://www.x.com
+			</td>
+		</tr>
+	</table>
+
+
+        $<hrule_template>
+
+
+		<h1 style="margin-top: 0px;">Suggest a Site to Add</h1>
+
+		If you do not see your favorite site on the list, please add it! We only have one requirement: each web site on the list <b>must</b> showcase the WaitZar sticker on their main page.
+
+        <br>&nbsp;<br>To add the WaitZar sticker to your site, use the following html code:
+        <br>
+        <table border="0"><tr><td>
+			<div style="border: 1px solid white; padding:10px; margin-top:10px; width:auto; font-family:monospace; font-size:11pt;">
+				&lt;a href="http://www.waitzar.com/"&gt;
+				<br>&nbsp;&nbsp;&nbsp;&lt;img src="http://waitzar.googlecode.com/files/wz_usericon.png"/&gt;
+				<br>&lt;/a&gt;
+			</div>
+        </td></tr></table>
+
+		<br><button onclick="document.getElementById('wzNewSiteDiv').style.display='inline';this.style.display='none';">
+			<table border="0"><tr>
+				<td align="left"><img src="img/btn_add.png"/></td>
+				<td valign="middle">&nbsp;&nbsp;&nbsp;Suggest a web site</td>
+			</tr></table>
+		</button>
+		<div id="wzNewSiteDiv" name="wzNewSiteDiv" style="display:none;">
+		<form id="wzNewSiteForm" name="wzNewSiteForm">
+			<table border="0" rules="none" cellpadding="10" cellspacing="0" style="margin-top:20px; margin-left: 10px;">
+				<tr>
+					<td width="1" class="gll glt"><img src="img/wz_icon.png" width="48" height="48"/></td>
+					<td width="200" class="glt glr">
+						<span style="font-size: 12px;">Why are you contacting us?</span>
+						<br><select id="requestType" name="requestType" style="width:160;" disabled>
+							<option value="comment" selected>Suggesting a Site</option>
+						</select>
+					</td>
+					<td class="glb">&nbsp;</td>
+					<td class="glb">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="260" class="gll" colspan="2">
+						<span style="font-size: 12px;">Name of web site:</span>
+						<br><input id="webSiteName"  onmousedown="unRedElement('webSiteName');"  name="webSiteName" type="text" style="width: 230px;" onchange="document.getElementById('previewName').innerHTML=this.value;"/>
+					</td>
+					<td class="glr glb" height="1" rowspan="4" colspan="2" valign="top">
+					Submission Preview:
+						<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1">
+							<tr style="background:#333333;">
+								<td width="1" valign="top" align="left"  class="pl10 pt10" style="border-left: 4px solid #AAA;">
+									<a class="ninjalink" href="http://www.x.com">
+										<div style="width:80px; height:80px; padding-bottom:10px;">
+											<img id="previewImage" name="previewImage" src="" border="0"
+											style="display: block; margin-left: auto; margin-right: auto;
+																	max-width:80px;max-height:80px;
+																	width: expression(this.width > 80 ? 80: true);
+																	height: expression(this.height > 80 ? 80: true);
+																	visibility:hidden;"/>
+										</div>
+									</a>
+								</td>
+								<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
+									<a class="ninjalink" href="http://www.x.com">
+										<span class="helpbigtxt" id="previewName" name="previewName"></span>
+									</a>
+									<br><span id="previewURL" name="previewURL"></span>
+								</td>
+							</tr>
+						</table>
+						<div>
+							<table style="margin-left:auto; margin-right:auto;"><tr><td>
+								<br>&nbsp;
+								<input style="font-size: 18px;" id="submitAddButton" value="Submit Web Site" type="button" onclick='JavaScript:validateRequest();'/>
+								<div id="submitSuggestionLoader"></div>
+							</td></tr></table>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td width="260" class="gll" colspan="2">
+						<span style="font-size: 12px;">URL of main page:</span>
+						<br><input id="webSiteURL"  onmousedown="unRedElement('webSiteURL');"  name="webSiteURL" type="text" style="width: 280px;" onchange="document.getElementById('previewURL').innerHTML=this.value;"/>
+					</td>
+				</tr>
+				<tr>
+					<td width="260" class="gll" colspan="2">
+						<span style="font-size: 12px;">URL of site logo: (optional)</span>
+						<br><input id="webSiteImage"  onmousedown="unRedElement('webSiteImage');"  name="webSiteImage" type="text" style="width: 280px;" onchange="document.getElementById('previewImage').src=this.value; document.getElementById('previewImage').style.visibility=this.value.length==0?'hidden':'visible';"/>
+					</td>
+				</tr>
+				<tr>
+					<td class="gll glb" colspan="2">&nbsp;
+					</td>
+				</tr>
+			</table>
+		</form>
+		</div>
+
+
+		$<hrule_template>
+
+
+
+		<h1 style="margin-top: 0px;">Report a Site for Removal</h1>
+
+		If we listed a site which does not display the WaitZar sticker, or which is no longer online, please let us know so we can remove it. We'd like to keep this list up-to-date!
+
+		<br>&nbsp;
+		<br><button onclick="document.getElementById('wzRemoveSiteDiv').style.display='inline';this.style.display='none';">
+			<table border="0"><tr>
+				<td align="left"><img src="img/btn_remove.png"/></td>
+				<td valign="middle">&nbsp;&nbsp;&nbsp;Remove a web site</td>
+			</tr></table>
+		</button>
+		<div id="wzRemoveSiteDiv" name="wzRemoveSiteDiv" style="display:none;">
+		<form id="wzRemoveSiteForm" name="wzRemoveSiteForm">
+			<table border="0" rules="none" cellpadding="10" cellspacing="0" style="margin-top:20px; margin-left: 10px;">
+				<tr>
+					<td width="1" class="gll glt"><img src="img/wz_icon.png" width="48" height="48"/></td>
+					<td width="200" class="glt glr">
+						<span style="font-size: 12px;">Why are you contacting us?</span>
+						<br><select id="requestType" name="requestType" style="width:160;" disabled>
+							<option value="comment" selected>Site Removal Request</option>
+						</select>
+					</td>
+					<td class="glb">&nbsp;</td>
+					<td class="glb">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="260" class="gll" colspan="2">
+						<span style="font-size: 12px;">Site to Remove:</span>
+						<br><select id="removeSite" name="removeSite" style="width:160;">
+							<option selected value="none">Please choose...</option>
+							<option value="johns_site">John's Site</option>
+							<option value="another_site">Another Site</option>
+							<option value="one_more_site">One More Site</option>
+						</select>
+					</td>
+					<td class="glr glb" height="1" rowspan="3" colspan="2" valign="top">
+						<div>
+							<table style="margin-left:auto; margin-right:auto;"><tr><td>
+								<br>&nbsp;
+								<input style="font-size: 18px;" id="submitRemButton" value="Submit Removal Request" type="button" onclick='JavaScript:validateRequest();'/>
+								<div id="submitSuggestionLoader"></div>
+							</td></tr></table>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td width="260" class="gll" colspan="2">
+						<span style="font-size: 12px;">Reason for Removal:</span>
+						<br><select id="removalReason" name="removalReason" style="width:160;">
+							<option selected value="none">Please choose...</option>
+							<option value="nosticker">No WaitZar Sticker</option>
+							<option value="sitedown">Site Is Down (404)</option>
+							<option value="spyware">Site Contains Spyware</option>
+							<option value="adultcontent">Site Contains Adult Content</option>
+							<option value="other">Other...</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td width="260" class="gll glb" colspan="2">
+						<span style="font-size: 12px;">Additional Information: (optional)</span>
+						<br><textarea id="removalAdditionalInfo"  onmousedown="unRedElement('removalAdditionalInfo');"  name="webSiteImage" type="textarea" cols="40" rows="3"></textarea>
+					</td>
+				</tr>
+			</table>
+		</form>
+		</div>
+
+
+
+		$<hrule_template>
+		'''
+		
+	def reloadText(self, emailServerError):
+		#Form post-back
+		head = "Request Sent"
+		if invalidEmail or emailServerError:
+			head = "Error Sending Message"
+			
+		body = "We will respond to your request soon; thanks again."
+		if emailServerError:
+			body = "The feedback server is currently experiencing some difficulties."
+		if emailServerError:
+			body += "<br>Your email could not be sent.Why not try contacting <a href=\"mailto:help@waitzar.com\">help@waitzar.com</a> directly?"
+		ret = "<h1>" + head + "</h1>\n" + body +"<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;"
+		
+		return ret
