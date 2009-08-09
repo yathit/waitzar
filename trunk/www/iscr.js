@@ -65,9 +65,15 @@
 
       //Simple AJAX functionality
       function xmlhttpPost(strURL, formName) {
-      	document.getElementById("submitButton").disabled = true;
-      	document.getElementById("submitButton").value = "Please Wait"
-      	document.getElementById("submitLoader").innerHTML = "<img src=\"img/loading.gif\"/>";
+        if (formName == "wzRespForm") {
+      		document.getElementById("submitButton").disabled = true;
+	      	document.getElementById("submitButton").value = "Please Wait"
+      		document.getElementById("submitLoader").innerHTML = "<img src=\"img/loading.gif\"/>";
+      	} else if (formName == "wzNewSiteForm") {
+      		document.getElementById("submitAddButton").disabled = true;
+	      	document.getElementById("submitAddButton").value = "Please Wait"
+      		document.getElementById("submitAddLoader").innerHTML = "<img src=\"img/loading.gif\"/>";
+      	}
 
         var xmlHttpReq = false;
         var self = this;
@@ -115,9 +121,22 @@
 
       function getquerystring(formName) {
         var form     = document.forms[formName];
-        var name = form.userName.value;
-        var email = form.userEmail.value;
-        var comments = form.comments.value;
+        
+        //Here we go...
+        var name = "";
+	var email = "";
+        var comments = "";
+	if (formName == "wzRespForm") {
+		name = form.userName.value;
+		email = form.userEmail.value;
+		comments = form.comments.value;
+	} else if (formName == "wzNewSiteForm") {
+		name = "WZ Site Add Request"
+		email = "";
+		comments = "Site Name: " + form.webSiteName.value + "\n" 
+			 + "Site URL: " + form.webSiteURL.value + "\n" 
+			 + "Site Image: " + form.webSiteImage.value;
+      	}
         
         if (email.length==0) {
           email = "help@waitzar.com"
@@ -148,6 +167,51 @@
 		  }
 
 		  var errorCount = 0;
+		  var errorAddCount = 0;
+		  var errorRemoveCount = 0;
+		  
+		  function validateAddRequest() {
+		    //Reset all borders
+		  	errorAddCount = 0;
+
+		  	if (document.getElementById("webSiteName").value.length==0) {
+  		  		document.getElementById("webSiteName").style.border = "3px solid red";
+  		  		document.getElementById("webSiteName").style.backgroundColor = "#FFCCCC";
+  		  		document.getElementById("webSiteName").value = "Please enter a name for this web site.";
+  		  		errorAddCount = errorAddCount + 1;
+		  	}
+		  	
+		  	if (document.getElementById("webSiteURL").value.length==0) {
+  		  		document.getElementById("webSiteURL").style.border = "3px solid red";
+  		  		document.getElementById("webSiteURL").style.backgroundColor = "#FFCCCC";
+  		  		document.getElementById("webSiteURL").value = "Please enter this web site's URL.";
+  		  		errorAddCount = errorAddCount + 1;
+		  	}
+		  	
+		    	if (errorAddCount==0) {
+				xmlhttpPost("sitelinks.py", "wzNewSiteForm");
+			} else {
+				document.getElementById("submitAddButton").disabled = true;
+			}
+		  }
+		  
+		  function unRedAddElement(elem) {
+		    if (document.getElementById(elem).style.border.match("red")) {
+				document.getElementById(elem).style.border = "";
+				document.getElementById(elem).style.backgroundColor = "";
+				document.getElementById(elem).value = "";
+				errorAddCount = errorAddCount - 1;
+			}
+
+		    if (errorAddCount==0) {
+				document.getElementById("submitAddButton").disabled = false;
+			}
+		  }
+		  
+		  
+		  function validateRemoveRequest() {
+		  
+		  }
 
 
 		  function validateRequest() {
