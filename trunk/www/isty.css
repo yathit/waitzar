@@ -9,6 +9,15 @@ h1 {
   font-size: 2.2em;
 }
 
+@font-face {
+    font-family: Zawgyi-One;
+    src: url(Zawgyi-One.v1.ttf);
+    unicode-range: U+1000-1097;
+}
+.zawgyi {
+    font-family: Zawgyi-One;
+}
+
 
 a:link {
   color:#00CCFF;
