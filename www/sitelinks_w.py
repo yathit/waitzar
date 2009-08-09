@@ -59,7 +59,7 @@ class SitelinksTemplate(FallbackTemplate):
 				<tr>
 					<td width="260" class="gll" colspan="2">
 						<span style="font-size: 12px;">Name of web site:</span>
-						<br><input id="webSiteName"  onmousedown="unRedElement('webSiteName');"  name="webSiteName" type="text" style="width: 230px;" onchange="document.getElementById('previewName').innerHTML=this.value;"/>
+						<br><input id="webSiteName"  onmousedown="unRedAddElement('webSiteName');"  name="webSiteName" type="text" style="width: 230px;" onchange="document.getElementById('previewName').innerHTML=this.value;"/>
 					</td>
 					<td class="glr glb" height="1" rowspan="4" colspan="2" valign="top">
 					Submission Preview:
@@ -88,8 +88,8 @@ class SitelinksTemplate(FallbackTemplate):
 						<div>
 							<table style="margin-left:auto; margin-right:auto;"><tr><td>
 								<br>&nbsp;
-								<input style="font-size: 18px;" id="submitAddButton" value="Submit Web Site" type="button" onclick='JavaScript:validateRequest();'/>
-								<div id="submitSuggestionLoader"></div>
+								<input style="font-size: 18px;" id="submitAddButton" value="Submit Web Site" type="button" onclick='JavaScript:validateAddRequest();'/>
+								<div id="submitAddLoader"></div>
 							</td></tr></table>
 						</div>
 					</td>
@@ -97,13 +97,13 @@ class SitelinksTemplate(FallbackTemplate):
 				<tr>
 					<td width="260" class="gll" colspan="2">
 						<span style="font-size: 12px;">URL of main page:</span>
-						<br><input id="webSiteURL"  onmousedown="unRedElement('webSiteURL');"  name="webSiteURL" type="text" style="width: 280px;" onchange="document.getElementById('previewURL').innerHTML=this.value;"/>
+						<br><input id="webSiteURL"  onmousedown="unRedAddElement('webSiteURL');"  name="webSiteURL" type="text" style="width: 280px;" onchange="document.getElementById('previewURL').innerHTML=this.value;"/>
 					</td>
 				</tr>
 				<tr>
 					<td width="260" class="gll" colspan="2">
 						<span style="font-size: 12px;">URL of site logo: (optional)</span>
-						<br><input id="webSiteImage"  onmousedown="unRedElement('webSiteImage');"  name="webSiteImage" type="text" style="width: 280px;" onchange="document.getElementById('previewImage').src=this.value; document.getElementById('previewImage').style.visibility=this.value.length==0?'hidden':'visible';"/>
+						<br><input id="webSiteImage"  name="webSiteImage" type="text" style="width: 280px;" onchange="document.getElementById('previewImage').src=this.value; document.getElementById('previewImage').style.visibility=this.value.length==0?'hidden':'visible';"/>
 					</td>
 				</tr>
 				<tr>
@@ -156,8 +156,8 @@ class SitelinksTemplate(FallbackTemplate):
 						<div>
 							<table style="margin-left:auto; margin-right:auto;"><tr><td>
 								<br>&nbsp;
-								<input style="font-size: 18px;" id="submitRemButton" value="Submit Removal Request" type="button" onclick='JavaScript:validateRequest();'/>
-								<div id="submitSuggestionLoader"></div>
+								<input style="font-size: 18px;" id="submitRemButton" value="Submit Removal Request" type="button" onclick='JavaScript:validateRemoveRequest();'/>
+								<div id="submitRemoveLoader"></div>
 							</td></tr></table>
 						</div>
 					</td>
@@ -283,7 +283,7 @@ class SitelinksTemplate(FallbackTemplate):
 		self.out.append(self.tabs(2) + '</table>')
 
 	
-	def reloadText(self, emailServerError):
+	def reloadText(self, name, invalidEmail, emailServerError):
 		#Form post-back
 		head = "Request Sent"
 		if invalidEmail or emailServerError:
