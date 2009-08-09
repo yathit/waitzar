@@ -271,7 +271,7 @@ class SitelinksTemplate(FallbackTemplate):
 			#Cell 2
 			self.out.append(self.tabs(4) + '<td width="100%" valign="top" align="left"  class="pl10 pt10 sitelinkname">')
 			self.out.append(self.tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
-			self.out.append(self.tabs(6) + '<span class="helpbigtxt">%s</span>' % (name,))
+			self.out.append(self.tabs(6) + '<span class="helpbigtxt zawgyi">%s</span>' % (name,))
 			self.out.append(self.tabs(5) + '</a>')
 			self.out.append(self.tabs(5) + '<br>%s' % (link,))
 			self.out.append(self.tabs(4) + '</td>')
