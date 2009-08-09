@@ -95,6 +95,12 @@
 			 "Site URL: " + form.webSiteURL.value + "\n" +
 			 "Site Image: " + form.webSiteImage.value + "\n\n" +
 			 "JSON Line: " + jsonObj.toJSONString() + "\n";
+      	} else if (formName == "wzRemoveSiteForm") {
+		name = "WZ Site Remove Request";
+		email = "";
+		comments = "Site Name: " + form.removeSite.value + "\n" +
+			 "Reason: " + form.removalReason.value + "\n" +
+			 "Additional Info: " + form.removalAdditionalInfo.value + "\n";
       	}
         
         if (email.length===0) {
@@ -122,6 +128,10 @@
       		document.getElementById("submitAddButton").disabled = true;
 	      	document.getElementById("submitAddButton").value = "Please Wait";
       		document.getElementById("submitAddLoader").innerHTML = "<img src=\"img/loading.gif\"/>";
+      	} else if (formName == "wzRemoveSiteForm") {
+      		document.getElementById("submitRemButton").disabled = true;
+	      	document.getElementById("submitRemButton").value = "Please Wait";
+      		document.getElementById("submitRemoveLoader").innerHTML = "<img src=\"img/loading.gif\"/>";
       	}
 
         //var xmlHttpReq = false; //Unused?
@@ -226,7 +236,39 @@
 		  
 		  
 		  function validateRemoveRequest() {
+		  	errorRemoveCount = 0;
+		  	
+		  	if (document.getElementById("removeSite").selectedIndex===0) {
+  		  		document.getElementById("removeSite").style.border = "3px solid red";
+  		  		document.getElementById("removeSite").style.backgroundColor = "#FFCCCC";
+  		  		errorRemoveCount = errorRemoveCount + 1;
+		  	}
+		  	
+		  	if (document.getElementById("removalReason").selectedIndex===0) {
+  		  		document.getElementById("removalReason").style.border = "3px solid red";
+  		  		document.getElementById("removalReason").style.backgroundColor = "#FFCCCC";
+  		  		errorRemoveCount = errorRemoveCount + 1;
+		  	}
+
+		  	
+		    	if (errorRemoveCount===0) {
+				xmlhttpPost("sitelinks.py", "wzRemoveSiteForm");
+			} else {
+				document.getElementById("submitRemButton").disabled = true;
+			}
 		  
+		  }
+		  
+		  function unRedRemoveElement(elem) {
+		    if (document.getElementById(elem).style.border.match("red")) {
+				document.getElementById(elem).style.border = "";
+				document.getElementById(elem).style.backgroundColor = "";
+				errorRemoveCount = errorRemoveCount - 1;
+			}
+
+		    if (errorRemoveCount===0) {
+				document.getElementById("submitRemoveButton").disabled = false;
+			}
 		  }
 
 
