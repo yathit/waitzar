@@ -147,7 +147,7 @@ class SitelinksTemplate(FallbackTemplate):
 				<tr>
 					<td width="260" class="gll" colspan="2">
 						<span style="font-size: 12px;">Site to Remove:</span>
-						<br><select id="removeSite" name="removeSite" style="width:160;">
+						<br><select id="removeSite" onmousedown="unRedRemoveElement('removeSite');" name="removeSite" style="width:160;">
 							<option selected value="none">Please choose...</option>
 							${{self.generateRemovalLists()}}
 						</select>
@@ -165,7 +165,7 @@ class SitelinksTemplate(FallbackTemplate):
 				<tr>
 					<td width="260" class="gll" colspan="2">
 						<span style="font-size: 12px;">Reason for Removal:</span>
-						<br><select id="removalReason" name="removalReason" style="width:160;">
+						<br><select id="removalReason" onmousedown="unRedRemoveElement('removalReason');" name="removalReason" style="width:160;">
 							<option selected value="none">Please choose...</option>
 							<option value="nosticker">No WaitZar Sticker</option>
 							<option value="sitedown">Site Is Down (404)</option>
@@ -178,7 +178,7 @@ class SitelinksTemplate(FallbackTemplate):
 				<tr>
 					<td width="260" class="gll glb" colspan="2">
 						<span style="font-size: 12px;">Additional Information: (optional)</span>
-						<br><textarea id="removalAdditionalInfo"  onmousedown="unRedElement('removalAdditionalInfo');"  name="webSiteImage" type="textarea" cols="40" rows="3"></textarea>
+						<br><textarea id="removalAdditionalInfo"  name="webSiteImage" type="textarea" cols="40" rows="3"></textarea>
 					</td>
 				</tr>
 			</table>
