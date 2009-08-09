@@ -132,9 +132,10 @@
 		comments = form.comments.value;
 	} else if (formName == "wzNewSiteForm") {
 		//Make a nice JSON string
-		var jsonObj = new Array();
-		jsonObj['name'] = form.webSiteName.value;
-		jsonObj['link'] = form.webSiteURL.value;
+		var jsonObj = {
+		   "name" : form.webSiteName.value,
+		   "link" : form.webSiteURL.value
+		};
 		if (form.webSiteImage.value.length>0) {
 			jsonObj['img'] = form.webSiteImage.value;
 		}
@@ -145,7 +146,7 @@
 		comments = "Site Name: " + form.webSiteName.value + "\n" 
 			 + "Site URL: " + form.webSiteURL.value + "\n" 
 			 + "Site Image: " + form.webSiteImage.value + "\n\n"
-			 + "JSON Line: " + JSON.stringify(jsonObj) + "\n";
+			 + "JSON Line: " + jsonObj.toJSONString() + "\n";
       	}
         
         if (email.length==0) {
