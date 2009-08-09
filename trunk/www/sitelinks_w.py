@@ -24,7 +24,7 @@ class SitelinksTemplate(FallbackTemplate):
 
 	<h1 style="margin-top: 0px;">Suggest a Site to Add</h1>
 
-	If you do not see your favorite site on the list, please add it! We only have one requirement: each web site on the list <b>must</b> showcase the WaitZar sticker on their main page.
+	If you do not see your favorite site on the list, please add it! We only have two requirements: first, each web site on the list <b>must</b> showcase the WaitZar sticker on their main page, and second, the site must not contain any adult content or spyware.
 
         <br>&nbsp;<br>To add the WaitZar sticker to your site, use the following html code:
         <br>
