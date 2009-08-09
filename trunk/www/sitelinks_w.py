@@ -8,7 +8,7 @@ def onlyascii(char):
 		return char
 
 class SitelinksTemplate(FallbackTemplate):
-	template = r'''
+	template = u'''
         <h1>Sites That Use WaitZar</h1>
 
         Quite a lot of people already use WaitZar for their web sites and web logs. Here's a list of the ones we know. Please add your favorite pages to the bottom of the list; our only requirement is that they display the WaitZar sticker on the main page of their site.

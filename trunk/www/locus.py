@@ -7,7 +7,7 @@ import re
 
 
 # Used for rendering when nothing else is present
-class FallbackTemplate(templet.Template):
+class FallbackTemplate(templet.UnicodeTemplate):
 	template = r'''
 		$<header_template>
 		$<body_template>
