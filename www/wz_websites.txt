@@ -1,5 +1,6 @@
 [
 {"link":"http://www.x.com","name":"John's Page","img":"http://www.overdrawn.net/mario/demo/mario.gif"},
 {"link":"http://www.xy.com","name":"Another Page"},
-{"link":"http://www.xyz.com","name":"One Final Page","img":"http://freepages.genealogy.rootsweb.ancestry.com/~genealogylinks/dmst/-symbols/-sym-gfx/Montana/montanauc.gif"}
+{"link":"http://www.xyz.com","name":"One Final Page","img":"http://freepages.genealogy.rootsweb.ancestry.com/~genealogylinks/dmst/-symbols/-sym-gfx/Montana/montanauc.gif"},
+{"name":"Another Amazing Site","link":"http://www.tnpsc.com/downloads/NaturesScenery.jpg","img":"http://www.tnpsc.com/downloads/NaturesScenery.jpg"}
 ]
