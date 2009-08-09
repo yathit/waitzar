@@ -267,7 +267,7 @@
 			}
 
 		    if (errorRemoveCount===0) {
-				document.getElementById("submitRemoveButton").disabled = false;
+				document.getElementById("submitRemButton").disabled = false;
 			}
 		  }
 
