@@ -1,6 +1,5 @@
 [
-{"link":"http://www.x.com","name":"John's Page","img":"http://www.overdrawn.net/mario/demo/mario.gif"},
-{"link":"http://www.xy.com","name":"Another Page"},
-{"link":"http://www.xyz.com","name":"One Final Page","img":"http://freepages.genealogy.rootsweb.ancestry.com/~genealogylinks/dmst/-symbols/-sym-gfx/Montana/montanauc.gif"},
-{"name":"Another Amazing Site","link":"http://www.tnpsc.com/downloads/NaturesScenery.jpg","img":"http://www.tnpsc.com/downloads/NaturesScenery.jpg"}
+{"name":"Wiki.My Input Guide","link":"http://my.wikipedia.org/wiki/Help:Input","img":"http://upload.wikimedia.org/wikipedia/my/b/bc/Wiki.png"},
+{"name":"\u1016\u1030\u1038\u108F\u102F\u101E\u1005\u1039","link":"http://phoonuthit.blogspot.com/","img":"http://1.bp.blogspot.com/_xDtWdfB7vv8/Sfx9r7Cvz_I/AAAAAAAAAMM/HF6rHMTbJ1k/s320/background1.jpg"},
+{"name":"WaitZar Newsletter","link":"http://groups.google.com/group/waitzar","img":"http://groups.google.com/group/waitzar/icon?v=1&hl=en"}
 ]
