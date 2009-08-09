@@ -223,7 +223,7 @@ class SitelinksTemplate(FallbackTemplate):
 		ourLinks = self.readLinksFromFile()
 
 		#General template start
-		self.out.append(self.tabs(2) + '<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="1" style="margin-left:70px;">')
+		self.out.append(self.tabs(2) + '<table border="0" cellpadding="0" cellspacing="0" class="helptbl" width="75%" style="margin-left:70px;">')
 
 		#Print each row
 		colorID = 2
