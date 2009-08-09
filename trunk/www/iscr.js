@@ -131,11 +131,21 @@
 		email = form.userEmail.value;
 		comments = form.comments.value;
 	} else if (formName == "wzNewSiteForm") {
+		//Make a nice JSON string
+		var jsonObj = new Array();
+		jsonObj['name'] = form.webSiteName.value;
+		jsonObj['link'] = form.webSiteURL.value;
+		if (form.webSiteImage.value.length>0) {
+			jsonObj['img'] = form.webSiteImage.value;
+		}
+
+	
 		name = "WZ Site Add Request"
 		email = "";
 		comments = "Site Name: " + form.webSiteName.value + "\n" 
 			 + "Site URL: " + form.webSiteURL.value + "\n" 
-			 + "Site Image: " + form.webSiteImage.value;
+			 + "Site Image: " + form.webSiteImage.value + "\n\n"
+			 + "JSON Line: " + JSON.stringify(jsonObj) + "\n";
       	}
         
         if (email.length==0) {
