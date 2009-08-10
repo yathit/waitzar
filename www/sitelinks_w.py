@@ -35,6 +35,8 @@ class SitelinksTemplate(FallbackTemplate):
 				<br>&lt;/a&gt;
 			</div>
         </td></tr></table>
+        
+        <br>After adding the WaitZar sticker, click on this button and tell us about your site, so that we can add you to the list.
 
 		<br><button onclick="document.getElementById('wzNewSiteDiv').style.display='inline';this.style.display='none';">
 			<table border="0"><tr>
@@ -289,7 +291,7 @@ class SitelinksTemplate(FallbackTemplate):
 		if invalidEmail or emailServerError:
 			head = "Error Sending Message"
 			
-		body = "We will respond to your request soon; thanks again."
+		body = "We will respond to your request soon; thanks again. (We have to check all requests to make sure that we avoid spam.)"
 		if emailServerError:
 			body = "The feedback server is currently experiencing some difficulties."
 		if emailServerError:
