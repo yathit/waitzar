@@ -1,5 +1,6 @@
 [
 {"name":"Wiki.My Input Guide","link":"http://my.wikipedia.org/wiki/Help:Input","img":"http://upload.wikimedia.org/wikipedia/my/b/bc/Wiki.png"},
 {"name":"\u1016\u1030\u1038\u108F\u102F\u101E\u1005\u1039","link":"http://phoonuthit.blogspot.com/","img":"http://1.bp.blogspot.com/_xDtWdfB7vv8/Sfx9r7Cvz_I/AAAAAAAAAMM/HF6rHMTbJ1k/s320/background1.jpg"},
-{"name":"WaitZar Newsletter","link":"http://groups.google.com/group/waitzar","img":"http://groups.google.com/group/waitzar/icon?v=1&hl=en"}
+{"name":"WaitZar Newsletter","link":"http://groups.google.com/group/waitzar","img":"http://groups.google.com/group/waitzar/icon?v=1&hl=en"},
+{"name":"Mark","link":"http://www.soemin.net"}
 ]
