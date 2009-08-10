@@ -2,7 +2,9 @@ from locus import FallbackTemplate
 from json import *
 
 def onlyascii(char):
-	if (ord(char) < 48 or ord(char) > 127) and char!='_': 
+	if (ord(char) > 128):
+		return 'U+' + hex(ord(char))[2:]
+	elif (ord(char) < 48 or ord(char) > 127) and char!='_': 
 		return ''
 	else: 
 		return char
