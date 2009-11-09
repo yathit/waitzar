@@ -1,0 +1,27 @@
+import os
+
+#Import the path from the user's environment
+env = Environment(ENV = {'PATH' : os.environ['PATH']})
+
+#Attempt to fix the path if the user is on windows and the path
+# doesn't contain kernel32.lib
+extra_libs = []
+if env['PLATFORM'] == 'win32':
+   extra_libs = ['C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib']
+   env['ENV']['TMP'] = os.environ['TMP'] 
+
+#Sources
+sources = Split("""
+   fontconv.cpp
+   fontmap.cpp
+   lib.cpp
+   regex.cpp
+   WordBuilder.cpp
+   SentenceList.cpp
+   """)
+sources = map(lambda x:os.path.join("waitzar",x), sources)
+
+
+#Build the shared library
+env.SharedLibrary('waitzar', sources, LIBPATH = extra_libs)
+
