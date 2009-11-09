@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 
 #Import the path from the user's environment
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
@@ -13,7 +14,7 @@ if env['PLATFORM'] == 'win32':
    
 #Prevent Windows users from messing up their directory structure; hide the "install" alias from them.
 if env['PLATFORM'] != 'win32':
-   env.Alias('install', '/usr/lib/waitzar')
+   env.Alias('install', '/usr')
 
 
 #Sources
@@ -26,15 +27,29 @@ sources = Split("""
    SentenceList.cpp
    """)
 sources = map(lambda x:os.path.join("waitzar",x), sources)
+headers = map(lambda x:re.sub("[.]cpp$", ".h", x), sources)
+
+#Data
+model_data = Split('data/model2/Myanmar.model data/model2/mywords.txt')
 
 
 #Build the shared library
 wz_shared = env.SharedLibrary('waitzar', sources, LIBPATH = extra_libs)
 
-#Install it
-env.Install('/usr/lib/waitzar', wz_shared)
 
+#Install the shared library
+#   /usr/lib/libwaitzar.so.1
+#   /usr/lib/libwaitzar.so.1.0.0
+env.InstallAs(['/usr/lib/waitzar/libwaitzar.so.1', '/usr/lib/waitzar/libwaitzar.so.1.0.0'], [wz_shared, wz_shared])
 
+#Install header files
+env.Install('/usr/include/waitzar', headers)
+
+#Install our shared library data
+env.Install('/usr/share/waitzar/model2', model_data)
+
+#Installation of other things, including pkgconfig, will have to occur later
+#
 
 
 
