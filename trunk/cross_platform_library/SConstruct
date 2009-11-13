@@ -32,15 +32,19 @@ headers = map(lambda x:re.sub("[.]cpp$", ".h", x), sources)
 #Data
 model_data = Split('data/model2/Myanmar.model data/model2/mywords.txt')
 
+#Build the static library
+wz_static = env.StaticLibrary('waitzar', sources, LIBPATH = extra_libs)
 
 #Build the shared library
 wz_shared = env.SharedLibrary('waitzar', sources, LIBPATH = extra_libs)
 
+#Install the static library
+#     libwaitzar.so
+#     libwaitzar.la
+env.Install('/usr/lib', [wz_shared, wz_static])
 
 #Install the shared library
-#   /usr/lib/libwaitzar.so.1
-#   /usr/lib/libwaitzar.so.1.0.0
-env.InstallAs(['/usr/lib/waitzar/libwaitzar.so.1', '/usr/lib/waitzar/libwaitzar.so.1.0.0'], [wz_shared, wz_shared])
+env.InstallAs(['/usr/lib/libwaitzar.so.1', '/usr/lib/libwaitzar.so.1.0.0'], [wz_shared, wz_shared])
 
 #Install header files
 env.Install('/usr/include/waitzar', headers)
@@ -48,8 +52,8 @@ env.Install('/usr/include/waitzar', headers)
 #Install our shared library data
 env.Install('/usr/share/waitzar/model2', model_data)
 
-#Installation of other things, including pkgconfig, will have to occur later
-#
+#Installation of the pkgconfig file
+env.Install('/usr/lib/pkgconfig/', 'waitzar.pc')
 
 
 
