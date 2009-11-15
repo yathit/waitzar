@@ -51,6 +51,9 @@ wz_shared = env.SharedLibrary('waitzar', sources, LIBS=required_libs, LIBPATH = 
 #     libwaitzar.la
 env.Install('/usr/lib', [wz_shared, wz_static])
 
+#Install our Boost.Python shared library
+env.Install('/usr/lib/python2.6/dist-packages', wz_shared)
+
 #Install the shared library
 env.InstallAs(['/usr/lib/libwaitzar.so.1', '/usr/lib/libwaitzar.so.1.0.0'], [wz_shared, wz_shared])
 
