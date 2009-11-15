@@ -15,7 +15,8 @@ using namespace boost::python;
 
 
 //Built-in integration with Boost.Python
-BOOST_PYTHON_MODULE(waitzar)
+// For now, call it "libwaitzar" so we don't have to rename the shared library
+BOOST_PYTHON_MODULE(libwaitzar)
 {
     class_<waitzar::WordBuilder>("WordBuilder", init< const char*, std::vector<std::string> >())
         .def("typeLetter", &waitzar::WordBuilder::typeLetter)
