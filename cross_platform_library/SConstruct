@@ -15,6 +15,11 @@ if env['PLATFORM'] == 'win32':
 #Prevent Windows users from messing up their directory structure; hide the "install" alias from them.
 if env['PLATFORM'] != 'win32':
    env.Alias('install', '/usr')
+   
+   
+#Requires libboost to build ----we've GOT to clean this up for release.
+required_libs = []
+env.Append(CPPPATH = ['/usr/include/python2.6', '/usr/include/boost'])
 
 
 #Sources
@@ -29,14 +34,17 @@ sources = Split("""
 sources = map(lambda x:os.path.join("waitzar",x), sources)
 headers = map(lambda x:re.sub("[.]cpp$", ".h", x), sources)
 
+#Boost.Python integration
+sources.append('waitzar/PythonSpecs.cpp')
+
 #Data
 model_data = Split('data/model2/Myanmar.model data/model2/mywords.txt')
 
 #Build the static library
-wz_static = env.StaticLibrary('waitzar', sources, LIBPATH = extra_libs)
+wz_static = env.StaticLibrary('waitzar', sources, LIBS=required_libs, LIBPATH = extra_libs)
 
 #Build the shared library
-wz_shared = env.SharedLibrary('waitzar', sources, LIBPATH = extra_libs)
+wz_shared = env.SharedLibrary('waitzar', sources, LIBS=required_libs, LIBPATH = extra_libs)
 
 #Install the static library
 #     libwaitzar.so

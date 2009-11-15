@@ -27,6 +27,8 @@
 #include <limits>
 #include "fontconv.h"
 
+#include <boost/python.hpp>
+using namespace boost::python;
 
 
 namespace waitzar
@@ -289,6 +291,7 @@ void readLine(T* stream, size_t &index, size_t streamSize, bool nameHasASCII, bo
 
 
 } //End waitzar namespace
+
 
 
 #endif //_WordBUILDER
