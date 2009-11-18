@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "WordBuilder.h"
+#include "SentenceList.h"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -37,11 +38,11 @@ BOOST_PYTHON_MODULE(libwaitzar)
 	.def("getCurrSelectedID", &waitzar::WordBuilder::getCurrSelectedID)
     ;
 
-    /*enum_<waitzar::ENCODING>("encoding")
-        .value("unicode", waitzar::ENCODING.ENCODING_UNICODE)
-	.value("zawgyi", waitzar::ENCODING.ENCODING_ZAWGYI)
-	.value("wininnwa", waitzar::ENCODING.ENCODING_WININNWA)
-    ;*/
+    enum_<waitzar::ENCODING>("encoding")
+        .value("unicode", ENCODING_UNICODE)
+	.value("zawgyi", ENCODING_ZAWGYI)
+	.value("wininnwa", ENCODING_WININNWA)
+    ;
 	
     //Vector of strings
     class_<std::vector<std::string> >("StringVec")
