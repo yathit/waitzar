@@ -47,6 +47,7 @@ BOOST_PYTHON_MODULE(libwaitzar)
 	.def("getWordKeyStrokes", wk2)
 	.def("getCurrSelectedID", &waitzar::WordBuilder::getCurrSelectedID)
 	.def("typeSpace", &waitzar::WordBuilder::typeSpace)
+	.def("moveRight", &waitzar::WordBuilder::moveRight)
     ;
 	
     class_<waitzar::SentenceList>("SentenceList")
