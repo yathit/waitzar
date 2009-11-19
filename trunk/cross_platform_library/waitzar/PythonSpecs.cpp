@@ -19,6 +19,12 @@ using namespace boost::python;
 namespace waitzar
 {
 
+//Helper function
+template<class T1, class T2> struct PairToTupleConverter {
+    static PyObject* convert(const std::pair<T1, T2>& pair) {
+        return incref(make_tuple(pair.first, pair.second).ptr());
+    }
+};
 
 //Built-in integration with Boost.Python
 // For now, call it "libwaitzar" so we don't have to rename the shared library
@@ -54,7 +60,7 @@ BOOST_PYTHON_MODULE(libwaitzar)
 	.def("deletePrev", &waitzar::SentenceList::deletePrev)
 
         //Iterators play differently in C++ and Python
-        .property("words", range(&waitzar::SentenceList::begin, &waitzar::SentenceList::end))
+        .def("__iter__", range(&waitzar::SentenceList::begin, &waitzar::SentenceList::end))
 
         //Sometimes needed for consistency
 	.def("updateTrigrams", &waitzar::SentenceList::updateTrigrams)
