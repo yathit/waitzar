@@ -50,6 +50,8 @@ BOOST_PYTHON_MODULE(libwaitzar)
 	.def("moveRight", &waitzar::WordBuilder::moveRight)
         .def("backspace", &waitzar::WordBuilder::backspace)
 	.def("getStopCharacter", &waitzar::WordBuilder::getStopCharacter)
+        .def("getOutputEncoding", &waitzar::WordBuilder::getOutputEncoding)
+	.def("setOutputEncoding", &waitzar::WordBuilder::setOutputEncoding)
     ;
 	
     class_<waitzar::SentenceList>("SentenceList")
