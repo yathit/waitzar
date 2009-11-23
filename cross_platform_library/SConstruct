@@ -1,7 +1,6 @@
 import os
 import sys
 import re
-from string import Template
 
 
 #Some constants defining our library
@@ -9,18 +8,45 @@ LIBRARY_API_VERSION = '1.0.0'
 LIBRARY_VERSION     = '1.0'
 LIBRARY_NAME        = 'waitzar'
 
+#Over-rideable on the command line
+prefix              = '/usr'
+exec_prefix         = '/usr'
+libdir              = prefix + '/lib'
+includedir          = prefix + '/include'
+
+
+#Our custom build variables
+vars = Variables()
+vars.Add(BoolVariable('useboost', 'Set to "no" to build without Boost (Python) runtime support.', True))
+
 
 #Import the path from the user's environment
-env = Environment(ENV = {'PATH' : os.environ['PATH']})
+env = Environment(variables = vars, ENV = {'PATH' : os.environ['PATH']})
+
+#Set up "help" options
+Help(vars.GenerateHelpText(env))
+
+#Did they provide invalid options?
+unknown = vars.UnknownVariables()
+if unknown:
+    print "Unknown variables:", unknown.keys()
+    Exit(1)
+
+#Are they trying to install on Windows?
+if 'install' in COMMAND_LINE_TARGETS:
+    print "Error: Attempting to 'install' on Windows:\n    Running 'install' in Windows is not a good idea (it will put a Unix " + \
+          "build tree into the \n    root folder of the current drive, which is almost definitely _not_ what you intended."
+    Exit(1)
+
 
 #Attempt to fix the path if the user is on windows and the path
 # doesn't contain kernel32.lib
 extra_libs = []
-if env['PLATFORM'] == 'win32':
-   #extra_libs.append('C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib')
-   extra_libs.append('C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin')
-   extra_libs.append('D:\\Programs\\boost\\boost_1_40\\lib')
+if env['PLATFORM']=='win32':
+   extra_libs.append('C:/Program Files/Microsoft SDKs/Windows/v6.0A/lib')
    env['ENV']['TMP'] = os.environ['TMP'] 
+   if env['useboost']:
+       extra_libs.append('D:/Programs/boost/boost_1_40/lib')
    
 #Prevent Windows users from messing up their directory structure; hide the "install" alias from them.
 if env['PLATFORM'] != 'win32':
@@ -35,17 +61,18 @@ if env['PLATFORM'] == 'win32':
 #Requires libboost to build ----we've GOT to clean this up for release.
 #  (how to do this on Windows?)
 required_libs = []
-if env['PLATFORM'] == 'win32':
-    #Note: Boost currently complains about mixing shared and static code (but it does this in the "include" step.)
-    #      I really have no idea how to fix this...
-    env.Append(CPPPATH = ['C:/Python26/include', 'D:/Programs/boost/boost_1_40'])
-    env.Append(CPPPATH = ['C:/Program Files/Microsoft Visual Studio 9.0/VC/include', 'C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include']) #Ugh... 
-    #env.Append(INCLUDE = ['C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Include', 'C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include'])
-    #env.Append(LIB = ['C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib;C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\lib'])
-    required_libs.append('boost_python-vc90-mt-1_40')
-else:
-    env.Append(CPPPATH = ['/usr/include/python2.6', '/usr/include/boost'])
-    required_libs.append('boost_python-mt-py26')
+if env['useboost']:
+    if env['PLATFORM'] == 'win32':
+        #Note: Boost currently complains about mixing shared and static code (but it does this in the "include" step.)
+        #      I really have no idea how to fix this...
+        env.Append(CPPPATH = ['C:/Python26/include', 'D:/Programs/boost/boost_1_40'])
+        env.Append(CPPPATH = ['C:/Program Files/Microsoft Visual Studio 9.0/VC/include', 'C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include']) #Ugh... 
+        #env.Append(INCLUDE = ['C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Include', 'C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include'])
+        #env.Append(LIB = ['C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib;C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\lib'])
+        required_libs.append('boost_python-vc90-mt-1_40')
+    else:
+        env.Append(CPPPATH = ['/usr/include/python2.6', '/usr/include/boost'])
+        required_libs.append('boost_python-mt-py26')
 
 
 
@@ -56,6 +83,7 @@ else:
 #At the moment, we substitute all relevant variables from the build environment
 #  You will have to modify this if you need more substituted
 def template_file(target, source, env):
+    from string import Template
     for i in xrange(len(source)):
         #Open, read, close
         srcFile = open(str(source[i]), 'r')
@@ -66,9 +94,11 @@ def template_file(target, source, env):
         # Add new variables here, as necessary
         # TODO: Maybe we can put this dict. in env? That makes sense...
         src = src.substitute( 
-            LIBRARY_API_VERSION = LIBRARY_API_VERSION, 
-            LIBRARY_VERSION     = LIBRARY_VERSION, 
-            LIBRARY_NAME        = LIBRARY_NAME 
+            LIBRARY_API_VERSION = LIBRARY_API_VERSION,
+            LIBRARY_VERSION     = LIBRARY_VERSION,
+            LIBRARY_NAME        = LIBRARY_NAME,
+	    libdir              = libdir,
+            includedir          = includedir
         )
         
         #Open, output, close
@@ -95,7 +125,8 @@ sources = map(lambda x:os.path.join("waitzar",x), sources)
 headers = map(lambda x:re.sub("[.]cpp$", ".h", x), sources)
 
 #Boost.Python integration
-sources.append(os.path.join("waitzar",'PythonSpecs.cpp'))
+if env['useboost']:
+    sources.append(os.path.join("waitzar",'PythonSpecs.cpp'))
 
 #Data
 model_data = Split('data/model2/Myanmar.model data/model2/mywords.txt')
