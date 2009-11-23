@@ -27,9 +27,6 @@
 #include <limits>
 #include "fontconv.h"
 
-#include <boost/python.hpp>
-using namespace boost::python;
-
 
 namespace waitzar
 {
