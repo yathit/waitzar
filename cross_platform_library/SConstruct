@@ -17,7 +17,9 @@ env = Environment(ENV = {'PATH' : os.environ['PATH']})
 # doesn't contain kernel32.lib
 extra_libs = []
 if env['PLATFORM'] == 'win32':
-   extra_libs.append('C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib')
+   #extra_libs.append('C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib')
+   extra_libs.append('C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin')
+   extra_libs.append('D:\\Programs\\boost\\boost_1_40\\lib')
    env['ENV']['TMP'] = os.environ['TMP'] 
    
 #Prevent Windows users from messing up their directory structure; hide the "install" alias from them.
@@ -32,11 +34,18 @@ if env['PLATFORM'] == 'win32':
    
 #Requires libboost to build ----we've GOT to clean this up for release.
 #  (how to do this on Windows?)
-required_libs = ['boost_python-mt-py26']  
+required_libs = []
 if env['PLATFORM'] == 'win32':
-    env.Append(CPPPATH = ['D:/Programs/boost/boost_1_40'])
+    #Note: Boost currently complains about mixing shared and static code (but it does this in the "include" step.)
+    #      I really have no idea how to fix this...
+    env.Append(CPPPATH = ['C:/Python26/include', 'D:/Programs/boost/boost_1_40'])
+    env.Append(CPPPATH = ['C:/Program Files/Microsoft Visual Studio 9.0/VC/include', 'C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include']) #Ugh... 
+    #env.Append(INCLUDE = ['C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Include', 'C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include'])
+    #env.Append(LIB = ['C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib;C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\lib'])
+    required_libs.append('boost_python-vc90-mt-1_40')
 else:
     env.Append(CPPPATH = ['/usr/include/python2.6', '/usr/include/boost'])
+    required_libs.append('boost_python-mt-py26')
 
 
 
@@ -95,10 +104,12 @@ model_data = Split('data/model2/Myanmar.model data/model2/mywords.txt')
 env.Template('waitzar-'+LIBRARY_VERSION, 'waitzar')
 
 #Build the static library
-wz_static = env.StaticLibrary('waitzar', sources, LIBS=required_libs, LIBPATH = extra_libs)
+#wz_static = env.StaticLibrary('waitzar', sources, LIBS=required_libs, LIBPATH = extra_libs)
+wz_static = []
 
 #Build the shared library
 wz_shared = env.SharedLibrary('waitzar', sources, LIBS=required_libs, LIBPATH = extra_libs)
+#wz_shared = []
 
 #Install the static library
 #     libwaitzar.so
