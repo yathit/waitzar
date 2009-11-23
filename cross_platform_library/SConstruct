@@ -1,6 +1,14 @@
 import os
 import sys
 import re
+from string import Template
+
+
+#Some constants defining our library
+LIBRARY_API_VERSION = '1.0.0'
+LIBRARY_VERSION     = '1.0'
+LIBRARY_NAME        = 'waitzar'
+
 
 #Import the path from the user's environment
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
@@ -22,6 +30,40 @@ required_libs = ['boost_python-mt-py26']
 env.Append(CPPPATH = ['/usr/include/python2.6', '/usr/include/boost'])
 
 
+
+#Out own builder: template a file with some arguments
+#  target = which file(s) to save template output to (use str() to get the paths)
+#  source = which file(s) to perform templating on (use str() to get the paths)
+#  env    = the construction environment, if needed
+#At the moment, we substitute all relevant variables from the build environment
+#  You will have to modify this if you need more substituted
+def template_file(target, source, env):
+    for i in xrange(len(source)):
+        #Open, read, close
+        srcFile = open(str(source[i]), 'r')
+        src = Template(srcFile.read())
+        srcFile.close()
+        
+        #Substitute
+        # Add new variables here, as necessary
+        # TODO: Maybe we can put this dict. in env? That makes sense...
+        src = src.substitute( 
+            LIBRARY_API_VERSION = LIBRARY_API_VERSION, 
+            LIBRARY_VERSION     = LIBRARY_VERSION, 
+            LIBRARY_NAME        = LIBRARY_NAME 
+        )
+        
+        #Open, output, close
+        tgt = open(str(target[i]), 'w')
+        tgt.write(src)
+        tgt.close()
+
+    #Success: return 'None'
+    return None
+templateBld = Builder(action = template_file,  suffix = '.pc',  src_suffix = '.pc.in')
+env.Append(BUILDERS = {'Template' : templateBld})
+
+
 #Sources
 sources = Split("""
    fontconv.cpp
@@ -35,10 +77,13 @@ sources = map(lambda x:os.path.join("waitzar",x), sources)
 headers = map(lambda x:re.sub("[.]cpp$", ".h", x), sources)
 
 #Boost.Python integration
-sources.append('waitzar/PythonSpecs.cpp')
+sources.append(os.path.join("waitzar",'PythonSpecs.cpp'))
 
 #Data
 model_data = Split('data/model2/Myanmar.model data/model2/mywords.txt')
+
+#Pkg-config
+env.Template('waitzar-'+LIBRARY_VERSION, 'waitzar')
 
 #Build the static library
 wz_static = env.StaticLibrary('waitzar', sources, LIBS=required_libs, LIBPATH = extra_libs)

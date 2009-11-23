@@ -3,9 +3,10 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: waitzar
+#File: waitzar-${LIBRARY_VERSION}.pc
+Name: ${LIBRARY_NAME}
 Description: Encapsulation of the WaitZar language model & related APIs.
-Version: @VERSION@
-Libs: -L${libdir}/@GENERIC_LIBRARY_NAME@ -l@GENERIC_LIBRARY_NAME@
-Cflags: -I${includedir}/@GENERIC_LIBRARY_NAME@
+Version: ${LIBRARY_API_VERSION}
+Libs: -L${libdir} -l${LIBRARY_NAME}
+Cflags: -I${includedir}/${LIBRARY_NAME}
 
