@@ -23,11 +23,20 @@ if env['PLATFORM'] == 'win32':
 #Prevent Windows users from messing up their directory structure; hide the "install" alias from them.
 if env['PLATFORM'] != 'win32':
    env.Alias('install', '/usr')
+
+#Exception handling on Windows
+if env['PLATFORM'] == 'win32':
+    env.Append(CPPFLAGS = '/EHsc')
+
    
    
 #Requires libboost to build ----we've GOT to clean this up for release.
+#  (how to do this on Windows?)
 required_libs = ['boost_python-mt-py26']  
-env.Append(CPPPATH = ['/usr/include/python2.6', '/usr/include/boost'])
+if env['PLATFORM'] == 'win32':
+    env.Append(CPPPATH = ['D:/Programs/boost/boost_1_40'])
+else:
+    env.Append(CPPPATH = ['/usr/include/python2.6', '/usr/include/boost'])
 
 
 
