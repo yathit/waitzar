@@ -3,6 +3,7 @@
 
 import os
 import re
+import shutil
 
 # This script takes as input a spirit-json project folder and a boost header folder. 
 # It outputs a list of all boost files that are included, using a regex like "*boost/*.hpp" (even if defines would exclude it)
@@ -54,22 +55,49 @@ while not_yet_searched:
         for line in file:
             m = re.search(boostlib_regex, line)
             if m:
-                newfile = os.path.join(boost_path, m.group(1))
-                if not newfile in already_searched:
-                    not_yet_searched.add(newfile)
+                path = os.path.join(boost_path, m.group(1))
+                newfile = (path, m.group(1), os.path.getsize(path))
+                if not path in already_searched:
+                    not_yet_searched.add(path)
                     boost_libs.add(newfile)
         file.close()
 
 
+#Step 2.5: Can we actually make a directory to store stuff in?
+boostDir = 'boost'
+if os.path.exists(boostDir):
+    if not os.path.isdir(boostDir):
+        print 'Error: a file exists named "%s". Please delete this file and re-run the script.' % boostDir
+        exit(1)
+    else:
+        try:
+            shutil.rmtree(boostDir)
+        except:
+            print 'Error: the "%s" folder exists in the current directory, and cannot be deleted. Please manually delete it, and re-run this script.' % boostDir
+            exit(1)
+os.mkdir(boostDir)
+
 #Step 3: list these files and their sizes
 print 'The following needed files are part of boost:'
 total_size = 0
-to_print_boost = [(path.replace(boost_path, '', 1), os.path.getsize(path))  for path in boost_libs]
-path_buffer = len(reduce(lambda x,y:x if len(x[0])>len(y[0]) else y, to_print_boost) [0]) + 5
-for item in to_print_boost:
-    total_size += item[1]
-    print item[0].ljust(path_buffer, '.'), str(item[1]/1024).rjust(4), 'kb'
+path_buffer = len(reduce(lambda x,y:x if len(x[1])>len(y[1]) else y, boost_libs) [1]) + 5
+for item in boost_libs:
+    total_size += item[2]
+    print item[1].ljust(path_buffer, '.'), str(item[2]/1024).rjust(4), 'kb'
 print 'Total files: ' , len(boost_libs), ' adding up to ', total_size/1024, 'kb'
+
+#Step 4: Copy all files from boost to the local directory. Double-check that they begin with "boost" to prevent any bugs from messing up our filesystem.
+print 'Copying all files to a local directory, please wait...'
+for item in boost_libs:
+    if not item[1].startswith(boostDir):
+        print 'Error! Included file is not a boost library: "%s"' % item[1]
+        exit(1)
+    prefix = re.sub('[\\/][^\\/]+$', '', item[1])
+    try:
+        os.makedirs(prefix)
+    except OSError:
+        pass
+    shutil.copy(item[0], item[1])
 
 print 'Done'
 
