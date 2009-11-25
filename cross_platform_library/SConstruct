@@ -33,7 +33,7 @@ if unknown:
     Exit(1)
 
 #Are they trying to install on Windows?
-if 'install' in COMMAND_LINE_TARGETS:
+if 'install' in COMMAND_LINE_TARGETS and env['PLATFORM']=='win32':
     print "Error: Attempting to 'install' on Windows:\n    Running 'install' in Windows is not a good idea (it will put a Unix " + \
           "build tree into the \n    root folder of the current drive, which is almost definitely _not_ what you intended."
     Exit(1)
