@@ -4,6 +4,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WaitZar", "WaitZar.vcproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExternalModelTester", "..\ExternalModelTester\ExternalModelTester.vcproj", "{42D38E70-0234-480A-8E0B-1DA6FFF390E7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Config WZ", "..\Config WZ\Config WZ.vcproj", "{7B6E0AF9-8D5B-42EC-9D79-71E55B0F9024}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -18,6 +20,10 @@ Global
 		{42D38E70-0234-480A-8E0B-1DA6FFF390E7}.Debug|Win32.Build.0 = Release|Win32
 		{42D38E70-0234-480A-8E0B-1DA6FFF390E7}.Release|Win32.ActiveCfg = Release|Win32
 		{42D38E70-0234-480A-8E0B-1DA6FFF390E7}.Release|Win32.Build.0 = Release|Win32
+		{7B6E0AF9-8D5B-42EC-9D79-71E55B0F9024}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7B6E0AF9-8D5B-42EC-9D79-71E55B0F9024}.Debug|Win32.Build.0 = Debug|Win32
+		{7B6E0AF9-8D5B-42EC-9D79-71E55B0F9024}.Release|Win32.ActiveCfg = Release|Win32
+		{7B6E0AF9-8D5B-42EC-9D79-71E55B0F9024}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
