@@ -13,7 +13,7 @@ import shutil
 #    the test for #if BOOST_VERSION >= 103800  ---we are always going to use Boost 1.40 or greater
 
 #Our matcher 
-boostlib_regex = '#include.*[<>"](boost/.*\.hpp)[<>"]'
+boostlib_regex = '# *include.*[<>"](boost/.*\.hpp)[<>"]'
 
 #Prompt the user
 json_spirit_path = "D:\\Open Source Projects\\json_spirit_v4.02\\json_spirit"
