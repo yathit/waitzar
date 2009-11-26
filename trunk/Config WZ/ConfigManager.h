@@ -21,6 +21,12 @@ public:
 	ConfigManager(void);
 	~ConfigManager(void);
 
+	//Build our config. manager up slowly
+	void initMainConfig(const std::string& configFile);
+	void initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles);
+	void initAddLocalConfig(const std::string& configFile);
+	void initAddUserConfig(const std::string& configFile);
+
 	//Accessible by our outside class
 	std::vector< std::pair<std::wstring, std::wstring> > getSettings() const;
 	std::vector<std::wstring> getLanguages() const;
@@ -29,7 +35,7 @@ public:
 
 	//Control
 	std::wstring getActiveLanguage();
-	void changeActiveLanguage(std::wstring newLanguage);
+	void changeActiveLanguage(const std::wstring& newLanguage);
 };
 
 
