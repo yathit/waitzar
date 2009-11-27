@@ -1,0 +1,98 @@
+{
+    settings : 
+    {
+      hotkey : Ctrl + Shift,
+      silence-mywords-errors : no,
+      balloon-start : yes,
+      always-elevate : no,
+      track-caret : yes,
+      lock-windows : yes
+    },
+    
+    languages : 
+    {
+      myanmar : 
+      {
+        display-name : Myanmar,
+        default-output-encoding : unicode,
+        default-display-method : zawgyibmp,
+        default-input-method : waitzar,
+        input-methods : 
+        {
+          waitzar : 
+          {
+            display-name : WaitZar,
+            type : builtin
+          },
+          mywin : 
+          {
+            display-name : myWin 2.2,
+            type : builtin
+          }
+        },
+        
+        encodings : 
+        {
+          unicode : 
+          {
+            display-name : Unicode,
+            initial : UNI,
+            image : uni.png
+          },
+          
+          zawgyi-one : 
+          {
+            display-name : Zawgyi-One,
+            initial : ZG,
+            image : zawgyi.png
+          },
+          
+          win innwa : 
+          {
+            display-name : Win Innwa
+            display-name : Zawgyi-One,
+            initial : WI,
+            image : wi.png
+          }
+        }
+        
+        tranformations : 
+        {
+          uni2zg : 
+          {
+            from-encoding : unicode,
+            to-encoding : zawgyi-one,
+            type : builtin
+          },
+          
+          zg2uni : 
+          {
+            from-encoding : zawgyi-one,
+            to-encoding : unicode,
+            type : builtin
+          },
+          
+          zg2wi :
+          {
+            from-encoding : zawgyi-one,
+            to-encoding : win innwa,
+            type : builtin
+          }
+        }
+        
+        display-method : 
+        {
+          zawgyibmp : 
+          {
+            type : builtin
+          }
+        }
+      },
+      
+      shan : 
+      {
+        display-name : Shan,
+      }
+    
+    }
+}
