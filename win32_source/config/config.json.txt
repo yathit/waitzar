@@ -1,0 +1,11 @@
+{
+    settings : 
+    {
+      hotkey : Ctrl + Shift,
+      silence-mywords-errors : no,
+      balloon-start : yes,
+      always-elevate : no,
+      track-caret : yes,
+      lock-windows : yes
+    }
+}
