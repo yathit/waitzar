@@ -15,6 +15,9 @@
 #include <stdio.h>
 #include <vector>
 
+//Should probably move 'mymb' function here..
+#include "WordBuilder.h"
+
 
 //////////////////////////////////////////////////////////////////////////////////
 // Please note that the wz_utilities library is currently considered
@@ -46,6 +49,8 @@ namespace waitzar
 	std::wstring renderAsZawgyi(const std::wstring &uniString);
 
 	void setLogFile(FILE *logFile);
+
+	std::wstring readUTF8File(const std::string& path);
 
 
 } //End waitzar namespace
