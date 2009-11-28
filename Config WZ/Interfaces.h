@@ -8,6 +8,7 @@
 #define _INTERFACES
 
 #include <string>
+#include <map>
 
 
 //Global "Types" enum
@@ -95,9 +96,9 @@ public:
 class Factory {
 public:
 	//Builders for each other interface
-	virtual InputMethod* makeInputMethod(std::wstring id, TYPES type, std::map<std::wstring, std::wstring> settings) = 0;
-	virtual DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, std::wstring> settings) = 0;
-	virtual Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, std::wstring> settings) = 0;
+	virtual InputMethod* makeInputMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
+	virtual DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
+	virtual Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
 };
 
 
