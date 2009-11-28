@@ -70,6 +70,7 @@ languages.myanmar : {
   {
     zawgyibmp : 
     {
+      encoding : zawgyi-one,
       type : builtin
     }
   }

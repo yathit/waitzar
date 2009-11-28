@@ -84,6 +84,7 @@
         {
           zawgyibmp : 
           {
+            encoding : zawgyi-one,
             type : builtin
           }
         }

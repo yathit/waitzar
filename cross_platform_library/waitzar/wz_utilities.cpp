@@ -8,6 +8,7 @@
 
 using std::wstringstream;
 using std::wstring;
+using std::string;
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -854,6 +855,44 @@ std::wstring sortMyanmarString(const std::wstring &uniString)
 void setLogFile(FILE *logFile)
 {
 	wzUtilLogFile = logFile;
+}
+
+
+wstring readUTF8File(const string& path) 
+{
+	//Open the file, read-only, binary.
+	FILE* userFile = fopen(path.c_str(), "rb");
+	if (userFile == NULL)
+		return NULL; //File doesn't exist
+
+	//Get file size
+	fseek (userFile, 0, SEEK_END);
+	long fileSize = ftell(userFile);
+	rewind(userFile);
+
+	//Read that file as a sequence of bytes
+	char* buffer = new char[fileSize];
+	size_t buff_size = fread(buffer, 1, fileSize, userFile);
+	fclose(userFile);
+	if (buff_size==0)
+		return L""; //Empty file
+
+	//Finally, convert this array to unicode
+	wchar_t * uniBuffer = new wchar_t[buff_size];
+	size_t numUniChars = mymbstowcs(NULL, buffer, buff_size);
+	if (buff_size==numUniChars)
+		return NULL; //Conversion probably failed.
+	uniBuffer = new wchar_t[numUniChars]; // (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
+	if (mymbstowcs(uniBuffer, buffer, buff_size)==0)
+		return NULL; //Invalid UTF-8 characters
+
+	//Done, clean up resources
+	wstring res = wstring(uniBuffer);
+	delete [] buffer;
+	delete [] uniBuffer;
+
+	//And return
+	return res;
 }
 
 

@@ -28,6 +28,8 @@ ConfigManager::~ConfigManager(void){}
  */
 void ConfigManager::initMainConfig(const std::string& configFile)
 {
+	//Save the file, we will load it later when we need it
+	this->mainConfig = configFile;
 }
 
 
@@ -49,6 +51,13 @@ void ConfigManager::initMainConfig(const std::string& configFile)
  */
 void ConfigManager::initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles)
 {
+	//Convert std::strings to JsonFiles
+	std::vector<JsonFile> cfgs;
+	for (size_t i=0; i<subConfigFiles.size(); i++)
+		cfgs.push_back(subConfigFiles[i]);
+
+	//Save the file, we will load it later when we need it
+	this->langConfigs[JsonFile(configFile)] = cfgs;
 }
 
 
@@ -65,6 +74,8 @@ void ConfigManager::initAddLanguage(const std::string& configFile, const std::ve
  */
 void ConfigManager::initLocalConfig(const std::string& configFile)
 {
+	//Save the file, we will load it later when we need it
+	this->localConfig = configFile;
 }
 
 
@@ -81,6 +92,8 @@ void ConfigManager::initLocalConfig(const std::string& configFile)
  */
 void ConfigManager::initUserConfig(const std::string& configFile)
 {
+	//Save the file, we will load it later when we need it
+	this->userConfig = configFile;
 }
 
 
