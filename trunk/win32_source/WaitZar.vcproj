@@ -119,7 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;..\cross_platform_library\waitzar&quot;"
+				AdditionalIncludeDirectories="..\cross_platform_library\waitzar;&quot;..\Config WZ\&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -212,6 +212,10 @@
 				RelativePath="..\cross_platform_library\waitzar\wz_utilities.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\WZFactory.cpp"
+				>
+			</File>
 			<Filter
 				Name="jazzlib_0.0.7"
 				>
@@ -257,6 +261,30 @@
 				</File>
 				<File
 					RelativePath="..\cross_platform_library\waitzar\regex.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Input"
+				>
+				<File
+					RelativePath=".\Input\WaitZar.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Display"
+				>
+				<File
+					RelativePath=".\Display\PngFont.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Transform"
+				>
+				<File
+					RelativePath=".\Transform\Zg2Uni.cpp"
 					>
 				</File>
 			</Filter>
@@ -331,6 +359,10 @@
 					RelativePath="..\cross_platform_library\waitzar\wz_utilities.h"
 					>
 				</File>
+				<File
+					RelativePath=".\WZFactory.h"
+					>
+				</File>
 				<Filter
 					Name="jazzlib_0.0.7"
 					>
@@ -376,6 +408,30 @@
 					</File>
 					<File
 						RelativePath="..\cross_platform_library\waitzar\regex.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Input"
+					>
+					<File
+						RelativePath=".\Input\WaitZar.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Display"
+					>
+					<File
+						RelativePath=".\Display\PngFont.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Transform"
+					>
+					<File
+						RelativePath=".\Transform\Zg2Uni.h"
 						>
 					</File>
 				</Filter>
