@@ -182,6 +182,10 @@
 				RelativePath=".\ConfigManager.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Interfaces.h"
+				>
+			</File>
 			<Filter
 				Name="json-spirit"
 				>
