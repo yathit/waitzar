@@ -8,11 +8,10 @@
 #define _CONFIGMANAGER
 
 #include <vector>
+#include <algorithms>
 #include "wz_utilities.h"
 #include "json_spirit.h"
 #include "Interfaces.h"
-using json_spirit::wValue;
-using json_spirit::read;
 
 
 //Simple class to help us load json files easier
@@ -22,14 +21,14 @@ public:
 	{
 		this->path = path;
 	}
-	wValue json() 
+	json_spirit::wValue json() 
 	{
 		if (!hasParsed) {
 			const std::wstring text = waitzar::readUTF8File(path);
-			read(text, parsed);
+			json_spirit::read(text, root);
 			hasParsed = true;
 		}
-		return parsed;
+		return root;
 	}
 	//For map indexing:
 	bool operator<(const JsonFile& j) const
@@ -38,7 +37,7 @@ public:
 	}
 private:
 	std::string path;
-	wValue parsed;
+	json_spirit::wValue root;
 	bool hasParsed;
 };
 
@@ -46,10 +45,8 @@ private:
 
 
 
-
-
 //Options for our ConfigManager class
-struct Settings {
+public struct Settings {
 	Option<std::wstring> hotkey;
 	Option<bool> silenceMywordsErrors;
 	Option<bool> balloonStart;
@@ -73,6 +70,9 @@ struct OptionTree {
 };
 
 
+//Utility enum
+enum WRITE_OPTS {WRITE_MAIN, WRITE_LOCAL, WRITE_USER};
+
 
 /**
  * This class exists for managing configuration options automatically. It is also
@@ -92,7 +92,7 @@ public:
 	void initUserConfig(const std::string& configFile);
 
 	//Accessible by our outside class
-	std::vector< std::pair<std::wstring, std::wstring> > getSettings() const;
+	Settings getSettings() const;
 	std::vector<std::wstring> getLanguages() const;
 	std::vector<std::wstring> getInputManagers() const;
 	std::vector<std::wstring> getEncodings() const;
@@ -100,6 +100,15 @@ public:
 	//Control
 	std::wstring getActiveLanguage() const;
 	void changeActiveLanguage(const std::wstring& newLanguage);
+	std::wstring loc_to_lower(const std::wstring& str);
+
+
+private:
+	void readInConfig(wValue root, std::wstring context, WRITE_OPTS writeTo);
+	std::wstring sanitize_id(const std::wstring& str);
+	std::wstring sanitize(const std::wstring& str);
+	bool read_bool(const std::wstring& str);
+	void setSingleOption(const std::wstring& name, const std::wstring& value);
 
 private:
 	//Our many config files.
@@ -111,6 +120,38 @@ private:
 	//The actual representation
 	OptionTree options;
 };
+
+
+
+//Helper predicate
+template <class T> 
+class is_id_delim : public unary_function
+{
+public:
+ bool operator ()(T t) const
+ {
+  if ((t==' ')||(t=='\t')||(t=='\n')||(t=='-')||(t=='_'))
+   return true; //Remove it
+  return false; //Don't remove it
+ }
+};
+
+
+//And finally, locale-driven nonsense with to_lower:
+template<class T>
+class ToLower {
+public:
+     ToLower(const std::locale& loc):loc(loc)
+     {
+     }
+     T operator()(const T& src) const
+     {
+          return std::tolower<T>(src, loc);
+     }
+protected:
+     const std::locale& loc;
+};
+
 
 
 

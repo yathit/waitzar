@@ -22,11 +22,13 @@
           waitzar : 
           {
             display-name : WaitZar,
+            encoding : unicode,
             type : builtin
           },
           mywin : 
           {
             display-name : myWin 2.2,
+            encoding : unicode,
             type : builtin
           }
         },

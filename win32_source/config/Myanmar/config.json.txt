@@ -1,4 +1,4 @@
-languages.myanmar : {
+{languages.myanmar : {
   display-name : Myanmar,
   default-output-encoding : unicode,
   default-display-method : zawgyibmp,
@@ -74,4 +74,4 @@ languages.myanmar : {
       type : builtin
     }
   }
-}
+}}
