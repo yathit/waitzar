@@ -4,7 +4,7 @@
 // json spirit version 4.02
 
 #include "json_spirit_reader.h"
-#include "json_spirit_value.h"
+#include "../json_spirit_value.h"
 
 //#define BOOST_SPIRIT_THREADSAFE  // uncomment for multithreaded use, requires linking to boost.thead
 

@@ -11,9 +11,16 @@
 #include <algorithm>
 #include <limits>
 #include <functional>
+#include <locale>
 #include "wz_utilities.h"
-#include "json_spirit.h"
+#include "json_spirit_value.h"
 #include "Interfaces.h"
+
+
+//json_spirit_reader is defined elsewhere
+namespace json_spirit {
+	extern bool read( const std::wstring& s, wValue& value );
+}
 
 
 //Simple class to help us load json files easier
@@ -106,7 +113,7 @@ public:
 	//Control
 	std::wstring getActiveLanguage() const;
 	void changeActiveLanguage(const std::wstring& newLanguage);
-	std::wstring loc_to_lower(const std::wstring& str);
+	void loc_to_lower(std::wstring& str);
 
 
 private:

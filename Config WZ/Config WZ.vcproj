@@ -109,6 +109,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories=".\boost_headers;..\cross_platform_library\waitzar;.\json"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -126,6 +127,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				IgnoreAllDefaultLibraries="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -186,6 +188,10 @@
 				RelativePath=".\Interfaces.h"
 				>
 			</File>
+			<File
+				RelativePath=".\json_spirit_value.h"
+				>
+			</File>
 			<Filter
 				Name="json-spirit"
 				>
@@ -199,10 +205,6 @@
 				</File>
 				<File
 					RelativePath=".\json\json_spirit_utils.h"
-					>
-				</File>
-				<File
-					RelativePath=".\json\json_spirit_value.h"
 					>
 				</File>
 				<File

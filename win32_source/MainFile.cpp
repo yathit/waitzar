@@ -75,6 +75,7 @@
 #include "Hyperlinks.h"
 #include "ConfigManager.h"
 
+
 using namespace waitzar;
 using std::string;
 using std::wstring;
@@ -4503,13 +4504,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Settings s = config.getSettings();
 	wstringstream msg;
 	msg << "Settings" <<std::endl;
-	msg << "Always elevate: " <<s.alwaysElevate <<std::endl;
-	msg << "Balloon start: " <<s.balloonStart <<std::endl;
-	msg << "Lock windows: " <<s.lockWindows <<std::endl;
-	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors <<std::endl;
-	msg << "Track caret: " <<s.trackCaret <<std::endl;
-	msg << "Hotkey: " <<s.hotkey <<std::endl;
-	MessageBox(NULL, msg, L"Settings", MB_ICONINFORMATION | MB_OK);
+	msg << "Always elevate: " <<s.alwaysElevate.get() <<std::endl;
+	msg << "Balloon start: " <<s.balloonStart.get() <<std::endl;
+	msg << "Lock windows: " <<s.lockWindows.get() <<std::endl;
+	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors.get() <<std::endl;
+	msg << "Track caret: " <<s.trackCaret.get() <<std::endl;
+	msg << "Hotkey: " <<s.hotkey.get() <<std::endl;
+	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
 
 
 
