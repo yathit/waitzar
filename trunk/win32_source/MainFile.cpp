@@ -62,6 +62,7 @@
 #include <string>
 #include <list>
 #include <limits>
+#include <sstream>
 
 //Our includes
 #include "../cross_platform_library/waitzar/WordBuilder.h"
@@ -72,6 +73,7 @@
 #include "resource.h"
 #include "Hotkeys.h"
 #include "Hyperlinks.h"
+#include "ConfigManager.h"
 
 using namespace waitzar;
 using std::string;
@@ -191,6 +193,9 @@ POINT caretLatestPosition;
 #define COLOR_HELPFNT_KEYS        0x606060
 #define COLOR_HELPFNT_FORE        0x000000
 #define COLOR_HELPFNT_BACK        0x0019FF
+
+//Our configuration
+ConfigManager config;
 
 //Configuration variables.
 BOOL customDictWarning = FALSE;
@@ -4489,6 +4494,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
+
+	//Set the correct path to each configuration directory:
+	config.initMainConfig("default-config.json.txt");
+
+
+	//TEST: did our settings load?
+	Settings s = config.getSettings();
+	wstringstream msg;
+	msg << "Settings" <<std::endl;
+	msg << "Always elevate: " <<s.alwaysElevate <<std::endl;
+	msg << "Balloon start: " <<s.balloonStart <<std::endl;
+	msg << "Lock windows: " <<s.lockWindows <<std::endl;
+	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors <<std::endl;
+	msg << "Track caret: " <<s.trackCaret <<std::endl;
+	msg << "Hotkey: " <<s.hotkey <<std::endl;
+	MessageBox(NULL, msg, L"Settings", MB_ICONINFORMATION | MB_OK);
+
+
+
 
 	//Load our configuration file now; save some headaches later
 	loadConfigOptions();

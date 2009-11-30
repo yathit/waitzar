@@ -13,7 +13,8 @@ using std::wstring;
 using json_spirit::wValue;
 using json_spirit::wObject;
 using json_spirit::wPair;
-using json_spirit::Value_type;
+using json_spirit::obj_type;
+using json_spirit::str_type;
 
 
 ConfigManager::ConfigManager(void){}
@@ -101,15 +102,15 @@ void ConfigManager::initUserConfig(const std::string& configFile)
 }
 
 
-Settings ConfigManager::getSettings() const 
+Settings ConfigManager::getSettings() 
 {
 	//We need at least one config file to parse.
-	if (this->mainConfig == NULL)
+	if (this->mainConfig.getPath().empty())
 		throw std::exception("No main config file defined.");
 
 	//Parse each config file in turn.
 	//First: main config
-	this->readInConfig(this->mainConfig.root, L"", WRITE_MAIN);
+	this->readInConfig(this->mainConfig.json(), L"", WRITE_MAIN);
 
 	//TODO:Others
 	
@@ -119,18 +120,18 @@ Settings ConfigManager::getSettings() const
 void ConfigManager::readInConfig(wValue root, wstring context, WRITE_OPTS writeTo) 
 {
 	//We always operate on maps:
-	wObject currPairs = root.get_value<Object>();
-	for (std::iterator<Pair> itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
+	wObject currPairs = root.get_value<wObject>();
+	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
  		//Construct the new context
-		wstring newContext = context + "." + sanitize_id(itr->name_);
+		wstring newContext = context + L"." + sanitize_id(itr->name_);
 
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
 			//Inductive case: Continue reading all options under this type
-			this->readInConfig(itr->value, newContext, writeTo);
+			this->readInConfig(itr->value_, newContext, writeTo);
 		} else if (itr->value_.type()==str_type) {
 			//Base case: the "value" is also a string (set the property)
-			this->setSingleOption(newContext, sanitize(itr->value_.get_value(std::wstring));
+			this->setSingleOption(newContext, sanitize(itr->value_.get_value<std::wstring>()));
 		} else {
 			throw std::exception("ERROR: Config file options should always be string types.");
 		}
@@ -148,15 +149,15 @@ void ConfigManager::setSingleOption(const std::wstring& name, const std::wstring
 		if (name.find(opt)==0) {
 			if (name.find(L"hotkey.", opt.size())==0)
 				options.settings.hotkey = sanitize_id(value);
-			else if (name.find(sanitize_id("silence-mywords-errors."), opt.size())==0)
+			else if (name.find(sanitize_id(L"silence-mywords-errors."), opt.size())==0)
 				options.settings.silenceMywordsErrors = read_bool(value);
-			else if (name.find(sanitize_id("balloon-start."), opt.size())==0)
+			else if (name.find(sanitize_id(L"balloon-start."), opt.size())==0)
 				options.settings.balloonStart = read_bool(value);
-			else if (name.find(sanitize_id("always-elevate."), opt.size())==0)
+			else if (name.find(sanitize_id(L"always-elevate."), opt.size())==0)
 				options.settings.alwaysElevate = read_bool(value);
-			else if (name.find(sanitize_id("track-caret."), opt.size())==0)
+			else if (name.find(sanitize_id(L"track-caret."), opt.size())==0)
 				options.settings.trackCaret = read_bool(value);
-			else if (name.find(sanitize_id("lock-windows."), opt.size())==0)
+			else if (name.find(sanitize_id(L"lock-windows."), opt.size())==0)
 				options.settings.lockWindows = read_bool(value);
 			else 
 				throw 1;
@@ -166,10 +167,10 @@ void ConfigManager::setSingleOption(const std::wstring& name, const std::wstring
 
 
 		} else
-			error = true;
+			throw 1;
 	} catch (int) {
 		//Bad option
-		throw std::exception("Invalid option: \"" + name + "\", with value: \"" + value + "\"");
+		throw std::exception(std::string("Invalid option: \"" + escape_wstr(name) + "\", with value: \"" + escape_wstr(value) + "\"").c_str());
 	}
 }
 
@@ -179,26 +180,38 @@ void ConfigManager::setSingleOption(const std::wstring& name, const std::wstring
 //Remove leading and trailing whitespace
 wstring ConfigManager::sanitize(const wstring& str) 
 {
-	size_t firstLetter = find_first_not_of(" \t\n", 0);
-	size_t lastLetter = find_last_not_of(" \t\n", firstLetter);
+	size_t firstLetter = str.find_first_not_of(L" \t\n", 0);
+	size_t lastLetter = str.find_last_not_of(L" \t\n", firstLetter);
 	return str.substr(firstLetter, lastLetter-firstLetter+1);
 }
 
 //Sanitize, then return in lowercase, with '-', '_', and whitespace removed
 wstring ConfigManager::sanitize_id(const wstring& str) 
 {
-	return loc_to_lower(wstring(str.begin(), std::remove_if(str.begin(), str.end(), is_id_delim)));
+	return loc_to_lower(wstring(str.begin(), std::remove_if(str.begin(), str.end(), is_id_delim<wstring>())));
+}
+
+std::string ConfigManager::escape_wstr(const std::wstring& str) const
+{
+	std::stringstream res;
+	for (wstring::const_iterator c=str.begin(); c!=str.end(); c++) {
+		if (*c < std::numeric_limits<char>::max())
+			res << static_cast<char>(*c);
+		else
+			res << "\\u" << std::hex << *c << std::dec;
+	}
+	return res.str();
 }
 
 bool ConfigManager::read_bool(const std::wstring& str)
 {
 	std::wstring test = loc_to_lower(str);
-	if (test == L"yes" or test==L"true")
+	if (test == L"yes" || test==L"true")
 		return true;
-	else if (test==L"no" or test==L"false")
+	else if (test==L"no" || test==L"false")
 		return false;
 	else
-		throw std::exception("Bad boolean value: \"" + str + "\"");
+		throw std::exception(std::string("Bad boolean value: \"" + escape_wstr(str) + "\"").c_str());
 }
 
 std::wstring ConfigManager::loc_to_lower(const std::wstring& str)

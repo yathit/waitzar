@@ -442,6 +442,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\default-config.json.txt"
+			>
+		</File>
+		<File
 			RelativePath=".\easypatsint.txt"
 			>
 		</File>
