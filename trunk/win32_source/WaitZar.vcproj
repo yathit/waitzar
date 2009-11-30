@@ -101,6 +101,7 @@
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -119,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\cross_platform_library\waitzar;&quot;..\Config WZ\&quot;"
+				AdditionalIncludeDirectories="..\cross_platform_library\waitzar;&quot;..\Config WZ&quot;;&quot;..\Config WZ\boost_headers&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -141,6 +142,7 @@
 				AdditionalDependencies="msimg32.lib Psapi.lib"
 				OutputFile="$(OutDir)/WaitZar.exe"
 				LinkIncremental="1"
+				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"

@@ -114,6 +114,9 @@ Settings ConfigManager::getSettings()
 
 	//TODO:Others
 	
+
+	//Done
+	return this->options.settings;
 }
 
 
@@ -188,7 +191,9 @@ wstring ConfigManager::sanitize(const wstring& str)
 //Sanitize, then return in lowercase, with '-', '_', and whitespace removed
 wstring ConfigManager::sanitize_id(const wstring& str) 
 {
-	return loc_to_lower(wstring(str.begin(), std::remove_if(str.begin(), str.end(), is_id_delim<wstring>())));
+	wstring res = str;
+	loc_to_lower(wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>())));
+	return res;
 }
 
 std::string ConfigManager::escape_wstr(const std::wstring& str) const
@@ -205,7 +210,8 @@ std::string ConfigManager::escape_wstr(const std::wstring& str) const
 
 bool ConfigManager::read_bool(const std::wstring& str)
 {
-	std::wstring test = loc_to_lower(str);
+	std::wstring test = str;
+	loc_to_lower(test);
 	if (test == L"yes" || test==L"true")
 		return true;
 	else if (test==L"no" || test==L"false")
@@ -214,19 +220,19 @@ bool ConfigManager::read_bool(const std::wstring& str)
 		throw std::exception(std::string("Bad boolean value: \"" + escape_wstr(str) + "\"").c_str());
 }
 
-std::wstring ConfigManager::loc_to_lower(const std::wstring& str)
+void ConfigManager::loc_to_lower(std::wstring& str)
 {
 	//Locale-aware "toLower" converter
 	std::locale loc(""); //Get native locale
-	return std::transform(str.begin(),str.end(),str.begin(),ToLower<wchar_t>(loc));
+	std::transform(str.begin(),str.end(),str.begin(),ToLower<wchar_t>(loc));
 }
 
 
 //Not yet defined:
-vector<wstring> ConfigManager::getLanguages() const {}
-vector<wstring> ConfigManager::getInputManagers() const {}
-vector<wstring> ConfigManager::getEncodings() const {}
-wstring ConfigManager::getActiveLanguage() const {}
+vector<wstring> ConfigManager::getLanguages() const {vector<wstring> res; return res;}
+vector<wstring> ConfigManager::getInputManagers() const {vector<wstring> res; return res;}
+vector<wstring> ConfigManager::getEncodings() const {vector<wstring> res; return res;}
+wstring ConfigManager::getActiveLanguage() const {return L"";}
 void ConfigManager::changeActiveLanguage(const wstring& newLanguage) {}
 
 

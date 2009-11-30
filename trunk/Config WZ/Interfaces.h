@@ -25,7 +25,7 @@ public:
 		this->local = T();
 		this->user = T();
 		this->localSet = false;
-		this->useSet = false;
+		this->userSet = false;
 	}
 	T get() const {
 		return userSet ? user : localSet ? local : value;
@@ -46,7 +46,7 @@ private:
 	T local;
 	bool localSet;
 	T user;
-	bool useSet;
+	bool userSet;
 };
 
 //A struct... will refactor into separate classes later.
