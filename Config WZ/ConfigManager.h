@@ -8,7 +8,9 @@
 #define _CONFIGMANAGER
 
 #include <vector>
-#include <algorithms>
+#include <algorithm>
+#include <limits>
+#include <functional>
 #include "wz_utilities.h"
 #include "json_spirit.h"
 #include "Interfaces.h"
@@ -21,7 +23,7 @@ public:
 	{
 		this->path = path;
 	}
-	json_spirit::wValue json() 
+	json_spirit::wValue json() const
 	{
 		if (!hasParsed) {
 			const std::wstring text = waitzar::readUTF8File(path);
@@ -30,6 +32,10 @@ public:
 		}
 		return root;
 	}
+	std::string getPath() const
+	{
+		return this->path;
+	}
 	//For map indexing:
 	bool operator<(const JsonFile& j) const
 	{
@@ -37,8 +43,8 @@ public:
 	}
 private:
 	std::string path;
-	json_spirit::wValue root;
-	bool hasParsed;
+	mutable json_spirit::wValue root;
+	mutable bool hasParsed;
 };
 
 
@@ -46,7 +52,7 @@ private:
 
 
 //Options for our ConfigManager class
-public struct Settings {
+struct Settings {
 	Option<std::wstring> hotkey;
 	Option<bool> silenceMywordsErrors;
 	Option<bool> balloonStart;
@@ -92,7 +98,7 @@ public:
 	void initUserConfig(const std::string& configFile);
 
 	//Accessible by our outside class
-	Settings getSettings() const;
+	Settings getSettings();
 	std::vector<std::wstring> getLanguages() const;
 	std::vector<std::wstring> getInputManagers() const;
 	std::vector<std::wstring> getEncodings() const;
@@ -104,9 +110,10 @@ public:
 
 
 private:
-	void readInConfig(wValue root, std::wstring context, WRITE_OPTS writeTo);
+	void readInConfig(json_spirit::wValue root, std::wstring context, WRITE_OPTS writeTo);
 	std::wstring sanitize_id(const std::wstring& str);
 	std::wstring sanitize(const std::wstring& str);
+	std::string escape_wstr(const std::wstring& str) const;
 	bool read_bool(const std::wstring& str);
 	void setSingleOption(const std::wstring& name, const std::wstring& value);
 
@@ -125,7 +132,7 @@ private:
 
 //Helper predicate
 template <class T> 
-class is_id_delim : public unary_function
+class is_id_delim : public std::unary_function<T, bool>
 {
 public:
  bool operator ()(T t) const
