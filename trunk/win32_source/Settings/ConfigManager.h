@@ -18,9 +18,10 @@
 
 
 //json_spirit_reader is defined elsewhere
-namespace json_spirit {
+/*namespace json_spirit {
 	extern bool read( const std::wstring& s, wValue& value );
-}
+}*/
+#include "Json Spirit/json_spirit_reader.h"
 
 
 //Simple class to help us load json files easier
@@ -29,6 +30,7 @@ public:
 	JsonFile(const std::string& path="")
 	{
 		this->path = path;
+		this->hasParsed = false;
 	}
 	json_spirit::wValue json() const
 	{
@@ -130,6 +132,9 @@ private:
 	std::map<JsonFile , std::vector<JsonFile> > langConfigs;
 	JsonFile localConfig;
 	JsonFile userConfig;
+
+	//Have we loaded...?
+	bool loadedSettings;
 
 	//The actual representation
 	OptionTree options;
