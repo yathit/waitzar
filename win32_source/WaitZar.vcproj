@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\cross_platform_library\waitzar;&quot;..\Config WZ&quot;;&quot;..\Config WZ\boost_headers&quot;"
+				AdditionalIncludeDirectories="..\cross_platform_library\waitzar;Contrib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -183,10 +183,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Hyperlinks.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\MainFile.cpp"
 				>
 			</File>
@@ -194,101 +190,153 @@
 				RelativePath=".\OnscreenKeyboard.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\PulpCoreFont.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PulpCoreImage.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\cross_platform_library\waitzar\SentenceList.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\cross_platform_library\waitzar\WordBuilder.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\cross_platform_library\waitzar\wz_utilities.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\WZFactory.cpp"
-				>
-			</File>
 			<Filter
-				Name="jazzlib_0.0.7"
+				Name="Engine"
+				>
+				<Filter
+					Name="Input"
+					>
+					<File
+						RelativePath=".\Input\WaitZar.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Display"
+					>
+					<File
+						RelativePath=".\Display\PngFont.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Transform"
+					>
+					<File
+						RelativePath=".\Transform\Zg2Uni.cpp"
+						>
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="Settings"
 				>
 				<File
-					RelativePath=".\Adler32.cpp"
+					RelativePath=".\Settings\ConfigManager.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Inflater.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\InflaterDynHeader.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\InflaterHuffmanTree.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\OutputWindow.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\StreamManipulator.cpp"
+					RelativePath=".\Settings\WZFactory.cpp"
 					>
 				</File>
 			</Filter>
 			<Filter
-				Name="burglish_core"
+				Name="Contrib"
 				>
-				<File
-					RelativePath="..\cross_platform_library\waitzar\fontconv.cpp"
+				<Filter
+					Name="Burglish"
 					>
-				</File>
-				<File
-					RelativePath="..\cross_platform_library\waitzar\fontmap.cpp"
+					<File
+						RelativePath="..\cross_platform_library\waitzar\burglish\fontconv.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\cross_platform_library\waitzar\burglish\fontmap.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\cross_platform_library\waitzar\burglish\lib.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\cross_platform_library\waitzar\burglish\regex.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Jazzlib"
 					>
-				</File>
-				<File
-					RelativePath="..\cross_platform_library\waitzar\lib.cpp"
+					<File
+						RelativePath=".\Contrib\Jazzlib\Adler32.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Jazzlib\Inflater.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Jazzlib\InflaterDynHeader.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Jazzlib\InflaterHuffmanTree.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Jazzlib\OutputWindow.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Jazzlib\StreamManipulator.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Hyperlinks"
 					>
-				</File>
-				<File
-					RelativePath="..\cross_platform_library\waitzar\regex.cpp"
+					<File
+						RelativePath=".\Contrib\Hyperlinks\Hyperlinks.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Json Spirit"
 					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Input"
-				>
-				<File
-					RelativePath=".\Input\WaitZar.cpp"
+					<File
+						RelativePath=".\Contrib\Json Spirit\json_spirit_reader.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Json Spirit\json_spirit_value.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Json Spirit\json_spirit_writer.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="NGram"
 					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Display"
-				>
-				<File
-					RelativePath=".\Display\PngFont.cpp"
+					<File
+						RelativePath="..\cross_platform_library\waitzar\ngram\PythonSpecs.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\cross_platform_library\waitzar\ngram\SentenceList.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Pulp Core"
 					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Transform"
-				>
-				<File
-					RelativePath=".\Transform\Zg2Uni.cpp"
-					>
-				</File>
+					<File
+						RelativePath=".\Contrib\Pulp Core\PulpCoreFont.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Contrib\Pulp Core\PulpCoreImage.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
@@ -330,112 +378,180 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Hyperlinks.h"
-					>
-				</File>
-				<File
 					RelativePath=".\OnscreenKeyboard.h"
-					>
-				</File>
-				<File
-					RelativePath=".\PulpCoreFont.h"
-					>
-				</File>
-				<File
-					RelativePath=".\PulpCoreImage.h"
 					>
 				</File>
 				<File
 					RelativePath=".\resource.h"
 					>
 				</File>
-				<File
-					RelativePath="..\cross_platform_library\waitzar\SentenceList.h"
-					>
-				</File>
-				<File
-					RelativePath="..\cross_platform_library\waitzar\WordBuilder.h"
-					>
-				</File>
-				<File
-					RelativePath="..\cross_platform_library\waitzar\wz_utilities.h"
-					>
-				</File>
-				<File
-					RelativePath=".\WZFactory.h"
-					>
-				</File>
 				<Filter
-					Name="jazzlib_0.0.7"
+					Name="Engine"
+					>
+					<Filter
+						Name="Display"
+						>
+						<File
+							RelativePath=".\Display\PngFont.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Input"
+						>
+						<File
+							RelativePath=".\Input\WaitZar.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Transform"
+						>
+						<File
+							RelativePath=".\Transform\Zg2Uni.h"
+							>
+						</File>
+					</Filter>
+				</Filter>
+				<Filter
+					Name="Settings"
 					>
 					<File
-						RelativePath=".\Adler32.h"
+						RelativePath=".\Settings\ConfigManager.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Inflater.h"
+						RelativePath=".\Settings\Interfaces.h"
 						>
 					</File>
 					<File
-						RelativePath=".\InflaterDynHeader.h"
-						>
-					</File>
-					<File
-						RelativePath=".\InflaterHuffmanTree.h"
-						>
-					</File>
-					<File
-						RelativePath=".\OutputWindow.h"
-						>
-					</File>
-					<File
-						RelativePath=".\StreamManipulator.h"
+						RelativePath=".\Settings\WZFactory.h"
 						>
 					</File>
 				</Filter>
 				<Filter
-					Name="burglish_core"
+					Name="Contrib"
 					>
-					<File
-						RelativePath="..\cross_platform_library\waitzar\fontconv.h"
+					<Filter
+						Name="Burglish"
 						>
-					</File>
-					<File
-						RelativePath="..\cross_platform_library\waitzar\fontmap.h"
+						<File
+							RelativePath="..\cross_platform_library\waitzar\burglish\fontconv.h"
+							>
+						</File>
+						<File
+							RelativePath="..\cross_platform_library\waitzar\burglish\fontmap.h"
+							>
+						</File>
+						<File
+							RelativePath="..\cross_platform_library\waitzar\burglish\lib.h"
+							>
+						</File>
+						<File
+							RelativePath="..\cross_platform_library\waitzar\burglish\regex.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Jazzlib"
 						>
-					</File>
-					<File
-						RelativePath="..\cross_platform_library\waitzar\lib.h"
+						<File
+							RelativePath=".\Contrib\Jazzlib\Adler32.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Jazzlib\Inflater.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Jazzlib\InflaterDynHeader.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Jazzlib\InflaterHuffmanTree.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Jazzlib\OutputWindow.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Jazzlib\StreamManipulator.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Pulp Core"
 						>
-					</File>
-					<File
-						RelativePath="..\cross_platform_library\waitzar\regex.h"
+						<File
+							RelativePath=".\Contrib\Pulp Core\PulpCoreFont.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Pulp Core\PulpCoreImage.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Hyperlinks"
 						>
-					</File>
-				</Filter>
-				<Filter
-					Name="Input"
-					>
-					<File
-						RelativePath=".\Input\WaitZar.h"
+						<File
+							RelativePath=".\Contrib\Hyperlinks\Hyperlinks.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Json Spirit"
 						>
-					</File>
-				</Filter>
-				<Filter
-					Name="Display"
-					>
-					<File
-						RelativePath=".\Display\PngFont.h"
+						<File
+							RelativePath=".\Contrib\Json Spirit\json_spirit.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Json Spirit\json_spirit_reader.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Json Spirit\json_spirit_utils.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Json Spirit\json_spirit_value.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Json Spirit\json_spirit_writer.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Boost"
 						>
-					</File>
-				</Filter>
-				<Filter
-					Name="Transform"
-					>
-					<File
-						RelativePath=".\Transform\Zg2Uni.h"
+						<File
+							RelativePath=".\Contrib\Boost\config.hpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Contrib\Boost\version.hpp"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="NGram"
 						>
-					</File>
+						<File
+							RelativePath="..\cross_platform_library\waitzar\ngram\SentenceList.h"
+							>
+						</File>
+						<File
+							RelativePath="..\cross_platform_library\waitzar\ngram\WordBuilder.h"
+							>
+						</File>
+						<File
+							RelativePath="..\cross_platform_library\waitzar\ngram\wz_utilities.h"
+							>
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 		</Filter>
