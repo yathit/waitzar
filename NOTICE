@@ -7,6 +7,8 @@ The Pulp Core Project: Version 0.10.11
  ...and several other files were combined to form:
  PulpCoreFont.cpp
  PulpCoreFont.h
+ PulpCoreImage.cpp
+ PulpCoreImage.h
 These files, and the PNG format used in them, are part of the Pulp Core project. 
 License: New BSD License
 Site: http://code.google.com/p/pulpcore/

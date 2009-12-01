@@ -7,7 +7,7 @@
 #ifndef _TRANSFORM_ZG2UNI
 #define _TRANSFORM_ZG2UNI
 
-#include "Interfaces.h"
+#include "Settings/Interfaces.h"
 
 /**
  * Placeholder class: to be used for Zg2Uni Conversion method

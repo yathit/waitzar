@@ -12,9 +12,9 @@
 #include <limits>
 #include <functional>
 #include <locale>
-#include "wz_utilities.h"
-#include "json_spirit_value.h"
-#include "Interfaces.h"
+#include "NGram/wz_utilities.h"
+#include "Json Spirit/json_spirit_value.h"
+#include "Settings/Interfaces.h"
 
 
 //json_spirit_reader is defined elsewhere

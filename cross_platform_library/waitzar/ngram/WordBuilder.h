@@ -25,7 +25,7 @@
 #include <sstream>
 #include <map>
 #include <limits>
-#include "fontconv.h"
+#include "Burglish/fontconv.h"
 
 
 namespace waitzar
