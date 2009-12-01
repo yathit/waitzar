@@ -7,7 +7,7 @@
 #ifndef _INPUT_WAITZAR
 #define _INPUT_WAITZAR
 
-#include "Interfaces.h"
+#include "Settings/Interfaces.h"
 
 /**
  * Placeholder class: to be used for WaitZar Input method

@@ -23,8 +23,8 @@
 #include <string>
 #include <list>
 
-#include "PulpCoreImage.h"
-#include "PulpCoreFont.h"
+#include "Pulp Core/PulpCoreImage.h"
+#include "Pulp Core/PulpCoreFont.h"
 #include "Hotkeys.h"
 
 //Useful constants

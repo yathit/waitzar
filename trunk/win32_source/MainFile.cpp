@@ -65,15 +65,17 @@
 #include <sstream>
 
 //Our includes
-#include "../cross_platform_library/waitzar/WordBuilder.h"
-#include "../cross_platform_library/waitzar/SentenceList.h"
-#include "../cross_platform_library/waitzar/wz_utilities.h"
-#include "PulpCoreFont.h"
+#include "NGram/WordBuilder.h"
+#include "NGram/SentenceList.h"
+#include "NGram/wz_utilities.h"
+#include "Pulp Core/PulpCoreFont.h"
+#include "Hyperlinks/Hyperlinks.h"
+#include "Settings/ConfigManager.h"
 #include "OnscreenKeyboard.h"
-#include "resource.h"
 #include "Hotkeys.h"
-#include "Hyperlinks.h"
-#include "ConfigManager.h"
+
+//VS Includes
+#include "resource.h"
 
 
 using namespace waitzar;

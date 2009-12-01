@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\cross_platform_library\waitzar;Contrib"
+				AdditionalIncludeDirectories="..\cross_platform_library\waitzar;Contrib;."
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -308,10 +308,6 @@
 				<Filter
 					Name="NGram"
 					>
-					<File
-						RelativePath="..\cross_platform_library\waitzar\ngram\PythonSpecs.cpp"
-						>
-					</File>
 					<File
 						RelativePath="..\cross_platform_library\waitzar\ngram\SentenceList.cpp"
 						>
