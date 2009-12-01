@@ -17,7 +17,9 @@ using json_spirit::obj_type;
 using json_spirit::str_type;
 
 
-ConfigManager::ConfigManager(void){}
+ConfigManager::ConfigManager(void){
+	this->loadedSettings = false;
+}
 
 ConfigManager::~ConfigManager(void){}
 
@@ -104,18 +106,23 @@ void ConfigManager::initUserConfig(const std::string& configFile)
 
 Settings ConfigManager::getSettings() 
 {
-	//We need at least one config file to parse.
-	if (this->mainConfig.getPath().empty())
-		throw std::exception("No main config file defined.");
+	//Load if needed
+	if (!loadedSettings) {
+		//We need at least one config file to parse.
+		if (this->mainConfig.getPath().empty())
+			throw std::exception("No main config file defined.");
 
-	//Parse each config file in turn.
-	//First: main config
-	this->readInConfig(this->mainConfig.json(), L"", WRITE_MAIN);
+		//Parse each config file in turn.
+		//First: main config
+		this->readInConfig(this->mainConfig.json(), L"", WRITE_MAIN);
 
-	//TODO:Others
-	
+		//TODO:Others
 
-	//Done
+		//Done
+		loadedSettings = true;
+	}
+
+	//Return the object
 	return this->options.settings;
 }
 
@@ -123,10 +130,14 @@ Settings ConfigManager::getSettings()
 void ConfigManager::readInConfig(wValue root, wstring context, WRITE_OPTS writeTo) 
 {
 	//We always operate on maps:
+	json_spirit::Value_type t = root.type();
 	wObject currPairs = root.get_value<wObject>();
 	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
  		//Construct the new context
-		wstring newContext = context + L"." + sanitize_id(itr->name_);
+		wstring newContext = context;
+		if (!context.empty())
+			newContext += L".";
+		newContext += sanitize_id(itr->name_);
 
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
@@ -136,7 +147,7 @@ void ConfigManager::readInConfig(wValue root, wstring context, WRITE_OPTS writeT
 			//Base case: the "value" is also a string (set the property)
 			this->setSingleOption(newContext, sanitize(itr->value_.get_value<std::wstring>()));
 		} else {
-			throw std::exception("ERROR: Config file options should always be string types.");
+			throw std::exception("ERROR: Config file options should always be string or hash types.");
 		}
 	}
 }
@@ -149,18 +160,19 @@ void ConfigManager::setSingleOption(const std::wstring& name, const std::wstring
 	//   centralized and easy to read.
 	try {
 		wstring opt = L"settings.";
+		int nextOptID = opt.size();
 		if (name.find(opt)==0) {
-			if (name.find(L"hotkey.", opt.size())==0)
+			if (name.find(L"hotkey", nextOptID)==nextOptID)
 				options.settings.hotkey = sanitize_id(value);
-			else if (name.find(sanitize_id(L"silence-mywords-errors."), opt.size())==0)
+			else if (name.find(sanitize_id(L"silence-mywords-errors"), nextOptID)==nextOptID)
 				options.settings.silenceMywordsErrors = read_bool(value);
-			else if (name.find(sanitize_id(L"balloon-start."), opt.size())==0)
+			else if (name.find(sanitize_id(L"balloon-start"), nextOptID)==nextOptID)
 				options.settings.balloonStart = read_bool(value);
-			else if (name.find(sanitize_id(L"always-elevate."), opt.size())==0)
+			else if (name.find(sanitize_id(L"always-elevate"), nextOptID)==nextOptID)
 				options.settings.alwaysElevate = read_bool(value);
-			else if (name.find(sanitize_id(L"track-caret."), opt.size())==0)
+			else if (name.find(sanitize_id(L"track-caret"), nextOptID)==nextOptID)
 				options.settings.trackCaret = read_bool(value);
-			else if (name.find(sanitize_id(L"lock-windows."), opt.size())==0)
+			else if (name.find(sanitize_id(L"lock-windows"), nextOptID)==nextOptID)
 				options.settings.lockWindows = read_bool(value);
 			else 
 				throw 1;
@@ -183,16 +195,17 @@ void ConfigManager::setSingleOption(const std::wstring& name, const std::wstring
 //Remove leading and trailing whitespace
 wstring ConfigManager::sanitize(const wstring& str) 
 {
-	size_t firstLetter = str.find_first_not_of(L" \t\n", 0);
-	size_t lastLetter = str.find_last_not_of(L" \t\n", firstLetter);
+	size_t firstLetter = str.find_first_not_of(L" \t\n");
+	size_t lastLetter = str.find_last_not_of(L" \t\n");
 	return str.substr(firstLetter, lastLetter-firstLetter+1);
 }
 
 //Sanitize, then return in lowercase, with '-', '_', and whitespace removed
 wstring ConfigManager::sanitize_id(const wstring& str) 
 {
-	wstring res = str;
-	loc_to_lower(wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>())));
+	wstring res = str; //Copy out the "const"-ness.
+	res = wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
+	loc_to_lower(res); //Operates in-place.
 	return res;
 }
 

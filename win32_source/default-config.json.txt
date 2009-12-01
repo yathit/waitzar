@@ -1,100 +1,99 @@
 {
-    settings : 
+    "settings" : 
     {
-      hotkey : Ctrl + Shift,
-      silence-mywords-errors : no,
-      balloon-start : yes,
-      always-elevate : no,
-      track-caret : yes,
-      lock-windows : yes
+      "hotkey" : "Ctrl + Shift",
+      "silence-mywords-errors" : "no",
+      "balloon-start" : "yes",
+      "always-elevate" : "no",
+      "track-caret" : "yes",
+      "lock-windows" : "yes"
     },
     
-    languages : 
+    "languages" : 
     {
-      myanmar : 
+      "myanmar" : 
       {
-        display-name : Myanmar,
-        default-output-encoding : unicode,
-        default-display-method : zawgyibmp,
-        default-input-method : waitzar,
-        input-methods : 
+        "display-name" : "Myanmar",
+        "default-output-encoding" : "unicode",
+        "default-display-method" : "zawgyibmp",
+        "default-input-method" : "waitzar",
+        "input-methods" : 
         {
-          waitzar : 
+          "waitzar" : 
           {
-            display-name : WaitZar,
-            encoding : unicode,
-            type : builtin
+            "display-name" : "WaitZar",
+            "encoding" : "unicode",
+            "type" : "builtin"
           },
-          mywin : 
+          "mywin" : 
           {
-            display-name : myWin 2.2,
-            encoding : unicode,
-            type : builtin
+            "display-name" : "myWin 2.2",
+            "encoding" : "unicode",
+            "type" : "builtin"
           }
         },
         
-        encodings : 
+        "encodings" : 
         {
-          unicode : 
+          "unicode" : 
           {
-            display-name : Unicode,
-            initial : UNI,
-            image : uni.png
+            "display-name" : "Unicode",
+            "initial" : "UNI",
+            "image" : "uni.png"
           },
           
-          zawgyi-one : 
+          "zawgyi-one" : 
           {
-            display-name : Zawgyi-One,
-            initial : ZG,
-            image : zawgyi.png
+            "display-name" : "Zawgyi-One",
+            "initial" : "ZG",
+            "image" : "zawgyi.png"
           },
           
-          win innwa : 
+          "win innwa" : 
           {
-            display-name : Win Innwa
-            display-name : Zawgyi-One,
-            initial : WI,
-            image : wi.png
+            "display-name" : "Win Innwa",
+            "initial" : "WI",
+            "image" : "wi.png"
           }
         }
         
-        tranformations : 
+        "tranformations" : 
         {
-          uni2zg : 
+          "uni2zg" : 
           {
-            from-encoding : unicode,
-            to-encoding : zawgyi-one,
-            type : builtin
+            "from-encoding" : "unicode",
+            "to-encoding" : "zawgyi-one",
+            "type" : "builtin"
           },
           
-          zg2uni : 
+          "zg2uni" : 
           {
-            from-encoding : zawgyi-one,
-            to-encoding : unicode,
-            type : builtin
+            "from-encoding" : "zawgyi-one",
+            "to-encoding" : "unicode",
+            "type" : "builtin"
           },
           
-          zg2wi :
+          "zg2wi" :
           {
-            from-encoding : zawgyi-one,
-            to-encoding : win innwa,
-            type : builtin
+            "from-encoding" : "zawgyi-one",
+            "to-encoding" : "win innwa",
+            "type" : "builtin"
           }
         }
         
-        display-method : 
+        "display-method" : 
         {
-          zawgyibmp : 
+          "zawgyibmp" : 
           {
-            encoding : zawgyi-one,
-            type : builtin
+            "encoding" : "zawgyi-one",
+            "type" : builtin"
           }
         }
       },
       
-      shan : 
+      "shan" : 
       {
-        display-name : Shan,
+        "display-name" : "Shan",
       }
     
     }
