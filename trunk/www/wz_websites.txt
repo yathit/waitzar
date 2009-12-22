@@ -5,6 +5,5 @@
 {"name":"Mark","link":"http://www.soemin.net"},
 {"name":"WaitZar Facebook Group","link":"http://www.facebook.com/group.php?gid=113021162952","img":"http://creative.ak.facebook.com/ads3/creative/pressroom/jpg/b_1234209334_facebook_logo.jpg"},
 {"name":"Keymagic","link":"http://keymagic.googlecode.com","img":"http://code.google.com/p/keymagic/logo?logo_id=1240063741"},
-{"name":"\u1015\u101B\u101F\u102D\u1010 ","link":"http://prahita-tmhtet.blogspot.com/","img":"http://www.iconspedia.com/uploads/19103351232114866690.png"},
-{"name":"\u1021\u101E\u100A\u1039\u1038\u1000\u103C\u1032\u107F\u1019\u102D\u1033\u1095\u1031\u1010\u102C\u1039","link":"http://www.burmeselove.ning.com","img":"http://i580.photobucket.com/albums/ss245/shaikhant/sdfsdf.gif"}
+{"name":"\u1015\u101B\u101F\u102D\u1010 ","link":"http://prahita-tmhtet.blogspot.com/","img":"http://www.iconspedia.com/uploads/19103351232114866690.png"}
 ]
