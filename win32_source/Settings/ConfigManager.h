@@ -36,7 +36,25 @@ public:
 	{
 		if (!hasParsed) {
 			const std::wstring text = waitzar::readUTF8File(path);
-			json_spirit::read(text, root);
+			try {
+				json_spirit::read_or_throw(text, root);
+			} catch (json_spirit::Error_position ex) {
+				std::stringstream errMsg;
+				errMsg << "Invalid json config file: " << path;
+				errMsg << std::endl << "  Problem: " << ex.reason_;
+				errMsg << std::endl << "    on line: " << ex.line_;
+				errMsg << std::endl << "    at column: " << ex.column_;
+				throw std::exception(errMsg.str().c_str());
+			}
+			//if (root.type()!=json_spirit::obj_type)
+			//	throw std::exception(std::string("Bad config file: " + path).c_str());
+
+			//One quick check
+			//TODO: Make a better way of checking for this...
+			//json_spirit::wObject pairs = root.get_value<wObject>();
+			//if ((pairs.begin()==pairs.end()))
+			//	throw std::exception("");
+
 			hasParsed = true;
 		}
 		return root;
@@ -117,12 +135,18 @@ public:
 	void changeActiveLanguage(const std::wstring& newLanguage);
 	void loc_to_lower(std::wstring& str);
 
+	//Quality control
+	void testAllFiles();
+
+	//Useful
+	std::string escape_wstr(const std::wstring& str) const;
+	std::string escape_wstr(const std::wstring& str, bool errOnUnicode) const;
+
 
 private:
 	void readInConfig(json_spirit::wValue root, std::wstring context, WRITE_OPTS writeTo);
 	std::wstring sanitize_id(const std::wstring& str);
 	std::wstring sanitize(const std::wstring& str);
-	std::string escape_wstr(const std::wstring& str) const;
 	bool read_bool(const std::wstring& str);
 	void setSingleOption(const std::wstring& name, const std::wstring& value);
 

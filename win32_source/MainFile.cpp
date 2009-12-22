@@ -468,6 +468,56 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 }
 
 
+
+//DirToCheck should be of searchable form:
+//   c:\x...x
+//   The \* will be appended
+vector<wstring> GetConfigSubDirs(std::string dirToCheck, std::string configFileName) 
+{
+	//Convert to wstring
+	std::wstringstream dir;
+	dir << dirToCheck.c_str();
+	dir << "\\*";
+
+	//First, just get all sub-directories
+	vector<wstring> allDir;
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+	hFind = FindFirstFile(dir.str().c_str(), &FindFileData);
+	if(hFind != INVALID_HANDLE_VALUE) {
+		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			allDir.push_back(FindFileData.cFileName);
+		while(FindNextFile(hFind, &FindFileData)) {
+			if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				allDir.push_back(FindFileData.cFileName);
+		}
+	}
+
+	//Next, add only the directories (excluding . and ..) that contain configuration files.
+	vector<wstring> resDir;
+	for (size_t i=0; i<allDir.size(); i++) {
+		//Easy
+		wstring path = allDir[i];
+		if (path == L"." || path == L"..")
+			continue;
+
+		//Harder
+		std::wstringstream newpath;
+		newpath << dirToCheck.c_str();
+		newpath << "/" << path;
+		newpath << "/" << configFileName.c_str();
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
+		if (GetFileAttributesEx(newpath.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			continue;
+
+		resDir.push_back(allDir[i]);
+	}
+	return resDir;
+}
+
+
+
+
 //False on some error 
 bool testAllWordsByHand() 
 {
@@ -4498,8 +4548,87 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
 
-	//Set the correct path to each configuration directory:
-	config.initMainConfig("default-config.json.txt");
+
+
+	//Find all config files
+	try {
+		//Useful shorthands
+		string cfgDir = "config";
+		string fs = "\\";
+		string cfgFile = "config.json.txt";
+
+		//Set the main config file
+		config.initMainConfig(cfgDir + fs + cfgFile);
+
+		//Browse for all language directories, add them
+		vector<wstring> langFolders = GetConfigSubDirs(cfgDir, cfgFile);
+		for (vector<wstring>::iterator fold = langFolders.begin(); fold!=langFolders.end(); fold++) {
+			//Get the main language config file
+			string langCfgDir;
+			string langCfgFile;
+			vector<string> langModuleCfgFiles;
+			std::stringstream errorMsg;
+			bool inError = false;
+			try {
+				langCfgDir = cfgDir;
+				langCfgDir += fs + config.escape_wstr(*fold, true);
+				langCfgFile = langCfgDir + fs + cfgFile;
+			} catch (std::exception ex) {
+				errorMsg << "Error loading config file for language: " <<config.escape_wstr(*fold, false);
+				errorMsg << std::endl << "Details: " << std::endl << ex.what();
+				inError = true;
+			}
+			
+			//Now, get the sub-config files
+			if (!inError) {
+				vector<wstring> modFolders = GetConfigSubDirs(langCfgDir, cfgFile);
+				for (vector<wstring>::iterator mod = modFolders.begin(); mod!=modFolders.end(); mod++) {
+					try {
+						string modCfgFile = langCfgDir;
+						modCfgFile += fs + config.escape_wstr(*mod, true);
+						modCfgFile += fs + cfgFile;
+						langModuleCfgFiles.push_back(modCfgFile);
+					} catch (std::exception ex) {
+						errorMsg << "Error loading config file for language: " <<config.escape_wstr(*fold, false);
+						errorMsg << std::endl << "and module: " <<config.escape_wstr(*mod, false);
+						errorMsg << std::endl << "Details: " << std::endl << ex.what();
+						inError = true;
+						break;
+					}
+				}
+			}
+
+			//Handle errors:
+			if (inError)
+				throw std::exception(errorMsg.str().c_str());
+
+			config.initAddLanguage(langCfgFile, langModuleCfgFiles);
+		}
+
+		//Final test: make sure all config files work
+		config.testAllFiles();
+	} catch (std::exception ex) {
+		//In case of errors, just reset the and use the embedded file
+		config = ConfigManager();
+		config.initMainConfig("default-config.json.txt");
+
+		//Inform the user
+		std::wstringstream msg;
+		msg << "Error loading one of your config files.\nWaitZar will use the default configuration.\n\nDetails:\n";
+		msg << ex.what();
+		MessageBox(NULL, msg.str().c_str(), L"Config File Error", MB_ICONWARNING | MB_OK);
+
+		//One more test
+		try {
+			config.testAllFiles();
+		} catch (std::exception ex2) {
+			std::wstringstream msg2;
+			msg2 << "Error loading default config file.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
+			msg2 << ex2.what();
+			MessageBox(NULL, msg2.str().c_str(), L"Default Config Error", MB_ICONERROR | MB_OK);
+			return 0;
+		}
+	}
 
 
 	//TEST: did our settings load?

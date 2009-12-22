@@ -55,7 +55,7 @@
             "initial" : "WI",
             "image" : "wi.png"
           }
-        }
+        },
         
         "tranformations" : 
         {
@@ -79,21 +79,21 @@
             "to-encoding" : "win innwa",
             "type" : "builtin"
           }
-        }
+        },
         
         "display-method" : 
         {
           "zawgyibmp" : 
           {
             "encoding" : "zawgyi-one",
-            "type" : builtin"
+            "type" : "builtin"
           }
         }
       },
       
       "shan" : 
       {
-        "display-name" : "Shan",
+        "display-name" : "Shan"
       }
     
     }
