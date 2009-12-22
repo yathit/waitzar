@@ -104,6 +104,14 @@ void ConfigManager::initUserConfig(const std::string& configFile)
 }
 
 
+//Access all things that will require json reads
+void ConfigManager::testAllFiles() {
+	getSettings();
+
+	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
+}
+
+
 Settings ConfigManager::getSettings() 
 {
 	//Load if needed
@@ -211,10 +219,17 @@ wstring ConfigManager::sanitize_id(const wstring& str)
 
 std::string ConfigManager::escape_wstr(const std::wstring& str) const
 {
+	return escape_wstr(str, false);
+}
+
+std::string ConfigManager::escape_wstr(const std::wstring& str, bool errOnUnicode) const
+{
 	std::stringstream res;
 	for (wstring::const_iterator c=str.begin(); c!=str.end(); c++) {
 		if (*c < std::numeric_limits<char>::max())
 			res << static_cast<char>(*c);
+		else if (errOnUnicode)
+			throw std::exception("String contains unicode");
 		else
 			res << "\\u" << std::hex << *c << std::dec;
 	}
