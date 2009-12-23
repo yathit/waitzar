@@ -63,7 +63,7 @@ public:
 	{
 		return this->path;
 	}
-	bool isSet() const
+	bool isSet() const //Should be a better way of automating this... maybe a singleton JSON object to return by default?
 	{
 		return this->path.length() > 0;
 	}
