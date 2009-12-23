@@ -124,7 +124,11 @@ Settings ConfigManager::getSettings()
 		//First: main config
 		this->readInConfig(this->mainConfig.json(), L"", WRITE_MAIN);
 
-		//TODO:Others
+		//Next: local and user configs
+		if (this->localConfig.isSet())
+			this->readInConfig(this->localConfig.json(), L"", WRITE_LOCAL);
+		if (this->userConfig.isSet())
+			this->readInConfig(this->userConfig.json(), L"", WRITE_USER);
 
 		//Done
 		loadedSettings = true;
