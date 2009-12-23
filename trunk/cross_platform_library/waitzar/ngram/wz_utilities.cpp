@@ -863,7 +863,7 @@ wstring readUTF8File(const string& path)
 	//Open the file, read-only, binary.
 	FILE* userFile = fopen(path.c_str(), "rb");
 	if (userFile == NULL)
-		return NULL; //File doesn't exist
+		throw std::exception(std::string("File doesn't exist: " + path).c_str()); //File doesn't exist
 
 	//Get file size
 	fseek (userFile, 0, SEEK_END);
@@ -880,11 +880,14 @@ wstring readUTF8File(const string& path)
 	//Finally, convert this array to unicode
 	wchar_t * uniBuffer = new wchar_t[buff_size];
 	size_t numUniChars = mymbstowcs(NULL, buffer, buff_size);
-	if (buff_size==numUniChars)
-		return NULL; //Conversion probably failed.
+	/*if (buff_size==numUniChars) {
+		std::stringstream msg;
+		msg <<"Error reading file. Buffer size: " <<buff_size << " , numUniChars: " <<numUniChars;
+		throw std::exception(msg.str().c_str()); //Conversion probably failed.
+	}*/ //Not true! What about an ascii-only file?
 	uniBuffer = new wchar_t[numUniChars]; // (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
 	if (mymbstowcs(uniBuffer, buffer, buff_size)==0)
-		return NULL; //Invalid UTF-8 characters
+		throw std::exception("Invalid UTF-8 characters in file."); //Invalid UTF-8 characters
 
 	//Done, clean up resources
 	wstring res = wstring(uniBuffer);

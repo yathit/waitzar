@@ -71,7 +71,7 @@ void ConfigManager::initAddLanguage(const std::string& configFile, const std::ve
 /**
  * Load the application-maintained settings override file:
  *   %USERPROFILE%\AppData\Local\WaitZar\config.override.txt
- *   (actually, calls SHGetKnownFolderPath(FOLDERID_LocalAppData) \ WaitZar\config.override.txt)
+ *   (actually, calls SHGetKnownFolderPath(FOLDERID_LocalAppData) \ WaitZar\config.override.json.txt)
  *
  * This json config file contains one single array of name-value pairs. The names are fully-qualified:
  *   "language.myanmar.defaultdisplayencoding" = "zawgyi-one", for example. These override all 
@@ -89,7 +89,7 @@ void ConfigManager::initLocalConfig(const std::string& configFile)
 /**
  * Load the user-maintained settings override file:
  *   %USERPROFILE%\Documents\waitzar.config.txt
- *   (actually, calls SHGetKnownFolderPath(FOLDERID_Documents) \ waitzar.config.txt)
+ *   (actually, calls SHGetKnownFolderPath(FOLDERID_Documents) \ waitzar.config.json.txt)
  *
  * This json config file contains one single array of name-value pairs. The names are fully-qualified:
  *   "settings.showballoon" = "false", for example. These override all of WaitZar's config options, 
