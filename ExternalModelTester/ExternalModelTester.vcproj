@@ -167,27 +167,27 @@
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\fontconv.cpp"
+				RelativePath="..\cross_platform_library\waitzar\burglish\fontconv.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\fontmap.cpp"
+				RelativePath="..\cross_platform_library\waitzar\burglish\fontmap.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\lib.cpp"
+				RelativePath="..\cross_platform_library\waitzar\burglish\lib.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\regex.cpp"
+				RelativePath="..\cross_platform_library\waitzar\burglish\regex.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\WordBuilder.cpp"
+				RelativePath="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\wz_utilities.cpp"
+				RelativePath="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp"
 				>
 			</File>
 		</Filter>
@@ -197,27 +197,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\fontconv.h"
+				RelativePath="..\cross_platform_library\waitzar\burglish\fontconv.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\fontmap.h"
+				RelativePath="..\cross_platform_library\waitzar\burglish\fontmap.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\lib.h"
+				RelativePath="..\cross_platform_library\waitzar\burglish\lib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\regex.h"
+				RelativePath="..\cross_platform_library\waitzar\burglish\regex.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\WordBuilder.h"
+				RelativePath="..\cross_platform_library\waitzar\ngram\WordBuilder.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cross_platform_library\waitzar\wz_utilities.h"
+				RelativePath="..\cross_platform_library\waitzar\ngram\wz_utilities.h"
 				>
 			</File>
 		</Filter>

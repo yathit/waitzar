@@ -57,6 +57,7 @@
 #include <windowsx.h> //For GET_X_LPARAM
 #include <psapi.h> //For getting a list of currently running processes
 //#include <wingdi.h> //For the TEXTINFO stuff
+#include <shlobj.h> //GetFolderPath
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
@@ -4604,6 +4605,43 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			config.initAddLanguage(langCfgFile, langModuleCfgFiles);
 		}
+
+
+
+		//TODO: Add SHGetKnownFolderPath() if on Vista, keep SHGetFolderPath if on XP or less.
+
+
+
+		//Now, load the local config file
+		wchar_t localAppPath[MAX_PATH];
+		string localConfigFile;
+		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
+			//Create the path
+			localConfigFile = config.escape_wstr(localAppPath, true) + fs + "WaitZar" + fs + "config.override.json.txt";
+
+			//Does it exist?
+			WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
+			std::wstringstream temp;
+			temp << localConfigFile.c_str();
+			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
+				config.initLocalConfig(localConfigFile);
+		}
+
+
+		//And finally, the user config file.
+		string userConfigFile;
+		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
+			//Create the path
+			userConfigFile = config.escape_wstr(localAppPath, true) + fs + "waitzar.config.json.txt";
+
+			//Does it exist?
+			WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
+			std::wstringstream temp;
+			temp << userConfigFile.c_str();
+			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
+				config.initUserConfig(userConfigFile);
+		}
+
 
 		//Final test: make sure all config files work
 		config.testAllFiles();

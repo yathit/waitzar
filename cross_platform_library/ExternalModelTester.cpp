@@ -18,9 +18,9 @@ using std::wstring;
 	#include <wz_utilities.h>
   #else
     //On windows:
-    #include "../cross_platform_library/waitzar/fontconv.h"
-    #include "../cross_platform_library/waitzar/WordBuilder.h"
-	#include "../cross_platform_library/waitzar/wz_utilities.h"
+    #include "../cross_platform_library/waitzar/burglish/fontconv.h"
+    #include "../cross_platform_library/waitzar/ngram/WordBuilder.h"
+	#include "../cross_platform_library/waitzar/ngram/wz_utilities.h"
   #endif
 #endif
 
