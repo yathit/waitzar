@@ -63,6 +63,10 @@ public:
 	{
 		return this->path;
 	}
+	bool isSet() const
+	{
+		return this->path.length() > 0;
+	}
 	//For map indexing:
 	bool operator<(const JsonFile& j) const
 	{
