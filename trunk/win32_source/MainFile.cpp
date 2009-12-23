@@ -4616,12 +4616,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		wchar_t localAppPath[MAX_PATH];
 		string localConfigFile;
 		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
-			//Create the path
-			localConfigFile = config.escape_wstr(localAppPath, true) + fs + "WaitZar" + fs + "config.override.json.txt";
-
-			//Does it exist?
+			//Try to create the folder if it doesn't exist
+			string localConfigDir = config.escape_wstr(localAppPath, true) + fs + "WaitZar";
 			WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
 			std::wstringstream temp;
+			temp << localConfigDir.c_str();
+			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+				CreateDirectory(temp.str().c_str(), NULL);
+
+			//Build the path
+			localConfigFile = localConfigDir + fs + "config.override.json.txt";
+
+			//Does it exist?
+			temp.clear();
 			temp << localConfigFile.c_str();
 			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
 				config.initLocalConfig(localConfigFile);
