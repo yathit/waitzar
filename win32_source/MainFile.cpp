@@ -64,6 +64,8 @@
 #include <list>
 #include <limits>
 #include <sstream>
+#include <fstream>
+#include <iostream>
 
 //Our includes
 #include "NGram/WordBuilder.h"
@@ -4628,10 +4630,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			localConfigFile = localConfigDir + fs + "config.override.json.txt";
 
 			//Does it exist?
-			temp.clear();
+			temp.str(L"");
 			temp << localConfigFile.c_str();
 			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
 				config.initLocalConfig(localConfigFile);
+			else {
+				//Create the file, add an empty set of parameters "{}"
+				std::ofstream emptyConfig;
+				emptyConfig.open(temp.str().c_str());
+				emptyConfig << "{}";
+				emptyConfig.flush();
+				emptyConfig.close();
+			}
 		}
 
 
@@ -4647,6 +4657,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			temp << userConfigFile.c_str();
 			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
 				config.initUserConfig(userConfigFile);
+			else {
+				//Create the file, add an empty set of parameters "{}"
+				std::ofstream emptyConfig;
+				emptyConfig.open(temp.str().c_str());
+				emptyConfig << "{}";
+				emptyConfig.flush();
+				emptyConfig.close();
+			}
 		}
 
 
