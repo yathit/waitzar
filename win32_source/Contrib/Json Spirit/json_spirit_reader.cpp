@@ -475,12 +475,17 @@ namespace
                 value_
                     = string_[ new_str ] 
                     | number_ 
+					| comment_
                     | object_ 
                     | array_ 
                     | str_p( "true" ) [ new_true  ] 
                     | str_p( "false" )[ new_false ] 
                     | str_p( "null" ) [ new_null  ]
                     ;
+
+				comment_
+					= ch_p('#') >> *lex_escape_ch_p
+					;
 
                 object_ 
                     = ch_p('{')[ begin_obj ]
@@ -527,7 +532,7 @@ namespace
                     ;
             }
 
-            rule< ScannerT > json_, object_, members_, pair_, array_, elements_, value_, string_, number_;
+            rule< ScannerT > json_, object_, members_, pair_, array_, elements_, value_, comment_, string_, number_;
 
             const rule< ScannerT >& start() const { return json_; }
         };
