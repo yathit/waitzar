@@ -13,7 +13,7 @@
 #charaset = myanmar
 #fontfileregular = default
 #fontfilesmall = default
-^^^^^
+
 
 {
     # General settings. To override these, edit the file:
