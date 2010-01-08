@@ -4671,9 +4671,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//Final test: make sure all config files work
 		config.testAllFiles();
 	} catch (std::exception ex) {
-		//In case of errors, just reset the and use the embedded file
+		//In case of errors, just reset & use the embedded file
 		config = ConfigManager();
-		config.initMainConfig("default-config.json.txt");
 
 		//Inform the user
 		std::wstringstream msg;
@@ -4681,8 +4680,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		msg << ex.what();
 		MessageBox(NULL, msg.str().c_str(), L"Config File Error", MB_ICONWARNING | MB_OK);
 
-		//One more test
+
+		//Try one more time, this time with the default config file.
 		try {
+			//Load the resource as a byte array and get its size, etc.
+			HRSRC res = FindResource(hInst, MAKEINTRESOURCE(WZ_DEFAULT_CFG), _T("Model"));
+			if (!res)
+				throw std::exception("Couldn't find resource WZ_DEFAULT_CFG.");
+			HGLOBAL res_handle = LoadResource(NULL, res);
+			if (!res_handle)
+				throw std::exception("Couldn't get a handle on WZ_DEFAULT_CFG.");
+			char* res_data = (char*)LockResource(res_handle);
+			DWORD res_size = SizeofResource(NULL, res);
+
+			//Convert the byte array to unicode
+			wchar_t *uniData = new wchar_t[res_size];
+			if (mymbstowcs(uniData, res_data, res_size)==0)
+				throw std::exception("Invalid unicode character in WZ_DEFAULT_CFG.");
+
+			//Set the config file		
+			config.initMainConfig(wstring(uniData));
+
+			//Reclaim memory and system resources.
+			//delete [] res_data;
+			delete [] uniData;
+			UnlockResource(res_handle);
+
+			//One more test.
 			config.testAllFiles();
 		} catch (std::exception ex2) {
 			std::wstringstream msg2;

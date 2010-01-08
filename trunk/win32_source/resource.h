@@ -1,6 +1,7 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by WaitZarRes.rc
+// Modified by hand (silly free VS restrictions)
 //
 #define ICON_WZ                         101
 #define ICON_WZ_ENG                     102
@@ -16,6 +17,7 @@
 #define WZ_HELP_BACK_FONT               111
 #define WZ_HELP_CORNER                  112
 #define WZ_EASYPS                       113
+#define WZ_DEFAULT_CFG                  114
 #define IDM_HELP                        40004
 #define IDM_MYANMAR                     40006
 #define IDM_EXIT                        40008
