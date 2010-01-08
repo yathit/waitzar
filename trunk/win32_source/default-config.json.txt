@@ -83,7 +83,7 @@
           }
         },
         
-        "display-method" : 
+        "display-methods" : 
         {
           "zawgyibmp" : 
           {

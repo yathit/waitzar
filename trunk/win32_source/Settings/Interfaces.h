@@ -62,10 +62,16 @@ class InputMethod {
 public:
 	//Struct-like properties
 	Option<std::wstring> displayName;
+	Option<std::wstring> encoding;
 	Option<TYPES> type;
 
 	//Temp for now: just force this to be virtual
 	virtual void getString() = 0;
+};
+
+class DummyInputMethod : public InputMethod {
+public:
+	void getString() { throw std::exception("Invalid use of DummyInputMethod"); }
 };
 
 //Expected interface: "Input Method"
