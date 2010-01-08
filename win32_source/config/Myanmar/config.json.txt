@@ -1,15 +1,31 @@
+# Settings for the Myanmar language, including display name and input method.
 {languages.myanmar : {
+
+  # What name should we display in the menus and settings dialogs?
   display-name : Myanmar,
+  
+  # What output encoding, display method, and input method are used by default? 
   default-output-encoding : unicode,
   default-display-method : zawgyibmp,
   default-input-method : waitzar,
+  
+  # Declaration of input methods. To add your own input method, create a folder in the 
+  # "Myanmar" directory, then add a config.json.txt file in that folder which starts with the
+  # line:
+  #   languages.myanmar.input-methods.myinput : {
+  # ...where "myinput" is your input method. Please see the project wiki for more instructions:
+  #   http://code.google.com/p/waitzar/w/list
+  # ...or contact help@waitzar.com
   input-methods : 
   {
+    # The WaitZar input method. 
     waitzar : 
     {
       display-name : WaitZar,
       type : builtin
     },
+	
+	# The myWin input method. 
     mywin : 
     {
       display-name : myWin 2.2,
@@ -17,15 +33,25 @@
     }
   },
   
+  # Declaration of encodings. To add your own encoding, create a folder in the 
+  # "Myanmar" directory, then add a config.json.txt file in that folder which starts with the
+  # line:
+  #   languages.myanmar.encodings.myenc : {
+  # ...where "myenc" is your encoding. Please see the project wiki for more instructions:
+  #   http://code.google.com/p/waitzar/w/list
+  # ...or contact help@waitzar.com
   encodings : 
   {
+  
+    # The Unicode encoding
     unicode : 
     {
       display-name : Unicode,
       initial : UNI,
       image : uni.png
     },
-     
+    
+    # The Zawgyi-One encoding
     zawgyi-one : 
     {
       display-name : Zawgyi-One,
@@ -33,6 +59,7 @@
       image : zawgyi.png
     },
     
+	# The Win Innwa encoding
     win innwa : 
     {
       display-name : Win Innwa
@@ -41,9 +68,20 @@
       image : wi.png
     }
   }
-  
+
+  # Declaration of transformations. Any use of a non-default encoding requires a transformation
+  # to be declared; otherwise, an error will occur.
+  # To add your own transformation, create a folder in the "Myanmar" directory, then add a 
+  # config.json.txt file in that folder which starts with the line:
+  #   languages.myanmar.transformations.somename : {
+  # ...where "somename" is an identifier of your choice. (We recommend names of the form "in2out", where "in"
+  # is the name of the input encoding, and "out" is the name of the output encoding. 
+  # Please see the project wiki for more instructions:
+  #   http://code.google.com/p/waitzar/w/list
+  # ...or contact help@waitzar.com
   tranformations : 
   {
+    # Convert from Unicode to Zawgyi-One
     uni2zg : 
     {
       from-encoding : unicode,
@@ -51,6 +89,7 @@
       type : builtin
     },
     
+	# Convert from Zawgyi-One to Unicode
     zg2uni : 
     {
       from-encoding : zawgyi-one,
@@ -58,6 +97,7 @@
       type : builtin
     },
     
+	# Convert from Zawgyi-One to Win Innwa
     zg2wi :
     {
       from-encoding : zawgyi-one,
@@ -66,8 +106,18 @@
     }
   }
   
+  # Declaration of display methods. To add your own display method, create a folder in the 
+  # "Myanmar" directory, then add a config.json.txt file in that folder which starts with the
+  # line:
+  #   languages.myanmar.display-method.mydisp : {
+  # ...where "mydisp" is your display method. Please see the project wiki for more instructions:
+  #   http://code.google.com/p/waitzar/w/list
+  # ...or contact help@waitzar.com
   display-method : 
   {
+    # The "Zawgyi Bitmap" display method. This utilizes a Pulp-Core-encoded PNG file to 
+	# render a string of Myanmar text in a linear time complexity with respect to the number
+	# of letters in the string.
     zawgyibmp : 
     {
       encoding : zawgyi-one,
