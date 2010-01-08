@@ -19,6 +19,8 @@ using json_spirit::str_type;
 
 ConfigManager::ConfigManager(void){
 	this->loadedSettings = false;
+	this->loadedLanguageMainFiles = false;
+	this->loadedLanguageSubFiles = false;
 }
 
 ConfigManager::~ConfigManager(void){}
@@ -113,6 +115,9 @@ void ConfigManager::initUserConfig(const std::string& configFile)
 //Access all things that will require json reads
 void ConfigManager::testAllFiles() {
 	getSettings();
+	getLanguages();
+	getEncodings();
+	getInputManagers();
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
 }
@@ -143,6 +148,63 @@ Settings ConfigManager::getSettings()
 	//Return the object
 	return this->options.settings;
 }
+
+
+
+void ConfigManager::loadLanguageMainFiles()
+{
+	//Main config file must be read by now
+	if (!this->loadedSettings)
+		throw std::exception("Must load settings before language main files.");
+
+	//Parse each language config file.
+	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
+		this->readInConfig(it->first.json(), L"", WRITE_MAIN);
+	}
+
+	//Done
+	loadedLanguageMainFiles = true;
+}
+
+
+void ConfigManager::loadLanguageSubFiles()
+{
+	//Main config file must be read by now
+	if (!this->loadedSettings)
+		throw std::exception("Must load settings before language sub files.");
+
+	//Parse each language config file.
+	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
+		for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+			this->readInConfig(it2->json(), L"", WRITE_MAIN);
+		}
+	}
+
+	//Done
+	loadedLanguageMainFiles = true;
+}
+
+
+vector<wstring> ConfigManager::getLanguages()  
+{
+	//Languages can ONLY be defined in top-level language directories.
+	//  So we don't need to load user-defined plugins yet. 
+	if (!this->loadedLanguageMainFiles)
+		this->loadLanguageMainFiles();
+
+	//Now, build our cache (if necessary)
+	//  Our algorithm is wasteful if there are no languages defined,
+	//  but this is minor (if there are no languages defined, the program
+	//  won't really function anyway).
+	if (this->cachedLanguages.empty()) {
+		for (std::map<wstring, Language>::iterator it=options.languages.begin(); it!=options.languages.end(); it++) {
+			this->cachedLanguages.push_back(it->first);
+		}
+	}
+
+	return this->cachedLanguages;
+}
+
 
 
 void ConfigManager::readInConfig(wValue root, wstring context, WRITE_OPTS writeTo) 
@@ -196,9 +258,88 @@ void ConfigManager::setSingleOption(const std::wstring& name, const std::wstring
 				throw 1;
 			return;
 		} else if (name.find(L"languages.")==0) {
-			//TODO: Options for each language.
+			//Language options
+			opt = L"languages.";
+			nextOptID = opt.size();
 
+			//Get the language id
+			wstring langName;
+			{
+				size_t nextDot = name.find('.', nextOptID);
+				if (nextDot == std::string::npos)
+					throw 1;
+				langName = sanitize_id(name.substr(nextOptID, (nextDot-nextOptID)));
+				nextOptID = nextDot + 1;
+			}
 
+			//Static settings
+			if (name.find(sanitize_id(L"display-name"), nextOptID)==nextOptID)
+				options.languages[langName].displayName = value;
+			else if (name.find(sanitize_id(L"default-output-encoding"), nextOptID)==nextOptID)
+				options.languages[langName].defaultOutputEncoding = sanitize_id(value);
+			else if (name.find(sanitize_id(L"default-display-method"), nextOptID)==nextOptID)
+				options.languages[langName].defaultDisplayMethod = sanitize_id(value);
+			else if (name.find(sanitize_id(L"default-input-method"), nextOptID)==nextOptID)
+				options.languages[langName].defaultInputMethod = sanitize_id(value);
+			else {
+				//Dynamic settings
+				if (name.find(sanitize_id(L"input-methods"), nextOptID)==nextOptID) {
+					//Input methods
+					nextOptID += sanitize_id(L"input-methods").length() + 1;
+
+					//Get the name
+					wstring inputName;
+					{
+						size_t nextDot = name.find('.', nextOptID);
+						if (nextDot == std::string::npos)
+							throw 1;
+						inputName = sanitize_id(name.substr(nextOptID, (nextDot-nextOptID)));
+						nextOptID = nextDot + 1;
+					}
+
+					//Add it if it doesn't exist
+					if (options.languages[langName].inputMethods.count(inputName)==0)
+						options.languages[langName].inputMethods[inputName] = new DummyInputMethod();
+
+					//Set its options
+					if (name.find(sanitize_id(L"display-name"), nextOptID)==nextOptID)
+						options.languages[langName].inputMethods[inputName]->displayName = value;
+					else if (name.find(sanitize_id(L"encoding"), nextOptID)==nextOptID)
+						options.languages[langName].inputMethods[inputName]->encoding = value;
+					else if (name.find(sanitize_id(L"type"), nextOptID)==nextOptID) {
+						if (value == L"builtin") {
+							options.languages[langName].inputMethods[inputName]->type = BUILTIN;
+
+							//Instantiate it, if necessary
+							if (inputName == L"waitzar") {
+								WaitZar* wz = new WaitZar();
+								wz->displayName = options.languages[langName].inputMethods[inputName]->displayName;
+								wz->encoding = options.languages[langName].inputMethods[inputName]->encoding;
+								wz->type = options.languages[langName].inputMethods[inputName]->type;
+								options.languages[langName].inputMethods[inputName] = wz;
+							}
+						} else
+							throw 1;
+					} else if (options.languages[langName].inputMethods[inputName]->type.get() == BUILTIN) {
+						//Further options only apply if the type is BUILTIN
+						//TODO: More options
+
+					} else
+						throw 1;
+				} else if (name.find(sanitize_id(L"encodings"), nextOptID)==nextOptID) {
+					//Encodings
+
+				} else if (name.find(sanitize_id(L"tranformations"), nextOptID)==nextOptID) {
+					//Transformations
+
+				} else if (name.find(sanitize_id(L"display-methods"), nextOptID)==nextOptID) {
+					//Display methods
+
+				} else {
+					//Error
+					throw 1;
+				}
+			}
 		} else
 			throw 1;
 	} catch (int) {
@@ -267,9 +408,8 @@ void ConfigManager::loc_to_lower(std::wstring& str)
 
 
 //Not yet defined:
-vector<wstring> ConfigManager::getLanguages() const {vector<wstring> res; return res;}
-vector<wstring> ConfigManager::getInputManagers() const {vector<wstring> res; return res;}
-vector<wstring> ConfigManager::getEncodings() const {vector<wstring> res; return res;}
+vector<wstring> ConfigManager::getInputManagers() {vector<wstring> res; return res;}
+vector<wstring> ConfigManager::getEncodings() {vector<wstring> res; return res;}
 wstring ConfigManager::getActiveLanguage() const {return L"";}
 void ConfigManager::changeActiveLanguage(const wstring& newLanguage) {}
 

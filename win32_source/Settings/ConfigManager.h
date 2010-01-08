@@ -15,6 +15,7 @@
 #include "NGram/wz_utilities.h"
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/Interfaces.h"
+#include "Input/WaitZar.h"
 
 
 //json_spirit_reader is defined elsewhere
@@ -137,9 +138,9 @@ public:
 
 	//Accessible by our outside class
 	Settings getSettings();
-	std::vector<std::wstring> getLanguages() const;
-	std::vector<std::wstring> getInputManagers() const;
-	std::vector<std::wstring> getEncodings() const;
+	std::vector<std::wstring> getLanguages();
+	std::vector<std::wstring> getInputManagers();
+	std::vector<std::wstring> getEncodings();
 
 	//Control
 	std::wstring getActiveLanguage() const;
@@ -170,6 +171,17 @@ private:
 
 	//Have we loaded...?
 	bool loadedSettings;
+	bool loadedLanguageMainFiles;
+	bool loadedLanguageSubFiles;
+
+	//Functions for loading some of these.
+	void loadLanguageMainFiles();
+	void loadLanguageSubFiles();
+
+	//And, useful caches.
+	std::vector<std::wstring> cachedLanguages;
+	std::vector<std::wstring> cachedInputManagers;
+	std::vector<std::wstring> cachedEncodings;
 
 	//The actual representation
 	OptionTree options;
