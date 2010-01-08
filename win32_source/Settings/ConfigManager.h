@@ -27,15 +27,27 @@
 //Simple class to help us load json files easier
 class JsonFile {
 public:
-	JsonFile(const std::string& path="")
+	JsonFile(const std::string& path="") //Confusing, I know. (TODO: Make a better way of loading a file OR a string)
 	{
 		this->path = path;
+		this->text = L"";
+		this->hasReadFile = false;
+		this->hasParsed = false;
+	}
+	JsonFile(const std::wstring& text) //Confusing, I know.
+	{
+		this->path = "";
+		this->text = text;
+		this->hasReadFile = true;
 		this->hasParsed = false;
 	}
 	json_spirit::wValue json() const
 	{
 		if (!hasParsed) {
-			const std::wstring text = waitzar::readUTF8File(path);
+			if (!this->hasReadFile) {
+				text = waitzar::readUTF8File(path);
+				this->hasReadFile = true;
+			}
 			try {
 				json_spirit::read_or_throw(text, root);
 			} catch (json_spirit::Error_position ex) {
@@ -46,22 +58,14 @@ public:
 				errMsg << std::endl << "    at column: " << ex.column_;
 				throw std::exception(errMsg.str().c_str());
 			}
-			//if (root.type()!=json_spirit::obj_type)
-			//	throw std::exception(std::string("Bad config file: " + path).c_str());
-
-			//One quick check
-			//TODO: Make a better way of checking for this...
-			//json_spirit::wObject pairs = root.get_value<wObject>();
-			//if ((pairs.begin()==pairs.end()))
-			//	throw std::exception("");
 
 			hasParsed = true;
 		}
 		return root;
 	}
-	std::string getPath() const
+	bool isEmpty() const
 	{
-		return this->path;
+		return this->path.empty() && this->text.empty();
 	}
 	bool isSet() const //Should be a better way of automating this... maybe a singleton JSON object to return by default?
 	{
@@ -74,7 +78,9 @@ public:
 	}
 private:
 	std::string path;
+	mutable std::wstring text;
 	mutable json_spirit::wValue root;
+	mutable bool hasReadFile;
 	mutable bool hasParsed;
 };
 
@@ -124,6 +130,7 @@ public:
 
 	//Build our config. manager up slowly
 	void initMainConfig(const std::string& configFile);
+	void initMainConfig(const std::wstring& configStream);
 	void initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles);
 	void initLocalConfig(const std::string& configFile);
 	void initUserConfig(const std::string& configFile);

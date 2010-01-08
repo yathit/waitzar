@@ -36,7 +36,13 @@ ConfigManager::~ConfigManager(void){}
 void ConfigManager::initMainConfig(const std::string& configFile)
 {
 	//Save the file, we will load it later when we need it
-	this->mainConfig = configFile;
+	this->mainConfig = JsonFile(configFile);
+}
+
+void ConfigManager::initMainConfig(const std::wstring& configStream)
+{
+	//Save a copy of the string so that we can reclaim it later
+	this->mainConfig = JsonFile(configStream);
 }
 
 
@@ -117,7 +123,7 @@ Settings ConfigManager::getSettings()
 	//Load if needed
 	if (!loadedSettings) {
 		//We need at least one config file to parse.
-		if (this->mainConfig.getPath().empty())
+		if (this->mainConfig.isEmpty())
 			throw std::exception("No main config file defined.");
 
 		//Parse each config file in turn.
