@@ -736,7 +736,7 @@ void makeFont(HWND currHwnd)
 					else {
 						//Ok, load our font
 						mmFontBlack = new PulpCoreFont();
-						mmFontBlack->init(file_buff, file_buff_size, mainDC);
+						mainWindow->initPulpCoreImage(mmFontBlack, file_buff, file_buff_size);
 
 						//Is our font in error? If so, load the embedded font
 						if (mmFontBlack->isInError()==TRUE) {
@@ -775,7 +775,7 @@ void makeFont(HWND currHwnd)
 
 			//Create our PulpCoreFont (it's white when we load it, not black, by the way)
 			mmFontBlack = new PulpCoreFont();
-			mmFontBlack->init(fontRes, res_handle, mainDC);
+			mainWindow->initPulpCoreImage(mmFontBlack, fontRes, res_handle);
 
 			//Unlock this resource for later use.
 			UnlockResource(res_handle);
@@ -792,10 +792,10 @@ void makeFont(HWND currHwnd)
 
 		//Copy-construct a new font
 		mmFontGreen = new PulpCoreFont();
-		mmFontGreen->init(mmFontBlack, mainDC);
+		mainWindow->initPulpCoreImage(mmFontGreen, mmFontBlack);
 
 		mmFontRed = new PulpCoreFont();
-		mmFontRed->init(mmFontBlack, mainDC);
+		mainWindow->initPulpCoreImage(mmFontRed, mmFontBlack);
 
 		//Tint both to their respective colors
 		mmFontGreen->tintSelf(0x008000);
@@ -821,7 +821,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		helpFntKeys = new PulpCoreFont();
-		helpFntKeys->init(fontRes, res_handle, helpDC);
+		helpWindow->initPulpCoreImage(helpFntKeys, fontRes, res_handle);
 		if (helpFntKeys->isInError()==TRUE) {
 			wstringstream msg;
 			msg <<"WZ Help Font (keys) didn't load correctly: " <<helpFntKeys->getErrorMsg();
@@ -854,7 +854,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		helpFntFore = new PulpCoreFont();
-		helpFntFore->init(fontRes, res_handle, helpDC);
+		helpWindow->initPulpCoreImage(helpFntFore, fontRes, res_handle);
 		if (helpFntFore->isInError()==TRUE) {
 			wstringstream msg;
 			msg <<"WZ Help Font (foreground) didn't load correctly: " <<helpFntFore->getErrorMsg();
@@ -887,7 +887,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		helpFntBack = new PulpCoreFont();
-		helpFntBack->init(fontRes, res_handle, helpDC);
+		helpWindow->initPulpCoreImage(helpFntBack, fontRes, res_handle);
 		if (helpFntBack->isInError()==TRUE) {
 			wstringstream msg;
 			msg <<"WZ Help Font (background) didn't load correctly: " <<helpFntBack->getErrorMsg();
@@ -921,7 +921,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		helpCornerImg = new PulpCoreImage();
-		helpCornerImg->init(imgRes, res_handle, helpDC);
+		helpWindow->initPulpCoreImage(helpCornerImg, imgRes, res_handle);
 		if (helpCornerImg->isInError()==TRUE) {
 			wstringstream msg;
 			msg <<"WZ Corner Image File didn't load correctly: " <<helpCornerImg->getErrorMsg();
@@ -967,7 +967,7 @@ void makeFont(HWND currHwnd)
 				else {
 					//Ok, load our font
 					mmFontSmallWhite = new PulpCoreFont();
-					mmFontSmallWhite->init(file_buff, file_buff_size, senDC);
+					sentenceWindow->initPulpCoreImage(mmFontSmallWhite, file_buff, file_buff_size);
 
 					//Is our font in error? If so, load the embedded font
 					if (mmFontSmallWhite->isInError()==TRUE) {
@@ -1006,7 +1006,7 @@ void makeFont(HWND currHwnd)
 		}
 
 		mmFontSmallWhite = new PulpCoreFont();
-		mmFontSmallWhite->init(fontRes2, res_handle_2, senDC);
+		sentenceWindow->initPulpCoreImage(mmFontSmallWhite, fontRes2, res_handle_2);
 
 		//Unlock this resource for later use.
 		UnlockResource(res_handle_2);
@@ -1025,7 +1025,7 @@ void makeFont(HWND currHwnd)
 
 	//Copy this font for use in the memory box
 	helpFntMemory = new PulpCoreFont();
-	helpFntMemory->init(mmFontSmallWhite, mainDC);
+	mainWindow->initPulpCoreImage(helpFntMemory, mmFontSmallWhite);
 
 
 	//Tint
@@ -1033,12 +1033,12 @@ void makeFont(HWND currHwnd)
 
 	//New copy
 	mmFontSmallGray = new PulpCoreFont();
-	mmFontSmallGray->init(mmFontSmallWhite, mainDC);
+	mainWindow->initPulpCoreImage(mmFontSmallGray, mmFontSmallWhite);
 	mmFontSmallGray->tintSelf(0x333333);
 
 	//New copy
 	mmFontSmallRed = new PulpCoreFont();
-	mmFontSmallRed->init(mmFontSmallWhite, mainDC);
+	mainWindow->initPulpCoreImage(mmFontSmallRed, mmFontSmallWhite);
 	mmFontSmallRed->tintSelf(0xFF0000);
 
 }
@@ -1347,7 +1347,7 @@ void loadConfigOptions()
 
 
 
-BOOL registerInitialHotkey()
+bool registerInitialHotkey()
 {
 	UINT modifier = 0;
 	UINT keycode = 0;
@@ -1417,7 +1417,7 @@ BOOL registerInitialHotkey()
 	//Reclaim memory
 	delete [] temp;
 
-	return RegisterHotKey(mainWindow, LANG_HOTKEY, modifier, keycode);
+	return mainWindow->registerHotKey(LANG_HOTKEY, modifier, keycode);
 }
 
 
@@ -1664,8 +1664,10 @@ void positionAtCaret()
 	//Ready?
 	if (caretLatestPosition.x!=0 && caretLatestPosition.y!=0) {
 		//Line up our windows
-		MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-		MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+		mainWindow->moveWindow(caretLatestPosition.x, caretLatestPosition.y);
+		sentenceWindow->moveWindow(caretLatestPosition.x, caretLatestPosition.y + mainWindow->getHeight());
+		//MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+		//MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
 	}
 }
 
@@ -1737,7 +1739,7 @@ void switchToLanguage(bool toMM) {
 		res = turnOnExtendedKeys(true) && res;
 
 		//Register our help key too
-		if (RegisterHotKey(mainWindow, HOTKEY_HELP, NULL, VK_F1)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_HELP, NULL, VK_F1))
 			res = false;
 	} else {
 		res = turnOnHotkeys(false, true, true);
@@ -1755,7 +1757,7 @@ void switchToLanguage(bool toMM) {
 			turnOnHelpKeys(false);
 
 		//Turn off our help key
-		if (UnregisterHotKey(mainWindow, HOTKEY_HELP)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_HELP))
 			res = false;
 	}
 
@@ -2316,9 +2318,10 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		case WM_INITDIALOG:
 		{
 			//Resize the help dialog; keep it at the same position.
-			RECT r;
+			helpWindow->resizeWindow(473, 262);
+			/*RECT r;
 			GetWindowRect(hwnd, &r);
-			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);
+			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);*/
 
 			//Change the text of our dialog box
 			wstringstream txt;
@@ -3808,7 +3811,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case WM_DESTROY:
 			//Cleanup
-			if (UnregisterHotKey(hwnd, LANG_HOTKEY) == FALSE)
+			if (!mainWindow->unregisterHotKey(LANG_HOTKEY))
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			if (mmOn) {
 				if (!turnOnHotkeys(false, true, true))
@@ -3858,21 +3861,21 @@ bool turnOnHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 		if (on)  {
 			//Register this as an uppercase/lowercase letter
 			if (affectUppercase) {
-				if (RegisterHotKey(mainWindow, high_code, MOD_SHIFT, high_code)==FALSE)
+				if (!mainWindow->registerHotKey(high_code, MOD_SHIFT, high_code))
 					retVal = false;
 			}
 			if (affectLowercase) {
-				if (RegisterHotKey(mainWindow, low_code, NULL, high_code)==FALSE)
+				if (!mainWindow->registerHotKey(low_code, NULL, high_code))
 					retVal = false;
 			}
 		} else {
 			//De-register this as an uppercase/lowercase letter
 			if (affectUppercase) {
-				if (UnregisterHotKey(mainWindow, high_code)==FALSE)
+				if (!mainWindow->unregisterHotKey(high_code))
 					retVal = false;
 			}
 			if (affectLowercase) {
-				if (UnregisterHotKey(mainWindow, low_code)==FALSE)
+				if (!mainWindow->unregisterHotKey(low_code))
 					retVal = false;
 			}
 		}
@@ -3889,15 +3892,15 @@ bool turnOnPunctuationkeys(bool on)
 
 	if (on==TRUE) {
 		//Punctuation keys
-		if (RegisterHotKey(mainWindow, HOTKEY_COMMA, NULL, VK_OEM_COMMA)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_COMMA, NULL, VK_OEM_COMMA))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_PERIOD, NULL, VK_OEM_PERIOD)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_PERIOD, NULL, VK_OEM_PERIOD))
 			retVal = false;
 	} else {
 		//Additional punctuation keys
-		if (UnregisterHotKey(mainWindow, HOTKEY_COMMA)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_COMMA))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_PERIOD)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_PERIOD))
 			retVal = false;
 	}
 
@@ -3914,62 +3917,62 @@ bool turnOnNumberkeys(bool on)
 	//Register numbers
 	if (on) {
 		//Special case: combiner key
-		if (RegisterHotKey(mainWindow, HOTKEY_COMBINE, 0, VK_OEM_3)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_COMBINE, 0, VK_OEM_3))
 			retVal = false;
 
 		//Numbers are no longer control keys.
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM0, NULL, VK_NUMPAD0)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM0, NULL, VK_NUMPAD0))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM1, NULL, VK_NUMPAD1)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM1, NULL, VK_NUMPAD1))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM2, NULL, VK_NUMPAD2)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM2, NULL, VK_NUMPAD2))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM3, NULL, VK_NUMPAD3)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM3, NULL, VK_NUMPAD3))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM4, NULL, VK_NUMPAD4)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM4, NULL, VK_NUMPAD4))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM5, NULL, VK_NUMPAD5)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM5, NULL, VK_NUMPAD5))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM6, NULL, VK_NUMPAD6)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM6, NULL, VK_NUMPAD6))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM7, NULL, VK_NUMPAD7)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM7, NULL, VK_NUMPAD7))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM8, NULL, VK_NUMPAD8)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM8, NULL, VK_NUMPAD8))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_NUM9, NULL, VK_NUMPAD9)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_NUM9, NULL, VK_NUMPAD9))
 			retVal = false;
 		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
-			if (RegisterHotKey(mainWindow, i, NULL, i)==FALSE)
+			if (!mainWindow->registerHotKey(i, NULL, i))
 				retVal = false;
 		}
 	} else {
 		//Combiner
-		if (UnregisterHotKey(mainWindow, HOTKEY_COMBINE)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_COMBINE))
 			retVal = false;
 
 		//Numbers
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM0)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM0))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM1)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM1))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM2)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM2))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM3)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM3))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM4)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM4))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM5)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM5))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM6)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM6))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM7)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM7))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM8)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM8))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_NUM9)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_NUM9))
 			retVal = false;
 		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
-			if (UnregisterHotKey(mainWindow, i)==FALSE)
+			if (!mainWindow->unregisterHotKey(i))
 				retVal = false;
 		}
 	}
@@ -3987,10 +3990,10 @@ bool turnOnHelpKeys(bool on)
 		//We'll keep our shifted hotkeys, but also add a hotkey for shift itself.
 		//  We need to disambiguate the left and right shift keys later, since
 		//  registering VK_LSHIFT and VK_RSHIFT doesn't seem to work
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT))
 			retVal = false;
 	} else {
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT))
 			retVal = false;
 	}
 
@@ -4006,104 +4009,104 @@ bool turnOnExtendedKeys(bool on)
 	//Register help keys
 	if (on) {
 		//Our combiner key (register shifted, too, to prevent errors)
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE, MOD_SHIFT, VK_OEM_3)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_COMBINE, MOD_SHIFT, VK_OEM_3))
 			retVal = false;
 
 		//Various additional keyboard keys
-		if (RegisterHotKey(mainWindow, HOTKEY_LEFT_BRACKET, 0, VK_OEM_4)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_LEFT_BRACKET, 0, VK_OEM_4))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_LEFT_BRACKET, MOD_SHIFT, VK_OEM_4)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_LEFT_BRACKET, MOD_SHIFT, VK_OEM_4))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT_BRACKET, 0, VK_OEM_6)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_RIGHT_BRACKET, 0, VK_OEM_6))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_RIGHT_BRACKET, MOD_SHIFT, VK_OEM_6)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_RIGHT_BRACKET, MOD_SHIFT, VK_OEM_6))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_BACKSLASH, 0, VK_OEM_5)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_BACKSLASH, 0, VK_OEM_5))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_BACKSLASH, MOD_SHIFT, VK_OEM_5)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_BACKSLASH, MOD_SHIFT, VK_OEM_5))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SEMICOLON, 0, VK_OEM_1)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SEMICOLON, 0, VK_OEM_1))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_SEMICOLON, MOD_SHIFT, VK_OEM_1)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_SEMICOLON, MOD_SHIFT, VK_OEM_1))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_APOSTROPHE, 0, VK_OEM_7)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_APOSTROPHE, 0, VK_OEM_7))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_APOSTROPHE, MOD_SHIFT, VK_OEM_7)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_APOSTROPHE, MOD_SHIFT, VK_OEM_7))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_FORWARDSLASH, 0, VK_OEM_2)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_FORWARDSLASH, 0, VK_OEM_2))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_FORWARDSLASH, MOD_SHIFT, VK_OEM_2)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_FORWARDSLASH, MOD_SHIFT, VK_OEM_2))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_COMMA, MOD_SHIFT, VK_OEM_COMMA)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_COMMA, MOD_SHIFT, VK_OEM_COMMA))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_PERIOD, MOD_SHIFT, VK_OEM_PERIOD)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_PERIOD, MOD_SHIFT, VK_OEM_PERIOD))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_SPACE, MOD_SHIFT, HOTKEY_SPACE)==FALSE)
-			retVal = FALSE;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_ENTER, MOD_SHIFT, VK_RETURN)==FALSE)
-			retVal = FALSE;
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_SPACE, MOD_SHIFT, HOTKEY_SPACE))
+			retVal = false;
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_ENTER, MOD_SHIFT, VK_RETURN))
+			retVal = false;
 
 		//Even though we won't use them, we should track them in our virtual keyboard
-		if (RegisterHotKey(mainWindow, HOTKEY_MINUS, 0, VK_OEM_MINUS)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_MINUS, 0, VK_OEM_MINUS))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_MINUS, MOD_SHIFT, VK_OEM_MINUS)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_MINUS, MOD_SHIFT, VK_OEM_MINUS))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_EQUALS, 0, VK_OEM_PLUS)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_EQUALS, 0, VK_OEM_PLUS))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_SHIFT_EQUALS, MOD_SHIFT, VK_OEM_PLUS)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_EQUALS, MOD_SHIFT, VK_OEM_PLUS))
 			retVal = false;
 
 
 		//Number keys shifted
 		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
-			if (RegisterHotKey(mainWindow, i, MOD_SHIFT, (i-HOTKEY_SHIFT_0)+HOTKEY_0)==FALSE)
+			if (!mainWindow->registerHotKey(i, MOD_SHIFT, (i-HOTKEY_SHIFT_0)+HOTKEY_0))
 				retVal = false;
 		}
 	} else {
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMBINE)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_COMBINE))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT_BRACKET)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_LEFT_BRACKET))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT_BRACKET)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_RIGHT_BRACKET))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_BACKSLASH)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_BACKSLASH))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_LEFT_BRACKET)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_LEFT_BRACKET))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_RIGHT_BRACKET)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_RIGHT_BRACKET))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_BACKSLASH)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_BACKSLASH))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SEMICOLON)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SEMICOLON))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_SEMICOLON)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_SEMICOLON))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_APOSTROPHE)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_APOSTROPHE))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_APOSTROPHE)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_APOSTROPHE))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_FORWARDSLASH)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_FORWARDSLASH))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_FORWARDSLASH)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_FORWARDSLASH))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_COMMA)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_COMMA))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_PERIOD)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_PERIOD))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_MINUS)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_MINUS))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_MINUS)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_MINUS))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_EQUALS)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_EQUALS))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_EQUALS)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_EQUALS))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_SPACE)==FALSE)
-			retVal = FALSE;
-		if (UnregisterHotKey(mainWindow, HOTKEY_SHIFT_ENTER)==FALSE)
-			retVal = FALSE;
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_SPACE))
+			retVal = false;
+		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_ENTER))
+			retVal = false;
 		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
-			if (UnregisterHotKey(mainWindow, i))
+			if (!mainWindow->unregisterHotKey(i))
 				retVal = false;
 		}
 	}
@@ -4120,42 +4123,42 @@ bool turnOnControlkeys(bool on)
 
 	//Register control keys
 	if (on) {
-		if (RegisterHotKey(mainWindow, HOTKEY_SPACE, NULL, HOTKEY_SPACE)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_SPACE, NULL, HOTKEY_SPACE))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_ENTER, NULL, VK_RETURN)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_ENTER, NULL, VK_RETURN))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_LEFT, NULL, VK_LEFT)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_LEFT, NULL, VK_LEFT))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_ESC, NULL, VK_ESCAPE)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_ESC, NULL, VK_ESCAPE))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_BACK, NULL, VK_BACK)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_BACK, NULL, VK_BACK))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_DELETE, NULL, VK_DELETE)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_DELETE, NULL, VK_DELETE))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_RIGHT, NULL, VK_RIGHT)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_RIGHT, NULL, VK_RIGHT))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_UP, NULL, VK_UP)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_UP, NULL, VK_UP))
 			retVal = false;
-		if (RegisterHotKey(mainWindow, HOTKEY_DOWN, NULL, VK_DOWN)==FALSE)
+		if (!mainWindow->registerHotKey(HOTKEY_DOWN, NULL, VK_DOWN))
 			retVal = false;
 	} else {
-		if (UnregisterHotKey(mainWindow, HOTKEY_SPACE)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_SPACE))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_ENTER)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_ENTER))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_LEFT)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_LEFT))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_ESC)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_ESC))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_BACK)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_BACK))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_DELETE)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_DELETE))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_RIGHT)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_RIGHT))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_UP)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_UP))
 			retVal = false;
-		if (UnregisterHotKey(mainWindow, HOTKEY_DOWN)==FALSE)
+		if (!mainWindow->unregisterHotKey(HOTKEY_DOWN))
 			retVal = false;
 	}
 
@@ -4830,7 +4833,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
 
 	//Set our hotkey
-	if( registerInitialHotkey()==0 ) {
+	if(!registerInitialHotkey()) {
 		//Check if we're running Wait Zar already
 		if (waitzarAlreadyStarted()==TRUE) {
 			MessageBox(NULL, _T("Wait Zar is already running. \n\nYou should see an \"ENG\" icon in your system tray; click on that to change the language. \n\nPlease see the Wait Zar User's Guide if you have any questions.  \n\n(If you are certain WaitZar is not actually running, please wait several minutes and then re-start the program.)"), _T("Wait Zar already running..."), MB_ICONINFORMATION | MB_OK);

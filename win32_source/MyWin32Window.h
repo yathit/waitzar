@@ -18,6 +18,7 @@
 
 #include <windows.h>
 #include <string>
+#include "Pulp Core/PulpCoreFont.h"
 
 
 /**
@@ -39,10 +40,23 @@ public:
 	//Required Inits (Hope to phase these out eventually)
 	void createDoubleBufferedSurface();
 
-	//Functionality
+	//Functionality forwarding to Win32
 	bool getTextMetrics(LPTEXTMETRICW res);
+	bool registerHotKey(int id, UINT fsModifiers, UINT vk);
+	bool unregisterHotKey(int id);
 
-	//Post fake methods
+	//Functionality similar to Win32, with minor differences
+	bool moveWindow(int newX, int newY); //Preserves width/height
+	bool resizeWindow(int newWidth, int newHeight); //Preserve x/y
+	int getWidth(); //We track this ourselves
+	int getHeight(); //We track this ourselves
+
+	//Fonts (even DIB ones like Pulp Core fonts) must be tied to some compatible DC somewhere.
+	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
+	void initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImg);
+	void initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size);
+
+	//Post fake messages
 	bool postMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
 
