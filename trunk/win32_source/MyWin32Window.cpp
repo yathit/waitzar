@@ -52,11 +52,87 @@ bool MyWin32Window::getTextMetrics(LPTEXTMETRICW res)
 	return true;
 }
 
+bool MyWin32Window::registerHotKey(int id, UINT fsModifiers, UINT vk)
+{
+	if (RegisterHotKey(window, id, fsModifiers, vk)==FALSE)
+		return false;
+	return true;
+}
+
+bool MyWin32Window::unregisterHotKey(int id)
+{
+	if (UnregisterHotKey(window, id)==FALSE)
+		return false;
+	return true;
+}
+
+
+
+//Do not resize.
+//Do not repaint.
+bool MyWin32Window::moveWindow(int newX, int newY)
+{
+	int width = getWidth();
+	int height = getHeight();
+	bool res = (MoveWindow(window, newX, newY, width, height, FALSE)==TRUE);
+
+	//Bookkeeping
+	windowArea.left = newX;
+	windowArea.top = newY;
+	windowArea.right = windowArea.left + width;
+	windowArea.bottom = windowArea.top + height;
+
+	return res;
+}
+
+
+//Do not reposition.
+//DO repaint.
+bool MyWin32Window::resizeWindow(int newWidth, int newHeight)
+{
+	RECT r;
+	GetWindowRect(hwnd, &r);
+	bool res = (MoveWindow(window, r.left, r.top, newWidth, newHeight, TRUE)==TRUE);
+
+	//Bookkeeping
+	windowArea.right = windowArea.left + newWidth;
+	windowArea.bottom = windowArea.top + newHeight;
+
+	return res;
+}
+
+
+int MyWin32Window::getWidth()
+{
+	return windowArea.right-windowArea.left;
+}
+
+int MyWin32Window::getHeight()
+{
+	return windowArea.bottom-windowArea.top;
+}
+
+
 bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (PostMessage(window, msg, wParam, lParam)==FALSE)
 		return false;
 	return true;
+}
+
+void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle)
+{
+	img->init(resource, data_handle, topDC);
+}
+
+void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImage)
+{
+	img->init(copyFromImage, topDC);
+}
+
+void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size)
+{
+	img->init(data, size, topDC);
 }
 
 
