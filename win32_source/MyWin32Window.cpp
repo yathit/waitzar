@@ -6,8 +6,14 @@
 
 #include ".\MyWin32Window.h"
 
-MyWin32Window::MyWin32Window(LPCWSTR windowClassName, LPCWSTR windowTitle, const HINSTANCE& hInstance, int x, int y, int width, int height, bool useAlpha)
+MyWin32Window::MyWin32Window(LPCWSTR windowClassName, LPCWSTR windowTitle, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), bool useAlpha)
 {
+	//Save callback
+	this->onShowFunction = onShowFunction;
+
+	//Init
+	this->isVisible = false;
+
 	//Manually track the window's width/height
 	windowArea.left = x;
 	windowArea.top = y;
@@ -97,6 +103,23 @@ bool MyWin32Window::resizeWindow(int newWidth, int newHeight)
 	//Bookkeeping
 	windowArea.right = windowArea.left + newWidth;
 	windowArea.bottom = windowArea.top + newHeight;
+
+	return res;
+}
+
+bool MyWin32Window::showWindow(bool show)
+{
+	//Avoid duplicate commands
+	if (show == isVisible)
+		return;
+
+	//Re-position?
+	if (!isVisible && this->onShowFunction!=NULL)
+		onShowFunction();
+
+	//Set flags, perform show/hide
+	bool res = (ShowWindow(window, show?SW_SHOW:SW_HIDE)==TRUE);
+	isVisible = show;
 
 	return res;
 }
