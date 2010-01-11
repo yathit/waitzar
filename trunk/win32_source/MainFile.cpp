@@ -75,6 +75,7 @@
 #include "Hyperlinks/Hyperlinks.h"
 #include "Settings/ConfigManager.h"
 #include "OnscreenKeyboard.h"
+#include "MyWin32Window.h"
 #include "Hotkeys.h"
 
 //VS Includes
@@ -228,10 +229,10 @@ string fontFileSmall;
 
 
 //Partially-managed windows
-MyWin32Window* mainWindow;
-MyWin32Window* sentenceWindow;
-MyWin32Window* helpWindow;
-MyWin32Window* memoryWindow;
+MyWin32Window* mainWindow = NULL;
+MyWin32Window* sentenceWindow = NULL;
+MyWin32Window* helpWindow = NULL;
+MyWin32Window* memoryWindow = NULL;
 
 //Avoid cyclical messaging:
 bool mainWindowSkipMove = false;
@@ -355,7 +356,7 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 						int caretHeight = SUB_WINDOW_HEIGHT;
 						TEXTMETRICW tm;
 						HFONT currFont = (HFONT)SendMessage(focusWnd, WM_GETFONT, 0, 0);
-						if (GetTextMetrics(mainDC, &tm)!=0)
+						if (mainWindow->getTextMetrics(&tm))
 							caretHeight = tm.tmHeight;
 
 						//We actually want the window slightly below this...
@@ -420,7 +421,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 					/*if (isLogging)
 						fprintf(logFile, "  Key up: %c  (%x)\n", *keyItr, keyState);*/
 
-					if (PostMessage(mainWindow, UWM_HOTKEY_UP, *keyItr, 0)==0) {
+					if (!mainWindow->postMessage(UWM_HOTKEY_UP, *keyItr, 0)) {
 						//SendMessage(mainWindow, UWM_HOTKEY_UP, *keyItr,0); //Send message seems to make no difference
 						MessageBox(NULL, _T("Couldn't post message to Main Window"), _T("Error"), MB_OK);
 					}
@@ -1812,7 +1813,8 @@ void reBlitHelp()
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		DestroyWindow(mainWindow);
+		delete mainWindow;
+		//DestroyWindow(mainWindow);
 	}
 
 	//Memory Window
@@ -1820,7 +1822,8 @@ void reBlitHelp()
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		DestroyWindow(mainWindow);
+		delete mainWindow;
+		//DestroyWindow(mainWindow);
 	}
 }
 
@@ -1845,7 +1848,8 @@ void reBlitHelp(RECT blitArea)
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		DestroyWindow(mainWindow);
+		delete mainWindow;
+		//DestroyWindow(mainWindow);
 	}
 
 	//Memory Window
@@ -1853,7 +1857,8 @@ void reBlitHelp(RECT blitArea)
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		DestroyWindow(mainWindow);
+		delete mainWindow;
+		//DestroyWindow(mainWindow);
 	}
 }
 
@@ -2641,7 +2646,9 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_CLOSE:
-			DestroyWindow(hwnd);
+			//Will generate a WM_DESTROY message.
+			delete helpWindow;
+			//DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
@@ -2738,7 +2745,9 @@ LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			break;
 		}
 		case WM_CLOSE:
-			DestroyWindow(hwnd);
+			//Will generate a WM_DESTROY message.
+			delete memoryWindow;
+			//DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
@@ -2853,7 +2862,9 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_CLOSE:
-			DestroyWindow(hwnd);
+			//Will generate a WM_DESTROY message.
+			delete sentenceWindow;
+			//DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
@@ -2965,7 +2976,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Did it work? If so, init. If not, exit.
 			if (mmFontBlack->isInError()) {
-				DestroyWindow(hwnd);
+				//Will generate a WM_DESTROY message
+				delete mainWindow;
+				//DestroyWindow(hwnd);
 				break;
 			}
 			initCalculate();
@@ -3760,7 +3773,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						switchToLanguage(true);
 					updateHelpWindow();
 				} else if (retVal == IDM_EXIT) {
-					DestroyWindow(hwnd);
+					//Will generate a WM_DESTROY message
+					delete mainWindow;
+					//DestroyWindow(hwnd);
 				} else if (retVal == ID_ENCODING_UNICODE5) {
 					setEncoding(ENCODING_UNICODE);
 					recalculate();
@@ -3787,7 +3802,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return NULL_BRUSH;
 			break;
 		case WM_CLOSE:
-			DestroyWindow(hwnd);
+			//Will generate a WM_DESTROY message
+			delete mainWindow;
+			//DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
 			//Cleanup
@@ -4169,18 +4186,16 @@ void makeMainWindow(LPCWSTR windowClassName)
 		return;
 	}
 
-	//Create a handle to the window
-	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
-	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
-	// receive very few actual events
-	mainWindow = CreateWindowEx(
+	//Create our main window
+	mainWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+	/*mainWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
 		_T("WaitZar"),
 		WS_POPUP, //No border or title bar
 		100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL
-	);
+	);*/
 }
 
 
@@ -4212,14 +4227,15 @@ void makeSubWindow(LPCWSTR windowClassName)
 	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
 	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
 	// receive very few actual events
-	senWindow = CreateWindowEx(
+	sentenceWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, false);
+	/*senWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
 		_T("WaitZar"),
 		WS_POPUP, //No border or title bar
 		100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL
-	);
+	);*/
 }
 
 
@@ -4248,14 +4264,15 @@ void makeHelpWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	helpWindow = CreateWindowEx(
+	helpWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, true);
+	/*helpWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
 		_T("WaitZar"),
 		WS_POPUP, //No border or title bar
 		400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL
-	);
+	);*/
 }
 
 
@@ -4285,14 +4302,15 @@ void makeMemoryWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	memoryWindow = CreateWindowEx(
+	memoryWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT, true);
+	/*memoryWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
 		_T("WaitZar"),
 		WS_POPUP, //No border or title bar
 		400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL
-	);
+	);*/
 }
 
 
@@ -4860,11 +4878,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//If we got this far, let's try to load our file.
 	if (!loadModel()) {
-		DestroyWindow(mainWindow);
+		delete mainWindow;
+		//DestroyWindow(mainWindow);
 		if (typePhrases)
-			DestroyWindow(senWindow);
-		DestroyWindow(helpWindow);
-		DestroyWindow(memoryWindow);
+			delete sentenceWindow;
+			//DestroyWindow(senWindow);
+		delete helpWindow;
+		delete memoryWindow;
+		//DestroyWindow(helpWindow);
+		//DestroyWindow(memoryWindow);
 		return 1;
 	}
 

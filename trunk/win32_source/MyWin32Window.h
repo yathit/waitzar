@@ -24,6 +24,9 @@
  * Win32 top-level windows are notoriously difficult to manage in a distributed
  *  set of files. Hence, this class manages creation, deletion, repainting, and
  *  resizing of Win32 windows. 
+ * What this class doesn't manage:
+ *   - Window Classes, and thus:
+ *   - Window Message Handling
  */
 class MyWin32Window
 {
@@ -33,8 +36,14 @@ public:
 		int x=99, int y=99, int width=99, int height=99, bool useAlpha=true);
 	~MyWin32Window();
 
-	//Functionality
+	//Required Inits (Hope to phase these out eventually)
 	void createDoubleBufferedSurface();
+
+	//Functionality
+	bool getTextMetrics(LPTEXTMETRICW res);
+
+	//Post fake methods
+	bool postMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
 
 private:

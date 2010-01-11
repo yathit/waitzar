@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyWin32Window.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OnscreenKeyboard.cpp"
 				>
 			</File>
@@ -371,6 +375,10 @@
 				>
 				<File
 					RelativePath=".\Hotkeys.h"
+					>
+				</File>
+				<File
+					RelativePath=".\MyWin32Window.h"
 					>
 				</File>
 				<File
