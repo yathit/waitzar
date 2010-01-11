@@ -226,31 +226,17 @@ bool ignoreMywordsWarnings = false;
 string fontFileRegular;
 string fontFileSmall;
 
-//Double-buffering stuff - mainWindow
-HWND mainWindow;
-HDC mainDC;
-HDC mainUnderDC;
-HBITMAP mainBitmap;
-bool mainWindowSkipMove = false;
 
-//Double-buffering stuff - secondaryWindow
-HWND senWindow;
-HDC senDC;
-HDC senUnderDC;
-HBITMAP senBitmap;
+//Partially-managed windows
+MyWin32Window* mainWindow;
+MyWin32Window* sentenceWindow;
+MyWin32Window* helpWindow;
+MyWin32Window* memoryWindow;
+
+//Avoid cyclical messaging:
+bool mainWindowSkipMove = false;
 bool senWindowSkipMove = false;
 
-//Double-buffering stuff, tertiary window
-HWND helpWindow;
-HDC helpDC;
-HDC helpUnderDC;
-HBITMAP helpBitmap;
-
-//Double-buffering stuff, memory window
-HWND memoryWindow;
-HDC memoryDC;
-HDC memoryUnderDC;
-HBITMAP memoryBitmap;
 
 //Init properly
 bool mainInitDone;
