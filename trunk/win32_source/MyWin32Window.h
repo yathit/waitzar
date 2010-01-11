@@ -34,7 +34,7 @@ class MyWin32Window
 public:
 	//Constructor/destructor pair
 	MyWin32Window(LPCWSTR windowClassName, LPCWSTR windowTitle, const HINSTANCE& hInstance, 
-		int x=99, int y=99, int width=99, int height=99, bool useAlpha=true);
+		int x=99, int y=99, int width=99, int height=99, void (*onShowFunction)(void)=NULL, bool useAlpha=true);
 	~MyWin32Window();
 
 	//Required Inits (Hope to phase these out eventually)
@@ -48,6 +48,7 @@ public:
 	//Functionality similar to Win32, with minor differences
 	bool moveWindow(int newX, int newY); //Preserves width/height
 	bool resizeWindow(int newWidth, int newHeight); //Preserve x/y
+	bool showWindow(bool show); //Handle callbacks for cursor repositioning, etc.
 	int getWidth(); //We track this ourselves
 	int getHeight(); //We track this ourselves
 
@@ -70,6 +71,10 @@ private:
 	//More bookkeeping
 	RECT windowArea;
 	RECT clientArea;
+	bool isVisible;
+
+	//Used to update the caret position
+	void (*onShowFunction)(void);
 
 
 	

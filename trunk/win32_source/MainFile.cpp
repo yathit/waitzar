@@ -288,10 +288,10 @@ int borderWidth = 2;
 int spaceWidth;
 
 //Avoid crashing if explorer is running slowly
-bool mainWindowIsVisible;
-bool subWindowIsVisible;
-bool helpWindowIsVisible;
-bool memoryWindowIsVisible;
+//bool mainWindowIsVisible;
+//bool subWindowIsVisible;
+//bool helpWindowIsVisible;
+//bool memoryWindowIsVisible;
 
 //Log file, since the debugger doesn't like multi-process threads
 bool isLogging = false;
@@ -1673,7 +1673,7 @@ void positionAtCaret()
 
 
 //Keeps all variables in sync, and allows repositioning
-void ShowAWindow(const HWND &windowToShow, bool &flagToSet, int cmdShow, bool doReposition)
+/*void ShowAWindow(const HWND &windowToShow, bool &flagToSet, int cmdShow, bool doReposition)
 {
 	//Avoid duplicate commands
 	bool show = (cmdShow==SW_SHOW);
@@ -1687,12 +1687,12 @@ void ShowAWindow(const HWND &windowToShow, bool &flagToSet, int cmdShow, bool do
 	//Set flags, perform move
 	ShowWindow(windowToShow, cmdShow);
 	flagToSet = show;
-}
+}*/
 
 
 
 //Wrapper for MainWindow
-void ShowMainWindow(int cmdShow)
+/*void ShowMainWindow(int cmdShow)
 {
 	ShowAWindow(mainWindow, mainWindowIsVisible, cmdShow, true);
 }
@@ -1708,17 +1708,18 @@ void ShowHelpWindow(int cmdShow)
 {
 	ShowAWindow(helpWindow, helpWindowIsVisible, cmdShow, false);
 	ShowAWindow(memoryWindow, memoryWindowIsVisible, cmdShow, false);
-}
+}*/
 
 
 
 //Helpful wrapper
 void ShowBothWindows(int cmdShow)
 {
-	ShowMainWindow(cmdShow);
+	bool show = (cmdShow==SW_SHOW);
+	mainWindow->showWindow(show);
 
 	if (typePhrases)
-		ShowSubWindow(cmdShow);
+		sentenceWindow->showWindow(show);
 }
 
 
@@ -1792,7 +1793,8 @@ void switchToLanguage(bool toMM) {
 		ShowBothWindows(SW_HIDE);
 
 		if (helpWindowIsVisible) {
-			ShowHelpWindow(SW_HIDE);
+			helpWindow->showWindow(false);
+			//ShowHelpWindow(SW_HIDE);
 		}
 	}
 }
@@ -2935,7 +2937,8 @@ void updateHelpWindow()
 		recalculate();
 
 		//Show the help window
-		ShowHelpWindow(SW_SHOW);
+		helpWindow->showWindow(true);
+		//ShowHelpWindow(SW_SHOW);
 		reBlitHelp();
 
 		//Show the main/sentence windows; this is just good practice.
@@ -2951,7 +2954,8 @@ void updateHelpWindow()
 		currStr.clear();
 
 		turnOnHelpKeys(false);
-		ShowHelpWindow(SW_HIDE);
+		helpWindow->showWindow(false);
+		//ShowHelpWindow(SW_HIDE);
 
 		//Hide the main window, too, and possibly the secondary window
 		ShowMainWindow(SW_HIDE);
@@ -3114,7 +3118,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					currStr.clear();
 
 					turnOnHelpKeys(false);
-					ShowHelpWindow(SW_HIDE);
+					helpWindow->showWindow(false);
+					//ShowHelpWindow(SW_HIDE);
 
 					//Hide the main window, too, and possibly the secondary window
 					ShowMainWindow(SW_HIDE);
@@ -3393,7 +3398,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 						//Hide the help window
 						turnOnHelpKeys(false);
-						ShowHelpWindow(SW_HIDE);
+						helpWindow->showWindow(false);
+						//ShowHelpWindow(SW_HIDE);
 
 						//Try to type this word
 						BOOL typed = selectWord(currStrDictID, true);
@@ -3453,7 +3459,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 						//Hide the help window
 						turnOnHelpKeys(false);
-						ShowHelpWindow(SW_HIDE);
+						helpWindow->showWindow(false);
+						//ShowHelpWindow(SW_HIDE);
 
 						//Try to type this word
 						BOOL typed = selectWord(currStrDictID, true);
@@ -4190,7 +4197,7 @@ void makeMainWindow(LPCWSTR windowClassName)
 	}
 
 	//Create our main window
-	mainWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+	mainWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, positionAtCaret, false);
 	/*mainWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4230,7 +4237,7 @@ void makeSubWindow(LPCWSTR windowClassName)
 	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
 	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
 	// receive very few actual events
-	sentenceWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, false);
+	sentenceWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, positionAtCaret, false);
 	/*senWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4267,7 +4274,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	helpWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, true);
+	helpWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, NULL, true);
 	/*helpWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
@@ -4305,7 +4312,7 @@ void makeMemoryWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	memoryWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT, true);
+	memoryWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT, NULL, true);
 	/*memoryWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
