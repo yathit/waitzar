@@ -15,6 +15,9 @@ MyWin32Window::MyWin32Window(LPCWSTR windowClassName, LPCWSTR windowTitle, const
 	windowArea.bottom = y + height;
 
 	//Create the window
+	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
+	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
+	// receive very few actual events
 	window = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | (useAlpha?WS_EX_LAYERED:0), //Keep this window on top, never activate it.
 		windowClassName, windowTitle,
@@ -39,6 +42,21 @@ void MyWin32Window::createDoubleBufferedSurface()
 	underDC = CreateCompatibleDC(topDC);
 	topBitmap = CreateCompatibleBitmap(topDC, windowArea.right-windowArea.left, windowArea.bottom-windowArea.top);
 	SelectObject(underDC, topBitmap);
+}
+
+
+bool MyWin32Window::getTextMetrics(LPTEXTMETRICW res)
+{
+	if (GetTextMetrics(topDC, res)==FALSE)
+		return false;
+	return true;
+}
+
+bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if (PostMessage(window, msg, wParam, lParam)==FALSE)
+		return false;
+	return true;
 }
 
 
