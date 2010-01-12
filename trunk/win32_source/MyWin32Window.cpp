@@ -93,12 +93,10 @@ void MyWin32Window::createDoubleBufferedSurface()
 }
 
 
-NOTIFYICONDATA MyWin32Window::getShellNotifyIconData()
+void MyWin32Window::initShellNotifyIconData(NOTIFYICONDATA& toInit)
 {
-	NOTIFYICONDATA res;
-	res.cbSize = sizeof(NOTIFYICONDATA); //Init size
-	res.hWnd = window; //Bind to this window
-	return res;
+	toInit.cbSize = sizeof(NOTIFYICONDATA); //Init size
+	toInit.hWnd = window; //Bind to this window
 }
 
 
