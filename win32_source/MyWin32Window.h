@@ -40,7 +40,7 @@ public:
 
 	//Required Stuff (Hope to phase these out eventually)
 	void createDoubleBufferedSurface();
-	NOTIFYICONDATA getShellNotifyIconData();
+	void initShellNotifyIconData(NOTIFYICONDATA& toInit);
 	bool setWindowPosition(int x, int y, int cx, int cy, UINT uFlags);
 	bool isInvalid();
 	HDC WARNINGgetUnderDC();

@@ -1765,7 +1765,8 @@ void switchToLanguage(bool toMM) {
 
 	//Change icon in the tray
 	// NOTE: Error is somewhere HERE (in creation, not ShellNotifyIcon)
-	NOTIFYICONDATA nid = mainWindow->getShellNotifyIconData();
+	NOTIFYICONDATA nid;
+	mainWindow->initShellNotifyIconData(nid);
 	//nid.cbSize = sizeof(NOTIFYICONDATA);
 	//nid.hWnd = mainWindow;
 	nid.uID = STATUS_NID;
@@ -3819,7 +3820,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 			//Remove systray icon
-			NOTIFYICONDATA nid = mainWindow->getShellNotifyIconData();
+			NOTIFYICONDATA nid;
+			mainWindow->initShellNotifyIconData(nid);
 			//nid.cbSize = sizeof(NOTIFYICONDATA);
 			//nid.hWnd = hwnd;
 			nid.uID = STATUS_NID;
@@ -4848,7 +4850,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
 
 	//Make our "notify icon" data structure
-	NOTIFYICONDATA nid = mainWindow->getShellNotifyIconData();
+	NOTIFYICONDATA nid;
+	mainWindow->initShellNotifyIconData(nid);
 	//nid.cbSize = sizeof(NOTIFYICONDATA); //natch
 	//nid.hWnd = mainWindow; //Cauess OUR window to receive notifications for this icon.
 	nid.uID = STATUS_NID;
