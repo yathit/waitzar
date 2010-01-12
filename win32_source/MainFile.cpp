@@ -2326,10 +2326,10 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		case WM_INITDIALOG:
 		{
 			//Resize the help dialog; keep it at the same position.
-			helpWindow->resizeWindow(473, 262);
+			//helpWindow->resizeWindow(473, 262);  //NOOO!
 			RECT r;
-			/*GetWindowRect(hwnd, &r);
-			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);*/
+			GetWindowRect(hwnd, &r);
+			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);
 
 			//Change the text of our dialog box
 			wstringstream txt;
