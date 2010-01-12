@@ -305,7 +305,7 @@ void MyWin32Window::setDefaultSize(int width, int height)
 
 int MyWin32Window::getDefaultWidth()
 {
-	return defaultArea.right-clientArea.left;
+	return defaultArea.right-defaultArea.left;
 }
 
 int MyWin32Window::getDefaultHeight()
