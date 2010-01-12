@@ -2566,19 +2566,19 @@ void onAllWindowsCreated()
 	initCalculate();
 
 	//Initialize the main window
-	mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight());
+	mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight(), false);
 	mainWindow->createDoubleBufferedSurface();
 
 	//Initialize the sentence window
-	sentenceWindow->resizeWindow(sentenceWindow->getDefaultWidth(), sentenceWindow->getDefaultHeight());
+	sentenceWindow->resizeWindow(sentenceWindow->getDefaultWidth(), sentenceWindow->getDefaultHeight(), false);
 	sentenceWindow->createDoubleBufferedSurface();
 
 	//Initialize the helper window
-	helpWindow->resizeWindow(helpWindow->getDefaultWidth(), helpWindow->getDefaultHeight());
+	helpWindow->resizeWindow(helpWindow->getDefaultWidth(), helpWindow->getDefaultHeight(), false);
 	helpWindow->createDoubleBufferedSurface();
 
 	//Initialize the memory window
-	memoryWindow->resizeWindow(memoryWindow->getDefaultWidth(), memoryWindow->getDefaultHeight());
+	memoryWindow->resizeWindow(memoryWindow->getDefaultWidth(), memoryWindow->getDefaultHeight(), false);
 	memoryWindow->createDoubleBufferedSurface();
 
 	//Initialize the calculationf for the help window
@@ -4826,6 +4826,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Give this process a low background priority
 	//  NOTE: We need to balance this eventually.
 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+
+
+	//Notes on creation of helper window (old code):
+	// Main:
+	//   helpWindow = CreateWindowEx(....)
+	// WM_CREATE in HelpWndProc:
+	//   MoveWindow(hwnd, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, FALSE);
+	//   RECT r;
+	//	 GetClientRect(hwnd, &r);
+	//   HELP_CLIENT_SIZE.cx = r.right;
+	//   HELP_CLIENT_SIZE.cy = r.bottom;
+	//   helpDC = GetDC(hwnd);
+	//   helpUnderDC = CreateCompatibleDC(helpDC);
+	//   helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
+	//   SelectObject(helpUnderDC, helpBitmap);
+	// initCalculateHelp():
+	//   helpKeyboard = new OnscreenKeyboard(...);
+	// WM_HOTKEY, updateHelpWindow(), init:
+	//   Get task bar size
+	//   expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
+	//   helpKeyboard->init(helpDC, helpUnderDC, helpBitmap); 
+	// helpKeyboard->init():
+	//   Makes and draws most of the keyboard's static data.
 
 	//Create our windows.
 	makeMainWindow(_T("waitZarMainWindow"));

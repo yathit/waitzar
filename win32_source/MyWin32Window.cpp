@@ -170,12 +170,12 @@ bool MyWin32Window::setWindowPosition(int x, int y, int cx, int cy, UINT uFlags)
 
 
 //Do not reposition.
-//DO repaint.
-bool MyWin32Window::resizeWindow(int newWidth, int newHeight)
+//DO? repaint.
+bool MyWin32Window::resizeWindow(int newWidth, int newHeight, bool doRepaint)
 {
 	RECT r;
 	GetWindowRect(window, &r);
-	bool res = (MoveWindow(window, r.left, r.top, newWidth, newHeight, TRUE)==TRUE);
+	bool res = (MoveWindow(window, r.left, r.top, newWidth, newHeight, (doRepaint?TRUE:FALSE))==TRUE);
 
 	//Bookkeeping
 	windowArea.right = windowArea.left + newWidth;
