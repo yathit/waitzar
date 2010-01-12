@@ -178,8 +178,8 @@ PulpCoreFont *helpFntMemory;
 PulpCoreImage *helpCornerImg;
 OnscreenKeyboard *helpKeyboard;
 
-BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
-POINT PT_ORIGIN;
+//BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
+//POINT PT_ORIGIN;
 HANDLE keyTrackThread;   //Handle to our thread
 DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
@@ -259,25 +259,16 @@ SentenceList sentence;
 int prevProcessID;
 bool showingHelpPopup = false;
 
-//Default client sizes for our windows
-int WINDOW_WIDTH = 240;
-int WINDOW_HEIGHT = 120;
-int SUB_WINDOW_WIDTH = 300;
-int SUB_WINDOW_HEIGHT = 26;
-int HELP_WINDOW_WIDTH = 200;
-int HELP_WINDOW_HEIGHT = 200;
-int MEMORY_WINDOW_WIDTH = 200;
-int MEMORY_WINDOW_HEIGHT = 200;
 
 //Width/height of client area
-int C_WIDTH;
-int C_HEIGHT;
-int SUB_C_WIDTH;
-int SUB_C_HEIGHT;
+//int C_WIDTH;
+//int C_HEIGHT;
+//int SUB_C_WIDTH;
+//int SUB_C_HEIGHT;
 
 //Try it differently for the help menu
-SIZE HELP_CLIENT_SIZE;
-SIZE MEMORY_CLIENT_SIZE;
+//SIZE HELP_CLIENT_SIZE;
+//SIZE MEMORY_CLIENT_SIZE;
 
 //Calculate's integers
 int firstLineStart;
@@ -288,10 +279,10 @@ int borderWidth = 2;
 int spaceWidth;
 
 //Avoid crashing if explorer is running slowly
-//bool mainWindowIsVisible;
-//bool subWindowIsVisible;
-//bool helpWindowIsVisible;
-//bool memoryWindowIsVisible;
+//bool mainWindow->isVisible();
+//bool sentenceWindow->isVisible();
+//bool helpWindow->isVisible();
+//bool memoryWindow->isVisible();
 
 //Log file, since the debugger doesn't like multi-process threads
 bool isLogging = false;
@@ -353,7 +344,7 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 						caretLatestPosition.x = clientUL.left + mousePos.x;
 						caretLatestPosition.y = clientUL.top + mousePos.y;
 
-						int caretHeight = SUB_WINDOW_HEIGHT;
+						int caretHeight = sentenceWindow->getHeight();// SUB_WINDOW_HEIGHT;
 						TEXTMETRICW tm;
 						HFONT currFont = (HFONT)SendMessage(focusWnd, WM_GETFONT, 0, 0);
 						if (mainWindow->getTextMetrics(&tm))
@@ -361,16 +352,16 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 
 						//We actually want the window slightly below this...
 						caretLatestPosition.x -= 1;
-						caretLatestPosition.y -= WINDOW_HEIGHT;
-						caretLatestPosition.y -= (SUB_WINDOW_HEIGHT-caretHeight)/2;
+						caretLatestPosition.y -= mainWindow->getHeight();//WINDOW_HEIGHT;
+						caretLatestPosition.y -= (sentenceWindow->getHeight()-caretHeight)/2;
 					}
 				}
 
 				//Is this inside the main window?
 				RECT desktopW;
 				GetWindowRect(GetDesktopWindow(), &desktopW);
-				if (   caretLatestPosition.x<0 || caretLatestPosition.x+WINDOW_WIDTH>desktopW.right
-					|| caretLatestPosition.y<0 || caretLatestPosition.y+WINDOW_HEIGHT>desktopW.bottom) {
+				if (   caretLatestPosition.x<0 || caretLatestPosition.x+mainWindow->getWidth()>desktopW.right
+					|| caretLatestPosition.y<0 || caretLatestPosition.y+mainWindow->getHeight()>desktopW.bottom) {
 					//Better set it to zero, rather than try moving it into range.
 					caretLatestPosition.x = 0;
 					caretLatestPosition.y = 0;
@@ -1634,7 +1625,7 @@ void positionAtCaret()
 		return;
 
 	//Also skip if one window is already visible
-	if (mainWindowIsVisible || subWindowIsVisible)
+	if (mainWindow->isVisible() || sentenceWindow->isVisible())
 		return;
 
 	//Reset parameters for our thread
@@ -1694,20 +1685,20 @@ void positionAtCaret()
 //Wrapper for MainWindow
 /*void ShowMainWindow(int cmdShow)
 {
-	ShowAWindow(mainWindow, mainWindowIsVisible, cmdShow, true);
+	ShowAWindow(mainWindow, mainWindow->isVisible(), cmdShow, true);
 }
 
 //Wrapper for SenWindow
 void ShowSubWindow(int cmdShow)
 {
-	ShowAWindow(senWindow, subWindowIsVisible, cmdShow, true);
+	ShowAWindow(senWindow, sentenceWindow->isVisible(), cmdShow, true);
 }
 
 //Wrapper for HelpWindow
 void ShowHelpWindow(int cmdShow)
 {
-	ShowAWindow(helpWindow, helpWindowIsVisible, cmdShow, false);
-	ShowAWindow(memoryWindow, memoryWindowIsVisible, cmdShow, false);
+	ShowAWindow(helpWindow, helpWindow->isVisible(), cmdShow, false);
+	ShowAWindow(memoryWindow, memoryWindow->isVisible(), cmdShow, false);
 }*/
 
 
@@ -1770,9 +1761,9 @@ void switchToLanguage(bool toMM) {
 	mmOn = toMM;
 
 	//Change icon in the tray
-	NOTIFYICONDATA nid;
-	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = mainWindow;
+	NOTIFYICONDATA nid = mainWindow->getShellNotifyIconData();
+	//nid.cbSize = sizeof(NOTIFYICONDATA);
+	//nid.hWnd = mainWindow;
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
@@ -1792,7 +1783,7 @@ void switchToLanguage(bool toMM) {
 	if (!mmOn) {
 		ShowBothWindows(SW_HIDE);
 
-		if (helpWindowIsVisible) {
+		if (helpWindow->isVisible()) {
 			helpWindow->showWindow(false);
 			//ShowHelpWindow(SW_HIDE);
 		}
@@ -1803,9 +1794,11 @@ void switchToLanguage(bool toMM) {
 void reBlit()
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
-	BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
+	mainWindow->repaintWindow();
+	//BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
 	if (typePhrases)
-		BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
+		sentenceWindow->repaintWindow();
+		//BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
 }
 
 
@@ -1813,7 +1806,8 @@ void reBlit()
 void reBlitHelp()
 {
 	//Help Window
-	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	//if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	if (!helpWindow->repaintWindow()) {
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
@@ -1822,7 +1816,8 @@ void reBlitHelp()
 	}
 
 	//Memory Window
-	if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	//if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	if (!memoryWindow->repaintWindow()) {
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
@@ -1836,9 +1831,11 @@ void reBlitHelp()
 void reBlit(RECT blitArea)
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
-	BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
+	mainWindow->repaintWindow(blitArea);
+	//BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 	if (typePhrases)
-		BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
+		sentenceWindow->repaintWindow(blitArea);
+		//BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
 
@@ -1848,7 +1845,8 @@ void reBlit(RECT blitArea)
 void reBlitHelp(RECT blitArea)
 {
 	//Help Window
-	if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	//if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	if (!helpWindow->repaintWindow(blitArea)) {
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
@@ -1857,7 +1855,8 @@ void reBlitHelp(RECT blitArea)
 	}
 
 	//Memory Window
-	if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	//if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
+	if (!memoryWindow->repaintWindow(blitArea)) {
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
@@ -1876,16 +1875,14 @@ void initCalculate()
 	thirdLineStart = secondLineStart + mmFontBlack->getHeight() + spaceWidth + borderWidth;
 	fourthLineStart = thirdLineStart + (mmFontBlack->getHeight()*8)/13 + borderWidth;
 
-	//Now, set the window's height
-	WINDOW_HEIGHT = fourthLineStart;
+	//Now, set the window's default height
+	mainWindow->setDefaultSize(mainWindow->getDefaultWidth(), fourthLineStart);
+	//WINDOW_HEIGHT = fourthLineStart;
 }
 
 
-void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newX, int newY, bool noMove, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
+/*void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newX, int newY, bool noMove, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
 {
-	if (hwnd==memoryWindow)
-		int x = 10;
-
 	//Resize the current window; use SetWindowPos() since it's easier...
 	int flags = SWP_NOZORDER | SWP_NOACTIVATE;
 	if (noMove)
@@ -1903,13 +1900,13 @@ void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newX, int ne
 	underDC = CreateCompatibleDC(dc);
 	bmp = CreateCompatibleBitmap(dc, SAVED_CLIENT_WIDTH, SAVED_CLIENT_HEIGHT);
 	SelectObject(underDC, bmp);
-}
+}*/
 
 
-void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
+/*void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
 {
 	expandHWND(hwnd, dc, underDC, bmp, 0, 0, true, newWidth, newHeight, SAVED_CLIENT_WIDTH, SAVED_CLIENT_HEIGHT);
-}
+}*/
 
 
 
@@ -1956,12 +1953,15 @@ void recalculate()
 	}
 
 	//If not, resize. Also, keep the size small when possible.
-	if (cumulativeWidth>C_WIDTH)
-		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
-	else if (cumulativeWidth<WINDOW_WIDTH && C_WIDTH>WINDOW_WIDTH)
-		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, WINDOW_WIDTH, C_HEIGHT, C_WIDTH, C_HEIGHT);
-	else if (cumulativeWidth>WINDOW_WIDTH && cumulativeWidth<C_WIDTH)
-		expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
+	if (cumulativeWidth>mainWindow->getClientWidth())
+		mainWindow->expandWindow(cumulativeWidth, mainWindow->getClientHeight());
+		//expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
+	else if (cumulativeWidth<mainWindow->getDefaultWidth() && mainWindow->getClientWidth()>mainWindow->getDefaultWidth())
+		mainWindow->expandWindow(mainWindow->getDefaultWidth(), mainWindow->getClientHeight());
+		//expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, WINDOW_WIDTH, C_HEIGHT, C_WIDTH, C_HEIGHT);
+	else if (cumulativeWidth>mainWindow->getDefaultWidth() && cumulativeWidth<mainWindow->getClientWidth())
+		mainWindow->expandWindow(cumulativeWidth, mainWindow->getClientHeight());
+		//expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
 
 	//Background
 	SelectObject(mainUnderDC, g_BlackPen);
@@ -2035,7 +2035,7 @@ void recalculate()
 	int xOffset = 0;
 	TCHAR digit[5];
 	wstring extendedWordString;
-	if (helpWindowIsVisible) {
+	if (helpWindow->isVisible()) {
 		//Prepare the extended word string a bit early
 		currStrZg = waitzar::sortMyanmarString(currStr);
 		currStrZg = wstring(waitzar::renderAsZawgyi(currStrZg.c_str()));
@@ -2084,7 +2084,7 @@ void recalculate()
 		//Helper text
 		if (currStrZg.length()>0)
 			mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
-	} else if (mainWindowIsVisible) { //Crashes otherwise
+	} else if (mainWindow->isVisible()) { //Crashes otherwise
 		//Add the post-processed word, if it exists...
 		int mySelectedID = ((int)model.getCurrSelectedID()) + patSintIDModifier;
 		if (model.hasPostStr()) {
@@ -2138,7 +2138,7 @@ void recalculate()
 		}
 	}
 
-	if (!helpWindowIsVisible) {
+	if (!helpWindow->isVisible()) {
 		wstring parenStr = model.getParenString();
 		wstringstream line;
 		line <<currStr;
@@ -2621,7 +2621,7 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE:
 		{
 			//Move the main window?
-			/*if (senWindowSkipMove==FALSE && (mainWindowIsVisible || subWindowIsVisible) && dragBothWindowsTogether==TRUE) {
+			/*if (senWindowSkipMove==FALSE && (mainWindow->isVisible() || sentenceWindow->isVisible()) && dragBothWindowsTogether==TRUE) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
@@ -2837,7 +2837,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE:
 		{
 			//Move the main window?
-			if (!senWindowSkipMove && (mainWindowIsVisible || subWindowIsVisible) && dragBothWindowsTogether) {
+			if (!senWindowSkipMove && (mainWindow->isVisible() || sentenceWindow->isVisible()) && dragBothWindowsTogether) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
@@ -2885,7 +2885,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 void updateHelpWindow()
 {
-	if (!helpWindowIsVisible) {
+	if (!helpWindow->isVisible()) {
 		//Did we even initialize the help window?
 		if (!helpIsCached) {
 			//Time to re-size our help window. Might as well center it now, too
@@ -2942,12 +2942,14 @@ void updateHelpWindow()
 		reBlitHelp();
 
 		//Show the main/sentence windows; this is just good practice.
-		if (!mainWindowIsVisible) {
+		if (!mainWindow->isVisible()) {
 			//Show it.
-			ShowMainWindow(SW_SHOW);
+			mainWindow->showWindow(true);
+			//ShowMainWindow(SW_SHOW);
 		}
-		if (!subWindowIsVisible) {
-			ShowSubWindow(SW_SHOW);
+		if (!sentenceWindow->isVisible()) {
+			sentenceWindow->showWindow(true);
+			//ShowSubWindow(SW_SHOW);
 		}
 	} else {
 		//Clear our word string
@@ -2958,9 +2960,11 @@ void updateHelpWindow()
 		//ShowHelpWindow(SW_HIDE);
 
 		//Hide the main window, too, and possibly the secondary window
-		ShowMainWindow(SW_HIDE);
+		mainWindow->showWindow(false);
+		//ShowMainWindow(SW_HIDE);
 		if (sentence.size()==0) {
-			ShowSubWindow(SW_HIDE);
+			sentenceWindow->showWindow(false);
+			//ShowSubWindow(SW_HIDE);
 		}
 
 		recalculate();
@@ -2991,19 +2995,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			initCalculate();
 
 			//Resize our window?
-			MoveWindow(hwnd, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
+			mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight());
+			//NOTE: This does NOT repaint, but resize() DOES. Is that ok?
+			//MoveWindow(hwnd, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
 
 			//Now, create all our buffering objects
-			RECT r;
+
+			//Updated automatically...
+			/*RECT r;
 			GetClientRect(hwnd, &r);
 			C_WIDTH = r.right;
-			C_HEIGHT = r.bottom;
+			C_HEIGHT = r.bottom;*/
 
-			mainDC = GetDC(hwnd);
+			mainWindow->createDoubleBufferedSurface();
+			/*mainDC = GetDC(hwnd);
 			mainUnderDC = CreateCompatibleDC(mainDC);
-
 			mainBitmap = CreateCompatibleBitmap(mainDC, WINDOW_WIDTH, WINDOW_HEIGHT);
-			SelectObject(mainUnderDC, mainBitmap);
+			SelectObject(mainUnderDC, mainBitmap);*/
 
 			//Init our helper window
 			if (helpInitDone && memoryInitDone) {
@@ -3016,7 +3024,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE:
 		{
 			//Move the sentence window?
-			if (typePhrases && !mainWindowSkipMove && subWindowIsVisible && dragBothWindowsTogether) {
+			if (typePhrases && !mainWindowSkipMove && sentenceWindow->isVisible() && dragBothWindowsTogether) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
@@ -3060,7 +3068,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Should we update the virtual keyboard? This is done independently
 			//  of actually handling the keypress itself
-			if (helpWindowIsVisible && highlightKeys) {
+			if (helpWindow->isVisible() && highlightKeys) {
 				//If this is a shifted key, get which key is shifted: left or right
 				unsigned int keyCode = wParam;
 				if (keyCode==HOTKEY_SHIFT) {
@@ -3113,7 +3121,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Close the window?
 			if (wParam == HOTKEY_ESC) {
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Clear our word string
 					currStr.clear();
 
@@ -3122,13 +3130,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//ShowHelpWindow(SW_HIDE);
 
 					//Hide the main window, too, and possibly the secondary window
-					ShowMainWindow(SW_HIDE);
+					mainWindow->showWindow(false);
+					//ShowMainWindow(SW_HIDE);
 					if (sentence.size()==0)
-						ShowSubWindow(SW_HIDE);
+						sentenceWindow->showWindow(false);
+						//ShowSubWindow(SW_HIDE);
 
 					recalculate();
 				} else {
-					if (!mainWindowIsVisible) {
+					if (!mainWindow->isVisible()) {
 						//Kill the entire sentence.
 						sentence.clear();
 						patSintIDModifier = 0;
@@ -3150,7 +3160,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowBothWindows(SW_HIDE);
 						} else {
 							//Just hide the typing window for now.
-							ShowMainWindow(SW_HIDE);
+							mainWindow->showWindow(false);
+							//ShowMainWindow(SW_HIDE);
 
 							if (sentence.size()==0) {
 								//Kill the entire sentence.
@@ -3169,12 +3180,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Delete: Phrases only
 			if (wParam == HOTKEY_DELETE) {
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Delete the letter in front of you (encoding-wise, not visibly)
 					//ADD LATER
 
 				} else {
-					if (!mainWindowIsVisible) {
+					if (!mainWindow->isVisible()) {
 						//Delete the next word
 						if (sentence.deleteNext())
 							recalculate();
@@ -3193,13 +3204,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Back up
 			if (wParam == HOTKEY_BACK) {
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Delete the letter in back of you (encoding-wise, not visibly)
 					if (!currStr.empty())
 						currStr.erase(currStr.length()-1);
 					recalculate();
 				} else {
-					if (!mainWindowIsVisible) {
+					if (!mainWindow->isVisible()) {
 						//Delete the previous word
 						if (sentence.deletePrev(model))
 							recalculate();
@@ -3227,14 +3238,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								ShowBothWindows(SW_HIDE);
 							} else {
 								//Just hide the typing window for now.
-								ShowMainWindow(SW_HIDE);
+								mainWindow->showWindow(false);
+								//ShowMainWindow(SW_HIDE);
 
 								if (sentence.size()==0) {
 									//Kill the entire sentence.
 									sentence.clear();
 									turnOnControlkeys(false);
 
-									ShowSubWindow(SW_HIDE);
+									sentenceWindow->showWindow(false);
+									//ShowSubWindow(SW_HIDE);
 								}
 							}
 						}
@@ -3247,12 +3260,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle control hotkeys
 			if (wParam == HOTKEY_RIGHT) {
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Move the letter cursor one to the right
 					//ADD LATER
 
 				} else {
-					if (mainWindowIsVisible) {
+					if (mainWindow->isVisible()) {
 						//Move right/left within the current word.
 						if (patSintIDModifier==-1) {
 							patSintIDModifier = 0;
@@ -3268,12 +3281,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				keyWasUsed = true;
 			} else if (wParam == HOTKEY_LEFT) {
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Move the letter cursor one to the left
 					//ADD LATER
 
 				} else {
-					if (mainWindowIsVisible) {
+					if (mainWindow->isVisible()) {
 						if (model.moveRight(-1) == TRUE)
 							recalculate();
 						else if (model.hasPostStr() && patSintIDModifier==0) {
@@ -3300,10 +3313,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				numCode = (int)wParam - HOTKEY_NUM0;
 
 			//Handle numbers
-			if (!helpWindowIsVisible) {
+			if (!helpWindow->isVisible()) {
 				stopChar=0;
-				if (numCode>-1 || wParam==HOTKEY_COMBINE || (wParam==HOTKEY_SHIFT_COMBINE&&mainWindowIsVisible)) {
-					if (mainWindowIsVisible) {
+				if (numCode>-1 || wParam==HOTKEY_COMBINE || (wParam==HOTKEY_SHIFT_COMBINE&&mainWindow->isVisible())) {
+					if (mainWindow->isVisible()) {
 						//Convert 1..0 to 0..9
 						if (--numCode<0)
 							numCode = 9;
@@ -3316,9 +3329,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							patSintIDModifier = 0;
 
 						//The model is visible: select that word
-						BOOL typed = selectWord(numCode, helpWindowIsVisible);
+						BOOL typed = selectWord(numCode, helpWindow->isVisible());
 						if (typed==TRUE && typePhrases) {
-							ShowMainWindow(SW_HIDE);
+							mainWindow->showWindow(false);
+							//ShowMainWindow(SW_HIDE);
 
 							currStr.clear();
 							patSintIDModifier = 0;
@@ -3339,10 +3353,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							sentence.moveCursorRight(0, true, model);
 
 							//Is our window even visible?
-							if (!subWindowIsVisible) {
+							if (!sentenceWindow->isVisible()) {
 								turnOnControlkeys(true);
 
-								ShowSubWindow(SW_SHOW);
+								sentenceWindow->showWindow(true);
+								//ShowSubWindow(SW_SHOW);
 							}
 
 							recalculate();
@@ -3357,13 +3372,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle Half-stop/Full-stop
 			if (wParam==HOTKEY_COMMA || wParam==HOTKEY_PERIOD) {
 				stopChar = model.getStopCharacter((wParam==HOTKEY_PERIOD));
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Possibly do nothing...
 					//ADD LATER
 
 				} else {
-					if (!mainWindowIsVisible) {
-						if (!subWindowIsVisible) {
+					if (!mainWindow->isVisible()) {
+						if (!sentenceWindow->isVisible()) {
 							//This should be cleared already, but let's be safe...
 							sentence.clear();
 						}
@@ -3378,7 +3393,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle Enter
 			if (wParam==HOTKEY_ENTER || wParam==HOTKEY_SHIFT_ENTER) {
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
 					if (currStrZg.length()>0) {
@@ -3404,7 +3419,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Try to type this word
 						BOOL typed = selectWord(currStrDictID, true);
 						if (typed==TRUE && typePhrases) {
-							ShowMainWindow(SW_HIDE);
+							mainWindow->showWindow(false);
+							//ShowMainWindow(SW_HIDE);
 
 							patSintIDModifier = 0;
 							model.reset(false);
@@ -3417,11 +3433,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 				} else {
 					stopChar = 0;
-					if (mainWindowIsVisible) {
+					if (mainWindow->isVisible()) {
 						//The model is visible: select that word
-						BOOL typed = selectWord(-1, helpWindowIsVisible);
+						BOOL typed = selectWord(-1, helpWindow->isVisible());
 						if (typed==TRUE && typePhrases) {
-							ShowMainWindow(SW_HIDE);
+							mainWindow->showWindow(false);
+							//ShowMainWindow(SW_HIDE);
 
 							currStr.clear();
 							patSintIDModifier = 0;
@@ -3439,7 +3456,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Handle Space Bar
 			if (wParam==HOTKEY_SPACE || wParam==HOTKEY_SHIFT_SPACE) {
-				if (helpWindowIsVisible) {
+				if (helpWindow->isVisible()) {
 					//Select our word, add it to the dictionary temporarily.
 					// Flag the new entry so it can be cleared later when the sentence is selected
 					if (currStrZg.length()>0) {
@@ -3465,7 +3482,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Try to type this word
 						BOOL typed = selectWord(currStrDictID, true);
 						if (typed==TRUE && typePhrases) {
-							ShowMainWindow(SW_HIDE);
+							mainWindow->showWindow(false);
+							//ShowMainWindow(SW_HIDE);
 
 							patSintIDModifier = 0;
 							model.reset(false);
@@ -3480,11 +3498,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 				} else {
 					stopChar = 0;
-					if (mainWindowIsVisible) {
+					if (mainWindow->isVisible()) {
 						//The model is visible: select that word
-						BOOL typed = selectWord(-1, helpWindowIsVisible);
+						BOOL typed = selectWord(-1, helpWindow->isVisible());
 						if (typed==TRUE && typePhrases) {
-							ShowMainWindow(SW_HIDE);
+							mainWindow->showWindow(false);
+							//ShowMainWindow(SW_HIDE);
 
 							patSintIDModifier = 0;
 							model.reset(false);
@@ -3513,7 +3532,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 			//Handle our individual letter presses as hotkeys
-			if (helpWindowIsVisible) {
+			if (helpWindow->isVisible()) {
 				//Handle our help menu
 				wstring nextBit = helpKeyboard->typeLetter(wParam);
 				if (!nextBit.empty()) {
@@ -3546,12 +3565,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					recalculate();
 
 					//Is the main window visible?
-					if (!mainWindowIsVisible) {
+					if (!mainWindow->isVisible()) {
 						//Show it
-						if (!typePhrases || !subWindowIsVisible) {
+						if (!typePhrases || !sentenceWindow->isVisible()) {
 							ShowBothWindows(SW_SHOW);
 						} else {
-							ShowMainWindow(SW_SHOW);
+							mainWindow->showWindow(true);
+							//ShowMainWindow(SW_SHOW);
 						}
 					}
 
@@ -3573,7 +3593,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							break;
 
 						//Is this the first keypress of a romanized word? If so, the window is not visible...
-						if (!mainWindowIsVisible)
+						if (!mainWindow->isVisible())
 						{
 							//Reset it...
 							currStr.clear();
@@ -3584,12 +3604,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								turnOnNumberkeys(true);
 
 							//Show it
-							if (!typePhrases || !subWindowIsVisible) {
+							if (!typePhrases || !sentenceWindow->isVisible()) {
 								//Turn on control keys
 								turnOnControlkeys(true);
 								ShowBothWindows(SW_SHOW);
 							} else {
-								ShowMainWindow(SW_SHOW);
+								mainWindow->showWindow(true);
+								//ShowMainWindow(SW_SHOW);
 							}
 						}
 
@@ -3612,7 +3633,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				numCode = wParam;
 			else
 				numCode = HOTKEY_0 + numCode;
-			if (!helpWindowIsVisible && !mainWindowIsVisible && !keyWasUsed) {
+			if (!helpWindow->isVisible() && !mainWindow->isVisible() && !keyWasUsed) {
 				int newID = -1;
 				for (size_t i=0; i<systemWordLookup.size(); i++) {
 					if (systemWordLookup[i].first==numCode) {
@@ -3628,10 +3649,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Try to type this word
 					BOOL typed = selectWord(newID, true);
 					if (typed==TRUE && typePhrases) {
-						if (!subWindowIsVisible) {
+						if (!sentenceWindow->isVisible()) {
 							turnOnControlkeys(true);
 
-							ShowSubWindow(SW_SHOW);
+							sentenceWindow->showWindow(true);
+							//ShowSubWindow(SW_SHOW);
 						}
 
 						recalculate();
@@ -3730,7 +3752,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Set a check for the "Look Up Word" function
 				//  Also remove the "F1" if not applicable.
-				UINT flagL = helpWindowIsVisible ? MF_CHECKED : 0;
+				UINT flagL = helpWindow->isVisible() ? MF_CHECKED : 0;
 				const wstring & POPUP_LOOKUP = mmOn ? POPUP_LOOKUP_MM : POPUP_LOOKUP_EN;
 				ModifyMenu(hmenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP.c_str());
 
@@ -3826,9 +3848,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 			//Remove systray icon
-			NOTIFYICONDATA nid;
-			nid.cbSize = sizeof(NOTIFYICONDATA);
-			nid.hWnd = hwnd;
+			NOTIFYICONDATA nid = mainWindow->getShellNotifyIconData();
+			//nid.cbSize = sizeof(NOTIFYICONDATA);
+			//nid.hWnd = hwnd;
 			nid.uID = STATUS_NID;
 			nid.uFlags = NIF_TIP; //??? Needed ???
 			Shell_NotifyIcon(NIM_DELETE, &nid);
@@ -4524,10 +4546,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
-	mainWindowIsVisible = false;
-	subWindowIsVisible = false;
-	helpWindowIsVisible = false;
-	memoryWindowIsVisible = false;
+	mainWindow->isVisible() = false;
+	sentenceWindow->isVisible() = false;
+	helpWindow->isVisible() = false;
+	memoryWindow->isVisible() = false;
 	mainInitDone = false;
 	helpInitDone = false;
 
@@ -4812,6 +4834,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	makeHelpWindow(_T("waitZarHelpWindow"));
 	makeMemoryWindow(_T("waitZarMemoryWindow"));
 
+	//Set default sizes
+	mainWindow->setDefaultSize(240, 120);
+	sentenceWindow->setDefaultSize(300, 26);
+	helpWindow->setDefaultSize(200, 200);
+	memoryWindow->setDefaultSize(200, 200);
+
 	//Our vector is used to store typed words for later...
 	//sentence = new SentenceList();
 
@@ -4824,9 +4852,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
 
 	//Make our "notify icon" data structure
-	NOTIFYICONDATA nid;
-	nid.cbSize = sizeof(NOTIFYICONDATA); //natch
-	nid.hWnd = mainWindow; //Cauess OUR window to receive notifications for this icon.
+	NOTIFYICONDATA nid = mainWindow->getShellNotifyIconData();
+	//nid.cbSize = sizeof(NOTIFYICONDATA); //natch
+	//nid.hWnd = mainWindow; //Cauess OUR window to receive notifications for this icon.
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
@@ -4981,8 +5009,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Show it's ready by changing the shell icon
-	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = mainWindow;
+	//nid.cbSize = sizeof(NOTIFYICONDATA);
+	//nid.hWnd = mainWindow;
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window

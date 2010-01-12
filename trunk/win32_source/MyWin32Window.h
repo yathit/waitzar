@@ -39,6 +39,7 @@ public:
 
 	//Required Inits (Hope to phase these out eventually)
 	void createDoubleBufferedSurface();
+	NOTIFYICONDATA getShellNotifyIconData();
 
 	//Functionality forwarding to Win32
 	bool getTextMetrics(LPTEXTMETRICW res);
@@ -48,9 +49,21 @@ public:
 	//Functionality similar to Win32, with minor differences
 	bool moveWindow(int newX, int newY); //Preserves width/height
 	bool resizeWindow(int newWidth, int newHeight); //Preserve x/y
+	bool expandWindow(int newX, int newY, int newWidth, int newHeight, bool dontMove); //Ugh...
+	bool expandWindow(int newWidth, int newHeight);
 	bool showWindow(bool show); //Handle callbacks for cursor repositioning, etc.
 	int getWidth(); //We track this ourselves
 	int getHeight(); //We track this ourselves
+	int getClientWidth(); //We track this ourselves
+	int getClientHeight(); //We track this ourselves
+	bool isVisible(); //We track this ourselves
+	bool repaintWindow(); //Blit or UpdateLayer depending
+	bool repaintWindow(RECT blitArea); //Blit or UpdateLayer depending
+
+	//A new property
+	void setDefaultSize(int width, int height);
+	int getDefaultWidth();
+	int getDefaultHeight();
 
 	//Fonts (even DIB ones like Pulp Core fonts) must be tied to some compatible DC somewhere.
 	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
@@ -71,7 +84,13 @@ private:
 	//More bookkeeping
 	RECT windowArea;
 	RECT clientArea;
-	bool isVisible;
+	RECT defaultArea;
+	bool is_visible;
+	bool useAlpha;
+
+	//Ugh
+	POINT PT_ORIGIN;
+	BLENDFUNCTION BLEND_FULL;
 
 	//Used to update the caret position
 	void (*onShowFunction)(void);
