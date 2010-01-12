@@ -108,7 +108,6 @@ bool turnOnNumberkeys(bool on);
 bool turnOnPunctuationkeys(bool on);
 bool turnOnExtendedKeys(bool on); //"Help keys"
 bool turnOnHelpKeys(bool on); //Reduced to contain only the shift key
-void switchToLanguage(bool toMM);
 bool loadModel(HINSTANCE hInst);
 
 //Better support for dragging
@@ -192,7 +191,9 @@ const string systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
 vector< pair <int, unsigned short> > systemWordLookup;
 
 //Special resources for tracking the caret
-HANDLE caretTrackThread;
+//Note: This is run synchronously; it's spawned into its own thread just so we can
+//      call "AttachThreadInput()"
+HANDLE caretTrackThread; 
 DWORD caretTrackThreadID;
 POINT caretLatestPosition;
 
@@ -331,49 +332,49 @@ unsigned long getTimeDifferenceMS(const FILETIME &st, const FILETIME &end)
  */
 DWORD WINAPI UpdateCaretPosition(LPVOID args)
 {
-		HWND foreWnd = GetForegroundWindow();
-		if (IsWindowVisible(foreWnd)==TRUE) {
-			DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
-			if (AttachThreadInput(caretTrackThreadID, foreID, TRUE)) {
-				HWND focusWnd = GetFocus();
-				HWND activeWnd = GetActiveWindow();
+	HWND foreWnd = GetForegroundWindow();
+	if (IsWindowVisible(foreWnd)==TRUE) {
+		DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
+		if (AttachThreadInput(caretTrackThreadID, foreID, TRUE)) {
+			HWND focusWnd = GetFocus();
+			HWND activeWnd = GetActiveWindow();
 
-				if (IsWindowVisible(focusWnd)) {
-					POINT mousePos;
-					RECT clientUL;
-					if (GetCaretPos(&mousePos) && GetWindowRect(focusWnd, &clientUL)!=0) {
-						caretLatestPosition.x = clientUL.left + mousePos.x;
-						caretLatestPosition.y = clientUL.top + mousePos.y;
+			if (IsWindowVisible(focusWnd)) {
+				POINT mousePos;
+				RECT clientUL;
+				if (GetCaretPos(&mousePos) && GetWindowRect(focusWnd, &clientUL)!=0) {
+					caretLatestPosition.x = clientUL.left + mousePos.x;
+					caretLatestPosition.y = clientUL.top + mousePos.y;
 
-						int caretHeight = sentenceWindow->getHeight();// SUB_WINDOW_HEIGHT;
-						TEXTMETRICW tm;
-						HFONT currFont = (HFONT)SendMessage(focusWnd, WM_GETFONT, 0, 0);
-						if (mainWindow->getTextMetrics(&tm))
-							caretHeight = tm.tmHeight;
+					int caretHeight = sentenceWindow->getHeight();// SUB_WINDOW_HEIGHT;
+					TEXTMETRICW tm;
+					HFONT currFont = (HFONT)SendMessage(focusWnd, WM_GETFONT, 0, 0);
+					if (mainWindow->getTextMetrics(&tm))
+						caretHeight = tm.tmHeight;
 
-						//We actually want the window slightly below this...
-						caretLatestPosition.x -= 1;
-						caretLatestPosition.y -= mainWindow->getHeight();//WINDOW_HEIGHT;
-						caretLatestPosition.y -= (sentenceWindow->getHeight()-caretHeight)/2;
-					}
+					//We actually want the window slightly below this...
+					caretLatestPosition.x -= 1;
+					caretLatestPosition.y -= mainWindow->getHeight();//WINDOW_HEIGHT;
+					caretLatestPosition.y -= (sentenceWindow->getHeight()-caretHeight)/2;
 				}
-
-				//Is this inside the main window?
-				RECT desktopW;
-				GetWindowRect(GetDesktopWindow(), &desktopW);
-				if (   caretLatestPosition.x<0 || caretLatestPosition.x+mainWindow->getWidth()>desktopW.right
-					|| caretLatestPosition.y<0 || caretLatestPosition.y+mainWindow->getHeight()>desktopW.bottom) {
-					//Better set it to zero, rather than try moving it into range.
-					caretLatestPosition.x = 0;
-					caretLatestPosition.y = 0;
-				}
-
-				//Finally
-				AttachThreadInput(caretTrackThreadID, foreID, FALSE);
 			}
-		}
 
-		return 0;
+			//Is this inside the main window?
+			RECT desktopW;
+			GetWindowRect(GetDesktopWindow(), &desktopW);
+			if (   caretLatestPosition.x<0 || caretLatestPosition.x+mainWindow->getWidth()>desktopW.right
+				|| caretLatestPosition.y<0 || caretLatestPosition.y+mainWindow->getHeight()>desktopW.bottom) {
+				//Better set it to zero, rather than try moving it into range.
+				caretLatestPosition.x = 0;
+				caretLatestPosition.y = 0;
+			}
+
+			//Finally
+			AttachThreadInput(caretTrackThreadID, foreID, FALSE);
+		}
+	}
+
+	return 0;
 }
 
 
@@ -1763,6 +1764,7 @@ void switchToLanguage(bool toMM) {
 	mmOn = toMM;
 
 	//Change icon in the tray
+	// NOTE: Error is somewhere HERE (in creation, not ShellNotifyIcon)
 	NOTIFYICONDATA nid = mainWindow->getShellNotifyIconData();
 	//nid.cbSize = sizeof(NOTIFYICONDATA);
 	//nid.hWnd = mainWindow;
@@ -3023,10 +3025,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Handle our main language hotkey
 			if(wParam == LANG_HOTKEY) {
 				//Switch language
-				if (mmOn)
-					switchToLanguage(false);
-				else
-					switchToLanguage(true);
+				switchToLanguage(!mmOn);
 
 				//Reset the model
 				sentence.clear();
@@ -3831,7 +3830,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (highlightKeys) {
 				DeleteCriticalSection(&threadCriticalSec);
 				CloseHandle(keyTrackThread);
-				CloseHandle(caretTrackThread);
+				//CloseHandle(caretTrackThread);  //This should already be closed; closing
+				//                                  it twice is an error. 
 			}
 
 			//Log?

@@ -95,13 +95,9 @@ public:
 private:
 	//Data members
 	HWND window;
+	HDC topDC;
 	HDC underDC;
 	HBITMAP topBitmap;
-
-	//Ugh... fix this later
-	HDC topDC();
-	HDC top_dc_i;
-	bool top_dc_b;
 
 	//More bookkeeping
 	RECT windowArea;
