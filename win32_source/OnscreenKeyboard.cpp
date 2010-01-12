@@ -76,27 +76,30 @@ void OnscreenKeyboard::setMode(int newMode)
 
 //hdc must already be properly sized
 //we'll init a pulp core image with the right size
-void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap)
+void OnscreenKeyboard::init(MyWin32Window *helpWindow)
 {
 	//Create a new device context
 	bkgrdImg = new PulpCoreImage();
-	bkgrdImg->init(this->width, this->height, 0x00000000, helpMainDC, helperBufferedDC, helpBitmap);
+	helpWindow->initPulpCoreImage(bkgrdImg, this->width, this->height, 0x00000000);
 
-	//Save our device context
-	this->underDC = helperBufferedDC;
+	//Save our window
+	this->helpWindow = helpWindow;
 
 	//Color some fonts
 	this->foreFontBlue = new PulpCoreFont();
-	this->foreFontBlue->init(foreFont, helpMainDC);
+	helpWindow->initPulpCoreImage(foreFontBlue, foreFont);
+	//this->foreFontBlue->init(foreFont, helpMainDC);
 	this->foreFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
 	this->shiftFontBlue = new PulpCoreFont();
-	this->shiftFontBlue->init(shiftFont, helpMainDC);
+	helpWindow->initPulpCoreImage(shiftFontBlue, shiftFont);
+	//this->shiftFontBlue->init(shiftFont, helpMainDC);
 	this->shiftFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
 
 	//Create rotated copies of our one corner image
 	for (int i=1; i<4; i++) {
 		this->cornerImg[i] = new PulpCoreImage();
-		this->cornerImg[i]->init(this->cornerImg[i-1], underDC);
+		helpWindow->initPulpCoreImage(cornerImg[i], cornerImg[i-1]);
+		//this->cornerImg[i]->init(this->cornerImg[i-1], underDC);
 		this->cornerImg[i]->rotateSelf90DegreesClockwise();
 	}
 
@@ -123,8 +126,8 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 	//Make our header/body buttons, to be drawn once, and draw them
 	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(HELPWND_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
-	headerButton->draw(underDC, 0, 0);
-	bodyButton->draw(underDC, 0, headerButton->getHeight()-this->cornerSize);
+	helpWindow->drawImage(headerButton, 0, 0);
+	helpWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
 
 	//Now we know where our keyboard begins
 	keyboardOrigin.x = this->cornerSize;
@@ -141,7 +144,7 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 
 	//Now draw the string
 	this->titleFont->tintSelf(0x000000);
-	this->titleFont->drawString(underDC, HELPWND_TITLE, this->cornerSize, this->cornerSize);
+	helpWindow->drawString(titleFont, HELPWND_TITLE, this->cornerSize, this->cornerSize);
 	this->titleFont->tintSelf(0xFFFFFF);
 
 	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
@@ -152,20 +155,20 @@ void OnscreenKeyboard::init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &help
 
 
 
-void OnscreenKeyboard::initMemory(HDC memoryMainDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap)
+void OnscreenKeyboard::initMemory(MyWin32Window *memoryWindow)
 {
 	//Create a new device context
 	memoryImg = new PulpCoreImage();
-	memoryImg->init(this->memWidth, this->memHeight, 0x00000000, memoryMainDC, memoryBuffDC, memoryBitmap);
+	memoryWindow->initPulpCoreImage(memoryImg, this->memWidth, this->memHeight, 0x00000000);
 
 	//Save our device context
-	this->memoryDC = memoryBuffDC;
+	this->memoryWindow = memoryWindow;
 
 	//Make our header/body buttons, to be drawn once, and draw them
 	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(MEMLIST_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->memWidth, this->memHeight-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
-	headerButton->draw(memoryDC, 0, 0);
-	bodyButton->draw(memoryDC, 0, headerButton->getHeight()-this->cornerSize);
+	memoryWindow->drawImage(headerButton, 0, 0);
+	memoryWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
 
 	//Fix their messy intersection
 	memoryImg->fillRectangle(2, headerButton->getHeight()-this->cornerSize, headerButton->getWidth()-4, this->cornerSize, COLOR_KEYBOARD_FOREGRD);
@@ -178,11 +181,11 @@ void OnscreenKeyboard::initMemory(HDC memoryMainDC, HDC &memoryBuffDC, HBITMAP &
 
 	//Draw the title string
 	this->titleFont->tintSelf(0x000000);
-	this->titleFont->drawString(memoryDC, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
+	memoryWindow->drawString(titleFont, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
 
 	//Draw some heading strings
-	this->titleFont->drawString(memoryDC, L"Myanmar", this->cornerSize, keyboardOrigin.y+1);
-	this->titleFont->drawString(memoryDC, L"Roman", this->getMemoryWidth()/2+5/2, keyboardOrigin.y+1);
+	memoryWindow->drawString(titleFont, L"Myanmar", this->cornerSize, keyboardOrigin.y+1);
+	memoryWindow->drawString(titleFont, L"Roman", this->getMemoryWidth()/2+5/2, keyboardOrigin.y+1);
 	this->titleFont->tintSelf(0xFFFFFF);
 
 	//Underline
@@ -218,14 +221,14 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 	PulpCoreImage *keyImg = buttonsRegular[pal];
 	if (isPressed)
 		keyImg = buttonsShifted[pal];
-	keyImg->draw(underDC, keyboardOrigin.x+currKey.location.x, keyboardOrigin.y+currKey.location.y);
+	helpWindow->drawImage(keyImg, keyboardOrigin.x+currKey.location.x, keyboardOrigin.y+currKey.location.y);
 
 	//Draw the letter labels
 	int xPos = keyboardOrigin.x+currKey.location.x+4;
 	int yPos = keyboardOrigin.y+currKey.location.y+3;
 	if (letter_types[keyID]==BUTTON_KEY) //Center it
 		xPos += (5 - keysFont->getCharWidth(keyID)/2);
-	keysFont->drawChar(underDC, keyID, xPos+offsets_key[keyID], yPos);
+	helpWindow->drawChar(keysFont, keyID, xPos+offsets_key[keyID], yPos);
 
 	//Prepare to draw keys
 	int myKeyID = keyID;
@@ -243,14 +246,14 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 	if (!hide_for_help[myKeyID]) {
 		xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-myFont->getCharWidth(myKeyID)/2;
 		yPos = keyboardOrigin.y+currKey.location.y+19;
-		myFont->drawChar(underDC, myKeyID, xPos+offset_fore[myKeyID], yPos);
+		helpWindow->drawChar(myFont, myKeyID, xPos+offset_fore[myKeyID], yPos);
 	}
 
 	//Draw the shifted label
 	if (!hide_for_help[myShiftKeyID]) {
 		xPos = keyboardOrigin.x+currKey.location.x+23-myShiftFont->getCharWidth(myShiftKeyID)/2;
 		yPos = keyboardOrigin.y+currKey.location.y+3;
-		myShiftFont->drawChar(underDC, myShiftKeyID, xPos+offset_super[myShiftKeyID], yPos);
+		helpWindow->drawChar(myShiftFont, myShiftKeyID, xPos+offset_super[myShiftKeyID], yPos);
 	}
 }
 
@@ -592,9 +595,10 @@ PulpCoreImage* OnscreenKeyboard::makeButton(int width, int height, int bgARGB, i
 {
 	//Make an empty image
 	PulpCoreImage *result = new PulpCoreImage();
+	//NOTE: Not sure if this will explode.
 	HDC resDC;
 	HBITMAP resBMP;
-	result->init(width, height, bgARGB, underDC, resDC, resBMP);
+	result->init(width, height, bgARGB, helpWindow->WARNINGgetUnderDC(), resDC, resBMP);
 
 	//Draw the foreground before overlaying the corner images
 	int buffer_offset = 3;
@@ -652,8 +656,8 @@ void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string 
 	memoryImg->fillRectangle(this->cornerSize, memEntriesStartY, this->getMemoryWidth()-this->cornerSize*2, this->getMemoryHeight()-memEntriesStartY-this->cornerSize, COLOR_KEYBOARD_FOREGRD);
 	int currY = memEntriesStartY;
 	for (list< pair<wstring,string> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
-		this->memoryFont->drawString(memoryDC, keyItr->first, this->cornerSize, currY);
-		this->memoryFont->drawString(memoryDC, keyItr->second, this->getMemoryWidth()/2+5/2, currY);
+		memoryWindow->drawString(memoryFont, keyItr->first, this->cornerSize, currY);
+		memoryWindow->drawString(memoryFont, keyItr->second, this->getMemoryWidth()/2+5/2, currY);
 		currY += memEntriesYPlus;
 	}
 }

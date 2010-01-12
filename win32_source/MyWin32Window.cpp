@@ -6,7 +6,20 @@
 
 #include ".\MyWin32Window.h"
 
-MyWin32Window::MyWin32Window(LPCWSTR windowClassName, LPCWSTR windowTitle, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), bool useAlpha)
+
+//Useful constants
+namespace {
+	POINT PT_ORIGIN = { 0 , 0 };
+	BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
+}
+
+MyWin32Window::MyWin32Window()
+{
+	//Avoid errors
+	this->window = NULL;
+}
+
+void MyWin32Window::init(LPCWSTR windowClassName, LPCWSTR windowTitle, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), bool useAlpha)
 {
 	//Save callback
 	this->onShowFunction = onShowFunction;
@@ -14,8 +27,7 @@ MyWin32Window::MyWin32Window(LPCWSTR windowClassName, LPCWSTR windowTitle, const
 	//Init
 	this->is_visible = false;
 	this->useAlpha = useAlpha;
-	this->PT_ORIGIN  = {0,0};
-	this->BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
+	this->top_dc_b = false;
 
 	//Manually track the window's width/height
 	windowArea.left = x;
@@ -27,19 +39,48 @@ MyWin32Window::MyWin32Window(LPCWSTR windowClassName, LPCWSTR windowTitle, const
 	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
 	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
 	// receive very few actual events
-	window = CreateWindowEx(
+	CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | (useAlpha?WS_EX_LAYERED:0), //Keep this window on top, never activate it.
 		windowClassName, windowTitle,
 		WS_POPUP, //No border or title bar
 		windowArea.left, windowArea.top, windowArea.right-windowArea.left, windowArea.bottom-windowArea.top, //Default x,y,width,height (most windows will resize later)
 		NULL, NULL, hInstance, NULL); 
+
+	//Save the device context; this should prevent some errors.
+	//NOTE: Can't do this; the WM_CREATE message may be posted before this...
+	//if (window != NULL)
+	//	topDC() = GetDC(window);
 }
+
 
 
 MyWin32Window::~MyWin32Window()
 {
 	//Send WM_DESTROY message.
-	DestroyWindow(window);
+	if (window!=NULL)
+		DestroyWindow(window);
+}
+
+void MyWin32Window::saveHwnd(HWND &hwnd)
+{
+	this->window = hwnd;
+	this->top_dc_i = GetDC(hwnd);
+	this->top_dc_b = true;
+}
+
+
+bool MyWin32Window::isInvalid()
+{
+	return window==NULL;
+}
+
+
+//WARNING: This is used in OnscreenKeyboard.cpp for something specific.
+//    Need to remove this as soon as possible; for now, we're keeping it
+//    since I don't want to break too much on this commit.
+HDC MyWin32Window::WARNINGgetUnderDC()
+{
+	return underDC;
 }
 
 
@@ -47,9 +88,9 @@ void MyWin32Window::createDoubleBufferedSurface()
 {
 	//Create all our buffering objects
 	GetClientRect(window, &clientArea);
-	topDC = GetDC(window);
-	underDC = CreateCompatibleDC(topDC);
-	topBitmap = CreateCompatibleBitmap(topDC, windowArea.right-windowArea.left, windowArea.bottom-windowArea.top);
+	top_dc_i = GetDC(window);
+	underDC = CreateCompatibleDC(topDC());
+	topBitmap = CreateCompatibleBitmap(topDC(), windowArea.right-windowArea.left, windowArea.bottom-windowArea.top);
 	SelectObject(underDC, topBitmap);
 }
 
@@ -59,13 +100,14 @@ NOTIFYICONDATA MyWin32Window::getShellNotifyIconData()
 	NOTIFYICONDATA res;
 	res.cbSize = sizeof(NOTIFYICONDATA); //Init size
 	res.hWnd = window; //Bind to this window
+	return res;
 }
 
 
 
 bool MyWin32Window::getTextMetrics(LPTEXTMETRICW res)
 {
-	if (GetTextMetrics(topDC, res)==FALSE)
+	if (GetTextMetrics(topDC(), res)==FALSE)
 		return false;
 	return true;
 }
@@ -109,13 +151,34 @@ bool MyWin32Window::moveWindow(int newX, int newY)
 	return res;
 }
 
+bool MyWin32Window::setWindowPosition(int x, int y, int cx, int cy, UINT uFlags)
+{
+	int width = getWidth();
+	int height = getHeight();
+	int c_width = getClientWidth();
+	int c_height = getClientHeight();
+	bool res = (SetWindowPos(window, HWND_TOPMOST, x, y, cx, cy, uFlags)==TRUE);
+
+	//Bookkeeping
+	windowArea.left = x;
+	windowArea.top = y;
+	windowArea.right = windowArea.left + width;
+	windowArea.bottom = windowArea.top + height;
+	clientArea.left = x;
+	clientArea.top = y;
+	clientArea.right = clientArea.left + c_width;
+	clientArea.bottom = clientArea.top + c_height;
+
+	return res;
+}
+
 
 //Do not reposition.
 //DO repaint.
 bool MyWin32Window::resizeWindow(int newWidth, int newHeight)
 {
 	RECT r;
-	GetWindowRect(hwnd, &r);
+	GetWindowRect(window, &r);
 	bool res = (MoveWindow(window, r.left, r.top, newWidth, newHeight, TRUE)==TRUE);
 
 	//Bookkeeping
@@ -145,15 +208,17 @@ bool MyWin32Window::expandWindow(int newX, int newY, int newWidth, int newHeight
 	windowArea.top = y;
 	windowArea.right = windowArea.left + newWidth;
 	windowArea.bottom = windowArea.top + newHeight;
-	GetClientRect(hwnd, &clientArea);
+	GetClientRect(window, &clientArea);
 
 	//We also have to set our graphics contexts correctly. Also, throw out the old ones.
 	DeleteDC(underDC);
 	DeleteObject(topBitmap);
-	dc = GetDC(window);
-	underDC = CreateCompatibleDC(dc);
-	topBitmap = CreateCompatibleBitmap(dc, this->getClientWidth(), this->getClientHeight());
+	top_dc_i = GetDC(window);
+	underDC = CreateCompatibleDC(topDC());
+	topBitmap = CreateCompatibleBitmap(topDC(), this->getClientWidth(), this->getClientHeight());
 	SelectObject(underDC, topBitmap);
+
+	return res;
 }
 
 
@@ -168,7 +233,7 @@ bool MyWin32Window::showWindow(bool show)
 {
 	//Avoid duplicate commands
 	if (show == is_visible)
-		return;
+		return true;
 
 	//Re-position?
 	if (!is_visible && this->onShowFunction!=NULL)
@@ -186,10 +251,13 @@ bool MyWin32Window::repaintWindow(RECT blitArea)
 	bool res = false;
 	if (this->useAlpha) {
 		//Use the "Alpha" command (No rectangle at the moment...)
-		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &clientArea, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
+		SIZE sz;
+		sz.cx = this->getClientWidth();
+		sz.cy = this->getClientWidth();
+		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &sz, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
 	} else {
 		//Use the "Blit" command
-		res = (BitBlt(topDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,this->getClientWidth(),this->getClientHeight(),underDC,blitArea.left,blitArea.top,SRCCOPY)==TRUE);
+		res = (BitBlt(topDC(),blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,underDC,blitArea.left,blitArea.top,SRCCOPY)==TRUE);
 	}
 	return res;
 }
@@ -199,10 +267,13 @@ bool MyWin32Window::repaintWindow()
 	bool res = false;
 	if (this->useAlpha) {
 		//Use the "Alpha" command
-		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &clientArea, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
+		SIZE sz;
+		sz.cx = this->getClientWidth();
+		sz.cy = this->getClientWidth();
+		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &sz, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
 	} else {
 		//Use the "Blit" command
-		res = (BitBlt(topDC,0,0,this->getClientWidth(),this->getClientHeight(),underDC,0,0,SRCCOPY)==TRUE);
+		res = (BitBlt(topDC(),0,0,this->getClientWidth(),this->getClientHeight(),underDC,0,0,SRCCOPY)==TRUE);
 	}
 	return res;
 }
@@ -251,6 +322,11 @@ bool MyWin32Window::isVisible()
 	return is_visible;
 }
 
+void MyWin32Window::showMessageBox(std::wstring msg, std::wstring title, UINT flags)
+{
+	MessageBox(window, msg.c_str(), title.c_str(), flags);
+}
+
 
 bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -261,17 +337,22 @@ bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle)
 {
-	img->init(resource, data_handle, topDC);
+	img->init(resource, dataHandle, topDC());
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImage)
 {
-	img->init(copyFromImage, topDC);
+	img->init(copyFromImage, topDC());
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size)
 {
-	img->init(data, size, topDC);
+	img->init(data, size, topDC());
+}
+
+void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, int width, int height, int bkgrdARGB)
+{
+	img->init(width, height, bkgrdARGB, topDC(), underDC, topBitmap);
 }
 
 
@@ -308,6 +389,11 @@ bool MyWin32Window::drawRectangle(int left, int top, int right, int bottom)
 	return res;
 }
 
+bool MyWin32Window::drawImage(PulpCoreImage* img, int x, int y)
+{
+	img->draw(underDC, x, y);
+	return true;
+}
 
 bool MyWin32Window::drawString(PulpCoreFont* font, const std::string& str, int x, int y)
 {
@@ -322,6 +408,21 @@ bool MyWin32Window::drawString(PulpCoreFont* font, const std::wstring& str, int 
 	return true;
 }
 
+bool MyWin32Window::drawChar(PulpCoreFont* font, char letter, int xPos, int yPos)
+{
+	font->drawChar(underDC, letter, xPos, yPos);
+	return true;
+}
+
+
+HDC MyWin32Window::topDC()
+{
+	if (!top_dc_b) {
+		top_dc_i = GetDC(window);
+		top_dc_b = true;
+	}
+	return top_dc_i;
+}
 
 
 
