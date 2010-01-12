@@ -241,6 +241,7 @@ bool senWindowSkipMove = false;
 
 //Init properly
 bool mainInitDone;
+bool sentenceInitDone;
 bool helpInitDone;
 bool memoryInitDone;
 
@@ -696,7 +697,7 @@ bool canStack(wchar_t letter)
 /**
  * Create our inner-used Zawgyi-One fonts.
  */
-void makeFont(HWND currHwnd)
+void makeFont()
 {
 	//Load our font resource (main fonts)
 	{
@@ -766,6 +767,7 @@ void makeFont(HWND currHwnd)
 
 			//Create our PulpCoreFont (it's white when we load it, not black, by the way)
 			mmFontBlack = new PulpCoreFont();
+			//mmFontBlack->init(fontRes, res_handle, mainWindow->WARNINGgetUnderDC());
 			mainWindow->initPulpCoreImage(mmFontBlack, fontRes, res_handle);
 
 			//Unlock this resource for later use.
@@ -2078,12 +2080,12 @@ void recalculate()
 				currLetterSt += romanWord[q];
 			currLetterSt += L')';
 
-			mmFontGreen->drawString(mainUnderDC, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
+			mainWindow->drawString(mmFontGreen, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
 		}
 
 		//Helper text
 		if (currStrZg.length()>0)
-			mmFontSmallGray->drawString(mainUnderDC, _T("(Press \"Space\" to type this word)"), borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
+			mainWindow->drawString(mmFontSmallGray, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 	} else if (mainWindow->isVisible()) { //Crashes otherwise
 		//Add the post-processed word, if it exists...
 		int mySelectedID = ((int)model.getCurrSelectedID()) + patSintIDModifier;
@@ -2101,9 +2103,9 @@ void recalculate()
 			else {
 				mmFont = mmFontGreen;
 
-				SelectObject(mainUnderDC, g_YellowBkgrd);
-				SelectObject(mainUnderDC, g_GreenPen);
-				Rectangle(mainUnderDC, borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
+				mainWindow->selectObject(g_YellowBkgrd);
+				mainWindow->selectObject(g_GreenPen);
+				mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
 			}
 
 			//Fix the pen if this is a post word
@@ -2115,7 +2117,7 @@ void recalculate()
 					mmFont = mmFontRed;
 			}
 
-			mmFont->drawString(mainUnderDC, model.getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
+			mainWindow->drawString(mmFont, model.getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 			if (wordID<10) {
 				if (wordID>=0)
@@ -2131,7 +2133,7 @@ void recalculate()
 
 				int digitWidth = mmFont->getStringWidth(digit);
 
-				mmFont->drawString(mainUnderDC, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
+				mainWindow->drawString(mmFont, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 			}
 
 			xOffset += thisStrWidth + spaceWidth;
@@ -2148,7 +2150,7 @@ void recalculate()
 		extendedWordString = line.str();
 	}
 
-	mmFontBlack->drawString(mainUnderDC, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
+	mainWindow->drawString(mmFontBlack, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
 	//Paint
 	reBlit();
@@ -2321,8 +2323,8 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			//Resize the help dialog; keep it at the same position.
 			helpWindow->resizeWindow(473, 262);
-			/*RECT r;
-			GetWindowRect(hwnd, &r);
+			RECT r;
+			/*GetWindowRect(hwnd, &r);
 			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);*/
 
 			//Change the text of our dialog box
@@ -2542,6 +2544,43 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 }
 
 
+void onAllWindowsCreated()
+{
+	//Only perform ONCE
+	if (!mainInitDone || !sentenceInitDone || !helpInitDone || !memoryInitDone)
+		return;
+
+	//Create our font
+	makeFont();
+
+	//Perform initial calculations if this worked
+	if (mmFontBlack->isInError()) {
+		//Will generate a WM_DESTROY message
+		delete mainWindow;
+		return;
+	}
+	initCalculate();
+
+	//Initialize the main window
+	mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight());
+	mainWindow->createDoubleBufferedSurface();
+
+	//Initialize the sentence window
+	sentenceWindow->resizeWindow(sentenceWindow->getDefaultWidth(), sentenceWindow->getDefaultHeight());
+	sentenceWindow->createDoubleBufferedSurface();
+
+	//Initialize the helper window
+	helpWindow->resizeWindow(helpWindow->getDefaultWidth(), helpWindow->getDefaultHeight());
+	helpWindow->createDoubleBufferedSurface();
+
+	//Initialize the memory window
+	memoryWindow->resizeWindow(memoryWindow->getDefaultWidth(), memoryWindow->getDefaultHeight());
+	memoryWindow->createDoubleBufferedSurface();
+
+	//Initialize the calculationf for the help window
+	initCalculateHelp();
+}
+
 
 
 //Message handling for our help window
@@ -2550,26 +2589,12 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg) {
 		case WM_CREATE:
 		{
-			//Resize our window?
-			MoveWindow(hwnd, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, FALSE);
-
-			//Now, create all our buffering objects
-			RECT r;
-			GetClientRect(hwnd, &r);
-			HELP_CLIENT_SIZE.cx = r.right;
-			HELP_CLIENT_SIZE.cy = r.bottom;
-			helpDC = GetDC(hwnd);
-
-			//Our expanding code is a bit fragile, so we'll have to initialize helpUnderDC and helpBitmap here.
-			helpUnderDC = CreateCompatibleDC(helpDC);
-			helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
-			SelectObject(helpUnderDC, helpBitmap);
-
-			//Initialize our help window
-			if (mainInitDone && memoryInitDone) {
-				initCalculateHelp();
-			}
+			//Save our window, init done
+			helpWindow->saveHwnd(hwnd);
 			helpInitDone = true;
+
+			//Performa general initialization
+			onAllWindowsCreated();
 
 			break;
 		}
@@ -2672,26 +2697,12 @@ LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 	switch(msg) {
 		case WM_CREATE:
 		{
-			//Resize our window?
-			MoveWindow(hwnd, 400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT, FALSE);
-
-			//Now, create all our buffering objects
-			RECT r;
-			GetClientRect(hwnd, &r);
-			MEMORY_CLIENT_SIZE.cx = r.right;
-			MEMORY_CLIENT_SIZE.cy = r.bottom;
-			memoryDC = GetDC(hwnd);
-
-			//Our expanding code is a bit fragile, so we'll have to initialize memoryUnderDC and memoryBitmap here.
-			memoryUnderDC = CreateCompatibleDC(memoryDC);
-			memoryBitmap = CreateCompatibleBitmap(memoryDC, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT);
-			SelectObject(memoryUnderDC, memoryBitmap);
-
-			//Init properly
-			if (mainInitDone && helpInitDone) {
-				initCalculateHelp();
-			}
+			//Save our window
+			memoryWindow->saveHwnd(hwnd);
 			memoryInitDone = true;
+
+			//Performa general initialization
+			onAllWindowsCreated();
 
 			break;
 		}
@@ -2773,20 +2784,13 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg) {
 		case WM_CREATE:
 		{
-			//Resize our window?
-			MoveWindow(hwnd, 100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+			//Save our window
+			sentenceWindow->saveHwnd(hwnd);
+			sentenceInitDone = true;
 
-			//Now, create all our buffering objects
-			RECT r;
-			GetClientRect(hwnd, &r);
-			SUB_C_WIDTH = r.right;
-			SUB_C_HEIGHT = r.bottom;
+			//Performa general initialization
+			onAllWindowsCreated();
 
-			senDC = GetDC(hwnd);
-			senUnderDC = CreateCompatibleDC(senDC);
-
-			senBitmap = CreateCompatibleBitmap(senDC, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT);
-			SelectObject(senUnderDC, senBitmap);
 			break;
 		}
 		/*case WM_NCHITTEST: //Allow dragging of the client area...
@@ -2843,7 +2847,7 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
 				mainWindowSkipMove = true;
-				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				mainWindow->setWindowPosition(min(max(r.left, 0), r2.right-mainWindow->getClientWidth()), max(r.top-mainWindow->getClientHeight(), 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			senWindowSkipMove = false;
 			break;
@@ -2898,25 +2902,21 @@ void updateHelpWindow()
 				GetClientRect(taskBar, &r);
 				newY -= (r.bottom-r.top);
 			}
-			int newW = 0;
-			int newH = 0;
-			expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
-			HELP_CLIENT_SIZE.cx = newW;
-			HELP_CLIENT_SIZE.cy = newH;
+			helpWindow->expandWindow(newX, newY, helpKeyboard->getWidth(), helpKeyboard->getHeight(), false);
+			//HELP_CLIENT_SIZE.cx = newW;
+			//HELP_CLIENT_SIZE.cy = newH;
 
 			//Move the memory window, too
-			int newWMem = 0;
-			int newHMem = 0;
-			expandHWND(memoryWindow, memoryDC, memoryUnderDC, memoryBitmap, newX+helpKeyboard->getWidth(), newY, false, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), newWMem, newHMem);
-			MEMORY_CLIENT_SIZE.cx = newWMem;
-			MEMORY_CLIENT_SIZE.cy = newHMem;
+			memoryWindow->expandWindow(newX+helpKeyboard->getWidth(), newY, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), false);
+			//MEMORY_CLIENT_SIZE.cx = newWMem;
+			//MEMORY_CLIENT_SIZE.cy = newHMem;
 
 			//Might as well build the reverse lookup
 			model.reverseLookupWord(0);
 
 			//...and now we can properly initialize its drawing surface
-			helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
-			helpKeyboard->initMemory(memoryDC, memoryUnderDC, memoryBitmap);
+			helpKeyboard->init(helpWindow);
+			helpKeyboard->initMemory(memoryWindow);
 
 			helpIsCached = true;
 		}
@@ -2927,7 +2927,7 @@ void updateHelpWindow()
 		if (!controlKeysOn) //We'll need these too.
 			res = turnOnControlkeys(true);
 		if (!turnOnHelpKeys(true) || !res)
-			MessageBox(mainWindow, _T("Could not turn on the shift/control hotkeys."), _T("Error"), MB_ICONERROR | MB_OK);
+			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
 
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
@@ -2982,55 +2982,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg) {
 		case WM_CREATE:
 		{
-			//Make our font?
-			makeFont(hwnd);
-
-			//Did it work? If so, init. If not, exit.
-			if (mmFontBlack->isInError()) {
-				//Will generate a WM_DESTROY message
-				delete mainWindow;
-				//DestroyWindow(hwnd);
-				break;
-			}
-			initCalculate();
-
-			//Resize our window?
-			mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight());
-			//NOTE: This does NOT repaint, but resize() DOES. Is that ok?
-			//MoveWindow(hwnd, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
-
-			//Now, create all our buffering objects
-
-			//Updated automatically...
-			/*RECT r;
-			GetClientRect(hwnd, &r);
-			C_WIDTH = r.right;
-			C_HEIGHT = r.bottom;*/
-
-			mainWindow->createDoubleBufferedSurface();
-			/*mainDC = GetDC(hwnd);
-			mainUnderDC = CreateCompatibleDC(mainDC);
-			mainBitmap = CreateCompatibleBitmap(mainDC, WINDOW_WIDTH, WINDOW_HEIGHT);
-			SelectObject(mainUnderDC, mainBitmap);*/
-
-			//Init our helper window
-			if (helpInitDone && memoryInitDone) {
-				initCalculateHelp();
-			}
+			//Save our window
+			mainWindow->saveHwnd(hwnd);
 			mainInitDone = true;
+
+			//Performa general initialization
+			onAllWindowsCreated();
 
 			break;
 		}
 		case WM_MOVE:
 		{
 			//Move the sentence window?
-			if (typePhrases && !mainWindowSkipMove && sentenceWindow->isVisible() && dragBothWindowsTogether) {
+			if (typePhrases && !mainWindowSkipMove && sentenceWindow!=NULL && sentenceWindow->isVisible() && dragBothWindowsTogether) {
 				RECT r;
 				GetWindowRect(hwnd, &r);
 				RECT r2;
 				GetWindowRect(GetDesktopWindow(), &r2);
 				senWindowSkipMove = true;
-				SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				sentenceWindow->setWindowPosition(min(max(r.left, 0), r2.right-sentenceWindow->getClientWidth()), min(r.top+mainWindow->getClientHeight(), r2.bottom-sentenceWindow->getClientHeight()), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				//SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			mainWindowSkipMove = false;
 			break;
@@ -3075,9 +3046,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Well, I like posting fake messages. :D
 					// Note that (lParam>>16)&VK_LSHIFT doesn't work here
 					if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
-						PostMessage(mainWindow, WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MOD_SHIFT);
+						mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MOD_SHIFT);
 					if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
-						PostMessage(mainWindow, WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
+						mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
 				} else {
 					//Is this a valid key? If so, highlight it and repaint the help window
 					if (helpKeyboard->highlightKey(keyCode, true)) {
@@ -3839,6 +3810,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
+		{
 			//Cleanup
 			if (!mainWindow->unregisterHotKey(LANG_HOTKEY))
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
@@ -3870,6 +3842,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			PostQuitMessage(0);
 			break;
+		}
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
@@ -4218,8 +4191,12 @@ void makeMainWindow(LPCWSTR windowClassName)
 		return;
 	}
 
-	//Create our main window
-	mainWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, positionAtCaret, false);
+	//Create our main window, set default sizes
+	int def_width  = 240;
+	int def_height = 120;
+	mainWindow = new MyWin32Window();
+	mainWindow->init(windowClassName, L"WaitZar", hInst, 100, 100, def_width, def_height, positionAtCaret, false);
+	mainWindow->setDefaultSize(def_width, def_height);
 	/*mainWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4259,7 +4236,11 @@ void makeSubWindow(LPCWSTR windowClassName)
 	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
 	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
 	// receive very few actual events
-	sentenceWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, positionAtCaret, false);
+	int def_width  = 300;
+	int def_height =  26;
+	sentenceWindow = new MyWin32Window();
+	sentenceWindow->init(windowClassName, L"WaitZar", hInst, 100, 100+mainWindow->getDefaultWidth(), def_width, def_height, positionAtCaret, false);
+	sentenceWindow->setDefaultSize(def_width, def_height);
 	/*senWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4296,7 +4277,11 @@ void makeHelpWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	helpWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, NULL, true);
+	int def_width  = 200;
+	int def_height = 200;
+	helpWindow = new MyWin32Window();
+	helpWindow->init(windowClassName, L"WaitZar", hInst, 400, 300, def_width, def_height, NULL, true);
+	helpWindow->setDefaultSize(def_width, def_height);
 	/*helpWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
@@ -4334,7 +4319,11 @@ void makeMemoryWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	memoryWindow = new MyWin32Window(windowClassName, L"WaitZar", hInst, 400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT, NULL, true);
+	int def_width  = 200;
+	int def_height = 200;
+	memoryWindow = new MyWin32Window();
+	memoryWindow->init(windowClassName, L"WaitZar", hInst, 400, 300, def_width, def_height, NULL, true);
+	memoryWindow->setDefaultSize(def_width, def_height);
 	/*memoryWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
@@ -4546,16 +4535,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
-	mainWindow->isVisible() = false;
-	sentenceWindow->isVisible() = false;
-	helpWindow->isVisible() = false;
-	memoryWindow->isVisible() = false;
 	mainInitDone = false;
 	helpInitDone = false;
 
 	//First and foremost
-	PT_ORIGIN.x = 0;
-	PT_ORIGIN.y = 0;
 	helpIsCached = false;
 	isDragging = false;
 
@@ -4798,6 +4781,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors.get() <<std::endl;
 	msg << "Track caret: " <<s.trackCaret.get() <<std::endl;
 	msg << "Hotkey: " <<s.hotkey.get() <<std::endl;
+	msg << "---------------------" <<std::endl;
+	msg << "Languages" <<std::endl;
+	std::vector<std::wstring> langs = config.getLanguages();
+	for (std::vector<std::wstring>::iterator s=langs.begin(); s!=langs.end(); s++) 
+		msg <<"   " << *s <<std::endl;
 	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
 
 
@@ -4828,17 +4816,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//  NOTE: We need to balance this eventually.
 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
-	//Create our windows
+	//Create our windows.
 	makeMainWindow(_T("waitZarMainWindow"));
 	makeSubWindow(_T("waitZarSentenceWindow"));
 	makeHelpWindow(_T("waitZarHelpWindow"));
 	makeMemoryWindow(_T("waitZarMemoryWindow"));
 
 	//Set default sizes
-	mainWindow->setDefaultSize(240, 120);
+	/*mainWindow->setDefaultSize(240, 120);
 	sentenceWindow->setDefaultSize(300, 26);
 	helpWindow->setDefaultSize(200, 200);
-	memoryWindow->setDefaultSize(200, 200);
+	memoryWindow->setDefaultSize(200, 200);*/
 
 	//Our vector is used to store typed words for later...
 	//sentence = new SentenceList();
@@ -4909,7 +4897,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//Success?
-	if(mainWindow==NULL || (typePhrases && senWindow==NULL) || helpWindow==NULL || memoryWindow==NULL) {
+	if(mainWindow->isInvalid() || (typePhrases && sentenceWindow->isInvalid()) || helpWindow->isInvalid() || memoryWindow->isInvalid()) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}

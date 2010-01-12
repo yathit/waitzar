@@ -25,6 +25,7 @@
 
 #include "Pulp Core/PulpCoreImage.h"
 #include "Pulp Core/PulpCoreFont.h"
+#include "MyWin32Window.h"
 #include "Hotkeys.h"
 
 //Useful constants
@@ -120,8 +121,8 @@ class OnscreenKeyboard
 {
 public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg);
-	void init(HDC helpMainDC, HDC &helperBufferedDC, HBITMAP &helpBitmap);
-	void initMemory(HDC memoryMainDC, HDC &memoryBuffDC, HBITMAP &memoryBitmap);
+	void init(MyWin32Window *helpWindow);
+	void initMemory(MyWin32Window *memoryWindow);
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
 
@@ -141,11 +142,13 @@ public:
 
 private:
 	//Help window context & image
-	HDC underDC;
+	//HDC underDC;
+	MyWin32Window *helpWindow;
 	PulpCoreImage *bkgrdImg;
 
 	//Memory list context & image
-	HDC memoryDC;
+	//HDC memoryDC;
+	MyWin32Window *memoryWindow;
 	PulpCoreImage *memoryImg;
 
 	//The actual memory list
