@@ -341,6 +341,11 @@ void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFro
 	img->init(copyFromImage, topDC);
 }
 
+void MyWin32Window::initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont)
+{
+	font->init(copyFromFont, topDC);
+}
+
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size)
 {
 	img->init(data, size, topDC);

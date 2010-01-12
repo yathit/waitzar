@@ -2120,6 +2120,7 @@ void recalculate()
 					mmFont = mmFontRed;
 			}
 
+			//NOTE: Something is wrong with mmFont(Green); it's not getting initialized properly...
 			mainWindow->drawString(mmFont, model.getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 			if (wordID<10) {

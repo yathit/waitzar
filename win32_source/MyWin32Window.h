@@ -85,6 +85,7 @@ public:
 	//Fonts (even DIB ones like Pulp Core fonts) must be tied to some compatible DC somewhere.
 	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
 	void initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImg);
+	void initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont); //Needed for a tiny fluke w/ OOP
 	void initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size);
 	void initPulpCoreImage(PulpCoreImage* img, int width, int height, int bkgrdARGB);
 
