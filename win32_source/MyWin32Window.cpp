@@ -27,7 +27,6 @@ void MyWin32Window::init(LPCWSTR windowClassName, LPCWSTR windowTitle, const HIN
 	//Init
 	this->is_visible = false;
 	this->useAlpha = useAlpha;
-	this->top_dc_b = false;
 
 	//Manually track the window's width/height
 	windowArea.left = x;
@@ -49,7 +48,7 @@ void MyWin32Window::init(LPCWSTR windowClassName, LPCWSTR windowTitle, const HIN
 	//Save the device context; this should prevent some errors.
 	//NOTE: Can't do this; the WM_CREATE message may be posted before this...
 	//if (window != NULL)
-	//	topDC() = GetDC(window);
+	//	topDC = GetDC(window);
 }
 
 
@@ -64,8 +63,7 @@ MyWin32Window::~MyWin32Window()
 void MyWin32Window::saveHwnd(HWND &hwnd)
 {
 	this->window = hwnd;
-	this->top_dc_i = GetDC(hwnd);
-	this->top_dc_b = true;
+	this->topDC = GetDC(hwnd);
 }
 
 
@@ -88,9 +86,9 @@ void MyWin32Window::createDoubleBufferedSurface()
 {
 	//Create all our buffering objects
 	GetClientRect(window, &clientArea);
-	top_dc_i = GetDC(window);
-	underDC = CreateCompatibleDC(topDC());
-	topBitmap = CreateCompatibleBitmap(topDC(), windowArea.right-windowArea.left, windowArea.bottom-windowArea.top);
+	topDC = GetDC(window);
+	underDC = CreateCompatibleDC(topDC);
+	topBitmap = CreateCompatibleBitmap(topDC, windowArea.right-windowArea.left, windowArea.bottom-windowArea.top);
 	SelectObject(underDC, topBitmap);
 }
 
@@ -107,7 +105,7 @@ NOTIFYICONDATA MyWin32Window::getShellNotifyIconData()
 
 bool MyWin32Window::getTextMetrics(LPTEXTMETRICW res)
 {
-	if (GetTextMetrics(topDC(), res)==FALSE)
+	if (GetTextMetrics(topDC, res)==FALSE)
 		return false;
 	return true;
 }
@@ -213,9 +211,9 @@ bool MyWin32Window::expandWindow(int newX, int newY, int newWidth, int newHeight
 	//We also have to set our graphics contexts correctly. Also, throw out the old ones.
 	DeleteDC(underDC);
 	DeleteObject(topBitmap);
-	top_dc_i = GetDC(window);
-	underDC = CreateCompatibleDC(topDC());
-	topBitmap = CreateCompatibleBitmap(topDC(), this->getClientWidth(), this->getClientHeight());
+	topDC = GetDC(window);
+	underDC = CreateCompatibleDC(topDC);
+	topBitmap = CreateCompatibleBitmap(topDC, this->getClientWidth(), this->getClientHeight());
 	SelectObject(underDC, topBitmap);
 
 	return res;
@@ -257,7 +255,7 @@ bool MyWin32Window::repaintWindow(RECT blitArea)
 		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &sz, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
 	} else {
 		//Use the "Blit" command
-		res = (BitBlt(topDC(),blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,underDC,blitArea.left,blitArea.top,SRCCOPY)==TRUE);
+		res = (BitBlt(topDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,underDC,blitArea.left,blitArea.top,SRCCOPY)==TRUE);
 	}
 	return res;
 }
@@ -273,7 +271,7 @@ bool MyWin32Window::repaintWindow()
 		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &sz, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
 	} else {
 		//Use the "Blit" command
-		res = (BitBlt(topDC(),0,0,this->getClientWidth(),this->getClientHeight(),underDC,0,0,SRCCOPY)==TRUE);
+		res = (BitBlt(topDC,0,0,this->getClientWidth(),this->getClientHeight(),underDC,0,0,SRCCOPY)==TRUE);
 	}
 	return res;
 }
@@ -337,22 +335,22 @@ bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle)
 {
-	img->init(resource, dataHandle, topDC());
+	img->init(resource, dataHandle, topDC);
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImage)
 {
-	img->init(copyFromImage, topDC());
+	img->init(copyFromImage, topDC);
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size)
 {
-	img->init(data, size, topDC());
+	img->init(data, size, topDC);
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, int width, int height, int bkgrdARGB)
 {
-	img->init(width, height, bkgrdARGB, topDC(), underDC, topBitmap);
+	img->init(width, height, bkgrdARGB, topDC, underDC, topBitmap);
 }
 
 
@@ -415,14 +413,6 @@ bool MyWin32Window::drawChar(PulpCoreFont* font, char letter, int xPos, int yPos
 }
 
 
-HDC MyWin32Window::topDC()
-{
-	if (!top_dc_b) {
-		top_dc_i = GetDC(window);
-		top_dc_b = true;
-	}
-	return top_dc_i;
-}
 
 
 
