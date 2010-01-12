@@ -1964,16 +1964,16 @@ void recalculate()
 		//expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
 
 	//Background
-	SelectObject(mainUnderDC, g_BlackPen);
-	SelectObject(mainUnderDC, g_DarkGrayBkgrd);
-	Rectangle(mainUnderDC, 0, 0, C_WIDTH, C_HEIGHT);
+	mainWindow->selectObject(g_BlackPen);
+	mainWindow->selectObject(g_DarkGrayBkgrd);
+	mainWindow->drawRectangle(0, 0, mainWindow->getClientWidth(), mainWindow->getClientHeight());
 
 	//Background -second window
 	if (typePhrases) {
 		//Draw the background
-		SelectObject(senUnderDC, g_BlackPen);
-		SelectObject(senUnderDC, g_DarkGrayBkgrd);
-		Rectangle(senUnderDC, 0, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
+		sentenceWindow->selectObject(g_BlackPen);
+		sentenceWindow->selectObject(g_DarkGrayBkgrd);
+		sentenceWindow->drawRectangle(0, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
 
 		//Draw each string
 		std::list<int>::const_iterator printIT = sentence.begin();
@@ -2000,7 +2000,7 @@ void recalculate()
 				if (patSintIDModifier==-1)
 					strToDraw = model.getPostString();
 			}
-			colorFont->drawString(senUnderDC, strToDraw, currentPosX, borderWidth+1);
+			sentenceWindow->drawString(colorFont, strToDraw, currentPosX, borderWidth+1);
 			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
 
 			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
@@ -2012,23 +2012,23 @@ void recalculate()
 		}
 
 		//Draw the cursor
-		MoveToEx(senUnderDC, cursorPosX-1, borderWidth+1, NULL);
-		LineTo(senUnderDC, cursorPosX-1, SUB_C_HEIGHT-borderWidth-1);
+		sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
+		sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
 		//Draw the current encoding
 		int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
-		SelectObject(senUnderDC, g_BlackPen);
-		SelectObject(senUnderDC, g_GreenBkgrd);
-		Rectangle(senUnderDC, SUB_C_WIDTH-encStrWidth-3, 0, SUB_C_WIDTH, SUB_C_HEIGHT);
-		mmFontSmallWhite->drawString(senUnderDC, currEncStr, SUB_C_WIDTH-encStrWidth-2, SUB_C_HEIGHT/2-mmFontSmallWhite->getHeight()/2);
+		sentenceWindow->selectObject(g_BlackPen);
+		sentenceWindow->selectObject(g_GreenBkgrd);
+		sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
+		sentenceWindow->drawString(mmFontSmallWhite, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmallWhite->getHeight()/2);
 	}
 
 	//White overlays
-	SelectObject(mainUnderDC, g_EmptyPen);
-	SelectObject(mainUnderDC, g_WhiteBkgrd);
-	Rectangle(mainUnderDC, borderWidth+1, firstLineStart+1, C_WIDTH-borderWidth-1, secondLineStart-borderWidth);
-	Rectangle(mainUnderDC, borderWidth+1, secondLineStart, C_WIDTH-borderWidth-1, thirdLineStart-borderWidth);
-	Rectangle(mainUnderDC, borderWidth+1, thirdLineStart, C_WIDTH-borderWidth-1, fourthLineStart-borderWidth-1);
+	mainWindow->selectObject(g_EmptyPen);
+	mainWindow->selectObject(g_WhiteBkgrd);
+	mainWindow->drawRectangle(borderWidth+1, firstLineStart+1, mainWindow->getClientWidth()-borderWidth-1, secondLineStart-borderWidth);
+	mainWindow->drawRectangle(borderWidth+1, secondLineStart, mainWindow->getClientWidth()-borderWidth-1, thirdLineStart-borderWidth);
+	mainWindow->drawRectangle(borderWidth+1, thirdLineStart, mainWindow->getClientWidth()-borderWidth-1, fourthLineStart-borderWidth-1);
 
 	//Now, draw the strings....
 	PulpCoreFont* mmFont = mmFontBlack;

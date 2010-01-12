@@ -60,6 +60,15 @@ public:
 	bool repaintWindow(); //Blit or UpdateLayer depending
 	bool repaintWindow(RECT blitArea); //Blit or UpdateLayer depending
 
+	//GDI functionality, always draws to the underDC
+	bool selectObject(HPEN &obj);
+	bool selectObject(HBRUSH &obj);
+	bool moveTo(int x, int y);
+	bool drawLineTo(int x, int y);
+	bool drawRectangle(int left, int top, int right, int bottom);
+	bool drawString(PulpCoreFont* font, const std::string& str, int x, int y);
+	bool drawString(PulpCoreFont* font, const std::wstring& str, int x, int y);
+
 	//A new property
 	void setDefaultSize(int width, int height);
 	int getDefaultWidth();
