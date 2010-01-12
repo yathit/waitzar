@@ -276,6 +276,55 @@ void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size
 
 
 
+//Painting
+bool MyWin32Window::selectObject(HPEN &obj)
+{
+	bool res = (SelectObject(underDC, obj)!=NULL);
+	return res;
+}
+
+bool MyWin32Window::selectObject(HBRUSH &obj)
+{
+	bool res = (SelectObject(underDC, obj)!=NULL);
+	return res;
+}
+
+bool MyWin32Window::moveTo(int x, int y)
+{
+	bool res = (MoveToEx(underDC, x, y, NULL) != 0);
+	return res;
+}
+
+bool MyWin32Window::drawLineTo(int x, int y)
+{
+	bool res = (LineTo(underDC, x, y)==TRUE);
+	return res;
+}
+
+
+bool MyWin32Window::drawRectangle(int left, int top, int right, int bottom)
+{
+	bool res = (Rectangle(underDC, left, top, right, bottom)==TRUE);
+	return res;
+}
+
+
+bool MyWin32Window::drawString(PulpCoreFont* font, const std::string& str, int x, int y)
+{
+	font->drawString(underDC, str, x, y);
+	return true;
+}
+
+
+bool MyWin32Window::drawString(PulpCoreFont* font, const std::wstring& str, int x, int y)
+{
+	font->drawString(underDC, str, x, y);
+	return true;
+}
+
+
+
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
