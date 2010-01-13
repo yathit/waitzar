@@ -2920,8 +2920,7 @@ void updateHelpWindow()
 			model.reverseLookupWord(0);
 
 			//...and now we can properly initialize its drawing surface
-			helpKeyboard->init(helpWindow);
-			helpKeyboard->initMemory(memoryWindow);
+			helpKeyboard->init(helpWindow, memoryWindow);
 
 			helpIsCached = true;
 		}
