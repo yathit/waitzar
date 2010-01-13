@@ -276,6 +276,15 @@ bool MyWin32Window::repaintWindow()
 	return res;
 }
 
+int MyWin32Window::getXPos()
+{
+	return windowArea.left;
+}
+
+int MyWin32Window::getYPos()
+{
+	return windowArea.top;
+}
 
 int MyWin32Window::getWidth()
 {

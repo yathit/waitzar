@@ -1647,6 +1647,10 @@ void positionAtCaret()
 		sentenceWindow->moveWindow(caretLatestPosition.x, caretLatestPosition.y + mainWindow->getHeight());
 		//MoveWindow(mainWindow, caretLatestPosition.x, caretLatestPosition.y, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE);
 		//MoveWindow(senWindow, caretLatestPosition.x, caretLatestPosition.y+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT, FALSE);
+	} else {
+		//At least line them up on the main window itself.
+		mainWindow->moveWindow(mainWindow->getXPos(), mainWindow->getYPos());
+		sentenceWindow->moveWindow(mainWindow->getXPos(), mainWindow->getYPos() + mainWindow->getHeight());
 	}
 }
 
@@ -1697,8 +1701,9 @@ void ShowBothWindows(int cmdShow)
 	bool show = (cmdShow==SW_SHOW);
 	mainWindow->showWindow(show);
 
-	if (typePhrases)
+	if (typePhrases) {
 		sentenceWindow->showWindow(show);
+	}
 }
 
 
@@ -3582,7 +3587,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						{
 							//Reset it...
 							currStr.clear();
-							//recalculate();
 
 							//Optionally turn on numerals
 							if (!numberKeysOn)
@@ -4255,7 +4259,7 @@ void makeSubWindow(LPCWSTR windowClassName)
 	int def_width  = 300;
 	int def_height =  26;
 	sentenceWindow = new MyWin32Window();
-	sentenceWindow->init(windowClassName, L"WaitZar", hInst, 100, 100+mainWindow->getDefaultWidth(), def_width, def_height, positionAtCaret, false);
+	sentenceWindow->init(windowClassName, L"WaitZar", hInst, 100, 100+mainWindow->getDefaultHeight(), def_width, def_height, positionAtCaret, false);
 	sentenceWindow->setDefaultSize(def_width, def_height);
 	/*senWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,

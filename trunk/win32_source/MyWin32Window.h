@@ -57,6 +57,8 @@ public:
 	bool expandWindow(int newX, int newY, int newWidth, int newHeight, bool dontMove); //Ugh...
 	bool expandWindow(int newWidth, int newHeight);
 	bool showWindow(bool show); //Handle callbacks for cursor repositioning, etc.
+	int getXPos(); //We track this ourselves
+	int getYPos(); //We track this ourselves
 	int getWidth(); //We track this ourselves
 	int getHeight(); //We track this ourselves
 	int getClientWidth(); //We track this ourselves
