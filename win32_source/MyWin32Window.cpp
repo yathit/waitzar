@@ -88,7 +88,7 @@ void MyWin32Window::createDoubleBufferedSurface()
 	GetClientRect(window, &clientArea);
 	topDC = GetDC(window);
 	underDC = CreateCompatibleDC(topDC);
-	topBitmap = CreateCompatibleBitmap(topDC, windowArea.right-windowArea.left, windowArea.bottom-windowArea.top);
+	topBitmap = CreateCompatibleBitmap(topDC, this->getClientWidth(), this->getClientHeight());
 	SelectObject(underDC, topBitmap);
 }
 
@@ -236,10 +236,12 @@ bool MyWin32Window::showWindow(bool show)
 		onShowFunction();
 
 	//Set flags, perform show/hide
-	bool res = (ShowWindow(window, show?SW_SHOW:SW_HIDE)==TRUE);
+	ShowWindow(window, show?SW_SHOW:SW_HIDE);
 	is_visible = show;
 
-	return res;
+	//ShowWindow() returns a BOOL, but that represents whether or not it WAS visible.
+	// So... it always succeeds? 
+	return true; 
 }
 
 bool MyWin32Window::repaintWindow(RECT blitArea)
