@@ -262,16 +262,6 @@ int prevProcessID;
 bool showingHelpPopup = false;
 
 
-//Width/height of client area
-//int C_WIDTH;
-//int C_HEIGHT;
-//int SUB_C_WIDTH;
-//int SUB_C_HEIGHT;
-
-//Try it differently for the help menu
-//SIZE HELP_CLIENT_SIZE;
-//SIZE MEMORY_CLIENT_SIZE;
-
 //Calculate's integers
 int firstLineStart;
 int secondLineStart;
@@ -280,11 +270,6 @@ int fourthLineStart;
 int borderWidth = 2;
 int spaceWidth;
 
-//Avoid crashing if explorer is running slowly
-//bool mainWindow->isVisible();
-//bool sentenceWindow->isVisible();
-//bool helpWindow->isVisible();
-//bool memoryWindow->isVisible();
 
 //Log file, since the debugger doesn't like multi-process threads
 bool isLogging = false;
@@ -1820,6 +1805,8 @@ void reBlitHelp()
 		delete mainWindow;
 		//DestroyWindow(mainWindow);
 	}
+	/*if (isLogging)
+		fprintf(logFile, "  Reblit help\n");*/
 
 	//Memory Window
 	//if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
@@ -2922,6 +2909,24 @@ void updateHelpWindow()
 			//...and now we can properly initialize its drawing surface
 			helpKeyboard->init(helpWindow, memoryWindow);
 
+			//WORKAROUND - Fixes an issue where WZ won't highlight the first key press (unless it's Shift)
+			//CRITICAL SECTION
+			{
+				EnterCriticalSection(&threadCriticalSec);
+
+				//NOTE: This is the workaround: just process a dummy event.
+				//      GetKeyState() is failing for some unknown reason on the first press.
+				//                    All attempts to "update" it somehow have failed.
+				hotkeysDown.push_front(117);
+				if (!threadIsActive) {
+					threadIsActive = true;
+					ResumeThread(keyTrackThread);
+				}
+
+				LeaveCriticalSection(&threadCriticalSec);
+			}
+			//END WORKAROUND
+
 			helpIsCached = true;
 		}
 
@@ -3060,6 +3065,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//CRITICAL SECTION
 						{
 							EnterCriticalSection(&threadCriticalSec);
+
+							/*if (isLogging)
+								fprintf(logFile, "  Key down: %c\n", keyCode);*/
 
 							//Manage our thread's list of currently pressed hotkeys
 							hotkeysDown.remove(keyCode);
