@@ -121,8 +121,9 @@ class OnscreenKeyboard
 {
 public:
 	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg);
-	void init(MyWin32Window *helpWindow);
-	void initMemory(MyWin32Window *memoryWindow);
+	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow);
+	void initHelp();
+	void initMemory();
 
 	bool highlightKey(UINT hotkeyCode, bool highlightON);
 

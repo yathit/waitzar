@@ -76,11 +76,19 @@ void OnscreenKeyboard::setMode(int newMode)
 
 //hdc must already be properly sized
 //we'll init a pulp core image with the right size
-void OnscreenKeyboard::init(MyWin32Window *helpWindow)
+void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow)
 {
-	//Save our window
+	//Save our windows
 	this->helpWindow = helpWindow;
+	this->memoryWindow = memoryWindow;
 
+	//Perform sub-init methods
+	this->initHelp();
+	this->initMemory();
+}
+
+void OnscreenKeyboard::initHelp()
+{
 	//Create a new device context
 	bkgrdImg = new PulpCoreImage();
 	helpWindow->initPulpCoreImage(bkgrdImg, this->width, this->height, 0x00000000);
@@ -155,11 +163,8 @@ void OnscreenKeyboard::init(MyWin32Window *helpWindow)
 
 
 
-void OnscreenKeyboard::initMemory(MyWin32Window *memoryWindow)
+void OnscreenKeyboard::initMemory()
 {
-	//Save our device context
-	this->memoryWindow = memoryWindow;
-
 	//Create a new device context
 	memoryImg = new PulpCoreImage();
 	memoryWindow->initPulpCoreImage(memoryImg, this->memWidth, this->memHeight, 0x00000000);
