@@ -193,7 +193,7 @@ vector< pair <int, unsigned short> > systemWordLookup;
 //Special resources for tracking the caret
 //Note: This is run synchronously; it's spawned into its own thread just so we can
 //      call "AttachThreadInput()"
-HANDLE caretTrackThread; 
+HANDLE caretTrackThread;
 DWORD caretTrackThreadID;
 POINT caretLatestPosition;
 
@@ -1790,6 +1790,7 @@ void switchToLanguage(bool toMM) {
 
 		if (helpWindow->isVisible()) {
 			helpWindow->showWindow(false);
+			memoryWindow->showWindow(false);
 			//ShowHelpWindow(SW_HIDE);
 		}
 	}
@@ -2942,6 +2943,7 @@ void updateHelpWindow()
 
 		//Show the help window
 		helpWindow->showWindow(true);
+		memoryWindow->showWindow(true);
 		//ShowHelpWindow(SW_SHOW);
 		reBlitHelp();
 
@@ -2961,6 +2963,7 @@ void updateHelpWindow()
 
 		turnOnHelpKeys(false);
 		helpWindow->showWindow(false);
+		memoryWindow->showWindow(false);
 		//ShowHelpWindow(SW_HIDE);
 
 		//Hide the main window, too, and possibly the secondary window
@@ -3099,6 +3102,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					turnOnHelpKeys(false);
 					helpWindow->showWindow(false);
+					memoryWindow->showWindow(false);
 					//ShowHelpWindow(SW_HIDE);
 
 					//Hide the main window, too, and possibly the secondary window
@@ -3386,6 +3390,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Hide the help window
 						turnOnHelpKeys(false);
 						helpWindow->showWindow(false);
+						memoryWindow->showWindow(false);
 						//ShowHelpWindow(SW_HIDE);
 
 						//Try to type this word
@@ -3449,6 +3454,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//Hide the help window
 						turnOnHelpKeys(false);
 						helpWindow->showWindow(false);
+						memoryWindow->showWindow(false);
 						//ShowHelpWindow(SW_HIDE);
 
 						//Try to type this word
@@ -3834,7 +3840,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				DeleteCriticalSection(&threadCriticalSec);
 				CloseHandle(keyTrackThread);
 				//CloseHandle(caretTrackThread);  //This should already be closed; closing
-				//                                  it twice is an error. 
+				//                                  it twice is an error.
 			}
 
 			//Log?
@@ -4846,7 +4852,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// WM_HOTKEY, updateHelpWindow(), init:
 	//   Get task bar size
 	//   expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
-	//   helpKeyboard->init(helpDC, helpUnderDC, helpBitmap); 
+	//   helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
 	// helpKeyboard->init():
 	//   Makes and draws most of the keyboard's static data.
 
