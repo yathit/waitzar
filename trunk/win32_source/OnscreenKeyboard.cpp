@@ -78,12 +78,12 @@ void OnscreenKeyboard::setMode(int newMode)
 //we'll init a pulp core image with the right size
 void OnscreenKeyboard::init(MyWin32Window *helpWindow)
 {
+	//Save our window
+	this->helpWindow = helpWindow;
+
 	//Create a new device context
 	bkgrdImg = new PulpCoreImage();
 	helpWindow->initPulpCoreImage(bkgrdImg, this->width, this->height, 0x00000000);
-
-	//Save our window
-	this->helpWindow = helpWindow;
 
 	//Color some fonts
 	this->foreFontBlue = new PulpCoreFont();
@@ -157,12 +157,12 @@ void OnscreenKeyboard::init(MyWin32Window *helpWindow)
 
 void OnscreenKeyboard::initMemory(MyWin32Window *memoryWindow)
 {
+	//Save our device context
+	this->memoryWindow = memoryWindow;
+
 	//Create a new device context
 	memoryImg = new PulpCoreImage();
 	memoryWindow->initPulpCoreImage(memoryImg, this->memWidth, this->memHeight, 0x00000000);
-
-	//Save our device context
-	this->memoryWindow = memoryWindow;
 
 	//Make our header/body buttons, to be drawn once, and draw them
 	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(MEMLIST_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);

@@ -251,7 +251,7 @@ bool MyWin32Window::repaintWindow(RECT blitArea)
 		//Use the "Alpha" command (No rectangle at the moment...)
 		SIZE sz;
 		sz.cx = this->getClientWidth();
-		sz.cy = this->getClientWidth();
+		sz.cy = this->getClientHeight();
 		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &sz, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
 	} else {
 		//Use the "Blit" command
@@ -267,7 +267,7 @@ bool MyWin32Window::repaintWindow()
 		//Use the "Alpha" command
 		SIZE sz;
 		sz.cx = this->getClientWidth();
-		sz.cy = this->getClientWidth();
+		sz.cy = this->getClientHeight();
 		res = (UpdateLayeredWindow(window, GetDC(NULL), NULL, &sz, underDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==TRUE);
 	} else {
 		//Use the "Blit" command
