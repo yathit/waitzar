@@ -18,6 +18,8 @@
 
 #include <windows.h>
 #include <string>
+#include <sstream>
+#include <map>
 #include "Pulp Core/PulpCoreFont.h"
 
 
@@ -34,7 +36,7 @@ class MyWin32Window
 public:
 	//Constructor/destructor pair. And an init, since CreateWindowEx() causes problems in a constructor... ugh.
 	MyWin32Window();
-	void init(LPCWSTR windowClassName, LPCWSTR windowTitle, const HINSTANCE& hInstance, 
+	void init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC userWndProc, HBRUSH& bkgrdClr, const HINSTANCE& hInstance, 
 		int x=99, int y=99, int width=99, int height=99, void (*onShowFunction)(void)=NULL, bool useAlpha=true);
 	~MyWin32Window();
 
@@ -45,6 +47,10 @@ public:
 	bool isInvalid();
 	HDC WARNINGgetUnderDC();
 	void saveHwnd(HWND &hwnd);
+
+	//Process some messages ourselves
+	WNDPROC userWndProc;
+	LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	//Functionality forwarding to Win32
 	bool getTextMetrics(LPTEXTMETRICW res);
@@ -111,6 +117,10 @@ private:
 
 	//Used to update the caret position
 	void (*onShowFunction)(void);
+
+	//Obnoxious WindowClass-to-Window mapping
+	static LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	static std::map< LPCWSTR, MyWin32Window* > WndMap();
 
 
 	
