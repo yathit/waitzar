@@ -13,11 +13,12 @@ namespace {
 	BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 }
 
-std::map< LPCWSTR, MyWin32Window* > MyWin32Window::WndMap()
-{
+//NOTE: This is mildly dangerous (static initialization)
+std::map< std::wstring, MyWin32Window* > MyWin32Window::WndMap;
+/*{
 	static std::map< LPCWSTR, MyWin32Window* > *res = new std::map< LPCWSTR, MyWin32Window* >();
 	return *res;
-}
+}*/
 
 
 MyWin32Window::MyWin32Window()
@@ -47,7 +48,7 @@ void MyWin32Window::init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC u
 	windowArea.bottom = y + height;
 
 	//Does this window class already exist?
-	if (WndMap().count(windowClassName)>0) {
+	if (WndMap.count(windowClassName)>0) {
 		std::stringstream err;
 		err << "Window class already exists " <<windowClassName;
 		throw std::exception(err.str().c_str());
@@ -74,7 +75,7 @@ void MyWin32Window::init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC u
 	}
 
 	//Add this class name and the "this" pointer to the global Wnd() array
-	WndMap()[windowClassName] = this;
+	WndMap[windowClassName] = this;
 
 
 	//Create the window
@@ -111,12 +112,12 @@ LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 		throw std::exception("Window class name doesn't exist for the current hwnd");
 
 	//Get the class that created this window
-	if (WndMap().count(wndClassName)==0) {
+	if (WndMap.count(wndClassName)==0) {
 		std::stringstream err;
 		err << "Window class not known: " << ConfigManager::escape_wstr(wndClassName, false);
 		throw std::exception(err.str().c_str());
 	}
-	MyWin32Window* caller = WndMap()[wndClassName];
+	MyWin32Window* caller = WndMap[wndClassName];
 
 	//Call the WndProc function for this item
 	return caller->MyWndProc(hwnd, msg, wParam, lParam);
