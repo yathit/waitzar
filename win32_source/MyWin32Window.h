@@ -119,9 +119,10 @@ private:
 	//Used to update the caret position
 	void (*onShowFunction)(void);
 
+	//STATIC
 	//Obnoxious WindowClass-to-Window mapping
 	static LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	static std::map< LPCWSTR, MyWin32Window* > WndMap();
+	static std::map< std::wstring, MyWin32Window* > WndMap;
 
 
 	
