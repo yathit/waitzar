@@ -13,26 +13,69 @@ namespace {
 	BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 }
 
+std::map< LPCWSTR, MyWin32Window* > MyWin32Window::WndMap()
+{
+	static std::map< LPCWSTR, MyWin32Window* > *res = new std::map< LPCWSTR, MyWin32Window* >();
+	return *res;
+}
+
+
 MyWin32Window::MyWin32Window()
 {
 	//Avoid errors
 	this->window = NULL;
 }
 
-void MyWin32Window::init(LPCWSTR windowClassName, LPCWSTR windowTitle, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), bool useAlpha)
+void MyWin32Window::init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC userWndProc, HBRUSH& bkgrdClr, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), bool useAlpha)
 {
-	//Save callback
+	//Save callbacks
 	this->onShowFunction = onShowFunction;
+	this->userWndProc = userWndProc;
 
 	//Init
 	this->is_visible = false;
 	this->useAlpha = useAlpha;
+	this->window = NULL;
+
+	//Save width and height as default
+	this->setDefaultSize(width, height);
 
 	//Manually track the window's width/height
 	windowArea.left = x;
 	windowArea.top = y;
 	windowArea.right = x + width;
 	windowArea.bottom = y + height;
+
+	//Does this window class already exist?
+	if (WndMap().count(windowClassName)>0) {
+		std::stringstream err;
+		err << "Window class already exists " <<windowClassName;
+		throw std::exception(err.str().c_str());
+	}
+
+	//Create the window class
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = MyWin32Window::StaticWndProc; //NOTE: This can NOT be set to a non-static member function.
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
+	wc.hbrBackground = bkgrdClr;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = windowClassName;
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	if(!RegisterClassEx(&wc)) {
+		std::stringstream err;
+		err << "Window class registration failed for " <<windowClassName;
+		throw std::exception(err.str().c_str());
+	}
+
+	//Add this class name and the "this" pointer to the global Wnd() array
+	WndMap()[windowClassName] = this;
+
 
 	//Create the window
 	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
@@ -45,10 +88,7 @@ void MyWin32Window::init(LPCWSTR windowClassName, LPCWSTR windowTitle, const HIN
 		windowArea.left, windowArea.top, windowArea.right-windowArea.left, windowArea.bottom-windowArea.top, //Default x,y,width,height (most windows will resize later)
 		NULL, NULL, hInstance, NULL); 
 
-	//Save the device context; this should prevent some errors.
-	//NOTE: Can't do this; the WM_CREATE message may be posted before this...
-	//if (window != NULL)
-	//	topDC = GetDC(window);
+	//NOTE: No code below CreateWindowEx; this will IMMEDIATELY trigger a WM_CREATE
 }
 
 
@@ -59,6 +99,37 @@ MyWin32Window::~MyWin32Window()
 	if (window!=NULL)
 		DestroyWindow(window);
 }
+
+
+
+//General message management
+LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	//Get the window's class name
+	TCHAR wndClassName[256];
+	if (GetClassName(hwnd, wndClassName, 256)==0)
+		throw std::exception("Window class name doesn't exist for the current hwnd");
+
+	//Get the class that created this window
+	if (WndMap().count(wndClassName)==0) {
+		std::stringstream err;
+		err << "Window class not known: " <<wndClassName;
+		throw std::exception(err.str().c_str());
+	}
+	MyWin32Window* caller = WndMap()[wndClassName];
+
+	//Call the WndProc function for this item
+	return caller->MyWndProc(hwnd, msg, wParam, lParam);
+}
+
+
+//Our processing loop for messages
+LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	return this->userWndProc(hwnd, msg, wParam, lParam);
+}
+
+
 
 void MyWin32Window::saveHwnd(HWND &hwnd)
 {

@@ -4193,7 +4193,7 @@ bool turnOnControlkeys(bool on)
 void makeMainWindow(LPCWSTR windowClassName)
 {
 	//Set a window class's parameters
-	WNDCLASSEX wc;
+	/*WNDCLASSEX wc;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
 	wc.lpfnWndProc = WndProc;
@@ -4209,14 +4209,11 @@ void makeMainWindow(LPCWSTR windowClassName)
 	if(!RegisterClassEx(&wc)) {
 		MessageBox(NULL, _T("Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return;
-	}
+	}*/
 
 	//Create our main window, set default sizes
-	int def_width  = 240;
-	int def_height = 120;
 	mainWindow = new MyWin32Window();
-	mainWindow->init(windowClassName, L"WaitZar", hInst, 100, 100, def_width, def_height, positionAtCaret, false);
-	mainWindow->setDefaultSize(def_width, def_height);
+	mainWindow->init(L"WaitZar", windowClassName, WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, false);
 	/*mainWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4234,7 +4231,7 @@ void makeSubWindow(LPCWSTR windowClassName)
 		return;
 
 	//Set a window class's parameters
-	WNDCLASSEX wc;
+	/*WNDCLASSEX wc;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
 	wc.lpfnWndProc = SubWndProc;
@@ -4250,17 +4247,14 @@ void makeSubWindow(LPCWSTR windowClassName)
 	if(!RegisterClassEx(&wc)) {
 		MessageBox(NULL, _T("Sub-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return;
-	}
+	}*/
 
 	//Create a handle to the window
 	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
 	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
 	// receive very few actual events
-	int def_width  = 300;
-	int def_height =  26;
 	sentenceWindow = new MyWin32Window();
-	sentenceWindow->init(windowClassName, L"WaitZar", hInst, 100, 100+mainWindow->getDefaultHeight(), def_width, def_height, positionAtCaret, false);
-	sentenceWindow->setDefaultSize(def_width, def_height);
+	sentenceWindow->init(L"WaitZar", windowClassName, SubWndProc, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, false);
 	/*senWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4275,7 +4269,7 @@ void makeSubWindow(LPCWSTR windowClassName)
 void makeHelpWindow(LPCWSTR windowClassName)
 {
 	//Set a window class's parameters
-	WNDCLASSEX wc;
+	/*WNDCLASSEX wc;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
 	wc.lpfnWndProc = HelpWndProc;
@@ -4291,17 +4285,14 @@ void makeHelpWindow(LPCWSTR windowClassName)
 	if(!RegisterClassEx(&wc)) {
 		MessageBox(NULL, _T("Help-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return;
-	}
+	}*/
 
 	//Create a handle to the window
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	int def_width  = 200;
-	int def_height = 200;
 	helpWindow = new MyWin32Window();
-	helpWindow->init(windowClassName, L"WaitZar", hInst, 400, 300, def_width, def_height, NULL, true);
-	helpWindow->setDefaultSize(def_width, def_height);
+	helpWindow->init(L"WaitZar", windowClassName, HelpWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, true);
 	/*helpWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
@@ -4317,7 +4308,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 void makeMemoryWindow(LPCWSTR windowClassName)
 {
 	//Set a window class's parameters
-	WNDCLASSEX wc;
+	/*WNDCLASSEX wc;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
 	wc.lpfnWndProc = MemoryWndProc;
@@ -4333,17 +4324,14 @@ void makeMemoryWindow(LPCWSTR windowClassName)
 	if(!RegisterClassEx(&wc)) {
 		MessageBox(NULL, _T("Memory-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return;
-	}
+	}*/
 
 	//Create a handle to the window
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	int def_width  = 200;
-	int def_height = 200;
 	memoryWindow = new MyWin32Window();
-	memoryWindow->init(windowClassName, L"WaitZar", hInst, 400, 300, def_width, def_height, NULL, true);
-	memoryWindow->setDefaultSize(def_width, def_height);
+	memoryWindow->init(L"WaitZar", windowClassName, MemoryWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, true);
 	/*memoryWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
