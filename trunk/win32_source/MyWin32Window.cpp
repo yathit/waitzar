@@ -113,7 +113,7 @@ LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 	//Get the class that created this window
 	if (WndMap().count(wndClassName)==0) {
 		std::stringstream err;
-		err << "Window class not known: " <<wndClassName;
+		err << "Window class not known: " << ConfigManager::escape_wstr(wndClassName, false);
 		throw std::exception(err.str().c_str());
 	}
 	MyWin32Window* caller = WndMap()[wndClassName];

@@ -21,6 +21,7 @@
 #include <sstream>
 #include <map>
 #include "Pulp Core/PulpCoreFont.h"
+#include "Settings/ConfigManager.h"
 
 
 /**
