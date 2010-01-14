@@ -368,12 +368,12 @@ wstring ConfigManager::sanitize_id(const wstring& str)
 	return res;
 }
 
-std::string ConfigManager::escape_wstr(const std::wstring& str) const
+std::string ConfigManager::escape_wstr(const std::wstring& str)
 {
-	return escape_wstr(str, false);
+	return ConfigManager::escape_wstr(str, false);
 }
 
-std::string ConfigManager::escape_wstr(const std::wstring& str, bool errOnUnicode) const
+std::string ConfigManager::escape_wstr(const std::wstring& str, bool errOnUnicode)
 {
 	std::stringstream res;
 	for (wstring::const_iterator c=str.begin(); c!=str.end(); c++) {

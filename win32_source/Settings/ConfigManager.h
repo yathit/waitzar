@@ -151,8 +151,8 @@ public:
 	void testAllFiles();
 
 	//Useful
-	std::string escape_wstr(const std::wstring& str) const;
-	std::string escape_wstr(const std::wstring& str, bool errOnUnicode) const;
+	static std::string escape_wstr(const std::wstring& str);
+	static std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
 
 
 private:

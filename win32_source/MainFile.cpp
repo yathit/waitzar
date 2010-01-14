@@ -4609,10 +4609,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			bool inError = false;
 			try {
 				langCfgDir = cfgDir;
-				langCfgDir += fs + config.escape_wstr(*fold, true);
+				langCfgDir += fs + ConfigManager::escape_wstr(*fold, true);
 				langCfgFile = langCfgDir + fs + cfgFile;
 			} catch (std::exception ex) {
-				errorMsg << "Error loading config file for language: " <<config.escape_wstr(*fold, false);
+				errorMsg << "Error loading config file for language: " <<ConfigManager::escape_wstr(*fold, false);
 				errorMsg << std::endl << "Details: " << std::endl << ex.what();
 				inError = true;
 			}
@@ -4623,12 +4623,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				for (vector<wstring>::iterator mod = modFolders.begin(); mod!=modFolders.end(); mod++) {
 					try {
 						string modCfgFile = langCfgDir;
-						modCfgFile += fs + config.escape_wstr(*mod, true);
+						modCfgFile += fs + ConfigManager::escape_wstr(*mod, true);
 						modCfgFile += fs + cfgFile;
 						langModuleCfgFiles.push_back(modCfgFile);
 					} catch (std::exception ex) {
-						errorMsg << "Error loading config file for language: " <<config.escape_wstr(*fold, false);
-						errorMsg << std::endl << "and module: " <<config.escape_wstr(*mod, false);
+						errorMsg << "Error loading config file for language: " <<ConfigManager::escape_wstr(*fold, false);
+						errorMsg << std::endl << "and module: " <<ConfigManager::escape_wstr(*mod, false);
 						errorMsg << std::endl << "Details: " << std::endl << ex.what();
 						inError = true;
 						break;
@@ -4654,7 +4654,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		string localConfigFile;
 		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
 			//Try to create the folder if it doesn't exist
-			string localConfigDir = config.escape_wstr(localAppPath, true) + fs + "WaitZar";
+			string localConfigDir = ConfigManager::escape_wstr(localAppPath, true) + fs + "WaitZar";
 			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 			std::wstringstream temp;
 			temp << localConfigDir.c_str();
@@ -4694,7 +4694,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		string userConfigFile;
 		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
 			//Create the path
-			userConfigFile = config.escape_wstr(localAppPath, true) + fs + "waitzar.config.json.txt";
+			userConfigFile = ConfigManager::escape_wstr(localAppPath, true) + fs + "waitzar.config.json.txt";
 
 			//Does it exist?
 			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
@@ -4856,10 +4856,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//   Makes and draws most of the keyboard's static data.
 
 	//Create our windows.
-	makeMainWindow(_T("waitZarMainWindow"));
-	makeSubWindow(_T("waitZarSentenceWindow"));
-	makeHelpWindow(_T("waitZarHelpWindow"));
-	makeMemoryWindow(_T("waitZarMemoryWindow"));
+	try {
+		makeMainWindow(_T("waitZarMainWindow"));
+		makeSubWindow(_T("waitZarSentenceWindow"));
+		makeHelpWindow(_T("waitZarHelpWindow"));
+		makeMemoryWindow(_T("waitZarMemoryWindow"));
+	} catch (std::exception err) {
+		std::wstringstream msg;
+		msg << "Error creating WaitZar's windows.\nWaitZar will now exit.\n\nDetails:\n";
+		msg << err.what();
+		MessageBox(NULL, msg.str().c_str(), L"CreateWindow() Error", MB_ICONERROR | MB_OK);
+		return 0;
+	}
 
 	//Set default sizes
 	/*mainWindow->setDefaultSize(240, 120);
