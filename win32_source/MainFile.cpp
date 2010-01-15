@@ -2574,99 +2574,6 @@ void onAllWindowsCreated()
 
 
 
-//Message handling for our help window
-LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch(msg) {
-		case WM_PAINT:
-		{
-			//Update only if there's an area which needs updating (e.g., a higher-level
-			//  window has dragged over this one's client area... it can happen only with popups,
-			//  but let's do it just to be safe.
-			RECT updateRect;
-			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
-			{
-				//Blitting every tick will slow us down... we should validate the
-				//  rectangle after drawing it.
-				reBlitHelp(updateRect);
-
-				//Validate the client area
-				ValidateRect(hwnd, NULL);
-			}
-
-			break;
-		}
-		default:
-			return 1; //1 ==> not done
-	}
-
-	return 0;
-}
-
-
-//Message handling for our memory window
-LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch(msg) {
-		case WM_PAINT:
-		{
-			//Update only if there's an area which needs updating (e.g., a higher-level
-			//  window has dragged over this one's client area... it can happen only with popups,
-			//  but let's do it just to be safe.
-			RECT updateRect;
-			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
-			{
-				//Blitting every tick will slow us down... we should validate the
-				//  rectangle after drawing it.
-				reBlitHelp(updateRect);
-
-				//Validate the client area
-				ValidateRect(hwnd, NULL);
-			}
-
-			break;
-		}
-		default:
-			return 1; //1 ==> not done
-	}
-
-	return 0;
-}
-
-
-
-
-//Message handling for our secondary window
-LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch(msg) {
-		case WM_PAINT:
-		{
-			//Update only if there's an area which needs updating (e.g., a higher-level
-			//  window has dragged over this one's client area... it can happen only with popups,
-			//  but let's do it just to be safe.
-			RECT updateRect;
-			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
-			{
-				//Blitting every tick will slow us down... we should validate the
-				//  rectangle after drawing it.
-				reBlit(updateRect);
-
-				//Validate the client area
-				ValidateRect(hwnd, NULL);
-			}
-
-			break;
-		}
-		default:
-			return 1; //1 ==> not done
-	}
-
-	return 0;
-}
-
-
-
 void updateHelpWindow()
 {
 	if (!helpWindow->isVisible()) {
@@ -3408,24 +3315,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//We need to reset the trigrams here...
 					sentence.updateTrigrams(model);
 				}
-			}
-
-			break;
-		}
-		case WM_PAINT:
-		{
-			//Update only if there's an area which needs updating (e.g., a higher-level
-			//  window has dragged over this one's client area... it can happen only with popups,
-			//  but let's do it just to be safe.
-			RECT updateRect;
-			if (GetUpdateRect(hwnd, &updateRect, FALSE) != 0)
-			{
-				//Blitting every tick will slow us down... we should validate the
-				//  rectangle after drawing it.
-				reBlit(updateRect);
-
-				//Validate the client area
-				ValidateRect(hwnd, NULL);
 			}
 
 			break;
@@ -4404,9 +4293,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//Then, init
 		mainWindow->init(L"WaitZar", WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, onAllWindowsCreated, false);
 		if (typePhrases)
-			sentenceWindow->init(L"WaitZar", SubWndProc, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
-		helpWindow->init(L"WaitZar", HelpWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
-		memoryWindow->init(L"WaitZar", MemoryWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
+			sentenceWindow->init(L"WaitZar", NULL, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
+		helpWindow->init(L"WaitZar", NULL, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
+		memoryWindow->init(L"WaitZar", NULL, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 
 		//Then link
 		if (typePhrases && dragBothWindowsTogether)
