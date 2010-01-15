@@ -232,6 +232,24 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 
 			break;
 		}
+		case WM_PAINT:
+		{
+			//Update only if there's an area which needs updating (e.g., a higher-level
+			//  window has dragged over this one's client area... it can happen only with popups,
+			//  but let's do it just to be safe.
+			RECT updateRect;
+			if (GetUpdateRect(window, &updateRect, FALSE) != 0)
+			{
+				//Blitting every tick will slow us down... we should validate the
+				//  rectangle after drawing it.
+				this->repaintWindow(updateRect);
+
+				//Validate the client area
+				ValidateRect(window, NULL);
+			}
+
+			break;
+		}
 		case WM_CLOSE:
 		{
 			DestroyWindow(window);
@@ -247,7 +265,8 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 	}
 
 	//Process user messages
-	processed = (this->userWndProc(hwnd, msg, wParam, lParam)==0) || processed;
+	if (this->userWndProc!=NULL)
+		processed = (this->userWndProc(hwnd, msg, wParam, lParam)==0) || processed;
 
 	//Return zero if processed
 	if (processed)
