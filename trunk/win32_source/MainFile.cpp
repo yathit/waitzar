@@ -2578,20 +2578,6 @@ void onAllWindowsCreated()
 LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg) {
-		case WM_MOVE:
-		{
-			//Move the main window?
-			/*if (senWindowSkipMove==FALSE && (mainWindow->isVisible() || sentenceWindow->isVisible()) && dragBothWindowsTogether==TRUE) {
-				RECT r;
-				GetWindowRect(hwnd, &r);
-				RECT r2;
-				GetWindowRect(GetDesktopWindow(), &r2);
-				mainWindowSkipMove = TRUE;
-				SetWindowPos(mainWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-C_WIDTH), max(r.top-C_HEIGHT, 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-			}
-			senWindowSkipMove = FALSE;*/
-			break;
-		}
 		case WM_PAINT:
 		{
 			//Update only if there's an area which needs updating (e.g., a higher-level
@@ -2654,20 +2640,6 @@ LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg) {
-		case WM_MOVE:
-		{
-			//Move the main window?
-			if (!senWindowSkipMove && (mainWindow->isVisible() || sentenceWindow->isVisible()) && dragBothWindowsTogether) {
-				RECT r;
-				GetWindowRect(hwnd, &r);
-				RECT r2;
-				GetWindowRect(GetDesktopWindow(), &r2);
-				mainWindowSkipMove = true;
-				mainWindow->setWindowPosition(min(max(r.left, 0), r2.right-mainWindow->getClientWidth()), max(r.top-mainWindow->getClientHeight(), 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-			}
-			senWindowSkipMove = false;
-			break;
-		}
 		case WM_PAINT:
 		{
 			//Update only if there's an area which needs updating (e.g., a higher-level
@@ -2807,21 +2779,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
 	switch(msg) {
-		case WM_MOVE:
-		{
-			//Move the sentence window?
-			if (typePhrases && !mainWindowSkipMove && sentenceWindow!=NULL && sentenceWindow->isVisible() && dragBothWindowsTogether) {
-				RECT r;
-				GetWindowRect(hwnd, &r);
-				RECT r2;
-				GetWindowRect(GetDesktopWindow(), &r2);
-				senWindowSkipMove = true;
-				sentenceWindow->setWindowPosition(min(max(r.left, 0), r2.right-sentenceWindow->getClientWidth()), min(r.top+mainWindow->getClientHeight(), r2.bottom-sentenceWindow->getClientHeight()), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-				//SetWindowPos(senWindow, HWND_TOPMOST, min(max(r.left, 0), r2.right-SUB_C_WIDTH), min(r.top+C_HEIGHT, r2.bottom-SUB_C_HEIGHT), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-			}
-			mainWindowSkipMove = false;
-			break;
-		}
 		case UWM_HOTKEY_UP: //HOTKEY_UP is defined by us, it is just like HOTKEY_DOWN except it doesn't use the lparam
 		{
 			//Update our virtual keyboard
@@ -4435,28 +4392,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
 
-	//Notes on creation of helper window (old code):
-	// Main:
-	//   helpWindow = CreateWindowEx(....)
-	// WM_CREATE in HelpWndProc:
-	//   MoveWindow(hwnd, 400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT, FALSE);
-	//   RECT r;
-	//	 GetClientRect(hwnd, &r);
-	//   HELP_CLIENT_SIZE.cx = r.right;
-	//   HELP_CLIENT_SIZE.cy = r.bottom;
-	//   helpDC = GetDC(hwnd);
-	//   helpUnderDC = CreateCompatibleDC(helpDC);
-	//   helpBitmap = CreateCompatibleBitmap(helpDC, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT);
-	//   SelectObject(helpUnderDC, helpBitmap);
-	// initCalculateHelp():
-	//   helpKeyboard = new OnscreenKeyboard(...);
-	// WM_HOTKEY, updateHelpWindow(), init:
-	//   Get task bar size
-	//   expandHWND(helpWindow, helpDC, helpUnderDC, helpBitmap, newX, newY, false, helpKeyboard->getWidth(), helpKeyboard->getHeight(), newW, newH);
-	//   helpKeyboard->init(helpDC, helpUnderDC, helpBitmap);
-	// helpKeyboard->init():
-	//   Makes and draws most of the keyboard's static data.
-
 	//Create our windows.
 	try {
 		//First, create. This counts the total number of windows
@@ -4472,6 +4407,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			sentenceWindow->init(L"WaitZar", SubWndProc, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
 		helpWindow->init(L"WaitZar", HelpWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 		memoryWindow->init(L"WaitZar", MemoryWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
+
+		//Then link
+		if (typePhrases && dragBothWindowsTogether)
+			mainWindow->linkToWindow(sentenceWindow, SOUTH);
 	} catch (std::exception err) {
 		std::wstringstream msg;
 		msg << "Error creating WaitZar's windows.\nWaitZar will now exit.\n\nDetails:\n";
@@ -4479,15 +4418,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, msg.str().c_str(), L"CreateWindow() Error", MB_ICONERROR | MB_OK);
 		return 0;
 	}
-
-	//Set default sizes
-	/*mainWindow->setDefaultSize(240, 120);
-	sentenceWindow->setDefaultSize(300, 26);
-	helpWindow->setDefaultSize(200, 200);
-	memoryWindow->setDefaultSize(200, 200);*/
-
-	//Our vector is used to store typed words for later...
-	//sentence = new SentenceList();
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
