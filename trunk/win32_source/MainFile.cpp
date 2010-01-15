@@ -3947,155 +3947,6 @@ bool turnOnControlkeys(bool on)
 
 
 
-void makeMainWindow()
-{
-	//Set a window class's parameters
-	/*WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
-	wc.lpfnWndProc = WndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInst;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
-	wc.hbrBackground = g_DarkGrayBkgrd;
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = windowClassName;
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	if(!RegisterClassEx(&wc)) {
-		MessageBox(NULL, _T("Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		return;
-	}*/
-
-	//Create our main window, set default sizes
-	mainWindow->init(L"WaitZar", WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, false);
-	/*mainWindow = CreateWindowEx(
-		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
-		windowClassName,
-		_T("WaitZar"),
-		WS_POPUP, //No border or title bar
-		100, 100, WINDOW_WIDTH, WINDOW_HEIGHT,
-		NULL, NULL, hInst, NULL
-	);*/
-}
-
-
-void makeSubWindow()
-{
-	if (!typePhrases)
-		return;
-
-	//Set a window class's parameters
-	/*WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
-	wc.lpfnWndProc = SubWndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInst;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
-	wc.hbrBackground = g_DarkGrayBkgrd;
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = windowClassName;
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	if(!RegisterClassEx(&wc)) {
-		MessageBox(NULL, _T("Sub-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		return;
-	}*/
-
-	//Create a handle to the window
-	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
-	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
-	// receive very few actual events
-	sentenceWindow->init(L"WaitZar", SubWndProc, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, false);
-	/*senWindow = CreateWindowEx(
-		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
-		windowClassName,
-		_T("WaitZar"),
-		WS_POPUP, //No border or title bar
-		100, 100+WINDOW_HEIGHT, SUB_WINDOW_WIDTH, SUB_WINDOW_HEIGHT,
-		NULL, NULL, hInst, NULL
-	);*/
-}
-
-
-void makeHelpWindow()
-{
-	//Set a window class's parameters
-	/*WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
-	wc.lpfnWndProc = HelpWndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInst;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
-	wc.hbrBackground = g_GreenBkgrd;
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = windowClassName;
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	if(!RegisterClassEx(&wc)) {
-		MessageBox(NULL, _T("Help-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		return;
-	}*/
-
-	//Create a handle to the window
-	// We use LAYERED to allow for alpha blending on a per-pixel basis.
-	//The MSDN docs say this might slow the program down, but I'll reserve
-	// any optimizations until we have actual reported slowdown.
-	helpWindow->init(L"WaitZar", HelpWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
-	/*helpWindow = CreateWindowEx(
-		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
-		windowClassName,
-		_T("WaitZar"),
-		WS_POPUP, //No border or title bar
-		400, 300, HELP_WINDOW_WIDTH, HELP_WINDOW_HEIGHT,
-		NULL, NULL, hInst, NULL
-	);*/
-}
-
-
-
-void makeMemoryWindow()
-{
-	//Set a window class's parameters
-	/*WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
-	wc.lpfnWndProc = MemoryWndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInst;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_SIZEALL);
-	wc.hbrBackground = g_GreenBkgrd;
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = windowClassName;
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	if(!RegisterClassEx(&wc)) {
-		MessageBox(NULL, _T("Memory-Window Registration Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
-		return;
-	}*/
-
-	//Create a handle to the window
-	// We use LAYERED to allow for alpha blending on a per-pixel basis.
-	//The MSDN docs say this might slow the program down, but I'll reserve
-	// any optimizations until we have actual reported slowdown.
-	memoryWindow->init(L"WaitZar", MemoryWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
-	/*memoryWindow = CreateWindowEx(
-		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
-		windowClassName,
-		_T("WaitZar"),
-		WS_POPUP, //No border or title bar
-		400, 300, MEMORY_WINDOW_WIDTH, MEMORY_WINDOW_HEIGHT,
-		NULL, NULL, hInst, NULL
-	);*/
-}
-
-
 
 /**
  * Borrowed from KeyMagic.
@@ -4608,15 +4459,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create our windows.
 	try {
+		//First, create. This counts the total number of windows
 		mainWindow = new MyWin32Window(L"waitZarMainWindow");
-		sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
+		if (typePhrases)
+			sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
 		helpWindow = new MyWin32Window(L"waitZarHelpWindow");
 		memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
 
-		makeMainWindow();
-		makeSubWindow();
-		makeHelpWindow();
-		makeMemoryWindow();
+		//Then, init
+		mainWindow->init(L"WaitZar", WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, onAllWindowsCreated, false);
+		if (typePhrases)
+			sentenceWindow->init(L"WaitZar", SubWndProc, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
+		helpWindow->init(L"WaitZar", HelpWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
+		memoryWindow->init(L"WaitZar", MemoryWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 	} catch (std::exception err) {
 		std::wstringstream msg;
 		msg << "Error creating WaitZar's windows.\nWaitZar will now exit.\n\nDetails:\n";
