@@ -240,12 +240,6 @@ bool mainWindowSkipMove = false;
 bool senWindowSkipMove = false;
 
 
-//Init properly
-bool mainInitDone;
-bool sentenceInitDone;
-bool helpInitDone;
-bool memoryInitDone;
-
 //Record-keeping
 wstring currStr;
 wstring currStrZg;
@@ -2544,8 +2538,8 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 void onAllWindowsCreated()
 {
 	//Only perform ONCE
-	if (!mainInitDone || !sentenceInitDone || !helpInitDone || !memoryInitDone)
-		return;
+//	if (!mainInitDone || !sentenceInitDone || !helpInitDone || !memoryInitDone)
+//		return;
 
 	//Create our font
 	makeFont();
@@ -2584,62 +2578,6 @@ void onAllWindowsCreated()
 LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg) {
-		case WM_CREATE:
-		{
-			//Save our window, init done
-			helpWindow->saveHwnd(hwnd);
-			helpInitDone = true;
-
-			//Performa general initialization
-			onAllWindowsCreated();
-
-			break;
-		}
-		/*case WM_NCHITTEST: //Allow dragging of the client area...
-		{
-			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
-			if(uHitTest == HTCLIENT) {
-				return HTCAPTION;
-			} else
-				return uHitTest;
-			break;
-		}*/
-		case WM_LBUTTONDOWN:
-		{
-			//Thanks to dr. Carbon for suggesting this method.
-			if (SetCapture(hwnd)!=NULL)
-				break;
-
-			//Drag the mosue
-			isDragging = true;
-			GetCursorPos(&dragFrom);
-			break;
-		}
-		case WM_MOUSEMOVE:
-		{ //Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
-			if (isDragging) {
-				RECT rect;
-				POINT dragTo;
-				GetWindowRect(hwnd, &rect);
-				GetCursorPos(&dragTo);
-
-				//Constantly update its position
-				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
-					(dragTo.y - dragFrom.y) + rect.top,
-					rect.right - rect.left, rect.bottom - rect.top, FALSE);
-
-				dragFrom = dragTo;
-			}
-			break;
-		}
-		case WM_LBUTTONUP:
-		{
-			if (isDragging) {
-				isDragging = false;
-				ReleaseCapture();
-			}
-			break;
-		}
 		case WM_MOVE:
 		{
 			//Move the main window?
@@ -2672,16 +2610,8 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_CLOSE:
-			//Will generate a WM_DESTROY message.
-			delete helpWindow;
-			//DestroyWindow(hwnd);
-			break;
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
 		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+			return 1; //1 ==> not done
 	}
 
 	return 0;
@@ -2692,53 +2622,6 @@ LRESULT CALLBACK HelpWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg) {
-		case WM_CREATE:
-		{
-			//Save our window
-			memoryWindow->saveHwnd(hwnd);
-			memoryInitDone = true;
-
-			//Performa general initialization
-			onAllWindowsCreated();
-
-			break;
-		}
-		case WM_LBUTTONDOWN:
-		{
-			//Thanks to dr. Carbon for suggesting this method.
-			if (SetCapture(hwnd)!=NULL)
-				break;
-
-			//Drag the mosue
-			isDragging = true;
-			GetCursorPos(&dragFrom);
-			break;
-		}
-		case WM_MOUSEMOVE:
-		{ //Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
-			if (isDragging) {
-				RECT rect;
-				POINT dragTo;
-				GetWindowRect(hwnd, &rect);
-				GetCursorPos(&dragTo);
-
-				//Constantly update its position
-				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
-					(dragTo.y - dragFrom.y) + rect.top,
-					rect.right - rect.left, rect.bottom - rect.top, FALSE);
-
-				dragFrom = dragTo;
-			}
-			break;
-		}
-		case WM_LBUTTONUP:
-		{
-			if (isDragging) {
-				isDragging = false;
-				ReleaseCapture();
-			}
-			break;
-		}
 		case WM_PAINT:
 		{
 			//Update only if there's an area which needs updating (e.g., a higher-level
@@ -2757,16 +2640,8 @@ LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 			break;
 		}
-		case WM_CLOSE:
-			//Will generate a WM_DESTROY message.
-			delete memoryWindow;
-			//DestroyWindow(hwnd);
-			break;
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
 		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+			return 1; //1 ==> not done
 	}
 
 	return 0;
@@ -2779,62 +2654,6 @@ LRESULT CALLBACK MemoryWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg) {
-		case WM_CREATE:
-		{
-			//Save our window
-			sentenceWindow->saveHwnd(hwnd);
-			sentenceInitDone = true;
-
-			//Performa general initialization
-			onAllWindowsCreated();
-
-			break;
-		}
-		/*case WM_NCHITTEST: //Allow dragging of the client area...
-		{
-			LRESULT uHitTest = DefWindowProc(hwnd, WM_NCHITTEST, wParam, lParam);
-			if(uHitTest == HTCLIENT) {
-				return HTCAPTION;
-			} else
-				return uHitTest;
-			break;
-		}*/
-		case WM_LBUTTONDOWN:
-		{
-			//Thanks to dr. Carbon for suggesting this method.
-			if (SetCapture(hwnd)!=NULL)
-				break;
-
-			//Drag the mosue
-			isDragging = true;
-			GetCursorPos(&dragFrom);
-			break;
-		}
-		case WM_MOUSEMOVE:
-		{ //Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
-			if (isDragging) {
-				RECT rect;
-				POINT dragTo;
-				GetWindowRect(hwnd, &rect);
-				GetCursorPos(&dragTo);
-
-				//Constantly update its position
-				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
-					(dragTo.y - dragFrom.y) + rect.top,
-					rect.right - rect.left, rect.bottom - rect.top, FALSE);
-
-				dragFrom = dragTo;
-			}
-			break;
-		}
-		case WM_LBUTTONUP:
-		{
-			if (isDragging) {
-				isDragging = false;
-				ReleaseCapture();
-			}
-			break;
-		}
 		case WM_MOVE:
 		{
 			//Move the main window?
@@ -2867,16 +2686,8 @@ LRESULT CALLBACK SubWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_CLOSE:
-			//Will generate a WM_DESTROY message.
-			delete sentenceWindow;
-			//DestroyWindow(hwnd);
-			break;
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
 		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+			return 1; //1 ==> not done
 	}
 
 	return 0;
@@ -2996,17 +2807,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
 	switch(msg) {
-		case WM_CREATE:
-		{
-			//Save our window
-			mainWindow->saveHwnd(hwnd);
-			mainInitDone = true;
-
-			//Performa general initialization
-			onAllWindowsCreated();
-
-			break;
-		}
 		case WM_MOVE:
 		{
 			//Move the sentence window?
@@ -3673,43 +3473,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_LBUTTONDOWN:
-		{
-			//Thanks to dr. Carbon for suggesting this method.
-			if (SetCapture(hwnd)!=NULL)
-				break;
-
-			//Drag the mosue
-			isDragging = true;
-			GetCursorPos(&dragFrom);
-			break;
-		}
-		case WM_MOUSEMOVE:
-		{
-			//Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
-			if (isDragging) {
-				RECT rect;
-				POINT dragTo;
-				GetWindowRect(hwnd, &rect);
-				GetCursorPos(&dragTo);
-
-				//Constantly update its position
-				MoveWindow(hwnd, (dragTo.x - dragFrom.x) + rect.left,
-					(dragTo.y - dragFrom.y) + rect.top,
-					rect.right - rect.left, rect.bottom - rect.top, FALSE);
-
-				dragFrom = dragTo;
-			}
-			break;
-		}
-		case WM_LBUTTONUP:
-		{
-			if (isDragging) {
-				isDragging = false;
-				ReleaseCapture();
-			}
-			break;
-		}
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
 		{
 			POINT pt;
@@ -3822,11 +3585,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// (this might not actually have any effect)
 			return NULL_BRUSH;
 			break;
-		case WM_CLOSE:
-			//Will generate a WM_DESTROY message
-			delete mainWindow;
-			//DestroyWindow(hwnd);
-			break;
 		case WM_DESTROY:
 		{
 			//Cleanup
@@ -3860,11 +3618,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				fclose(logFile);
 			}
 
-			PostQuitMessage(0);
 			break;
 		}
 		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+			return 1; //1 ==> not done
 	}
 
 	return 0;
@@ -4190,7 +3947,7 @@ bool turnOnControlkeys(bool on)
 
 
 
-void makeMainWindow(LPCWSTR windowClassName)
+void makeMainWindow()
 {
 	//Set a window class's parameters
 	/*WNDCLASSEX wc;
@@ -4212,8 +3969,7 @@ void makeMainWindow(LPCWSTR windowClassName)
 	}*/
 
 	//Create our main window, set default sizes
-	mainWindow = new MyWin32Window();
-	mainWindow->init(L"WaitZar", windowClassName, WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, false);
+	mainWindow->init(L"WaitZar", WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, false);
 	/*mainWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4225,7 +3981,7 @@ void makeMainWindow(LPCWSTR windowClassName)
 }
 
 
-void makeSubWindow(LPCWSTR windowClassName)
+void makeSubWindow()
 {
 	if (!typePhrases)
 		return;
@@ -4253,8 +4009,7 @@ void makeSubWindow(LPCWSTR windowClassName)
 	// We have to use NOACTIVATE because, otherwise, typing text into a box that "selects all on refresh"
 	// (like IE's address bar) is almost impossible. Unfortunately, this means our window will
 	// receive very few actual events
-	sentenceWindow = new MyWin32Window();
-	sentenceWindow->init(L"WaitZar", windowClassName, SubWndProc, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, false);
+	sentenceWindow->init(L"WaitZar", SubWndProc, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, false);
 	/*senWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		windowClassName,
@@ -4266,7 +4021,7 @@ void makeSubWindow(LPCWSTR windowClassName)
 }
 
 
-void makeHelpWindow(LPCWSTR windowClassName)
+void makeHelpWindow()
 {
 	//Set a window class's parameters
 	/*WNDCLASSEX wc;
@@ -4291,8 +4046,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	helpWindow = new MyWin32Window();
-	helpWindow->init(L"WaitZar", windowClassName, HelpWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, true);
+	helpWindow->init(L"WaitZar", HelpWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 	/*helpWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
@@ -4305,7 +4059,7 @@ void makeHelpWindow(LPCWSTR windowClassName)
 
 
 
-void makeMemoryWindow(LPCWSTR windowClassName)
+void makeMemoryWindow()
 {
 	//Set a window class's parameters
 	/*WNDCLASSEX wc;
@@ -4330,8 +4084,7 @@ void makeMemoryWindow(LPCWSTR windowClassName)
 	// We use LAYERED to allow for alpha blending on a per-pixel basis.
 	//The MSDN docs say this might slow the program down, but I'll reserve
 	// any optimizations until we have actual reported slowdown.
-	memoryWindow = new MyWin32Window();
-	memoryWindow->init(L"WaitZar", windowClassName, MemoryWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, true);
+	memoryWindow->init(L"WaitZar", MemoryWndProc, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 	/*memoryWindow = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED,
 		windowClassName,
@@ -4551,8 +4304,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
-	mainInitDone = false;
-	helpInitDone = false;
 
 	//First and foremost
 	helpIsCached = false;
@@ -4857,10 +4608,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create our windows.
 	try {
-		makeMainWindow(_T("waitZarMainWindow"));
-		makeSubWindow(_T("waitZarSentenceWindow"));
-		makeHelpWindow(_T("waitZarHelpWindow"));
-		makeMemoryWindow(_T("waitZarMemoryWindow"));
+		mainWindow = new MyWin32Window(L"waitZarMainWindow");
+		sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
+		helpWindow = new MyWin32Window(L"waitZarHelpWindow");
+		memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
+
+		makeMainWindow();
+		makeSubWindow();
+		makeHelpWindow();
+		makeMemoryWindow();
 	} catch (std::exception err) {
 		std::wstringstream msg;
 		msg << "Error creating WaitZar's windows.\nWaitZar will now exit.\n\nDetails:\n";

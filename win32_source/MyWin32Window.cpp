@@ -21,22 +21,28 @@ std::map< std::wstring, MyWin32Window* > MyWin32Window::WndMap;
 }*/
 
 
-MyWin32Window::MyWin32Window()
+MyWin32Window::MyWin32Window(LPCWSTR windowClassName)
 {
+	//Save in advance; needed for our "onallcreated" trick
+	//Add this class name and the "this" pointer to the global Wnd() array
+	this->windowClassName = windowClassName;
+	WndMap[windowClassName] = this;
+
 	//Avoid errors
 	this->window = NULL;
 }
 
-void MyWin32Window::init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC userWndProc, HBRUSH& bkgrdClr, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), bool useAlpha)
+void MyWin32Window::init(LPCWSTR windowTitle, WNDPROC userWndProc, HBRUSH& bkgrdClr, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), void (*onAllCreatedFunction)(void), bool useAlpha)
 {
 	//Save callbacks
 	this->onShowFunction = onShowFunction;
+	this->onAllCreatedFunction = onAllCreatedFunction;
 	this->userWndProc = userWndProc;
 
 	//Init
 	this->is_visible = false;
 	this->useAlpha = useAlpha;
-	this->window = NULL;
+	this->isDragging = false;
 
 	//Save width and height as default
 	this->setDefaultSize(width, height);
@@ -48,9 +54,9 @@ void MyWin32Window::init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC u
 	windowArea.bottom = y + height;
 
 	//Does this window class already exist?
-	if (WndMap.count(windowClassName)>0) {
+	if (WndMap.count(windowClassName)>0 && WndMap[windowClassName]!=this) {
 		std::stringstream err;
-		err << "Window class already exists " <<windowClassName;
+		err << "Window class already exists " << ConfigManager::escape_wstr(windowClassName, false);
 		throw std::exception(err.str().c_str());
 	}
 
@@ -70,12 +76,9 @@ void MyWin32Window::init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC u
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	if(!RegisterClassEx(&wc)) {
 		std::stringstream err;
-		err << "Window class registration failed for " <<windowClassName;
+		err << "Window class registration failed for " << ConfigManager::escape_wstr(windowClassName);
 		throw std::exception(err.str().c_str());
 	}
-
-	//Add this class name and the "this" pointer to the global Wnd() array
-	WndMap[windowClassName] = this;
 
 
 	//Create the window
@@ -127,16 +130,89 @@ LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 //Our processing loop for messages
 LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	return this->userWndProc(hwnd, msg, wParam, lParam);
+	//Process our own messages
+	bool processed = true;
+	switch(msg) {
+		case WM_CREATE:
+		{
+			//Save the window, get the DC
+			this->topDC = GetDC(hwnd);
+			this->window = hwnd;
+
+			//Perform checks for "on all created"
+			bool allDone = true;
+			for (std::map< std::wstring, MyWin32Window* >::iterator item=WndMap.begin(); item!=WndMap.end(); item++) {
+				if (!item->second->isWindowCreated()) {
+					allDone = false;
+					break;
+				}
+			}
+			if (allDone && onAllCreatedFunction!=NULL)
+				onAllCreatedFunction();
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		{
+			//Thanks to dr. Carbon for suggesting this method.
+			if (SetCapture(window)!=NULL)
+				break;
+
+			//Drag the mosue
+			isDragging = true;
+			GetCursorPos(&dragFrom);
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{ 
+			//Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
+			if (isDragging) {
+				RECT rect;
+				POINT dragTo;
+				GetWindowRect(window, &rect);
+				GetCursorPos(&dragTo);
+
+				//Constantly update its position
+				MoveWindow(window, (dragTo.x - dragFrom.x) + rect.left,
+					(dragTo.y - dragFrom.y) + rect.top,
+					rect.right - rect.left, rect.bottom - rect.top, FALSE);
+
+				dragFrom = dragTo;
+			}
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			if (isDragging) {
+				isDragging = false;
+				ReleaseCapture();
+			}
+			break;
+		}
+		case WM_CLOSE:
+		{
+			DestroyWindow(window);
+			break;
+		}
+		case WM_DESTROY:
+		{
+			PostQuitMessage(0);
+			break;
+		}
+		default:
+			processed = false;
+	}
+
+	//Process user messages
+	processed = (this->userWndProc(hwnd, msg, wParam, lParam)==0) || processed;
+
+	//Return zero if processed
+	if (processed)
+		return 0;
+
+	//Else, return the default process code
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-
-
-void MyWin32Window::saveHwnd(HWND &hwnd)
-{
-	this->window = hwnd;
-	this->topDC = GetDC(hwnd);
-}
 
 
 bool MyWin32Window::isInvalid()
@@ -498,6 +574,11 @@ bool MyWin32Window::drawChar(PulpCoreFont* font, char letter, int xPos, int yPos
 	return true;
 }
 
+
+bool MyWin32Window::isWindowCreated()
+{
+	return this->window != NULL;
+}
 
 
 

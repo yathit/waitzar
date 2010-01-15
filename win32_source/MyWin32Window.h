@@ -36,9 +36,9 @@ class MyWin32Window
 {
 public:
 	//Constructor/destructor pair. And an init, since CreateWindowEx() causes problems in a constructor... ugh.
-	MyWin32Window();
-	void init(LPCWSTR windowTitle, LPCWSTR windowClassName, WNDPROC userWndProc, HBRUSH& bkgrdClr, const HINSTANCE& hInstance, 
-		int x=99, int y=99, int width=99, int height=99, void (*onShowFunction)(void)=NULL, bool useAlpha=true);
+	MyWin32Window(LPCWSTR windowClassName);
+	void init(LPCWSTR windowTitle, WNDPROC userWndProc, HBRUSH& bkgrdClr, const HINSTANCE& hInstance, int x=99, int y=99, 
+		int width=99, int height=99, void (*onShowFunction)(void)=NULL, void (*onAllCreatedFunction)(void)=NULL, bool useAlpha=true);
 	~MyWin32Window();
 
 	//Required Stuff (Hope to phase these out eventually)
@@ -47,7 +47,6 @@ public:
 	bool setWindowPosition(int x, int y, int cx, int cy, UINT uFlags);
 	bool isInvalid();
 	HDC WARNINGgetUnderDC();
-	void saveHwnd(HWND &hwnd);
 
 	//Process some messages ourselves
 	WNDPROC userWndProc;
@@ -74,6 +73,7 @@ public:
 	bool repaintWindow(); //Blit or UpdateLayer depending
 	bool repaintWindow(RECT blitArea); //Blit or UpdateLayer depending
 	void showMessageBox(std::wstring msg, std::wstring title, UINT flags); //Use STL strings
+	bool isWindowCreated(); //After WM_CREATE
 
 	//GDI functionality, always draws to the underDC
 	bool selectObject(HPEN &obj);
@@ -110,14 +110,20 @@ private:
 	HBITMAP topBitmap;
 
 	//More bookkeeping
+	LPCWSTR windowClassName;
 	RECT windowArea;
 	RECT clientArea;
 	RECT defaultArea;
 	bool is_visible;
 	bool useAlpha;
+	POINT dragFrom;
+	bool isDragging;
 
 	//Used to update the caret position
 	void (*onShowFunction)(void);
+
+	//Used to perform initialization after all windows are created
+	void (*onAllCreatedFunction)(void);
 
 	//STATIC
 	//Obnoxious WindowClass-to-Window mapping
