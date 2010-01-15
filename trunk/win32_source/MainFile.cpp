@@ -3426,11 +3426,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		case WM_CTLCOLORDLG:
-			//Our dialog has no background color.
-			// (this might not actually have any effect)
-			return NULL_BRUSH;
-			break;
 		case WM_DESTROY:
 		{
 			//Cleanup
