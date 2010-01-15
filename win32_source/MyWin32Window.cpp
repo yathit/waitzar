@@ -412,7 +412,7 @@ bool MyWin32Window::repaintWindow()
 {
 	bool res = false;
 	if (this->useAlpha) {
-		//Use the "Alpha" command
+		//Use the "UpdateLayeredWindow" command
 		SIZE sz;
 		sz.cx = this->getClientWidth();
 		sz.cy = this->getClientHeight();
