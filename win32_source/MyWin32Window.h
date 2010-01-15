@@ -24,6 +24,14 @@
 #include "Settings/ConfigManager.h"
 
 
+enum ATTACH_DIRECTION {
+	NORTH=0,
+	SOUTH,
+	EAST,
+	WEST
+};
+
+
 /**
  * Win32 top-level windows are notoriously difficult to manage in a distributed
  *  set of files. Hence, this class manages creation, deletion, repainting, and
@@ -101,6 +109,9 @@ public:
 	//Post fake messages
 	bool postMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
+	//Link two windows
+	void linkToWindow(MyWin32Window* other, ATTACH_DIRECTION linkAt);
+
 
 private:
 	//Data members
@@ -108,6 +119,13 @@ private:
 	HDC topDC;
 	HDC underDC;
 	HBITMAP topBitmap;
+
+	//Used to handle movement and locking windows
+	MyWin32Window* linkedWindows[4];
+	int skipNextUpdate;
+
+	//Sets the "skip updates" flag
+	void skipMoveUpdates();
 
 	//More bookkeeping
 	LPCWSTR windowClassName;

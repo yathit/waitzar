@@ -30,6 +30,11 @@ MyWin32Window::MyWin32Window(LPCWSTR windowClassName)
 
 	//Avoid errors
 	this->window = NULL;
+
+	//Prepare for updating our "linked" windows
+	skipNextUpdate = 0;
+	for (int i=0; i<4; i++)
+		linkedWindows[i] = NULL;
 }
 
 void MyWin32Window::init(LPCWSTR windowTitle, WNDPROC userWndProc, HBRUSH& bkgrdClr, const HINSTANCE& hInstance, int x, int y, int width, int height, void (*onShowFunction)(void), void (*onAllCreatedFunction)(void), bool useAlpha)
@@ -186,6 +191,45 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 				isDragging = false;
 				ReleaseCapture();
 			}
+			break;
+		}
+		case WM_MOVE:
+		{
+			//Move any linked windows
+			for (int i=0; i<4; i++) {
+				//Nothing here?
+				if (linkedWindows[i]==NULL)
+					continue;
+
+				//Do we skip this update?
+				if (skipNextUpdate>0) {
+					skipNextUpdate--;
+					continue;
+				}
+
+				//Is the other window visible?
+				if (!linkedWindows[i]->isVisible())
+					continue;
+
+				//Skip this window's next update step
+				// Note: This must be done before we move the window, obviously.
+				linkedWindows[i]->skipMoveUpdates();
+
+				//Finally, move it. Make sure it doesn't leave the desktop, either
+				RECT myRect;
+				GetWindowRect(window, &myRect);
+				RECT deskRect;
+				GetWindowRect(GetDesktopWindow(), &deskRect);
+
+				//NOTE: This is not generic yet; it just works for our special case. Maybe change later?
+				if (i==SOUTH)
+					linkedWindows[i]->setWindowPosition(min(max(myRect.left, 0), deskRect.right-linkedWindows[i]->getClientWidth()), min(myRect.top+this->getClientHeight(), deskRect.bottom-linkedWindows[i]->getClientHeight()), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				else if (i==NORTH)
+					linkedWindows[i]->setWindowPosition(min(max(myRect.left, 0), deskRect.right-linkedWindows[i]->getClientWidth()), max(myRect.top-linkedWindows[i]->getClientHeight(), 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				else
+					throw std::exception("Cannot move windows linked EAST/WEST (Todo...)");
+			}
+
 			break;
 		}
 		case WM_CLOSE:
@@ -578,6 +622,29 @@ bool MyWin32Window::drawChar(PulpCoreFont* font, char letter, int xPos, int yPos
 bool MyWin32Window::isWindowCreated()
 {
 	return this->window != NULL;
+}
+
+
+//Linking
+void MyWin32Window::linkToWindow(MyWin32Window* other, ATTACH_DIRECTION linkAt)
+{
+	//Get the alternating direction from the one we're linking to.
+	ATTACH_DIRECTION linkFrom = (linkAt==NORTH ? SOUTH : linkAt==SOUTH ? NORTH : linkAt==EAST ? WEST : EAST);
+
+	//Check if it's already attached
+	if (this->linkedWindows[linkAt]!=NULL || other->linkedWindows[linkFrom]!=NULL)
+		throw std::exception("Cannot link: one of these windows is already linked");
+
+	//Attach.
+	this->linkedWindows[linkAt] = other;
+	other->linkedWindows[linkFrom] = this;
+}
+
+
+//Return by ref. to allow assigning and saving
+void MyWin32Window::skipMoveUpdates()
+{
+	this->skipNextUpdate++;
 }
 
 
