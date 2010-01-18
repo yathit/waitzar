@@ -69,8 +69,9 @@ public:
 	virtual void getString() = 0;
 };
 
-class DummyInputMethod : public InputMethod {
+class DummyInputMethod : public InputMethod { //Used to save option pairs.
 public:
+	std::map< std::wstring, Option<std::wstring> > options;
 	void getString() { throw std::exception("Invalid use of DummyInputMethod"); }
 };
 

@@ -4177,6 +4177,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
 			throw std::exception("No config directory");
 
+		//Resolve
+		config.resolvePartialSettings();
 
 		//Final test: make sure all config files work
 		config.testAllFiles();
@@ -4217,6 +4219,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//delete [] res_data;
 			delete [] uniData;
 			UnlockResource(res_handle);
+
+			//Resolve
+			config.resolvePartialSettings();
 
 			//One more test.
 			config.testAllFiles();
