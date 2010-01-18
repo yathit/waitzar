@@ -112,6 +112,22 @@ void ConfigManager::initUserConfig(const std::string& configFile)
 }
 
 
+void ConfigManager::resolvePartialSettings()
+{
+	//For each language
+	for (std::map<std::wstring, Language>::iterator langIt=options.languages.begin(); langIt!=options.languages.end(); langIt++) {
+		//Call factory methods for each optional
+		Language lang = langIt->second;
+		for (std::map<std::wstring, InputMethod*>::iterator imIt=lang.inputMethods.begin(); imIt!=lang.inputMethods.end(); imIt++) {
+			InputMethod* oldIm = imIt->second;
+			InputMethod* newIm = WZFactory::makeInputMethod(((DummyInputMethod*)oldIm));
+			
+			//TODO: Replace old with new, delete old
+		}
+	}
+}
+
+
 //Access all things that will require json reads
 void ConfigManager::testAllFiles() {
 	getSettings();
@@ -133,13 +149,13 @@ Settings ConfigManager::getSettings()
 
 		//Parse each config file in turn.
 		//First: main config
-		this->readInConfig(this->mainConfig.json(), L"", WRITE_MAIN);
+		this->readInConfig(this->mainConfig.json(), vector<wstring>(), WRITE_MAIN);
 
 		//Next: local and user configs
 		if (this->localConfig.isSet())
-			this->readInConfig(this->localConfig.json(), L"", WRITE_LOCAL);
+			this->readInConfig(this->localConfig.json(), vector<wstring>(), WRITE_LOCAL);
 		if (this->userConfig.isSet())
-			this->readInConfig(this->userConfig.json(), L"", WRITE_USER);
+			this->readInConfig(this->userConfig.json(), vector<wstring>(), WRITE_USER);
 
 		//Done
 		loadedSettings = true;
@@ -159,7 +175,7 @@ void ConfigManager::loadLanguageMainFiles()
 
 	//Parse each language config file.
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-		this->readInConfig(it->first.json(), L"", WRITE_MAIN);
+		this->readInConfig(it->first.json(), vector<wstring>(), WRITE_MAIN);
 	}
 
 	//Done
@@ -176,7 +192,7 @@ void ConfigManager::loadLanguageSubFiles()
 	//Parse each language config file.
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 		for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-			this->readInConfig(it2->json(), L"", WRITE_MAIN);
+			this->readInConfig(it2->json(), vector<wstring>(), WRITE_MAIN);
 		}
 	}
 
@@ -207,17 +223,15 @@ vector<wstring> ConfigManager::getLanguages()
 
 
 
-void ConfigManager::readInConfig(wValue root, wstring context, WRITE_OPTS writeTo) 
+void ConfigManager::readInConfig(wValue root, vector<wstring> context, WRITE_OPTS writeTo) 
 {
 	//We always operate on maps:
 	json_spirit::Value_type t = root.type();
 	wObject currPairs = root.get_value<wObject>();
 	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
  		//Construct the new context
-		wstring newContext = context;
-		if (!context.empty())
-			newContext += L".";
-		newContext += sanitize_id(itr->name_);
+		vector<wstring> newContext = context;
+		newContext.push_back(sanitize_id(itr->name_);
 
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
@@ -225,7 +239,7 @@ void ConfigManager::readInConfig(wValue root, wstring context, WRITE_OPTS writeT
 			this->readInConfig(itr->value_, newContext, writeTo);
 		} else if (itr->value_.type()==str_type) {
 			//Base case: the "value" is also a string (set the property)
-			this->setSingleOption(newContext, sanitize(itr->value_.get_value<std::wstring>()));
+			this->setSingleOption(newContext, sanitize(itr->value_.get_value<std::wstring>()), writeTo);
 		} else {
 			throw std::exception("ERROR: Config file options should always be string or hash types.");
 		}
@@ -233,106 +247,92 @@ void ConfigManager::readInConfig(wValue root, wstring context, WRITE_OPTS writeT
 }
 
 
-void ConfigManager::setSingleOption(const std::wstring& name, const std::wstring& value)
+void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstring& value, WRITE_OPTS writeTo)
 {
 	//Read each "context" setting from left to right. Context settings are separated by periods. 
 	//   Note: There are much faster/better ways of doing this, but for now we'll keep all the code
 	//   centralized and easy to read.
 	try {
-		wstring opt = L"settings.";
-		int nextOptID = opt.size();
-		if (name.find(opt)==0) {
-			if (name.find(L"hotkey", nextOptID)==nextOptID)
-				options.settings.hotkey = sanitize_id(value);
-			else if (name.find(sanitize_id(L"silence-mywords-errors"), nextOptID)==nextOptID)
-				options.settings.silenceMywordsErrors = read_bool(value);
-			else if (name.find(sanitize_id(L"balloon-start"), nextOptID)==nextOptID)
-				options.settings.balloonStart = read_bool(value);
-			else if (name.find(sanitize_id(L"always-elevate"), nextOptID)==nextOptID)
-				options.settings.alwaysElevate = read_bool(value);
-			else if (name.find(sanitize_id(L"track-caret"), nextOptID)==nextOptID)
-				options.settings.trackCaret = read_bool(value);
-			else if (name.find(sanitize_id(L"lock-windows"), nextOptID)==nextOptID)
-				options.settings.lockWindows = read_bool(value);
-			else 
-				throw 1;
+		//Need at least one setting
+		if (name.empty())
 			return;
-		} else if (name.find(L"languages.")==0) {
-			//Language options
-			opt = L"languages.";
-			nextOptID = opt.size();
+
+		//Settings? Languages?
+		if (name[0] == L"settings") {
+			//Need to finish all partial settings
+			if (name.size()<=1)
+				throw 1;
+
+			//Set this based on name/value pair
+			//TODO: Need to re-do this so that it calls "setVar(), setLoc() or setUsr()".
+			if (name[1] == L"hotkey")
+				options.settings.hotkey = sanitize_id(value);
+			else if (name[1] == sanitize_id(L"silence-mywords-errors"))
+				options.settings.silenceMywordsErrors = read_bool(value);
+			else if (name[1] == sanitize_id(L"balloon-start"))
+				options.settings.balloonStart = read_bool(value);
+			else if (name[1] == sanitize_id(L"always-elevate"))
+				options.settings.alwaysElevate = read_bool(value);
+			else if (name[1] == sanitize_id(L"track-caret"))
+				options.settings.trackCaret = read_bool(value);
+			else if (name[1] == sanitize_id(L"lock-windows"))
+				options.settings.lockWindows = read_bool(value);
+			else
+				throw 1;
+
+			//Done
+			return;
+		} else if (name[0] == L"languages") {
+			//Need to finish all partial settings
+			if (name.size()<=2)
+				throw 1;
 
 			//Get the language id
-			wstring langName;
-			{
-				size_t nextDot = name.find('.', nextOptID);
-				if (nextDot == std::string::npos)
-					throw 1;
-				langName = sanitize_id(name.substr(nextOptID, (nextDot-nextOptID)));
-				nextOptID = nextDot + 1;
-			}
+			wstring langName = name[1];
 
 			//Static settings
-			if (name.find(sanitize_id(L"display-name"), nextOptID)==nextOptID)
+			if (name[2] == sanitize_id(L"display-name"))
 				options.languages[langName].displayName = value;
-			else if (name.find(sanitize_id(L"default-output-encoding"), nextOptID)==nextOptID)
+			else if (name[2] == sanitize_id(L"default-output-encoding"))
 				options.languages[langName].defaultOutputEncoding = sanitize_id(value);
-			else if (name.find(sanitize_id(L"default-display-method"), nextOptID)==nextOptID)
+			else if (name[2] == sanitize_id(L"default-display-method"))
 				options.languages[langName].defaultDisplayMethod = sanitize_id(value);
-			else if (name.find(sanitize_id(L"default-input-method"), nextOptID)==nextOptID)
+			else if (name[2] == sanitize_id(L"default-input-method"))
 				options.languages[langName].defaultInputMethod = sanitize_id(value);
 			else {
+				//Need to finish all partial settings
+				if (name.size()<=4)
+					throw 1;
+
 				//Dynamic settings
-				if (name.find(sanitize_id(L"input-methods"), nextOptID)==nextOptID) {
+				if (name[2] == sanitize_id(L"input-methods")) {
 					//Input methods
-					nextOptID += sanitize_id(L"input-methods").length() + 1;
 
 					//Get the name
-					wstring inputName;
-					{
-						size_t nextDot = name.find('.', nextOptID);
-						if (nextDot == std::string::npos)
-							throw 1;
-						inputName = sanitize_id(name.substr(nextOptID, (nextDot-nextOptID)));
-						nextOptID = nextDot + 1;
-					}
+					wstring inputName = name[3];
 
 					//Add it if it doesn't exist
 					if (options.languages[langName].inputMethods.count(inputName)==0)
 						options.languages[langName].inputMethods[inputName] = new DummyInputMethod();
 
-					//Set its options
-					if (name.find(sanitize_id(L"display-name"), nextOptID)==nextOptID)
-						options.languages[langName].inputMethods[inputName]->displayName = value;
-					else if (name.find(sanitize_id(L"encoding"), nextOptID)==nextOptID)
-						options.languages[langName].inputMethods[inputName]->encoding = value;
-					else if (name.find(sanitize_id(L"type"), nextOptID)==nextOptID) {
-						if (value == L"builtin") {
-							options.languages[langName].inputMethods[inputName]->type = BUILTIN;
+					//Just save all its options. Then, call a Factory method when this is all done
+					DummyInputMethod im = ((DummyInputMethod)options.languages[langName].inputMethods[inputName]);
+					Option<wstring> opt = im.options[name];
 
-							//Instantiate it, if necessary
-							if (inputName == L"waitzar") {
-								WaitZar* wz = new WaitZar();
-								wz->displayName = options.languages[langName].inputMethods[inputName]->displayName;
-								wz->encoding = options.languages[langName].inputMethods[inputName]->encoding;
-								wz->type = options.languages[langName].inputMethods[inputName]->type;
-								options.languages[langName].inputMethods[inputName] = wz;
-							}
-						} else
-							throw 1;
-					} else if (options.languages[langName].inputMethods[inputName]->type.get() == BUILTIN) {
-						//Further options only apply if the type is BUILTIN
-						//TODO: More options
-
-					} else
-						throw 1;
-				} else if (name.find(sanitize_id(L"encodings"), nextOptID)==nextOptID) {
+					//Hmm... maybe redo this later
+					if (writeTo == WRITE_MAIN)
+						opt.setVal(value);
+					else if (writeTo == WRITE_USER)
+						opt.setUsr(value);
+					else if (writeTo == WRITE_LOCAL)
+						opt.setLoc(value);
+				} else if (name[2] == sanitize_id(L"encodings")) {
 					//Encodings
 
-				} else if (name.find(sanitize_id(L"tranformations"), nextOptID)==nextOptID) {
+				} else if (name[2] == sanitize_id(L"tranformations")) {
 					//Transformations
 
-				} else if (name.find(sanitize_id(L"display-methods"), nextOptID)==nextOptID) {
+				} else if (name[2] == sanitize_id(L"display-methods")) {
 					//Display methods
 
 				} else {

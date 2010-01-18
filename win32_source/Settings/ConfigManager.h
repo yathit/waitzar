@@ -15,6 +15,7 @@
 #include "NGram/wz_utilities.h"
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/Interfaces.h"
+#include "Settings/WZFactory.h"
 #include "Input/WaitZar.h"
 
 
@@ -51,6 +52,9 @@ public:
 			}
 			try {
 				json_spirit::read_or_throw(text, root);
+
+				//Save space
+				text = L"";
 			} catch (json_spirit::Error_position ex) {
 				std::stringstream errMsg;
 				errMsg << "Invalid json config file: " << path;
@@ -136,6 +140,9 @@ public:
 	void initLocalConfig(const std::string& configFile);
 	void initUserConfig(const std::string& configFile);
 
+	//Call this...
+	void resolvePartialSettings();
+
 	//Accessible by our outside class
 	Settings getSettings();
 	std::vector<std::wstring> getLanguages();
@@ -156,11 +163,11 @@ public:
 
 
 private:
-	void readInConfig(json_spirit::wValue root, std::wstring context, WRITE_OPTS writeTo);
+	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> context, WRITE_OPTS writeTo);
 	std::wstring sanitize_id(const std::wstring& str);
 	std::wstring sanitize(const std::wstring& str);
 	bool read_bool(const std::wstring& str);
-	void setSingleOption(const std::wstring& name, const std::wstring& value);
+	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, WRITE_OPTS writeTo);
 
 private:
 	//Our many config files.
