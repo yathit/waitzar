@@ -125,7 +125,7 @@ void ConfigManager::resolvePartialSettings()
 
 		//Now, transform and set
 		for (vector<wstring>::iterator imIt=keysToChange.begin(); imIt!=keysToChange.end(); imIt++) {
-			langIt->second.inputMethods[*imIt] = WZFactory::makeInputMethod(((DummyInputMethod*)langIt->second.inputMethods[*imIt]));
+			langIt->second.inputMethods[*imIt] = WZFactory::makeInputMethod(*imIt, ((DummyInputMethod*)langIt->second.inputMethods[*imIt]));
 		}
 	}
 }
@@ -320,7 +320,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 
 					//Just save all its options. Then, call a Factory method when this is all done
 					DummyInputMethod* im = ((DummyInputMethod*)options.languages[langName].inputMethods[inputName]);
-					Option<wstring> opt = im->options[inputName];
+					Option<wstring> opt = im->options[sanitize_id(name[4])];
 
 					//Hmm... maybe redo this later
 					if (writeTo == WRITE_MAIN)
