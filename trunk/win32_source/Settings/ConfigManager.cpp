@@ -116,13 +116,16 @@ void ConfigManager::resolvePartialSettings()
 {
 	//For each language
 	for (std::map<std::wstring, Language>::iterator langIt=options.languages.begin(); langIt!=options.languages.end(); langIt++) {
-		//Call factory methods for each optional
-		Language lang = langIt->second;
-		for (std::map<std::wstring, InputMethod*>::iterator imIt=lang.inputMethods.begin(); imIt!=lang.inputMethods.end(); imIt++) {
-			InputMethod* oldIm = imIt->second;
-			InputMethod* newIm = WZFactory::makeInputMethod(((DummyInputMethod*)oldIm));
-			
-			//TODO: Replace old with new, delete old
+		//Save its key if this is a DummyInputMethod
+		std::vector<std::wstring> keysToChange;
+		for (std::map<std::wstring, InputMethod*>::iterator imIt=langIt->second.inputMethods.begin(); imIt!=langIt->second.inputMethods.end(); imIt++) {
+			if (imIt->second->isPlaceholder())
+				keysToChange.push_back(imIt->first);
+		}
+
+		//Now, transform and set
+		for (vector<wstring>::iterator imIt=keysToChange.begin(); imIt!=keysToChange.end(); imIt++) {
+			langIt->second.inputMethods[*imIt] = WZFactory::makeInputMethod(((DummyInputMethod*)langIt->second.inputMethods[*imIt]));
 		}
 	}
 }
@@ -231,7 +234,7 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> context, WRITE_OPT
 	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
  		//Construct the new context
 		vector<wstring> newContext = context;
-		newContext.push_back(sanitize_id(itr->name_);
+		newContext.push_back(sanitize_id(itr->name_));
 
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
@@ -316,8 +319,8 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						options.languages[langName].inputMethods[inputName] = new DummyInputMethod();
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					DummyInputMethod im = ((DummyInputMethod)options.languages[langName].inputMethods[inputName]);
-					Option<wstring> opt = im.options[name];
+					DummyInputMethod* im = ((DummyInputMethod*)options.languages[langName].inputMethods[inputName]);
+					Option<wstring> opt = im->options[inputName];
 
 					//Hmm... maybe redo this later
 					if (writeTo == WRITE_MAIN)
@@ -344,7 +347,13 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 			throw 1;
 	} catch (int) {
 		//Bad option
-		throw std::exception(std::string("Invalid option: \"" + escape_wstr(name) + "\", with value: \"" + escape_wstr(value) + "\"").c_str());
+		std::wstringstream nameStr;
+		wstring dot = L"";
+		for (vector<wstring>::const_iterator nameOpt=name.begin(); nameOpt!=name.end(); nameOpt++) {
+			nameStr <<dot <<(*nameOpt);
+			dot = L".";
+		}
+		throw std::exception(std::string("Invalid option: \"" + escape_wstr(nameStr.str()) + "\", with value: \"" + escape_wstr(value) + "\"").c_str());
 	}
 }
 

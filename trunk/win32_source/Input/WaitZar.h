@@ -17,8 +17,8 @@ class WaitZar : public InputMethod
 public:
 	WaitZar();
 
-	//Temp
-	void getString();
+	
+	bool isPlaceholder();
 };
 
 
