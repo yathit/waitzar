@@ -20,7 +20,7 @@ WZFactory::~WZFactory(void)
 }
 
 
-InputMethod* WZFactory::makeInputMethod(wstring id, TYPES type, map<wstring, Option<wstring> > settings)
+InputMethod* WZFactory::makeInputMethod(DummyInputMethod* options)
 {
 	//For now
 	return new WaitZar();

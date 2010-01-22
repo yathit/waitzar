@@ -65,14 +65,16 @@ public:
 	Option<std::wstring> encoding;
 	Option<TYPES> type;
 
-	//Temp for now: just force this to be virtual
-	virtual void getString() = 0;
+	//Is this class a placeholder, or is it a real IM.
+	//   There are other ways to do this, but it's nice to 
+	//   have a way of double-checking.
+	virtual bool isPlaceholder() = 0; 
 };
 
 class DummyInputMethod : public InputMethod { //Used to save option pairs.
 public:
 	std::map< std::wstring, Option<std::wstring> > options;
-	void getString() { throw std::exception("Invalid use of DummyInputMethod"); }
+	bool isPlaceholder() { return true; }
 };
 
 //Expected interface: "Input Method"
@@ -99,14 +101,14 @@ public:
 };
 
 
-//Expected interface: "Factory"
-class Factory {
+//Expected interface: "Factory"   //Not necessary
+/*class Factory {
 public:
 	//Builders for each other interface
 	virtual InputMethod* makeInputMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
 	virtual DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
 	virtual Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
-};
+};*/
 
 
 

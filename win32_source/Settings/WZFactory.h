@@ -18,16 +18,16 @@
 /**
  * Implementation of our factory interface: make input/display managers and transformers on demand
  */
-class WZFactory :  public Factory
+class WZFactory
 {
 public:
 	WZFactory(void);
 	~WZFactory(void);
 
 	//Builders
-	InputMethod* makeInputMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
-	DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
-	Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
+	static InputMethod* makeInputMethod(DummyInputMethod* options);
+	static DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
+	static Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
 };
 
 

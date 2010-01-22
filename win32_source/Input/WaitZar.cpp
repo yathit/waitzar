@@ -11,9 +11,10 @@ WaitZar::WaitZar()
 }
 
 
-//Temp: implement the abstract class
-void WaitZar::getString()
+
+bool WaitZar::isPlaceholder()
 {
+	return false;
 }
 
 
