@@ -20,10 +20,30 @@ WZFactory::~WZFactory(void)
 }
 
 
-InputMethod* WZFactory::makeInputMethod(DummyInputMethod* options)
+InputMethod* WZFactory::makeInputMethod(wstring id, DummyInputMethod* candidate)
 {
-	//For now
-	return new WaitZar();
+	InputMethod* res = NULL;
+
+	//Check some required settings (display name and encoding are set elsewhere... maybe we should put this here?)
+	if (candidate->options.count(L"type")==0)
+		throw std::exception("Cannot construct input manager: no \"type\"");
+
+	//First, the type is important
+	//TODO: Add "sanitize_id" to values
+	if (candidate->options[L"type"].get() == L"builtin") {
+		//Built-in types are known entirely by our core code
+		if (id==L"waitzar")
+			res = new WaitZar();
+		else if (id==L"mywin")
+			res = new WaitZar(); //TODO: Change!
+		else
+			throw std::exception("Invalid \"builtin\" Input Manager.");
+	} else {
+		throw std::exception("Invalid \"type\" for Input Manager.");
+	}
+
+	//Return our resultant IM
+	return res;
 }
 
 

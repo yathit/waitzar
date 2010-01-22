@@ -25,7 +25,7 @@ public:
 	~WZFactory(void);
 
 	//Builders
-	static InputMethod* makeInputMethod(DummyInputMethod* options);
+	static InputMethod* makeInputMethod(std::wstring id, DummyInputMethod* candidate);
 	static DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
 	static Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
 };
