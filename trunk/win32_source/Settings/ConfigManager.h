@@ -152,7 +152,6 @@ public:
 	//Control
 	std::wstring getActiveLanguage() const;
 	void changeActiveLanguage(const std::wstring& newLanguage);
-	void loc_to_lower(std::wstring& str);
 
 	//Quality control
 	void testAllFiles();
@@ -160,12 +159,14 @@ public:
 	//Useful
 	static std::string escape_wstr(const std::wstring& str);
 	static std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
+	static std::wstring sanitize_id(const std::wstring& str);
+	static std::wstring sanitize(const std::wstring& str);
+	static void loc_to_lower(std::wstring& str);
+	static std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
 
 
 private:
 	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> context, WRITE_OPTS writeTo);
-	std::wstring sanitize_id(const std::wstring& str);
-	std::wstring sanitize(const std::wstring& str);
 	bool read_bool(const std::wstring& str);
 	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, WRITE_OPTS writeTo);
 

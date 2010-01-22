@@ -14,6 +14,7 @@
 #include "Input/WaitZar.h"
 #include "Display/PngFont.h"
 #include "Transform/Zg2Uni.h"
+#include "Settings/ConfigManager.h"
 
 /**
  * Implementation of our factory interface: make input/display managers and transformers on demand
@@ -28,6 +29,9 @@ public:
 	static InputMethod* makeInputMethod(std::wstring id, DummyInputMethod* candidate);
 	static DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
 	static Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
+
+	//Ugh
+	static std::wstring sanitize_id(const std::wstring& str);
 };
 
 

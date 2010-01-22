@@ -225,7 +225,6 @@ vector<wstring> ConfigManager::getLanguages()
 }
 
 
-
 void ConfigManager::readInConfig(wValue root, vector<wstring> context, WRITE_OPTS writeTo) 
 {
 	//We always operate on maps:
@@ -233,8 +232,12 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> context, WRITE_OPT
 	wObject currPairs = root.get_value<wObject>();
 	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
  		//Construct the new context
+		//TODO: Separate dotted strings out here...
 		vector<wstring> newContext = context;
-		newContext.push_back(sanitize_id(itr->name_));
+		{
+		vector<wstring> opts = separate(sanitize_id(itr->name_), L'.');
+		newContext.insert(newContext.end(), opts.begin(), opts.end());
+		}
 
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
@@ -351,7 +354,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 		wstring dot = L"";
 		for (vector<wstring>::const_iterator nameOpt=name.begin(); nameOpt!=name.end(); nameOpt++) {
 			nameStr <<dot <<(*nameOpt);
-			dot = L".";
+			dot = L"/"; //To distinguish "dot" errors
 		}
 		throw std::exception(std::string("Invalid option: \"" + escape_wstr(nameStr.str()) + "\", with value: \"" + escape_wstr(value) + "\"").c_str());
 	}
@@ -375,6 +378,24 @@ wstring ConfigManager::sanitize_id(const wstring& str)
 	res = wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
 	loc_to_lower(res); //Operates in-place.
 	return res;
+}
+
+//Tokenize on a character
+//Inelegant, but it does what I want it to.
+vector<wstring> ConfigManager::separate(wstring str, wchar_t delim)
+{
+	vector<wstring> tokens;
+	std::wstringstream curr;
+	for (size_t i=0; i<str.length(); i++) {
+		if (str[i]!=delim)
+			curr << str[i];
+		if (str[i]==delim || i==str.length()-1) {
+			tokens.push_back(curr.str());
+			curr.str(L"");
+		}
+	}
+
+	return tokens;
 }
 
 std::string ConfigManager::escape_wstr(const std::wstring& str)

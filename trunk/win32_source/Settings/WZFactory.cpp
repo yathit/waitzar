@@ -24,13 +24,16 @@ InputMethod* WZFactory::makeInputMethod(wstring id, DummyInputMethod* candidate)
 {
 	InputMethod* res = NULL;
 
-	//Check some required settings (display name and encoding are set elsewhere... maybe we should put this here?)
+	//Check some required settings 
 	if (candidate->options.count(L"type")==0)
 		throw std::exception("Cannot construct input manager: no \"type\"");
+	if (candidate->options.count(L"encoding")==0)
+		throw std::exception("Cannot construct input manager: no \"encoding\"");
+	if (candidate->options.count(sanitize_id(L"display-name"))==0)
+		throw std::exception("Cannot construct input manager: no \"display-name\"");
 
 	//First, the type is important
-	//TODO: Add "sanitize_id" to values
-	if (candidate->options[L"type"].get() == L"builtin") {
+	if (sanitize_id(candidate->options[L"type"].get()) == L"builtin") {
 		//Built-in types are known entirely by our core code
 		if (id==L"waitzar")
 			res = new WaitZar();
@@ -41,6 +44,14 @@ InputMethod* WZFactory::makeInputMethod(wstring id, DummyInputMethod* candidate)
 	} else {
 		throw std::exception("Invalid \"type\" for Input Manager.");
 	}
+
+	//Now, add general settings
+	res->displayName = candidate->options[sanitize_id(L"display-name")];
+	res->encoding = candidate->options[L"encoding"];
+	if (candidate->options[L"type"].get() == L"builtin")
+		res->type = BUILTIN;
+	else 
+		throw std::exception("Unknown \"type\" for Input Manager.");
 
 	//Return our resultant IM
 	return res;
@@ -60,6 +71,12 @@ Transformation* WZFactory::makeTransformation(std::wstring id, TYPES type, std::
 	return new Zg2Uni();
 }
 
+
+//Move this later
+std::wstring WZFactory::sanitize_id(const std::wstring& str)
+{
+	return ConfigManager::sanitize_id(str);
+}
 
 
 
