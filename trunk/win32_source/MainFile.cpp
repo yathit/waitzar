@@ -147,6 +147,15 @@ HICON mmIcon;
 HICON engIcon;
 WordBuilder model;
 
+//More globals  --  full program customization happens here
+InputMethod*       currInput;
+InputMethod*       currHelpInput; //NULL means disable help
+DisplayMethod*     currDisplay;
+Transformation*    input2Uni;     //NULL means already unicode
+Transformation*    uni2Output;    //NULL means output unicode
+Transformation*    uni2Disp;      //NULL means display in unicode
+
+
 //These need to be pointers, for now. Reference semantics are just too complex.
 PulpCoreFont *mmFontBlack;
 PulpCoreFont *mmFontGreen;
@@ -162,7 +171,6 @@ int numCustomWords;
 INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
-//wstring returnVal;
 string mywordsFileName = "mywords.txt";
 
 //For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
@@ -1911,16 +1919,6 @@ void initCalculateHelp()
 	helpKeyboard = new OnscreenKeyboard(mmFontSmallWhite, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
 }
 
-
-/*wchar_t* makeStringFromKeystrokes(std::vector<unsigned short> keystrokes)
-{
-	for (unsigned int i=0; i<keystrokes.size(); i++) {
-		returnVal[i] = keystrokes[i];
-	}
-	returnVal[keystrokes.size()] = 0x0000;
-
-	return returnVal;
-}*/
 
 
 
@@ -4307,6 +4305,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, msg.str().c_str(), L"CreateWindow() Error", MB_ICONERROR | MB_OK);
 		return 0;
 	}
+
+
+	//Set defaults
+	currInput        = new WaitZar(); //tmp; load from config
+	currHelpInput    = NULL;   //NULL means disable help
+	currDisplay      = new PngFont(); //tmp; load from config
+	input2Uni        = NULL;   //NULL means already unicode
+	uni2Output       = NULL;   //NULL means output unicode
+	uni2Disp         = NULL;   //NULL means display in unicode
+
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
