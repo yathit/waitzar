@@ -201,6 +201,18 @@
 					Name="Input"
 					>
 					<File
+						RelativePath=".\InputMethod.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\LetterInputMethod.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RomanInputMethod.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\Input\WaitZar.cpp"
 						>
 					</File>
@@ -403,6 +415,18 @@
 					<Filter
 						Name="Input"
 						>
+						<File
+							RelativePath=".\InputMethod.h"
+							>
+						</File>
+						<File
+							RelativePath=".\LetterInputMethod.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RomanInputMethod.h"
+							>
+						</File>
 						<File
 							RelativePath=".\Input\WaitZar.h"
 							>

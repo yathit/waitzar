@@ -57,24 +57,12 @@ struct Encoding {
 };
 
 
-//Expected interface: "Input Method"
-class InputMethod {
-public:
-	//Struct-like properties
-	Option<std::wstring> displayName;
-	Option<std::wstring> encoding;
-	Option<TYPES> type;
-
-	//Is this class a placeholder, or is it a real IM.
-	//   There are other ways to do this, but it's nice to 
-	//   have a way of double-checking.
-	virtual bool isPlaceholder() = 0; 
-};
-
 class DummyInputMethod : public InputMethod { //Used to save option pairs.
 public:
 	std::map< std::wstring, Option<std::wstring> > options;
 	bool isPlaceholder() { return true; }
+	std::wstring getMainString() { throw std::exception("Not valid for DummyInputMethod."); }
+	std::wstring getSubString() { throw std::exception("Not valid for DummyInputMethod."); }
 };
 
 //Expected interface: "Input Method"

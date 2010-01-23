@@ -12,13 +12,10 @@
 /**
  * Placeholder class: to be used for WaitZar Input method
  */
-class WaitZar : public InputMethod
+class WaitZar : public RomanInputMethod
 {
 public:
 	WaitZar();
-
-	
-	bool isPlaceholder();
 };
 
 

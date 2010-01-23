@@ -1,17 +1,39 @@
 /*
- * Copyright 2009 by Seth N. Hetu
+ * Copyright 2010 by Seth N. Hetu
  *
  * Please refer to the end of the file for licensing information
  */
 
-#include "WaitZar.h"
+#ifndef _LETTER_INPUT_METHOD
+#define _LETTER_INPUT_METHOD
 
-WaitZar::WaitZar()
-{
+#include "InputMethod.h"
+
+class LetterInputMethod : public InputMethod {
+
+public:
+	//Abstract implementation - keypresses
+	void handleEsc();
+	void handleBackspace();
+	void handleDelete();
+	void handleRight();
+	void handleLeft();
+	void handleEnter();
+	void handleSpace();
+	void handleNumber(int numCode, WPARAM wParam);
+	void handleStop(bool isFull);
+	void handleKeyPress(WPARAM wParam);
+
+
+	//Abstract implementation - simple
+	bool isPlaceholder() { return false; }
+
+private:
+	std::wstring currTypedStr;
 }
 
 
-
+#endif //_LETTER_INPUT_METHOD
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,3 +48,4 @@ WaitZar::WaitZar()
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+

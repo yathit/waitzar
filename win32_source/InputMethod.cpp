@@ -1,14 +1,34 @@
 /*
- * Copyright 2009 by Seth N. Hetu
+ * Copyright 2010 by Seth N. Hetu
  *
  * Please refer to the end of the file for licensing information
  */
 
-#include "WaitZar.h"
+#include "InputMethod.h"
 
-WaitZar::WaitZar()
+InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow)
+{
+	//Init
+	isHelpInput = false;
+
+	//Save
+	this->mainWindow = mainWindow;
+	this->sentenceWindow = sentenceWindow;
+	this->helpWindow = helpWindow;
+	this->memoryWindow = memoryWindow;
+}
+
+InputMethod::~InputMethod()
 {
 }
+
+
+void InputMethod::treatAsHelpKeyboard(bool val)
+{
+	this->isHelpInput = val;
+}
+
+
 
 
 
