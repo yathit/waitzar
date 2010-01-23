@@ -148,7 +148,8 @@ HICON engIcon;
 WordBuilder model;
 
 //More globals  --  full program customization happens here
-InputMethod*       currInput;
+InputMethod*       currInput;     //Which of the two next inputs are currently in use?
+InputMethod*       currTypeInput;
 InputMethod*       currHelpInput; //NULL means disable help
 DisplayMethod*     currDisplay;
 Transformation*    input2Uni;     //NULL means already unicode
@@ -2644,6 +2645,9 @@ void updateHelpWindow()
 		//ShowHelpWindow(SW_SHOW);
 		reBlitHelp();
 
+		//Switch inputs
+		currInput = currHelpInput;
+
 		//Show the main/sentence windows; this is just good practice.
 		if (!mainWindow->isVisible()) {
 			//Show it.
@@ -2677,511 +2681,192 @@ void updateHelpWindow()
 
 
 
-/**
- * Message-handling code.
- */
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+void handleNewHighlights(unsigned int keyCode)
 {
-	//Handle callback
-	switch(msg) {
-		case UWM_HOTKEY_UP: //HOTKEY_UP is defined by us, it is just like HOTKEY_DOWN except it doesn't use the lparam
-		{
-			//Update our virtual keyboard
-			if (helpKeyboard->highlightKey(wParam, false))
-				reBlitHelp();
+	//If this is a shifted key, get which key is shifted: left or right
+	if (keyCode==HOTKEY_SHIFT) {
+		//Well, I like posting fake messages. :D
+		// Note that (lParam>>16)&VK_LSHIFT doesn't work here
+		if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
+			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MOD_SHIFT);
+		if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
+			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
+	} else {
+		//Is this a valid key? If so, highlight it and repaint the help window
+		if (helpKeyboard->highlightKey(keyCode, true)) {
+			reBlitHelp();
 
-			break;
+			//CRITICAL SECTION
+			{
+				EnterCriticalSection(&threadCriticalSec);
+
+				/*if (isLogging)
+					fprintf(logFile, "  Key down: %c\n", keyCode);*/
+
+				//Manage our thread's list of currently pressed hotkeys
+				hotkeysDown.remove(keyCode);
+				hotkeysDown.push_front(keyCode);
+
+				//Do we need to start our thread?
+				if (!threadIsActive) {
+					threadIsActive = true;
+
+					ResumeThread(keyTrackThread);
+
+					//GetSystemTimeAsFileTime(&res);
+					//int diff = (res.dwLowDateTime-rL)/10000L; //hectonanoseconds div 10,000 to get ms
+				}
+
+				LeaveCriticalSection(&threadCriticalSec);
+			}
 		}
-		case WM_HOTKEY:
-		{
+	}
+}
+
+
+
+bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
+{
+	switch (wParam) {
+		case LANG_HOTKEY:
+			//Switch language
+			switchToLanguage(!mmOn);
+
+			//Reset the model
+			sentence.clear();
+			patSintIDModifier = 0;
+			model.reset(true);
+			return true;
+
+		case HOTKEY_HELP:
+			//What to do if our user hits "F1".
+			if (!allowNonBurmeseLetters && currHelpInput!=NULL)
+				updateHelpWindow();
+			return true;
+
+		case HOTKEY_ESC:
+			//Only handle the meta case here (canceling out of "help")
+			if (currInput == currHelpInput) {
+				//Change to the typed input
+				currInput = currTypeInput;
+				///currInput->clearMainStr(); //Might not be needed if we're switching inputs
+
+				//Turn off help keys
+				turnOnHelpKeys(false);
+
+				//Hide windows
+				helpWindow->showWindow(false);
+				memoryWindow->showWindow(false);
+
+				//Hide the main window, and secondary window (conditionally)
+				mainWindow->showWindow(false);
+				if (sentence.size()==0)
+					sentenceWindow->showWindow(false);
+
+				//Redraw all
+				recalculate();
+
+				return true;
+			}
+
+			//Don't process ESC yet otherwise; it's not a meta key.
+			return false;
+
+		default:
+			if (helpWindow->isVisible() && highlightKeys) {
+				//Highlight our virtual keyboard
+				handleNewHighlights(wParam);
+
+				//Doesn't consume a keypress
+				return false;
+			}
+	}
+
+	//Else, not processed
+	return false;
+}
+
+
+bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
+{
+	//TODO: Re-do all of this, make sure we're using switch statement where possible, and 
+	//      refactor code into InputManager when it makes sense to.
+	switch (wparam) {
+		case HOTKEY_ESC:
+			//Close the window
+			currInput->handleEsc();
+			return true;
+
+		case HOTKEY_BACK:
+			//Back up
+			currInput->handleBackspace();
+			return true;
+
+		case HOTKEY_DELETE:
+			//Delete a phrase
+			currInput->handleDelete();
+			return true;
+
+		case HOTKEY_RIGHT:
+			//Advance the cursor, pick a word
+			currInput->handleRight();
+			return true;
+
+		case HOTKEY_LEFT:
+			//Move the cursor back, pick a word
+			currInput->handleLeft();
+			return true;
+
+		case HOTKEY_COMMA: case HOTKEY_PERIOD:
+			//Handle stops
+			currInput->handleStop(wParam==HOTKEY_PERIOD);
+			return true;
+
+		case HOTKEY_ENTER: case HOTKEY_SHIFT_ENTER:
+			//Handle word selection
+			//TODO: Merge handleEnter() and handleSpace()
+			currInput->handleEnter();
+			return true;
+
+		case HOTKEY_SPACE: case HOTKEY_SHIFT_SPACE:
+			//Handle word selection, cursor advancing
+			//TODO: Merge handleEnter() and handleSpace()
+			currInput->handleSpace();
+			return true;
+
+		case HOTKEY_0: case HOTKEY_NUM0:
+		case HOTKEY_1: case HOTKEY_NUM1:
+		case HOTKEY_2: case HOTKEY_NUM2:
+		case HOTKEY_3: case HOTKEY_NUM3:
+		case HOTKEY_4: case HOTKEY_NUM4:
+		case HOTKEY_5: case HOTKEY_NUM5:
+		case HOTKEY_6: case HOTKEY_NUM6:
+		case HOTKEY_7: case HOTKEY_NUM7:
+		case HOTKEY_8: case HOTKEY_NUM8:
+		case HOTKEY_9: case HOTKEY_NUM9:
+		case HOTKEY_COMBINE: case HOTKEY_SHIFT_COMBINE:
+			//Handle numbers and combiners; pick a word, type a letter, combine/stack letters.
+			//numCode = 0 through 9 for numbers, undefined for combiners
+			int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : HOTKEY_NUM0;
+			int numCode = (int)wParam - base;
+
+			//Handle key press; letter-based keyboard should just pass this on through
+			currInput->handleNumber(numCode, wParam);
+			return true;
+
+
+		default:
+			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
+			// otherwise numbers won't work.
+
+
+
 			//Added to help us avoid multiple reactions, if necessary
 			// (probably only necessary for the number/myanmar numbers distinction)
 			bool keyWasUsed = false;
 
-			//Handle our main language hotkey
-			if(wParam == LANG_HOTKEY) {
-				//Switch language
-				switchToLanguage(!mmOn);
 
-				//Reset the model
-				sentence.clear();
-				patSintIDModifier = 0;
-				model.reset(true);
 
-				keyWasUsed = true;
-			}
-
-
-			//Should we update the virtual keyboard? This is done independently
-			//  of actually handling the keypress itself
-			if (helpWindow->isVisible() && highlightKeys) {
-				//If this is a shifted key, get which key is shifted: left or right
-				unsigned int keyCode = wParam;
-				if (keyCode==HOTKEY_SHIFT) {
-					//Well, I like posting fake messages. :D
-					// Note that (lParam>>16)&VK_LSHIFT doesn't work here
-					if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
-						mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MOD_SHIFT);
-					if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
-						mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
-				} else {
-					//Is this a valid key? If so, highlight it and repaint the help window
-					if (helpKeyboard->highlightKey(keyCode, true)) {
-						reBlitHelp();
-
-						//CRITICAL SECTION
-						{
-							EnterCriticalSection(&threadCriticalSec);
-
-							/*if (isLogging)
-								fprintf(logFile, "  Key down: %c\n", keyCode);*/
-
-							//Manage our thread's list of currently pressed hotkeys
-							hotkeysDown.remove(keyCode);
-							hotkeysDown.push_front(keyCode);
-
-							//Do we need to start our thread?
-							if (!threadIsActive) {
-								threadIsActive = true;
-
-								ResumeThread(keyTrackThread);
-
-								//GetSystemTimeAsFileTime(&res);
-								//int diff = (res.dwLowDateTime-rL)/10000L; //hectonanoseconds div 10,000 to get ms
-							}
-
-							LeaveCriticalSection(&threadCriticalSec);
-						}
-					}
-				}
-
-				//Doesn't consume a keypress
-				//keyWasUsed = keyWasUsed;
-			}
-
-
-			//What to do if our user hits "F1".
-			if (wParam == HOTKEY_HELP && !allowNonBurmeseLetters) {
-				updateHelpWindow();
-
-				keyWasUsed = true;
-			}
-
-
-			//Close the window?
-			if (wParam == HOTKEY_ESC) {
-				if (helpWindow->isVisible()) {
-					//Clear our word string
-					currStr.clear();
-
-					turnOnHelpKeys(false);
-					helpWindow->showWindow(false);
-					memoryWindow->showWindow(false);
-					//ShowHelpWindow(SW_HIDE);
-
-					//Hide the main window, too, and possibly the secondary window
-					mainWindow->showWindow(false);
-					//ShowMainWindow(SW_HIDE);
-					if (sentence.size()==0)
-						sentenceWindow->showWindow(false);
-						//ShowSubWindow(SW_HIDE);
-
-					recalculate();
-				} else {
-					if (!mainWindow->isVisible()) {
-						//Kill the entire sentence.
-						sentence.clear();
-						patSintIDModifier = 0;
-						model.reset(true);
-						turnOnControlkeys(false);
-						ShowBothWindows(SW_HIDE);
-					} else {
-						patSintIDModifier = 0;
-						model.reset(false);
-
-						//No more numbers
-						//if (typeBurmeseNumbers==FALSE)
-						//	turnOnNumberkeys(FALSE);
-
-						//Are we using advanced input?
-						if (!typePhrases) {
-							//Turn off control keys
-							turnOnControlkeys(false);
-							ShowBothWindows(SW_HIDE);
-						} else {
-							//Just hide the typing window for now.
-							mainWindow->showWindow(false);
-							//ShowMainWindow(SW_HIDE);
-
-							if (sentence.size()==0) {
-								//Kill the entire sentence.
-								sentence.clear();
-								ShowBothWindows(SW_HIDE);
-								turnOnControlkeys(false);
-							} else
-								recalculate();
-						}
-					}
-				}
-
-				keyWasUsed = true;
-			}
-
-
-			//Delete: Phrases only
-			if (wParam == HOTKEY_DELETE) {
-				if (helpWindow->isVisible()) {
-					//Delete the letter in front of you (encoding-wise, not visibly)
-					//ADD LATER
-
-				} else {
-					if (!mainWindow->isVisible()) {
-						//Delete the next word
-						if (sentence.deleteNext())
-							recalculate();
-						if (sentence.size()==0) {
-							//Kill the entire sentence.
-							sentence.clear();
-							turnOnControlkeys(false);
-							ShowBothWindows(SW_HIDE);
-						}
-					}
-				}
-
-				keyWasUsed = true;
-			}
-
-
-			//Back up
-			if (wParam == HOTKEY_BACK) {
-				if (helpWindow->isVisible()) {
-					//Delete the letter in back of you (encoding-wise, not visibly)
-					if (!currStr.empty())
-						currStr.erase(currStr.length()-1);
-					recalculate();
-				} else {
-					if (!mainWindow->isVisible()) {
-						//Delete the previous word
-						if (sentence.deletePrev(model))
-							recalculate();
-						if (sentence.size()==0) {
-							//Kill the entire sentence.
-							sentence.clear();
-							turnOnControlkeys(false);
-							ShowBothWindows(SW_HIDE);
-						}
-					} else {
-						if (model.backspace()) {
-							//Truncate...
-							currStr.erase(currStr.length()-1);
-							recalculate();
-						} else {
-							//No more numerals.
-							//if (typeBurmeseNumbers==FALSE)
-							//	turnOnNumberkeys(FALSE);
-
-							//Are we using advanced input?
-							if (!typePhrases) {
-								//Turn off control keys
-								turnOnControlkeys(false);
-
-								ShowBothWindows(SW_HIDE);
-							} else {
-								//Just hide the typing window for now.
-								mainWindow->showWindow(false);
-								//ShowMainWindow(SW_HIDE);
-
-								if (sentence.size()==0) {
-									//Kill the entire sentence.
-									sentence.clear();
-									turnOnControlkeys(false);
-
-									sentenceWindow->showWindow(false);
-									//ShowSubWindow(SW_HIDE);
-								}
-							}
-						}
-					}
-				}
-
-				keyWasUsed = true;
-			}
-
-
-			//Handle control hotkeys
-			if (wParam == HOTKEY_RIGHT) {
-				if (helpWindow->isVisible()) {
-					//Move the letter cursor one to the right
-					//ADD LATER
-
-				} else {
-					if (mainWindow->isVisible()) {
-						//Move right/left within the current word.
-						if (patSintIDModifier==-1) {
-							patSintIDModifier = 0;
-							recalculate();
-						} else if (model.moveRight(1) == TRUE)
-							recalculate();
-					} else {
-						//Move right/left within the current phrase.
-						if (sentence.moveCursorRight(1, model))
-							recalculate();
-					}
-				}
-
-				keyWasUsed = true;
-			} else if (wParam == HOTKEY_LEFT) {
-				if (helpWindow->isVisible()) {
-					//Move the letter cursor one to the left
-					//ADD LATER
-
-				} else {
-					if (mainWindow->isVisible()) {
-						if (model.moveRight(-1) == TRUE)
-							recalculate();
-						else if (model.hasPostStr() && patSintIDModifier==0) {
-							//Move left to our "pat-sint shortcut"
-							patSintIDModifier = -1;
-							recalculate();
-						}
-					} else {
-						//Move right/left within the current phrase.
-						if (sentence.moveCursorRight(-1, model))
-							recalculate();
-					}
-				}
-
-				keyWasUsed = true;
-			}
-
-
-			//Determine what number, if any, was pressed
-			int numCode = -1;
-			if (wParam>=HOTKEY_0 && wParam<=HOTKEY_9)
-				numCode = (int)wParam - HOTKEY_0;
-			if (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9)
-				numCode = (int)wParam - HOTKEY_NUM0;
-
-			//Handle numbers
-			if (!helpWindow->isVisible()) {
-				stopChar=0;
-				if (numCode>-1 || wParam==HOTKEY_COMBINE || (wParam==HOTKEY_SHIFT_COMBINE&&mainWindow->isVisible())) {
-					if (mainWindow->isVisible()) {
-						//Convert 1..0 to 0..9
-						if (--numCode<0)
-							numCode = 9;
-
-						//Mangle as usual...
-						if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
-							numCode = -1;
-							patSintIDModifier = -1;
-						} else
-							patSintIDModifier = 0;
-
-						//The model is visible: select that word
-						BOOL typed = selectWord(numCode, helpWindow->isVisible());
-						if (typed==TRUE && typePhrases) {
-							mainWindow->showWindow(false);
-							//ShowMainWindow(SW_HIDE);
-
-							currStr.clear();
-							patSintIDModifier = 0;
-							model.reset(false);
-							recalculate();
-						} else
-							patSintIDModifier = 0;
-
-						keyWasUsed = true;
-					} else if (typeBurmeseNumbers) {
-						if (!typePhrases) {
-							sentence.clear();
-							sentence.insert(numCode);
-							typeCurrentPhrase();
-						} else {
-							//Just type that number directly.
-							sentence.insert(numCode);
-							sentence.moveCursorRight(0, true, model);
-
-							//Is our window even visible?
-							if (!sentenceWindow->isVisible()) {
-								turnOnControlkeys(true);
-
-								sentenceWindow->showWindow(true);
-								//ShowSubWindow(SW_SHOW);
-							}
-
-							recalculate();
-						}
-
-						keyWasUsed = true;
-					}
-				}
-			}
-
-
-			//Handle Half-stop/Full-stop
-			if (wParam==HOTKEY_COMMA || wParam==HOTKEY_PERIOD) {
-				stopChar = model.getStopCharacter((wParam==HOTKEY_PERIOD));
-				if (helpWindow->isVisible()) {
-					//Possibly do nothing...
-					//ADD LATER
-
-				} else {
-					if (!mainWindow->isVisible()) {
-						if (!sentenceWindow->isVisible()) {
-							//This should be cleared already, but let's be safe...
-							sentence.clear();
-						}
-						//Otherwise, we perform the normal "enter" routine.
-						typeCurrentPhrase();
-					}
-				}
-
-				keyWasUsed = true;
-			}
-
-
-			//Handle Enter
-			if (wParam==HOTKEY_ENTER || wParam==HOTKEY_SHIFT_ENTER) {
-				if (helpWindow->isVisible()) {
-					//Select our word, add it to the dictionary temporarily.
-					// Flag the new entry so it can be cleared later when the sentence is selected
-					if (currStrZg.length()>0) {
-						if (currStrDictID==-1) {
-							wstring tempStr = waitzar::sortMyanmarString(currStr);
-							userDefinedWords.push_back(tempStr);
-							userDefinedWordsZg.push_back(currStrZg);
-							currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
-
-							//Add it to the memory list
-							helpKeyboard->addMemoryEntry(currStrZg.c_str(), "<no entry>");
-						} else {
-							//Add it to the memory list
-							string revWord = model.reverseLookupWord(currStrDictID);
-							helpKeyboard->addMemoryEntry(currStrZg.c_str(), revWord.c_str());
-						}
-
-						//Hide the help window
-						turnOnHelpKeys(false);
-						helpWindow->showWindow(false);
-						memoryWindow->showWindow(false);
-						//ShowHelpWindow(SW_HIDE);
-
-						//Try to type this word
-						BOOL typed = selectWord(currStrDictID, true);
-						if (typed==TRUE && typePhrases) {
-							mainWindow->showWindow(false);
-							//ShowMainWindow(SW_HIDE);
-
-							patSintIDModifier = 0;
-							model.reset(false);
-							currStr.clear();
-							recalculate();
-						}
-
-						//We need to reset the trigrams here...
-						sentence.updateTrigrams(model);
-					}
-				} else {
-					stopChar = 0;
-					if (mainWindow->isVisible()) {
-						//The model is visible: select that word
-						BOOL typed = selectWord(-1, helpWindow->isVisible());
-						if (typed==TRUE && typePhrases) {
-							mainWindow->showWindow(false);
-							//ShowMainWindow(SW_HIDE);
-
-							currStr.clear();
-							patSintIDModifier = 0;
-							model.reset(false);
-							recalculate();
-						}
-					} else {
-						//Type the entire sentence
-						typeCurrentPhrase();
-					}
-				}
-
-				keyWasUsed = true;
-			}
-
-			//Handle Space Bar
-			if (wParam==HOTKEY_SPACE || wParam==HOTKEY_SHIFT_SPACE) {
-				if (helpWindow->isVisible()) {
-					//Select our word, add it to the dictionary temporarily.
-					// Flag the new entry so it can be cleared later when the sentence is selected
-					if (currStrZg.length()>0) {
-						if (currStrDictID==-1) {
-							wstring tempStr = waitzar::sortMyanmarString(currStr);
-							userDefinedWords.push_back(tempStr);
-							userDefinedWordsZg.push_back(currStrZg);
-							currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
-
-							//Add it to the memory list
-							helpKeyboard->addMemoryEntry(currStrZg.c_str(), "<no entry>");
-						} else {
-							//Add it to the memory list
-							string revWord = model.reverseLookupWord(currStrDictID);
-							helpKeyboard->addMemoryEntry(currStrZg.c_str(), revWord.c_str());
-						}
-
-						//Hide the help window
-						turnOnHelpKeys(false);
-						helpWindow->showWindow(false);
-						memoryWindow->showWindow(false);
-						//ShowHelpWindow(SW_HIDE);
-
-						//Try to type this word
-						BOOL typed = selectWord(currStrDictID, true);
-						if (typed==TRUE && typePhrases) {
-							mainWindow->showWindow(false);
-							//ShowMainWindow(SW_HIDE);
-
-							patSintIDModifier = 0;
-							model.reset(false);
-							currStr.clear();
-							recalculate();
-						}
-
-						//We need to reset the trigrams here...
-						sentence.updateTrigrams(model);
-
-						keyWasUsed = true;
-					}
-				} else {
-					stopChar = 0;
-					if (mainWindow->isVisible()) {
-						//The model is visible: select that word
-						BOOL typed = selectWord(-1, helpWindow->isVisible());
-						if (typed==TRUE && typePhrases) {
-							mainWindow->showWindow(false);
-							//ShowMainWindow(SW_HIDE);
-
-							patSintIDModifier = 0;
-							model.reset(false);
-							currStr.clear();
-							recalculate();
-						}
-
-						keyWasUsed = true;
-					} else {
-						//A bit tricky here. If the cursor's at the end, we'll
-						//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
-						//Hopefully this won't confuse users so much.
-						if (wParam==HOTKEY_SPACE) {
-							if (sentence.getCursorIndex()==-1 || sentence.getCursorIndex()<((int)sentence.size()-1)) {
-								sentence.moveCursorRight(1, model);
-								recalculate();
-							} else {
-								//Type the entire sentence
-								typeCurrentPhrase();
-							}
-
-							keyWasUsed = true;
-						}
-					}
-				}
-			}
 
 			//Handle our individual letter presses as hotkeys
 			if (helpWindow->isVisible()) {
@@ -3315,6 +3000,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 
+
+	//Else, not processed
+	return false;
+}
+
+
+/**
+ * Message-handling code.
+ */
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	//Handle callback
+	switch(msg) {
+		case UWM_HOTKEY_UP: //HOTKEY_UP is defined by us, it is just like HOTKEY_DOWN except it doesn't use the lparam
+		{
+			//Update our virtual keyboard
+			if (helpKeyboard->highlightKey(wParam, false))
+				reBlitHelp();
+
+			break;
+		}
+		case WM_HOTKEY:
+		{
+			//First, handle all "system" or "meta" level commands, like switching the language,
+			// switching into help mode, etc.
+			//Then, handle all "dynamic" commands; those which change depending on the 
+			// current IM or mode.
+			if (!handleMetaHotkeys(wParam, lParam))
+				handleUserHotkeys(wParam, lParam);
 			break;
 		}
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
@@ -4308,8 +4022,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Set defaults
-	currInput        = new WaitZar(); //tmp; load from config
+	currTypeInput    = new WaitZar(); //tmp; load from config
+	currTypeInput->treatAsHelpKeyboard(false);
 	currHelpInput    = NULL;   //NULL means disable help
+	currInput        = currTypeInput;
 	currDisplay      = new PngFont(); //tmp; load from config
 	input2Uni        = NULL;   //NULL means already unicode
 	uni2Output       = NULL;   //NULL means output unicode
