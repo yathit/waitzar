@@ -24,12 +24,17 @@ public:
 	void handleStop(bool isFull);
 	void handleKeyPress(WPARAM wParam);
 
+	//Abstract implementation - sentence and word
+	std::wstring getTypedSentenceString();
+	std::wstring getTypedCandidateString();
+	void appendToSentence(wchar_t letter, int id);
 
 	//Abstract implementation - simple
 	bool isPlaceholder() { return false; }
 
 private:
-	std::wstring currTypedStr;
+	std::wstringstream typedSentenceStr;
+	std::wstringstream typedCandidateStr;
 }
 
 

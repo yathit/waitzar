@@ -199,6 +199,32 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 
 
 
+std::wstring LetterInputMethod::getTypedSentenceString()
+{
+	return typedSentenceStr.str();
+}
+
+
+std::wstring LetterInputMethod::getTypedCandidateString()
+{
+	return typedCandidateStr.str();
+}
+
+
+void LetterInputMethod::appendToSentence(wchar_t letter, int id)
+{
+	typedSentenceStr <<letter;
+
+	//TODO: Move this to a more general place
+	if (!sentenceWindow->isVisible()) {
+		//First time visible.
+		turnOnControlkeys(true);
+		(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
+	}
+
+	recalculate();
+}
+
 
 
 /*

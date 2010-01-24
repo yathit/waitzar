@@ -14,7 +14,7 @@
 //Expected interface: "Input Method"
 class InputMethod {
 public:
-	InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow);
+	InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup);
 	virtual ~InputMethod();
 
 	//Struct-like properties
@@ -41,13 +41,10 @@ public:
 
 private:
 	bool isHelpInput;
+	const vector< pair <int, unsigned short> > &systemWordLookup;
 
 
 protected:
-	//Main and sub strings. These should generally be maintained by sub-classes
-	std::wstring mainStr;
-	std::wstring subStr;
-
 	//Window control
 	MyWin32Window* mainWindow;
 	MyWin32Window* sentenceWindow;
@@ -64,8 +61,18 @@ public:  //Abstract methods
 	virtual bool isPlaceholder() = 0; 
 
 	//Get strings to print, always in unicode
-	virtual std::wstring getMainString() = 0; //The string we're typing now
-	virtual std::wstring getSubString() = 0;  //The sentence string, usually
+	//The current typed string (sentence string). 
+	//This will be typed to the output program if "Enter" is pressed.
+	//All sub-classes must ensure that this remains valid outside of any function call, and
+	//  before any calls to the base class's methods.
+	//A "typed" string is in an arbitrary encoding; converting to/from unicode is done as needed.
+	virtual std::wstring getTypedSentenceString() = 0;
+	virtual void appendToSentence(wchar_t letter, int id) = 0; //Used for system letters only, for perf. reasons. (id is optional)
+
+	//The current "candidate" string, which will be displayed in the top
+	//  window. It will not be entered until it also appears in the sentence string.
+	//The same warnings apply as to the typedSentenceString.
+	virtual std::wstring getTypedCandidateString();
 };
 
 

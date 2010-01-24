@@ -289,6 +289,7 @@ void RomanInputMethod::handleSpace()
 void RomanInputMethod::handleKeyPress(WPARAM wParam)
 {
 	//Handle regular letter-presses (as lowercase)
+	//NOTE: ONLY handle letters
 	int keyCode = (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) ? (int)wParam+32 : (int)wParam;
 	if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW) {
 		//Run this keypress into the model. Accomplish anything?
@@ -299,37 +300,61 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 		patSintIDModifier = 0;
 
 		//Is this the first keypress of a romanized word? If so, the window is not visible...
-		if (!mainWindow->isVisible())
-		{
+		if (!mainWindow->isVisible()) {
 			//Reset it...
-			currStr.clear();
+			typedCandidateString.str(L"");
 
 			//Optionally turn on numerals
 			if (!numberKeysOn)
 				turnOnNumberkeys(true);
 
 			//Show it
-			if (!typePhrases || !sentenceWindow->isVisible()) {
+			mainWindow->showWindow(true);
+
+			//First word in a sentence?
+			if (!sentenceWindow->isVisible()) {
 				//Turn on control keys
 				turnOnControlkeys(true);
-				ShowBothWindows(SW_SHOW);
-			} else {
-				mainWindow->showWindow(true);
-				//ShowMainWindow(SW_SHOW);
+				(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
 			}
 		}
 
 		//Now, handle the keypress as per the usual...
-		wstringstream msg;
-		msg <<currStr <<(char)keyCode;
-		currStr = msg.str();
+		typedCandidateString <<(char)keyCode;
 		recalculate();
-
-		keyWasUsed = true;
 	} else {
 		//Check for system keys
 		InputMethod::handleKeyPress(wParam);
 	}
+}
+
+
+
+std::wstring RomanInputMethod::getTypedSentenceString()
+{
+	//TODO
+}
+
+
+std::wstring RomanInputMethod::getTypedCandidateString()
+{
+	//TODO
+}
+
+
+void RomanInputMethod::appendToSentence(wchar_t letter, int id)
+{
+	if (selectWord(newID, true)==TRUE) {
+		if (!sentenceWindow->isVisible()) {
+			//First time visible.
+			turnOnControlkeys(true);
+			(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
+		}
+
+		recalculate();
+	}
+	//We need to reset the trigrams here...
+	sentence.updateTrigrams(model);
 }
 
 
