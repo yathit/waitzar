@@ -19,31 +19,14 @@ void RomanInputMethod::handleEsc()
 {
 	//Escape out of the main window or the sentence, depending
 	if (!mainWindow->isVisible()) {
-		//Kill the entire sentence.
+		//Kill the entire sentence
 		sentence.clear();
-		patSintIDModifier = 0;  //Note: this should def. be in some kind of sub-class.
-		model.reset(true);
-
-		//Standard window killing
-		turnOnControlkeys(false);
-		mainWindow->showWindow(false);
-		(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
 	} else {
-		//Just cancel the current word
-		patSintIDModifier = 0;
-		model.reset(false);
-
-		//Just hide the typing window for now.
-		mainWindow->showWindow(false);
-
-		//Kill the entire sentence?
-		if (sentence.size()==0) {
-			sentence.clear();
-			mainWindow->showWindow(false);
-			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-			turnOnControlkeys(false);
-		} else
-			viewChanged = true;
+		//Cancel the current word
+		//NOTE: if getTypedString() is empty, we can say that our candidate list has reset
+		//      Let's try that for now...
+		typedRomanStr.str(L"");
+		viewChanged = true; //Shouldn't matter, but doesn't hurt.
 	}
 }
 
@@ -55,35 +38,13 @@ void RomanInputMethod::handleBackspace()
 		//Delete the previous word in the sentence
 		if (sentence.deletePrev(model))
 			viewChanged = true;
-
-
-		//Kill the entire sentence?
-		//TODO: Can we do this in the Main loop?
-		if (sentence.size()==0) {
-			sentence.clear();
-			turnOnControlkeys(false);
-			
-			mainWindow->showWindow(false);
-			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-		}
 	} else {
-		if (model.backspace()) {
-			//Truncate...
-			currStr.erase(currStr.length()-1);
-			viewChanged = true;
-		} else {
-			//Just hide the typing window for now.
-			mainWindow->showWindow(false);
+		model.backspace();
 
-			//Kill the entire sentence?
-			//TODO: Can we do this in the Main loop?
-			if (sentence.size()==0) {
-				sentence.clear();
-				turnOnControlkeys(false);
-
-				(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-			}
-		}
+		//Truncate...
+		wstring newStr = !typedRomanStr.str().empty() ? typedRomanStr.str().substr(0, typedRomanStr.str().length()-1) : L"";
+		typedRomanStr.str(newStr);
+		viewChanged = true;
 	}
 }
 
@@ -94,14 +55,6 @@ void RomanInputMethod::handleDelete()
 		//Delete the next word
 		if (sentence.deleteNext())
 			viewChanged = true;
-		if (sentence.size()==0) {
-			//Kill the entire sentence.
-			sentence.clear();
-			turnOnControlkeys(false);
-
-			mainWindow->showWindow(false);
-			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-		}
 	}
 }
 
@@ -157,28 +110,13 @@ void RomanInputMethod::handleNumber(int numCode, WPARAM wParam)
 
 		//Select this numbered word
 		if (selectWord(numCode, helpWindow->isVisible())==TRUE) {
-			//Clear, reset
-			mainWindow->showWindow(false);
-
-			currStr.clear();
-			patSintIDModifier = 0;
-			model.reset(false);
-			
+			typedRomanStr.str(L"");
 			viewChanged = true;
-		} else
-			patSintIDModifier = 0;
-
+		}
 	} else if (typeBurmeseNumbers) {
 		//Type this number
 		sentence.insert(numCode);
 		sentence.moveCursorRight(0, true, model);
-
-		//Is our window even visible?
-		if (!sentenceWindow->isVisible()) {
-			turnOnControlkeys(true);
-
-			(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-		}
 
 		viewChanged = true;
 	}
@@ -188,13 +126,9 @@ void RomanInputMethod::handleNumber(int numCode, WPARAM wParam)
 void RomanInputMethod::handleStop(bool isFull)
 {
 	unsigned short stopChar = model.getStopCharacter(isFull);
-	if (!mainWindow->isVisible()) {
-		//This should be cleared already, but let's be safe...
-		if (!sentenceWindow->isVisible()) 
-			sentence.clear();
-		
+	if (!mainWindow->isVisible()) {	
 		//Otherwise, we perform the normal "enter" routine.
-		typeCurrentPhrase();
+		typeCurrentPhrase(); //TODO: Append "stopChar"
 	}
 }
 
@@ -250,16 +184,12 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 		if (!model.typeLetter(keyCode))
 			return;
 
-		//Reset pat-sint choice
-		patSintIDModifier = 0;
-
-		//Is this the first keypress of a romanized word? If so, the window is not visible...
-		if (!mainWindow->isVisible())
-			justTypedFirstLetter = true;
-
-		//Now, handle the keypress as per the usual...
+		//Update the romanized string
 		typedRomanStr <<(char)keyCode;
-		recalculate();
+
+		//Trigger 2 events
+		viewChanged = true;
+		justTypedFirstLetter = true;
 	} else {
 		//Check for system keys
 		InputMethod::handleKeyPress(wParam);
@@ -296,8 +226,9 @@ void RomanInputMethod::appendToSentence(wchar_t letter, int id)
 void RomanInputMethod::reset()
 {
 	typedRomanStr.str(L"");
-	model->reset(true);
 	sentence->clear();
+	model.reset(true); //TODO: This needs to be conditional somehow! (needs "true", "false", and skip altogether
+	patSintIDModifier = 0;
 
 
 	//TODO: more later
