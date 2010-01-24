@@ -56,92 +56,55 @@ void LetterInputMethod::handleStop(bool isFull)
 	//TODO: ADD LATER
 }
 
-void LetterInputMethod::handleEnter()
+void LetterInputMethod::handleCommit(bool strongCommit)
 {
-	//Select our word, add it to the dictionary temporarily.
-	// Flag the new entry so it can be cleared later when the sentence is selected
-	if (currStrZg.length()>0) {
-		if (currStrDictID==-1) {
-			wstring tempStr = waitzar::sortMyanmarString(currStr);
-			userDefinedWords.push_back(tempStr);
-			userDefinedWordsZg.push_back(currStrZg);
-			currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
+	//Anything to commit?
+	if (typedSentenceStr.str().empty()) 
+		return;
 
-			//Add it to the memory list
-			helpKeyboard->addMemoryEntry(currStrZg.c_str(), "<no entry>");
-		} else {
-			//Add it to the memory list
-			string revWord = model.reverseLookupWord(currStrDictID);
-			helpKeyboard->addMemoryEntry(currStrZg.c_str(), revWord.c_str());
+	//If we are in help mode, add the word we chose to the dictionary, and flag 
+	//   it so that it can be cleared later when the entire sentence is selected.
+	//If in normal mode, commit the entire sentence. 
+	if (!this->isHelpInput()) {
+		//Just commit the current sentence.
+		typeCurrentPhrase();
+	} else {
+		//Get its romanization, if it exists.
+		string revWord = (currStrDictID!=-1) ? revWord = model.reverseLookupWord(currStrDictID) : "<no entry>";
+
+		//Add it to the memory list
+		helpKeyboard->addMemoryEntry(typedSentenceStr.str().c_str(), revWord.c_str());
+
+		//Add it to the dictionary?
+		if (currStrDictID==-1) {
+			wstring tempStr = waitzar::sortMyanmarString(typedSentenceStr.str());
+			userDefinedWords.push_back(tempStr);
+			currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
 		}
 
 		//Hide the help window
 		turnOnHelpKeys(false);
 		helpWindow->showWindow(false);
 		memoryWindow->showWindow(false);
-		//ShowHelpWindow(SW_HIDE);
 
 		//Try to type this word
+		//TODO: Need to move this into the MainFile.cpp logic.
+		//      We need to trigger switching back to the MAIN INPUT method, too.
 		BOOL typed = selectWord(currStrDictID, true);
-		if (typed==TRUE && typePhrases) {
+		if (typed==TRUE) {
 			mainWindow->showWindow(false);
-			//ShowMainWindow(SW_HIDE);
 
 			patSintIDModifier = 0;
 			model.reset(false);
 			currStr.clear();
 			recalculate();
 		}
-
 		//We need to reset the trigrams here...
 		sentence.updateTrigrams(model);
+		//END TODO
+
 	}
 }
-
-void LetterInputMethod::handleSpace()
-{
-	//Select our word, add it to the dictionary temporarily.
-	// Flag the new entry so it can be cleared later when the sentence is selected
-	if (currStrZg.length()>0) {
-		if (currStrDictID==-1) {
-			wstring tempStr = waitzar::sortMyanmarString(currStr);
-			userDefinedWords.push_back(tempStr);
-			userDefinedWordsZg.push_back(currStrZg);
-			currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
-
-			//Add it to the memory list
-			helpKeyboard->addMemoryEntry(currStrZg.c_str(), "<no entry>");
-		} else {
-			//Add it to the memory list
-			string revWord = model.reverseLookupWord(currStrDictID);
-			helpKeyboard->addMemoryEntry(currStrZg.c_str(), revWord.c_str());
-		}
-
-		//Hide the help window
-		turnOnHelpKeys(false);
-		helpWindow->showWindow(false);
-		memoryWindow->showWindow(false);
-		//ShowHelpWindow(SW_HIDE);
-
-		//Try to type this word
-		BOOL typed = selectWord(currStrDictID, true);
-		if (typed==TRUE && typePhrases) {
-			mainWindow->showWindow(false);
-			//ShowMainWindow(SW_HIDE);
-
-			patSintIDModifier = 0;
-			model.reset(false);
-			currStr.clear();
-			recalculate();
-		}
-
-		//We need to reset the trigrams here...
-		sentence.updateTrigrams(model);
-
-		keyWasUsed = true;
-	}
-}
-
 
 
 
@@ -152,7 +115,11 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 	wstring nextBit = helpKeyboard->typeLetter(wParam);
 	if (!nextBit.empty()) {
 		//Valid letter
-		currStr += nextBit;
+		typedRomanStr <<(char)wParam;
+		typedSentenceStr <<nextBit
+
+		//Save a temporary string to make calculations easier.
+		wstring currStr = typedSentenceStr.str();
 		size_t len = currStr.length();
 
 		//Special cases
@@ -175,6 +142,8 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 			}
 		}
 
+		//Save the results of our temporary calculations.
+		typedSentenceStr.str(currStr);
 
 		//Pre-sort unicode strings (should be helpful)
 		recalculate();
@@ -214,15 +183,6 @@ std::wstring LetterInputMethod::getTypedCandidateString()
 void LetterInputMethod::appendToSentence(wchar_t letter, int id)
 {
 	typedSentenceStr <<letter;
-
-	//TODO: Move this to a more general place
-	if (!sentenceWindow->isVisible()) {
-		//First time visible.
-		turnOnControlkeys(true);
-		(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-	}
-
-	recalculate();
 }
 
 

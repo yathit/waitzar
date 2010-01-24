@@ -226,49 +226,32 @@ void RomanInputMethod::handleStop(bool isFull)
 }
 
 
-void RomanInputMethod::handleEnter()
+
+void RomanInputMethod::handleCommit(bool strongCommit)
 {
-	stopChar = 0;
 	if (mainWindow->isVisible()) {
 		//The model is visible: select that word
-		BOOL typed = selectWord(-1, helpWindow->isVisible());
-		if (typed==TRUE && typePhrases) {
+		if (selectWord(-1, helpWindow->isVisible())==TRUE) {
+			//Hide the main window
 			mainWindow->showWindow(false);
-			//ShowMainWindow(SW_HIDE);
 
-			currStr.clear();
+			//Reset
 			patSintIDModifier = 0;
 			model.reset(false);
+			typedRomanStr.str(L"");
+
+			//Recalc
 			recalculate();
 		}
-	} else {
-		//Type the entire sentence
-		typeCurrentPhrase();
-	}
-}
-
-void RomanInputMethod::handleSpace()
-{
-	stopChar = 0;
-	if (mainWindow->isVisible()) {
-		//The model is visible: select that word
-		BOOL typed = selectWord(-1, helpWindow->isVisible());
-		if (typed==TRUE && typePhrases) {
-			mainWindow->showWindow(false);
-			//ShowMainWindow(SW_HIDE);
-
-			patSintIDModifier = 0;
-			model.reset(false);
-			currStr.clear();
-			recalculate();
-		}
-
-		keyWasUsed = true;
 	} else {
 		//A bit tricky here. If the cursor's at the end, we'll
 		//  do HOTKEY_ENTER. But if not, we'll just advance the cursor.
 		//Hopefully this won't confuse users so much.
-		if (wParam==HOTKEY_SPACE) {
+		//Note: ENTER overrides this behavior.
+		if (strongCommit) {
+			//Type the entire sentence
+			typeCurrentPhrase();
+		} else {
 			if (sentence.getCursorIndex()==-1 || sentence.getCursorIndex()<((int)sentence.size()-1)) {
 				sentence.moveCursorRight(1, model);
 				recalculate();
@@ -276,8 +259,6 @@ void RomanInputMethod::handleSpace()
 				//Type the entire sentence
 				typeCurrentPhrase();
 			}
-
-			keyWasUsed = true;
 		}
 	}
 }
@@ -302,7 +283,7 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 		//Is this the first keypress of a romanized word? If so, the window is not visible...
 		if (!mainWindow->isVisible()) {
 			//Reset it...
-			typedCandidateString.str(L"");
+			typedRomanStr.str(L"");
 
 			//Optionally turn on numerals
 			if (!numberKeysOn)
@@ -320,7 +301,7 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 		}
 
 		//Now, handle the keypress as per the usual...
-		typedCandidateString <<(char)keyCode;
+		typedRomanStr <<(char)keyCode;
 		recalculate();
 	} else {
 		//Check for system keys
@@ -344,15 +325,9 @@ std::wstring RomanInputMethod::getTypedCandidateString()
 
 void RomanInputMethod::appendToSentence(wchar_t letter, int id)
 {
-	if (selectWord(newID, true)==TRUE) {
-		if (!sentenceWindow->isVisible()) {
-			//First time visible.
-			turnOnControlkeys(true);
-			(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-		}
+	//Type it
+	selectWord(newID, true;
 
-		recalculate();
-	}
 	//We need to reset the trigrams here...
 	sentence.updateTrigrams(model);
 }

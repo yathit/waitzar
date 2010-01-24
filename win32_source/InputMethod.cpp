@@ -54,9 +54,23 @@ void InputMethod::handleKeyPress(WPARAM wParam)
 				return;
 		}
 
-		//Try to type this word; we now have its numCode and letter
+		//Try to type this word; we now have its numCode and letter.
+		bool wasEmpty = this->getTypedSentenceString().empty();
 		this->appendToSentence(letter, numCode);
+		if (wasEmpty && !this->getTypedSentenceString().empty()) {
+			//First time visible.
+			turnOnControlkeys(true);
+			(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
+
+			recalculate();
+		}
 	}
+}
+
+
+std::wstring InputMethod::getTypedRomanString()
+{
+	return typedRomanStr.str();
 }
 
 

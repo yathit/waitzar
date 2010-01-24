@@ -31,8 +31,7 @@ public:
 	virtual void handleDelete() = 0;
 	virtual void handleRight() = 0;
 	virtual void handleLeft() = 0;
-	virtual void handleEnter() = 0;
-	virtual void handleSpace() = 0;
+	virtual void handleCommit(bool strongCommit) = 0;
 	virtual void handleNumber(int numCode, WPARAM wParam) = 0;
 	virtual void handleStop(bool isFull) = 0;
 
@@ -72,7 +71,15 @@ public:  //Abstract methods
 	//The current "candidate" string, which will be displayed in the top
 	//  window. It will not be entered until it also appears in the sentence string.
 	//The same warnings apply as to the typedSentenceString.
-	virtual std::wstring getTypedCandidateString();
+	virtual std::wstring getTypedCandidateString() = 0;
+
+
+	//Get the typed romanized string. This consists ONLY of all typed valid letters
+	virtual std::wstring getTypedRomanString();
+
+private:
+	//Must be maintained by the subclass
+	std::wstringstream typedRomanStr;
 };
 
 
