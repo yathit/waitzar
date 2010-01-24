@@ -2752,34 +2752,6 @@ bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 				updateHelpWindow();
 			return true;
 
-		case HOTKEY_ESC:
-			//Only handle the meta case here (canceling out of "help")
-			if (currInput == currHelpInput) {
-				//Change to the typed input
-				currInput = currTypeInput;
-				///currInput->clearMainStr(); //Might not be needed if we're switching inputs
-
-				//Turn off help keys
-				turnOnHelpKeys(false);
-
-				//Hide windows
-				helpWindow->showWindow(false);
-				memoryWindow->showWindow(false);
-
-				//Hide the main window, and secondary window (conditionally)
-				mainWindow->showWindow(false);
-				if (sentence.size()==0)
-					sentenceWindow->showWindow(false);
-
-				//Redraw all
-				recalculate();
-
-				return true;
-			}
-
-			//Don't process ESC yet otherwise; it's not a meta key.
-			return false;
-
 		default:
 			if (helpWindow->isVisible() && highlightKeys) {
 				//Highlight our virtual keyboard
@@ -2802,7 +2774,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 	//        LetterInputMethod.h
 	switch (wparam) {
 		case HOTKEY_ESC:
-			//Close the window
+			//Close the window, exit help mode
 			currInput->handleEsc();
 			return true;
 
@@ -2889,6 +2861,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
+
+		/**
+		 * Regarding hotkeys: The Main message loop (here) handles the following:
+		 *   1) All hotkey registration/unregistration and, by extension, the language hotkey.
+		 *   2) Showing/hiding of windows.
+		 *   3) Sending output to Windows
+		 *   4) Repainting and recalculating of window content. 
+		 * Thus, we expect InputManagers to only handle updates to their internal models, which is still
+		 *  fairly complex. InputManagers can indicate that they require repainting, or that they've
+		 *  just invalidated their sentence window, but the main loop is where this happens. 
+		 */
 		case WM_HOTKEY:
 		{
 			//First, handle all "system" or "meta" level commands, like switching the language,
@@ -2896,12 +2879,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Then, handle all "dynamic" commands; those which change depending on the 
 			// current IM or mode.
 			if (!handleMetaHotkeys(wParam, lParam)) {
+				//Set initial flags
 				bool wasProvidingHelp = currInput->isHelpInput();
+
 				handleUserHotkeys(wParam, lParam);
 
 				//Do we need to switch inputs? (back from help mode)
-				if (wasProvidingHelp && !currInput->isHelpInput())
+				if (wasProvidingHelp && !currInput->isHelpInput()) {
+					//Change to the typed input
 					currInput = currTypeInput;
+
+					//Turn off help keys
+					turnOnHelpKeys(false);
+
+					//Hide windows
+					helpWindow->showWindow(false);
+					memoryWindow->showWindow(false);
+
+					//Hide the main window, and secondary window (conditionally)
+					//TODO: Try to automate this, put it AFTER
+					mainWindow->showWindow(false);
+					if (sentence.size()==0)
+						sentenceWindow->showWindow(false);
+
+					//Redraw all
+					recalculate();
+				}
 
 				//Do we need to repaint the window?
 				if (currInput->getAndClearViewChanged())
@@ -2909,6 +2912,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
+
+
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
 		{
 			POINT pt;

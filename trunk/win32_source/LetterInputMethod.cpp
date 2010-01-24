@@ -9,14 +9,15 @@
 
 void LetterInputMethod::handleEsc()
 {
-	//Cancle the current sentence if not in help mode
-	// (note: switching out from help mode is already handled)
-	if (!this->isHelpInput()) {
+	if (this->isHelpInput()) {
+		//Flag for removal.
+		this->providingHelpFor = NULL;
+	} else {
+		//Cancle the current sentence if not in help mode
 		typedSentenceStr.str(L"");
 
 		//Hide all windows
 		turnOnControlkeys(false);
-		//mainWindow->showWindow(false);
 		(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
 	}
 }
@@ -107,22 +108,8 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 			currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
 		}
 
-		//Hide the help window
-		turnOnHelpKeys(false);
-		helpWindow->showWindow(false);
-		memoryWindow->showWindow(false);
-
 		//Type this word (should always succeed)
 		providingHelpFor->appendToSentence('\0', currStrDictID);
-
-		//Reset
-		mainWindow->showWindow(false);
-		patSintIDModifier = 0;
-		model.reset(false);
-		typedRomanStr.clear();
-
-		//Recalc, repaint
-		viewChanged = true;
 
 		//Update trigrams
 		sentence.updateTrigrams(model);
