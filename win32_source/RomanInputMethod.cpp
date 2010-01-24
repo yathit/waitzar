@@ -23,36 +23,27 @@ void RomanInputMethod::handleEsc()
 		sentence.clear();
 		patSintIDModifier = 0;  //Note: this should def. be in some kind of sub-class.
 		model.reset(true);
-		turnOnControlkeys(false);
 
+		//Standard window killing
+		turnOnControlkeys(false);
 		mainWindow->showWindow(false);
 		(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
 	} else {
+		//Just cancel the current word
 		patSintIDModifier = 0;
 		model.reset(false);
 
-		//Are we using advanced input?
-		if (!typePhrases) {
-			//Turn off control keys
-			turnOnControlkeys(false);
-			
+		//Just hide the typing window for now.
+		mainWindow->showWindow(false);
+
+		//Kill the entire sentence?
+		if (sentence.size()==0) {
+			sentence.clear();
 			mainWindow->showWindow(false);
 			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-		} else {
-			//Just hide the typing window for now.
-			mainWindow->showWindow(false);
-
-			if (sentence.size()==0) {
-				//Kill the entire sentence.
-				sentence.clear();
-
-				mainWindow->showWindow(false);
-				(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-
-				turnOnControlkeys(false);
-			} else
-				recalculate();
-		}
+			turnOnControlkeys(false);
+		} else
+			viewChanged = true;
 	}
 }
 
@@ -61,44 +52,36 @@ void RomanInputMethod::handleEsc()
 void RomanInputMethod::handleBackspace()
 {
 	if (!mainWindow->isVisible()) {
-		//Delete the previous word
+		//Delete the previous word in the sentence
 		if (sentence.deletePrev(model))
-			recalculate();
+			viewChanged = true;
+
+
+		//Kill the entire sentence?
+		//TODO: Can we do this in the Main loop?
 		if (sentence.size()==0) {
-			//Kill the entire sentence.
 			sentence.clear();
 			turnOnControlkeys(false);
-			ShowBothWindows(SW_HIDE);
+			
+			mainWindow->showWindow(false);
+			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
 		}
 	} else {
 		if (model.backspace()) {
 			//Truncate...
 			currStr.erase(currStr.length()-1);
-			recalculate();
+			viewChanged = true;
 		} else {
-			//No more numerals.
-			//if (typeBurmeseNumbers==FALSE)
-			//	turnOnNumberkeys(FALSE);
+			//Just hide the typing window for now.
+			mainWindow->showWindow(false);
 
-			//Are we using advanced input?
-			if (!typePhrases) {
-				//Turn off control keys
+			//Kill the entire sentence?
+			//TODO: Can we do this in the Main loop?
+			if (sentence.size()==0) {
+				sentence.clear();
 				turnOnControlkeys(false);
 
-				ShowBothWindows(SW_HIDE);
-			} else {
-				//Just hide the typing window for now.
-				mainWindow->showWindow(false);
-				//ShowMainWindow(SW_HIDE);
-
-				if (sentence.size()==0) {
-					//Kill the entire sentence.
-					sentence.clear();
-					turnOnControlkeys(false);
-
-					sentenceWindow->showWindow(false);
-					//ShowSubWindow(SW_HIDE);
-				}
+				(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
 			}
 		}
 	}
@@ -110,12 +93,14 @@ void RomanInputMethod::handleDelete()
 	if (!mainWindow->isVisible()) {
 		//Delete the next word
 		if (sentence.deleteNext())
-			recalculate();
+			viewChanged = true;
 		if (sentence.size()==0) {
 			//Kill the entire sentence.
 			sentence.clear();
 			turnOnControlkeys(false);
-			ShowBothWindows(SW_HIDE);
+
+			mainWindow->showWindow(false);
+			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
 		}
 	}
 }
@@ -127,13 +112,13 @@ void RomanInputMethod::handleRight()
 		//Move right/left within the current word.
 		if (patSintIDModifier==-1) {
 			patSintIDModifier = 0;
-			recalculate();
+			viewChanged = true;
 		} else if (model.moveRight(1) == TRUE)
-			recalculate();
+			viewChanged = true;
 	} else {
 		//Move right/left within the current phrase.
 		if (sentence.moveCursorRight(1, model))
-			recalculate();
+			viewChanged = true;
 	}
 }
 
@@ -142,72 +127,60 @@ void RomanInputMethod::handleLeft()
 {
 	if (mainWindow->isVisible()) {
 		if (model.moveRight(-1) == TRUE)
-			recalculate();
+			viewChanged = true;
 		else if (model.hasPostStr() && patSintIDModifier==0) {
 			//Move left to our "pat-sint shortcut"
 			patSintIDModifier = -1;
-			recalculate();
+			viewChanged = true;
 		}
 	} else {
 		//Move right/left within the current phrase.
 		if (sentence.moveCursorRight(-1, model))
-			recalculate();
+			viewChanged = true;
 	}
 }
 
 
-//Ignore wParam
 void RomanInputMethod::handleNumber(int numCode, WPARAM wParam)
 {
-	stopChar=0;
-	if (numCode>-1 || wParam==HOTKEY_COMBINE || (wParam==HOTKEY_SHIFT_COMBINE&&mainWindow->isVisible())) {
-		if (mainWindow->isVisible()) {
-			//Convert 1..0 to 0..9
-			if (--numCode<0)
-				numCode = 9;
+	if (mainWindow->isVisible()) {
+		//Convert 1..0 to 0..9
+		if (--numCode<0)
+			numCode = 9;
 
-			//Mangle as usual...
-			if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
-				numCode = -1;
-				patSintIDModifier = -1;
-			} else
-				patSintIDModifier = 0;
+		//Mangle as usual...
+		if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
+			numCode = -1;
+			patSintIDModifier = -1;
+		} else
+			patSintIDModifier = 0;
 
-			//The model is visible: select that word
-			BOOL typed = selectWord(numCode, helpWindow->isVisible());
-			if (typed==TRUE && typePhrases) {
-				mainWindow->showWindow(false);
-				//ShowMainWindow(SW_HIDE);
+		//Select this numbered word
+		if (selectWord(numCode, helpWindow->isVisible())==TRUE) {
+			//Clear, reset
+			mainWindow->showWindow(false);
 
-				currStr.clear();
-				patSintIDModifier = 0;
-				model.reset(false);
-				recalculate();
-			} else
-				patSintIDModifier = 0;
+			currStr.clear();
+			patSintIDModifier = 0;
+			model.reset(false);
+			
+			viewChanged = true;
+		} else
+			patSintIDModifier = 0;
 
-			keyWasUsed = true;
-		} else if (typeBurmeseNumbers) {
-			if (!typePhrases) {
-				sentence.clear();
-				sentence.insert(numCode);
-				typeCurrentPhrase();
-			} else {
-				//Just type that number directly.
-				sentence.insert(numCode);
-				sentence.moveCursorRight(0, true, model);
+	} else if (typeBurmeseNumbers) {
+		//Type this number
+		sentence.insert(numCode);
+		sentence.moveCursorRight(0, true, model);
 
-				//Is our window even visible?
-				if (!sentenceWindow->isVisible()) {
-					turnOnControlkeys(true);
+		//Is our window even visible?
+		if (!sentenceWindow->isVisible()) {
+			turnOnControlkeys(true);
 
-					sentenceWindow->showWindow(true);
-					//ShowSubWindow(SW_SHOW);
-				}
-
-				recalculate();
-			}
+			(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
 		}
+
+		viewChanged = true;
 	}
 }
 
@@ -216,10 +189,10 @@ void RomanInputMethod::handleStop(bool isFull)
 {
 	unsigned short stopChar = model.getStopCharacter(isFull);
 	if (!mainWindow->isVisible()) {
-		if (!sentenceWindow->isVisible()) {
-			//This should be cleared already, but let's be safe...
+		//This should be cleared already, but let's be safe...
+		if (!sentenceWindow->isVisible()) 
 			sentence.clear();
-		}
+		
 		//Otherwise, we perform the normal "enter" routine.
 		typeCurrentPhrase();
 	}
@@ -326,10 +299,13 @@ std::wstring RomanInputMethod::getTypedCandidateString()
 void RomanInputMethod::appendToSentence(wchar_t letter, int id)
 {
 	//Type it
-	selectWord(newID, true;
+	selectWord(id, true);
 
 	//We need to reset the trigrams here...
 	sentence.updateTrigrams(model);
+
+	//Repaint
+	viewChanged = true;
 }
 
 

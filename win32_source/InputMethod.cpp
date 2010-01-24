@@ -9,7 +9,8 @@
 InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup)
 {
 	//Init
-	isHelpInput = false;
+	providingHelpFor = NULL;
+	viewChanged = false;
 
 	//Save
 	this->mainWindow = mainWindow;
@@ -24,9 +25,21 @@ InputMethod::~InputMethod()
 }
 
 
-void InputMethod::treatAsHelpKeyboard(bool val)
+void InputMethod::treatAsHelpKeyboard(RomanInputMethod* providingHelpFor)
 {
-	this->isHelpInput = val;
+	this->providingHelpFor = providingHelpFor;
+}
+
+bool InputMethod::isHelpInput()
+{
+	return this->providingHelpFor!=NULL;
+}
+
+bool InputMethod::getAndClearViewChanged()
+{
+	bool res = viewChanged;
+	viewChanged = false;
+	return res;
 }
 
 
