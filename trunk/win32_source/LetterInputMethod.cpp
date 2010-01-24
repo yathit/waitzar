@@ -15,10 +15,6 @@ void LetterInputMethod::handleEsc()
 	} else {
 		//Cancle the current sentence if not in help mode
 		typedSentenceStr.str(L"");
-
-		//Hide all windows
-		turnOnControlkeys(false);
-		(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
 	}
 }
 
@@ -37,15 +33,6 @@ void LetterInputMethod::handleBackspace()
 		wstring newStr = !typedSentenceStr.str().empty() ? typedSentenceStr.str().substr(0, typedSentenceStr.str().length()-1) : L"";
 		typedSentenceStr.str(newStr);
 		viewChanged = true;
-
-		//No more sentence
-		//TODO: Can we put this logic into the main loop?
-		if (typedSentenceStr.str().empty()) {
-			turnOnControlkeys(false);
-
-			mainWindow->showWindow(false);
-			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-		}
 	}
 }
 
@@ -164,20 +151,7 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 		else
 			typedSentenceStr.str(currStr);
 
-		//Pre-sort unicode strings (should be helpful)
-		recalculate();
-
-		//Is the main window visible?
-		if (!mainWindow->isVisible()) {
-			//Show it
-			if (!typePhrases || !sentenceWindow->isVisible()) {
-				ShowBothWindows(SW_SHOW);
-			} else {
-				mainWindow->showWindow(true);
-				//ShowMainWindow(SW_SHOW);
-			}
-		}
-
+		//Trigger view change.
 		keyWasUsed = true;
 	} else {
 		//Check for system keys

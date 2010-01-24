@@ -2884,6 +2884,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				// and thus what needs to be updated.
 				bool wasProvidingHelp = currInput->isHelpInput();
 				bool wasEmptySentence = currInput->getTypedSentenceStr().empty();
+				bool wasEmptyRoman = currInput->getTypedRomanStr().empty();
 
 				//Process the message
 				handleUserHotkeys(wParam, lParam);
@@ -2914,6 +2915,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Check 2: Did we just clear our typed sentence?
 				if (!wasEmptySentence && currInput->getTypedSentenceStr().empty()) {
 					//Input-specific code
+					//TODO: Is this right?
 					currInput->reset();
 
 					//No more control keys needed.
@@ -2959,6 +2961,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
 					}
 				}
+
+				//Check 5: Did we just start typing for the first time?
+				if (wasEmptyRoman && !currInput->getTypedRomanStr().empty()) {
+					//TODO: Internalize this into the model
+					currInput->resetCandidateSelection(); //Set patSintID to 0
+
+					//The mainWindow isn't visible. (Show the sentence window too)
+					mainWindow->showWindow(true);
+					(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
+				}
+
+
+				//Check 6: Did we just remove all typed letters?
+				if (!wasEmptyRoman && currInput->getTypedRomanStr().empty()) {
+					currInput->reset();
+
+					//Hide the typing window, under certain conditions
+					if (!currInput->isHelpInput())
+						mainWindow->showWindow(false);
+				}	
 
 
 
