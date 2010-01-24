@@ -2879,12 +2879,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Then, handle all "dynamic" commands; those which change depending on the 
 			// current IM or mode.
 			if (!handleMetaHotkeys(wParam, lParam)) {
-				//Set initial flags
+				//Set flags for the current state of the Input Manager. We will
+				// check these against the exit state to see what has changed,
+				// and thus what needs to be updated.
 				bool wasProvidingHelp = currInput->isHelpInput();
+				bool wasEmptySentence = currInput->getTypedSentenceStr().empty();
 
+				//Process the message
 				handleUserHotkeys(wParam, lParam);
 
-				//Do we need to switch inputs? (back from help mode)
+				//Check 1: Did we just switch out of help mode?
 				if (wasProvidingHelp && !currInput->isHelpInput()) {
 					//Change to the typed input
 					currInput = currTypeInput;
@@ -2906,7 +2910,59 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					recalculate();
 				}
 
-				//Do we need to repaint the window?
+
+				//Check 2: Did we just clear our typed sentence?
+				if (!wasEmptySentence && currInput->getTypedSentenceStr().empty()) {
+					//Input-specific code
+					currInput->reset();
+
+					//No more control keys needed.
+					turnOnControlkeys(false);
+
+					//Hide the main and sentence windows
+					//Blank windows can remain open for Help input methods
+					if (!currInput->isHelpInput()) {
+						mainWindow->showWindow(false);
+						(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
+					}
+				}
+
+
+				//Check 3: Did we just type the first character in our sentence?
+				// (NOTE: This is not the same as typing a candidate)
+				if (wasEmptySentence && !currInput->getTypedSentenceStr().empty()) {
+					//Enable control keys
+					turnOnControlkeys(true;
+
+					//Show the sentence window
+					(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
+
+					//Repaint
+					recalculate();
+				}
+
+
+				//Check 4: Did we just type the first valid letter in our model? 
+				//         Thus, should we show the MainWindow?
+				if (currInput->getAndClearJustTypedFirstLetter()) {
+					//Optionally turn on numerals
+					if (!numberKeysOn) //True for roman input systems.
+						turnOnNumberkeys(true);
+
+					//Show it
+					mainWindow->showWindow(true);
+
+					//First word in a sentence?
+					if (!sentenceWindow->isVisible()) {
+						//Turn on control keys
+						turnOnControlkeys(true);
+						(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
+					}
+				}
+
+
+
+				//Final check: Do we need to repaint the window?
 				if (currInput->getAndClearViewChanged())
 					recalculate();
 			}

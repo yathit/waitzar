@@ -11,6 +11,7 @@ InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindo
 	//Init
 	providingHelpFor = NULL;
 	viewChanged = false;
+	justTypedFirstLetter = false;
 
 	//Save
 	this->mainWindow = mainWindow;
@@ -42,6 +43,13 @@ bool InputMethod::getAndClearViewChanged()
 	return res;
 }
 
+bool InputMethod::getAndClearJustTypedFirstLetter()
+{
+	bool res = justTypedFirstLetter;
+	justTypedFirstLetter = false;
+	return res;
+}
+
 
 
 //Handle system keys
@@ -68,15 +76,7 @@ void InputMethod::handleKeyPress(WPARAM wParam)
 		}
 
 		//Try to type this word; we now have its numCode and letter.
-		bool wasEmpty = this->getTypedSentenceString().empty();
 		this->appendToSentence(letter, numCode);
-		if (wasEmpty && !this->getTypedSentenceString().empty()) {
-			//First time visible.
-			turnOnControlkeys(true);
-			(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-
-			recalculate();
-		}
 	}
 }
 
