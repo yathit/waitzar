@@ -148,7 +148,53 @@ void LetterInputMethod::handleSpace()
 
 void LetterInputMethod::handleKeyPress(WPARAM wParam)
 {
-	//TODO: Fill in later
+	//Handle our help menu
+	wstring nextBit = helpKeyboard->typeLetter(wParam);
+	if (!nextBit.empty()) {
+		//Valid letter
+		currStr += nextBit;
+		size_t len = currStr.length();
+
+		//Special cases
+		if (nextBit.length()==1 && nextBit[0]==L'\u1039') {
+			//Combiner functions in reverse
+			if (len>1 && canStack(currStr[len-2])) {
+				currStr[len-1] = currStr[len-2];
+				currStr[len-2] = nextBit[0];
+			} else {
+				currStr.erase(currStr.length()-1); //Not standard behavior, but let's avoid bad combinations.
+			}
+		} else if (nextBit == wstring(L"\u1004\u103A\u1039")) {
+			//Kinzi can be typed after the consonant instead of before it.
+			//For now, we only cover the general case of typing "kinzi" directly after a consonant
+			if (len>3 && canStack(currStr[len-4])) {
+				currStr[len-1] = currStr[len-4];
+				currStr[len-4] = nextBit[0];
+				currStr[len-3] = nextBit[1];
+				currStr[len-2] = nextBit[2];
+			}
+		}
+
+
+		//Pre-sort unicode strings (should be helpful)
+		recalculate();
+
+		//Is the main window visible?
+		if (!mainWindow->isVisible()) {
+			//Show it
+			if (!typePhrases || !sentenceWindow->isVisible()) {
+				ShowBothWindows(SW_SHOW);
+			} else {
+				mainWindow->showWindow(true);
+				//ShowMainWindow(SW_SHOW);
+			}
+		}
+
+		keyWasUsed = true;
+	} else {
+		//Check for system keys
+		InputMethod::handleKeyPress(wParam);
+	}
 }
 
 
