@@ -205,6 +205,11 @@ void LetterInputMethod::appendToSentence(wchar_t letter, int id)
 }
 
 
+void LetterInputMethod::reset()
+{
+	//TODO: later
+}
+
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

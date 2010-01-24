@@ -254,24 +254,8 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 		patSintIDModifier = 0;
 
 		//Is this the first keypress of a romanized word? If so, the window is not visible...
-		if (!mainWindow->isVisible()) {
-			//Reset it...
-			typedRomanStr.str(L"");
-
-			//Optionally turn on numerals
-			if (!numberKeysOn)
-				turnOnNumberkeys(true);
-
-			//Show it
-			mainWindow->showWindow(true);
-
-			//First word in a sentence?
-			if (!sentenceWindow->isVisible()) {
-				//Turn on control keys
-				turnOnControlkeys(true);
-				(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-			}
-		}
+		if (!mainWindow->isVisible())
+			justTypedFirstLetter = true;
 
 		//Now, handle the keypress as per the usual...
 		typedRomanStr <<(char)keyCode;
@@ -306,6 +290,17 @@ void RomanInputMethod::appendToSentence(wchar_t letter, int id)
 
 	//Repaint
 	viewChanged = true;
+}
+
+
+void RomanInputMethod::reset()
+{
+	typedRomanStr.str(L"");
+	model->reset(true);
+	sentence->clear();
+
+
+	//TODO: more later
 }
 
 

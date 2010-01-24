@@ -38,6 +38,8 @@ public:
 	//Abstract implementation - simple
 	bool isPlaceholder() { return false; }
 
+	void reset();
+
 
 private:
 	//Romanization model

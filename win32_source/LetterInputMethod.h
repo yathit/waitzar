@@ -31,6 +31,8 @@ public:
 	//Abstract implementation - simple
 	bool isPlaceholder() { return false; }
 
+	void reset();
+
 private:
 	std::wstringstream typedSentenceStr;
 	std::wstringstream typedCandidateStr;
