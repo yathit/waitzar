@@ -9,6 +9,7 @@
 
 #include <string>
 #include "MyWin32Window.h"
+#include "RomanInputMethod.h"
 
 
 //Expected interface: "Input Method"
@@ -23,7 +24,9 @@ public:
 	Option<TYPES> type;
 
 	//Useful functionality
-	void treatAsHelpKeyboard(bool val);
+	void treatAsHelpKeyboard(RomanInputMethod* providingHelpFor);
+	bool isHelpInput();
+	bool getAndClearViewChanged();
 
 	//Keypress handlers (abstract virtual)
 	virtual void handleEsc() = 0;
@@ -39,7 +42,6 @@ public:
 
 
 private:
-	bool isHelpInput;
 	const vector< pair <int, unsigned short> > &systemWordLookup;
 
 
@@ -50,6 +52,11 @@ protected:
 	MyWin32Window* helpWindow;
 	MyWin32Window* memoryWindow;
 
+	//Helper typing control
+	RomanInputMethod* providingHelpFor;
+
+	//Repaint after this?
+	bool viewChanged;
 
 
 public:  //Abstract methods

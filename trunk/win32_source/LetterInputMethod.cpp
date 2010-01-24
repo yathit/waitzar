@@ -9,18 +9,43 @@
 
 void LetterInputMethod::handleEsc()
 {
-	//Need to do SOMETHING if we're not in help mode. 
+	//Cancle the current sentence if not in help mode
 	// (note: switching out from help mode is already handled)
+	if (!this->isHelpInput()) {
+		typedSentenceStr.str(L"");
+
+		//Hide all windows
+		turnOnControlkeys(false);
+		//mainWindow->showWindow(false);
+		(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
+	}
 }
 
 
 
 void LetterInputMethod::handleBackspace()
 {
-	//Delete the letter in back of you (encoding-wise, not visibly)
-	if (!currTypedStr.empty())
-		currTypedStr.erase(currTypedStr.length()-1);
-	recalculate();
+	//Delete a letter (performs differently in help mode)
+	if (this->isHelpInput()) {
+		//If help mode, delete a letter but don't hide the window
+		wstring newStr = !typedCandidateStr.str().empty() ? typedCandidateStr.str().substr(0, typedCandidateStr.str().length()-1) : L"";
+		typedCandidateStr.str(newStr);
+		viewChanged = true;
+	} else {
+		// Otherwise, delete a letter from the sentece, and hide if nothing left
+		wstring newStr = !typedSentenceStr.str().empty() ? typedSentenceStr.str().substr(0, typedSentenceStr.str().length()-1) : L"";
+		typedSentenceStr.str(newStr);
+		viewChanged = true;
+
+		//No more sentence
+		//TODO: Can we put this logic into the main loop?
+		if (typedSentenceStr.str().empty()) {
+			turnOnControlkeys(false);
+
+			mainWindow->showWindow(false);
+			(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
+		}
+	}
 }
 
 void LetterInputMethod::handleDelete()
@@ -87,22 +112,23 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 		helpWindow->showWindow(false);
 		memoryWindow->showWindow(false);
 
-		//Try to type this word
-		//TODO: Need to move this into the MainFile.cpp logic.
-		//      We need to trigger switching back to the MAIN INPUT method, too.
-		BOOL typed = selectWord(currStrDictID, true);
-		if (typed==TRUE) {
-			mainWindow->showWindow(false);
+		//Type this word (should always succeed)
+		providingHelpFor->appendToSentence('\0', currStrDictID);
 
-			patSintIDModifier = 0;
-			model.reset(false);
-			currStr.clear();
-			recalculate();
-		}
-		//We need to reset the trigrams here...
+		//Reset
+		mainWindow->showWindow(false);
+		patSintIDModifier = 0;
+		model.reset(false);
+		typedRomanStr.clear();
+
+		//Recalc, repaint
+		viewChanged = true;
+
+		//Update trigrams
 		sentence.updateTrigrams(model);
-		//END TODO
 
+		//Flag for removal
+		this->providingHelpFor = NULL;
 	}
 }
 
@@ -116,10 +142,13 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 	if (!nextBit.empty()) {
 		//Valid letter
 		typedRomanStr <<(char)wParam;
-		typedSentenceStr <<nextBit
+		if (isHelpInput())
+			typedCandidateStr <<nextBit;
+		else
+			typedSentenceStr <<nextBit;
 
 		//Save a temporary string to make calculations easier.
-		wstring currStr = typedSentenceStr.str();
+		wstring currStr = isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
 		size_t len = currStr.length();
 
 		//Special cases
@@ -143,7 +172,10 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 		}
 
 		//Save the results of our temporary calculations.
-		typedSentenceStr.str(currStr);
+		if (isHelpInput())
+			typedCandidateStr.str(currStr);
+		else
+			typedSentenceStr.str(currStr);
 
 		//Pre-sort unicode strings (should be helpful)
 		recalculate();

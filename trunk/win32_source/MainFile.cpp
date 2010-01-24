@@ -77,6 +77,7 @@
 #include "OnscreenKeyboard.h"
 #include "MyWin32Window.h"
 #include "Hotkeys.h"
+#include "Input/InputMethod.h"
 
 //VS Includes
 #include "resource.h"
@@ -1930,8 +1931,41 @@ void initCalculateHelp()
  * Re-figure the layout of our drawing area, resize if necessary, and
  * draw onto the back buffer. Finally, blit to the front buffer.
  */
+//TODO: Have to have some code for checking if we're using a Help input or not.
 void recalculate()
 {
+	//NOTE: We can short-circuit the display encoding if it's the same as the input encoding. 
+	//      This allows us to avoid round-trip conversion errors.
+	std::wstring dispRomanStr = currInput->getTypedRomanString();
+	std::wstring dispCandidateStr = currInput->getTypedCandidateString();
+	std::wstring dispSentenceStr = currInput->getTypedSentenceString();
+
+	//NOTE: First, we have to convert the current input string to the internal encoding, and then
+	//      convert the internal encoding to the display encoding.
+	//      We only need to do this once, and can store the variables locally.
+	std::wstring internRomanStr = dispRomanStr;
+	std::wstring internCandidateStr = dispCandidateStr;
+	std::wstring internSentenceStr = dispSentenceStr;
+	if (input2Uni!=NULL) {
+		internRomanStr = input2Uni->convert(internRomanStr);
+		internCandidateStr = input2Uni->convert(internCandidateStr);
+		internSentenceStr = input2Uni->convert(internSentenceStr);
+	}
+
+	//Convert Display encoding if required
+	//TODO: We actually don't need the internal encoding here... re-write later.
+	if (currDisplay->encoding != currInput->encoding) {
+		dispRomanStr = internRomanStr;
+		dispCandidateStr = internCandidateStr;
+		dispSentenceStr = internSentenceStr;
+		if (uni2Disp!=NULL) {
+			dispRomanStr = uni2Disp->convert(dispRomanStr);
+			dispCandidateStr = uni2Disp->convert(dispCandidateStr);
+			dispSentenceStr = uni2Disp->convert(dispSentenceStr);
+		}
+	}
+
+
 	//First things first: can we fit this in the current background?
 	int cumulativeWidth = (borderWidth+1)*2;
 	std::vector<UINT32> words =  model.getPossibleWords();
@@ -1949,13 +1983,10 @@ void recalculate()
 	//If not, resize. Also, keep the size small when possible.
 	if (cumulativeWidth>mainWindow->getClientWidth())
 		mainWindow->expandWindow(cumulativeWidth, mainWindow->getClientHeight());
-		//expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
 	else if (cumulativeWidth<mainWindow->getDefaultWidth() && mainWindow->getClientWidth()>mainWindow->getDefaultWidth())
 		mainWindow->expandWindow(mainWindow->getDefaultWidth(), mainWindow->getClientHeight());
-		//expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, WINDOW_WIDTH, C_HEIGHT, C_WIDTH, C_HEIGHT);
 	else if (cumulativeWidth>mainWindow->getDefaultWidth() && cumulativeWidth<mainWindow->getClientWidth())
 		mainWindow->expandWindow(cumulativeWidth, mainWindow->getClientHeight());
-		//expandHWND(mainWindow, mainDC, mainUnderDC, mainBitmap, cumulativeWidth, C_HEIGHT, C_WIDTH, C_HEIGHT);
 
 	//Background
 	mainWindow->selectObject(g_BlackPen);
@@ -2046,22 +2077,6 @@ void recalculate()
 				break;
 			}
 		}
-
-		//Try a less-strict filtering
-		// We leave this out... it shouldn't be necessary if we're filtering our strings.
-		/*if (currMatchID==-1) {
-			unsigned int currEnc = model->getOutputEncoding();
-			model->setOutputEncoding(ENCODING_UNICODE);
-			for (unsigned int i=0; i<model->getTotalDefinedWords(); i++) {
-				wchar_t *currUni = makeStringFromKeystrokes(model->getWordKeyStrokes(i));
-				if (wcscmp(currUni, currLetterSt)==0) {
-					wcscpy(currLetterSt, currUni);
-					currMatchID = i;
-					break;
-				}
-			}
-			model->setOutputEncoding(currEnc);
-		}*/
 
 		//Any match at all?
 		if (currStrDictID!=-1) {
@@ -2245,10 +2260,6 @@ void typeCurrentPhrase()
 	patSintIDModifier = 0;
 	model.reset(true);
 	sentence.clear();
-	/*for (unsigned int i=0; i<userDefinedWords.size(); i++) {
-		delete [] userDefinedWords[i];
-		delete [] userDefinedWordsZg[i];
-	}*/
 	userDefinedWords.clear();
 	userDefinedWordsZg.clear();
 
@@ -2641,7 +2652,8 @@ void updateHelpWindow()
 		//ShowHelpWindow(SW_SHOW);
 		reBlitHelp();
 
-		//Switch inputs
+		//Switch inputs, set as helper
+		currTypeInput->treatAsHelpKeyboard(currHelpInput);
 		currInput = currHelpInput;
 
 		//Show the main/sentence windows; this is just good practice.
@@ -2883,8 +2895,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// switching into help mode, etc.
 			//Then, handle all "dynamic" commands; those which change depending on the 
 			// current IM or mode.
-			if (!handleMetaHotkeys(wParam, lParam))
+			if (!handleMetaHotkeys(wParam, lParam)) {
+				bool wasProvidingHelp = currInput->isHelpInput();
 				handleUserHotkeys(wParam, lParam);
+
+				//Do we need to switch inputs? (back from help mode)
+				if (wasProvidingHelp && !currInput->isHelpInput())
+					currInput = currTypeInput;
+
+				//Do we need to repaint the window?
+				if (currInput->getAndClearViewChanged())
+					recalculate();
+			}
 			break;
 		}
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
@@ -3879,7 +3901,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Set defaults
 	currTypeInput    = new WaitZar(); //tmp; load from config
-	currTypeInput->treatAsHelpKeyboard(false);
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;
 	currDisplay      = new PngFont(); //tmp; load from config
