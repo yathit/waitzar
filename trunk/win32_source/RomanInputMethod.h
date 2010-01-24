@@ -23,8 +23,7 @@ public:
 	void handleDelete();
 	void handleRight();
 	void handleLeft();
-	void handleEnter();
-	void handleSpace();
+	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam);
 	void handleStop(bool isFull);
 	void handleKeyPress(WPARAM wParam);

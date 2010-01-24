@@ -191,8 +191,13 @@ DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
 list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
+
+
+//NOTE: A sep. Zawgyi list is not needed; all words are only stored in one encoding.
 vector<wstring> userDefinedWords; //Words the user types in. Stored with a negative +1 index
-vector<wstring> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
+//vector<wstring> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
+
+
 wstring userKeystrokeVector;
 const string systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890"; //Special "words" used in our keyboard, like "(" and "`"
 vector< pair <int, unsigned short> > systemWordLookup;
@@ -2816,14 +2821,12 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 		case HOTKEY_ENTER: case HOTKEY_SHIFT_ENTER:
 			//Handle word selection
-			//TODO: Merge handleEnter() and handleSpace()
-			currInput->handleEnter();
+			currInput->handleCommit(true);
 			return true;
 
 		case HOTKEY_SPACE: case HOTKEY_SHIFT_SPACE:
 			//Handle word selection, cursor advancing
-			//TODO: Merge handleEnter() and handleSpace()
-			currInput->handleSpace();
+			currInput->handleCommit(false);
 			return true;
 
 		case HOTKEY_0: case HOTKEY_NUM0:
