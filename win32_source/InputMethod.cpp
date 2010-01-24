@@ -6,7 +6,7 @@
 
 #include "InputMethod.h"
 
-InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow)
+InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup)
 {
 	//Init
 	isHelpInput = false;
@@ -16,6 +16,7 @@ InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindo
 	this->sentenceWindow = sentenceWindow;
 	this->helpWindow = helpWindow;
 	this->memoryWindow = memoryWindow;
+	this->systemWordLookup = systemWordLookup;
 }
 
 InputMethod::~InputMethod()
@@ -37,36 +38,24 @@ void InputMethod::handleKeyPress(WPARAM wParam)
 	int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9) ? HOTKEY_NUM0 : -1;
 	int numCode = (base==-1) ? wParam : HOTKEY_0 + (int)wParam - base;
 
-	//Check system keys
-	if (!helpWindow->isVisible() && !mainWindow->isVisible() && !keyWasUsed) {
-		int newID = -1;
+	//Check system keys, but ONLY if the sentence window is the only thing visible.
+	if (!helpWindow->isVisible() && !mainWindow->isVisible()) {
+		wchar_t letter = '\0';
 		for (size_t i=0; i<systemWordLookup.size(); i++) {
 			if (systemWordLookup[i].first==numCode) {
-				newID = i;
+				//This represents a negative offset
+				numCode = -1-i;
+				letter = systemWordLookup[i].secong;
 				break;
 			}
+
+			//Didn't find it?
+			if (i==systemWordLookup.size()-1)
+				return;
 		}
 
-		//Did we get anything?
-		if (newID!=-1) {
-			newID = -1-newID;
-
-			//Try to type this word
-			BOOL typed = selectWord(newID, true);
-			if (typed==TRUE && typePhrases) {
-				if (!sentenceWindow->isVisible()) {
-					turnOnControlkeys(true);
-
-					sentenceWindow->showWindow(true);
-					//ShowSubWindow(SW_SHOW);
-				}
-
-				recalculate();
-			}
-
-			//We need to reset the trigrams here...
-			sentence.updateTrigrams(model);
-		}
+		//Try to type this word; we now have its numCode and letter
+		this->appendToSentence(letter, numCode);
 	}
 }
 

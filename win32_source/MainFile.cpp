@@ -2283,19 +2283,12 @@ BOOL selectWord(int id, bool indexNegativeEntries)
 	//Optionally turn off numerals
 	//if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
 	//	turnOnNumberkeys(FALSE);
-	if (!typePhrases) {
-		//Simple Case
-		sentence.clear();
-		sentence.insert(wordID);
-		typeCurrentPhrase();
-	} else {
-		//Pat-sint clears the previous word
-		if (patSintIDModifier==-1)
-			sentence.deletePrev(model);
+	//Pat-sint clears the previous word
+	if (patSintIDModifier==-1)
+		sentence.deletePrev(model);
 
-		//Advanced Case - Insert
-		sentence.insert(wordID);
-	}
+	//Advanced Case - Insert
+	sentence.insert(wordID);
 
 	return TRUE;
 }
