@@ -8,10 +8,15 @@
 #define _ROMAN_INPUT_METHOD
 
 #include "InputMethod.h"
+#include "NGram/WordBuilder.h"
+#include "NGram/SentenceList.h"
 
 class RomanInputMethod : public InputMethod {
 
 public:
+	//Needed to add Roman-specific stuff
+	void init(WordBuilder* model, SentenceList* sentence);
+
 	//Abstract implementation - keypresses
 	void handleEsc();
 	void handleBackspace();
@@ -27,6 +32,15 @@ public:
 
 	//Abstract implementation - simple
 	bool isPlaceholder() { return false; }
+
+
+private:
+	//Romanization model
+	WordBuilder* model;
+	SentenceList* sentence;
+
+	//For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
+	int patSintIDModifier = 0;
 }
 
 

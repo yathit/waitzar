@@ -36,7 +36,7 @@ public:
 	virtual void handleNumber(int numCode, WPARAM wParam) = 0;
 	virtual void handleStop(bool isFull) = 0;
 
-	virtual void handleKeyPress(WPARAM wParam) = 0;
+	virtual void handleKeyPress(WPARAM wParam);
 
 
 private:

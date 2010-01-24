@@ -7,6 +7,13 @@
 #include "RomanInputMethod.h"
 
 
+void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence)
+{
+	this->model = model;
+	this->sentence = sentence;
+}
+
+
 
 void RomanInputMethod::handleEsc()
 {
@@ -281,7 +288,48 @@ void RomanInputMethod::handleSpace()
 
 void RomanInputMethod::handleKeyPress(WPARAM wParam)
 {
-	//TODO: Fill in later
+	//Handle regular letter-presses (as lowercase)
+	int keyCode = (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) ? (int)wParam+32 : (int)wParam;
+	if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW) {
+		//Run this keypress into the model. Accomplish anything?
+		if (!model.typeLetter(keyCode))
+			return;
+
+		//Reset pat-sint choice
+		patSintIDModifier = 0;
+
+		//Is this the first keypress of a romanized word? If so, the window is not visible...
+		if (!mainWindow->isVisible())
+		{
+			//Reset it...
+			currStr.clear();
+
+			//Optionally turn on numerals
+			if (!numberKeysOn)
+				turnOnNumberkeys(true);
+
+			//Show it
+			if (!typePhrases || !sentenceWindow->isVisible()) {
+				//Turn on control keys
+				turnOnControlkeys(true);
+				ShowBothWindows(SW_SHOW);
+			} else {
+				mainWindow->showWindow(true);
+				//ShowMainWindow(SW_SHOW);
+			}
+		}
+
+		//Now, handle the keypress as per the usual...
+		wstringstream msg;
+		msg <<currStr <<(char)keyCode;
+		currStr = msg.str();
+		recalculate();
+
+		keyWasUsed = true;
+	} else {
+		//Check for system keys
+		InputMethod::handleKeyPress(wParam);
+	}
 }
 
 

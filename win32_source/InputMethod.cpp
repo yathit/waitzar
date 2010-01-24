@@ -30,7 +30,45 @@ void InputMethod::treatAsHelpKeyboard(bool val)
 
 
 
+//Handle system keys
+void InputMethod::handleKeyPress(WPARAM wParam)
+{
+	//Get an adjusted numcode.
+	int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9) ? HOTKEY_NUM0 : -1;
+	int numCode = (base==-1) ? wParam : HOTKEY_0 + (int)wParam - base;
 
+	//Check system keys
+	if (!helpWindow->isVisible() && !mainWindow->isVisible() && !keyWasUsed) {
+		int newID = -1;
+		for (size_t i=0; i<systemWordLookup.size(); i++) {
+			if (systemWordLookup[i].first==numCode) {
+				newID = i;
+				break;
+			}
+		}
+
+		//Did we get anything?
+		if (newID!=-1) {
+			newID = -1-newID;
+
+			//Try to type this word
+			BOOL typed = selectWord(newID, true);
+			if (typed==TRUE && typePhrases) {
+				if (!sentenceWindow->isVisible()) {
+					turnOnControlkeys(true);
+
+					sentenceWindow->showWindow(true);
+					//ShowSubWindow(SW_SHOW);
+				}
+
+				recalculate();
+			}
+
+			//We need to reset the trigrams here...
+			sentence.updateTrigrams(model);
+		}
+	}
+}
 
 
 /*

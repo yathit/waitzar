@@ -174,8 +174,6 @@ KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
 string mywordsFileName = "mywords.txt";
 
-//For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
-int patSintIDModifier = 0;
 
 //Help Window resources
 //Leave as pointers for now.
@@ -2789,8 +2787,9 @@ bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 
 bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 {
-	//TODO: Re-do all of this, make sure we're using switch statement where possible, and 
-	//      refactor code into InputManager when it makes sense to.
+	//Handle user input; anything that updates a non-specific "model".
+	//  TODO: Put code for "help" keyboard functionality HERE; DON'T put it into 
+	//        LetterInputMethod.h
 	switch (wparam) {
 		case HOTKEY_ESC:
 			//Close the window
@@ -2858,148 +2857,9 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 		default:
 			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
 			// otherwise numbers won't work.
-
-
-
-			//Added to help us avoid multiple reactions, if necessary
-			// (probably only necessary for the number/myanmar numbers distinction)
-			bool keyWasUsed = false;
-
-
-
-
-			//Handle our individual letter presses as hotkeys
-			if (helpWindow->isVisible()) {
-				//Handle our help menu
-				wstring nextBit = helpKeyboard->typeLetter(wParam);
-				if (!nextBit.empty()) {
-					//Valid letter
-					currStr += nextBit;
-					size_t len = currStr.length();
-
-					//Special cases
-					if (nextBit.length()==1 && nextBit[0]==L'\u1039') {
-						//Combiner functions in reverse
-						if (len>1 && canStack(currStr[len-2])) {
-							currStr[len-1] = currStr[len-2];
-							currStr[len-2] = nextBit[0];
-						} else {
-							currStr.erase(currStr.length()-1); //Not standard behavior, but let's avoid bad combinations.
-						}
-					} else if (nextBit == wstring(L"\u1004\u103A\u1039")) {
-						//Kinzi can be typed after the consonant instead of before it.
-						//For now, we only cover the general case of typing "kinzi" directly after a consonant
-						if (len>3 && canStack(currStr[len-4])) {
-							currStr[len-1] = currStr[len-4];
-							currStr[len-4] = nextBit[0];
-							currStr[len-3] = nextBit[1];
-							currStr[len-2] = nextBit[2];
-						}
-					}
-
-
-					//Pre-sort unicode strings (should be helpful)
-					recalculate();
-
-					//Is the main window visible?
-					if (!mainWindow->isVisible()) {
-						//Show it
-						if (!typePhrases || !sentenceWindow->isVisible()) {
-							ShowBothWindows(SW_SHOW);
-						} else {
-							mainWindow->showWindow(true);
-							//ShowMainWindow(SW_SHOW);
-						}
-					}
-
-					keyWasUsed = true;
-				}
-			} else {
-				if (!keyWasUsed) {
-					//Reset pat-sint choice
-					patSintIDModifier = 0;
-
-					//Handle regular letter-presses
-					int keyCode = (int)wParam;
-					if (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) //Seems like we should be doing with this Shift modifiers..
-						keyCode += 32;
-					if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW)
-					{
-						//Run this keypress into the model. Accomplish anything?
-						if (!model.typeLetter(keyCode))
-							break;
-
-						//Is this the first keypress of a romanized word? If so, the window is not visible...
-						if (!mainWindow->isVisible())
-						{
-							//Reset it...
-							currStr.clear();
-
-							//Optionally turn on numerals
-							if (!numberKeysOn)
-								turnOnNumberkeys(true);
-
-							//Show it
-							if (!typePhrases || !sentenceWindow->isVisible()) {
-								//Turn on control keys
-								turnOnControlkeys(true);
-								ShowBothWindows(SW_SHOW);
-							} else {
-								mainWindow->showWindow(true);
-								//ShowMainWindow(SW_SHOW);
-							}
-						}
-
-						//Now, handle the keypress as per the usual...
-						wstringstream msg;
-						msg <<currStr <<(char)keyCode;
-						currStr = msg.str();
-						recalculate();
-
-						keyWasUsed = true;
-					}
-				}
-			}
-
-
-
-			//If this letter/number/etc. wasn't processed, see if we can type any of our
-			// system-defined keys
-			if (numCode==-1)
-				numCode = wParam;
-			else
-				numCode = HOTKEY_0 + numCode;
-			if (!helpWindow->isVisible() && !mainWindow->isVisible() && !keyWasUsed) {
-				int newID = -1;
-				for (size_t i=0; i<systemWordLookup.size(); i++) {
-					if (systemWordLookup[i].first==numCode) {
-						newID = i;
-						break;
-					}
-				}
-
-				//Did we get anything?
-				if (newID!=-1) {
-					newID = -1-newID;
-
-					//Try to type this word
-					BOOL typed = selectWord(newID, true);
-					if (typed==TRUE && typePhrases) {
-						if (!sentenceWindow->isVisible()) {
-							turnOnControlkeys(true);
-
-							sentenceWindow->showWindow(true);
-							//ShowSubWindow(SW_SHOW);
-						}
-
-						recalculate();
-					}
-
-					//We need to reset the trigrams here...
-					sentence.updateTrigrams(model);
-				}
-			}
-
+			currInput->handleKeyPress(wParam);
+			return true;
+	}
 
 	//Else, not processed
 	return false;
