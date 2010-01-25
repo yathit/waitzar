@@ -74,13 +74,17 @@ public:  //Abstract methods
 	//All sub-classes must ensure that this remains valid outside of any function call, and
 	//  before any calls to the base class's methods.
 	//A "typed" string is in an arbitrary encoding; converting to/from unicode is done as needed.
+	//The "Sentence pre-cursor string" is the current string that's been typed so far, before the cursor.
 	virtual std::wstring getTypedSentenceString() = 0;
+	virtual std::wstring getSentencePreCursorString() = 0;
 	virtual void appendToSentence(wchar_t letter, int id) = 0; //Used for system letters only, for perf. reasons. (id is optional)
 
 	//The current "candidate" string, which will be displayed in the top
 	//  window. It will not be entered until it also appears in the sentence string.
 	//The same warnings apply as to the typedSentenceString.
-	virtual std::wstring getTypedCandidateString() = 0;
+	//NOTE: for now, the "int" part is just the highlight level: 1 for red and 2 for green (3 for both, which means green)
+	//      TODO: Make this cleaner.
+	virtual std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings() = 0;
 
 
 	//Get the typed romanized string. This consists ONLY of all typed valid letters

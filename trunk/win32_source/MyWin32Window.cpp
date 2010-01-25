@@ -399,6 +399,10 @@ bool MyWin32Window::resizeWindow(int newWidth, int newHeight, bool doRepaint)
 //Need to merge this with resize eventually...
 bool MyWin32Window::expandWindow(int newX, int newY, int newWidth, int newHeight, bool dontMove)
 {
+	//Don't expand if the new width/height are the same, and we're not moving it.
+	if ((dontMove || (newX==this->getXPos() && newY==this->getYPos())) && newWidth==this->getWidth() && newHeight==this->getHeight())
+		return false;
+
 	//Resize the current window; use SetWindowPos() since it's easier...
 	int flags = SWP_NOZORDER | SWP_NOACTIVATE;
 	int x = newX;

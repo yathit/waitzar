@@ -197,16 +197,54 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 }
 
 
-
-std::wstring RomanInputMethod::getTypedSentenceString()
+std::wstring RomanInputMethod::buildSentenceStr(unsigned int stopAtID)
 {
-	//TODO
+	std::wstringstream res;
+	int currID = -1;
+	for (std::list<int>::const_iterator it=sentence->begin(); (it!=sentence.end() && currID!=stopAtID); it++) {
+		if (*it>0)
+			res <<model->getWordString(*it);
+		else {
+			int id = -(*it)-1;
+			if (id<systemDefinedWords.size())
+				res <<systemDefinedWords[id]
+			else
+				res <<userDefinedWords[id-systemDefinedWords.size()];
+		}
+		currID++;
+	}
+	return res.str();
 }
 
 
-std::wstring RomanInputMethod::getTypedCandidateString()
+std::wstring RomanInputMethod::getTypedSentenceString()
 {
-	//TODO
+	//TODO: Cache the results
+	return buildSystemWordLookup(sentence->size());
+}
+
+std::wstring RomanInputMethod::getSentencePreCursorString()
+{
+	//TODO: Cache the results
+	return buildSystemWordLookup(sentence->getCursorID());
+}
+
+
+std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings()
+{
+	//TODO: cache the results
+	std::vector< std::pair<std::wstring, unsigned int> > res;
+	std::vector<UINT32> words = model->getPossibleWords();
+	for (size_t i=0; i<words.size(); i++) {
+		std::pair<std::wstring, unsigned int> item = std::pair<std::wstring, unsigned int>(model->getWordString(words[i]), 0);
+		if (i<model->getFirstWordIndex())
+			item.second = 1;
+		if (model->getCurrSelectedID() == i-model->getFirstWordIndex())
+			item.second = item.second==1 ? 3 : 2;
+		res.push_back(item);
+	}
+
+	return res;
 }
 
 

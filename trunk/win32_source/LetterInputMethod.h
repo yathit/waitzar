@@ -25,7 +25,8 @@ public:
 
 	//Abstract implementation - sentence and word
 	std::wstring getTypedSentenceString();
-	std::wstring getTypedCandidateString();
+	std::wstring getSentencePreCursorString();
+	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings();
 	void appendToSentence(wchar_t letter, int id);
 
 	//Abstract implementation - simple

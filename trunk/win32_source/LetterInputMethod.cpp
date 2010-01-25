@@ -115,7 +115,7 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 	wstring nextBit = helpKeyboard->typeLetter(wParam);
 	if (!nextBit.empty()) {
 		//Valid letter
-		typedRomanStr <<(char)wParam;
+		//typedRomanStr <<(char)wParam;
 		if (isHelpInput())
 			typedCandidateStr <<nextBit;
 		else
@@ -151,6 +151,23 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 		else
 			typedSentenceStr.str(currStr);
 
+		//Save a romanized string if in help mode
+		if (this->isHelpInput()) {
+			//Check each romanisation
+			typedRomanStr.str(L"");
+			for (unsigned int i=0; i<model.getTotalDefinedWords(); i++) {
+				//Does this word match?
+				wstring currWord = model.getWordString(i);
+				if (currWord == extendedWordString) {
+					//Build the roman word
+					typedRomanStr <<L'(';
+					typedRomanStr << model.reverseLookupWord(i);
+					typedRomanStr <<L')';
+					break;
+				}
+			}
+		}
+
 		//Trigger view change.
 		keyWasUsed = true;
 	} else {
@@ -166,10 +183,19 @@ std::wstring LetterInputMethod::getTypedSentenceString()
 	return typedSentenceStr.str();
 }
 
-
-std::wstring LetterInputMethod::getTypedCandidateString()
+std::wstring LetterInputMethod::getSentencePreCursorString()
 {
-	return typedCandidateStr.str();
+	//The cursor is always at the end
+	//TODO: Can change this?
+	return typedSentenceStr.str(); 
+}
+
+
+std::vector< std::pair<std::wstring, unsigned int> > LetterInputMethod::getTypedCandidateStrings()
+{
+	std::vector< std::pair<std::wstring, unsigned int> > res;
+	res.push_back(std::pair<std::wstring, unsigned int>(typedCandidateStr.str(), 0));
+	return res;
 }
 
 

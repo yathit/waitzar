@@ -31,7 +31,8 @@ public:
 
 	//Abstract implementation - sentence and word
 	std::wstring getTypedSentenceString();
-	std::wstring getTypedCandidateString();
+	std::wstring getSentencePreCursorString();
+	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings();
 	void appendToSentence(wchar_t letter, int id);
 
 
@@ -48,6 +49,8 @@ private:
 
 	//For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
 	int patSintIDModifier = 0;
+
+	std::wstring buildSentenceStr(unsigned int stopAtID);
 }
 
 
