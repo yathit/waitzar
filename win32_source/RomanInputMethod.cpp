@@ -189,7 +189,7 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 
 		//Trigger 2 events
 		viewChanged = true;
-		justTypedFirstLetter = true;
+//		justTypedFirstLetter = true;
 	} else {
 		//Check for system keys
 		InputMethod::handleKeyPress(wParam);
@@ -261,15 +261,21 @@ void RomanInputMethod::appendToSentence(wchar_t letter, int id)
 }
 
 
-void RomanInputMethod::reset()
+void RomanInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset)
 {
-	typedRomanStr.str(L"");
-	sentence->clear();
-	model.reset(true); //TODO: This needs to be conditional somehow! (needs "true", "false", and skip altogether
-	patSintIDModifier = 0;
+	//A "full" reset entails the others
+	if (performFullReset)
+		resetCandidates = resetRoman = resetSentence = true;
 
+	//Equivalent to reset candidates or the roman string
+	if (resetCandidates || resetRoman)  {
+		typedRomanStr.str(L"");
+		model.reset(performFullReset);
+	}
 
-	//TODO: more later
+	//Reset the sentence?
+	if (resetSentence)
+		sentence->clear();
 }
 
 

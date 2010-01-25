@@ -205,9 +205,18 @@ void LetterInputMethod::appendToSentence(wchar_t letter, int id)
 }
 
 
-void LetterInputMethod::reset()
+void LetterInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset)
 {
-	//TODO: later
+	//A "full" reset entails the others
+	if (performFullReset)
+		resetCandidates = resetRoman = resetSentence = true;
+
+	if (resetCandidates)
+		typedCandidateStr.str(L"");
+	if (resetRoman)
+		typedRomanStr.str(L"");
+	if (resetSentence)
+		typedSentenceStr.str(L"");
 }
 
 

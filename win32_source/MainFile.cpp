@@ -225,7 +225,7 @@ BOOL customDictWarning = FALSE;
 TCHAR langHotkeyString[100];
 char langHotkeyRaw[100];
 
-bool typePhrases = true;
+//bool typePhrases = true;
 bool dragBothWindowsTogether = true;
 bool typeBurmeseNumbers = true;
 bool showBalloonOnStart = true;
@@ -235,9 +235,6 @@ bool experimentalTextCursorTracking = true;
 bool dontLoadModel = false;
 bool allowNonBurmeseLetters = false;
 bool ignoreMywordsWarnings = false;
-//unsigned int maxDictionaryEntries = 0;
-//unsigned int maxNexusEntries = 0;
-//unsigned int maxPrefixEntries = 0;
 string fontFileRegular;
 string fontFileSmall;
 
@@ -921,11 +918,6 @@ void makeFont()
 	}
 
 
-	//Save resources if we don't use the second window
-	/*if (typePhrases==FALSE)
-		return;*/
-
-
 	//Try to load our user-specified font image.
 	if (!fontFileSmall.empty()) {
 		size_t fLen = fontFileSmall.length();
@@ -1215,12 +1207,12 @@ void loadConfigOptions()
 				numConfigOptions--;
 		} else if (strcmp(name, "powertyping")==0) {
 			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				typePhrases = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				typePhrases = false;
 			else
-				numConfigOptions--;
+				numConfigOptions--;*/
 		} else if (strcmp(name, "burmesenumerals")==0) {
 			numConfigOptions++;
 			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
@@ -1291,24 +1283,6 @@ void loadConfigOptions()
 			//Set it later
 			strcpy(langHotkeyRaw, value);
 			numConfigOptions++;
-		/*} else if (strcmp(name, "dictionarysize")==0) {
-			long val = atol(value);
-			if (val>=0 && val<UINT_MAX) {
-				maxDictionaryEntries = (unsigned int)val;
-				numConfigOptions++;
-			}
-		} else if (strcmp(name, "nexussize")==0) {
-			long val = atol(value);
-			if (val>=0 && val<UINT_MAX) {
-				maxNexusEntries = (unsigned int)val;
-				numConfigOptions++;
-			}
-		} else if (strcmp(name, "prefixsize")==0) {
-			long val = atol(value);
-			if (val>=0 && val<UINT_MAX) {
-				maxPrefixEntries = (unsigned int)val;
-				numConfigOptions++;
-			}*/
 		} else if (strcmp(name, "fontfileregular")==0) {
 			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
 			} else {
@@ -1426,15 +1400,6 @@ bool loadModel() {
 	int numberCheck = 0;
 
 	if (dontLoadModel) {
-		//For any of the "size" values that are set to "default", let's see
-		//   if we can come up with sensible defaults
-		/*if (maxDictionaryEntries==0)
-			maxDictionaryEntries = 3000; //WaitZar has only 2,400 words
-		if (maxNexusEntries==0)
-			maxNexusEntries = maxDictionaryEntries*2-maxDictionaryEntries/3; //Assume an even distribution of 3000 words of 5 letters each on 26 keys, then take 20% of this
-		if (maxPrefixEntries==0)
-			maxPrefixEntries = maxDictionaryEntries+maxDictionaryEntries/3; //Assume the same, and cut it by 5*/
-
 		//Create our data structures
 		//In total, this uses 41KB of raw memory just for storing our skeleton, so
 		//  I estimate about 1MB of memory for actually storing the data.
@@ -1662,59 +1627,6 @@ void positionAtCaret()
 }
 
 
-//Keeps all variables in sync, and allows repositioning
-/*void ShowAWindow(const HWND &windowToShow, bool &flagToSet, int cmdShow, bool doReposition)
-{
-	//Avoid duplicate commands
-	bool show = (cmdShow==SW_SHOW);
-	if (flagToSet==show)
-		return;
-
-	//Re-position?
-	if (!flagToSet && doReposition)
-		positionAtCaret();
-
-	//Set flags, perform move
-	ShowWindow(windowToShow, cmdShow);
-	flagToSet = show;
-}*/
-
-
-
-//Wrapper for MainWindow
-/*void ShowMainWindow(int cmdShow)
-{
-	ShowAWindow(mainWindow, mainWindow->isVisible(), cmdShow, true);
-}
-
-//Wrapper for SenWindow
-void ShowSubWindow(int cmdShow)
-{
-	ShowAWindow(senWindow, sentenceWindow->isVisible(), cmdShow, true);
-}
-
-//Wrapper for HelpWindow
-void ShowHelpWindow(int cmdShow)
-{
-	ShowAWindow(helpWindow, helpWindow->isVisible(), cmdShow, false);
-	ShowAWindow(memoryWindow, memoryWindow->isVisible(), cmdShow, false);
-}*/
-
-
-
-//Helpful wrapper
-void ShowBothWindows(int cmdShow)
-{
-	bool show = (cmdShow==SW_SHOW);
-	mainWindow->showWindow(show);
-
-	if (typePhrases) {
-		sentenceWindow->showWindow(show);
-	}
-}
-
-
-
 void switchToLanguage(bool toMM) {
 	//Don't do anything if we are switching to the SAME language.
 	if (toMM == mmOn)
@@ -1783,7 +1695,8 @@ void switchToLanguage(bool toMM) {
 
 	//Any windows left?
 	if (!mmOn) {
-		ShowBothWindows(SW_HIDE);
+		mainWindow->showWindow(false);
+		sentenceWindow->showWindow(false);
 
 		if (helpWindow->isVisible()) {
 			helpWindow->showWindow(false);
@@ -1799,9 +1712,9 @@ void reBlit()
 	//Bit blit our back buffer to the front (should prevent flickering)
 	mainWindow->repaintWindow();
 	//BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
-	if (typePhrases)
-		sentenceWindow->repaintWindow();
-		//BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
+	
+	sentenceWindow->repaintWindow();
+	//BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
 }
 
 
@@ -1838,9 +1751,9 @@ void reBlit(RECT blitArea)
 	//Bit blit our back buffer to the front (should prevent flickering)
 	mainWindow->repaintWindow(blitArea);
 	//BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
-	if (typePhrases)
-		sentenceWindow->repaintWindow(blitArea);
-		//BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
+
+	sentenceWindow->repaintWindow(blitArea);
+	//BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
 
@@ -1884,34 +1797,6 @@ void initCalculate()
 	mainWindow->setDefaultSize(mainWindow->getDefaultWidth(), fourthLineStart);
 	//WINDOW_HEIGHT = fourthLineStart;
 }
-
-
-/*void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newX, int newY, bool noMove, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
-{
-	//Resize the current window; use SetWindowPos() since it's easier...
-	int flags = SWP_NOZORDER | SWP_NOACTIVATE;
-	if (noMove)
-		flags |= SWP_NOMOVE;
-	SetWindowPos(hwnd, NULL, newX, newY, newWidth, newHeight, flags );
-	RECT r;
-	GetClientRect(hwnd, &r);
-	SAVED_CLIENT_WIDTH = r.right;
-	SAVED_CLIENT_HEIGHT = newHeight;
-
-	//We also have to set our graphics contexts correctly. Also, throw out the old ones.
-	DeleteDC(underDC);
-	DeleteObject(bmp);
-	dc = GetDC(hwnd);
-	underDC = CreateCompatibleDC(dc);
-	bmp = CreateCompatibleBitmap(dc, SAVED_CLIENT_WIDTH, SAVED_CLIENT_HEIGHT);
-	SelectObject(underDC, bmp);
-}*/
-
-
-/*void expandHWND(HWND hwnd, HDC &dc, HDC &underDC, HBITMAP &bmp, int newWidth, int newHeight, int &SAVED_CLIENT_WIDTH, int &SAVED_CLIENT_HEIGHT)
-{
-	expandHWND(hwnd, dc, underDC, bmp, 0, 0, true, newWidth, newHeight, SAVED_CLIENT_WIDTH, SAVED_CLIENT_HEIGHT);
-}*/
 
 
 
@@ -2157,7 +2042,8 @@ void typeCurrentPhrase()
 		turnOnControlkeys(false);
 
 		//Hide the window(s)
-		ShowBothWindows(SW_HIDE);
+		mainWindow->showWindow(false);
+		sentenceWindow->showWindow(false);
 	}
 }
 
@@ -2466,112 +2352,6 @@ void onAllWindowsCreated()
 
 
 
-void updateHelpWindow()
-{
-	if (!helpWindow->isVisible()) {
-		//Did we even initialize the help window?
-		if (!helpIsCached) {
-			//Time to re-size our help window. Might as well center it now, too
-			HWND taskBar = FindWindowW(_T("Shell_TrayWnd"), _T(""));
-			RECT r;
-			GetClientRect(GetDesktopWindow(), &r);
-			int newX = (r.right-r.left)/2-helpKeyboard->getWidth()/2;
-			int newY = (r.bottom-r.top)-helpKeyboard->getHeight();
-			if (taskBar != NULL) {
-				GetClientRect(taskBar, &r);
-				newY -= (r.bottom-r.top);
-			}
-			helpWindow->expandWindow(newX, newY, helpKeyboard->getWidth(), helpKeyboard->getHeight(), false);
-			//HELP_CLIENT_SIZE.cx = newW;
-			//HELP_CLIENT_SIZE.cy = newH;
-
-			//Move the memory window, too
-			memoryWindow->expandWindow(newX+helpKeyboard->getWidth(), newY, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), false);
-			//MEMORY_CLIENT_SIZE.cx = newWMem;
-			//MEMORY_CLIENT_SIZE.cy = newHMem;
-
-			//Might as well build the reverse lookup
-			model.reverseLookupWord(0);
-
-			//...and now we can properly initialize its drawing surface
-			helpKeyboard->init(helpWindow, memoryWindow);
-
-			//WORKAROUND - Fixes an issue where WZ won't highlight the first key press (unless it's Shift)
-			//CRITICAL SECTION
-			{
-				EnterCriticalSection(&threadCriticalSec);
-
-				//NOTE: This is the workaround: just process a dummy event.
-				//      GetKeyState() is failing for some unknown reason on the first press.
-				//                    All attempts to "update" it somehow have failed.
-				hotkeysDown.push_front(117);
-				if (!threadIsActive) {
-					threadIsActive = true;
-					ResumeThread(keyTrackThread);
-				}
-
-				LeaveCriticalSection(&threadCriticalSec);
-			}
-			//END WORKAROUND
-
-			helpIsCached = true;
-		}
-
-
-		//Register all hotkeys relevant for the help window
-		bool res = true;
-		if (!controlKeysOn) //We'll need these too.
-			res = turnOnControlkeys(true);
-		if (!turnOnHelpKeys(true) || !res)
-			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
-
-
-		//Clear our current word (not the sentence, though, and keep the trigrams)
-		patSintIDModifier = 0;
-		currStr.clear();
-		model.reset(false);
-		recalculate();
-
-		//Show the help window
-		helpWindow->showWindow(true);
-		memoryWindow->showWindow(true);
-		//ShowHelpWindow(SW_SHOW);
-		reBlitHelp();
-
-		//Switch inputs, set as helper
-		currTypeInput->treatAsHelpKeyboard(currHelpInput);
-		currInput = currHelpInput;
-
-		//Show the main/sentence windows; this is just good practice.
-		if (!mainWindow->isVisible()) {
-			//Show it.
-			mainWindow->showWindow(true);
-			//ShowMainWindow(SW_SHOW);
-		}
-		if (!sentenceWindow->isVisible()) {
-			sentenceWindow->showWindow(true);
-			//ShowSubWindow(SW_SHOW);
-		}
-	} else {
-		//Clear our word string
-		currStr.clear();
-
-		turnOnHelpKeys(false);
-		helpWindow->showWindow(false);
-		memoryWindow->showWindow(false);
-		//ShowHelpWindow(SW_HIDE);
-
-		//Hide the main window, too, and possibly the secondary window
-		mainWindow->showWindow(false);
-		//ShowMainWindow(SW_HIDE);
-		if (sentence.size()==0) {
-			sentenceWindow->showWindow(false);
-			//ShowSubWindow(SW_HIDE);
-		}
-
-		recalculate();
-	}
-}
 
 
 
@@ -2618,6 +2398,155 @@ void handleNewHighlights(unsigned int keyCode)
 }
 
 
+void checkAndInitHelpWindow()
+{
+	//Has initialization been performed?
+	if (helpIsCached)
+		return;
+
+	//Time to re-size our help window. Might as well center it now, too
+	HWND taskBar = FindWindowW(_T("Shell_TrayWnd"), _T(""));
+	RECT r;
+	GetClientRect(GetDesktopWindow(), &r);
+	int newX = (r.right-r.left)/2-helpKeyboard->getWidth()/2;
+	int newY = (r.bottom-r.top)-helpKeyboard->getHeight();
+	if (taskBar != NULL) {
+		GetClientRect(taskBar, &r);
+		newY -= (r.bottom-r.top);
+	}
+	helpWindow->expandWindow(newX, newY, helpKeyboard->getWidth(), helpKeyboard->getHeight(), false);
+
+	//Move the memory window, too
+	memoryWindow->expandWindow(newX+helpKeyboard->getWidth(), newY, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), false);
+	
+	//Might as well build the reverse lookup
+	model.reverseLookupWord(0);
+
+	//...and now we can properly initialize its drawing surface
+	helpKeyboard->init(helpWindow, memoryWindow);
+
+	//WORKAROUND - Fixes an issue where WZ won't highlight the first key press (unless it's Shift)
+	//CRITICAL SECTION
+	{
+		EnterCriticalSection(&threadCriticalSec);
+
+		//NOTE: This is the workaround: just process a dummy event.
+		//      GetKeyState() is failing for some unknown reason on the first press.
+		//                    All attempts to "update" it somehow have failed.
+		hotkeysDown.push_front(117); //Comment this line to re-trigger the bug.
+		if (!threadIsActive) {
+			threadIsActive = true;
+			ResumeThread(keyTrackThread);
+		}
+
+		LeaveCriticalSection(&threadCriticalSec);
+	}
+	//END WORKAROUND
+
+	//Only needs to be performed once.
+	helpIsCached = true;
+}
+
+
+//"Toggle" functions control turning certain things on/off.
+//All of these take a boolean value: what are we toggling TO?
+void toggleHelpMode(bool toggleTo)
+{
+	//Do nothing if called in error.
+	if (toggleTo == helpWindow->isVisible())
+		return;
+
+	//Are we turning the window "on" or "off"
+	if (toggleTo) {
+		//First, initialize the help window
+		checkAndInitHelpWindow();
+
+		//Register all hotkeys relevant for the help window
+		bool res = true;
+		if (!controlKeysOn) //We'll need these too.
+			res = turnOnControlkeys(true);
+		if (!turnOnHelpKeys(true) || !res)
+			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
+
+		//Switch inputs, set as helper
+		currTypeInput->treatAsHelpKeyboard(currHelpInput);
+		currInput = currHelpInput;
+
+		//Clear our current word (not the sentence, though, and keep the trigrams)
+		//Also reset the helper keyboard. 
+		currTypeInput->reset(true, true, false, false);
+		currHelpInput->reset(true, true, true, true); 
+
+		//Show the help window
+		helpWindow->showWindow(true);
+		memoryWindow->showWindow(true);
+
+		//TODO: Automate repainting the help window...
+		reBlitHelp();
+
+		//Show the main/sentence windows if they're not already visible
+		//TODO: Automate somehow
+		mainWindow->showWindow(true);
+		sentenceWindow->showWindow(true);
+	} else {
+		//Change to the typed input
+		currInput = currTypeInput;
+
+		//Turn off help keys
+		turnOnHelpKeys(false);
+
+		//Hide windows
+		helpWindow->showWindow(false);
+		memoryWindow->showWindow(false);
+	}
+
+
+	//Redraw all
+	currInput->forceViewChanged();
+}
+
+void toggleSentenceTyping(bool toggleTo)
+{
+	//Enable/Disable control keys
+	turnOnControlkeys(toggleTo);
+
+	//Show/Hide the sentence window?
+	//Keep it if in help mode.
+	sentenceWindow->showWindow(toggleTo || currInput->isHelpInput());
+
+	//Repaint or reset, depending on the command
+	if (toggleTo)
+		currInput->forceViewChanged();
+	else
+		currInput->reset(true, true, true, true);
+}
+
+void toggleCandidateTyping(bool toggleTo)
+{
+	if (toggleTo) {
+		//The mainWindow isn't visible. (Show the sentence window too)
+		mainWindow->showWindow(true);
+		sentenceWindow->showWindow(true); //TODO: Automate, if possible.
+
+		//Optionally turn on numerals
+		if (!numberKeysOn) //True for roman input systems.
+			turnOnNumberkeys(true);
+
+		//Do we need control keys? (For input selection, etc.
+		if (!controlKeysOn)
+			turnOnControlkeys(true);
+	} else {
+		//Partial reset
+		currInput->reset(true, true, false, false);
+
+		//Hide the typing window, under certain conditions
+		if (!currInput->isHelpInput())
+			mainWindow->showWindow(false);
+	}
+}
+
+
+
 
 bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 {
@@ -2635,7 +2564,7 @@ bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 		case HOTKEY_HELP:
 			//What to do if our user hits "F1".
 			if (!allowNonBurmeseLetters && currHelpInput!=NULL)
-				updateHelpWindow();
+				toggleHelpMode(true);
 			return true;
 
 		default:
@@ -2776,98 +2705,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				handleUserHotkeys(wParam, lParam);
 
 				//Check 1: Did we just switch out of help mode?
-				if (wasProvidingHelp && !currInput->isHelpInput()) {
-					//Change to the typed input
-					currInput = currTypeInput;
+				if (wasProvidingHelp != currInput->isHelpInput()) 
+					toggleHelpMode(!wasProvidingHelp);
 
-					//Turn off help keys
-					turnOnHelpKeys(false);
+				//Check 2: Are we entering into or out of sentence mode?
+				if (wasEmptySentence != currInput->getTypedSentenceStr().empty())
+					toggleSentenceTyping(wasEmptySentence);
 
-					//Hide windows
-					helpWindow->showWindow(false);
-					memoryWindow->showWindow(false);
-
-					//Hide the main window, and secondary window (conditionally)
-					//TODO: Try to automate this, put it AFTER
-					mainWindow->showWindow(false);
-					if (sentence.size()==0)
-						sentenceWindow->showWindow(false);
-
-					//Redraw all
-					recalculate();
-				}
-
-
-				//Check 2: Did we just clear our typed sentence?
-				if (!wasEmptySentence && currInput->getTypedSentenceStr().empty()) {
-					//Input-specific code
-					//TODO: Is this right?
-					currInput->reset();
-
-					//No more control keys needed.
-					turnOnControlkeys(false);
-
-					//Hide the main and sentence windows
-					//Blank windows can remain open for Help input methods
-					if (!currInput->isHelpInput()) {
-						mainWindow->showWindow(false);
-						(sentenceWindow!=NULL) && sentenceWindow->showWindow(false);
-					}
-				}
-
-
-				//Check 3: Did we just type the first character in our sentence?
-				// (NOTE: This is not the same as typing a candidate)
-				if (wasEmptySentence && !currInput->getTypedSentenceStr().empty()) {
-					//Enable control keys
-					turnOnControlkeys(true;
-
-					//Show the sentence window
-					(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-
-					//Repaint
-					recalculate();
-				}
-
-
-				//Check 4: Did we just type the first valid letter in our model? 
-				//         Thus, should we show the MainWindow?
-				if (currInput->getAndClearJustTypedFirstLetter()) {
-					//Optionally turn on numerals
-					if (!numberKeysOn) //True for roman input systems.
-						turnOnNumberkeys(true);
-
-					//Show it
-					mainWindow->showWindow(true);
-
-					//First word in a sentence?
-					if (!sentenceWindow->isVisible()) {
-						//Turn on control keys
-						turnOnControlkeys(true);
-						(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-					}
-				}
-
-				//Check 5: Did we just start typing for the first time?
-				if (wasEmptyRoman && !currInput->getTypedRomanStr().empty()) {
-					//TODO: Internalize this into the model
-					currInput->resetCandidateSelection(); //Set patSintID to 0
-
-					//The mainWindow isn't visible. (Show the sentence window too)
-					mainWindow->showWindow(true);
-					(sentenceWindow!=NULL) && sentenceWindow->showWindow(true);
-				}
-
-
-				//Check 6: Did we just remove all typed letters?
-				if (!wasEmptyRoman && currInput->getTypedRomanStr().empty()) {
-					currInput->reset();
-
-					//Hide the typing window, under certain conditions
-					if (!currInput->isHelpInput())
-						mainWindow->showWindow(false);
-				}	
-
+				//Check 3: Did we just start possible candidate selection, or finish it?
+				if (wasEmptyRoman != currInput->getTypedRomanStr().empty())
+					toggleCandidateTyping(wasEmptyRoman);
 
 
 				//Final check: Do we need to repaint the window?
@@ -3844,20 +3691,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	try {
 		//First, create. This counts the total number of windows
 		mainWindow = new MyWin32Window(L"waitZarMainWindow");
-		if (typePhrases)
-			sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
+		sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
 		helpWindow = new MyWin32Window(L"waitZarHelpWindow");
 		memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
 
 		//Then, init
 		mainWindow->init(L"WaitZar", WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, onAllWindowsCreated, false);
-		if (typePhrases)
-			sentenceWindow->init(L"WaitZar", NULL, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
+		sentenceWindow->init(L"WaitZar", NULL, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
 		helpWindow->init(L"WaitZar", NULL, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 		memoryWindow->init(L"WaitZar", NULL, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 
 		//Then link
-		if (typePhrases && dragBothWindowsTogether)
+		if (dragBothWindowsTogether)
 			mainWindow->linkToWindow(sentenceWindow, SOUTH);
 	} catch (std::exception err) {
 		std::wstringstream msg;
@@ -3889,8 +3734,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Make our "notify icon" data structure
 	NOTIFYICONDATA nid;
 	mainWindow->initShellNotifyIconData(nid);
-	//nid.cbSize = sizeof(NOTIFYICONDATA); //natch
-	//nid.hWnd = mainWindow; //Cauess OUR window to receive notifications for this icon.
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
@@ -3928,7 +3771,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Initialize our keyboard input structures
-	//inputItems = new INPUT[1000];
 	for (int i=0; i<1000; i++) {
 		//We expect an input of type "keyboard"
 		inputItems[i].type = INPUT_KEYBOARD;
@@ -3945,7 +3787,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//Success?
-	if(mainWindow->isInvalid() || (typePhrases && sentenceWindow->isInvalid()) || helpWindow->isInvalid() || memoryWindow->isInvalid()) {
+	if(mainWindow->isInvalid() || sentenceWindow->isInvalid() || helpWindow->isInvalid() || memoryWindow->isInvalid()) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
@@ -3953,14 +3795,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//If we got this far, let's try to load our file.
 	if (!loadModel()) {
 		delete mainWindow;
-		//DestroyWindow(mainWindow);
-		if (typePhrases)
-			delete sentenceWindow;
-			//DestroyWindow(senWindow);
+		delete sentenceWindow;
 		delete helpWindow;
 		delete memoryWindow;
-		//DestroyWindow(helpWindow);
-		//DestroyWindow(memoryWindow);
 		return 1;
 	}
 
@@ -4045,8 +3882,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Show it's ready by changing the shell icon
-	//nid.cbSize = sizeof(NOTIFYICONDATA);
-	//nid.hWnd = mainWindow;
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window

@@ -64,10 +64,11 @@ public:
 	bool moveRight(int amt);
 
 	//Information on the model's state
-	int getCurrSelectedID() const;
+	int getCurrSelectedID() const; //Returns -1 if PS, etc.
 	std::vector<char> getPossibleChars() const;
 	std::vector<unsigned int> getPossibleWords() const;
 	void insertTrigram(const std::vector<unsigned int> &trigrams);
+	unsigned int getFirstWordIndex() const;
 
 	//Get information about a particular unsigned short given its ID
 	std::wstring getWordKeyStrokes(unsigned int id);
@@ -135,7 +136,7 @@ private:
 	std::vector<unsigned int> trigrams;
 
 	//Tracking user selection
-	int currSelectedID;
+	int currSelectedAbsoluteID; //0 to size, not -1, etc.
 
 	//Code for loading the model specifically from a variety of options, and the initialization code
 	void loadModel(char * model_buff, size_t model_buff_size, bool allowAnyChar);
@@ -146,10 +147,11 @@ private:
 	//Internal stuff
 	std::vector<char> possibleChars;
 	std::vector<unsigned int> possibleWords;
+	size_t firstRegularWordIndex;
 
 	//Extension: guessing the next bit
 	std::wstring parenStr;
-	std::wstring postStr;
+	//std::wstring postStr;
 
 	//For error messages
 	std::wstring mostRecentError;
