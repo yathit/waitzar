@@ -1931,122 +1931,63 @@ void initCalculateHelp()
  * Re-figure the layout of our drawing area, resize if necessary, and
  * draw onto the back buffer. Finally, blit to the front buffer.
  */
-//TODO: Have to have some code for checking if we're using a Help input or not.
 void recalculate()
 {
-	//NOTE: We can short-circuit the display encoding if it's the same as the input encoding. 
-	//      This allows us to avoid round-trip conversion errors.
-	std::wstring dispRomanStr = currInput->getTypedRomanString();
-	std::wstring dispCandidateStr = currInput->getTypedCandidateString();
-	std::wstring dispSentenceStr = currInput->getTypedSentenceString();
+	//Convert the current input string to the internal encoding, and then convert it to the display encoding.
+	//  We can short-circuit this if the output and display encodings are the same.
+	bool noEncChange = (currDisplay->encoding==currInput->encoding);
+	std::wstring dispRomanStr = noEncChange ? currInput->getTypedRomanString() : uni2Disp(input2Uni(currInput->getTypedRomanString()));
+	std::wstring dispSentenceStr = noEncChange ? currInput->getTypedSentenceString() : uni2Disp(input2Uni(currInput->getTypedSentenceString()));
+	std::wstring dispSentencePreCursorStr = noEncChange ? currInput->getSentencePreCursorString() : uni2Disp(input2Uni(currInput->getSentencePreCursorString()));
 
-	//NOTE: First, we have to convert the current input string to the internal encoding, and then
-	//      convert the internal encoding to the display encoding.
-	//      We only need to do this once, and can store the variables locally.
-	std::wstring internRomanStr = dispRomanStr;
-	std::wstring internCandidateStr = dispCandidateStr;
-	std::wstring internSentenceStr = dispSentenceStr;
-	if (input2Uni!=NULL) {
-		internRomanStr = input2Uni->convert(internRomanStr);
-		internCandidateStr = input2Uni->convert(internCandidateStr);
-		internSentenceStr = input2Uni->convert(internSentenceStr);
+	//Candidate strings are slightly more complex; have the convert the entire array
+	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
+	if (!noEncChange) {
+		for (int i=0; i<dispCandidateStrs.size(); i++)
+			dispCandidateStrs[i].first = uni2Disp(input2Uni(dispCandidateStrs[i].first
 	}
-
-	//Convert Display encoding if required
-	//TODO: We actually don't need the internal encoding here... re-write later.
-	if (currDisplay->encoding != currInput->encoding) {
-		dispRomanStr = internRomanStr;
-		dispCandidateStr = internCandidateStr;
-		dispSentenceStr = internSentenceStr;
-		if (uni2Disp!=NULL) {
-			dispRomanStr = uni2Disp->convert(dispRomanStr);
-			dispCandidateStr = uni2Disp->convert(dispCandidateStr);
-			dispSentenceStr = uni2Disp->convert(dispSentenceStr);
-		}
-	}
-
 
 	//First things first: can we fit this in the current background?
+	// (Includes pat-sint strings)
 	int cumulativeWidth = (borderWidth+1)*2;
-	std::vector<UINT32> words =  model.getPossibleWords();
-	for (size_t i=0; i<words.size(); i++) {
-		cumulativeWidth += mmFontBlack->getStringWidth(model.getWordString(words[i]));
-		cumulativeWidth += spaceWidth;
-	}
-
-	//Extra width for pat-sint suggestion?
-	if (model.hasPostStr()) {
-		cumulativeWidth += mmFontBlack->getStringWidth(model.getPostString());
+	for (size_t i=0; i<dispCandidateStrs.size(); i++) {
+		cumulativeWidth += mmFontBlack->getStringWidth(dispCandidateStrs[i].first);
 		cumulativeWidth += spaceWidth;
 	}
 
 	//If not, resize. Also, keep the size small when possible.
-	if (cumulativeWidth>mainWindow->getClientWidth())
-		mainWindow->expandWindow(cumulativeWidth, mainWindow->getClientHeight());
-	else if (cumulativeWidth<mainWindow->getDefaultWidth() && mainWindow->getClientWidth()>mainWindow->getDefaultWidth())
-		mainWindow->expandWindow(mainWindow->getDefaultWidth(), mainWindow->getClientHeight());
-	else if (cumulativeWidth>mainWindow->getDefaultWidth() && cumulativeWidth<mainWindow->getClientWidth())
-		mainWindow->expandWindow(cumulativeWidth, mainWindow->getClientHeight());
+	// Note: Re-sizing to the same size won't trigger a window update, so we can just all expandWindow()
+	//       without worrying about performance.
+	int newWidth = max(mainWindow->getDefaultWidth(), cumulativeWidth);
+	mainWindow->expandWindow(newWidth, mainWindow->getClientHeight());
 
-	//Background
+	//Background - Main Window
 	mainWindow->selectObject(g_BlackPen);
 	mainWindow->selectObject(g_DarkGrayBkgrd);
 	mainWindow->drawRectangle(0, 0, mainWindow->getClientWidth(), mainWindow->getClientHeight());
 
-	//Background -second window
-	if (typePhrases) {
-		//Draw the background
-		sentenceWindow->selectObject(g_BlackPen);
-		sentenceWindow->selectObject(g_DarkGrayBkgrd);
-		sentenceWindow->drawRectangle(0, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
+	//Background - Sentence Window
+	sentenceWindow->selectObject(g_BlackPen);
+	sentenceWindow->selectObject(g_DarkGrayBkgrd);
+	sentenceWindow->drawRectangle(0, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
 
-		//Draw each string
-		std::list<int>::const_iterator printIT = sentence.begin();
-		int currentPosX = borderWidth + 1;
-		int cursorPosX = currentPosX;
-		int counterCursorID=0;
-		int countup = 0;
-		for (;printIT != sentence.end(); printIT++) {
-			//Append this string
-			wstring strToDraw;
-			PulpCoreFont* colorFont = mmFontSmallWhite;
-			if (*printIT>=0)
-				strToDraw = model.getWordString(*printIT);
-			else {
-				int numSystemWords = systemDefinedWords.size();
-				int id = -(*printIT)-1;
-				if (id<numSystemWords) {
-					strToDraw = systemDefinedWords[id];
-				} else
-					strToDraw = userDefinedWordsZg[id-numSystemWords];
-			}
-			if (countup++ == sentence.getCursorIndex() && model.hasPostStr() && patSintIDModifier==-1) {
-				colorFont = mmFontSmallRed;
-				if (patSintIDModifier==-1)
-					strToDraw = model.getPostString();
-			}
-			sentenceWindow->drawString(colorFont, strToDraw, currentPosX, borderWidth+1);
-			currentPosX += (mmFontSmallWhite->getStringWidth(strToDraw)+1);
+	//Draw each string
+	//TODO: Highlight the previous word in the sentence if it's a P.S. candidate.
+	//      NOTE: This will require some re-coding of how the sentence string is returned.
+	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr, borderWidth + 1, borderWidth+1);
 
-			//Line? (don't print now; we also want to draw it at cursorIndex==-1)
-			if (counterCursorID == sentence.getCursorIndex())
-				cursorPosX = currentPosX;
+	//Draw the cursor
+	int cursorPosX = mmFontSmallWhite->getStringWidth(dispSentencePreCursorStr) + 1;
+	sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
+	sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
-			//Increment
-			counterCursorID++;
-		}
+	//Draw the current encoding
+	int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
+	sentenceWindow->selectObject(g_BlackPen);
+	sentenceWindow->selectObject(g_GreenBkgrd);
+	sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
+	sentenceWindow->drawString(mmFontSmallWhite, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmallWhite->getHeight()/2);
 
-		//Draw the cursor
-		sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
-		sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
-
-		//Draw the current encoding
-		int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
-		sentenceWindow->selectObject(g_BlackPen);
-		sentenceWindow->selectObject(g_GreenBkgrd);
-		sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
-		sentenceWindow->drawString(mmFontSmallWhite, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmallWhite->getHeight()/2);
-	}
 
 	//White overlays
 	mainWindow->selectObject(g_EmptyPen);
@@ -2058,109 +1999,54 @@ void recalculate()
 	//Now, draw the strings....
 	PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
-	TCHAR digit[5];
+	//TCHAR digit[5];
 	wstring extendedWordString;
-	if (helpWindow->isVisible()) {
-		//Prepare the extended word string a bit early
-		currStrZg = waitzar::sortMyanmarString(currStr);
-		currStrZg = wstring(waitzar::renderAsZawgyi(currStrZg.c_str()));
-		extendedWordString = currStrZg;
 
-		//We only have one word: the guessed romanisation
-		currStrDictID = -1;
-		for (unsigned int i=0; i<model.getTotalDefinedWords(); i++) {
-			//Does this word match?
-			wstring currWord = model.getWordString(i);
-			if (currWord == extendedWordString) {
-				currLetterSt = currWord;
-				currStrDictID = i;
-				break;
-			}
+	//Before we do this, draw the help text if applicable
+	if (currInput->isHelpWindow() && !dispCandidateStrs.empty() && !dispCandidateStrs[0].first.empty())
+		mainWindow->drawString(mmFontSmallGray, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
+
+	//Now, draw the candiate strings and their backgrounds
+	int currLabelID = 1;
+	for (size_t i=0; i<dispCandidateStrs.size(); i++) {
+		//Measure the string
+		int thisStrWidth = mmFontBlack->getStringWidth(dispCandidateStrs[i].first);
+
+		//Select fonts, and draw a box under highlighted words
+		mmFont = mmFontBlack;
+		if (dispCandidateStrs[i].second==1)
+			mmFont = mmFontRed;
+		else if (dispCandidateStrs[i].second==2 || dispCandidateStrs[i].second==3) {
+			mmFont = mmFontGreen;
+
+			mainWindow->selectObject(g_YellowBkgrd);
+			mainWindow->selectObject(g_GreenPen);
+			mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
 		}
 
-		//Any match at all?
-		if (currStrDictID!=-1) {
-			string romanWord = model.reverseLookupWord(currStrDictID);
+		//Draw the string (foreground)
+		mainWindow->drawString(mmFont, dispCandidateStrs[i].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
-			currLetterSt = L'(';
-			for (size_t q=0; q<romanWord.size(); q++)
-				currLetterSt += romanWord[q];
-			currLetterSt += L')';
-
-			mainWindow->drawString(mmFontGreen, currLetterSt, borderWidth+1+spaceWidth/2, secondLineStart+spaceWidth/2);
+		//Draw its numbered identifier, or '`' if it's a red-highlighted word
+		std::wstringstream digit;
+		if (dispCandidateStrs[i].second==1 || dispCandidateStrs[i].second==3) {
+			digit <<L"`";
+		} else {
+			digit <<currLabelID++;
+			if (currLabelID==10)
+				currLabelID = 0; //Just renumber for now; we never have more than 10 anyway.
 		}
+		int digitWidth = mmFont->getStringWidth(digit);
+		mainWindow->drawString(mmFont, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 
-		//Helper text
-		if (currStrZg.length()>0)
-			mainWindow->drawString(mmFontSmallGray, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
-	} else if (mainWindow->isVisible()) { //Crashes otherwise
-		//Add the post-processed word, if it exists...
-		int mySelectedID = ((int)model.getCurrSelectedID()) + patSintIDModifier;
-		if (model.hasPostStr()) {
-			words.insert(words.begin(), model.getPostID());
-			mySelectedID++;
-		}
-
-		for (size_t i=0; i<words.size(); i++) {
-			//If this is the currently-selected word, draw a box under it.
-			//int x = words[i];
-			int thisStrWidth = mmFont->getStringWidth(model.getWordString(words[i]));
-			if (i!=mySelectedID)
-				mmFont = mmFontBlack;
-			else {
-				mmFont = mmFontGreen;
-
-				mainWindow->selectObject(g_YellowBkgrd);
-				mainWindow->selectObject(g_GreenPen);
-				mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
-			}
-
-			//Fix the pen if this is a post word
-			// Also, fix the ID
-			int wordID = (int)i;
-			if (model.hasPostStr()) {
-				wordID--;
-				if (i==0)
-					mmFont = mmFontRed;
-			}
-
-			//NOTE: Something is wrong with mmFont(Green); it's not getting initialized properly...
-			mainWindow->drawString(mmFont, model.getWordString(words[i]), borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
-
-			if (wordID<10) {
-				if (wordID>=0)
-					swprintf(digit, _T("%i"), ((wordID+1)%10));
-				else {
-					digit[0] = '`';
-					digit[1] = 0x0000;
-					if (i!=mySelectedID)
-						mmFont = mmFontBlack;
-					else
-						mmFont = mmFontGreen;
-				}
-
-				int digitWidth = mmFont->getStringWidth(digit);
-
-				mainWindow->drawString(mmFont, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
-			}
-
-			xOffset += thisStrWidth + spaceWidth;
-		}
+		//Increment
+		xOffset += thisStrWidth + spaceWidth;
 	}
 
-	if (!helpWindow->isVisible()) {
-		wstring parenStr = model.getParenString();
-		wstringstream line;
-		line <<currStr;
-		if (!parenStr.empty()) {
-			line <<" (" <<parenStr <<")";
-		}
-		extendedWordString = line.str();
-	}
+	//Draw the current romanized string
+	mainWindow->drawString(mmFontBlack, dispRomanStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
-	mainWindow->drawString(mmFontBlack, extendedWordString, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
-
-	//Paint
+	//Paint it all to the screen
 	reBlit();
 }
 
@@ -3987,9 +3873,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;
 	currDisplay      = new PngFont(); //tmp; load from config
-	input2Uni        = NULL;   //NULL means already unicode
-	uni2Output       = NULL;   //NULL means output unicode
-	uni2Disp         = NULL;   //NULL means display in unicode
+	input2Uni        = new Uni2Uni();
+	uni2Output       = new Uni2Uni();
+	uni2Disp         = new Uni2Uni();
 
 
 	//Load some icons...

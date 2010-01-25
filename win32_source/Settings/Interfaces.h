@@ -73,8 +73,9 @@ public:
 	Option<Encoding> toEncoding;
 	Option<TYPES> type;
 
-	//Temp for now: just force this to be virtual
-	virtual void convert() = 0;
+	//Convert from fromEncoding to toEncoding.
+	//  The const references allow us to save processing if the source and destination are the same.
+	const virtual std::wstring& convert(const std::wstring& src) = 0;
 };
 
 //Expected interface: "Display Method"

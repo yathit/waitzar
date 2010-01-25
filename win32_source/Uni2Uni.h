@@ -1,22 +1,29 @@
 /*
- * Copyright 2009 by Seth N. Hetu
+ * Copyright 2010 by Seth N. Hetu
  *
  * Please refer to the end of the file for licensing information
  */
 
-#include "Zg2Uni.h"
+#ifndef _TRANSFORM_UNI2UNI
+#define _TRANSFORM_UNI2UNI
 
-Zg2Uni::Zg2Uni()
+#include "Settings/Interfaces.h"
+
+/**
+ * Empty conversion class to keep code easy to read and understand;
+ *    converts unicode to unicode.
+ */
+class Uni2Uni : public Transformation
 {
-}
+public:
+	Uni2Uni();
+
+	//Convert
+	const std::wstring& convert(const std::wstring& src);
+};
 
 
-//Convert
-const std::wstring& Zg2Uni::convert(const std::wstring& src);
-{
-	//TODO
-}
-
+#endif //_TRANSFORM_UNI2UNI
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,3 +38,4 @@ const std::wstring& Zg2Uni::convert(const std::wstring& src);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+

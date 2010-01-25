@@ -17,8 +17,8 @@ class Zg2Uni : public Transformation
 public:
 	Zg2Uni();
 
-	//Temp
-	void convert();
+	//Convert
+	const std::wstring& convert(const std::wstring& src);
 };
 
 

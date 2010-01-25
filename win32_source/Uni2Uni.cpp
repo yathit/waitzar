@@ -1,20 +1,20 @@
 /*
- * Copyright 2009 by Seth N. Hetu
+ * Copyright 2010 by Seth N. Hetu
  *
  * Please refer to the end of the file for licensing information
  */
 
-#include "Zg2Uni.h"
+#include "Uni2Uni.h"
 
-Zg2Uni::Zg2Uni()
+Uni2Uni::Uni2Uni()
 {
 }
 
 
 //Convert
-const std::wstring& Zg2Uni::convert(const std::wstring& src);
+const std::wstring& Uni2Uni::convert(const std::wstring& src);
 {
-	//TODO
+	return src;
 }
 
 
