@@ -36,6 +36,11 @@ bool InputMethod::isHelpInput()
 	return this->providingHelpFor!=NULL;
 }
 
+void InputMethod::forceViewChanged()
+{
+	viewChanged = true;
+}
+
 bool InputMethod::getAndClearViewChanged()
 {
 	bool res = viewChanged;
@@ -43,12 +48,12 @@ bool InputMethod::getAndClearViewChanged()
 	return res;
 }
 
-bool InputMethod::getAndClearJustTypedFirstLetter()
+/*bool InputMethod::getAndClearJustTypedFirstLetter()
 {
 	bool res = justTypedFirstLetter;
 	justTypedFirstLetter = false;
 	return res;
-}
+}*/
 
 
 

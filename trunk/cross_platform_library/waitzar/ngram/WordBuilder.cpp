@@ -652,22 +652,24 @@ bool WordBuilder::moveRight(int amt) {
 		return false;
 
 	//Any change?
-	int newAmt = currSelectedID + amt;
+	int newAmt = currSelectedAbsoluteID + amt;
 	if (newAmt >= (int)possibleWords.size())
 		newAmt = (int)possibleWords.size()-1;
 	else if (newAmt < 0)
 		newAmt = 0;
-	if (newAmt == currSelectedID)
+	if (newAmt == currSelectedAbsoluteID)
 		return false;
 
 	//Do it!
-	currSelectedID = newAmt;
+	currSelectedAbsoluteID = newAmt;
 	return true;
 }
 
 
+//Returns the RELATIVE id. If negative, this represents a pat-sint word (theoretically, could be <-1, but
+//   for now we limit this).
 int WordBuilder::getCurrSelectedID() const {
-	return currSelectedID;
+	return currSelectedAbsoluteID - firstRegularWordIndex;
 }
 
 
@@ -694,13 +696,14 @@ void WordBuilder::setCurrSelected(int id)
 		return;
 
 	//Fail silently if this isn't a valid id
-	if (id >= (int)possibleWords.size())
+	int absoluteID = id + firstRegularWordIndex;
+	if (absoluteID >= (int)possibleWords.size())
 		return;
-	else if (id < 0)
+	else if (absoluteID < 0)
 		return;
 
 	//Do it!
-	currSelectedID = id;
+	currSelectedAbsoluteID = absoluteID;
 }
 
 
@@ -712,13 +715,14 @@ pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID)
 		return pair<bool, unsigned int>(false, 0);
 
 	//Quick jump?
-	if (quickJumpID > -1)
+	int quickJumpAbsID = quickJumpID + firstRegularWordIndex;
+	if (quickJumpAbsID > -1)
 		this->setCurrSelected(quickJumpID);
-	if (currSelectedID!=quickJumpID && quickJumpID!=-1)
+	if (currSelectedAbsoluteID!=quickJumpAbsID && quickJumpAbsID!=-1)
 		return pair<bool, unsigned int>(false, 0); //No effect
 
 	//Get the selected word, add it to the prefix array
-	unsigned int newWord = this->getPossibleWords()[this->currSelectedID];
+	unsigned int newWord = this->getPossibleWords()[this->currSelectedAbsoluteID];
 	addPrefix(newWord);
 
 	//Reset the model, return this word
@@ -736,7 +740,7 @@ void WordBuilder::reset(bool fullReset)
 	//Partial reset
 	this->currNexus = 0;
 	this->pastNexus.clear();
-	this->currSelectedID = -1;
+	this->currSelectedAbsoluteID = -1;
 	this->possibleChars.clear();
 	this->possibleWords.clear();
 	this->parenStr.clear();
@@ -781,8 +785,6 @@ void WordBuilder::resolveWords()
 {
 	//Init
 	parenStr.clear();
-	postStr.clear();
-	//int pStrOffset = 0;
 
 	//If there are no words possible, can we jump to a point that doesn't diverge?
 	int speculativeNexusID = currNexus;
@@ -814,7 +816,8 @@ void WordBuilder::resolveWords()
 
 	//What words are possible given this point?
 	possibleWords.clear();
-	this->currSelectedID = -1;
+	firstRegularWordIndex = 0;
+	this->currSelectedAbsoluteID = -1;
 	this->postStr.clear();
 	if (lowestPrefix == -1)
 		return;
@@ -847,11 +850,12 @@ void WordBuilder::resolveWords()
 	//Finally, check if this nexus and the previously-typed word lines up; if so, we have a "post" match
 	if (shortcuts.count(currNexus)>0 && trigrams.size()>0) {
 		if (shortcuts[currNexus].count(trigrams[0])>0) {
-			postStr = getWordString(shortcuts[currNexus][trigrams[0]]);
+			possibleWords.insert(possibleWords.begin(), shortcuts[currNexus][trigrams[0]]);
+			firstRegularWordIndex++;
 		}
 	}
 
-	this->currSelectedID = 0;
+	this->currSelectedAbsoluteID = firstRegularWordIndex; //Start at relative ID "0"
 }
 
 
@@ -879,6 +883,11 @@ void WordBuilder::addPrefix(unsigned int latestPrefix)
 vector<char> WordBuilder::getPossibleChars() const
 {
 	return this->possibleChars;
+}
+
+unsigned int WordBuilder::getFirstWordIndex() const
+{
+	return this->firstRegularWordIndex;
 }
 
 vector<unsigned int> WordBuilder::getPossibleWords() const

@@ -26,8 +26,9 @@ public:
 	//Useful functionality
 	void treatAsHelpKeyboard(RomanInputMethod* providingHelpFor);
 	bool isHelpInput();
+	void forceViewChanged();
 	bool getAndClearViewChanged();
-	bool getAndClearJustTypedFirstLetter();
+	//bool getAndClearJustTypedFirstLetter();
 
 	//Keypress handlers (abstract virtual)
 	virtual void handleEsc() = 0;
@@ -58,7 +59,7 @@ protected:
 
 	//Repaint after this?
 	bool viewChanged;
-	bool justTypedFirstLetter;
+	//bool justTypedFirstLetter;
 
 
 public:  //Abstract methods
@@ -91,7 +92,7 @@ public:  //Abstract methods
 	virtual std::wstring getTypedRomanString() = 0;
 
 	//Called periodically
-	virtual void reset() = 0;
+	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset) = 0;
 
 private:
 	//Must be maintained by the subclass

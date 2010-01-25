@@ -32,7 +32,7 @@ public:
 	//Abstract implementation - simple
 	bool isPlaceholder() { return false; }
 
-	void reset();
+	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
 private:
 	std::wstringstream typedSentenceStr;
