@@ -199,7 +199,7 @@ vector< pair <int, unsigned short> > systemWordLookup;
 
 //Parallel data structures for constructing systemWordLookup
 const string systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
-const int[] systemDefinedKeys = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
+const int systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
 				HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
 				HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
 				HOTKEY_SHIFT_LEFT_BRACKET, HOTKEY_RIGHT_BRACKET, HOTKEY_SHIFT_RIGHT_BRACKET, HOTKEY_SEMICOLON, 
@@ -1295,7 +1295,7 @@ bool loadModel() {
 		nexus.push_back(vector<unsigned int>());
 
 		//This should totally work :P (yes, I tested it rigorously)
-		model = WordBuilder(dictionary, nexus, prefix);
+		model = new WordBuilder(dictionary, nexus, prefix);
 	} else {
 		{
 			//Load the resource as a byte array and get its size, etc.
@@ -1313,7 +1313,7 @@ bool loadModel() {
 			res_size = SizeofResource(NULL, res);
 
 			//Save our "model"
-			model = WordBuilder(res_data, res_size, allowNonBurmeseLetters);
+			model = new WordBuilder(res_data, res_size, allowNonBurmeseLetters);
 
 			//Done - This shouldn't matter, though, since the process only
 			//       accesses it once and, fortunately, this is not an external file.
@@ -1777,16 +1777,16 @@ void recalculate()
 {
 	//Convert the current input string to the internal encoding, and then convert it to the display encoding.
 	//  We can short-circuit this if the output and display encodings are the same.
-	bool noEncChange = (currDisplay->encoding==currInput->encoding);
-	std::wstring dispRomanStr = noEncChange ? currInput->getTypedRomanString() : uni2Disp(input2Uni(currInput->getTypedRomanString()));
-	std::wstring dispSentenceStr = noEncChange ? currInput->getTypedSentenceString() : uni2Disp(input2Uni(currInput->getTypedSentenceString()));
-	std::wstring dispSentencePreCursorStr = noEncChange ? currInput->getSentencePreCursorString() : uni2Disp(input2Uni(currInput->getSentencePreCursorString()));
+	bool noEncChange = (currDisplay->encoding.get()==currInput->encoding.get());
+	std::wstring dispRomanStr = noEncChange ? currInput->getTypedRomanString() : uni2Disp->convert(input2Uni->convert(currInput->getTypedRomanString()));
+	std::wstring dispSentenceStr = noEncChange ? currInput->getTypedSentenceString() : uni2Disp->convert(input2Uni->convert(currInput->getTypedSentenceString()));
+	std::wstring dispSentencePreCursorStr = noEncChange ? currInput->getSentencePreCursorString() : uni2Disp->convert(input2Uni->convert(currInput->getSentencePreCursorString()));
 
 	//Candidate strings are slightly more complex; have the convert the entire array
 	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
 	if (!noEncChange) {
-		for (int i=0; i<dispCandidateStrs.size(); i++)
-			dispCandidateStrs[i].first = uni2Disp(input2Uni(dispCandidateStrs[i].first
+		for (size_t i=0; i<dispCandidateStrs.size(); i++)
+			dispCandidateStrs[i].first = uni2Disp->convert(input2Uni->convert(dispCandidateStrs[i].first));
 	}
 
 	//First things first: can we fit this in the current background?
@@ -1844,7 +1844,7 @@ void recalculate()
 	wstring extendedWordString;
 
 	//Before we do this, draw the help text if applicable
-	if (currInput->isHelpWindow() && !dispCandidateStrs.empty() && !dispCandidateStrs[0].first.empty())
+	if (currInput->isHelpInput() && !dispCandidateStrs.empty() && !dispCandidateStrs[0].first.empty())
 		mainWindow->drawString(mmFontSmallGray, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 
 	//Now, draw the candiate strings and their backgrounds
@@ -1877,8 +1877,8 @@ void recalculate()
 			if (currLabelID==10)
 				currLabelID = 0; //Just renumber for now; we never have more than 10 anyway.
 		}
-		int digitWidth = mmFont->getStringWidth(digit);
-		mainWindow->drawString(mmFont, digit, borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
+		int digitWidth = mmFont->getStringWidth(digit.str());
+		mainWindow->drawString(mmFont, digit.str(), borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 
 		//Increment
 		xOffset += thisStrWidth + spaceWidth;
@@ -1893,6 +1893,7 @@ void recalculate()
 
 
 
+//TODO: This has to go somewhere... see where it went in the old code.
 wstring getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
 {
 	//Get the string
@@ -2405,7 +2406,7 @@ void toggleHelpMode(bool toggleTo)
 void checkAllHotkeysAndWindows()
 {
 	//Should the main window be visible?
-	if (!currInput->getTypedRomanString().empty() || currInput->isHelpWindow()) {
+	if (!currInput->getTypedRomanString().empty() || currInput->isHelpInput()) {
 		mainWindow->showWindow(true);
 	} else {
 		mainWindow->showWindow(false);
@@ -2415,7 +2416,7 @@ void checkAllHotkeysAndWindows()
 	}
 
 	//Should the sentence window be visible?
-	if (!currInput->getTypedSentenceString().empty() || currInput->isHelpWindow() || mainWindow->isVisible()) {
+	if (!currInput->getTypedSentenceString().empty() || currInput->isHelpInput() || mainWindow->isVisible()) {
 		sentenceWindow->showWindow(true);
 		turnOnControlkeys(true);
 
@@ -2687,7 +2688,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Manage our help window
 					if (!mmOn)
 						switchToLanguage(true);
-					toggleHelpMode(!currInput->isHelpWindow()); //TODO: Check this works!
+					toggleHelpMode(!currInput->isHelpInput()); //TODO: Check this works!
 				} else if (retVal == IDM_EXIT) {
 					//Will generate a WM_DESTROY message
 					delete mainWindow;
@@ -2773,8 +2774,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	helpIsCached = false;
 	isDragging = false;
 
-	//TEMP: Create model & sentence in memory
-	model = new WordBuilder();
+	//TEMP: Create sentence in memory
 	sentence = new SentenceList();
 
 	//Also...
@@ -3097,9 +3097,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Set defaults
 	currTypeInput    = new RomanInputMethod(); //tmp; load from config
 	currTypeInput->init(model, sentence);
+	currTypeInput->encoding.setVal(L"zawgyi");
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;
 	currDisplay      = new PngFont(); //tmp; load from config
+	currDisplay->encoding.setVal(L"zawgyi");
 	input2Uni        = new Uni2Uni();
 	uni2Output       = new Uni2Uni();
 	uni2Disp         = new Uni2Uni();

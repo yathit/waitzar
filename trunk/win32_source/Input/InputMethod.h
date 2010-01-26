@@ -8,14 +8,54 @@
 #define _INPUT_METHOD
 
 #include <string>
+#include <vector>
 #include "MyWin32Window.h"
-#include "RomanInputMethod.h"
+
+
+
+//Simple class to manage our overriding options
+//TODO: Eventually move this into its own file? I keep having to pass this around to the earliest-loaded file.
+template <class T>
+class Option {
+public:
+	Option(T val=T())
+	{
+		this->value = val;
+		this->local = T();
+		this->user = T();
+		this->localSet = false;
+		this->userSet = false;
+	}
+	T get() const {
+		return userSet ? user : localSet ? local : value;
+	}
+	void setVal(T val) {
+		this->value = val;
+	}
+	void setLoc(T val) {
+		this->local = val;
+		this->localSet = true;
+	}
+	void setUsr(T val) {
+		this->user = val;
+		this->userSet = true;
+	}
+private:
+	T value;
+	T local;
+	bool localSet;
+	T user;
+	bool userSet;
+};
+
+//Global "Types" enum
+enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
+
 
 
 //Expected interface: "Input Method"
 class InputMethod {
 public:
-	InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup);
 	virtual ~InputMethod();
 
 	//Struct-like properties
@@ -24,7 +64,7 @@ public:
 	Option<TYPES> type;
 
 	//Useful functionality
-	void treatAsHelpKeyboard(RomanInputMethod* providingHelpFor);
+	void treatAsHelpKeyboard(InputMethod* providingHelpFor);
 	bool isHelpInput();
 	void forceViewChanged();
 	bool getAndClearViewChanged();
@@ -43,7 +83,7 @@ public:
 
 
 private:
-	const vector< pair <int, unsigned short> > &systemWordLookup;
+	const std::vector< std::pair <int, unsigned short> > &systemWordLookup;
 
 
 protected:
@@ -54,7 +94,7 @@ protected:
 	MyWin32Window* memoryWindow;
 
 	//Helper typing control
-	RomanInputMethod* providingHelpFor;
+	InputMethod* providingHelpFor;
 
 	//Repaint after this?
 	bool viewChanged;

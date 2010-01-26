@@ -7,6 +7,26 @@
 #include "RomanInputMethod.h"
 
 
+
+//WARNING: This is currently COPIED in RomanInputMethod.cpp
+//TODO: C++ 0x, chaining constructors can eliminate this
+RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup)
+{
+	//Init
+	providingHelpFor = NULL;
+	viewChanged = false;
+	requestToTypeSentence = false;
+
+	//Save
+	this->mainWindow = mainWindow;
+	this->sentenceWindow = sentenceWindow;
+	this->helpWindow = helpWindow;
+	this->memoryWindow = memoryWindow;
+	this->systemWordLookup = systemWordLookup;
+}
+
+
+
 //This takes responsibility for the model and sentence memory.
 void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence)
 {

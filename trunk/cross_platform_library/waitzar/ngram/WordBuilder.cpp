@@ -744,7 +744,6 @@ void WordBuilder::reset(bool fullReset)
 	this->possibleChars.clear();
 	this->possibleWords.clear();
 	this->parenStr.clear();
-	this->postStr.clear();
 
 	//Full reset: remove all prefixes
 	if (fullReset)
@@ -818,7 +817,6 @@ void WordBuilder::resolveWords()
 	possibleWords.clear();
 	firstRegularWordIndex = 0;
 	this->currSelectedAbsoluteID = -1;
-	this->postStr.clear();
 	if (lowestPrefix == -1)
 		return;
 
@@ -982,23 +980,6 @@ wstring WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
 wstring WordBuilder::getParenString() const
 {
 	return this->parenStr;
-}
-
-
-wstring WordBuilder::getPostString() const
-{
-	return this->postStr;
-}
-
-
-unsigned int WordBuilder::getPostID() const
-{
-	return this->getWordID(this->getPostString());
-}
-
-bool WordBuilder::hasPostStr() const
-{
-	return this->postStr[0] != 0x0000;
 }
 
 

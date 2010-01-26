@@ -6,27 +6,12 @@
 
 #include "InputMethod.h"
 
-InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup)
-{
-	//Init
-	providingHelpFor = NULL;
-	viewChanged = false;
-	requestToTypeSentence = false;
-
-	//Save
-	this->mainWindow = mainWindow;
-	this->sentenceWindow = sentenceWindow;
-	this->helpWindow = helpWindow;
-	this->memoryWindow = memoryWindow;
-	this->systemWordLookup = systemWordLookup;
-}
-
 InputMethod::~InputMethod()
 {
 }
 
 
-void InputMethod::treatAsHelpKeyboard(RomanInputMethod* providingHelpFor)
+void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor)
 {
 	this->providingHelpFor = providingHelpFor;
 }

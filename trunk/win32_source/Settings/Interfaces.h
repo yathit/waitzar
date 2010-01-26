@@ -13,44 +13,6 @@
 #include "Input/InputMethod.h"
 
 
-//Global "Types" enum
-enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
-
-
-//Simple class to manage our overriding options
-template <class T>
-class Option {
-public:
-	Option(T val=T())
-	{
-		this->value = val;
-		this->local = T();
-		this->user = T();
-		this->localSet = false;
-		this->userSet = false;
-	}
-	T get() const {
-		return userSet ? user : localSet ? local : value;
-	}
-	void setVal(T val) {
-		this->value = val;
-	}
-	void setLoc(T val) {
-		this->local = val;
-		this->localSet = true;
-	}
-	void setUsr(T val) {
-		this->user = val;
-		this->userSet = true;
-	}
-private:
-	T value;
-	T local;
-	bool localSet;
-	T user;
-	bool userSet;
-};
-
 //A struct... will refactor into separate classes later.
 struct Encoding {
 	Option<std::wstring> displayName;
@@ -84,7 +46,7 @@ public:
 class DisplayMethod {
 public:
 	//Struct-like properties
-	Option<Encoding> encoding;
+	Option<std::wstring> encoding;
 	Option<TYPES> type;
 
 	//Temp for now: just force this to be virtual
