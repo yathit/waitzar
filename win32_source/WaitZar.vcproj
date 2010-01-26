@@ -394,6 +394,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\MiscUtils.h"
+					>
+				</File>
+				<File
 					RelativePath=".\MyWin32Window.h"
 					>
 				</File>
