@@ -77,6 +77,7 @@
 #include "OnscreenKeyboard.h"
 #include "MyWin32Window.h"
 #include "Hotkeys.h"
+#include "MiscUtils.h"
 #include "Input/InputMethod.h"
 
 //VS Includes
@@ -2785,8 +2786,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Remove systray icon
 			NOTIFYICONDATA nid;
 			mainWindow->initShellNotifyIconData(nid);
-			//nid.cbSize = sizeof(NOTIFYICONDATA);
-			//nid.hWnd = hwnd;
 			nid.uID = STATUS_NID;
 			nid.uFlags = NIF_TIP; //??? Needed ???
 			Shell_NotifyIcon(NIM_DELETE, &nid);
@@ -2795,8 +2794,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (highlightKeys) {
 				DeleteCriticalSection(&threadCriticalSec);
 				CloseHandle(keyTrackThread);
-				//CloseHandle(caretTrackThread);  //This should already be closed; closing
-				//                                  it twice is an error.
+
+				//This should already be closed; closing it twice is an error.
+				//CloseHandle(caretTrackThread);  //Leave commented...
 			}
 
 			//Log?
@@ -2812,201 +2812,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
-}
-
-
-
-
-/**
- * Borrowed from KeyMagic.
- *
- * Note to self: I've tried many times to re-write this function and make it less messy.
- *  The problem is, the code is pretty good (checks all error conditions, handles
- *  the various intricate options of Windows access control settings, etc.), and I
- *  don't think I could clean it up without breaking some of this. Even though the
- *  coding style is vastly different from my own, I think I'll have to just accept
- *  the clutter for the time being --it serves its purpose, and I have more important
- *  code to fix.
- */
-BOOL IsAdmin()
-{
-   BOOL   fReturn         = FALSE;
-   DWORD  dwStatus;
-   DWORD  dwAccessMask;
-   DWORD  dwAccessDesired;
-   DWORD  dwACLSize;
-   DWORD  dwStructureSize = sizeof(PRIVILEGE_SET);
-   PACL   pACL            = NULL;
-   PSID   psidAdmin       = NULL;
-
-   HANDLE hToken              = NULL;
-   HANDLE hImpersonationToken = NULL;
-
-   PRIVILEGE_SET   ps;
-   GENERIC_MAPPING GenericMapping;
-
-   PSECURITY_DESCRIPTOR     psdAdmin           = NULL;
-   SID_IDENTIFIER_AUTHORITY SystemSidAuthority = SECURITY_NT_AUTHORITY;
-
-
-   /*
-      Determine if the current thread is running as a user that is a member of
-      the local admins group.  To do this, create a security descriptor that
-      has a DACL which has an ACE that allows only local aministrators access.
-      Then, call AccessCheck with the current thread's token and the security
-      descriptor.  It will say whether the user could access an object if it
-      had that security descriptor.  Note: you do not need to actually create
-      the object.  Just checking access against the security descriptor alone
-      will be sufficient.
-   */
-   const DWORD ACCESS_READ  = 1;
-   const DWORD ACCESS_WRITE = 2;
-
-
-   __try
-   {
-
-      /*
-         AccessCheck() requires an impersonation token.  We first get a primary
-         token and then create a duplicate impersonation token.  The
-         impersonation token is not actually assigned to the thread, but is
-         used in the call to AccessCheck.  Thus, this function itself never
-         impersonates, but does use the identity of the thread.  If the thread
-         was impersonating already, this function uses that impersonation context.
-      */
-      if (!OpenThreadToken(GetCurrentThread(), TOKEN_DUPLICATE|TOKEN_QUERY,
-		  TRUE, &hToken))
-      {
-         if (GetLastError() != ERROR_NO_TOKEN)
-            __leave;
-
-         if (!OpenProcessToken(GetCurrentProcess(),
-			 TOKEN_DUPLICATE|TOKEN_QUERY, &hToken))
-            __leave;
-      }
-
-      if (!DuplicateToken (hToken, SecurityImpersonation,
-		  &hImpersonationToken))
-		  __leave;
-
-
-      /*
-        Create the binary representation of the well-known SID that
-        represents the local administrators group.  Then create the security
-        descriptor and DACL with an ACE that allows only local admins access.
-        After that, perform the access check.  This will determine whether
-        the current user is a local admin.
-      */
-      if (!AllocateAndInitializeSid(&SystemSidAuthority, 2,
-                                    SECURITY_BUILTIN_DOMAIN_RID,
-                                    DOMAIN_ALIAS_RID_ADMINS,
-                                    0, 0, 0, 0, 0, 0, &psidAdmin))
-         __leave;
-
-      psdAdmin = LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
-      if (psdAdmin == NULL)
-         __leave;
-
-      if (!InitializeSecurityDescriptor(psdAdmin,
-		  SECURITY_DESCRIPTOR_REVISION))
-         __leave;
-
-      // Compute size needed for the ACL.
-      dwACLSize = sizeof(ACL) + sizeof(ACCESS_ALLOWED_ACE) +
-                  GetLengthSid(psidAdmin) - sizeof(DWORD);
-
-      pACL = (PACL)LocalAlloc(LPTR, dwACLSize);
-      if (pACL == NULL)
-         __leave;
-
-      if (!InitializeAcl(pACL, dwACLSize, ACL_REVISION2))
-         __leave;
-
-      dwAccessMask= ACCESS_READ | ACCESS_WRITE;
-
-      if (!AddAccessAllowedAce(pACL, ACL_REVISION2, dwAccessMask,
-		  psidAdmin))
-         __leave;
-
-      if (!SetSecurityDescriptorDacl(psdAdmin, TRUE, pACL, FALSE))
-         __leave;
-
-      /*
-         AccessCheck validates a security descriptor somewhat; set the group
-         and owner so that enough of the security descriptor is filled out to
-         make AccessCheck happy.
-      */
-      SetSecurityDescriptorGroup(psdAdmin, psidAdmin, FALSE);
-      SetSecurityDescriptorOwner(psdAdmin, psidAdmin, FALSE);
-
-      if (!IsValidSecurityDescriptor(psdAdmin))
-         __leave;
-
-      dwAccessDesired = ACCESS_READ;
-
-      /*
-         Initialize GenericMapping structure even though you
-         do not use generic rights.
-      */
-      GenericMapping.GenericRead    = ACCESS_READ;
-      GenericMapping.GenericWrite   = ACCESS_WRITE;
-      GenericMapping.GenericExecute = 0;
-      GenericMapping.GenericAll     = ACCESS_READ | ACCESS_WRITE;
-
-      if (!AccessCheck(psdAdmin, hImpersonationToken, dwAccessDesired,
-                       &GenericMapping, &ps, &dwStructureSize, &dwStatus,
-                       &fReturn))
-      {
-         fReturn = FALSE;
-         __leave;
-      }
-
-   }
-
-   __finally
-   {
-      // Clean up.
-      if (pACL) LocalFree(pACL);
-      if (psdAdmin) LocalFree(psdAdmin);
-      if (psidAdmin) FreeSid(psidAdmin);
-      if (hImpersonationToken) CloseHandle (hImpersonationToken);
-      if (hToken) CloseHandle (hToken);
-   }
-
-   return fReturn;
-
-}
-
-
-bool IsVistaOrMore()
-{
-	OSVERSIONINFO OSversion;
-	OSversion.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-	GetVersionEx(&OSversion);
-	return (OSversion.dwMajorVersion>=6);
-}
-
-
-/**
- * Elevate and run a new instance of WaitZar
- */
-void elevateWaitZar(LPCWSTR wzFileName)
-{
-	//Define our task
-	SHELLEXECUTEINFO wzInfo;
-    wzInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-	wzInfo.fMask = 0;
-	wzInfo.hwnd = NULL;
-	wzInfo.lpVerb = _T("runas");
-	wzInfo.lpFile = wzFileName;
-	wzInfo.lpParameters = _T("runasadmin"); //Is this necessary?
-    wzInfo.lpDirectory = NULL;
-    wzInfo.nShow = SW_NORMAL;
-
-	//Start the task
-	if (ShellExecuteEx(&wzInfo) == FALSE) {
-		MessageBox(NULL, _T("Could not elevate WaitZar. Program will now exit."), _T("Error!"), MB_ICONERROR | MB_OK);
-	}
 }
 
 
@@ -3307,7 +3112,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (IsVistaOrMore() && !IsAdmin()) {
 			TCHAR szCurFileName[1024];
             GetModuleFileName(GetModuleHandle(NULL), szCurFileName, 1023);
-			elevateWaitZar(szCurFileName);
+			if (!elevateWaitZar(szCurFileName))
+				MessageBox(NULL, _T("Could not elevate WaitZar. Program will now exit."), _T("Error!"), MB_ICONERROR | MB_OK);
+
+			//Return either way; the current thread must exit.
 			return 0;
 		}
 	}
