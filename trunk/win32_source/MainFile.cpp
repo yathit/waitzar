@@ -1518,7 +1518,7 @@ bool turnOnHotkeySet(const Hotkey* hkSet, const size_t& size, bool on, bool& fla
 {
 	//Do nothing if already on/off
 	if (flagToSet==on)
-		return false;
+		return true; //Only return false if there's an error.
 
 	//Track failures
 	bool retVal = true;
@@ -1627,37 +1627,22 @@ void switchToLanguage(bool toMM) {
 		return;
 
 	//Ok, switch
-	bool res;
-	if (toMM) {
-		res = turnOnAlphaHotkeys(true, true, true) && turnOnPunctuationkeys(true);
-		//if (typeBurmeseNumbers==TRUE)
-		res = turnOnNumberkeys(true) && res; //JUST numbers, not control.
+	bool res = turnOnAlphaHotkeys(toMM, true, true);
+	res = turnOnPunctuationkeys(toMM) && res;
+	res = turnOnNumberkeys(toMM) && res;
+	res = turnOnExtendedKeys(toMM) && res;
 
-		//Turno on our extended key set, too, to capture things like "("
-		res = turnOnExtendedKeys(true) && res;
-
-		//Register our help key too
-		if (!mainWindow->registerHotKey(HOTKEY_HELP, NULL, VK_F1))
-			res = false;
-	} else {
-		res = turnOnAlphaHotkeys(false, true, true);
-
-		//It's possible we still have some hotkeys left on...
-		if (controlKeysOn)
-			turnOnControlkeys(false);
-		if (numberKeysOn)
-			turnOnNumberkeys(false);
-		if (punctuationKeysOn)
-			turnOnPunctuationkeys(false);
-		if (extendedKeysOn)
-			turnOnExtendedKeys(false);
-		if (helpKeysOn)
-			turnOnHelpKeys(false);
-
-		//Turn off our help key
-		if (!mainWindow->unregisterHotKey(HOTKEY_HELP))
-			res = false;
+	//If switching to English, turn off all remaining hotkeys.
+	if (!toMM) {
+		res = turnOnControlkeys(toMM) && res;
+		res = turnOnExtendedKeys(toMM) && res;
 	}
+
+	//Turn on/of our main Help hotkey
+	if (toMM)
+		res = mainWindow->registerHotKey(HOTKEY_HELP, NULL, VK_F1) && res;
+	else
+		mainWindow->unregisterHotKey(HOTKEY_HELP);
 
 	//Any errors?
 	if (!res)
@@ -1667,11 +1652,8 @@ void switchToLanguage(bool toMM) {
 	mmOn = toMM;
 
 	//Change icon in the tray
-	// NOTE: Error is somewhere HERE (in creation, not ShellNotifyIcon)
 	NOTIFYICONDATA nid;
 	mainWindow->initShellNotifyIconData(nid);
-	//nid.cbSize = sizeof(NOTIFYICONDATA);
-	//nid.hWnd = mainWindow;
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
@@ -1687,16 +1669,13 @@ void switchToLanguage(bool toMM) {
 		MessageBox(NULL, msg.str().c_str(), _T("Warning"), MB_ICONERROR | MB_OK);
 	}
 
-	//Any windows left?
+
+	//Hide all windows
 	if (!mmOn) {
 		mainWindow->showWindow(false);
 		sentenceWindow->showWindow(false);
-
-		if (helpWindow->isVisible()) {
-			helpWindow->showWindow(false);
-			memoryWindow->showWindow(false);
-			//ShowHelpWindow(SW_HIDE);
-		}
+		helpWindow->showWindow(false);
+		memoryWindow->showWindow(false);
 	}
 }
 
@@ -2435,8 +2414,8 @@ void toggleHelpMode(bool toggleTo)
 
 		//Register all hotkeys relevant for the help window
 		bool res = true;
-		if (!controlKeysOn) //We'll need these too.
-			res = turnOnControlkeys(true);
+		//if (!controlKeysOn) //We'll need these too.
+		//	res = turnOnControlkeys(true);  //Elsewhere...
 		if (!turnOnHelpKeys(true) || !res)
 			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
 
@@ -2477,43 +2456,32 @@ void toggleHelpMode(bool toggleTo)
 	currInput->forceViewChanged();
 }
 
-void toggleSentenceTyping(bool toggleTo)
+
+void checkAllHotkeysAndWindows()
 {
-	//Enable/Disable control keys
-	turnOnControlkeys(toggleTo);
-
-	//Show/Hide the sentence window?
-	//Keep it if in help mode.
-	sentenceWindow->showWindow(toggleTo || currInput->isHelpInput());
-
-	//Repaint or reset, depending on the command
-	if (toggleTo)
-		currInput->forceViewChanged();
-	else
-		currInput->reset(true, true, true, true);
-}
-
-void toggleCandidateTyping(bool toggleTo)
-{
-	if (toggleTo) {
-		//The mainWindow isn't visible. (Show the sentence window too)
+	//Should the main window be visible?
+	if (!currInput->getTypedRomanString().empty() || currInput->isHelpWindow()) {
 		mainWindow->showWindow(true);
-		sentenceWindow->showWindow(true); //TODO: Automate, if possible.
-
-		//Optionally turn on numerals
-		if (!numberKeysOn) //True for roman input systems.
-			turnOnNumberkeys(true);
-
-		//Do we need control keys? (For input selection, etc.
-		if (!controlKeysOn)
-			turnOnControlkeys(true);
 	} else {
+		mainWindow->showWindow(false);
+
 		//Partial reset
 		currInput->reset(true, true, false, false);
+	}
 
-		//Hide the typing window, under certain conditions
-		if (!currInput->isHelpInput())
-			mainWindow->showWindow(false);
+	//Should the sentence window be visible?
+	if (!currInput->getTypedSentenceString().empty() || currInput->isHelpWindow() || mainWindow->isVisible()) {
+		sentenceWindow->showWindow(true);
+		turnOnControlkeys(true);
+
+		//Force repaint
+		currInput->forceViewChanged(); //TODO: Is this needed here?
+	} else {
+		sentenceWindow->showWindow(false);
+		turnOnControlkeys(false);
+
+		//Full reset
+		currInput->reset(true, true, true, true);
 	}
 }
 
@@ -2680,14 +2648,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (wasProvidingHelp != currInput->isHelpInput()) 
 					toggleHelpMode(!wasProvidingHelp);
 
-				//Check 2: Are we entering into or out of sentence mode?
-				if (wasEmptySentence != currInput->getTypedSentenceStr().empty())
-					toggleSentenceTyping(wasEmptySentence);
-
-				//Check 3: Did we just start possible candidate selection, or finish it?
-				if (wasEmptyRoman != currInput->getTypedRomanStr().empty())
-					toggleCandidateTyping(wasEmptyRoman);
-
+				//Check 2: Did SOMETHING change? (Entering/exiting sentence mode, just type the first
+				//         word in the candidate list or finish it, or enter/exit help mode?) This will 
+				//         perform unnecessary calculations, but it's not too wasteful, and makes up for it 
+				//         by cleaning up the code sufficiently.
+				if (    (wasEmptySentence != currInput->getTypedSentenceStr().empty())
+					||  (wasEmptyRoman != currInput->getTypedRomanStr().empty())
+					||  (wasProvidingHelp != currInput->isHelpInput()))
+					checkAllHotkeysAndWindows();
 
 				//Final check: Do we need to repaint the window?
 				if (currInput->getAndClearViewChanged())
