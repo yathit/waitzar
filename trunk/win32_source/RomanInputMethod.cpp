@@ -7,10 +7,20 @@
 #include "RomanInputMethod.h"
 
 
+//This takes responsibility for the model and sentence memory.
 void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence)
 {
 	this->model = model;
 	this->sentence = sentence;
+}
+
+
+RomanInputMethod::~RomanInputMethod()
+{
+	if (model!=NULL) 
+		delete model;
+	if (sentence!=NULL) 
+		delete sentence;
 }
 
 
@@ -23,8 +33,6 @@ void RomanInputMethod::handleEsc()
 		sentence.clear();
 	} else {
 		//Cancel the current word
-		//NOTE: if getTypedString() is empty, we can say that our candidate list has reset
-		//      Let's try that for now...
 		typedRomanStr.str(L"");
 		viewChanged = true; //Shouldn't matter, but doesn't hurt.
 	}
@@ -39,6 +47,7 @@ void RomanInputMethod::handleBackspace()
 		if (sentence.deletePrev(model))
 			viewChanged = true;
 	} else {
+		//Delete the previously-typed letter
 		model.backspace();
 
 		//Truncate...
@@ -59,36 +68,16 @@ void RomanInputMethod::handleDelete()
 }
 
 
-void RomanInputMethod::handleRight()
+void RomanInputMethod::handleLeftRight(bool isRight)
 {
+	int amt = isRight ? 1 : -1;
 	if (mainWindow->isVisible()) {
-		//Move right/left within the current word.
-		if (patSintIDModifier==-1) {
-			patSintIDModifier = 0;
-			viewChanged = true;
-		} else if (model.moveRight(1) == TRUE)
+		//Move right/left within the current selection.
+		if (model.moveRight(amt) == TRUE)
 			viewChanged = true;
 	} else {
 		//Move right/left within the current phrase.
-		if (sentence.moveCursorRight(1, model))
-			viewChanged = true;
-	}
-}
-
-
-void RomanInputMethod::handleLeft()
-{
-	if (mainWindow->isVisible()) {
-		if (model.moveRight(-1) == TRUE)
-			viewChanged = true;
-		else if (model.hasPostStr() && patSintIDModifier==0) {
-			//Move left to our "pat-sint shortcut"
-			patSintIDModifier = -1;
-			viewChanged = true;
-		}
-	} else {
-		//Move right/left within the current phrase.
-		if (sentence.moveCursorRight(-1, model))
+		if (sentence.moveCursorRight(amt, model))
 			viewChanged = true;
 	}
 }
@@ -102,14 +91,11 @@ void RomanInputMethod::handleNumber(int numCode, WPARAM wParam)
 			numCode = 9;
 
 		//Mangle as usual...
-		if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE) {
+		if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE)
 			numCode = -1;
-			patSintIDModifier = -1;
-		} else
-			patSintIDModifier = 0;
 
 		//Select this numbered word
-		if (selectWord(numCode, helpWindow->isVisible())==TRUE) {
+		if (selectWord(numCode, true)) {
 			typedRomanStr.str(L"");
 			viewChanged = true;
 		}
@@ -125,10 +111,11 @@ void RomanInputMethod::handleNumber(int numCode, WPARAM wParam)
 
 void RomanInputMethod::handleStop(bool isFull)
 {
-	unsigned short stopChar = model.getStopCharacter(isFull);
+	unsigned short stopChar = model->getStopCharacter(isFull);
 	if (!mainWindow->isVisible()) {	
 		//Otherwise, we perform the normal "enter" routine.
-		typeCurrentPhrase(); //TODO: Append "stopChar"
+		typedStopChar = (wchar_t)stopChar;
+		requestToTypeSentence = true;
 	}
 }
 
@@ -138,17 +125,10 @@ void RomanInputMethod::handleCommit(bool strongCommit)
 {
 	if (mainWindow->isVisible()) {
 		//The model is visible: select that word
-		if (selectWord(-1, helpWindow->isVisible())==TRUE) {
-			//Hide the main window
-			mainWindow->showWindow(false);
-
-			//Reset
-			patSintIDModifier = 0;
-			model.reset(false);
+		if (selectWord(-1, false)) {
+			//Reset, recalc
 			typedRomanStr.str(L"");
-
-			//Recalc
-			recalculate();
+			viewChanged = true;
 		}
 	} else {
 		//A bit tricky here. If the cursor's at the end, we'll
@@ -157,14 +137,14 @@ void RomanInputMethod::handleCommit(bool strongCommit)
 		//Note: ENTER overrides this behavior.
 		if (strongCommit) {
 			//Type the entire sentence
-			typeCurrentPhrase();
+			requestToTypeSentence = true;
 		} else {
 			if (sentence.getCursorIndex()==-1 || sentence.getCursorIndex()<((int)sentence.size()-1)) {
 				sentence.moveCursorRight(1, model);
-				recalculate();
+				viewChanged = true;
 			} else {
 				//Type the entire sentence
-				typeCurrentPhrase();
+				requestToTypeSentence = true;
 			}
 		}
 	}
@@ -184,17 +164,38 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 		if (!model.typeLetter(keyCode))
 			return;
 
-		//Update the romanized string
+		//Update the romanized string, trigger repaint
 		typedRomanStr <<(char)keyCode;
-
-		//Trigger 2 events
 		viewChanged = true;
-//		justTypedFirstLetter = true;
 	} else {
 		//Check for system keys
 		InputMethod::handleKeyPress(wParam);
 	}
 }
+
+
+
+bool RomanInputMethod::selectWord(int id, bool indexNegativeEntries)
+{
+	//Are there any words to use?
+	int wordID = 0;
+	if (!indexNegativeEntries) {
+		//Ok, look it up in the model as usual
+		std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
+		if (typedVal.first == FALSE)
+			return false;
+		wordID = typedVal.second;
+	}
+
+	//Pat-sint clears the previous word
+	if (id==-1)
+		sentence->deletePrev(model);
+
+	//Insert into the current sentence, return
+	sentence->insert(wordID);
+	return true;
+}
+
 
 
 std::wstring RomanInputMethod::buildSentenceStr(unsigned int stopAtID)
@@ -213,20 +214,25 @@ std::wstring RomanInputMethod::buildSentenceStr(unsigned int stopAtID)
 		}
 		currID++;
 	}
+
 	return res.str();
 }
 
 
 std::wstring RomanInputMethod::getTypedSentenceString()
 {
-	//TODO: Cache the results
-	return buildSystemWordLookup(sentence->size());
+	//TODO: Cache the results (also add the typedStopChar elsewhere...)
+	std::wstringstream res;
+	res <<buildSentenceStr(sentence->size());
+	if (typedStopChar!=L'\0')
+		res <<typedStopChar;
+	return res.str();
 }
 
 std::wstring RomanInputMethod::getSentencePreCursorString()
 {
 	//TODO: Cache the results
-	return buildSystemWordLookup(sentence->getCursorID());
+	return buildSentenceStr(sentence->getCursorID());
 }
 
 
@@ -276,6 +282,9 @@ void RomanInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSe
 	//Reset the sentence?
 	if (resetSentence)
 		sentence->clear();
+
+	//Either way
+	typedStopChar = L'\0';
 }
 
 

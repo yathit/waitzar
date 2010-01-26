@@ -138,7 +138,7 @@ HPEN g_EmptyPen;
 HINSTANCE hInst;
 HICON mmIcon;
 HICON engIcon;
-WordBuilder model;
+WordBuilder *model;
 
 //More globals  --  full program customization happens here
 InputMethod*       currInput;     //Which of the two next inputs are currently in use?
@@ -265,7 +265,7 @@ bool numberKeysOn = false;
 bool punctuationKeysOn = false;
 bool extendedKeysOn = false;
 bool helpKeysOn = false;
-SentenceList sentence;
+SentenceList *sentence;
 int prevProcessID;
 bool showingHelpPopup = false;
 
@@ -498,7 +498,7 @@ vector<wstring> GetConfigSubDirs(std::string dirToCheck, std::string configFileN
 bool testAllWordsByHand()
 {
 	//First, ensure that the reverse-lookup is ready
-	model.reverseLookupWord(0);
+	model->reverseLookupWord(0);
 
 	//Time
 	GetSystemTimeAsFileTime(&startTime);
@@ -507,23 +507,23 @@ bool testAllWordsByHand()
 	string revWord;
 	for (unsigned int wordID=0; ; wordID++) {
 		//Check
-		revWord=model.reverseLookupWord(wordID);
+		revWord=model->reverseLookupWord(wordID);
 		if (revWord.empty())
 			break;
 
 		//Type this
-		model.reset(false);
+		model->reset(false);
 		for (string::iterator rom = revWord.begin(); rom!=revWord.end(); rom++) {
 			//Just check that our romanisation is stored properly.
-			if (!model.typeLetter(*rom))
+			if (!model->typeLetter(*rom))
 				return false;
 		}
 
 		//Test "output" it
-		std::pair<bool, unsigned int> ret = model.typeSpace(-1);
+		std::pair<bool, unsigned int> ret = model->typeSpace(-1);
 		if (!ret.first)
 			return false;
-		model.getWordKeyStrokes(ret.second);
+		model->getWordKeyStrokes(ret.second);
 	}
 
 
@@ -991,8 +991,8 @@ void readUserWords() {
 					continue;
 
 				//Add this romanization
-				if (!model.addRomanization(name, value) && !ignoreMywordsWarnings) {
-					MessageBox(NULL, model.getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
+				if (!model->addRomanization(name, value) && !ignoreMywordsWarnings) {
+					MessageBox(NULL, model->getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
 				}
 				numCustomWords++;
 			}
@@ -1025,7 +1025,7 @@ void setEncoding(ENCODING encoding)
 
 	//Set this encoding, and save its value (in case we haven't loaded the model yet)
 	mostRecentEncoding = encoding;
-	model.setOutputEncoding(encoding);
+	model->setOutputEncoding(encoding);
 }
 
 
@@ -1413,14 +1413,14 @@ bool loadModel() {
 				//Do we have anything?
 				if (wcslen(post)!=0 && wcslen(curr)!=0 && wcslen(pre)!=0) {
 					//Ok, process these strings and store them
-					if (!model.addShortcut(pre, curr, post)) {
+					if (!model->addShortcut(pre, curr, post)) {
 						if (!inError)
-							MessageBox(NULL, model.getLastError().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+							MessageBox(NULL, model->getLastError().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 						inError = true;
 
 						if (isLogging) {
-							for (size_t q=0; q<model.getLastError().size(); q++)
-								fprintf(logFile, "%c", model.getLastError()[q]);
+							for (size_t q=0; q<model->getLastError().size(); q++)
+								fprintf(logFile, "%c", model->getLastError()[q]);
 							fprintf(logFile, "\n  pre: ");
 							for (unsigned int x=0; x<wcslen(pre); x++)
 								fprintf(logFile, "U+%x ", pre[x]);
@@ -1453,7 +1453,7 @@ bool loadModel() {
 	}
 
 	//One final check
-	if (model.isInError())
+	if (model->isInError())
 		return false;
 
 	return true;
@@ -1938,38 +1938,17 @@ void typeCurrentPhrase()
 	//  requires the top-level window. We could probably hack in SendMessage now that
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
-	std::list<int>::const_iterator printIT = sentence.begin();
-	wstring keyStrokes;
-	int number_of_key_events = 0;
-	for (;printIT!=sentence.end() || stopChar!=0;) {
-		//We may or may not have a half/full stop at the end.
-		if (printIT!=sentence.end()) {
-			if (*printIT>=0)
-				keyStrokes = model.getWordKeyStrokes(*printIT);
-			else {
-				keyStrokes = getUserWordKeyStrokes(-(*printIT)-1, model.getOutputEncoding());
-			}
-		} else {
-			keyStrokes.clear();
-			keyStrokes.push_back(stopChar);
-		}
+	wstring keyStrokes = currInput->getTypedSentenceString();
 
-		//Buffer each key-stroke
-		for (size_t i=0; i<keyStrokes.size(); i++) {
-			//Send keydown
-			keyInputPrototype.wScan = (WORD)keyStrokes[i];
-			keyInputPrototype.dwFlags = KEYEVENTF_UNICODE;
-			inputItems[number_of_key_events++].ki = keyInputPrototype;
+	//Buffer each key-stroke
+	for (size_t i=0; i<keyStrokes.size(); i++) {
+		//Send keydown
+		keyInputPrototype.wScan = (WORD)keyStrokes[i];
+		keyInputPrototype.dwFlags = KEYEVENTF_UNICODE;
+		inputItems[number_of_key_events++].ki = keyInputPrototype;
 
-			keyInputPrototype.dwFlags = KEYEVENTF_UNICODE|KEYEVENTF_KEYUP;
-			inputItems[number_of_key_events++].ki = keyInputPrototype;
-		}
-
-		//Increment
-		if (printIT!=sentence.end())
-			printIT++;
-		else
-			stopChar = 0;
+		keyInputPrototype.dwFlags = KEYEVENTF_UNICODE|KEYEVENTF_KEYUP;
+		inputItems[number_of_key_events++].ki = keyInputPrototype;
 	}
 
 
@@ -1984,9 +1963,7 @@ void typeCurrentPhrase()
 
 
 	//Now, reset...
-	patSintIDModifier = 0;
-	model.reset(true);
-	sentence.clear();
+	currInput->reset(true, true, true, true); //TODO: Is this necessary?
 	userDefinedWords.clear();
 	userDefinedWordsZg.clear();
 
@@ -2003,39 +1980,6 @@ void typeCurrentPhrase()
 	}
 }
 
-
-
-BOOL selectWord(int id, bool indexNegativeEntries)
-{
-	//Are there any words to use?
-	int wordID = id;
-	if (!indexNegativeEntries) {
-		//One last check: are we doing a pat-sint shortcut?
-		if (patSintIDModifier==-1) {
-			if (!model.hasPostStr())
-				return FALSE;
-			wordID = model.getPostID();
-		} else {
-			//Ok, look it up in the model as usual
-			std::pair<BOOL, UINT32> typedVal = model.typeSpace(id);
-			if (typedVal.first == FALSE)
-				return FALSE;
-			wordID = typedVal.second;
-		}
-	}
-
-	//Optionally turn off numerals
-	//if (numberKeysOn==TRUE && typeBurmeseNumbers==FALSE)
-	//	turnOnNumberkeys(FALSE);
-	//Pat-sint clears the previous word
-	if (patSintIDModifier==-1)
-		sentence.deletePrev(model);
-
-	//Advanced Case - Insert
-	sentence.insert(wordID);
-
-	return TRUE;
-}
 
 
 
@@ -2372,7 +2316,7 @@ void checkAndInitHelpWindow()
 	memoryWindow->expandWindow(newX+helpKeyboard->getWidth(), newY, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), false);
 	
 	//Might as well build the reverse lookup
-	model.reverseLookupWord(0);
+	model->reverseLookupWord(0);
 
 	//...and now we can properly initialize its drawing surface
 	helpKeyboard->init(helpWindow, memoryWindow);
@@ -2495,11 +2439,6 @@ bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 		case LANG_HOTKEY:
 			//Switch language
 			switchToLanguage(!mmOn);
-
-			//Reset the model
-			sentence.clear();
-			patSintIDModifier = 0;
-			model.reset(true);
 			return true;
 
 		case HOTKEY_HELP:
@@ -2658,7 +2597,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					||  (wasProvidingHelp != currInput->isHelpInput()))
 					checkAllHotkeysAndWindows();
 
-				//Final check: Do we need to repaint the window?
+				//Feedback Check 1: Do we need to type the current sentence?
+				if (currInput->getAndClearRequestToTypeSentence())
+					typeCurrentPhrase();
+
+				//Feedback Check 2: Do we need to repaint the window?
 				if (currInput->getAndClearViewChanged())
 					recalculate();
 			}
@@ -2688,9 +2631,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ModifyMenu(hmenu, IDM_MYANMAR, MF_BYCOMMAND|flagM, IDM_MYANMAR, temp);
 
 				//Set checks for our sub-menus:
-				UINT flagU = model.getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
-				UINT flagZ = model.getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
-				UINT flagW = model.getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
+				UINT flagU = model->getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
+				UINT flagZ = model->getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
+				UINT flagW = model->getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
 				ModifyMenu(hmenu, ID_ENCODING_UNICODE5, MF_BYCOMMAND|flagU, ID_ENCODING_UNICODE5, POPUP_UNI.c_str());
 				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG.c_str());
 				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN.c_str());
@@ -2734,21 +2677,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					switchToLanguage(false);
 
 					//Reset the model
-					sentence.clear();
-					patSintIDModifier = 0;
-					model.reset(true);
+					currInput->reset(true, true, true, true);
 				} else if (retVal == IDM_MYANMAR) {
 					switchToLanguage(true);
 
 					//Reset the model
-					sentence.clear();
-					patSintIDModifier = 0;
-					model.reset(true);
+					currInput->reset(true, true, true, true);
 				} else if (retVal == IDM_LOOKUP) {
 					//Manage our help window
 					if (!mmOn)
 						switchToLanguage(true);
-					updateHelpWindow();
+					toggleHelpMode(!currInput->isHelpWindow()); //TODO: Check this works!
 				} else if (retVal == IDM_EXIT) {
 					//Will generate a WM_DESTROY message
 					delete mainWindow;
@@ -2833,6 +2772,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//First and foremost
 	helpIsCached = false;
 	isDragging = false;
+
+	//TEMP: Create model & sentence in memory
+	model = new WordBuilder();
+	sentence = new SentenceList();
 
 	//Also...
 	try {
@@ -3152,7 +3095,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Set defaults
-	currTypeInput    = new WaitZar(); //tmp; load from config
+	currTypeInput    = new RomanInputMethod(); //tmp; load from config
+	currTypeInput->init(model, sentence);
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;
 	currDisplay      = new PngFont(); //tmp; load from config
@@ -3240,7 +3184,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//We might have a cached encoding level set...
-	model.setOutputEncoding(mostRecentEncoding);
+	model->setOutputEncoding(mostRecentEncoding);
 
 	//Testing mywords?
 	if (currTest == mywords)
@@ -3311,7 +3255,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		logFile = fopen("wz_log.txt", "w");
 
-		model.debugOut(logFile);
+		model->debugOut(logFile);
 
 		MessageBox(NULL, L"Model saved to output.", _T("Notice"), MB_ICONERROR | MB_OK);
 		return 1;

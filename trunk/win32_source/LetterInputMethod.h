@@ -16,8 +16,7 @@ public:
 	void handleEsc();
 	void handleBackspace();
 	void handleDelete();
-	void handleRight();
-	void handleLeft();
+	void handleLeftRight(bool isRight);
 	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam);
 	void handleStop(bool isFull);
