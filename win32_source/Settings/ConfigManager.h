@@ -16,7 +16,7 @@
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/Interfaces.h"
 #include "Settings/WZFactory.h"
-#include "Input/WaitZar.h"
+#include "Input/InputMethod.h"
 
 
 //json_spirit_reader is defined elsewhere

@@ -4,6 +4,9 @@
  * Please refer to the end of the file for licensing information
  */
 
+#ifndef _HOTKEYS
+#define _HOTKEYS
+
 /**
  * This file contains our hotkey definitions. There's a significant number
  * of them (>75) so they've been shuffled out of MainFile.cpp in order to increase its
@@ -160,7 +163,7 @@ struct Hotkey {
 //////////////////////////////////////////
 
 
-const Hotkey NumberHotkeys[] {
+const Hotkey NumberHotkeys[] = {
 	//One special additional case: the Combiner (unshifted)
 	{HOTKEY_COMBINE, false, VK_OEM_3},
 
@@ -190,14 +193,14 @@ const Hotkey NumberHotkeys[] {
 };
 
 
-const Hotkey PunctuationHotkeys[] {
+const Hotkey PunctuationHotkeys[] = {
 	//Period and comma, unshifted
 	{HOTKEY_COMMA,  false, VK_OEM_COMMA},
 	{HOTKEY_PERIOD, false, VK_OEM_PERIOD},
 };
 
 
-const Hotkey HelpHotkeys[] {
+const Hotkey HelpHotkeys[] = {
 	//Only "shift", for highlighting purposes
 	{HOTKEY_SHIFT, true, VK_SHIFT},
 };
@@ -260,7 +263,7 @@ const Hotkey ExtendedHotkeys[] = {
 	{HOTKEY_SHIFT_9, true, HOTKEY_9},
 };
 
-
+#endif //_HOTKEYS
 
 
 /*

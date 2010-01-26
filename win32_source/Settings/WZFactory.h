@@ -11,7 +11,6 @@
 #include <string>
 
 #include "Interfaces.h"
-#include "Input/WaitZar.h"
 #include "Display/PngFont.h"
 #include "Transform/Zg2Uni.h"
 #include "Settings/ConfigManager.h"

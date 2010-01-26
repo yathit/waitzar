@@ -7,13 +7,18 @@
 #ifndef _ROMAN_INPUT_METHOD
 #define _ROMAN_INPUT_METHOD
 
-#include "InputMethod.h"
+#include "MyWin32Window.h"
+#include "Input/InputMethod.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/SentenceList.h"
+
+using namespace waitzar;
 
 class RomanInputMethod : public InputMethod {
 
 public:
+	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup);
+
 	//Needed to add Roman-specific stuff
 	void init(WordBuilder* model, SentenceList* sentence);
 

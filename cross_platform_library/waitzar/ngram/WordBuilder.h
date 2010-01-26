@@ -75,9 +75,6 @@ public:
 	std::wstring getWordKeyStrokes(unsigned int id, unsigned int encoding);
 	std::wstring getWordString(unsigned int id) const;
 	std::wstring getParenString() const;
-	std::wstring getPostString() const;
-	unsigned int getPostID() const;
-	bool hasPostStr() const;
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull) const;

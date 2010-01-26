@@ -7,11 +7,14 @@
 #ifndef _LETTER_INPUT_METHOD
 #define _LETTER_INPUT_METHOD
 
-#include "InputMethod.h"
+#include "MyWin32Window.h"
+#include "Input/InputMethod.h"
 
 class LetterInputMethod : public InputMethod {
 
 public:
+	LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup);
+
 	//Abstract implementation - keypresses
 	void handleEsc();
 	void handleBackspace();
