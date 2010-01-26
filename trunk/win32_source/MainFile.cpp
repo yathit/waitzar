@@ -102,15 +102,6 @@ const wstring POPUP_WIN = L"Win Innwa";
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
 const wstring POPUP_LOOKUP_EN = L"&Look Up Word";
 
-//Prototypes
-bool turnOnHotkeys(bool on, bool affectLowercase, bool affectUppercase);
-bool turnOnControlkeys(bool on);
-bool turnOnNumberkeys(bool on);
-bool turnOnPunctuationkeys(bool on);
-bool turnOnExtendedKeys(bool on); //"Help keys"
-bool turnOnHelpKeys(bool on); //Reduced to contain only the shift key
-bool loadModel(HINSTANCE hInst);
-
 //Better support for dragging
 bool isDragging;
 POINT dragFrom;
@@ -550,7 +541,7 @@ bool testAllWordsByHand()
 void buildSystemWordLookup()
 {
 	//Check
-	if (systemDefinedWords.length() != sizeof(systemDefinedKeys))
+	if (systemDefinedWords.length() != sizeof(systemDefinedKeys)/sizeof(int))
 		throw std::exception("System words arrays of mismatched size.");
 
 	//Build our reverse lookup.
@@ -1518,6 +1509,118 @@ void positionAtCaret()
 }
 
 
+
+///////////////////////////////////////////
+// Hotkey registration/deregistration
+///////////////////////////////////////////
+
+bool turnOnHotkeySet(const Hotkey* hkSet, const size_t& size, bool on, bool& flagToSet) 
+{
+	//Do nothing if already on/off
+	if (flagToSet==on)
+		return false;
+
+	//Track failures
+	bool retVal = true;
+	for (size_t i=0; i<size; i++) {
+		Hotkey h = hkSet[i];
+
+		//And this result with the current return value (but don't short-circuit the call).
+		if (on)
+			retVal = mainWindow->registerHotKey(h.hotkeyID, (h.useShift?MOD_SHIFT:0), h.virtKey) && retVal;
+		else
+			retVal = mainWindow->unregisterHotKey(h.hotkeyID) && retVal;
+	}
+
+	//Set a flag
+	flagToSet = on;
+
+	//Done; return true if ALL registers/unregisters passed.
+	return retVal;
+}
+
+
+bool turnOnPunctuationkeys(bool on)
+{
+	//Todo: Use vector initialization later (C++ 0x)
+	return turnOnHotkeySet(PunctuationHotkeys, sizeof(PunctuationHotkeys)/sizeof(Hotkey), on, punctuationKeysOn);
+}
+
+
+bool turnOnNumberkeys(bool on)
+{
+	//Todo: Use vector initialization later (C++ 0x)
+	return turnOnHotkeySet(NumberHotkeys, sizeof(NumberHotkeys)/sizeof(Hotkey), on, numberKeysOn);
+}
+
+
+bool turnOnHelpKeys(bool on)
+{
+	//Todo: Use vector initialization later (C++ 0x)
+	return turnOnHotkeySet(HelpHotkeys, sizeof(HelpHotkeys)/sizeof(Hotkey), on, helpKeysOn);
+}
+
+
+bool turnOnExtendedKeys(bool on)
+{
+	//Todo: Use vector initialization later (C++ 0x)
+	return turnOnHotkeySet(ExtendedHotkeys, sizeof(ExtendedHotkeys)/sizeof(Hotkey), on, extendedKeysOn);
+}
+
+
+
+bool turnOnControlkeys(bool on)
+{
+	//Todo: Use vector initialization later (C++ 0x)
+	return turnOnHotkeySet(ControlHotkeys, sizeof(ControlHotkeys)/sizeof(Hotkey), on, controlKeysOn);
+}
+
+
+//TODO: Find a way of automating this, without writing out each one. Is there some kind of 
+//      good static initializer or generator?
+bool turnOnAlphaHotkeys(bool on, bool affectLowercase, bool affectUppercase)
+{
+	int low_code;
+	int high_code;
+	bool retVal = TRUE;
+
+	for (low_code=HOTKEY_A_LOW; low_code<=HOTKEY_Z_LOW; low_code++)
+	{
+		high_code = low_code - 32;
+		if (on)  {
+			//Register this as an uppercase/lowercase letter
+			if (affectUppercase) {
+				if (!mainWindow->registerHotKey(high_code, MOD_SHIFT, high_code))
+					retVal = false;
+			}
+			if (affectLowercase) {
+				if (!mainWindow->registerHotKey(low_code, NULL, high_code))
+					retVal = false;
+			}
+		} else {
+			//De-register this as an uppercase/lowercase letter
+			if (affectUppercase) {
+				if (!mainWindow->unregisterHotKey(high_code))
+					retVal = false;
+			}
+			if (affectLowercase) {
+				if (!mainWindow->unregisterHotKey(low_code))
+					retVal = false;
+			}
+		}
+	}
+
+	return retVal;
+}
+
+
+///////////////////////////////////////////
+// End hotkey functions
+///////////////////////////////////////////
+
+
+
+
 void switchToLanguage(bool toMM) {
 	//Don't do anything if we are switching to the SAME language.
 	if (toMM == mmOn)
@@ -1526,7 +1629,7 @@ void switchToLanguage(bool toMM) {
 	//Ok, switch
 	bool res;
 	if (toMM) {
-		res = turnOnHotkeys(true, true, true) && turnOnPunctuationkeys(true);
+		res = turnOnAlphaHotkeys(true, true, true) && turnOnPunctuationkeys(true);
 		//if (typeBurmeseNumbers==TRUE)
 		res = turnOnNumberkeys(true) && res; //JUST numbers, not control.
 
@@ -1537,7 +1640,7 @@ void switchToLanguage(bool toMM) {
 		if (!mainWindow->registerHotKey(HOTKEY_HELP, NULL, VK_F1))
 			res = false;
 	} else {
-		res = turnOnHotkeys(false, true, true);
+		res = turnOnAlphaHotkeys(false, true, true);
 
 		//It's possible we still have some hotkeys left on...
 		if (controlKeysOn)
@@ -1602,10 +1705,7 @@ void reBlit()
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	mainWindow->repaintWindow();
-	//BitBlt(mainDC,0,0,C_WIDTH,C_HEIGHT,mainUnderDC,0,0,SRCCOPY);
-	
 	sentenceWindow->repaintWindow();
-	//BitBlt(senDC,0,0,SUB_C_WIDTH,SUB_C_HEIGHT,senUnderDC,0,0,SRCCOPY);
 }
 
 
@@ -1613,25 +1713,19 @@ void reBlit()
 void reBlitHelp()
 {
 	//Help Window
-	//if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
 	if (!helpWindow->repaintWindow()) {
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
-		//DestroyWindow(mainWindow);
 	}
-	/*if (isLogging)
-		fprintf(logFile, "  Reblit help\n");*/
 
 	//Memory Window
-	//if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
 	if (!memoryWindow->repaintWindow()) {
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
-		//DestroyWindow(mainWindow);
 	}
 }
 
@@ -1641,10 +1735,7 @@ void reBlit(RECT blitArea)
 {
 	//Bit blit our back buffer to the front (should prevent flickering)
 	mainWindow->repaintWindow(blitArea);
-	//BitBlt(mainDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,mainUnderDC,blitArea.left,blitArea.top,SRCCOPY);
-
 	sentenceWindow->repaintWindow(blitArea);
-	//BitBlt(senDC,blitArea.left,blitArea.top,blitArea.right-blitArea.left,blitArea.bottom-blitArea.top,senUnderDC,blitArea.left,blitArea.top,SRCCOPY);
 }
 
 
@@ -1654,23 +1745,19 @@ void reBlit(RECT blitArea)
 void reBlitHelp(RECT blitArea)
 {
 	//Help Window
-	//if (UpdateLayeredWindow(helpWindow, GetDC(NULL), NULL, &HELP_CLIENT_SIZE, helpUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
 	if (!helpWindow->repaintWindow(blitArea)) {
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
-		//DestroyWindow(mainWindow);
 	}
 
 	//Memory Window
-	//if (UpdateLayeredWindow(memoryWindow, GetDC(NULL), NULL, &MEMORY_CLIENT_SIZE, memoryUnderDC, &PT_ORIGIN, 0, &BLEND_FULL, ULW_ALPHA)==FALSE) {
 	if (!memoryWindow->repaintWindow(blitArea)) {
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
 		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
-		//DestroyWindow(mainWindow);
 	}
 }
 
@@ -1686,7 +1773,6 @@ void initCalculate()
 
 	//Now, set the window's default height
 	mainWindow->setDefaultSize(mainWindow->getDefaultWidth(), fourthLineStart);
-	//WINDOW_HEIGHT = fourthLineStart;
 }
 
 
@@ -1775,7 +1861,6 @@ void recalculate()
 	//Now, draw the strings....
 	PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
-	//TCHAR digit[5];
 	wstring extendedWordString;
 
 	//Before we do this, draw the help text if applicable
@@ -2725,7 +2810,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (!mainWindow->unregisterHotKey(LANG_HOTKEY))
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			if (mmOn) {
-				if (!turnOnHotkeys(false, true, true))
+				if (!turnOnAlphaHotkeys(false, true, true))
 					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			}
 
@@ -2759,324 +2844,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
-}
-
-
-bool turnOnHotkeys(bool on, bool affectLowercase, bool affectUppercase)
-{
-	int low_code;
-	int high_code;
-	bool retVal = TRUE;
-
-	for (low_code=HOTKEY_A_LOW; low_code<=HOTKEY_Z_LOW; low_code++)
-	{
-		high_code = low_code - 32;
-		if (on)  {
-			//Register this as an uppercase/lowercase letter
-			if (affectUppercase) {
-				if (!mainWindow->registerHotKey(high_code, MOD_SHIFT, high_code))
-					retVal = false;
-			}
-			if (affectLowercase) {
-				if (!mainWindow->registerHotKey(low_code, NULL, high_code))
-					retVal = false;
-			}
-		} else {
-			//De-register this as an uppercase/lowercase letter
-			if (affectUppercase) {
-				if (!mainWindow->unregisterHotKey(high_code))
-					retVal = false;
-			}
-			if (affectLowercase) {
-				if (!mainWindow->unregisterHotKey(low_code))
-					retVal = false;
-			}
-		}
-	}
-
-	return retVal;
-}
-
-
-
-bool turnOnPunctuationkeys(bool on)
-{
-	bool retVal = true;
-
-	if (on==TRUE) {
-		//Punctuation keys
-		if (!mainWindow->registerHotKey(HOTKEY_COMMA, NULL, VK_OEM_COMMA))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_PERIOD, NULL, VK_OEM_PERIOD))
-			retVal = false;
-	} else {
-		//Additional punctuation keys
-		if (!mainWindow->unregisterHotKey(HOTKEY_COMMA))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_PERIOD))
-			retVal = false;
-	}
-
-	//Return
-	punctuationKeysOn = on;
-	return retVal;
-}
-
-
-bool turnOnNumberkeys(bool on)
-{
-	bool retVal = true;
-
-	//Register numbers
-	if (on) {
-		//Special case: combiner key
-		if (!mainWindow->registerHotKey(HOTKEY_COMBINE, 0, VK_OEM_3))
-			retVal = false;
-
-		//Numbers are no longer control keys.
-		if (!mainWindow->registerHotKey(HOTKEY_NUM0, NULL, VK_NUMPAD0))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM1, NULL, VK_NUMPAD1))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM2, NULL, VK_NUMPAD2))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM3, NULL, VK_NUMPAD3))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM4, NULL, VK_NUMPAD4))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM5, NULL, VK_NUMPAD5))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM6, NULL, VK_NUMPAD6))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM7, NULL, VK_NUMPAD7))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM8, NULL, VK_NUMPAD8))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_NUM9, NULL, VK_NUMPAD9))
-			retVal = false;
-		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
-			if (!mainWindow->registerHotKey(i, NULL, i))
-				retVal = false;
-		}
-	} else {
-		//Combiner
-		if (!mainWindow->unregisterHotKey(HOTKEY_COMBINE))
-			retVal = false;
-
-		//Numbers
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM0))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM1))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM2))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM3))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM4))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM5))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM6))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM7))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM8))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_NUM9))
-			retVal = false;
-		for (int i=HOTKEY_0; i<=HOTKEY_9; i++) {
-			if (!mainWindow->unregisterHotKey(i))
-				retVal = false;
-		}
-	}
-
-	numberKeysOn = on;
-	return retVal;
-}
-
-
-bool turnOnHelpKeys(bool on)
-{
-	bool retVal = true;
-
-	if (on) {
-		//We'll keep our shifted hotkeys, but also add a hotkey for shift itself.
-		//  We need to disambiguate the left and right shift keys later, since
-		//  registering VK_LSHIFT and VK_RSHIFT doesn't seem to work
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT, MOD_SHIFT, VK_SHIFT))
-			retVal = false;
-	} else {
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT))
-			retVal = false;
-	}
-
-	helpKeysOn = on;
-	return retVal;
-}
-
-
-bool turnOnExtendedKeys(bool on)
-{
-	bool retVal = true;
-
-	//Register help keys
-	if (on) {
-		//Our combiner key (register shifted, too, to prevent errors)
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_COMBINE, MOD_SHIFT, VK_OEM_3))
-			retVal = false;
-
-		//Various additional keyboard keys
-		if (!mainWindow->registerHotKey(HOTKEY_LEFT_BRACKET, 0, VK_OEM_4))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_LEFT_BRACKET, MOD_SHIFT, VK_OEM_4))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_RIGHT_BRACKET, 0, VK_OEM_6))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_RIGHT_BRACKET, MOD_SHIFT, VK_OEM_6))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_BACKSLASH, 0, VK_OEM_5))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_BACKSLASH, MOD_SHIFT, VK_OEM_5))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SEMICOLON, 0, VK_OEM_1))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_SEMICOLON, MOD_SHIFT, VK_OEM_1))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_APOSTROPHE, 0, VK_OEM_7))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_APOSTROPHE, MOD_SHIFT, VK_OEM_7))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_FORWARDSLASH, 0, VK_OEM_2))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_FORWARDSLASH, MOD_SHIFT, VK_OEM_2))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_COMMA, MOD_SHIFT, VK_OEM_COMMA))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_PERIOD, MOD_SHIFT, VK_OEM_PERIOD))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_SPACE, MOD_SHIFT, HOTKEY_SPACE))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_ENTER, MOD_SHIFT, VK_RETURN))
-			retVal = false;
-
-		//Even though we won't use them, we should track them in our virtual keyboard
-		if (!mainWindow->registerHotKey(HOTKEY_MINUS, 0, VK_OEM_MINUS))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_MINUS, MOD_SHIFT, VK_OEM_MINUS))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_EQUALS, 0, VK_OEM_PLUS))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_SHIFT_EQUALS, MOD_SHIFT, VK_OEM_PLUS))
-			retVal = false;
-
-
-		//Number keys shifted
-		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
-			if (!mainWindow->registerHotKey(i, MOD_SHIFT, (i-HOTKEY_SHIFT_0)+HOTKEY_0))
-				retVal = false;
-		}
-	} else {
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_COMBINE))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_LEFT_BRACKET))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_RIGHT_BRACKET))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_BACKSLASH))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_LEFT_BRACKET))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_RIGHT_BRACKET))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_BACKSLASH))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SEMICOLON))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_SEMICOLON))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_APOSTROPHE))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_APOSTROPHE))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_FORWARDSLASH))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_FORWARDSLASH))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_COMMA))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_PERIOD))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_MINUS))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_MINUS))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_EQUALS))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_EQUALS))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_SPACE))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_SHIFT_ENTER))
-			retVal = false;
-		for (int i=HOTKEY_SHIFT_0; i<=HOTKEY_SHIFT_9; i++) {
-			if (!mainWindow->unregisterHotKey(i))
-				retVal = false;
-		}
-	}
-
-	extendedKeysOn = on;
-	return retVal;
-}
-
-
-
-bool turnOnControlkeys(bool on)
-{
-	bool retVal = true;
-
-	//Register control keys
-	if (on) {
-		if (!mainWindow->registerHotKey(HOTKEY_SPACE, NULL, HOTKEY_SPACE))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_ENTER, NULL, VK_RETURN))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_LEFT, NULL, VK_LEFT))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_ESC, NULL, VK_ESCAPE))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_BACK, NULL, VK_BACK))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_DELETE, NULL, VK_DELETE))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_RIGHT, NULL, VK_RIGHT))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_UP, NULL, VK_UP))
-			retVal = false;
-		if (!mainWindow->registerHotKey(HOTKEY_DOWN, NULL, VK_DOWN))
-			retVal = false;
-	} else {
-		if (!mainWindow->unregisterHotKey(HOTKEY_SPACE))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_ENTER))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_LEFT))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_ESC))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_BACK))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_DELETE))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_RIGHT))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_UP))
-			retVal = false;
-		if (!mainWindow->unregisterHotKey(HOTKEY_DOWN))
-			retVal = false;
-	}
-
-	controlKeysOn = on;
-	return retVal;
 }
 
 
