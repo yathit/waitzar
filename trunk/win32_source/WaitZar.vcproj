@@ -229,6 +229,10 @@
 					Name="Transform"
 					>
 					<File
+						RelativePath=".\Uni2Uni.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\Transform\Zg2Uni.cpp"
 						>
 					</File>
@@ -435,6 +439,10 @@
 					<Filter
 						Name="Transform"
 						>
+						<File
+							RelativePath=".\Uni2Uni.h"
+							>
+						</File>
 						<File
 							RelativePath=".\Transform\Zg2Uni.h"
 							>
