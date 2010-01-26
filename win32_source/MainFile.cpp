@@ -199,9 +199,21 @@ vector<wstring> userDefinedWords; //Words the user types in. Stored with a negat
 //vector<wstring> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
 
 
+//User keystrokes
 wstring userKeystrokeVector;
-const string systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890"; //Special "words" used in our keyboard, like "(" and "`"
+
+//Special "words" used in our keyboard, like "(" and "`"
 vector< pair <int, unsigned short> > systemWordLookup;
+
+//Parallel data structures for constructing systemWordLookup
+const string systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
+const int[] systemDefinedKeys = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
+				HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
+				HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
+				HOTKEY_SHIFT_LEFT_BRACKET, HOTKEY_RIGHT_BRACKET, HOTKEY_SHIFT_RIGHT_BRACKET, HOTKEY_SEMICOLON, 
+				HOTKEY_SHIFT_SEMICOLON, HOTKEY_APOSTROPHE, HOTKEY_SHIFT_APOSTROPHE, HOTKEY_BACKSLASH, HOTKEY_SHIFT_BACKSLASH, 
+				HOTKEY_SHIFT_COMMA, HOTKEY_SHIFT_PERIOD, HOTKEY_FORWARDSLASH, HOTKEY_SHIFT_FORWARDSLASH, HOTKEY_SHIFT_SPACE, 
+				HOTKEY_1, HOTKEY_2, HOTKEY_3, HOTKEY_4, HOTKEY_5, HOTKEY_6, HOTKEY_7, HOTKEY_8, HOTKEY_9, HOTKEY_0};
 
 //Special resources for tracking the caret
 //Note: This is run synchronously; it's spawned into its own thread just so we can
@@ -537,135 +549,14 @@ bool testAllWordsByHand()
 
 void buildSystemWordLookup()
 {
+	//Check
+	if (systemDefinedWords.length() != sizeof(systemDefinedKeys))
+		throw std::exception("System words arrays of mismatched size.");
+
+	//Build our reverse lookup.
 	for (size_t i=0; i<systemDefinedWords.size(); i++) {
 		char c = systemDefinedWords[i];
-		int hotkey_id = 0;
-		switch (c) {
-			case '`':
-				hotkey_id = HOTKEY_COMBINE;
-				break;
-			case '~':
-				hotkey_id = HOTKEY_SHIFT_COMBINE;
-				break;
-			case '!':
-				hotkey_id = HOTKEY_SHIFT_1;
-				break;
-			case '@':
-				hotkey_id = HOTKEY_SHIFT_2;
-				break;
-			case '#':
-				hotkey_id = HOTKEY_SHIFT_3;
-				break;
-			case '$':
-				hotkey_id = HOTKEY_SHIFT_4;
-				break;
-			case '%':
-				hotkey_id = HOTKEY_SHIFT_5;
-				break;
-			case '^':
-				hotkey_id = HOTKEY_SHIFT_6;
-				break;
-			case '&':
-				hotkey_id = HOTKEY_SHIFT_7;
-				break;
-			case '*':
-				hotkey_id = HOTKEY_SHIFT_8;
-				break;
-			case '(':
-				hotkey_id = HOTKEY_SHIFT_9;
-				break;
-			case ')':
-				hotkey_id = HOTKEY_SHIFT_0;
-				break;
-			case '-':
-				hotkey_id = HOTKEY_MINUS;
-				break;
-			case '_':
-				hotkey_id = HOTKEY_SHIFT_MINUS;
-				break;
-			case '=':
-				hotkey_id = HOTKEY_EQUALS;
-				break;
-			case '+':
-				hotkey_id = HOTKEY_SHIFT_EQUALS;
-				break;
-			case '[':
-				hotkey_id = HOTKEY_LEFT_BRACKET;
-				break;
-			case '{':
-				hotkey_id = HOTKEY_SHIFT_LEFT_BRACKET;
-				break;
-			case ']':
-				hotkey_id = HOTKEY_RIGHT_BRACKET;
-				break;
-			case '}':
-				hotkey_id = HOTKEY_SHIFT_RIGHT_BRACKET;
-				break;
-			case ';':
-				hotkey_id = HOTKEY_SEMICOLON;
-				break;
-			case ':':
-				hotkey_id = HOTKEY_SHIFT_SEMICOLON;
-				break;
-			case '\'':
-				hotkey_id = HOTKEY_APOSTROPHE;
-				break;
-			case '"':
-				hotkey_id = HOTKEY_SHIFT_APOSTROPHE;
-				break;
-			case '\\':
-				hotkey_id = HOTKEY_BACKSLASH;
-				break;
-			case '|':
-				hotkey_id = HOTKEY_SHIFT_BACKSLASH;
-				break;
-			case '<':
-				hotkey_id = HOTKEY_SHIFT_COMMA;
-				break;
-			case '>':
-				hotkey_id = HOTKEY_SHIFT_PERIOD;
-				break;
-			case '/':
-				hotkey_id = HOTKEY_FORWARDSLASH;
-				break;
-			case '?':
-				hotkey_id = HOTKEY_SHIFT_FORWARDSLASH;
-				break;
-			case ' ':
-				hotkey_id = HOTKEY_SHIFT_SPACE;
-				break;
-			case '1':
-				hotkey_id = HOTKEY_1;
-				break;
-			case '2':
-				hotkey_id = HOTKEY_2;
-				break;
-			case '3':
-				hotkey_id = HOTKEY_3;
-				break;
-			case '4':
-				hotkey_id = HOTKEY_4;
-				break;
-			case '5':
-				hotkey_id = HOTKEY_5;
-				break;
-			case '6':
-				hotkey_id = HOTKEY_6;
-				break;
-			case '7':
-				hotkey_id = HOTKEY_7;
-				break;
-			case '8':
-				hotkey_id = HOTKEY_8;
-				break;
-			case '9':
-				hotkey_id = HOTKEY_9;
-				break;
-			case '0':
-				hotkey_id = HOTKEY_0;
-				break;
-		}
-
+		int hotkey_id = systemDefinedKeys[i];
 		systemWordLookup.push_back(pair<int, unsigned short>(hotkey_id, i));
 	}
 }
@@ -2315,10 +2206,6 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 void onAllWindowsCreated()
 {
-	//Only perform ONCE
-//	if (!mainInitDone || !sentenceInitDone || !helpInitDone || !memoryInitDone)
-//		return;
-
 	//Create our font
 	makeFont();
 
@@ -3408,7 +3295,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	isDragging = false;
 
 	//Also...
-	buildSystemWordLookup();
+	try {
+		buildSystemWordLookup();
+	} catch (std::exception ex) {
+		std::wstringstream msg;
+		msg << "Error building system look.\nWaitZar will now terminate.\n\nDetails:\n";
+		msg << ex.what();
+		MessageBox(NULL, msg.str().c_str(), L"System Hotkeys Error", MB_ICONWARNING | MB_OK);
+		return 0;
+	}
 
 	//Log?
 	if (isLogging) {
