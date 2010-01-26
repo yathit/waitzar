@@ -17,12 +17,14 @@ public:
 	//Needed to add Roman-specific stuff
 	void init(WordBuilder* model, SentenceList* sentence);
 
+	//Destructor
+	~RomanInputMethod();
+
 	//Abstract implementation - keypresses
 	void handleEsc();
 	void handleBackspace();
 	void handleDelete();
-	void handleRight();
-	void handleLeft();
+	void handleLeftRight(bool isRight);
 	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam);
 	void handleStop(bool isFull);
@@ -44,12 +46,14 @@ public:
 
 private:
 	//Romanization model
+	//TODO: Chain constructors, set to null (C++ 0x)
 	WordBuilder* model;
 	SentenceList* sentence;
 
-	//For now, we track the shortcut pat-sint keys directly. Later, we'll integrate this into the model (if people like it)
-	int patSintIDModifier = 0;
+	//Additional character to print
+	wchar_t typedStopChar;
 
+	bool selectWord(int id, bool indexNegativeEntries);
 	std::wstring buildSentenceStr(unsigned int stopAtID);
 }
 

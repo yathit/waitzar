@@ -43,18 +43,11 @@ void LetterInputMethod::handleDelete()
 }
 
 
-void LetterInputMethod::handleRight()
+void LetterInputMethod::handleLeftRight(bool isRight)
 {
-	//Move the letter cursor one to the right
+	//Move the letter cursor one to the right/left
 	//TODO: ADD LATER
 }
-
-void LetterInputMethod::handleLeft()
-{
-	//Move the letter cursor one to the left
-	//TODO: ADD LATER
-}
-
 
 //Ignore numCode
 void LetterInputMethod::handleNumber(int numCode, WPARAM wParam)
@@ -64,9 +57,10 @@ void LetterInputMethod::handleNumber(int numCode, WPARAM wParam)
 
 void LetterInputMethod::handleStop(bool isFull)
 {
+	//Perform the normal "enter" routine.
 	unsigned short stopChar = model.getStopCharacter(isFull);
-	//Possibly do nothing...
-	//TODO: ADD LATER
+	typedStopChar = (wchar_t)stopChar;
+	requestToTypeSentence = true;
 }
 
 void LetterInputMethod::handleCommit(bool strongCommit)
@@ -80,7 +74,7 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 	//If in normal mode, commit the entire sentence. 
 	if (!this->isHelpInput()) {
 		//Just commit the current sentence.
-		typeCurrentPhrase();
+		requestToTypeSentence = true;
 	} else {
 		//Get its romanization, if it exists.
 		string revWord = (currStrDictID!=-1) ? revWord = model.reverseLookupWord(currStrDictID) : "<no entry>";

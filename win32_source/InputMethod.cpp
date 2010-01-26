@@ -11,7 +11,7 @@ InputMethod::InputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindo
 	//Init
 	providingHelpFor = NULL;
 	viewChanged = false;
-	justTypedFirstLetter = false;
+	requestToTypeSentence = false;
 
 	//Save
 	this->mainWindow = mainWindow;
@@ -48,12 +48,12 @@ bool InputMethod::getAndClearViewChanged()
 	return res;
 }
 
-/*bool InputMethod::getAndClearJustTypedFirstLetter()
+bool InputMethod::getAndClearRequestToTypeSentence()
 {
-	bool res = justTypedFirstLetter;
-	justTypedFirstLetter = false;
+	bool res = requestToTypeSentence;
+	requestToTypeSentence = false;
 	return res;
-}*/
+}
 
 
 
@@ -65,7 +65,7 @@ void InputMethod::handleKeyPress(WPARAM wParam)
 	int numCode = (base==-1) ? wParam : HOTKEY_0 + (int)wParam - base;
 
 	//Check system keys, but ONLY if the sentence window is the only thing visible.
-	if (!helpWindow->isVisible() && !mainWindow->isVisible()) {
+	if (!mainWindow->isVisible()) { //helpWindow implies mainWindow is visible.
 		wchar_t letter = '\0';
 		for (size_t i=0; i<systemWordLookup.size(); i++) {
 			if (systemWordLookup[i].first==numCode) {

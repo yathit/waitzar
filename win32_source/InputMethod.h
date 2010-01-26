@@ -28,14 +28,13 @@ public:
 	bool isHelpInput();
 	void forceViewChanged();
 	bool getAndClearViewChanged();
-	//bool getAndClearJustTypedFirstLetter();
+	bool getAndClearRequestToTypeSentence();
 
 	//Keypress handlers (abstract virtual)
 	virtual void handleEsc() = 0;
 	virtual void handleBackspace() = 0;
 	virtual void handleDelete() = 0;
-	virtual void handleRight() = 0;
-	virtual void handleLeft() = 0;
+	virtual void handleLeftRight(bool isRight) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
 	virtual void handleNumber(int numCode, WPARAM wParam) = 0;
 	virtual void handleStop(bool isFull) = 0;
@@ -59,7 +58,7 @@ protected:
 
 	//Repaint after this?
 	bool viewChanged;
-	//bool justTypedFirstLetter;
+	bool requestToTypeSentence;
 
 
 public:  //Abstract methods
