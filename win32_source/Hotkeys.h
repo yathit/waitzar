@@ -214,6 +214,10 @@ const Hotkey ControlHotkeys[] = {
 	{HOTKEY_RIGHT,   false, VK_RIGHT},
 	{HOTKEY_UP,      false, VK_UP},
 	{HOTKEY_DOWN,    false, VK_DOWN},
+
+	//Migrated from "Extended Keys" --makes more sense here
+	{HOTKEY_SHIFT_SPACE,  true,  HOTKEY_SPACE},
+	{HOTKEY_SHIFT_ENTER,  true,  VK_RETURN},
 };
 
 
@@ -236,8 +240,6 @@ const Hotkey ExtendedHotkeys[] = {
 	{HOTKEY_SHIFT_FORWARDSLASH,   true,  VK_OEM_2},
 	{HOTKEY_SHIFT_COMMA,          true,  VK_OEM_COMMA},
 	{HOTKEY_SHIFT_PERIOD,         true,  VK_OEM_PERIOD},
-	{HOTKEY_SHIFT_SPACE,          true,  HOTKEY_SPACE},
-	{HOTKEY_SHIFT_ENTER,          true,  VK_RETURN},
 
 	//Keys that appear on our virtual keyboard which aren't, by default, used
 	{HOTKEY_MINUS,         false, VK_OEM_MINUS},
