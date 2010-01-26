@@ -201,15 +201,15 @@
 					Name="Input"
 					>
 					<File
-						RelativePath=".\InputMethod.cpp"
+						RelativePath=".\Input\InputMethod.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\LetterInputMethod.cpp"
+						RelativePath=".\Input\LetterInputMethod.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\RomanInputMethod.cpp"
+						RelativePath=".\Input\RomanInputMethod.cpp"
 						>
 					</File>
 					<File
@@ -229,7 +229,7 @@
 					Name="Transform"
 					>
 					<File
-						RelativePath=".\Uni2Uni.cpp"
+						RelativePath=".\Transform\Uni2Uni.cpp"
 						>
 					</File>
 					<File
@@ -424,15 +424,15 @@
 						Name="Input"
 						>
 						<File
-							RelativePath=".\InputMethod.h"
+							RelativePath=".\Input\InputMethod.h"
 							>
 						</File>
 						<File
-							RelativePath=".\LetterInputMethod.h"
+							RelativePath=".\Input\LetterInputMethod.h"
 							>
 						</File>
 						<File
-							RelativePath=".\RomanInputMethod.h"
+							RelativePath=".\Input\RomanInputMethod.h"
 							>
 						</File>
 						<File
@@ -444,7 +444,7 @@
 						Name="Transform"
 						>
 						<File
-							RelativePath=".\Uni2Uni.h"
+							RelativePath=".\Transform\Uni2Uni.h"
 							>
 						</File>
 						<File

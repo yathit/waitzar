@@ -10,6 +10,8 @@
 #include <string>
 #include <map>
 
+#include "Input/InputMethod.h"
+
 
 //Global "Types" enum
 enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
