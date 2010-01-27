@@ -84,6 +84,11 @@ public:
 	virtual void handleKeyPress(WPARAM wParam);
 
 
+	//Need to move later...
+
+	//Returns its id (-1 for failure) and its romanization
+	virtual std::pair<int, std::wstring> lookupWord(std::wstring typedWord) = 0;
+
 protected:
 	std::vector< std::pair <int, unsigned short> > systemWordLookup;
 

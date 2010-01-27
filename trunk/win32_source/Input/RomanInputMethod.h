@@ -51,6 +51,8 @@ public:
 	//Override
 	void treatAsHelpKeyboard(InputMethod* providingHelpFor);
 
+	std::pair<int, std::wstring> lookupWord(std::wstring typedWord)
+
 
 private:
 	//Romanization model

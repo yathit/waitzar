@@ -92,6 +92,11 @@ void LetterInputMethod::handleStop(bool isFull)
 	requestToTypeSentence = true;
 }
 
+std::pair<int, std::wstring> LetterInputMethod::lookupWord(std::wstring typedWord)
+{
+	throw std::exception("Error: Cannot perform \"lookup word\" in a letter-based model.");
+}
+
 void LetterInputMethod::handleCommit(bool strongCommit)
 {
 	//Anything to commit?
@@ -108,8 +113,9 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 		requestToTypeSentence = true;
 	} else {
 		//Get its romanization, if it exists.
-		int currStrDictID = -1; //TODO: Er... where do we set this again?
-		string revWord = (currStrDictID!=-1) ? model->reverseLookupWord(currStrDictID) : "<no entry>";
+		std::pair<int, std::wstring> wordData = providingHelpFor->lookupWord(typedCandidateStr.str());
+		int currStrDictID = wordData.first;
+		wstring revWord = (wordData.first!=-1) ? wordData.second : L"<no entry>";
 
 		//Add it to the memory list
 		helpKeyboard->addMemoryEntry(typedSentenceStr.str().c_str(), revWord.c_str());
