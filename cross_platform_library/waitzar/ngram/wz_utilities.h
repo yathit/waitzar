@@ -52,6 +52,10 @@ namespace waitzar
 
 	std::wstring readUTF8File(const std::string& path);
 
+	//Other useful methods
+	std::string escape_wstr(const std::wstring& str);
+	std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
+
 
 } //End waitzar namespace
 

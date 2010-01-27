@@ -398,25 +398,6 @@ vector<wstring> ConfigManager::separate(wstring str, wchar_t delim)
 	return tokens;
 }
 
-std::string ConfigManager::escape_wstr(const std::wstring& str)
-{
-	return ConfigManager::escape_wstr(str, false);
-}
-
-std::string ConfigManager::escape_wstr(const std::wstring& str, bool errOnUnicode)
-{
-	std::stringstream res;
-	for (wstring::const_iterator c=str.begin(); c!=str.end(); c++) {
-		if (*c < std::numeric_limits<char>::max())
-			res << static_cast<char>(*c);
-		else if (errOnUnicode)
-			throw std::exception("String contains unicode");
-		else
-			res << "\\u" << std::hex << *c << std::dec;
-	}
-	return res.str();
-}
-
 bool ConfigManager::read_bool(const std::wstring& str)
 {
 	std::wstring test = str;

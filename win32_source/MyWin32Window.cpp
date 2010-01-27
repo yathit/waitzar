@@ -61,7 +61,7 @@ void MyWin32Window::init(LPCWSTR windowTitle, WNDPROC userWndProc, HBRUSH& bkgrd
 	//Does this window class already exist?
 	if (WndMap.count(windowClassName)>0 && WndMap[windowClassName]!=this) {
 		std::stringstream err;
-		err << "Window class already exists " << ConfigManager::escape_wstr(windowClassName, false);
+		err << "Window class already exists " << waitzar::escape_wstr(windowClassName, false);
 		throw std::exception(err.str().c_str());
 	}
 
@@ -81,7 +81,7 @@ void MyWin32Window::init(LPCWSTR windowTitle, WNDPROC userWndProc, HBRUSH& bkgrd
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	if(!RegisterClassEx(&wc)) {
 		std::stringstream err;
-		err << "Window class registration failed for " << ConfigManager::escape_wstr(windowClassName);
+		err << "Window class registration failed for " << waitzar::escape_wstr(windowClassName);
 		throw std::exception(err.str().c_str());
 	}
 
@@ -122,7 +122,7 @@ LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 	//Get the class that created this window
 	if (WndMap.count(wndClassName)==0) {
 		std::stringstream err;
-		err << "Window class not known: " << ConfigManager::escape_wstr(wndClassName, false);
+		err << "Window class not known: " << waitzar::escape_wstr(wndClassName, false);
 		throw std::exception(err.str().c_str());
 	}
 	MyWin32Window* caller = WndMap[wndClassName];

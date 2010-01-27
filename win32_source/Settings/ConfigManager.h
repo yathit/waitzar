@@ -157,8 +157,6 @@ public:
 	void testAllFiles();
 
 	//Useful
-	static std::string escape_wstr(const std::wstring& str);
-	static std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
 	static std::wstring sanitize_id(const std::wstring& str);
 	static std::wstring sanitize(const std::wstring& str);
 	static void loc_to_lower(std::wstring& str);

@@ -79,6 +79,8 @@
 #include "Hotkeys.h"
 #include "MiscUtils.h"
 #include "Input/InputMethod.h"
+#include "Input/RomanInputMethod.h"
+#include "Transform/Uni2Uni.h"
 
 //VS Includes
 #include "resource.h"
@@ -1893,39 +1895,6 @@ void recalculate()
 
 
 
-//TODO: This has to go somewhere... see where it went in the old code.
-wstring getUserWordKeyStrokes(unsigned int id, unsigned int encoding)
-{
-	//Get the string
-	wstring typedStr;
-	unsigned int numSystemDefWords = systemDefinedWords.size();
-	if (id<numSystemDefWords) {
-		typedStr = systemDefinedWords[id];
-	} else {
-		id -= numSystemDefWords;
-		if (encoding==ENCODING_UNICODE)
-			typedStr = userDefinedWords[id];
-		else if (encoding==ENCODING_ZAWGYI)
-			typedStr = userDefinedWordsZg[id];
-		else if (encoding==ENCODING_WININNWA) {
-			wstring srcStr = userDefinedWords[id];
-			wchar_t destStr[200];
-			convertFont(destStr, srcStr.c_str(), Myanmar3, WinInnwa);
-			typedStr = destStr;
-		} else
-			typedStr = L"";
-	}
-
-	//Convert
-	size_t length = typedStr.length();
-	userKeystrokeVector.clear();
-	for (size_t i=0; i<length; i++)
-		userKeystrokeVector.push_back((unsigned short) typedStr[i]);
-
-	return userKeystrokeVector;
-}
-
-
 
 void typeCurrentPhrase()
 {
@@ -1933,15 +1902,18 @@ void typeCurrentPhrase()
 	HWND fore = GetForegroundWindow();
 	SetActiveWindow(fore); //This probably won't do anything, since we're not attached to this window's message queue.
 
+	//Convert to the right encoding
+	bool noEncChange = (uni2Output->toEncoding.get()==currInput->encoding.get());
+	wstring keyStrokes = noEncChange ? currInput->getTypedSentenceString() : uni2Output->convert(input2Uni->convert(currInput->getTypedSentenceString()));
+
 
 	//Use SendInput instead of SendMessage, since SendMessage requires the actual
 	//  sub-window (component) to recieve the message, whereas SendInput only
 	//  requires the top-level window. We could probably hack in SendMessage now that
 	//  we're not becoming the active window, but for now I'd rather have a stable
 	//  system than one that works on Windows 98.
-	wstring keyStrokes = currInput->getTypedSentenceString();
-
 	//Buffer each key-stroke
+	size_t number_of_key_events = 0;
 	for (size_t i=0; i<keyStrokes.size(); i++) {
 		//Send keydown
 		keyInputPrototype.wScan = (WORD)keyStrokes[i];
@@ -1966,7 +1938,6 @@ void typeCurrentPhrase()
 	//Now, reset...
 	currInput->reset(true, true, true, true); //TODO: Is this necessary?
 	userDefinedWords.clear();
-	userDefinedWordsZg.clear();
 
 
 	//Technically, this can be called with JUST a stopChar, which implies
@@ -2468,7 +2439,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 	//Handle user input; anything that updates a non-specific "model".
 	//  TODO: Put code for "help" keyboard functionality HERE; DON'T put it into 
 	//        LetterInputMethod.h
-	switch (wparam) {
+	switch (wParam) {
 		case HOTKEY_ESC:
 			//Close the window, exit help mode
 			currInput->handleEsc();
@@ -2486,12 +2457,12 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 		case HOTKEY_RIGHT:
 			//Advance the cursor, pick a word
-			currInput->handleRight();
+			currInput->handleLeftRight(true);
 			return true;
 
 		case HOTKEY_LEFT:
 			//Move the cursor back, pick a word
-			currInput->handleLeft();
+			currInput->handleLeftRight(false);
 			return true;
 
 		case HOTKEY_COMMA: case HOTKEY_PERIOD:
@@ -2520,6 +2491,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 		case HOTKEY_8: case HOTKEY_NUM8:
 		case HOTKEY_9: case HOTKEY_NUM9:
 		case HOTKEY_COMBINE: case HOTKEY_SHIFT_COMBINE:
+		{
 			//Handle numbers and combiners; pick a word, type a letter, combine/stack letters.
 			//numCode = 0 through 9 for numbers, undefined for combiners
 			int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : HOTKEY_NUM0;
@@ -2528,7 +2500,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 			//Handle key press; letter-based keyboard should just pass this on through
 			currInput->handleNumber(numCode, wParam);
 			return true;
-
+		}
 
 		default:
 			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
@@ -2579,8 +2551,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				// check these against the exit state to see what has changed,
 				// and thus what needs to be updated.
 				bool wasProvidingHelp = currInput->isHelpInput();
-				bool wasEmptySentence = currInput->getTypedSentenceStr().empty();
-				bool wasEmptyRoman = currInput->getTypedRomanStr().empty();
+				bool wasEmptySentence = currInput->getTypedSentenceString().empty();
+				bool wasEmptyRoman = currInput->getTypedRomanString().empty();
 
 				//Process the message
 				handleUserHotkeys(wParam, lParam);
@@ -2593,8 +2565,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//         word in the candidate list or finish it, or enter/exit help mode?) This will 
 				//         perform unnecessary calculations, but it's not too wasteful, and makes up for it 
 				//         by cleaning up the code sufficiently.
-				if (    (wasEmptySentence != currInput->getTypedSentenceStr().empty())
-					||  (wasEmptyRoman != currInput->getTypedRomanStr().empty())
+				if (    (wasEmptySentence != currInput->getTypedSentenceString().empty())
+					||  (wasEmptyRoman != currInput->getTypedRomanString().empty())
 					||  (wasProvidingHelp != currInput->isHelpInput()))
 					checkAllHotkeysAndWindows();
 
@@ -2836,10 +2808,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			bool inError = false;
 			try {
 				langCfgDir = cfgDir;
-				langCfgDir += fs + ConfigManager::escape_wstr(*fold, true);
+				langCfgDir += fs + waitzar::escape_wstr(*fold, true);
 				langCfgFile = langCfgDir + fs + cfgFile;
 			} catch (std::exception ex) {
-				errorMsg << "Error loading config file for language: " <<ConfigManager::escape_wstr(*fold, false);
+				errorMsg << "Error loading config file for language: " <<waitzar::escape_wstr(*fold, false);
 				errorMsg << std::endl << "Details: " << std::endl << ex.what();
 				inError = true;
 			}
@@ -2850,12 +2822,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				for (vector<wstring>::iterator mod = modFolders.begin(); mod!=modFolders.end(); mod++) {
 					try {
 						string modCfgFile = langCfgDir;
-						modCfgFile += fs + ConfigManager::escape_wstr(*mod, true);
+						modCfgFile += fs + waitzar::escape_wstr(*mod, true);
 						modCfgFile += fs + cfgFile;
 						langModuleCfgFiles.push_back(modCfgFile);
 					} catch (std::exception ex) {
-						errorMsg << "Error loading config file for language: " <<ConfigManager::escape_wstr(*fold, false);
-						errorMsg << std::endl << "and module: " <<ConfigManager::escape_wstr(*mod, false);
+						errorMsg << "Error loading config file for language: " <<waitzar::escape_wstr(*fold, false);
+						errorMsg << std::endl << "and module: " <<waitzar::escape_wstr(*mod, false);
 						errorMsg << std::endl << "Details: " << std::endl << ex.what();
 						inError = true;
 						break;
@@ -2881,7 +2853,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		string localConfigFile;
 		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
 			//Try to create the folder if it doesn't exist
-			string localConfigDir = ConfigManager::escape_wstr(localAppPath, true) + fs + "WaitZar";
+			string localConfigDir = waitzar::escape_wstr(localAppPath, true) + fs + "WaitZar";
 			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 			std::wstringstream temp;
 			temp << localConfigDir.c_str();
@@ -2921,7 +2893,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		string userConfigFile;
 		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
 			//Create the path
-			userConfigFile = ConfigManager::escape_wstr(localAppPath, true) + fs + "waitzar.config.json.txt";
+			userConfigFile = waitzar::escape_wstr(localAppPath, true) + fs + "waitzar.config.json.txt";
 
 			//Does it exist?
 			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
@@ -3095,8 +3067,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Set defaults
-	currTypeInput    = new RomanInputMethod(); //tmp; load from config
-	currTypeInput->init(model, sentence);
+	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup); //tmp; load from config
+	((RomanInputMethod*)currTypeInput)->init(model, sentence);
 	currTypeInput->encoding.setVal(L"zawgyi");
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;

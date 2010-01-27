@@ -33,8 +33,8 @@ public:
 class Transformation {
 public:
 	//Struct-like properties
-	Option<Encoding> fromEncoding;
-	Option<Encoding> toEncoding;
+	Option<std::wstring> fromEncoding;
+	Option<std::wstring> toEncoding;
 	Option<TYPES> type;
 
 	//Convert from fromEncoding to toEncoding.

@@ -6,6 +6,11 @@
 
 #include "LetterInputMethod.h"
 
+using std::vector;
+using std::pair;
+using std::string;
+using std::wstring;
+
 
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
@@ -24,6 +29,11 @@ LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* s
 	this->memoryWindow = memoryWindow;
 	this->systemWordLookup = systemWordLookup;
 }
+
+LetterInputMethod::~LetterInputMethod()
+{
+}
+
 
 
 
@@ -78,8 +88,7 @@ void LetterInputMethod::handleNumber(int numCode, WPARAM wParam)
 void LetterInputMethod::handleStop(bool isFull)
 {
 	//Perform the normal "enter" routine.
-	unsigned short stopChar = model.getStopCharacter(isFull);
-	typedStopChar = (wchar_t)stopChar;
+	typedStopChar = isFull ? L'\u104B' : L'\u'; //TODO: Make this based on encoding...
 	requestToTypeSentence = true;
 }
 
@@ -92,12 +101,15 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 	//If we are in help mode, add the word we chose to the dictionary, and flag 
 	//   it so that it can be cleared later when the entire sentence is selected.
 	//If in normal mode, commit the entire sentence. 
+	//TODO: The "model" stuff only works on the "providingHelpFor" window... we need to move
+	//      some functions around (like word lookup, etc.). 
 	if (!this->isHelpInput()) {
 		//Just commit the current sentence.
 		requestToTypeSentence = true;
 	} else {
 		//Get its romanization, if it exists.
-		string revWord = (currStrDictID!=-1) ? revWord = model.reverseLookupWord(currStrDictID) : "<no entry>";
+		int currStrDictID = -1; //TODO: Er... where do we set this again?
+		string revWord = (currStrDictID!=-1) ? model->reverseLookupWord(currStrDictID) : "<no entry>";
 
 		//Add it to the memory list
 		helpKeyboard->addMemoryEntry(typedSentenceStr.str().c_str(), revWord.c_str());
@@ -192,12 +204,12 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 
 
 
-std::wstring LetterInputMethod::getTypedSentenceString()
+wstring LetterInputMethod::getTypedSentenceString()
 {
 	return typedSentenceStr.str();
 }
 
-std::wstring LetterInputMethod::getSentencePreCursorString()
+wstring LetterInputMethod::getSentencePreCursorString()
 {
 	//The cursor is always at the end
 	//TODO: Can change this?
@@ -205,10 +217,10 @@ std::wstring LetterInputMethod::getSentencePreCursorString()
 }
 
 
-std::vector< std::pair<std::wstring, unsigned int> > LetterInputMethod::getTypedCandidateStrings()
+vector< pair<wstring, unsigned int> > LetterInputMethod::getTypedCandidateStrings()
 {
-	std::vector< std::pair<std::wstring, unsigned int> > res;
-	res.push_back(std::pair<std::wstring, unsigned int>(typedCandidateStr.str(), 0));
+	vector< pair<wstring, unsigned int> > res;
+	res.push_back(pair<wstring, unsigned int>(typedCandidateStr.str(), 0));
 	return res;
 }
 

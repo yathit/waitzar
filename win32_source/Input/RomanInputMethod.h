@@ -48,6 +48,9 @@ public:
 
 	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
+	//Override
+	void treatAsHelpKeyboard(InputMethod* providingHelpFor);
+
 
 private:
 	//Romanization model
@@ -55,12 +58,9 @@ private:
 	WordBuilder* model;
 	SentenceList* sentence;
 
-	//Additional character to print
-	wchar_t typedStopChar;
-
 	bool selectWord(int id, bool indexNegativeEntries);
 	std::wstring buildSentenceStr(unsigned int stopAtID);
-}
+};
 
 
 #endif //_ROMAN_INPUT_METHOD

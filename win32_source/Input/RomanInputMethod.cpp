@@ -308,6 +308,12 @@ void RomanInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSe
 }
 
 
+void RomanInputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor)
+{
+	throw std::exception("Cannot use a Romanized keyboard for a help input method");
+}
+
+
 
 
 /*

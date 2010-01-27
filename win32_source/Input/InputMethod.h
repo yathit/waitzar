@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "MyWin32Window.h"
+#include "Hotkeys.h"
 
 
 
@@ -56,6 +57,7 @@ enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
 //Expected interface: "Input Method"
 class InputMethod {
 public:
+	InputMethod();
 	virtual ~InputMethod();
 
 	//Struct-like properties
@@ -64,7 +66,7 @@ public:
 	Option<TYPES> type;
 
 	//Useful functionality
-	void treatAsHelpKeyboard(InputMethod* providingHelpFor);
+	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor);
 	bool isHelpInput();
 	void forceViewChanged();
 	bool getAndClearViewChanged();
@@ -82,8 +84,11 @@ public:
 	virtual void handleKeyPress(WPARAM wParam);
 
 
-private:
-	const std::vector< std::pair <int, unsigned short> > &systemWordLookup;
+protected:
+	std::vector< std::pair <int, unsigned short> > systemWordLookup;
+
+	//Additional character to print
+	wchar_t typedStopChar;
 
 
 protected:
@@ -128,7 +133,8 @@ public:  //Abstract methods
 
 
 	//Get the typed romanized string. This consists ONLY of all typed valid letters
-	virtual std::wstring getTypedRomanString() = 0;
+	//Not abstract
+	virtual std::wstring getTypedRomanString();
 
 	//Called periodically
 	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset) = 0;
