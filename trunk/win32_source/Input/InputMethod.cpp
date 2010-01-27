@@ -6,6 +6,10 @@
 
 #include "InputMethod.h"
 
+InputMethod::InputMethod()
+{
+}
+
 InputMethod::~InputMethod()
 {
 }
@@ -56,7 +60,7 @@ void InputMethod::handleKeyPress(WPARAM wParam)
 			if (systemWordLookup[i].first==numCode) {
 				//This represents a negative offset
 				numCode = -1-i;
-				letter = systemWordLookup[i].secong;
+				letter = systemWordLookup[i].second;
 				break;
 			}
 

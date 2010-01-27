@@ -14,6 +14,9 @@ class LetterInputMethod : public InputMethod {
 
 public:
 	LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup);
+	
+	//Destructor
+	~LetterInputMethod();
 
 	//Abstract implementation - keypresses
 	void handleEsc();
@@ -39,7 +42,7 @@ public:
 private:
 	std::wstringstream typedSentenceStr;
 	std::wstringstream typedCandidateStr;
-}
+};
 
 
 #endif //_LETTER_INPUT_METHOD

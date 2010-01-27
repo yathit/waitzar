@@ -1460,6 +1460,26 @@ wstring renderAsZawgyi(const wstring &uniString)
 
 
 
+std::string escape_wstr(const std::wstring& str)
+{
+	return escape_wstr(str, false);
+}
+
+std::string escape_wstr(const std::wstring& str, bool errOnUnicode)
+{
+	std::stringstream res;
+	for (wstring::const_iterator c=str.begin(); c!=str.end(); c++) {
+		if (*c < std::numeric_limits<char>::max())
+			res << static_cast<char>(*c);
+		else if (errOnUnicode)
+			throw std::exception("String contains unicode");
+		else
+			res << "\\u" << std::hex << *c << std::dec;
+	}
+	return res.str();
+}
+
+
 
 
 } //End waitzar namespace
