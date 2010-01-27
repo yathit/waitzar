@@ -39,6 +39,8 @@ public:
 
 	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
+	std::pair<int, std::wstring> lookupWord(std::wstring typedWord);
+
 private:
 	std::wstringstream typedSentenceStr;
 	std::wstringstream typedCandidateStr;
