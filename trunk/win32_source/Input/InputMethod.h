@@ -11,6 +11,7 @@
 #include <vector>
 #include "MyWin32Window.h"
 #include "Hotkeys.h"
+#include "OnscreenKeyboard.h"
 
 
 
@@ -71,6 +72,7 @@ public:
 	void forceViewChanged();
 	bool getAndClearViewChanged();
 	bool getAndClearRequestToTypeSentence();
+	std::pair <std::string, std::wstring> getAndClearMostRecentRomanizationCheck();
 
 	//Keypress handlers (abstract virtual)
 	virtual void handleEsc() = 0;
@@ -85,15 +87,19 @@ public:
 
 
 	//Need to move later...
+	virtual void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID) = 0;
 
 	//Returns its id (-1 for failure) and its romanization
-	virtual std::pair<int, std::wstring> lookupWord(std::wstring typedWord) = 0;
+	virtual std::pair<int, std::string> lookupWord(std::wstring typedWord) = 0;
 
 protected:
 	std::vector< std::pair <int, unsigned short> > systemWordLookup;
 
 	//Additional character to print
 	wchar_t typedStopChar;
+
+	//Additional entry
+	std::pair <std::string, std::wstring> mostRecentRomanizationCheck;
 
 
 protected:
@@ -103,12 +109,18 @@ protected:
 	MyWin32Window* helpWindow;
 	MyWin32Window* memoryWindow;
 
+	//For now... may move later
+	OnscreenKeyboard *helpKeyboard;
+
 	//Helper typing control
 	InputMethod* providingHelpFor;
 
 	//Repaint after this?
 	bool viewChanged;
 	bool requestToTypeSentence;
+
+	//Must be maintained by the subclass
+	std::wstringstream typedRomanStr;
 
 
 public:  //Abstract methods
@@ -144,9 +156,6 @@ public:  //Abstract methods
 	//Called periodically
 	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset) = 0;
 
-private:
-	//Must be maintained by the subclass
-	std::wstringstream typedRomanStr;
 };
 
 

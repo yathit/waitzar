@@ -10,7 +10,7 @@
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
 //TODO: C++ 0x, chaining constructors can eliminate this
-RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup)
+RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard)
 {
 	//Init
 	providingHelpFor = NULL;
@@ -23,6 +23,7 @@ RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sen
 	this->helpWindow = helpWindow;
 	this->memoryWindow = memoryWindow;
 	this->systemWordLookup = systemWordLookup;
+	this->helpKeyboard = helpKeyboard;
 }
 
 
@@ -44,10 +45,10 @@ RomanInputMethod::~RomanInputMethod()
 }
 
 
-std::pair<int, std::wstring> RomanInputMethod::lookupWord(std::wstring typedWord)
+std::pair<int, std::string> RomanInputMethod::lookupWord(std::wstring typedWord)
 {
 	//Init
-	std::pair<int, std::wstring> res;
+	std::pair<int, std::string> res;
 	res.first = -1;
 
 	//Get the ID
@@ -60,10 +61,8 @@ std::pair<int, std::wstring> RomanInputMethod::lookupWord(std::wstring typedWord
 		}
 	}
 
-	//Get the romanization
-	std::wstringstream roman;
-	roman <<model->reverseLookupWord(res.first); //Will be empty if word id is -1
-	res.second = roman.str();
+	//Get the romanization 
+	res.second = model->reverseLookupWord(res.first);  //Will be empty if word id is -1
 
 	return res;
 }
@@ -239,6 +238,27 @@ bool RomanInputMethod::selectWord(int id, bool indexNegativeEntries)
 	//Insert into the current sentence, return
 	sentence->insert(wordID);
 	return true;
+}
+
+
+void RomanInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID)
+{
+	//Add it to the memory list
+	mostRecentRomanizationCheck.first = revWord;
+	mostRecentRomanizationCheck.second = typedSentenceStr.str();
+
+	//Add it to the dictionary?
+	if (currStrDictID==-1) {
+		wstring tempStr = waitzar::sortMyanmarString(typedSentenceStr.str());
+		userDefinedWords.push_back(tempStr);
+		currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
+	}
+
+	//Type this word (should always succeed)
+	this->appendToSentence('\0', currStrDictID);
+
+	//Update trigrams
+	sentence.updateTrigrams(model);
 }
 
 

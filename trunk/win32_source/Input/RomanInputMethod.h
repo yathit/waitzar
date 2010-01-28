@@ -11,13 +11,14 @@
 #include "Input/InputMethod.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/SentenceList.h"
+#include "OnscreenKeyboard.h"
 
 using namespace waitzar;
 
 class RomanInputMethod : public InputMethod {
 
 public:
-	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup);
+	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard);
 
 	//Needed to add Roman-specific stuff
 	void init(WordBuilder* model, SentenceList* sentence);
@@ -51,7 +52,9 @@ public:
 	//Override
 	void treatAsHelpKeyboard(InputMethod* providingHelpFor);
 
-	std::pair<int, std::wstring> lookupWord(std::wstring typedWord)
+	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID);
+
+	std::pair<int, std::string> lookupWord(std::wstring typedWord);
 
 
 private:
