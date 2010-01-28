@@ -44,6 +44,14 @@ bool InputMethod::getAndClearRequestToTypeSentence()
 	return res;
 }
 
+std::pair <std::string, std::wstring> InputMethod::getAndClearMostRecentRomanizationCheck()
+{
+	std::pair <std::string, std::wstring> res = mostRecentRomanizationCheck;
+	mostRecentRomanizationCheck.first = "";
+	mostRecentRomanizationCheck.second = L"";
+	return res;
+}
+
 
 
 //Handle system keys

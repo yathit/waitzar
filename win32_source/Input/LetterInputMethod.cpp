@@ -15,7 +15,7 @@ using std::wstring;
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
 //TODO: C++ 0x, chaining constructors can eliminate this
-LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup)
+LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard)
 {
 	//Init
 	providingHelpFor = NULL;
@@ -28,6 +28,7 @@ LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* s
 	this->helpWindow = helpWindow;
 	this->memoryWindow = memoryWindow;
 	this->systemWordLookup = systemWordLookup;
+	this->helpKeyboard = helpKeyboard;
 }
 
 LetterInputMethod::~LetterInputMethod()
@@ -92,9 +93,14 @@ void LetterInputMethod::handleStop(bool isFull)
 	requestToTypeSentence = true;
 }
 
-std::pair<int, std::wstring> LetterInputMethod::lookupWord(std::wstring typedWord)
+std::pair<int, std::string> LetterInputMethod::lookupWord(std::wstring typedWord)
 {
 	throw std::exception("Error: Cannot perform \"lookup word\" in a letter-based model.");
+}
+
+void LetterInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID)
+{
+	throw std::exception("Error: Cannot perform \"type help word\" in a letter-based model.");
 }
 
 void LetterInputMethod::handleCommit(bool strongCommit)
@@ -113,25 +119,12 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 		requestToTypeSentence = true;
 	} else {
 		//Get its romanization, if it exists.
-		std::pair<int, std::wstring> wordData = providingHelpFor->lookupWord(typedCandidateStr.str());
+		std::pair<int, std::string> wordData = providingHelpFor->lookupWord(typedCandidateStr.str());
 		int currStrDictID = wordData.first;
-		wstring revWord = (wordData.first!=-1) ? wordData.second : L"<no entry>";
+		string revWord = (wordData.first!=-1) ? wordData.second : "<no entry>";
 
-		//Add it to the memory list
-		helpKeyboard->addMemoryEntry(typedSentenceStr.str().c_str(), revWord.c_str());
-
-		//Add it to the dictionary?
-		if (currStrDictID==-1) {
-			wstring tempStr = waitzar::sortMyanmarString(typedSentenceStr.str());
-			userDefinedWords.push_back(tempStr);
-			currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
-		}
-
-		//Type this word (should always succeed)
-		providingHelpFor->appendToSentence('\0', currStrDictID);
-
-		//Update trigrams
-		sentence.updateTrigrams(model);
+		//Add it to the memory list, dictionary, and current sentence.
+		providingHelpFor->typeHelpWord(revWord, typedSentenceStr.str(), currStrDictID);
 
 		//Flag for removal
 		this->providingHelpFor = NULL;
@@ -187,21 +180,13 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 		if (this->isHelpInput()) {
 			//Check each romanisation
 			typedRomanStr.str(L"");
-			for (unsigned int i=0; i<model.getTotalDefinedWords(); i++) {
-				//Does this word match?
-				wstring currWord = model.getWordString(i);
-				if (currWord == extendedWordString) {
-					//Build the roman word
-					typedRomanStr <<L'(';
-					typedRomanStr << model.reverseLookupWord(i);
-					typedRomanStr <<L')';
-					break;
-				}
-			}
+			string roman = providingHelpFor->lookupWord(typedCandidateStr.str()).second;
+			if (!roman.empty())
+				typedRomanStr <<L'(' <<roman.c_str() <<L')';
 		}
 
 		//Trigger view change.
-		keyWasUsed = true;
+		viewChanged = true;
 	} else {
 		//Check for system keys
 		InputMethod::handleKeyPress(wParam);

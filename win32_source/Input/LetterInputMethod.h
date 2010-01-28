@@ -9,11 +9,12 @@
 
 #include "MyWin32Window.h"
 #include "Input/InputMethod.h"
+#include "OnscreenKeyboard.h"
 
 class LetterInputMethod : public InputMethod {
 
 public:
-	LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup);
+	LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard);
 	
 	//Destructor
 	~LetterInputMethod();
@@ -39,11 +40,17 @@ public:
 
 	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
-	std::pair<int, std::wstring> lookupWord(std::wstring typedWord);
+	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID);
+
+	std::pair<int, std::string> lookupWord(std::wstring typedWord);
 
 private:
 	std::wstringstream typedSentenceStr;
 	std::wstringstream typedCandidateStr;
+
+	//myWin 2.1 rules for stacking
+	bool canStack(wchar_t letter) { return (letter>=0x1000 && letter<=0x1003) || (letter>=0x1005 && letter<=0x1021); }
+
 };
 
 

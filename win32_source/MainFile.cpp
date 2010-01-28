@@ -557,12 +557,6 @@ void buildSystemWordLookup()
 
 
 
-//myWin 2.1 rules for stacking
-bool canStack(wchar_t letter)
-{
-	return (letter>=0x1000 && letter<=0x1003)
-		|| (letter>=0x1005 && letter<=0x1021);
-}
 
 
 
@@ -2360,6 +2354,11 @@ void toggleHelpMode(bool toggleTo)
 		//Change to the typed input
 		currInput = currTypeInput;
 
+		//Did we just add an entry?
+		pair<string, wstring> checkEntry = currInput->getAndClearMostRecentRomanizationCheck();
+		if (!checkEntry.first.empty() && !checkEntry.second.empty())
+			helpKeyboard->addMemoryEntry(checkEntry.second, checkEntry.first);
+
 		//Turn off help keys
 		turnOnHelpKeys(false);
 
@@ -3067,7 +3066,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Set defaults
-	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup); //tmp; load from config
+	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard); //tmp; load from config
 	((RomanInputMethod*)currTypeInput)->init(model, sentence);
 	currTypeInput->encoding.setVal(L"zawgyi");
 	currHelpInput    = NULL;   //NULL means disable help
