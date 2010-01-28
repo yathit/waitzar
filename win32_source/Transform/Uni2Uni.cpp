@@ -12,7 +12,7 @@ Uni2Uni::Uni2Uni()
 
 
 //Convert
-const std::wstring& Uni2Uni::convert(const std::wstring& src);
+const std::wstring& Uni2Uni::convert(const std::wstring& src)
 {
 	return src;
 }

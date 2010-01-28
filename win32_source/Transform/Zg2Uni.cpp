@@ -12,7 +12,7 @@ Zg2Uni::Zg2Uni()
 
 
 //Convert
-const std::wstring& Zg2Uni::convert(const std::wstring& src);
+const std::wstring& Zg2Uni::convert(const std::wstring& src)
 {
 	//TODO
 }
