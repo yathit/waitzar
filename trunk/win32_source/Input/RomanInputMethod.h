@@ -13,15 +13,13 @@
 #include "NGram/SentenceList.h"
 #include "OnscreenKeyboard.h"
 
-using namespace waitzar;
-
 class RomanInputMethod : public InputMethod {
 
 public:
 	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard);
 
 	//Needed to add Roman-specific stuff
-	void init(WordBuilder* model, SentenceList* sentence);
+	void init(waitzar::WordBuilder* model, waitzar::SentenceList* sentence);
 
 	//Destructor
 	~RomanInputMethod();
@@ -60,8 +58,8 @@ public:
 private:
 	//Romanization model
 	//TODO: Chain constructors, set to null (C++ 0x)
-	WordBuilder* model;
-	SentenceList* sentence;
+	waitzar::WordBuilder* model;
+	waitzar::SentenceList* sentence;
 
 	bool selectWord(int id, bool indexNegativeEntries);
 	std::wstring buildSentenceStr(unsigned int stopAtID);

@@ -7,6 +7,12 @@
 #include "RomanInputMethod.h"
 
 
+using namespace waitzar;
+using std::vector;
+using std::pair;
+using std::string;
+using std::wstring;
+
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
 //TODO: C++ 0x, chaining constructors can eliminate this
@@ -74,7 +80,7 @@ void RomanInputMethod::handleEsc()
 	//Escape out of the main window or the sentence, depending
 	if (!mainWindow->isVisible()) {
 		//Kill the entire sentence
-		sentence.clear();
+		sentence->clear();
 	} else {
 		//Cancel the current word
 		typedRomanStr.str(L"");
@@ -88,11 +94,11 @@ void RomanInputMethod::handleBackspace()
 {
 	if (!mainWindow->isVisible()) {
 		//Delete the previous word in the sentence
-		if (sentence.deletePrev(model))
+		if (sentence->deletePrev(*model))
 			viewChanged = true;
 	} else {
 		//Delete the previously-typed letter
-		model.backspace();
+		model->backspace();
 
 		//Truncate...
 		wstring newStr = !typedRomanStr.str().empty() ? typedRomanStr.str().substr(0, typedRomanStr.str().length()-1) : L"";
@@ -106,7 +112,7 @@ void RomanInputMethod::handleDelete()
 {
 	if (!mainWindow->isVisible()) {
 		//Delete the next word
-		if (sentence.deleteNext())
+		if (sentence->deleteNext())
 			viewChanged = true;
 	}
 }
@@ -117,11 +123,11 @@ void RomanInputMethod::handleLeftRight(bool isRight)
 	int amt = isRight ? 1 : -1;
 	if (mainWindow->isVisible()) {
 		//Move right/left within the current selection.
-		if (model.moveRight(amt) == TRUE)
+		if (model->moveRight(amt) == TRUE)
 			viewChanged = true;
 	} else {
 		//Move right/left within the current phrase.
-		if (sentence.moveCursorRight(amt, model))
+		if (sentence->moveCursorRight(amt, *model))
 			viewChanged = true;
 	}
 }
@@ -145,8 +151,8 @@ void RomanInputMethod::handleNumber(int numCode, WPARAM wParam)
 		}
 	} else if (typeBurmeseNumbers) {
 		//Type this number
-		sentence.insert(numCode);
-		sentence.moveCursorRight(0, true, model);
+		sentence->insert(numCode);
+		sentence->moveCursorRight(0, true, *model);
 
 		viewChanged = true;
 	}
@@ -183,8 +189,8 @@ void RomanInputMethod::handleCommit(bool strongCommit)
 			//Type the entire sentence
 			requestToTypeSentence = true;
 		} else {
-			if (sentence.getCursorIndex()==-1 || sentence.getCursorIndex()<((int)sentence.size()-1)) {
-				sentence.moveCursorRight(1, model);
+			if (sentence->getCursorIndex()==-1 || sentence->getCursorIndex()<((int)sentence->size()-1)) {
+				sentence->moveCursorRight(1, *model);
 				viewChanged = true;
 			} else {
 				//Type the entire sentence
@@ -205,7 +211,7 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 	int keyCode = (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) ? (int)wParam+32 : (int)wParam;
 	if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW) {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model.typeLetter(keyCode))
+		if (!model->typeLetter(keyCode))
 			return;
 
 		//Update the romanized string, trigger repaint
@@ -233,7 +239,7 @@ bool RomanInputMethod::selectWord(int id, bool indexNegativeEntries)
 
 	//Pat-sint clears the previous word
 	if (id==-1)
-		sentence->deletePrev(model);
+		sentence->deletePrev(*model);
 
 	//Insert into the current sentence, return
 	sentence->insert(wordID);
@@ -244,12 +250,12 @@ bool RomanInputMethod::selectWord(int id, bool indexNegativeEntries)
 void RomanInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID)
 {
 	//Add it to the memory list
-	mostRecentRomanizationCheck.first = revWord;
-	mostRecentRomanizationCheck.second = typedSentenceStr.str();
+	mostRecentRomanizationCheck.first = roman;
+	mostRecentRomanizationCheck.second = myanmar;
 
 	//Add it to the dictionary?
 	if (currStrDictID==-1) {
-		wstring tempStr = waitzar::sortMyanmarString(typedSentenceStr.str());
+		wstring tempStr = waitzar::sortMyanmarString(myanmar);
 		userDefinedWords.push_back(tempStr);
 		currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
 	}
@@ -258,7 +264,7 @@ void RomanInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, int
 	this->appendToSentence('\0', currStrDictID);
 
 	//Update trigrams
-	sentence.updateTrigrams(model);
+	sentence->updateTrigrams(model);
 }
 
 
@@ -267,7 +273,7 @@ std::wstring RomanInputMethod::buildSentenceStr(unsigned int stopAtID)
 {
 	std::wstringstream res;
 	int currID = -1;
-	for (std::list<int>::const_iterator it=sentence->begin(); (it!=sentence.end() && currID!=stopAtID); it++) {
+	for (std::list<int>::const_iterator it=sentence->begin(); (it!=sentence->end() && currID!=stopAtID); it++) {
 		if (*it>0)
 			res <<model->getWordString(*it);
 		else {
@@ -301,7 +307,7 @@ std::wstring RomanInputMethod::getSentencePreCursorString()
 }
 
 
-std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings()
+std::vector< std::pair<std::wstring, unsigned int> > RomanInputMethod::getTypedCandidateStrings()
 {
 	//TODO: cache the results
 	std::vector< std::pair<std::wstring, unsigned int> > res;
@@ -341,7 +347,7 @@ void RomanInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSe
 	//Equivalent to reset candidates or the roman string
 	if (resetCandidates || resetRoman)  {
 		typedRomanStr.str(L"");
-		model.reset(performFullReset);
+		model->reset(performFullReset);
 	}
 
 	//Reset the sentence?
