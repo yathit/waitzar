@@ -16,10 +16,10 @@
 class RomanInputMethod : public InputMethod {
 
 public:
-	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard);
+	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::string systemDefinedWords);
 
 	//Needed to add Roman-specific stuff
-	void init(waitzar::WordBuilder* model, waitzar::SentenceList* sentence);
+	void init(waitzar::WordBuilder* model, waitzar::SentenceList* sentence, bool typeBurmeseNumbers);
 
 	//Destructor
 	~RomanInputMethod();
@@ -63,6 +63,8 @@ private:
 
 	bool selectWord(int id, bool indexNegativeEntries);
 	std::wstring buildSentenceStr(unsigned int stopAtID);
+
+	bool typeBurmeseNumbers;
 };
 
 

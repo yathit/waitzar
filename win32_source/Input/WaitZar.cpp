@@ -6,7 +6,9 @@
 
 #include "WaitZar.h"
 
-WaitZar::WaitZar()
+
+//TODO: This should really be moved into an "init" method at some point...
+WaitZar::WaitZar(const std::vector< std::pair<int, unsigned short> > &val) : RomanInputMethod(NULL, NULL, NULL, NULL, val, NULL, "")
 {
 }
 

@@ -12,7 +12,6 @@
 #include <limits>
 #include <functional>
 #include <locale>
-#include "NGram/wz_utilities.h"
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/Interfaces.h"
 #include "Settings/WZFactory.h"
@@ -22,8 +21,13 @@
 //json_spirit_reader is defined elsewhere
 /*namespace json_spirit {
 	extern bool read( const std::wstring& s, wValue& value );
+	//TODO: Need to add a few more if we want it this way...
 }*/
 #include "Json Spirit/json_spirit_reader.h"
+
+
+//Lastly, to avoid LO/HI byte re-definition.
+#include "NGram/wz_utilities.h"
 
 
 //Simple class to help us load json files easier

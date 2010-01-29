@@ -15,6 +15,7 @@ Zg2Uni::Zg2Uni()
 const std::wstring& Zg2Uni::convert(const std::wstring& src)
 {
 	//TODO
+	return src;
 }
 
 

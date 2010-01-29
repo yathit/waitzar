@@ -16,7 +16,7 @@ using std::wstring;
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
 //TODO: C++ 0x, chaining constructors can eliminate this
-RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard)
+RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, string systemDefinedWords)
 {
 	//Init
 	providingHelpFor = NULL;
@@ -29,16 +29,18 @@ RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sen
 	this->helpWindow = helpWindow;
 	this->memoryWindow = memoryWindow;
 	this->systemWordLookup = systemWordLookup;
+	this->systemDefinedWords = systemDefinedWords;
 	this->helpKeyboard = helpKeyboard;
 }
 
 
 
 //This takes responsibility for the model and sentence memory.
-void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence)
+void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence, bool typeBurmeseNumbers)
 {
 	this->model = model;
 	this->sentence = sentence;
+	this->typeBurmeseNumbers = typeBurmeseNumbers;
 }
 
 
@@ -264,7 +266,7 @@ void RomanInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, int
 	this->appendToSentence('\0', currStrDictID);
 
 	//Update trigrams
-	sentence->updateTrigrams(model);
+	sentence->updateTrigrams(*model);
 }
 
 
@@ -278,8 +280,8 @@ std::wstring RomanInputMethod::buildSentenceStr(unsigned int stopAtID)
 			res <<model->getWordString(*it);
 		else {
 			int id = -(*it)-1;
-			if (id<systemDefinedWords.size())
-				res <<systemDefinedWords[id]
+			if (id<(int)systemDefinedWords.size())
+				res <<systemDefinedWords[id];
 			else
 				res <<userDefinedWords[id-systemDefinedWords.size()];
 		}
@@ -303,7 +305,7 @@ std::wstring RomanInputMethod::getTypedSentenceString()
 std::wstring RomanInputMethod::getSentencePreCursorString()
 {
 	//TODO: Cache the results
-	return buildSentenceStr(sentence->getCursorID());
+	return buildSentenceStr(sentence->getCursorIndex());
 }
 
 
@@ -331,7 +333,7 @@ void RomanInputMethod::appendToSentence(wchar_t letter, int id)
 	selectWord(id, true);
 
 	//We need to reset the trigrams here...
-	sentence.updateTrigrams(model);
+	sentence->updateTrigrams(*model);
 
 	//Repaint
 	viewChanged = true;
@@ -341,8 +343,10 @@ void RomanInputMethod::appendToSentence(wchar_t letter, int id)
 void RomanInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset)
 {
 	//A "full" reset entails the others
-	if (performFullReset)
+	if (performFullReset) {
 		resetCandidates = resetRoman = resetSentence = true;
+		userDefinedWords.clear();
+	}
 
 	//Equivalent to reset candidates or the roman string
 	if (resetCandidates || resetRoman)  {
