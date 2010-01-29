@@ -189,7 +189,7 @@ bool threadIsActive; //If "false", this thread must be woken to do anything usef
 
 
 //NOTE: A sep. Zawgyi list is not needed; all words are only stored in one encoding.
-vector<wstring> userDefinedWords; //Words the user types in. Stored with a negative +1 index
+//vector<wstring> userDefinedWords; //Words the user types in. Stored with a negative +1 index
 //vector<wstring> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
 
 
@@ -1931,7 +1931,6 @@ void typeCurrentPhrase()
 
 	//Now, reset...
 	currInput->reset(true, true, true, true); //TODO: Is this necessary?
-	userDefinedWords.clear();
 
 
 	//Technically, this can be called with JUST a stopChar, which implies
@@ -3066,8 +3065,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Set defaults
-	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard); //tmp; load from config
-	((RomanInputMethod*)currTypeInput)->init(model, sentence);
+	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords); //tmp; load from config
+	((RomanInputMethod*)currTypeInput)->init(model, sentence, typeBurmeseNumbers);
 	currTypeInput->encoding.setVal(L"zawgyi");
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;

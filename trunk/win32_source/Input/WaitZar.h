@@ -15,7 +15,7 @@
 class WaitZar : public RomanInputMethod
 {
 public:
-	WaitZar();
+	WaitZar(const std::vector< std::pair<int, unsigned short> > &val);
 };
 
 

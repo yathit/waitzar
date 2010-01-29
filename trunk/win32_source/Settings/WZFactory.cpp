@@ -8,6 +8,8 @@
 
 using std::map;
 using std::wstring;
+using std::vector;
+using std::pair;
 
 
 WZFactory::WZFactory(void)
@@ -35,10 +37,11 @@ InputMethod* WZFactory::makeInputMethod(wstring id, DummyInputMethod* candidate)
 	//First, the type is important
 	if (sanitize_id(candidate->options[L"type"].get()) == L"builtin") {
 		//Built-in types are known entirely by our core code
+		vector< pair<int, unsigned short> > temp; //TODO: Remove
 		if (id==L"waitzar")
-			res = new WaitZar();
+			res = new WaitZar(temp);
 		else if (id==L"mywin")
-			res = new WaitZar(); //TODO: Change!
+			res = new WaitZar(temp); //TODO: Change!
 		else
 			throw std::exception("Invalid \"builtin\" Input Manager.");
 	} else {

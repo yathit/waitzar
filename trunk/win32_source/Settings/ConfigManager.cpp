@@ -356,7 +356,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 			nameStr <<dot <<(*nameOpt);
 			dot = L"/"; //To distinguish "dot" errors
 		}
-		throw std::exception(std::string("Invalid option: \"" + escape_wstr(nameStr.str()) + "\", with value: \"" + escape_wstr(value) + "\"").c_str());
+		throw std::exception(std::string("Invalid option: \"" + waitzar::escape_wstr(nameStr.str()) + "\", with value: \"" + waitzar::escape_wstr(value) + "\"").c_str());
 	}
 }
 
@@ -407,7 +407,7 @@ bool ConfigManager::read_bool(const std::wstring& str)
 	else if (test==L"no" || test==L"false")
 		return false;
 	else
-		throw std::exception(std::string("Bad boolean value: \"" + escape_wstr(str) + "\"").c_str());
+		throw std::exception(std::string("Bad boolean value: \"" + waitzar::escape_wstr(str) + "\"").c_str());
 }
 
 void ConfigManager::loc_to_lower(std::wstring& str)

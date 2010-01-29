@@ -93,7 +93,9 @@ public:
 	virtual std::pair<int, std::string> lookupWord(std::wstring typedWord) = 0;
 
 protected:
+	std::string systemDefinedWords;
 	std::vector< std::pair <int, unsigned short> > systemWordLookup;
+	std::vector<std::wstring> userDefinedWords;
 
 	//Additional character to print
 	wchar_t typedStopChar;

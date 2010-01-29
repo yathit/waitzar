@@ -15,7 +15,7 @@ using std::wstring;
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
 //TODO: C++ 0x, chaining constructors can eliminate this
-LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard)
+LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, string systemDefinedWords)
 {
 	//Init
 	providingHelpFor = NULL;
@@ -28,6 +28,7 @@ LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* s
 	this->helpWindow = helpWindow;
 	this->memoryWindow = memoryWindow;
 	this->systemWordLookup = systemWordLookup;
+	this->systemDefinedWords = systemDefinedWords;
 	this->helpKeyboard = helpKeyboard;
 }
 
@@ -225,8 +226,10 @@ void LetterInputMethod::appendToSentence(wchar_t letter, int id)
 void LetterInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset)
 {
 	//A "full" reset entails the others
-	if (performFullReset)
+	if (performFullReset) {
 		resetCandidates = resetRoman = resetSentence = true;
+		userDefinedWords.clear();
+	}
 
 	if (resetCandidates)
 		typedCandidateStr.str(L"");

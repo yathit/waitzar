@@ -24,9 +24,23 @@ struct Encoding {
 class DummyInputMethod : public InputMethod { //Used to save option pairs.
 public:
 	std::map< std::wstring, Option<std::wstring> > options;
-	bool isPlaceholder() { return true; }
-	std::wstring getMainString() { throw std::exception("Not valid for DummyInputMethod."); }
-	std::wstring getSubString() { throw std::exception("Not valid for DummyInputMethod."); }
+
+	//So many more... can't we do this better?
+	void handleEsc() { throw std::exception("Not valid for DummyInputMethod."); }
+	void handleBackspace() { throw std::exception("Not valid for DummyInputMethod."); }
+	void handleDelete() { throw std::exception("Not valid for DummyInputMethod."); }
+	void handleLeftRight(bool isRight) { throw std::exception("Not valid for DummyInputMethod."); }
+	void handleCommit(bool strongCommit) { throw std::exception("Not valid for DummyInputMethod."); }
+	void handleNumber(int numCode, WPARAM wParam) { throw std::exception("Not valid for DummyInputMethod."); }
+	void handleStop(bool isFull) { throw std::exception("Not valid for DummyInputMethod."); }
+	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID) { throw std::exception("Not valid for DummyInputMethod."); }
+	std::pair<int, std::string> lookupWord(std::wstring typedWord) { throw std::exception("Not valid for DummyInputMethod."); }
+	bool isPlaceholder() { throw std::exception("Not valid for DummyInputMethod."); }
+	std::wstring getTypedSentenceString() { throw std::exception("Not valid for DummyInputMethod."); }
+	std::wstring getSentencePreCursorString() { throw std::exception("Not valid for DummyInputMethod."); }
+	void appendToSentence(wchar_t letter, int id) { throw std::exception("Not valid for DummyInputMethod."); }
+	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings() { throw std::exception("Not valid for DummyInputMethod."); }
+	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset) { throw std::exception("Not valid for DummyInputMethod."); }
 };
 
 //Expected interface: "Input Method"
