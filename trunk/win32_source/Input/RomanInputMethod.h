@@ -16,7 +16,7 @@
 class RomanInputMethod : public InputMethod {
 
 public:
-	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::string systemDefinedWords);
+	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords);
 
 	//Needed to add Roman-specific stuff
 	void init(waitzar::WordBuilder* model, waitzar::SentenceList* sentence, bool typeBurmeseNumbers);
@@ -36,8 +36,7 @@ public:
 
 
 	//Abstract implementation - sentence and word
-	std::wstring getTypedSentenceString();
-	std::wstring getSentencePreCursorString();
+	std::vector< std::wstring > getTypedSentenceStrings();
 	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings();
 	void appendToSentence(wchar_t letter, int id);
 
@@ -54,6 +53,9 @@ public:
 
 	std::pair<int, std::string> lookupWord(std::wstring typedWord);
 
+	//Real override
+	std::wstring getTypedRomanString();
+
 
 private:
 	//Romanization model
@@ -62,7 +64,6 @@ private:
 	waitzar::SentenceList* sentence;
 
 	bool selectWord(int id, bool indexNegativeEntries);
-	std::wstring buildSentenceStr(unsigned int stopAtID);
 
 	bool typeBurmeseNumbers;
 };

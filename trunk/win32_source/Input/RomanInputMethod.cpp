@@ -16,7 +16,7 @@ using std::wstring;
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
 //TODO: C++ 0x, chaining constructors can eliminate this
-RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, string systemDefinedWords)
+RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, wstring systemDefinedWords)
 {
 	//Init
 	providingHelpFor = NULL;
@@ -227,20 +227,19 @@ void RomanInputMethod::handleKeyPress(WPARAM wParam)
 
 
 
+//TODO: Make it easier to call this function; e.g., "type current word" or "skip to id"....
+//      It's very confusing now, esp. with pat-sint modifiers.
 bool RomanInputMethod::selectWord(int id, bool indexNegativeEntries)
 {
 	//Are there any words to use?
-	int wordID = 0;
-	if (!indexNegativeEntries) {
-		//Ok, look it up in the model as usual
-		std::pair<BOOL, UINT32> typedVal = model->typeSpace(id);
-		if (typedVal.first == FALSE)
-			return false;
-		wordID = typedVal.second;
-	}
+	int lastModelID = model->getCurrSelectedID();
+	std::pair<bool, unsigned int> typedVal = model->typeSpace(id, !indexNegativeEntries);
+	if (!typedVal.first)
+		return false;
+	int wordID = typedVal.second;
 
 	//Pat-sint clears the previous word
-	if (id==-1)
+	if ((id==-1 && indexNegativeEntries) || (lastModelID==-1 && !indexNegativeEntries))
 		sentence->deletePrev(*model);
 
 	//Insert into the current sentence, return
@@ -271,45 +270,62 @@ void RomanInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, int
 
 
 
-std::wstring RomanInputMethod::buildSentenceStr(unsigned int stopAtID)
+vector<wstring> RomanInputMethod::getTypedSentenceStrings()
 {
-	std::wstringstream res;
+	//Results
+	//TODO: Cache the results.
+	vector<wstring> res;
+	std::wstringstream line;
+	std::wstringstream full;
+
+	//Build
 	int currID = -1;
-	for (std::list<int>::const_iterator it=sentence->begin(); (it!=sentence->end() && currID!=stopAtID); it++) {
-		if (*it>0)
-			res <<model->getWordString(*it);
-		else {
-			int id = -(*it)-1;
-			if (id<(int)systemDefinedWords.size())
-				res <<systemDefinedWords[id];
-			else
-				res <<userDefinedWords[id-systemDefinedWords.size()];
+	for (std::list<int>::const_iterator it=sentence->begin(); it!=sentence->end(); it++) {
+		//Get the word
+		int modID = -(*it)-1;
+		wstring currWord = (*it>0) ? model->getWordString(*it) : (modID<(int)systemDefinedWords.size()) ? wstring(1, systemDefinedWords[modID]) : userDefinedWords[modID-systemDefinedWords.size()];
+
+		//Append the word
+		line <<currWord;
+		full <<currWord;
+
+		//Have we reached a transition?
+		if (currID==sentence->getCursorIndex()-1 && model->getCurrSelectedID()==-1) {
+			//We're about to start the highlighted word.
+			res.push_back(line.str());
+			line.str(L"");
+		} else if (currID==sentence->getCursorIndex()) {
+			//We're at the cursor
+			if (res.size()==0)
+				res.push_back(L"");
+			res.push_back(line.str());
+			line.str(L"");
 		}
+
+		//Increment
 		currID++;
 	}
 
-	return res.str();
-}
-
-
-std::wstring RomanInputMethod::getTypedSentenceString()
-{
-	//TODO: Cache the results (also add the typedStopChar elsewhere...)
-	std::wstringstream res;
-	res <<buildSentenceStr(sentence->size());
+	//Add the final entry, and the typedStopChar if necessary
 	if (typedStopChar!=L'\0')
-		res <<typedStopChar;
-	return res.str();
+		line <<typedStopChar;
+	res.push_back(line.str());
+
+	//I think this might always be true...
+	//TODO: Check the source and remove these tests.
+	while (res.size()<3)
+		res.push_back(L"");
+	if (res.size()!=3)
+		throw std::exception("Error! getTypedSentenceStr() must always return a vector of size 3+1");
+
+	//Finally, add the full entry
+	res.push_back(full.str());
+
+	//Done
+	return res;
 }
 
-std::wstring RomanInputMethod::getSentencePreCursorString()
-{
-	//TODO: Cache the results
-	return buildSentenceStr(sentence->getCursorIndex());
-}
-
-
-std::vector< std::pair<std::wstring, unsigned int> > RomanInputMethod::getTypedCandidateStrings()
+vector< pair<wstring, unsigned int> > RomanInputMethod::getTypedCandidateStrings()
 {
 	//TODO: cache the results
 	std::vector< std::pair<std::wstring, unsigned int> > res;
@@ -360,6 +376,21 @@ void RomanInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSe
 
 	//Either way
 	typedStopChar = L'\0';
+}
+
+//Add our paren string
+std::wstring RomanInputMethod::getTypedRomanString()
+{
+	//Initail string
+	std::wstringstream res;
+	res <<InputMethod::getTypedRomanString();
+
+	//Add a paren string, if it exists
+	if (!model->getParenString().empty())
+		res <<L'(' <<model->getParenString() <<L')';
+
+	//Done
+	return res.str();
 }
 
 

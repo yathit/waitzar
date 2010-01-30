@@ -14,7 +14,7 @@
 class LetterInputMethod : public InputMethod {
 
 public:
-	LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::string systemDefinedWords);
+	LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords);
 	
 	//Destructor
 	~LetterInputMethod();
@@ -30,8 +30,7 @@ public:
 	void handleKeyPress(WPARAM wParam);
 
 	//Abstract implementation - sentence and word
-	std::wstring getTypedSentenceString();
-	std::wstring getSentencePreCursorString();
+	std::vector< std::wstring > getTypedSentenceStrings();
 	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings();
 	void appendToSentence(wchar_t letter, int id);
 

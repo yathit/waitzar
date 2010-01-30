@@ -708,7 +708,7 @@ void WordBuilder::setCurrSelected(int id)
 
 
 //Returns the selected ID and a boolean
-pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID)
+pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID, bool useQuickJump)
 {
 	//We're at a valid stopping point?
 	if (this->getPossibleWords().size() == 0)

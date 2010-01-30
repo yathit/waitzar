@@ -93,7 +93,7 @@ public:
 	virtual std::pair<int, std::string> lookupWord(std::wstring typedWord) = 0;
 
 protected:
-	std::string systemDefinedWords;
+	std::wstring systemDefinedWords;
 	std::vector< std::pair <int, unsigned short> > systemWordLookup;
 	std::vector<std::wstring> userDefinedWords;
 
@@ -137,10 +137,13 @@ public:  //Abstract methods
 	//This will be typed to the output program if "Enter" is pressed.
 	//All sub-classes must ensure that this remains valid outside of any function call, and
 	//  before any calls to the base class's methods.
-	//A "typed" string is in an arbitrary encoding; converting to/from unicode is done as needed.
-	//The "Sentence pre-cursor string" is the current string that's been typed so far, before the cursor.
-	virtual std::wstring getTypedSentenceString() = 0;
-	virtual std::wstring getSentencePreCursorString() = 0;
+	//Returns 3 strings:
+	//  1) The string before the highlight.
+	//  2) The string before the cursor (highlighted string).
+	//  3) The string after the cursor.
+	// In addition, a fourth string is returned containing the entire typed string.
+	//TODO: Eventually redo with tuples
+	virtual std::vector< std::wstring > getTypedSentenceStrings() = 0;
 	virtual void appendToSentence(wchar_t letter, int id) = 0; //Used for system letters only, for perf. reasons. (id is optional)
 
 	//The current "candidate" string, which will be displayed in the top

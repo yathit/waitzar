@@ -200,7 +200,7 @@ wstring userKeystrokeVector;
 vector< pair <int, unsigned short> > systemWordLookup;
 
 //Parallel data structures for constructing systemWordLookup
-const string systemDefinedWords = "`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
+const wstring systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
 const int systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
 				HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
 				HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
@@ -522,7 +522,7 @@ bool testAllWordsByHand()
 		}
 
 		//Test "output" it
-		std::pair<bool, unsigned int> ret = model->typeSpace(-1);
+		std::pair<bool, unsigned int> ret = model->typeSpace(-1, false);
 		if (!ret.first)
 			return false;
 		model->getWordKeyStrokes(ret.second);
@@ -549,7 +549,7 @@ void buildSystemWordLookup()
 
 	//Build our reverse lookup.
 	for (size_t i=0; i<systemDefinedWords.size(); i++) {
-		char c = systemDefinedWords[i];
+		//wchar_t c = systemDefinedWords[i];
 		int hotkey_id = systemDefinedKeys[i];
 		systemWordLookup.push_back(pair<int, unsigned short>(hotkey_id, i));
 	}
@@ -1760,8 +1760,15 @@ void recalculate()
 	//  We can short-circuit this if the output and display encodings are the same.
 	bool noEncChange = (currDisplay->encoding.get()==currInput->encoding.get());
 	std::wstring dispRomanStr = noEncChange ? currInput->getTypedRomanString() : uni2Disp->convert(input2Uni->convert(currInput->getTypedRomanString()));
-	std::wstring dispSentenceStr = noEncChange ? currInput->getTypedSentenceString() : uni2Disp->convert(input2Uni->convert(currInput->getTypedSentenceString()));
-	std::wstring dispSentencePreCursorStr = noEncChange ? currInput->getSentencePreCursorString() : uni2Disp->convert(input2Uni->convert(currInput->getSentencePreCursorString()));
+	//std::wstring dispSentencePreCursorStr = noEncChange ? currInput->getSentencePreCursorString() : uni2Disp->convert(input2Uni->convert(currInput->getSentencePreCursorString()));
+
+	//TODO: The typed sentence string might have a highlight, which changes things slightly.
+	vector<wstring> dispSentenceStr;
+	{
+		vector<wstring> inputSentenceStr = currInput->getTypedSentenceStrings();
+		for (vector<wstring>::iterator i=inputSentenceStr.begin(); i!=inputSentenceStr.end(); i++)
+			dispSentenceStr.push_back(noEncChange ? (*i) : uni2Disp->convert(input2Uni->convert(*i)));
+	}
 
 	//Candidate strings are slightly more complex; have the convert the entire array
 	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
@@ -1794,13 +1801,16 @@ void recalculate()
 	sentenceWindow->selectObject(g_DarkGrayBkgrd);
 	sentenceWindow->drawRectangle(0, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
 
-	//Draw each string
-	//TODO: Highlight the previous word in the sentence if it's a P.S. candidate.
-	//      NOTE: This will require some re-coding of how the sentence string is returned.
-	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr, borderWidth + 1, borderWidth+1);
+	//Draw each string, highlight the previous word if it's a pat-sint candidate.
+	int currPosX = borderWidth + 1;
+	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr[0], currPosX, borderWidth+1);
+	currPosX += (mmFontSmallWhite->getStringWidth(dispSentenceStr[0]) + 1);
+	sentenceWindow->drawString(mmFontSmallRed, dispSentenceStr[1], currPosX, borderWidth+1);
+	currPosX += (mmFontSmallRed->getStringWidth(dispSentenceStr[1]) + 1);
+	int cursorPosX = currPosX;
+	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr[2], currPosX, borderWidth+1);
 
 	//Draw the cursor
-	int cursorPosX = mmFontSmallWhite->getStringWidth(dispSentencePreCursorStr) + 1;
 	sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
 	sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
@@ -1883,7 +1893,7 @@ void typeCurrentPhrase()
 
 	//Convert to the right encoding
 	bool noEncChange = (uni2Output->toEncoding.get()==currInput->encoding.get());
-	wstring keyStrokes = noEncChange ? currInput->getTypedSentenceString() : uni2Output->convert(input2Uni->convert(currInput->getTypedSentenceString()));
+	wstring keyStrokes = noEncChange ? currInput->getTypedSentenceStrings()[3] : uni2Output->convert(input2Uni->convert(currInput->getTypedSentenceStrings()[3]));
 
 
 	//Use SendInput instead of SendMessage, since SendMessage requires the actual
@@ -2370,7 +2380,7 @@ void checkAllHotkeysAndWindows()
 	}
 
 	//Should the sentence window be visible?
-	if (!currInput->getTypedSentenceString().empty() || currInput->isHelpInput() || mainWindow->isVisible()) {
+	if (!currInput->getTypedSentenceStrings()[3].empty() || currInput->isHelpInput() || mainWindow->isVisible()) {
 		sentenceWindow->showWindow(true);
 		turnOnControlkeys(true);
 
@@ -2534,7 +2544,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				// check these against the exit state to see what has changed,
 				// and thus what needs to be updated.
 				bool wasProvidingHelp = currInput->isHelpInput();
-				bool wasEmptySentence = currInput->getTypedSentenceString().empty();
+				bool wasEmptySentence = currInput->getTypedSentenceStrings()[3].empty();
 				bool wasEmptyRoman = currInput->getTypedRomanString().empty();
 
 				//Process the message
@@ -2548,7 +2558,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//         word in the candidate list or finish it, or enter/exit help mode?) This will 
 				//         perform unnecessary calculations, but it's not too wasteful, and makes up for it 
 				//         by cleaning up the code sufficiently.
-				if (    (wasEmptySentence != currInput->getTypedSentenceString().empty())
+				if (    (wasEmptySentence != currInput->getTypedSentenceStrings()[3].empty())
 					||  (wasEmptyRoman != currInput->getTypedRomanString().empty())
 					||  (wasProvidingHelp != currInput->isHelpInput()))
 					checkAllHotkeysAndWindows();
