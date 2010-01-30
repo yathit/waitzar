@@ -1021,7 +1021,8 @@ void setEncoding(ENCODING encoding)
 
 	//Set this encoding, and save its value (in case we haven't loaded the model yet)
 	mostRecentEncoding = encoding;
-	model->setOutputEncoding(encoding);
+	if (model!=NULL)
+		model->setOutputEncoding(encoding);
 }
 
 
@@ -1264,7 +1265,7 @@ bool registerInitialHotkey()
 /**
  * Load the Wait Zar language model.
  */
-bool loadModel() {
+void loadModel() {
 	//Load our embedded resource, the WaitZar model
 	HGLOBAL     res_handle = NULL;
 	HRSRC       res;
@@ -1296,15 +1297,11 @@ bool loadModel() {
 		{
 			//Load the resource as a byte array and get its size, etc.
 			res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
-			if (!res) {
-				MessageBox(NULL, _T("Couldn't find WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-				return false;
-			}
+			if (!res)
+				throw std::exception("Couldn't find WZ_MODEL");
 			res_handle = LoadResource(NULL, res);
-			if (!res_handle) {
-				MessageBox(NULL, _T("Couldn't get a handle on WZ_MODEL"), _T("Error"), MB_ICONERROR | MB_OK);
-				return false;
-			}
+			if (!res_handle)
+				throw std::exception("Couldn't get a handle on WZ_MODEL");
 			res_data = (char*)LockResource(res_handle);
 			res_size = SizeofResource(NULL, res);
 
@@ -1321,15 +1318,11 @@ bool loadModel() {
 		if (currTest != model_print) {
 			//Load the resource as a byte array and get its size, etc.
 			res = FindResource(hInst, MAKEINTRESOURCE(WZ_EASYPS), _T("Model"));
-			if (!res) {
-				MessageBox(NULL, _T("Couldn't find WZ_EASYPS"), _T("Error"), MB_ICONERROR | MB_OK);
-				return false;
-			}
+			if (!res)
+				throw std::exception("Couldn't find WZ_EASYPS");
 			res_handle = LoadResource(NULL, res);
-			if (!res_handle) {
-				MessageBox(NULL, _T("Couldn't get a handle on WZ_EASYPS"), _T("Error"), MB_ICONERROR | MB_OK);
-				return false;
-			}
+			if (!res_handle)
+				throw std::exception("Couldn't get a handle on WZ_EASYPS");
 			res_data = (char*)LockResource(res_handle);
 			res_size = SizeofResource(NULL, res);
 
@@ -1348,7 +1341,6 @@ bool loadModel() {
 			//if (res_data[index] == 0xFE && res_data[index+1]==0xFF)
 			//	index += 2;
 
-			bool inError = false;
 			for (;index<uniSize;) {
 				//Left-trim
 				while (uniData[index] == ' ')
@@ -1410,9 +1402,7 @@ bool loadModel() {
 				if (wcslen(post)!=0 && wcslen(curr)!=0 && wcslen(pre)!=0) {
 					//Ok, process these strings and store them
 					if (!model->addShortcut(pre, curr, post)) {
-						if (!inError)
-							MessageBox(NULL, model->getLastError().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-						inError = true;
+						throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 						if (isLogging) {
 							for (size_t q=0; q<model->getLastError().size(); q++)
@@ -1436,9 +1426,6 @@ bool loadModel() {
 				}
 			}
 
-			if (inError)
-				return false;
-
 			//Free memory
 			delete [] uniData;
 
@@ -1450,9 +1437,7 @@ bool loadModel() {
 
 	//One final check
 	if (model->isInError())
-		return false;
-
-	return true;
+		throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
 }
 
 
@@ -3063,20 +3048,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-
-	//Set defaults
-	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords); //tmp; load from config
-	((RomanInputMethod*)currTypeInput)->init(model, sentence, typeBurmeseNumbers);
-	currTypeInput->encoding.setVal(L"zawgyi");
-	currHelpInput    = NULL;   //NULL means disable help
-	currInput        = currTypeInput;
-	currDisplay      = new PngFont(); //tmp; load from config
-	currDisplay->encoding.setVal(L"zawgyi");
-	input2Uni        = new Uni2Uni();
-	uni2Output       = new Uni2Uni();
-	uni2Disp         = new Uni2Uni();
-
-
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
                         GetSystemMetrics(SM_CXSMICON),
@@ -3147,7 +3118,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//If we got this far, let's try to load our file.
-	if (!loadModel()) {
+	try {
+		loadModel();
+	} catch (std::exception ex) {
+		//Prompt user:
+		std::wstringstream msg;
+		msg << "Couldn't load the model.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
+		msg << ex.what();
+		MessageBox(NULL, msg.str().c_str(), L"Model Error", MB_ICONERROR | MB_OK);
+
+		//Remove resources, exit
 		delete mainWindow;
 		delete sentenceWindow;
 		delete helpWindow;
@@ -3155,7 +3135,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 1;
 	}
 
-	//We might have a cached encoding level set...
+
+	//Set defaults
+	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords); //tmp; load from config
+	((RomanInputMethod*)currTypeInput)->init(model, sentence, typeBurmeseNumbers);
+	currTypeInput->encoding.setVal(L"zawgyi");
+	currHelpInput    = NULL;   //NULL means disable help
+	currInput        = currTypeInput;
+	currDisplay      = new PngFont(); //tmp; load from config
+	currDisplay->encoding.setVal(L"zawgyi");
+	input2Uni        = new Uni2Uni();
+	uni2Output       = new Uni2Uni();
+	uni2Disp         = new Uni2Uni();
+
+
+	//Todo... find a better way of setting this (loadModel() and loadConfigOptions() clash)
+	//   Actually, this shold be fixed when we switch to the new config files
 	model->setOutputEncoding(mostRecentEncoding);
 
 	//Testing mywords?
