@@ -36,8 +36,7 @@ public:
 	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID) { throw std::exception("Not valid for DummyInputMethod."); }
 	std::pair<int, std::string> lookupWord(std::wstring typedWord) { throw std::exception("Not valid for DummyInputMethod."); }
 	bool isPlaceholder() { throw std::exception("Not valid for DummyInputMethod."); }
-	std::wstring getTypedSentenceString() { throw std::exception("Not valid for DummyInputMethod."); }
-	std::wstring getSentencePreCursorString() { throw std::exception("Not valid for DummyInputMethod."); }
+	std::vector< std::wstring > getTypedSentenceStrings() { throw std::exception("Not valid for DummyInputMethod."); }
 	void appendToSentence(wchar_t letter, int id) { throw std::exception("Not valid for DummyInputMethod."); }
 	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings() { throw std::exception("Not valid for DummyInputMethod."); }
 	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset) { throw std::exception("Not valid for DummyInputMethod."); }

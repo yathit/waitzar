@@ -15,7 +15,7 @@ using std::wstring;
 
 //WARNING: This is currently COPIED in RomanInputMethod.cpp
 //TODO: C++ 0x, chaining constructors can eliminate this
-LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, string systemDefinedWords)
+LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, wstring systemDefinedWords)
 {
 	//Init
 	providingHelpFor = NULL;
@@ -196,16 +196,14 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam)
 
 
 
-wstring LetterInputMethod::getTypedSentenceString()
+vector<wstring> LetterInputMethod::getTypedSentenceStrings()
 {
-	return typedSentenceStr.str();
-}
-
-wstring LetterInputMethod::getSentencePreCursorString()
-{
-	//The cursor is always at the end
-	//TODO: Can change this?
-	return typedSentenceStr.str(); 
+	vector<wstring> res;
+	res.push_back(typedSentenceStr.str());
+	res.push_back(L"");
+	res.push_back(L"");
+	res.push_back(typedSentenceStr.str());
+	return res;
 }
 
 
