@@ -290,6 +290,9 @@ vector<wstring> RomanInputMethod::getTypedSentenceStrings()
 			//We're about to start the highlighted word.
 			res.push_back(line.str());
 			line.str(L"");
+
+			//CHANGE the current word to the pat-sint replacement.
+			currWord = model->getWordString(model->getPossibleWords()[0]);
 		} else if (currID==sentence->getCursorIndex()) {
 			//We're at the cursor
 			res.push_back(line.str());
