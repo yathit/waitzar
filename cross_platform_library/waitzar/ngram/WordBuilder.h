@@ -75,6 +75,7 @@ public:
 	std::wstring getWordKeyStrokes(unsigned int id, unsigned int encoding);
 	std::wstring getWordString(unsigned int id) const;
 	std::wstring getParenString() const;
+	bool hasPatSintWord() const; 
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull) const;

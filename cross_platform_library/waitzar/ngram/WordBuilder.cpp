@@ -672,6 +672,10 @@ int WordBuilder::getCurrSelectedID() const {
 	return currSelectedAbsoluteID - firstRegularWordIndex;
 }
 
+bool WordBuilder::hasPatSintWord() const {
+	return firstRegularWordIndex > 0;
+}
+
 
 //Returns true if the window is still visible.
 bool WordBuilder::backspace()
