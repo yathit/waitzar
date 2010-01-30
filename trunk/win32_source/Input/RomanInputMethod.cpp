@@ -292,10 +292,10 @@ vector<wstring> RomanInputMethod::getTypedSentenceStrings()
 			line.str(L"");
 		} else if (currID==sentence->getCursorIndex()) {
 			//We're at the cursor
-			if (res.size()==0)
-				res.push_back(L"");
 			res.push_back(line.str());
 			line.str(L"");
+			if (res.size()==1)
+				res.push_back(L"");
 		}
 
 		//Append the word
