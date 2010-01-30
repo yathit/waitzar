@@ -1804,14 +1804,12 @@ void recalculate()
 	//Draw each string, highlight the previous word if it's a pat-sint candidate.
 	int currPosX = borderWidth + 1;
 	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr[0], currPosX, borderWidth+1);
-	currPosX += mmFontSmallWhite->getStringWidth(dispSentenceStr[0]);
 	if (!dispSentenceStr[0].empty())
-		currPosX++;
+		currPosX += mmFontSmallWhite->getStringWidth(dispSentenceStr[0]) + 1;
 	sentenceWindow->drawString(mmFontSmallRed, dispSentenceStr[1], currPosX, borderWidth+1);
-	currPosX += mmFontSmallRed->getStringWidth(dispSentenceStr[1]);
 	if (!dispSentenceStr[1].empty())
-		currPosX++;
-	int cursorPosX = currPosX;
+		currPosX += mmFontSmallRed->getStringWidth(dispSentenceStr[1]) + 1;
+	int cursorPosX = currPosX++;  //+1 for the cursor
 	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr[2], currPosX, borderWidth+1);
 
 	//Draw the cursor
