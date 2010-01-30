@@ -3148,6 +3148,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	uni2Output       = new Uni2Uni();
 	uni2Disp         = new Uni2Uni();
 
+	//ALWAYS reset when you change inputs
+	currTypeInput->reset(true, true, true, true);
+	if (currHelpInput!=NULL)
+		currHelpInput->reset(true, true, true, true);
+
 
 	//Todo... find a better way of setting this (loadModel() and loadConfigOptions() clash)
 	//   Actually, this shold be fixed when we switch to the new config files
