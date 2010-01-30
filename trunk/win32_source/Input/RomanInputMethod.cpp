@@ -285,12 +285,8 @@ vector<wstring> RomanInputMethod::getTypedSentenceStrings()
 		int modID = -(*it)-1;
 		wstring currWord = (*it>0) ? model->getWordString(*it) : (modID<(int)systemDefinedWords.size()) ? wstring(1, systemDefinedWords[modID]) : userDefinedWords[modID-systemDefinedWords.size()];
 
-		//Append the word
-		line <<currWord;
-		full <<currWord;
-
 		//Have we reached a transition?
-		if (currID==sentence->getCursorIndex()-1 && model->getCurrSelectedID()==-1) {
+		if (currID==sentence->getCursorIndex()-1 && model->getCurrSelectedID()==-1 && model->hasPatSintWord()) {
 			//We're about to start the highlighted word.
 			res.push_back(line.str());
 			line.str(L"");
@@ -301,6 +297,10 @@ vector<wstring> RomanInputMethod::getTypedSentenceStrings()
 			res.push_back(line.str());
 			line.str(L"");
 		}
+
+		//Append the word
+		line <<currWord;
+		full <<currWord;
 
 		//Increment
 		currID++;
