@@ -152,13 +152,14 @@ Settings ConfigManager::getSettings()
 
 		//Parse each config file in turn.
 		//First: main config
-		this->readInConfig(this->mainConfig.json(), vector<wstring>(), WRITE_MAIN);
+		vector<wstring> ctxt;
+		this->readInConfig(this->mainConfig.json(), ctxt, WRITE_MAIN);
 
 		//Next: local and user configs
 		if (this->localConfig.isSet())
-			this->readInConfig(this->localConfig.json(), vector<wstring>(), WRITE_LOCAL);
+			this->readInConfig(this->localConfig.json(), ctxt, WRITE_LOCAL);
 		if (this->userConfig.isSet())
-			this->readInConfig(this->userConfig.json(), vector<wstring>(), WRITE_USER);
+			this->readInConfig(this->userConfig.json(), ctxt, WRITE_USER);
 
 		//Done
 		loadedSettings = true;
@@ -177,8 +178,9 @@ void ConfigManager::loadLanguageMainFiles()
 		throw std::exception("Must load settings before language main files.");
 
 	//Parse each language config file.
+	vector<wstring> ctxt;
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-		this->readInConfig(it->first.json(), vector<wstring>(), WRITE_MAIN);
+		this->readInConfig(it->first.json(), ctxt, WRITE_MAIN);
 	}
 
 	//Done
@@ -193,9 +195,10 @@ void ConfigManager::loadLanguageSubFiles()
 		throw std::exception("Must load settings before language sub files.");
 
 	//Parse each language config file.
+	vector<wstring> ctxt;
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 		for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-			this->readInConfig(it2->json(), vector<wstring>(), WRITE_MAIN);
+			this->readInConfig(it2->json(), ctxt, WRITE_MAIN);
 		}
 	}
 
@@ -225,36 +228,35 @@ vector<wstring> ConfigManager::getLanguages()
 }
 
 
-void ConfigManager::readInConfig(wValue root, vector<wstring> context, WRITE_OPTS writeTo) 
+//Note: Context is managed automatically; never copied.
+void ConfigManager::readInConfig(wValue root, vector<wstring> &context, WRITE_OPTS writeTo) 
 {
 	//We always operate on maps:
 	json_spirit::Value_type t = root.type();
 	wObject currPairs = root.get_value<wObject>();
-	vector<wstring> newContext = context;
 	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
- 		//Construct the new context
-		//TODO: Separate dotted strings out here...
+ 		//Append to the context
 		int numToRemove = 0;
 		{
 		vector<wstring> opts = separate(sanitize_id(itr->name_), L'.');
-		newContext.insert(newContext.end(), opts.begin(), opts.end());
+		context.insert(context.end(), opts.begin(), opts.end());
 		numToRemove = opts.size();
 		}
 
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
 			//Inductive case: Continue reading all options under this type
-			this->readInConfig(itr->value_, newContext, writeTo);
+			this->readInConfig(itr->value_, context, writeTo);
 		} else if (itr->value_.type()==str_type) {
 			//Base case: the "value" is also a string (set the property)
-			this->setSingleOption(newContext, sanitize(itr->value_.get_value<std::wstring>()), writeTo);
+			this->setSingleOption(context, sanitize(itr->value_.get_value<std::wstring>()), writeTo);
 		} else {
 			throw std::exception("ERROR: Config file options should always be string or hash types.");
 		}
 
 		//Remove, get ready for the next option
 		while (numToRemove>0) {
-			newContext.pop_back();
+			context.pop_back();
 			numToRemove--;
 		}
 	}

@@ -168,7 +168,7 @@ public:
 
 
 private:
-	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> context, WRITE_OPTS writeTo);
+	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> &context, WRITE_OPTS writeTo);
 	bool read_bool(const std::wstring& str);
 	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, WRITE_OPTS writeTo);
 
