@@ -230,13 +230,15 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> context, WRITE_OPT
 	//We always operate on maps:
 	json_spirit::Value_type t = root.type();
 	wObject currPairs = root.get_value<wObject>();
+	vector<wstring> newContext = context;
 	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
  		//Construct the new context
 		//TODO: Separate dotted strings out here...
-		vector<wstring> newContext = context;
+		int numToRemove = 0;
 		{
 		vector<wstring> opts = separate(sanitize_id(itr->name_), L'.');
 		newContext.insert(newContext.end(), opts.begin(), opts.end());
+		numToRemove = opts.size();
 		}
 
 		//React to this option/category
@@ -248,6 +250,12 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> context, WRITE_OPT
 			this->setSingleOption(newContext, sanitize(itr->value_.get_value<std::wstring>()), writeTo);
 		} else {
 			throw std::exception("ERROR: Config file options should always be string or hash types.");
+		}
+
+		//Remove, get ready for the next option
+		while (numToRemove>0) {
+			newContext.pop_back();
+			numToRemove--;
 		}
 	}
 }
