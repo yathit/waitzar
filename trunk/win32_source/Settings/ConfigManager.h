@@ -126,9 +126,6 @@ struct Language {
 	bool operator<(const Language& other) const {
 		return id < other.id;
 	}
-	bool operator<(const std::wstring& other) const {
-		return id < other;
-	}
 
 	//Allow logical equals and not equals
 	bool operator==(const Language &other) const {
@@ -136,6 +133,14 @@ struct Language {
 	}
 	bool operator!=(const Language &other) const {
 		return id != other.id;
+	}
+
+	//Allow eq/neq on strings, too
+	bool operator==(const std::wstring& other) const {
+		return id == other;
+	}
+	bool operator!=(const std::wstring& other) const {
+		return id != other;
 	}
 };
 struct OptionTree {
@@ -223,6 +228,20 @@ private:
 	//The actual representation
 	OptionTree options;
 };
+
+
+
+//Find and return an item in a Set, indxed only by its wstring
+template <class T> 
+typename std::set<T>::iterator FindKeyInSet(std::set<T>& container, const std::wstring& key)
+{
+	std::set<T>::iterator it=container.begin();
+	for (; it!=container.end(); it++)  {
+		if ((*it) == key)
+			break;
+	}
+	return it;
+}
 
 
 
