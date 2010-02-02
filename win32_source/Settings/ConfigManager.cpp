@@ -114,19 +114,50 @@ void ConfigManager::initUserConfig(const std::string& configFile)
 
 void ConfigManager::resolvePartialSettings()
 {
-	//For each language
-	for (std::map<std::wstring, Language>::iterator langIt=options.languages.begin(); langIt!=options.languages.end(); langIt++) {
-		//Save its key if this is a DummyInputMethod
-		std::vector<std::wstring> keysToChange;
-		for (std::map<std::wstring, InputMethod*>::iterator imIt=langIt->second.inputMethods.begin(); imIt!=langIt->second.inputMethods.end(); imIt++) {
-			if (imIt->second->isPlaceholder())
-				keysToChange.push_back(imIt->first);
+	//TODO: Make this cleaner
+	unsigned int PART_INPUT = 0;
+	unsigned int PART_ENC = 1;
+	unsigned int PART_TRANS = 2;
+	unsigned int PART_DISP = 3;
+
+	//For each option
+	for (unsigned int i=PART_INPUT; i<=PART_DISP; i++) {
+		std::map<std::wstring, std::map<std::wstring, std::wstring> >& currMap = i==PART_INPUT ? partialInputMethods : i==PART_ENC ? partialEncodings : i==PART_TRANS ? partialTransformations : partialDisplayMethods;
+		for (std::map<std::wstring, std::map<std::wstring, std::wstring> >::iterator it=currMap.begin(); it!=currMap.end(); it++) {
+			//Get the language and identifier
+			wstring lang;
+			wstring id;
+			std::wstringstream item;
+			for (size_t pos=0; pos<it->first.size(); pos++) {
+				if (it->first[pos]==L'.') {
+					lang = item.str();
+					item.str(L"");
+				} else 
+					item <<it->first[pos];
+			}
+			id = item.str();
+
+			//Call the factory method, add it to the current language
+			//TODO: Figure out a way around this nonsense.
+			Language t;
+			t.id = lang;
+			std::set<Language>::iterator langIT = options.languages.find(t);
+			if (langIT==options.languages.end())
+				options.languages.insert(t);
+			langIT = options.languages.find(t);
+			//TODO: Streamline 
+			if (i==PART_INPUT)
+				langIT->inputMethods.insert(WZFactory::makeInputMethod(id, it->second));
+			else if (i==PART_ENC) 
+				langIT->encodings.insert(WZFactory::makeEncoding(id, it->second));
+			else if (i==PART_TRANS) 
+				langIT->transformations.insert(WZFactory::makeTransformation(id, it->second));
+			else if (i==PART_DISP) 
+				langIT->displayMethods.insert(WZFactory::makeDisplayMethod(id, it->second));
 		}
 
-		//Now, transform and set
-		for (vector<wstring>::iterator imIt=keysToChange.begin(); imIt!=keysToChange.end(); imIt++) {
-			langIt->second.inputMethods[*imIt] = WZFactory::makeInputMethod(*imIt, ((DummyInputMethod*)langIt->second.inputMethods[*imIt]));
-		}
+		//Clear all entries from this map
+		currMap.clear();
 	}
 }
 
@@ -135,14 +166,14 @@ void ConfigManager::resolvePartialSettings()
 void ConfigManager::testAllFiles() {
 	getSettings();
 	getLanguages();
-	getEncodings();
-	getInputManagers();
+	//getEncodings();
+	//getInputManagers();
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
 }
 
 
-Settings ConfigManager::getSettings() 
+const Settings& ConfigManager::getSettings() 
 {
 	//Load if needed
 	if (!loadedSettings) {
@@ -153,13 +184,13 @@ Settings ConfigManager::getSettings()
 		//Parse each config file in turn.
 		//First: main config
 		vector<wstring> ctxt;
-		this->readInConfig(this->mainConfig.json(), ctxt, WRITE_MAIN);
+		this->readInConfig(this->mainConfig.json(), ctxt, false);
 
 		//Next: local and user configs
 		if (this->localConfig.isSet())
-			this->readInConfig(this->localConfig.json(), ctxt, WRITE_LOCAL);
+			this->readInConfig(this->localConfig.json(), ctxt, true);
 		if (this->userConfig.isSet())
-			this->readInConfig(this->userConfig.json(), ctxt, WRITE_USER);
+			this->readInConfig(this->userConfig.json(), ctxt, true);
 
 		//Done
 		loadedSettings = true;
@@ -180,7 +211,7 @@ void ConfigManager::loadLanguageMainFiles()
 	//Parse each language config file.
 	vector<wstring> ctxt;
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-		this->readInConfig(it->first.json(), ctxt, WRITE_MAIN);
+		this->readInConfig(it->first.json(), ctxt, false);
 	}
 
 	//Done
@@ -198,7 +229,7 @@ void ConfigManager::loadLanguageSubFiles()
 	vector<wstring> ctxt;
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 		for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-			this->readInConfig(it2->json(), ctxt, WRITE_MAIN);
+			this->readInConfig(it2->json(), ctxt, false);
 		}
 	}
 
@@ -207,29 +238,34 @@ void ConfigManager::loadLanguageSubFiles()
 }
 
 
-vector<wstring> ConfigManager::getLanguages()  
+const std::set<Language>& ConfigManager::getLanguages()  
 {
 	//Languages can ONLY be defined in top-level language directories.
 	//  So we don't need to load user-defined plugins yet. 
+	//TODO: Why 2 flags?
 	if (!this->loadedLanguageMainFiles)
 		this->loadLanguageMainFiles();
+	if (!this->loadedLanguageSubFiles)
+		this->loadLanguageSubFiles();
 
 	//Now, build our cache (if necessary)
 	//  Our algorithm is wasteful if there are no languages defined,
 	//  but this is minor (if there are no languages defined, the program
 	//  won't really function anyway).
-	if (this->cachedLanguages.empty()) {
+	/*if (this->cachedLanguages.empty()) {
 		for (std::map<wstring, Language>::iterator it=options.languages.begin(); it!=options.languages.end(); it++) {
 			this->cachedLanguages.push_back(it->first);
 		}
-	}
+	}*/
 
-	return this->cachedLanguages;
+	//return this->cachedLanguages;
+	return this->options.languages;
 }
 
 
 //Note: Context is managed automatically; never copied.
-void ConfigManager::readInConfig(wValue root, vector<wstring> &context, WRITE_OPTS writeTo) 
+//Restricted means don't load new languages, etc.
+void ConfigManager::readInConfig(wValue root, vector<wstring> &context, bool restricted) 
 {
 	//We always operate on maps:
 	json_spirit::Value_type t = root.type();
@@ -246,10 +282,10 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> &context, WRITE_OP
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
 			//Inductive case: Continue reading all options under this type
-			this->readInConfig(itr->value_, context, writeTo);
+			this->readInConfig(itr->value_, context, restricted);
 		} else if (itr->value_.type()==str_type) {
 			//Base case: the "value" is also a string (set the property)
-			this->setSingleOption(context, sanitize(itr->value_.get_value<std::wstring>()), writeTo);
+			this->setSingleOption(context, sanitize(itr->value_.get_value<std::wstring>()), restricted);
 		} else {
 			throw std::exception("ERROR: Config file options should always be string or hash types.");
 		}
@@ -263,7 +299,7 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> &context, WRITE_OP
 }
 
 
-void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstring& value, WRITE_OPTS writeTo)
+void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstring& value, bool restricted)
 {
 	//Read each "context" setting from left to right. Context settings are separated by periods. 
 	//   Note: There are much faster/better ways of doing this, but for now we'll keep all the code
@@ -280,7 +316,6 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 				throw 1;
 
 			//Set this based on name/value pair
-			//TODO: Need to re-do this so that it calls "setVar(), setLoc() or setUsr()".
 			if (name[1] == L"hotkey")
 				options.settings.hotkey = sanitize_id(value);
 			else if (name[1] == sanitize_id(L"silence-mywords-errors"))
@@ -305,52 +340,69 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 
 			//Get the language id
 			wstring langName = name[1];
+			//TODO: Clean up.
+			Language t;
+			t.id = langName;
+			std::set<Language>::iterator langIT = options.languages.find(t);
+			if (restricted && langIT==options.languages.end()==0)
+				throw std::exception("Cannot create a new Language in user or system-local config files.");
 
 			//Static settings
 			if (name[2] == sanitize_id(L"display-name"))
-				options.languages[langName].displayName = value;
+				langIT->displayName = value;
 			else if (name[2] == sanitize_id(L"default-output-encoding"))
-				options.languages[langName].defaultOutputEncoding = sanitize_id(value);
+				langIT->defaultOutputEncoding = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-display-method"))
-				options.languages[langName].defaultDisplayMethod = sanitize_id(value);
+				langIT->defaultDisplayMethod = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-input-method"))
-				options.languages[langName].defaultInputMethod = sanitize_id(value);
+				langIT->defaultInputMethod = sanitize_id(value);
 			else {
 				//Need to finish all partial settings
 				if (name.size()<=4)
 					throw 1;
 
 				//Dynamic settings
+				//Todo: Make this slightly less wordy.
 				if (name[2] == sanitize_id(L"input-methods")) {
 					//Input methods
-
-					//Get the name
 					wstring inputName = name[3];
 
-					//Add it if it doesn't exist
-					if (options.languages[langName].inputMethods.count(inputName)==0)
-						options.languages[langName].inputMethods[inputName] = new DummyInputMethod();
+					//Allowed to add new Input Methods?
+					if (langIT->inputMethods.count(inputName)==0 && restricted)
+						throw std::exception("Cannot create a new Input Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					DummyInputMethod* im = ((DummyInputMethod*)options.languages[langName].inputMethods[inputName]);
-					Option<wstring> opt = im->options[sanitize_id(name[4])];
-
-					//Hmm... maybe redo this later
-					if (writeTo == WRITE_MAIN)
-						opt.setVal(value);
-					else if (writeTo == WRITE_USER)
-						opt.setUsr(value);
-					else if (writeTo == WRITE_LOCAL)
-						opt.setLoc(value);
+					partialInputMethods[langName + L"." + inputName][sanitize_id(name[4])] = value;
 				} else if (name[2] == sanitize_id(L"encodings")) {
 					//Encodings
+					wstring encName = name[3];
 
+					//Allowed to add new Encodings?
+					if (options.languages[langName].encodings.count(encName)==0 && restricted)
+						throw std::exception("Cannot create a new Encoding in user or system-local config files.");
+
+					//Just save all its options. Then, call a Factory method when this is all done
+					partialEncodings[langName + L"." + encName][sanitize_id(name[4])] = value;
 				} else if (name[2] == sanitize_id(L"tranformations")) {
 					//Transformations
+					wstring transName = name[3];
 
+					//Allowed to add new Transformations?
+					if (options.languages[langName].transformations.count(transName)==0 && restricted)
+						throw std::exception("Cannot create a new Tranformation in user or system-local config files.");
+
+					//Just save all its options. Then, call a Factory method when this is all done
+					partialTransformations[langName + L"." + transName][sanitize_id(name[4])] = value;
 				} else if (name[2] == sanitize_id(L"display-methods")) {
 					//Display methods
+					wstring dispMethod = name[3];
 
+					//Allowed to add new Display Method?
+					if (options.languages[langName].displayMethods.count(dispMethod)==0 && restricted)
+						throw std::exception("Cannot create a new Display Method in user or system-local config files.");
+
+					//Just save all its options. Then, call a Factory method when this is all done
+					partialDisplayMethods[langName + L"." + dispMethod][sanitize_id(name[4])] = value;
 				} else {
 					//Error
 					throw 1;
@@ -429,10 +481,10 @@ void ConfigManager::loc_to_lower(std::wstring& str)
 
 
 //Not yet defined:
-vector<wstring> ConfigManager::getInputManagers() {vector<wstring> res; return res;}
-vector<wstring> ConfigManager::getEncodings() {vector<wstring> res; return res;}
-wstring ConfigManager::getActiveLanguage() const {return L"";}
-void ConfigManager::changeActiveLanguage(const wstring& newLanguage) {}
+//vector<wstring> ConfigManager::getInputManagers() {vector<wstring> res; return res;}
+//vector<wstring> ConfigManager::getEncodings() {vector<wstring> res; return res;}
+//wstring ConfigManager::getActiveLanguage() const {return L"";}
+//void ConfigManager::changeActiveLanguage(const wstring& newLanguage) {}
 
 
 

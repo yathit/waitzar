@@ -21,21 +21,20 @@ WZFactory::~WZFactory(void)
 {
 }
 
-
-InputMethod* WZFactory::makeInputMethod(wstring id, DummyInputMethod* candidate)
+InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
-	InputMethod* res = NULL;
+	InputMethod res = NULL;
 
 	//Check some required settings 
-	if (candidate->options.count(L"type")==0)
+	if (options.count(L"type")==0)
 		throw std::exception("Cannot construct input manager: no \"type\"");
-	if (candidate->options.count(L"encoding")==0)
+	if (options.count(L"encoding")==0)
 		throw std::exception("Cannot construct input manager: no \"encoding\"");
-	if (candidate->options.count(sanitize_id(L"display-name"))==0)
+	if (options.count(sanitize_id(L"display-name"))==0)
 		throw std::exception("Cannot construct input manager: no \"display-name\"");
 
 	//First, the type is important
-	if (sanitize_id(candidate->options[L"type"].get()) == L"builtin") {
+	if (res.type == L"builtin") {
 		//Built-in types are known entirely by our core code
 		vector< pair<int, unsigned short> > temp; //TODO: Remove
 		if (id==L"waitzar")
@@ -44,17 +43,15 @@ InputMethod* WZFactory::makeInputMethod(wstring id, DummyInputMethod* candidate)
 			res = new WaitZar(temp); //TODO: Change!
 		else
 			throw std::exception("Invalid \"builtin\" Input Manager.");
+		res.type = BUILTIN;
 	} else {
 		throw std::exception("Invalid \"type\" for Input Manager.");
 	}
 
 	//Now, add general settings
-	res->displayName = candidate->options[sanitize_id(L"display-name")];
-	res->encoding = candidate->options[L"encoding"];
-	if (candidate->options[L"type"].get() == L"builtin")
-		res->type = BUILTIN;
-	else 
-		throw std::exception("Unknown \"type\" for Input Manager.");
+	res.id = id;
+	res.displayName = options[sanitize_id(L"display-name")];
+	res.encoding = options[L"encoding"];
 
 	//Return our resultant IM
 	return res;
@@ -74,6 +71,11 @@ Transformation* WZFactory::makeTransformation(std::wstring id, TYPES type, std::
 	return new Zg2Uni();
 }
 
+Encoding WZFactory::makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
+{
+	//For now.
+	return Encoding();
+}
 
 //Move this later
 std::wstring WZFactory::sanitize_id(const std::wstring& str)

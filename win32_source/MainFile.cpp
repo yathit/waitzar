@@ -1758,7 +1758,7 @@ void recalculate()
 {
 	//Convert the current input string to the internal encoding, and then convert it to the display encoding.
 	//  We can short-circuit this if the output and display encodings are the same.
-	bool noEncChange = (currDisplay->encoding.get()==currInput->encoding.get());
+	bool noEncChange = (currDisplay->encoding==currInput->encoding);
 	std::wstring dispRomanStr = noEncChange ? currInput->getTypedRomanString() : uni2Disp->convert(input2Uni->convert(currInput->getTypedRomanString()));
 	//std::wstring dispSentencePreCursorStr = noEncChange ? currInput->getSentencePreCursorString() : uni2Disp->convert(input2Uni->convert(currInput->getSentencePreCursorString()));
 
@@ -1894,7 +1894,7 @@ void typeCurrentPhrase()
 	SetActiveWindow(fore); //This probably won't do anything, since we're not attached to this window's message queue.
 
 	//Convert to the right encoding
-	bool noEncChange = (uni2Output->toEncoding.get()==currInput->encoding.get());
+	bool noEncChange = (uni2Output->toEncoding==currInput->encoding);
 	wstring keyStrokes = noEncChange ? currInput->getTypedSentenceStrings()[3] : uni2Output->convert(input2Uni->convert(currInput->getTypedSentenceStrings()[3]));
 
 
@@ -2990,17 +2990,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Settings s = config.getSettings();
 	wstringstream msg;
 	msg << "Settings" <<std::endl;
-	msg << "Always elevate: " <<s.alwaysElevate.get() <<std::endl;
-	msg << "Balloon start: " <<s.balloonStart.get() <<std::endl;
-	msg << "Lock windows: " <<s.lockWindows.get() <<std::endl;
-	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors.get() <<std::endl;
-	msg << "Track caret: " <<s.trackCaret.get() <<std::endl;
-	msg << "Hotkey: " <<s.hotkey.get() <<std::endl;
+	msg << "Always elevate: " <<s.alwaysElevate <<std::endl;
+	msg << "Balloon start: " <<s.balloonStart <<std::endl;
+	msg << "Lock windows: " <<s.lockWindows <<std::endl;
+	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors <<std::endl;
+	msg << "Track caret: " <<s.trackCaret <<std::endl;
+	msg << "Hotkey: " <<s.hotkey <<std::endl;
 	msg << "---------------------" <<std::endl;
 	msg << "Languages" <<std::endl;
-	std::vector<std::wstring> langs = config.getLanguages();
-	for (std::vector<std::wstring>::iterator s=langs.begin(); s!=langs.end(); s++)
-		msg <<"   " << *s <<std::endl;
+	std::set<Language> langs = config.getLanguages();
+	for (std::set<Language>::iterator s=langs.begin(); s!=langs.end(); s++)
+		msg <<"   " << s->displayName <<std::endl;
 	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
 
 
@@ -3151,11 +3151,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Set defaults
 	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords); //tmp; load from config
 	((RomanInputMethod*)currTypeInput)->init(model, sentence, typeBurmeseNumbers);
-	currTypeInput->encoding.setVal(L"zawgyi");
+	currTypeInput->encoding = L"zawgyi";
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;
 	currDisplay      = new PngFont(); //tmp; load from config
-	currDisplay->encoding.setVal(L"zawgyi");
+	currDisplay->encoding = L"zawgyi";
 	input2Uni        = new Uni2Uni();
 	uni2Output       = new Uni2Uni();
 	uni2Disp         = new Uni2Uni();
