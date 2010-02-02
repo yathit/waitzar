@@ -15,66 +15,76 @@
 
 //A struct... will refactor into separate classes later.
 struct Encoding {
-	Option<std::wstring> displayName;
-	Option<std::wstring> initial;
-	Option<std::wstring> imagePath;
-};
+	std::wstring id;
+	std::wstring displayName;
+	std::wstring initial;
+	std::wstring imagePath;
 
+	//Allow map comparison 
+	bool operator<(const Encoding& other) const {
+		return id < other.id;
+	}
 
-class DummyInputMethod : public InputMethod { //Used to save option pairs.
-public:
-	std::map< std::wstring, Option<std::wstring> > options;
-
-	//So many more... can't we do this better?
-	void handleEsc() { throw std::exception("Not valid for DummyInputMethod."); }
-	void handleBackspace() { throw std::exception("Not valid for DummyInputMethod."); }
-	void handleDelete() { throw std::exception("Not valid for DummyInputMethod."); }
-	void handleLeftRight(bool isRight) { throw std::exception("Not valid for DummyInputMethod."); }
-	void handleCommit(bool strongCommit) { throw std::exception("Not valid for DummyInputMethod."); }
-	void handleNumber(int numCode, WPARAM wParam) { throw std::exception("Not valid for DummyInputMethod."); }
-	void handleStop(bool isFull) { throw std::exception("Not valid for DummyInputMethod."); }
-	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID) { throw std::exception("Not valid for DummyInputMethod."); }
-	std::pair<int, std::string> lookupWord(std::wstring typedWord) { throw std::exception("Not valid for DummyInputMethod."); }
-	bool isPlaceholder() { throw std::exception("Not valid for DummyInputMethod."); }
-	std::vector< std::wstring > getTypedSentenceStrings() { throw std::exception("Not valid for DummyInputMethod."); }
-	void appendToSentence(wchar_t letter, int id) { throw std::exception("Not valid for DummyInputMethod."); }
-	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings() { throw std::exception("Not valid for DummyInputMethod."); }
-	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset) { throw std::exception("Not valid for DummyInputMethod."); }
+	//Allow logical equals and not equals
+	bool operator==(const Encoding &other) const {
+		return id == other.id;
+	}
+	bool operator!=(const Encoding &other) const {
+		return id != other.id;
+	}
 };
 
 //Expected interface: "Input Method"
 class Transformation {
 public:
 	//Struct-like properties
-	Option<std::wstring> fromEncoding;
-	Option<std::wstring> toEncoding;
-	Option<TYPES> type;
+	std::wstring id;
+	std::wstring fromEncoding;
+	std::wstring toEncoding;
+	TYPES type;
 
 	//Convert from fromEncoding to toEncoding.
 	//  The const references allow us to save processing if the source and destination are the same.
 	const virtual std::wstring& convert(const std::wstring& src) = 0;
+
+	//Allow map comparison 
+	bool operator<(const Transformation& other) const {
+		return id < other.id;
+	}
+
+	//Allow logical equals and not equals
+	bool operator==(const Transformation &other) const {
+		return id == other.id;
+	}
+	bool operator!=(const Transformation &other) const {
+		return id != other.id;
+	}
 };
 
 //Expected interface: "Display Method"
 class DisplayMethod {
 public:
 	//Struct-like properties
-	Option<std::wstring> encoding;
-	Option<TYPES> type;
+	std::wstring id;
+	std::wstring encoding;
+	TYPES type;
 
 	//Temp for now: just force this to be virtual
 	virtual void typeText() = 0;
+
+	//Allow map comparison 
+	bool operator<(const DisplayMethod& other) const {
+		return id < other.id;
+	}
+
+	//Allow logical equals and not equals
+	bool operator==(const DisplayMethod &other) const {
+		return id == other.id;
+	}
+	bool operator!=(const DisplayMethod &other) const {
+		return id != other.id;
+	}
 };
-
-
-//Expected interface: "Factory"   //Not necessary
-/*class Factory {
-public:
-	//Builders for each other interface
-	virtual InputMethod* makeInputMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
-	virtual DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
-	virtual Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings) = 0;
-};*/
 
 
 

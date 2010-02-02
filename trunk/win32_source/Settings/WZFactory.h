@@ -26,9 +26,10 @@ public:
 	~WZFactory(void);
 
 	//Builders
-	static InputMethod* makeInputMethod(std::wstring id, DummyInputMethod* candidate);
-	static DisplayMethod* makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
-	static Transformation* makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings);
+	static InputMethod* makeInputMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
+	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
+	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
+	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 
 	//Ugh
 	static std::wstring sanitize_id(const std::wstring& str);

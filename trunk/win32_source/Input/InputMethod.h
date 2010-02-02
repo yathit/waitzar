@@ -15,40 +15,6 @@
 
 
 
-//Simple class to manage our overriding options
-//TODO: Eventually move this into its own file? I keep having to pass this around to the earliest-loaded file.
-template <class T>
-class Option {
-public:
-	Option(T val=T())
-	{
-		this->value = val;
-		this->local = T();
-		this->user = T();
-		this->localSet = false;
-		this->userSet = false;
-	}
-	T get() const {
-		return userSet ? user : localSet ? local : value;
-	}
-	void setVal(T val) {
-		this->value = val;
-	}
-	void setLoc(T val) {
-		this->local = val;
-		this->localSet = true;
-	}
-	void setUsr(T val) {
-		this->user = val;
-		this->userSet = true;
-	}
-private:
-	T value;
-	T local;
-	bool localSet;
-	T user;
-	bool userSet;
-};
 
 //Global "Types" enum
 enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
@@ -61,10 +27,25 @@ public:
 	InputMethod();
 	virtual ~InputMethod();
 
+	//Allow map comparison 
+	bool operator<(const InputMethod& other) const {
+		return id < other.id;
+	}
+
+	//Allow logical equals and not equals
+	bool operator==(const InputMethod &other) const {
+		return id == other.id;
+	}
+	bool operator!=(const InputMethod &other) const {
+		return id != other.id;
+	}
+
+public:
 	//Struct-like properties
-	Option<std::wstring> displayName;
-	Option<std::wstring> encoding;
-	Option<TYPES> type;
+	std::wstring id;
+	std::wstring displayName;
+	std::wstring encoding;
+	TYPES type;
 
 	//Useful functionality
 	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor);
@@ -130,7 +111,7 @@ public:  //Abstract methods
 	//Is this class a placeholder, or is it a real IM?
 	//   There are other ways to do this, but it's nice to 
 	//   have a way of double-checking.
-	virtual bool isPlaceholder() = 0; 
+	//virtual bool isPlaceholder() = 0; 
 
 	//Get strings to print, always in unicode
 	//The current typed string (sentence string). 

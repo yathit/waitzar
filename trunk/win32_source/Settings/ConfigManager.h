@@ -8,6 +8,7 @@
 #define _CONFIGMANAGER
 
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <limits>
 #include <functional>
@@ -99,31 +100,49 @@ private:
 
 //Options for our ConfigManager class
 struct Settings {
-	Option<std::wstring> hotkey;
-	Option<bool> silenceMywordsErrors;
-	Option<bool> balloonStart;
-	Option<bool> alwaysElevate;
-	Option<bool> trackCaret;
-	Option<bool> lockWindows;
+	//Simple
+	std::wstring hotkey;
+	bool silenceMywordsErrors;
+	bool balloonStart;
+	bool alwaysElevate;
+	bool trackCaret;
+	bool lockWindows;
 };
 struct Language {
-	Option<std::wstring> displayName;
-	Option<std::wstring> defaultOutputEncoding;
-	Option<std::wstring> defaultDisplayMethod;
-	Option<std::wstring> defaultInputMethod;
-	std::map<std::wstring, InputMethod*> inputMethods;
-	std::map<std::wstring, Encoding> encodings;
-	std::map<std::wstring, Transformation*> transformations;
-	std::map<std::wstring, DisplayMethod*> displayMethods;
+	//Simple
+	std::wstring id;
+	std::wstring displayName;
+	std::wstring defaultOutputEncoding;
+	std::wstring defaultDisplayMethod;
+	std::wstring defaultInputMethod;
+
+	//Structured
+	std::set<InputMethod*>    inputMethods;
+	std::set<Encoding>        encodings;
+	std::set<Transformation*> transformations;
+	std::set<DisplayMethod*>  displayMethods;
+
+	//Allow map comparison 
+	bool operator<(const Language& other) const {
+		return id < other.id;
+	}
+	bool operator<(const std::wstring& other) const {
+		return id < other;
+	}
+
+	//Allow logical equals and not equals
+	bool operator==(const Language &other) const {
+		return id == other.id;
+	}
+	bool operator!=(const Language &other) const {
+		return id != other.id;
+	}
 };
 struct OptionTree {
 	Settings settings;
-	std::map<std::wstring, Language> languages;
+	std::set<Language> languages;
 };
 
-
-//Utility enum
-enum WRITE_OPTS {WRITE_MAIN, WRITE_LOCAL, WRITE_USER};
 
 
 /**
@@ -148,14 +167,14 @@ public:
 	void resolvePartialSettings();
 
 	//Accessible by our outside class
-	Settings getSettings();
-	std::vector<std::wstring> getLanguages();
-	std::vector<std::wstring> getInputManagers();
-	std::vector<std::wstring> getEncodings();
+	const Settings& getSettings();
+	const std::set<Language>& getLanguages();
+	//std::set<InputManager> getInputManagers();
+	//std::set<Encoding> getEncodings();
 
 	//Control
-	std::wstring getActiveLanguage() const;
-	void changeActiveLanguage(const std::wstring& newLanguage);
+	//std::wstring getActiveLanguage() const;
+	//void changeActiveLanguage(const std::wstring& newLanguage);
 
 	//Quality control
 	void testAllFiles();
@@ -168,9 +187,9 @@ public:
 
 
 private:
-	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> &context, WRITE_OPTS writeTo);
+	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> &context, bool restricted);
 	bool read_bool(const std::wstring& str);
-	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, WRITE_OPTS writeTo);
+	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
 
 private:
 	//Our many config files.
@@ -189,9 +208,17 @@ private:
 	void loadLanguageSubFiles();
 
 	//And, useful caches.
-	std::vector<std::wstring> cachedLanguages;
-	std::vector<std::wstring> cachedInputManagers;
-	std::vector<std::wstring> cachedEncodings;
+	//std::vector<std::wstring> cachedLanguages;
+	//std::vector<std::wstring> cachedInputManagers;
+	//std::vector<std::wstring> cachedEncodings;
+
+	//Temporary option caches for constructing complex structures
+	//Will eventually be converted into real InputManager*, etc.
+	//Store as lang_name + "." + item_name, for fast lookup.
+	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialInputMethods;
+	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialEncodings;
+	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialTransformations;
+	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialDisplayMethods;
 
 	//The actual representation
 	OptionTree options;

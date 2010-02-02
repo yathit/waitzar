@@ -19,6 +19,7 @@ public:
 	//Destructor
 	~LetterInputMethod();
 
+
 	//Abstract implementation - keypresses
 	void handleEsc();
 	void handleBackspace();
