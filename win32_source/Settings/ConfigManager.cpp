@@ -125,12 +125,12 @@ void ConfigManager::resolvePartialSettings()
 		std::map<std::wstring, std::map<std::wstring, std::wstring> >& currMap = i==PART_INPUT ? partialInputMethods : i==PART_ENC ? partialEncodings : i==PART_TRANS ? partialTransformations : partialDisplayMethods;
 		for (std::map<std::wstring, std::map<std::wstring, std::wstring> >::iterator it=currMap.begin(); it!=currMap.end(); it++) {
 			//Get the language and identifier
-			wstring lang;
+			wstring langName;
 			wstring id;
 			std::wstringstream item;
 			for (size_t pos=0; pos<it->first.size(); pos++) {
 				if (it->first[pos]==L'.') {
-					lang = item.str();
+					langName = item.str();
 					item.str(L"");
 				} else 
 					item <<it->first[pos];
@@ -138,22 +138,19 @@ void ConfigManager::resolvePartialSettings()
 			id = item.str();
 
 			//Call the factory method, add it to the current language
-			//TODO: Figure out a way around this nonsense.
-			Language t;
-			t.id = lang;
-			std::set<Language>::iterator langIT = options.languages.find(t);
-			if (langIT==options.languages.end())
-				options.languages.insert(t);
-			langIT = options.languages.find(t);
+			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			if (lang==options.languages.end())
+				throw std::exception("Language expected but not found..");
+
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				langIT->inputMethods.insert(WZFactory::makeInputMethod(id, it->second));
+				lang->inputMethods.insert(WZFactory::makeInputMethod(id, it->second));
 			else if (i==PART_ENC) 
-				langIT->encodings.insert(WZFactory::makeEncoding(id, it->second));
+				lang->encodings.insert(WZFactory::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) 
-				langIT->transformations.insert(WZFactory::makeTransformation(id, it->second));
+				lang->transformations.insert(WZFactory::makeTransformation(id, it->second));
 			else if (i==PART_DISP) 
-				langIT->displayMethods.insert(WZFactory::makeDisplayMethod(id, it->second));
+				lang->displayMethods.insert(WZFactory::makeDisplayMethod(id, it->second));
 		}
 
 		//Clear all entries from this map
@@ -340,22 +337,23 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 
 			//Get the language id
 			wstring langName = name[1];
-			//TODO: Clean up.
-			Language t;
-			t.id = langName;
-			std::set<Language>::iterator langIT = options.languages.find(t);
-			if (restricted && langIT==options.languages.end()==0)
-				throw std::exception("Cannot create a new Language in user or system-local config files.");
+			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			if (lang==options.languages.end()) {
+				if(restricted)
+					throw std::exception("Cannot create a new Language in user or system-local config files.");
+				else
+					lang = options.languages.insert(Language()).first;
+			}
 
 			//Static settings
 			if (name[2] == sanitize_id(L"display-name"))
-				langIT->displayName = value;
+				lang->displayName = value;
 			else if (name[2] == sanitize_id(L"default-output-encoding"))
-				langIT->defaultOutputEncoding = sanitize_id(value);
+				lang->defaultOutputEncoding = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-display-method"))
-				langIT->defaultDisplayMethod = sanitize_id(value);
+				lang->defaultDisplayMethod = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-input-method"))
-				langIT->defaultInputMethod = sanitize_id(value);
+				lang->defaultInputMethod = sanitize_id(value);
 			else {
 				//Need to finish all partial settings
 				if (name.size()<=4)
@@ -368,7 +366,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 					wstring inputName = name[3];
 
 					//Allowed to add new Input Methods?
-					if (langIT->inputMethods.count(inputName)==0 && restricted)
+					if (FindKeyInSet(lang->inputMethods, inputName)==lang->inputMethods.end() && restricted)
 						throw std::exception("Cannot create a new Input Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
@@ -378,7 +376,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 					wstring encName = name[3];
 
 					//Allowed to add new Encodings?
-					if (options.languages[langName].encodings.count(encName)==0 && restricted)
+					if (FindKeyInSet(lang->encodings, encName)==lang->encodings.end() && restricted)
 						throw std::exception("Cannot create a new Encoding in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
@@ -388,7 +386,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 					wstring transName = name[3];
 
 					//Allowed to add new Transformations?
-					if (options.languages[langName].transformations.count(transName)==0 && restricted)
+					if (FindKeyInSet(lang->transformations, transName)==lang->transformations.end() && restricted)
 						throw std::exception("Cannot create a new Tranformation in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
@@ -398,7 +396,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 					wstring dispMethod = name[3];
 
 					//Allowed to add new Display Method?
-					if (options.languages[langName].displayMethods.count(dispMethod)==0 && restricted)
+					if (FindKeyInSet(lang->displayMethods, dispMethod)==lang->displayMethods.end() && restricted)
 						throw std::exception("Cannot create a new Display Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
