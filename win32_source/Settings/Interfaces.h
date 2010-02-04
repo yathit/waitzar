@@ -82,7 +82,6 @@ class DisplayMethod {
 public:
 	//Struct-like properties
 	std::wstring id;
-	std::wstring displayName;
 	std::wstring encoding;
 	TYPES type;
 

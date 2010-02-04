@@ -60,27 +60,93 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<s
 
 DisplayMethod* WZFactory::makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
-	//For now
-	PngFont* res = new PngFont();
+	DisplayMethod* res = NULL;
+
+	//Check some required settings 
+	if (options.count(L"type")==0)
+		throw std::exception("Cannot construct display method: no \"type\"");
+	if (options.count(L"encoding")==0)
+		throw std::exception("Cannot construct display method: no \"encoding\"");
+
+	//First, generate an actual object, based on the type.
+	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
+		//Built-in types are known entirely by our core code
+		if (id==L"zawgyibmp")
+			res = new PngFont();
+		else
+			throw std::exception("Invalid \"builtin\" Display Method.");
+		res->type = BUILTIN;
+	} else {
+		throw std::exception("Invalid \"type\" for Display Method.");
+	}
+
+	//Now, add general settings
 	res->id = id;
+	res->encoding = options.find(L"encoding")->second;
+
+	//Return our resultant DM
 	return res;
 }
 
 
 Transformation* WZFactory::makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
-	//For now
-	Zg2Uni* i = new Zg2Uni();
-	i->id = id;
-	return i;
+	Transformation* res = NULL;
+
+	//Check some required settings 
+	if (options.count(L"type")==0)
+		throw std::exception("Cannot construct transformation: no \"type\"");
+	if (options.count(sanitize_id(L"from-encoding"))==0)
+		throw std::exception("Cannot construct transformation: no \"from-encoding\"");
+	if (options.count(sanitize_id(L"to-encoding"))==0)
+		throw std::exception("Cannot construct transformation: no \"to-encoding\"");
+
+	//First, generate an actual object, based on the type.
+	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
+		//Built-in types are known entirely by our core code
+		if (id==L"uni2zg")
+			res = new Uni2Uni();   //TODO: Implement
+		else if (id==L"uni2wi")
+			res = new Uni2Uni();   //TODO: Implement
+		else if (id==L"zg2uni")
+			res = new Zg2Uni();
+		else
+			throw std::exception("Invalid \"builtin\" Transformation.");
+		res->type = BUILTIN;
+	} else {
+		throw std::exception("Invalid \"type\" for Transformation.");
+	}
+
+	//Now, add general settings
+	res->id = id;
+	res->fromEncoding = options.find(sanitize_id(L"from-encoding"))->second;
+	res->toEncoding = options.find(sanitize_id(L"to-encoding"))->second;
+
+	//Return our resultant Transformation
+	return res;
 }
 
 Encoding WZFactory::makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
-	//For now.
-	Encoding e;
-	e.id = id;
-	return e;
+	Encoding res;
+
+	//Check some required settings 
+	if (options.count(sanitize_id(L"display-name"))==0)
+		throw std::exception("Cannot construct encoding: no \"display-name\"");
+	if (options.count(L"initial")==0)
+		throw std::exception("Cannot construct encoding: no \"initial\"");
+
+	//General Settings
+	res.id = id;
+	res.displayName = options.find(sanitize_id(L"display-name"))->second;
+	res.initial = options.find(L"initial")->second;
+
+	//Optional settings
+	if (options.count(L"image")>0)
+		res.imagePath = options.find(L"image")->second;
+
+	//Return our resultant DM
+	return res;
 }
 
 //Move this later
