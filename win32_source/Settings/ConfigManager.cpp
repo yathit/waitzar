@@ -167,6 +167,9 @@ void ConfigManager::testAllFiles() {
 	//getInputManagers();
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
+
+	//Finally
+	resolvePartialSettings();
 }
 
 
