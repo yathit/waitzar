@@ -65,7 +65,6 @@
     "win innwa" : 
     {
       "display-name" : "Win Innwa",
-      "display-name" : "Zawgyi-One",
       "initial" : "WI",
       "image" : "wi.png"
     }
@@ -99,10 +98,10 @@
       "type" : "builtin"
     },
     
-	# Convert from Zawgyi-One to Win Innwa
-    "zg2wi" :
+	# Convert from Unicode to Win Innwa
+    "uni2wi" :
     {
-      "from-encoding" : "zawgyi-one",
+      "from-encoding" : "unicode",
       "to-encoding" : "win innwa",
       "type" : "builtin"
     }

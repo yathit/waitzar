@@ -3020,7 +3020,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		comma = L"";
 		msg <<L"      Display Methods: " <<"[";
 		for (std::set<DisplayMethod*>::const_iterator i=s->displayMethods.begin(); i!=s->displayMethods.end(); i++)  {
-			msg <<comma <<(*i)->displayName;
+			msg <<comma <<(*i)->id;
 			comma = L", ";
 		}
 		msg <<"]" <<std::endl;

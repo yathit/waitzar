@@ -75,9 +75,9 @@
             "type" : "builtin"
           },
           
-          "zg2wi" :
+          "uni2wi" :
           {
-            "from-encoding" : "zawgyi-one",
+            "from-encoding" : "unicode",
             "to-encoding" : "win innwa",
             "type" : "builtin"
           }

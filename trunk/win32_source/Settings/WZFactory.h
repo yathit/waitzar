@@ -14,6 +14,7 @@
 #include "Input/WaitZar.h"
 #include "Display/PngFont.h"
 #include "Transform/Zg2Uni.h"
+#include "Transform/Uni2Uni.h"
 #include "Settings/ConfigManager.h"
 
 /**
