@@ -133,26 +133,32 @@ Encoding WZFactory::makeEncoding(const std::wstring& id, const std::map<std::wst
 	//Check some required settings 
 	if (options.count(sanitize_id(L"display-name"))==0)
 		throw std::exception("Cannot construct encoding: no \"display-name\"");
-	if (options.count(L"initial")==0)
-		throw std::exception("Cannot construct encoding: no \"initial\"");
 
 	//General Settings
 	res.id = id;
 	res.displayName = options.find(sanitize_id(L"display-name"))->second;
-	res.initial = options.find(L"initial")->second;
 
 	//Optional settings
+	res.canUseAsOutput = false;
 	if (options.count(L"image")>0)
 		res.imagePath = options.find(L"image")->second;
+	if (options.count(sanitize_id(L"use-as-output"))>0)
+		res.canUseAsOutput = read_bool(options.find(sanitize_id(L"use-as-output"))->second);
+	if (options.count(L"initial")>0)
+		res.initial = options.find(L"initial")->second;
 
 	//Return our resultant DM
 	return res;
 }
 
-//Move this later
+//Move these later
 std::wstring WZFactory::sanitize_id(const std::wstring& str)
 {
 	return ConfigManager::sanitize_id(str);
+}
+bool WZFactory::read_bool(const std::wstring& str)
+{
+	return ConfigManager::read_bool(str);
 }
 
 

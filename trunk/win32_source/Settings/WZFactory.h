@@ -34,6 +34,7 @@ public:
 
 	//Ugh
 	static std::wstring sanitize_id(const std::wstring& str);
+	static bool read_bool(const std::wstring& str);
 };
 
 

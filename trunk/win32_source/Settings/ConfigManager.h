@@ -192,11 +192,11 @@ public:
 	static std::wstring sanitize(const std::wstring& str);
 	static void loc_to_lower(std::wstring& str);
 	static std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
+	static bool read_bool(const std::wstring& str);
 
 
 private:
 	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> &context, bool restricted);
-	bool read_bool(const std::wstring& str);
 	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
 
 	void resolvePartialSettings();

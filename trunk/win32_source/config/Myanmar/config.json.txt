@@ -49,6 +49,7 @@
     "unicode" : 
     {
       "display-name" : "Unicode",
+      "use-as-output" : "yes",
       "initial" : "UNI",
       "image" : "uni.png"
     },
@@ -57,16 +58,25 @@
     "zawgyi-one" : 
     {
       "display-name" : "Zawgyi-One",
+      "use-as-output" : "yes",
       "initial" : "ZG",
       "image" : "zawgyi.png"
     },
     
-	# The Win Innwa encoding
+    # The Win Innwa encoding
     "win innwa" : 
     {
       "display-name" : "Win Innwa",
+      "use-as-output" : "yes",
       "initial" : "WI",
       "image" : "wi.png"
+    },
+
+    # Special output encoding used by our help keyboard    
+    "zawgyi-help-wz" : 
+    {
+      "display-name" : "Zawgyi-One(Help::WZ)",
+      "use-as-output" : "no"
     }
   },
 

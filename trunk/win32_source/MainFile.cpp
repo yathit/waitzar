@@ -3011,7 +3011,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		comma = L"";
 		msg <<L"      Encodings: " <<"[";
 		for (std::set<Encoding>::const_iterator i=s->encodings.begin(); i!=s->encodings.end(); i++)  {
-			msg <<comma <<i->displayName;
+			msg <<comma <<i->displayName <<(i->canUseAsOutput?L"*":L"");
 			comma = L", ";
 		}
 		msg <<"]" <<std::endl;

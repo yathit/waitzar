@@ -16,6 +16,7 @@
 //A struct... will refactor into separate classes later.
 struct Encoding {
 	std::wstring id;
+	bool canUseAsOutput;
 	std::wstring displayName;
 	std::wstring initial;
 	std::wstring imagePath;

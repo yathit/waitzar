@@ -40,6 +40,7 @@
           "unicode" : 
           {
             "display-name" : "Unicode",
+            "use-as-output" : "yes",
             "initial" : "UNI",
             "image" : "uni.png"
           },
@@ -47,6 +48,7 @@
           "zawgyi-one" : 
           {
             "display-name" : "Zawgyi-One",
+            "use-as-output" : "yes",
             "initial" : "ZG",
             "image" : "zawgyi.png"
           },
@@ -54,8 +56,15 @@
           "win innwa" : 
           {
             "display-name" : "Win Innwa",
+            "use-as-output" : "yes",
             "initial" : "WI",
             "image" : "wi.png"
+          },
+          
+          "zawgyi-help-wz" : 
+          {
+            "display-name" : "Zawgyi-One(Help::WZ)",
+            "use-as-output" : "no"
           }
         },
         
