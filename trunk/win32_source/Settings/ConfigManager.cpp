@@ -122,20 +122,11 @@ void ConfigManager::resolvePartialSettings()
 
 	//For each option
 	for (unsigned int i=PART_INPUT; i<=PART_DISP; i++) {
-		std::map<std::wstring, std::map<std::wstring, std::wstring> >& currMap = i==PART_INPUT ? partialInputMethods : i==PART_ENC ? partialEncodings : i==PART_TRANS ? partialTransformations : partialDisplayMethods;
-		for (std::map<std::wstring, std::map<std::wstring, std::wstring> >::iterator it=currMap.begin(); it!=currMap.end(); it++) {
+		std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> >& currMap = i==PART_INPUT ? partialInputMethods : i==PART_ENC ? partialEncodings : i==PART_TRANS ? partialTransformations : partialDisplayMethods;
+		for (std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> >::iterator it=currMap.begin(); it!=currMap.end(); it++) {
 			//Get the language and identifier
-			wstring langName;
-			wstring id;
-			std::wstringstream item;
-			for (size_t pos=0; pos<it->first.size(); pos++) {
-				if (it->first[pos]==L'.') {
-					langName = item.str();
-					item.str(L"");
-				} else 
-					item <<it->first[pos];
-			}
-			id = item.str();
+			wstring langName = it->first.first;
+			wstring id = it->first.second;
 
 			//Call the factory method, add it to the current language
 			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
@@ -373,7 +364,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Input Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialInputMethods[langName + L"." + inputName][sanitize_id(name[4])] = value;
+					partialInputMethods[pair<wstring,wstring>(langName,inputName)][sanitize_id(name[4])] = value;
 				} else if (name[2] == sanitize_id(L"encodings")) {
 					//Encodings
 					wstring encName = name[3];
@@ -383,7 +374,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Encoding in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialEncodings[langName + L"." + encName][sanitize_id(name[4])] = value;
+					partialEncodings[pair<wstring, wstring>(langName,encName)][sanitize_id(name[4])] = value;
 				} else if (name[2] == sanitize_id(L"tranformations")) {
 					//Transformations
 					wstring transName = name[3];
@@ -393,7 +384,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Tranformation in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialTransformations[langName + L"." + transName][sanitize_id(name[4])] = value;
+					partialTransformations[pair<wstring, wstring>(langName,transName)][sanitize_id(name[4])] = value;
 				} else if (name[2] == sanitize_id(L"display-methods")) {
 					//Display methods
 					wstring dispMethod = name[3];
@@ -403,7 +394,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Display Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialDisplayMethods[langName + L"." + dispMethod][sanitize_id(name[4])] = value;
+					partialDisplayMethods[pair<wstring, wstring>(langName,dispMethod)][sanitize_id(name[4])] = value;
 				} else {
 					//Error
 					throw 1;

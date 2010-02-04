@@ -224,11 +224,11 @@ private:
 
 	//Temporary option caches for constructing complex structures
 	//Will eventually be converted into real InputManager*, etc.
-	//Store as lang_name + "." + item_name, for fast lookup.
-	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialInputMethods;
-	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialEncodings;
-	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialTransformations;
-	std::map<std::wstring, std::map<std::wstring, std::wstring> > partialDisplayMethods;
+	//Store as <lang_name,item_name>, for fast lookup.
+	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialInputMethods;
+	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialEncodings;
+	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialTransformations;
+	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialDisplayMethods;
 
 	//The actual representation
 	OptionTree options;
