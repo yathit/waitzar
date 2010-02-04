@@ -23,7 +23,7 @@ WZFactory::~WZFactory(void)
 
 InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
-	InputMethod res = NULL;
+	InputMethod* res = NULL;
 
 	//Check some required settings 
 	if (options.count(L"type")==0)
@@ -33,8 +33,8 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<s
 	if (options.count(sanitize_id(L"display-name"))==0)
 		throw std::exception("Cannot construct input manager: no \"display-name\"");
 
-	//First, the type is important
-	if (res.type == L"builtin") {
+	//First, generate an actual object, based on the type.
+	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
 		vector< pair<int, unsigned short> > temp; //TODO: Remove
 		if (id==L"waitzar")
@@ -43,38 +43,44 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<s
 			res = new WaitZar(temp); //TODO: Change!
 		else
 			throw std::exception("Invalid \"builtin\" Input Manager.");
-		res.type = BUILTIN;
+		res->type = BUILTIN;
 	} else {
 		throw std::exception("Invalid \"type\" for Input Manager.");
 	}
 
 	//Now, add general settings
-	res.id = id;
-	res.displayName = options[sanitize_id(L"display-name")];
-	res.encoding = options[L"encoding"];
+	res->id = id;
+	res->displayName = options.find(sanitize_id(L"display-name"))->second;
+	res->encoding = options.find(L"encoding")->second;
 
 	//Return our resultant IM
 	return res;
 }
 
 
-DisplayMethod* WZFactory::makeDisplayMethod(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings)
+DisplayMethod* WZFactory::makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
 	//For now
-	return new PngFont();
+	PngFont* res = new PngFont();
+	res->id = id;
+	return res;
 }
 
 
-Transformation* WZFactory::makeTransformation(std::wstring id, TYPES type, std::map<std::wstring, Option<std::wstring> > settings)
+Transformation* WZFactory::makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
 	//For now
-	return new Zg2Uni();
+	Zg2Uni* i = new Zg2Uni();
+	i->id = id;
+	return i;
 }
 
 Encoding WZFactory::makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
 	//For now.
-	return Encoding();
+	Encoding e;
+	e.id = id;
+	return e;
 }
 
 //Move this later

@@ -32,6 +32,14 @@ struct Encoding {
 	bool operator!=(const Encoding &other) const {
 		return id != other.id;
 	}
+
+	//Allow eq/neq on strings, too
+	bool operator==(const std::wstring& other) const {
+		return id == other;
+	}
+	bool operator!=(const std::wstring& other) const {
+		return id != other;
+	}
 };
 
 //Expected interface: "Input Method"
@@ -59,6 +67,14 @@ public:
 	bool operator!=(const Transformation &other) const {
 		return id != other.id;
 	}
+
+	//Allow eq/neq on strings, too
+	bool operator==(const std::wstring& other) const {
+		return id == other;
+	}
+	bool operator!=(const std::wstring& other) const {
+		return id != other;
+	}
 };
 
 //Expected interface: "Display Method"
@@ -83,6 +99,14 @@ public:
 	}
 	bool operator!=(const DisplayMethod &other) const {
 		return id != other.id;
+	}
+
+	//Allow eq/neq on strings, too
+	bool operator==(const std::wstring& other) const {
+		return id == other;
+	}
+	bool operator!=(const std::wstring& other) const {
+		return id != other;
 	}
 };
 

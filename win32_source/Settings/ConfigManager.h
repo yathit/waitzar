@@ -109,6 +109,11 @@ struct Settings {
 	bool lockWindows;
 };
 struct Language {
+	//Basic constructor
+	Language(std::wstring id) {
+		this->id = id;
+	}
+
 	//Simple
 	std::wstring id;
 	std::wstring displayName;
@@ -238,6 +243,18 @@ typename std::set<T>::iterator FindKeyInSet(std::set<T>& container, const std::w
 	std::set<T>::iterator it=container.begin();
 	for (; it!=container.end(); it++)  {
 		if ((*it) == key)
+			break;
+	}
+	return it;
+}
+
+//Same, but for a set of references.
+template <class T> 
+typename std::set<T*>::iterator FindKeyInSet(std::set<T*>& container, const std::wstring& key)
+{
+	std::set<T*>::iterator it=container.begin();
+	for (; it!=container.end(); it++)  {
+		if ((*(*it)) == key)
 			break;
 	}
 	return it;

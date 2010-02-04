@@ -40,6 +40,14 @@ public:
 		return id != other.id;
 	}
 
+	//Allow eq/neq on strings, too
+	bool operator==(const std::wstring& other) const {
+		return id == other;
+	}
+	bool operator!=(const std::wstring& other) const {
+		return id != other;
+	}
+
 public:
 	//Struct-like properties
 	std::wstring id;

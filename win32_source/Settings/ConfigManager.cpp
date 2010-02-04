@@ -342,7 +342,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 				if(restricted)
 					throw std::exception("Cannot create a new Language in user or system-local config files.");
 				else
-					lang = options.languages.insert(Language()).first;
+					lang = options.languages.insert(Language(langName)).first;
 			}
 
 			//Static settings
