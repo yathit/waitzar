@@ -173,8 +173,6 @@ public:
 	void initLocalConfig(const std::string& configFile);
 	void initUserConfig(const std::string& configFile);
 
-	//Call this...
-	void resolvePartialSettings();
 
 	//Accessible by our outside class
 	const Settings& getSettings();
@@ -200,6 +198,8 @@ private:
 	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> &context, bool restricted);
 	bool read_bool(const std::wstring& str);
 	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
+
+	void resolvePartialSettings();
 
 private:
 	//Our many config files.

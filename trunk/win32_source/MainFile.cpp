@@ -2723,6 +2723,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 
+
 /**
  * Main method for Windows applications
  */
@@ -2928,9 +2929,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
 			throw std::exception("No config directory");
 
-		//Resolve
-		config.resolvePartialSettings();
-
 		//Final test: make sure all config files work
 		config.testAllFiles();
 	} catch (std::exception ex) {
@@ -2971,9 +2969,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			delete [] uniData;
 			UnlockResource(res_handle);
 
-			//Resolve
-			config.resolvePartialSettings();
-
 			//One more test.
 			config.testAllFiles();
 		} catch (std::exception ex2) {
@@ -2999,8 +2994,46 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	msg << "---------------------" <<std::endl;
 	msg << "Languages" <<std::endl;
 	std::set<Language> langs = config.getLanguages();
-	for (std::set<Language>::iterator s=langs.begin(); s!=langs.end(); s++)
+	for (std::set<Language>::iterator s=langs.begin(); s!=langs.end(); s++) {
 		msg <<"   " << s->displayName <<std::endl;
+		wstring comma = L"";
+
+		//Input Methods
+		comma = L"";
+		msg <<L"      Input Methods: " <<"[";
+		for (std::set<InputMethod*>::const_iterator i=s->inputMethods.begin(); i!=s->inputMethods.end(); i++)  {
+			msg <<comma <<(*i)->displayName;
+			comma = L", ";
+		}
+		msg <<"]" <<std::endl;
+
+		//Encodings
+		comma = L"";
+		msg <<L"      Encodings: " <<"[";
+		for (std::set<Encoding>::const_iterator i=s->encodings.begin(); i!=s->encodings.end(); i++)  {
+			msg <<comma <<i->displayName;
+			comma = L", ";
+		}
+		msg <<"]" <<std::endl;
+
+		//Display Methods
+		comma = L"";
+		msg <<L"      Display Methods: " <<"[";
+		for (std::set<DisplayMethod*>::const_iterator i=s->displayMethods.begin(); i!=s->displayMethods.end(); i++)  {
+			msg <<comma <<(*i)->displayName;
+			comma = L", ";
+		}
+		msg <<"]" <<std::endl;
+
+		//Transformations
+		msg <<L"      Transformations: " <<"[{self->self}";
+		for (std::set<Transformation*>::const_iterator i=s->transformations.begin(); i!=s->transformations.end(); i++)  {
+			msg <<comma <<"{" <<(*i)->fromEncoding <<"->" <<(*i)->toEncoding <<"}";
+			comma = L", ";
+		}
+		msg <<"]" <<std::endl;
+
+	}
 	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
 
 
