@@ -42,16 +42,16 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<s
 		else if (id==L"mywin")
 			res = new WaitZar(temp); //TODO: Change!
 		else
-			throw std::exception("Invalid \"builtin\" Input Manager.");
+			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Input Manager: ", id).c_str());
 		res->type = BUILTIN;
 	} else {
-		throw std::exception("Invalid \"type\" for Input Manager.");
+		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
 	}
 
 	//Now, add general settings
 	res->id = id;
 	res->displayName = options.find(sanitize_id(L"display-name"))->second;
-	res->encoding = options.find(L"encoding")->second;
+	res->encoding = sanitize_id(options.find(L"encoding")->second);
 
 	//Return our resultant IM
 	return res;
@@ -74,15 +74,15 @@ DisplayMethod* WZFactory::makeDisplayMethod(const std::wstring& id, const std::m
 		if (id==L"zawgyibmp")
 			res = new PngFont();
 		else
-			throw std::exception("Invalid \"builtin\" Display Method.");
+			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Display Method: ", id).c_str());
 		res->type = BUILTIN;
 	} else {
-		throw std::exception("Invalid \"type\" for Display Method.");
+		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Display Method: ", id).c_str());
 	}
 
 	//Now, add general settings
 	res->id = id;
-	res->encoding = options.find(L"encoding")->second;
+	res->encoding = sanitize_id(options.find(L"encoding")->second);
 
 	//Return our resultant DM
 	return res;
@@ -111,16 +111,16 @@ Transformation* WZFactory::makeTransformation(const std::wstring& id, const std:
 		else if (id==L"zg2uni")
 			res = new Zg2Uni();
 		else
-			throw std::exception("Invalid \"builtin\" Transformation.");
+			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
 		res->type = BUILTIN;
 	} else {
-		throw std::exception("Invalid \"type\" for Transformation.");
+		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Transformation: ", id).c_str());
 	}
 
 	//Now, add general settings
 	res->id = id;
-	res->fromEncoding = options.find(sanitize_id(L"from-encoding"))->second;
-	res->toEncoding = options.find(sanitize_id(L"to-encoding"))->second;
+	res->fromEncoding = sanitize_id(options.find(sanitize_id(L"from-encoding"))->second);
+	res->toEncoding = sanitize_id(options.find(sanitize_id(L"to-encoding"))->second);
 
 	//Optional settings
 	res->hasPriority = false;
