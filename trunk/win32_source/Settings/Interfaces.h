@@ -48,6 +48,7 @@ class Transformation {
 public:
 	//Struct-like properties
 	std::wstring id;
+	bool hasPriority;
 	std::wstring fromEncoding;
 	std::wstring toEncoding;
 	TYPES type;

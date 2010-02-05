@@ -131,7 +131,7 @@ void ConfigManager::resolvePartialSettings()
 			//Call the factory method, add it to the current language
 			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
 			if (lang==options.languages.end())
-				throw std::exception("Language expected but not found..");
+				throw std::exception(glue(L"Language \"", langName , L"\" expected but not found...").c_str());
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
@@ -150,8 +150,10 @@ void ConfigManager::resolvePartialSettings()
 }
 
 
-//Access all things that will require json reads
-void ConfigManager::testAllFiles() {
+//Make our model worrrrrrrrk......
+void ConfigManager::validate() 
+{
+	//Step 1: Read
 	getSettings();
 	getLanguages();
 	//getEncodings();
@@ -159,9 +161,115 @@ void ConfigManager::testAllFiles() {
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
 
-	//Finally
+	//Step 2: Un-cache
 	resolvePartialSettings();
+
+	//Step 3: Make it useful
+	generateInputsDisplaysOutputs();
 }
+
+
+
+//Validate all Input Managers, Display Managers, Outputs, and Transformations; make
+//     sure the right encodings (and transformations) exist for each.
+//Then, build fast-to-lookup data structures for actual use in WZ.
+void ConfigManager::generateInputsDisplaysOutputs() 
+{
+	//Cache our self2self lookup
+	self2self = new Uni2Uni();
+
+	//Validate over each language
+	for (std::set<Language>::iterator lg=options.languages.begin(); lg!=options.languages.end(); lg++) {
+		//First, validate some default settings of the language
+		if (FindKeyInSet(lg->encodings, lg->defaultOutputEncoding)==lg->encodings.end())
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default output encoding: ", lg->defaultOutputEncoding).c_str());
+		if (!FindKeyInSet(lg->encodings, lg->defaultOutputEncoding)->canUseAsOutput)
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" uses a default output encoding which does not support output.").c_str());
+		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethod)==lg->displayMethods.end())
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default display method: ", lg->defaultDisplayMethod).c_str());
+		if (FindKeyInSet(lg->inputMethods, lg->defaultInputMethod)==lg->inputMethods.end())
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default input method: ", lg->defaultInputMethod).c_str());
+
+		//TODO: Right now, "unicode" is hard-coded into a lot of places. Is there a better way?
+		if (FindKeyInSet(lg->encodings, L"unicode")==lg->encodings.end())
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" does not include \"unicode\" as an encoding.").c_str());
+
+		//Validate transformations & cache a lookup table.
+		for (std::set<Transformation*>::iterator it=lg->transformations.begin(); it!=lg->transformations.end(); it++) {
+			//Make sure this transformation references existing encodings.
+			if (FindKeyInSet(lg->encodings, (*it)->fromEncoding)==lg->encodings.end())
+				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant from-encoding: ", (*it)->fromEncoding).c_str());
+			if (FindKeyInSet(lg->encodings, (*it)->toEncoding)==lg->encodings.end())
+				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant to-encoding: ", (*it)->toEncoding).c_str());
+
+			//Add to our lookup table, conditional on a few key points
+			//TODO: Re-write... slightly messy.
+			std::pair<Encoding, Encoding> newPair;
+			newPair.first = *FindKeyInSet(lg->encodings, (*it)->fromEncoding);
+			newPair.second = *FindKeyInSet(lg->encodings, (*it)->toEncoding);
+			std::map< std::pair<Encoding, Encoding>, Transformation* >::iterator foundPair = lg->transformationLookup.find(newPair);
+			if (foundPair==lg->transformationLookup.end())
+				lg->transformationLookup[newPair] = *it;
+			else if (foundPair->second->hasPriority)
+				throw std::exception(glue(L"Cannot add new Transformation (", (*it)->id, L") over one with priority: ", foundPair->second->id).c_str());
+			else if (!(*it)->hasPriority)
+				throw std::exception(glue(L"Cannot add new Transformation (", (*it)->id, L"); it does not set \"hasPriority\"").c_str());
+			else
+				lg->transformationLookup[newPair] = *it;
+		}
+
+		//Validate each input method
+		for (std::set<InputMethod*>::iterator it=lg->inputMethods.begin(); it!=lg->inputMethods.end(); it++) {
+			//Make sure this input method references an existing encoding.
+			if (FindKeyInSet(lg->encodings, (*it)->encoding)==lg->encodings.end())
+				throw std::exception(glue(L"Input Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding).c_str());
+
+			//Make sure that our encoding is EITHER the default, OR there is an appropriate transform.
+			if ((*it)->encoding!=L"unicode") {
+				std::pair<Encoding, Encoding> lookup;
+				lookup.first = *FindKeyInSet(lg->encodings, (*it)->encoding);
+				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
+				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
+					throw std::exception(glue(L"No \"transformation\" exists for input method(", (*it)->id, L").").c_str());
+			}
+		}
+
+		//Validate each display method
+		for (std::set<DisplayMethod*>::iterator it=lg->displayMethods.begin(); it!=lg->displayMethods.end(); it++) {
+			//Make sure this display method references an existing encoding.
+			if (FindKeyInSet(lg->encodings, (*it)->encoding)==lg->encodings.end())
+				throw std::exception(glue(L"Display Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding).c_str());
+
+			//Make sure that our encoding is EITHER the default, OR there is an appropriate transform.
+			if ((*it)->encoding!=L"unicode") {
+				std::pair<Encoding, Encoding> lookup;
+				lookup.first = *FindKeyInSet(lg->encodings, (*it)->encoding);
+				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
+				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
+					throw std::exception(glue(L"No \"transformation\" exists for display method(", (*it)->id, L").").c_str());
+			}
+		}
+	}
+}
+
+
+
+const Transformation* ConfigManager::getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const
+{
+	//Self to self?
+	if (fromEnc==toEnc)
+		return self2self;
+
+	//Lookup
+	std::pair<Encoding, Encoding> lookup(fromEnc, toEnc);
+	std::map< std::pair<Encoding, Encoding>, Transformation* >::const_iterator found = lang.transformationLookup.find(lookup);
+	if (found==lang.transformationLookup.end())
+		throw std::exception(glue(L"Error! An unvalidated transformation exists in the configuration model: ", fromEnc.id, L"->", toEnc.id).c_str());
+
+	//Done
+	return found->second;
+}
+
 
 
 const Settings& ConfigManager::getSettings() 
@@ -330,6 +438,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 				throw 1;
 
 			//Get the language id
+			//TODO: Add better error messages using the glue() functions.
 			wstring langName = name[1];
 			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
 			if (lang==options.languages.end()) {
@@ -461,7 +570,7 @@ bool ConfigManager::read_bool(const std::wstring& str)
 	else if (test==L"no" || test==L"false")
 		return false;
 	else
-		throw std::exception(std::string("Bad boolean value: \"" + waitzar::escape_wstr(str) + "\"").c_str());
+		throw std::exception(glue(L"Bad boolean value: \"", str, L"\"").c_str());
 }
 
 void ConfigManager::loc_to_lower(std::wstring& str)
@@ -471,12 +580,6 @@ void ConfigManager::loc_to_lower(std::wstring& str)
 	std::transform(str.begin(),str.end(),str.begin(),ToLower<wchar_t>(loc));
 }
 
-
-//Not yet defined:
-//vector<wstring> ConfigManager::getInputManagers() {vector<wstring> res; return res;}
-//vector<wstring> ConfigManager::getEncodings() {vector<wstring> res; return res;}
-//wstring ConfigManager::getActiveLanguage() const {return L"";}
-//void ConfigManager::changeActiveLanguage(const wstring& newLanguage) {}
 
 
 
