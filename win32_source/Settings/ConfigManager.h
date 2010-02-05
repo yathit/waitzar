@@ -127,6 +127,10 @@ struct Language {
 	std::set<Transformation*> transformations;
 	std::set<DisplayMethod*>  displayMethods;
 
+	//For fast lookup & easy validation
+	//Kept internal; would be private except I don't think it matters much.
+	std::map< std::pair<Encoding, Encoding>, Transformation* > transformationLookup;
+
 	//Allow map comparison 
 	bool operator<(const Language& other) const {
 		return id < other.id;
@@ -177,6 +181,7 @@ public:
 	//Accessible by our outside class
 	const Settings& getSettings();
 	const std::set<Language>& getLanguages();
+	const Transformation* getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const;
 	//std::set<InputManager> getInputManagers();
 	//std::set<Encoding> getEncodings();
 
@@ -185,7 +190,7 @@ public:
 	//void changeActiveLanguage(const std::wstring& newLanguage);
 
 	//Quality control
-	void testAllFiles();
+	void validate();
 
 	//Useful
 	static std::wstring sanitize_id(const std::wstring& str);
@@ -194,12 +199,42 @@ public:
 	static std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
 	static bool read_bool(const std::wstring& str);
 
+	//For stl exceptions...
+	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3, const std::string& str4)
+	{
+		std::stringstream msg;
+		msg <<str1 <<str2 <<str3 <<str4;
+		return msg.str();
+	}
+	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3)
+	{
+		return glue(str1, str2, str3, "");
+	}
+	static std::string glue(const std::string& str1, const std::string& str2)
+	{
+		return glue(str1, str2, "", "");
+	}
+	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3, const std::wstring& str4)
+	{
+		return glue(waitzar::escape_wstr(str1, false), waitzar::escape_wstr(str2, false), waitzar::escape_wstr(str3, false), waitzar::escape_wstr(str4, false));
+	}
+	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3)
+	{
+		return glue(str1, str2, str3, L"");
+	}
+	static std::string glue(const std::wstring& str1, const std::wstring& str2)
+	{
+		return glue(str1, str2, L"", L"");
+	}
+
+
 
 private:
 	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> &context, bool restricted);
 	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
 
 	void resolvePartialSettings();
+	void generateInputsDisplaysOutputs();
 
 private:
 	//Our many config files.
@@ -217,11 +252,6 @@ private:
 	void loadLanguageMainFiles();
 	void loadLanguageSubFiles();
 
-	//And, useful caches.
-	//std::vector<std::wstring> cachedLanguages;
-	//std::vector<std::wstring> cachedInputManagers;
-	//std::vector<std::wstring> cachedEncodings;
-
 	//Temporary option caches for constructing complex structures
 	//Will eventually be converted into real InputManager*, etc.
 	//Store as <lang_name,item_name>, for fast lookup.
@@ -232,6 +262,9 @@ private:
 
 	//The actual representation
 	OptionTree options;
+
+	//Cache
+	Transformation* self2self;
 };
 
 

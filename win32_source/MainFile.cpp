@@ -2930,7 +2930,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			throw std::exception("No config directory");
 
 		//Final test: make sure all config files work
-		config.testAllFiles();
+		config.validate();
 	} catch (std::exception ex) {
 		//In case of errors, just reset & use the embedded file
 		config = ConfigManager();
@@ -2970,7 +2970,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			UnlockResource(res_handle);
 
 			//One more test.
-			config.testAllFiles();
+			config.validate();
 		} catch (std::exception ex2) {
 			std::wstringstream msg2;
 			msg2 << "Error loading default config file.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";

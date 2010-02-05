@@ -122,6 +122,11 @@ Transformation* WZFactory::makeTransformation(const std::wstring& id, const std:
 	res->fromEncoding = options.find(sanitize_id(L"from-encoding"))->second;
 	res->toEncoding = options.find(sanitize_id(L"to-encoding"))->second;
 
+	//Optional settings
+	res->hasPriority = false;
+	if (options.count(sanitize_id(L"has-priority"))>0)
+		res->hasPriority = read_bool(options.find(sanitize_id(L"has-priority"))->second);
+
 	//Return our resultant Transformation
 	return res;
 }
