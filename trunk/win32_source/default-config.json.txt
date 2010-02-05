@@ -104,8 +104,39 @@
       
       "shan" : 
       {
-        "display-name" : "Shan"
+        "display-name" : "Shan",
+        "default-output-encoding" : "unicode",
+        "default-display-method" : "zawgyibmp",
+        "default-input-method" : "waitzar",
+        
+        "encodings" : 
+        {
+          "unicode" : 
+          {
+            "display-name" : "Unicode",
+            "use-as-output" : "yes"
+          }
+        },
+        
+        "input-methods" : 
+        {
+          "waitzar" : 
+          {
+            "display-name" : "WaitZar(Shan)",
+            "encoding" : "unicode",
+            "type" : "builtin"
+          }
+        },
+
+        "display-methods" : 
+        {
+          "zawgyibmp" : 
+          {
+            "encoding" : "unicode",
+            "type" : "builtin"
+          }
+        }
       }
-    
+
     }
 }

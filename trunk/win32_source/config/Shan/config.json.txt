@@ -1,5 +1,36 @@
 # Settings for the Shan language, including display name and input method.
 # NOTE: This is a stub file until we get better Shan support.
-{"languages.shan" : {
-  "display-name" : "Shan"
+{"languages.shan" :       {
+  "display-name" : "Shan",
+  "default-output-encoding" : "unicode",
+  "default-display-method" : "zawgyibmp",
+  "default-input-method" : "waitzar",
+        
+  "encodings" : 
+  {
+    "unicode" : 
+    {
+      "display-name" : "Unicode",
+      "use-as-output" : "yes"
+    }
+  },
+        
+  "input-methods" : 
+  {
+    "waitzar" : 
+    {
+      "display-name" : "WaitZar(Shan)",
+      "encoding" : "unicode",
+      "type" : "builtin"
+    }
+  },
+
+  "display-methods" : 
+  {
+    "zawgyibmp" : 
+    {
+    "encoding" : "unicode",
+    "type" : "builtin"
+    }
+  }
 }}
