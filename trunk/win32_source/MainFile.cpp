@@ -2991,6 +2991,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors <<std::endl;
 	msg << "Track caret: " <<s.trackCaret <<std::endl;
 	msg << "Hotkey: " <<s.hotkey <<std::endl;
+	msg << "Default Language: " <<s.defaultLanguage <<std::endl;
 	msg << "---------------------" <<std::endl;
 	msg << "Languages" <<std::endl;
 	std::set<Language> langs = config.getLanguages();

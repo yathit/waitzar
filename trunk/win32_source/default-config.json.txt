@@ -8,7 +8,8 @@
       "balloon-start" : "yes",
       "always-elevate" : "no",
       "track-caret" : "yes",
-      "lock-windows" : "yes"
+      "lock-windows" : "yes",
+      "default-language" : "myanmar"
     },
     
     "languages" : 

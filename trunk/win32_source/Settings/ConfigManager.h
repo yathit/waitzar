@@ -107,6 +107,7 @@ struct Settings {
 	bool alwaysElevate;
 	bool trackCaret;
 	bool lockWindows;
+	std::wstring defaultLanguage;
 };
 struct Language {
 	//Basic constructor
