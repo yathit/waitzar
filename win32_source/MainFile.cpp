@@ -3028,7 +3028,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//Transformations
 		msg <<L"      Transformations: " <<"[{self->self}";
 		for (std::set<Transformation*>::const_iterator i=s->transformations.begin(); i!=s->transformations.end(); i++)  {
-			msg <<comma <<"{" <<(*i)->fromEncoding <<"->" <<(*i)->toEncoding <<"}";
+			msg <<comma <<"{" <<(*i)->fromEncoding.id <<"->" <<(*i)->toEncoding.id <<"}";
 			comma = L", ";
 		}
 		msg <<"]" <<std::endl;
@@ -3184,11 +3184,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Set defaults
 	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords); //tmp; load from config
 	((RomanInputMethod*)currTypeInput)->init(model, sentence, typeBurmeseNumbers);
-	currTypeInput->encoding = L"zawgyi";
+	currTypeInput->encoding.id = L"zawgyi";
 	currHelpInput    = NULL;   //NULL means disable help
 	currInput        = currTypeInput;
 	currDisplay      = new PngFont(); //tmp; load from config
-	currDisplay->encoding = L"zawgyi";
+	currDisplay->encoding.id = L"zawgyi";
 	input2Uni        = new Uni2Uni();
 	uni2Output       = new Uni2Uni();
 	uni2Disp         = new Uni2Uni();

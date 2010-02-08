@@ -117,7 +117,7 @@ struct Language {
 	//Simple
 	std::wstring id;
 	std::wstring displayName;
-	std::wstring defaultOutputEncoding;
+	Encoding defaultOutputEncoding;
 	std::wstring defaultDisplayMethod;
 	std::wstring defaultInputMethod;
 
