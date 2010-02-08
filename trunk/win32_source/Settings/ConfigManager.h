@@ -111,7 +111,7 @@ struct Settings {
 };
 struct Language {
 	//Basic constructor
-	Language(std::wstring id) {
+	Language(std::wstring id=L"") {
 		this->id = id;
 	}
 
@@ -182,13 +182,17 @@ public:
 	//Accessible by our outside class
 	const Settings& getSettings();
 	const std::set<Language>& getLanguages();
+	const std::set<InputMethod*>& getInputMethods();
+	const std::set<Encoding>& getEncodings();
 	const Transformation* getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const;
 	//std::set<InputManager> getInputManagers();
 	//std::set<Encoding> getEncodings();
 
 	//Control
-	//std::wstring getActiveLanguage() const;
-	//void changeActiveLanguage(const std::wstring& newLanguage);
+	Language activeLanguage;
+	Encoding activeOutputEncoding;
+	InputMethod* activeInputMethod;
+	DisplayMethod* activeDisplayMethod;
 
 	//Quality control
 	void validate();

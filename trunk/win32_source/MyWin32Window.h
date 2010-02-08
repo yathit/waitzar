@@ -70,6 +70,7 @@ public:
 	bool resizeWindow(int newWidth, int newHeight, bool doRepaint); //Preserve x/y
 	bool expandWindow(int newX, int newY, int newWidth, int newHeight, bool dontMove); //Ugh...
 	bool expandWindow(int newWidth, int newHeight);
+	bool hiliteMenu(const HMENU& containerMenu, unsigned int hilightID, bool highlightON);
 	bool showWindow(bool show); //Handle callbacks for cursor repositioning, etc.
 	int getXPos(); //We track this ourselves
 	int getYPos(); //We track this ourselves

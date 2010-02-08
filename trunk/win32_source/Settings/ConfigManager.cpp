@@ -168,6 +168,12 @@ void ConfigManager::validate()
 
 	//Step 3: Make it useful
 	generateInputsDisplaysOutputs();
+
+	//Step 4: Set our current language, input method, etc.
+	activeLanguage = *FindKeyInSet(options.languages, options.settings.defaultLanguage);
+	activeOutputEncoding = activeLanguage.defaultOutputEncoding;
+	activeInputMethod = *FindKeyInSet(activeLanguage.inputMethods, activeLanguage.defaultInputMethod);
+	activeDisplayMethod = *FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethod);
 }
 
 
@@ -379,19 +385,36 @@ const std::set<Language>& ConfigManager::getLanguages()
 	if (!this->loadedLanguageSubFiles)
 		this->loadLanguageSubFiles();
 
-	//Now, build our cache (if necessary)
-	//  Our algorithm is wasteful if there are no languages defined,
-	//  but this is minor (if there are no languages defined, the program
-	//  won't really function anyway).
-	/*if (this->cachedLanguages.empty()) {
-		for (std::map<wstring, Language>::iterator it=options.languages.begin(); it!=options.languages.end(); it++) {
-			this->cachedLanguages.push_back(it->first);
-		}
-	}*/
-
-	//return this->cachedLanguages;
 	return this->options.languages;
 }
+
+const std::set<InputMethod*>& ConfigManager::getInputMethods()
+{
+	//Languages can ONLY be defined in top-level language directories.
+	//  So we don't need to load user-defined plugins yet. 
+	//TODO: Why 2 flags?
+	if (!this->loadedLanguageMainFiles)
+		this->loadLanguageMainFiles();
+	if (!this->loadedLanguageSubFiles)
+		this->loadLanguageSubFiles();
+
+	return this->activeLanguage.inputMethods;
+}
+
+const std::set<Encoding>& ConfigManager::getEncodings()
+{
+	//Languages can ONLY be defined in top-level language directories.
+	//  So we don't need to load user-defined plugins yet. 
+	//TODO: Why 2 flags?
+	if (!this->loadedLanguageMainFiles)
+		this->loadLanguageMainFiles();
+	if (!this->loadedLanguageSubFiles)
+		this->loadLanguageSubFiles();
+
+	return this->activeLanguage.encodings;
+}
+
+
 
 
 //Note: Context is managed automatically; never copied.
