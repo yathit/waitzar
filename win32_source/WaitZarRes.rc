@@ -90,6 +90,10 @@ BEGIN
             MENUITEM "Zawgyi-One",                  ID_ENCODING_ZAWGYI
             MENUITEM "Win Innwa",                   ID_ENCODING_WININNWA
         END
+        POPUP "Typing"
+        BEGIN
+            MENUITEM "(To Delete)",                 ID_DELETE_ME
+        END
         MENUITEM "&Look Up Word (F1)",          IDM_LOOKUP
     END
 END

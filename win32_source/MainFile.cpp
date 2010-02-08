@@ -121,6 +121,12 @@ const unsigned int UWM_HOTKEY_UP = WM_USER+2;
 const unsigned int UNICOD_BOM = 0xFEFF;
 const unsigned int BACKWARDS_BOM = 0xFFFE;
 
+//Window IDs for the "Language" sub-menu
+const unsigned int DYNAMIC_CMD_START = 50000;
+const wstring WND_TITLE_LANGUAGE = L"Language";
+const wstring WND_TITLE_INPUT = L"Input Method";
+const wstring WND_TITLE_OUTPUT = L"Encoding";
+
 //Font conversion
 wstring currEncStr;
 ENCODING mostRecentEncoding = ENCODING_UNICODE;
@@ -2612,6 +2618,50 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				const wstring & POPUP_LOOKUP = mmOn ? POPUP_LOOKUP_MM : POPUP_LOOKUP_EN;
 				ModifyMenu(hmenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP.c_str());
 
+				//Build our complex submenu for language selection, etc.
+				//TODO: Replace "highlight" with a special user-drawn menu that is always highlighted.
+				//Step 1: Remove our placeholder item
+				HMENU typingMenu = GetSubMenu(hpopup, 7);
+				RemoveMenu(typingMenu, ID_DELETE_ME, MF_BYCOMMAND);
+				unsigned int currDynamicCmd = DYNAMIC_CMD_START;
+
+				//Step 2: Add all languages, check the currently-selected one.
+				AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, WND_TITLE_LANGUAGE.c_str());
+				AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
+				mainWindow->hiliteMenu(typingMenu, currDynamicCmd-1, true);
+				unsigned int radioStart = currDynamicCmd;
+				unsigned int checkID = 0;
+				for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
+					checkID = (*it == config.activeLanguage) ? currDynamicCmd : checkID;
+					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, it->displayName.c_str());
+				}
+				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
+
+				//Step 3: Add all input methods, check the currently-selected one.
+				AppendMenu(typingMenu, MF_STRING|MF_MENUBARBREAK, currDynamicCmd++, WND_TITLE_INPUT.c_str());
+				AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
+				mainWindow->hiliteMenu(typingMenu, currDynamicCmd-1, true);
+				radioStart = currDynamicCmd;
+				checkID = 0;
+				for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
+					checkID = (*it == config.activeInputMethod) ? currDynamicCmd : checkID;
+					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, (*it)->displayName.c_str());
+				}
+				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
+
+				//Step 4: Add all output encodings, check the currently-selected one.
+				AppendMenu(typingMenu, MF_STRING|MF_MENUBARBREAK, currDynamicCmd++, WND_TITLE_OUTPUT.c_str());
+				AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
+				mainWindow->hiliteMenu(typingMenu, currDynamicCmd-1, true);
+				radioStart = currDynamicCmd;
+				checkID = 0;
+				for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
+					if (!it->canUseAsOutput)
+						continue;
+					checkID = (*it == config.activeOutputEncoding) ? currDynamicCmd : checkID;
+					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, it->displayName.c_str());
+				}
+				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
 
 				//Cause our popup to appear in front of any other window.
 				SetForegroundWindow(hwnd);
@@ -3036,8 +3086,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	}
 	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
-
-
 
 
 	//Load our configuration file now; save some headaches later

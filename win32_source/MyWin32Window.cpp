@@ -433,6 +433,12 @@ bool MyWin32Window::expandWindow(int newX, int newY, int newWidth, int newHeight
 }
 
 
+bool MyWin32Window::hiliteMenu(const HMENU& containerMenu, unsigned int hilightID, bool highlightON)
+{
+	return (HiliteMenuItem(window, containerMenu, hilightID, MF_BYCOMMAND|(highlightON?MF_HILITE:MF_UNHILITE))==TRUE);
+}
+
+
 bool MyWin32Window::expandWindow(int newWidth, int newHeight)
 {
 	return this->expandWindow(0, 0, newWidth, newHeight, true);
