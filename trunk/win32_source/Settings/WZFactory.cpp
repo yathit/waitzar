@@ -51,7 +51,7 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<s
 	//Now, add general settings
 	res->id = id;
 	res->displayName = options.find(sanitize_id(L"display-name"))->second;
-	res->encoding = sanitize_id(options.find(L"encoding")->second);
+	res->encoding.id = sanitize_id(options.find(L"encoding")->second);
 
 	//Return our resultant IM
 	return res;
@@ -82,7 +82,7 @@ DisplayMethod* WZFactory::makeDisplayMethod(const std::wstring& id, const std::m
 
 	//Now, add general settings
 	res->id = id;
-	res->encoding = sanitize_id(options.find(L"encoding")->second);
+	res->encoding.id = sanitize_id(options.find(L"encoding")->second);
 
 	//Return our resultant DM
 	return res;
@@ -119,8 +119,8 @@ Transformation* WZFactory::makeTransformation(const std::wstring& id, const std:
 
 	//Now, add general settings
 	res->id = id;
-	res->fromEncoding = sanitize_id(options.find(sanitize_id(L"from-encoding"))->second);
-	res->toEncoding = sanitize_id(options.find(sanitize_id(L"to-encoding"))->second);
+	res->fromEncoding.id = sanitize_id(options.find(sanitize_id(L"from-encoding"))->second);
+	res->toEncoding.id = sanitize_id(options.find(sanitize_id(L"to-encoding"))->second);
 
 	//Optional settings
 	res->hasPriority = false;

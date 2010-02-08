@@ -151,6 +151,8 @@ void ConfigManager::resolvePartialSettings()
 
 
 //Make our model worrrrrrrrk......
+// (Note: We also need to replace all of our placeholder encodings with the real thing.
+//        We can't use references, since those might be in validated if we somehow resized the container).
 void ConfigManager::validate() 
 {
 	//Step 1: Read
@@ -180,10 +182,15 @@ void ConfigManager::generateInputsDisplaysOutputs()
 
 	//Validate over each language
 	for (std::set<Language>::iterator lg=options.languages.begin(); lg!=options.languages.end(); lg++) {
-		//First, validate some default settings of the language
-		if (FindKeyInSet(lg->encodings, lg->defaultOutputEncoding)==lg->encodings.end())
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default output encoding: ", lg->defaultOutputEncoding).c_str());
-		if (!FindKeyInSet(lg->encodings, lg->defaultOutputEncoding)->canUseAsOutput)
+		//Substitute the encoding
+		std::set<Encoding>::iterator defEnc = lg->encodings.find(lg->defaultOutputEncoding);
+		if (defEnc!=lg->encodings.end())
+			lg->defaultOutputEncoding = *defEnc;
+		else
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default output encoding: ", lg->defaultOutputEncoding.id).c_str());
+
+		//Next, validate some default settings of the language
+		if (!defEnc->canUseAsOutput)
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" uses a default output encoding which does not support output.").c_str());
 		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethod)==lg->displayMethods.end())
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default display method: ", lg->defaultDisplayMethod).c_str());
@@ -196,17 +203,27 @@ void ConfigManager::generateInputsDisplaysOutputs()
 
 		//Validate transformations & cache a lookup table.
 		for (std::set<Transformation*>::iterator it=lg->transformations.begin(); it!=lg->transformations.end(); it++) {
-			//Make sure this transformation references existing encodings.
-			if (FindKeyInSet(lg->encodings, (*it)->fromEncoding)==lg->encodings.end())
-				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant from-encoding: ", (*it)->fromEncoding).c_str());
-			if (FindKeyInSet(lg->encodings, (*it)->toEncoding)==lg->encodings.end())
-				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant to-encoding: ", (*it)->toEncoding).c_str());
+			//Make sure this transformation references existing encodings. Replace them as we find them
+			{
+			std::set<Encoding>::iterator frEnc = lg->encodings.find((*it)->fromEncoding);
+			if (frEnc!=lg->encodings.end())
+				(*it)->fromEncoding = *frEnc;
+			else
+				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant from-encoding: ", (*it)->fromEncoding.id).c_str());
+			}
+			{
+			std::set<Encoding>::iterator toEnc = lg->encodings.find((*it)->toEncoding);
+			if (toEnc!=lg->encodings.end())
+				(*it)->toEncoding = *toEnc;
+			else
+				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant to-encoding: ", (*it)->toEncoding.id).c_str());
+			}
 
 			//Add to our lookup table, conditional on a few key points
 			//TODO: Re-write... slightly messy.
 			std::pair<Encoding, Encoding> newPair;
-			newPair.first = *FindKeyInSet(lg->encodings, (*it)->fromEncoding);
-			newPair.second = *FindKeyInSet(lg->encodings, (*it)->toEncoding);
+			newPair.first = *(lg->encodings.find((*it)->fromEncoding));
+			newPair.second = *(lg->encodings.find((*it)->toEncoding));
 			std::map< std::pair<Encoding, Encoding>, Transformation* >::iterator foundPair = lg->transformationLookup.find(newPair);
 			if (foundPair==lg->transformationLookup.end())
 				lg->transformationLookup[newPair] = *it;
@@ -220,14 +237,19 @@ void ConfigManager::generateInputsDisplaysOutputs()
 
 		//Validate each input method
 		for (std::set<InputMethod*>::iterator it=lg->inputMethods.begin(); it!=lg->inputMethods.end(); it++) {
-			//Make sure this input method references an existing encoding.
-			if (FindKeyInSet(lg->encodings, (*it)->encoding)==lg->encodings.end())
-				throw std::exception(glue(L"Input Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding).c_str());
+			//Make sure this input method references an existing encoding. Replace it as we find it
+			{
+			std::set<Encoding>::iterator inEnc = lg->encodings.find((*it)->encoding);
+			if (inEnc!=lg->encodings.end())
+				(*it)->encoding = *inEnc;
+			else
+				throw std::exception(glue(L"Input Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding.id).c_str());
+			}
 
 			//Make sure that our encoding is EITHER the default, OR there is an appropriate transform.
 			if ((*it)->encoding!=L"unicode") {
 				std::pair<Encoding, Encoding> lookup;
-				lookup.first = *FindKeyInSet(lg->encodings, (*it)->encoding);
+				lookup.first = *(lg->encodings.find((*it)->encoding));
 				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
 				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
 					throw std::exception(glue(L"No \"transformation\" exists for input method(", (*it)->id, L").").c_str());
@@ -236,14 +258,19 @@ void ConfigManager::generateInputsDisplaysOutputs()
 
 		//Validate each display method
 		for (std::set<DisplayMethod*>::iterator it=lg->displayMethods.begin(); it!=lg->displayMethods.end(); it++) {
-			//Make sure this display method references an existing encoding.
-			if (FindKeyInSet(lg->encodings, (*it)->encoding)==lg->encodings.end())
-				throw std::exception(glue(L"Display Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding).c_str());
+			//Make sure this display method references an existing encoding. Replace it as we find it.
+			{
+			std::set<Encoding>::iterator outEnc = lg->encodings.find((*it)->encoding);
+			if (outEnc!=lg->encodings.end())
+				(*it)->encoding = *outEnc;
+			else
+				throw std::exception(glue(L"Display Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding.id).c_str());
+			}
 
 			//Make sure that our encoding is EITHER the default, OR there is an appropriate transform.
-			if ((*it)->encoding!=L"unicode") {
+			if ((*it)->encoding.id != L"unicode") {
 				std::pair<Encoding, Encoding> lookup;
-				lookup.first = *FindKeyInSet(lg->encodings, (*it)->encoding);
+				lookup.first = *(lg->encodings.find((*it)->encoding));
 				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
 				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
 					throw std::exception(glue(L"No \"transformation\" exists for display method(", (*it)->id, L").").c_str());
@@ -452,7 +479,7 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 			if (name[2] == sanitize_id(L"display-name"))
 				lang->displayName = value;
 			else if (name[2] == sanitize_id(L"default-output-encoding"))
-				lang->defaultOutputEncoding = sanitize_id(value);
+				lang->defaultOutputEncoding.id = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-display-method"))
 				lang->defaultDisplayMethod = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-input-method"))

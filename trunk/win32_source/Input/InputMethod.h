@@ -14,6 +14,36 @@
 #include "OnscreenKeyboard.h"
 
 
+//A struct... will refactor into separate classes later.
+struct Encoding {
+	std::wstring id;
+	bool canUseAsOutput;
+	std::wstring displayName;
+	std::wstring initial;
+	std::wstring imagePath;
+
+	//Allow map comparison 
+	bool operator<(const Encoding& other) const {
+		return id < other.id;
+	}
+
+	//Allow logical equals and not equals
+	bool operator==(const Encoding &other) const {
+		return id == other.id;
+	}
+	bool operator!=(const Encoding &other) const {
+		return id != other.id;
+	}
+
+	//Allow eq/neq on strings, too
+	bool operator==(const std::wstring& other) const {
+		return id == other;
+	}
+	bool operator!=(const std::wstring& other) const {
+		return id != other;
+	}
+};
+
 
 
 //Global "Types" enum
@@ -52,7 +82,7 @@ public:
 	//Struct-like properties
 	std::wstring id;
 	std::wstring displayName;
-	std::wstring encoding;
+	Encoding encoding;
 	TYPES type;
 
 	//Useful functionality

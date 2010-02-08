@@ -13,35 +13,6 @@
 #include "Input/InputMethod.h"
 
 
-//A struct... will refactor into separate classes later.
-struct Encoding {
-	std::wstring id;
-	bool canUseAsOutput;
-	std::wstring displayName;
-	std::wstring initial;
-	std::wstring imagePath;
-
-	//Allow map comparison 
-	bool operator<(const Encoding& other) const {
-		return id < other.id;
-	}
-
-	//Allow logical equals and not equals
-	bool operator==(const Encoding &other) const {
-		return id == other.id;
-	}
-	bool operator!=(const Encoding &other) const {
-		return id != other.id;
-	}
-
-	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
-		return id == other;
-	}
-	bool operator!=(const std::wstring& other) const {
-		return id != other;
-	}
-};
 
 //Expected interface: "Input Method"
 class Transformation {
@@ -49,8 +20,8 @@ public:
 	//Struct-like properties
 	std::wstring id;
 	bool hasPriority;
-	std::wstring fromEncoding;
-	std::wstring toEncoding;
+	Encoding fromEncoding;
+	Encoding toEncoding;
 	TYPES type;
 
 	//Convert from fromEncoding to toEncoding.
@@ -84,7 +55,7 @@ class DisplayMethod {
 public:
 	//Struct-like properties
 	std::wstring id;
-	std::wstring encoding;
+	Encoding encoding;
 	TYPES type;
 
 	//Temp for now: just force this to be virtual
