@@ -180,6 +180,11 @@ void ConfigManager::generateInputsDisplaysOutputs()
 	//Cache our self2self lookup
 	self2self = new Uni2Uni();
 
+	//Validate our settings
+	//TODO: Check the hotkey, later
+	if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end())
+		throw std::exception(glue(L"Settings references non-existant default language: ", options.settings.defaultLanguage).c_str());
+
 	//Validate over each language
 	for (std::set<Language>::iterator lg=options.languages.begin(); lg!=options.languages.end(); lg++) {
 		//Substitute the encoding
@@ -454,6 +459,8 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 				options.settings.trackCaret = read_bool(value);
 			else if (name[1] == sanitize_id(L"lock-windows"))
 				options.settings.lockWindows = read_bool(value);
+			else if (name[1] == sanitize_id(L"default-language"))
+				options.settings.defaultLanguage = sanitize_id(value);
 			else
 				throw 1;
 
