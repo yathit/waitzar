@@ -19,7 +19,7 @@ public:
 	Uni2Uni();
 
 	//Convert
-	const std::wstring& convert(const std::wstring& src);
+	const std::wstring& convert(const std::wstring& src) const;
 };
 
 

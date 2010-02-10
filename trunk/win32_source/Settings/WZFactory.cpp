@@ -37,8 +37,10 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<s
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
 		vector< pair<int, unsigned short> > temp; //TODO: Remove
-		if (id==L"waitzar")
+		if (id==L"waitzar") {
 			res = new WaitZar(temp);
+			((WaitZar*)res)->init(model, sentence, typeBurmeseNumbers);
+		}
 		else if (id==L"mywin")
 			res = new WaitZar(temp); //TODO: Change!
 		else

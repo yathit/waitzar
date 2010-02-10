@@ -153,9 +153,9 @@ InputMethod*       currInput;     //Which of the two next inputs are currently i
 InputMethod*       currTypeInput;
 InputMethod*       currHelpInput; //NULL means disable help
 DisplayMethod*     currDisplay;
-Transformation*    input2Uni;     //NULL means already unicode
-Transformation*    uni2Output;    //NULL means output unicode
-Transformation*    uni2Disp;      //NULL means display in unicode
+const Transformation*    input2Uni;
+const Transformation*    uni2Output;
+const Transformation*    uni2Disp;
 
 
 //These need to be pointers, for now. Reference semantics are just too complex.
@@ -256,6 +256,11 @@ MyWin32Window* mainWindow = NULL;
 MyWin32Window* sentenceWindow = NULL;
 MyWin32Window* helpWindow = NULL;
 MyWin32Window* memoryWindow = NULL;
+
+//Temporary id holders until we start managing our own menus
+vector<wstring> menuopt_languages;
+vector<wstring> menuopt_inputs;
+vector<wstring> menuopt_outputs;
 
 //Avoid cyclical messaging:
 bool mainWindowSkipMove = false;
@@ -544,7 +549,6 @@ bool testAllWordsByHand()
 	MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 	return true;
 }
-
 
 
 void buildSystemWordLookup()
@@ -2405,6 +2409,46 @@ void checkAllHotkeysAndWindows()
 
 
 
+//Change our model; reset as necessary depending on what changed
+void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid) 
+{
+	//Step 1: Set
+	if (!langid.empty()) {
+		//Changing the language changes just about everything.
+		config.activeLanguage = *(FindKeyInSet(config.getLanguages(), langid));
+		config.activeDisplayMethod = *(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethod));
+		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), config.activeLanguage.defaultInputMethod));
+		config.activeOutputEncoding = config.activeLanguage.defaultOutputEncoding;
+	}
+	if (!inputid.empty())
+		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), inputid));
+	if (!outputid.empty())
+		config.activeOutputEncoding = *(FindKeyInSet(config.getEncodings(), outputid));
+
+	//Step 2: Read
+	currInput = config.activeInputMethod;
+	currTypeInput = currInput;
+	currHelpInput = NULL; 
+	currDisplay = config.activeDisplayMethod;
+	input2Uni = config.getTransformation(config.activeLanguage, config.activeInputMethod->encoding, config.unicodeEncoding);
+	uni2Output = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeOutputEncoding);
+	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethod->encoding);
+
+	//Now, reset?
+	if (!langid.empty() || !inputid.empty()) {
+		//Input has changed; reset
+		currTypeInput->reset(true, true, true, true);
+		if (currHelpInput!=NULL)
+			currHelpInput->reset(true, true, true, true);
+
+		//And repaint, just in case
+		checkAllHotkeysAndWindows();
+		recalculate();
+	}
+}
+
+
+
 
 bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 {
@@ -2620,10 +2664,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Build our complex submenu for language selection, etc.
 				//TODO: Replace "highlight" with a special user-drawn menu that is always highlighted.
+				//TODO2: Replace our "menuopt" vectors with an "id" parameter stored within the user-drawn menus.
 				//Step 1: Remove our placeholder item
 				HMENU typingMenu = GetSubMenu(hpopup, 7);
 				RemoveMenu(typingMenu, ID_DELETE_ME, MF_BYCOMMAND);
 				unsigned int currDynamicCmd = DYNAMIC_CMD_START;
+				menuopt_languages.clear();
+				menuopt_inputs.clear();
+				menuopt_outputs.clear();
 
 				//Step 2: Add all languages, check the currently-selected one.
 				AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, WND_TITLE_LANGUAGE.c_str());
@@ -2634,6 +2682,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
 					checkID = (*it == config.activeLanguage) ? currDynamicCmd : checkID;
 					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, it->displayName.c_str());
+					menuopt_languages.push_back(it->id);
 				}
 				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
 
@@ -2646,6 +2695,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
 					checkID = (*it == config.activeInputMethod) ? currDynamicCmd : checkID;
 					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, (*it)->displayName.c_str());
+					menuopt_inputs.push_back((*it)->id);
 				}
 				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
 
@@ -2660,6 +2710,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						continue;
 					checkID = (*it == config.activeOutputEncoding) ? currDynamicCmd : checkID;
 					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, it->displayName.c_str());
+					menuopt_outputs.push_back((*it).id);
 				}
 				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
 
@@ -2719,6 +2770,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else if (retVal == ID_ENCODING_WININNWA) {
 					setEncoding(ENCODING_WININNWA);
 					recalculate();
+				} else if (retVal >= DYNAMIC_CMD_START) {
+					//Switch the language, input manager, or output manager.
+					unsigned int offset = retVal-DYNAMIC_CMD_START;
+					if (offset<menuopt_languages.size())
+						ChangeLangInputOutput(menuopt_languages[offset], L"", L"");
+					else if (offset-menuopt_languages.size()<menuopt_inputs.size())
+						ChangeLangInputOutput(L"", menuopt_inputs[offset-menuopt_languages.size()], L"");
+					else
+						ChangeLangInputOutput(L"", L"", menuopt_outputs[offset-menuopt_languages.size()-menuopt_inputs.size()]);
 				}
 
 				//Fixes a bug re: MSKB article: Q135788
@@ -3231,21 +3291,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Set defaults
-	currTypeInput    = new RomanInputMethod(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords); //tmp; load from config
-	((RomanInputMethod*)currTypeInput)->init(model, sentence, typeBurmeseNumbers);
-	currTypeInput->encoding.id = L"zawgyi";
-	currHelpInput    = NULL;   //NULL means disable help
-	currInput        = currTypeInput;
-	currDisplay      = new PngFont(); //tmp; load from config
-	currDisplay->encoding.id = L"zawgyi";
-	input2Uni        = new Uni2Uni();
-	uni2Output       = new Uni2Uni();
-	uni2Disp         = new Uni2Uni();
-
-	//ALWAYS reset when you change inputs
-	currTypeInput->reset(true, true, true, true);
-	if (currHelpInput!=NULL)
-		currHelpInput->reset(true, true, true, true);
+	ChangeLangInputOutput(config.activeLanguage.id, config.activeInputMethod->id, config.activeOutputEncoding.id);
 
 
 	//Todo... find a better way of setting this (loadModel() and loadConfigOptions() clash)

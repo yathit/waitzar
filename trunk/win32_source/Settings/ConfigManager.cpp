@@ -209,8 +209,10 @@ void ConfigManager::generateInputsDisplaysOutputs()
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default input method: ", lg->defaultInputMethod).c_str());
 
 		//TODO: Right now, "unicode" is hard-coded into a lot of places. Is there a better way?
-		if (FindKeyInSet(lg->encodings, L"unicode")==lg->encodings.end())
+		std::set<Encoding>::iterator uniEnc = FindKeyInSet(lg->encodings, L"unicode");
+		if (uniEnc==lg->encodings.end())
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" does not include \"unicode\" as an encoding.").c_str());
+		unicodeEncoding = *uniEnc;
 
 		//Validate transformations & cache a lookup table.
 		for (std::set<Transformation*>::iterator it=lg->transformations.begin(); it!=lg->transformations.end(); it++) {
@@ -399,6 +401,19 @@ const std::set<InputMethod*>& ConfigManager::getInputMethods()
 		this->loadLanguageSubFiles();
 
 	return this->activeLanguage.inputMethods;
+}
+
+const std::set<DisplayMethod*>& ConfigManager::getDisplayMethods()
+{
+	//Languages can ONLY be defined in top-level language directories.
+	//  So we don't need to load user-defined plugins yet. 
+	//TODO: Why 2 flags?
+	if (!this->loadedLanguageMainFiles)
+		this->loadLanguageMainFiles();
+	if (!this->loadedLanguageSubFiles)
+		this->loadLanguageSubFiles();
+
+	return this->activeLanguage.displayMethods;
 }
 
 const std::set<Encoding>& ConfigManager::getEncodings()
