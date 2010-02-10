@@ -185,14 +185,14 @@ public:
 	const std::set<InputMethod*>& getInputMethods();
 	const std::set<Encoding>& getEncodings();
 	const Transformation* getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const;
-	//std::set<InputManager> getInputManagers();
-	//std::set<Encoding> getEncodings();
+	const std::set<DisplayMethod*>& getDisplayMethods();
 
 	//Control
 	Language activeLanguage;
 	Encoding activeOutputEncoding;
 	InputMethod* activeInputMethod;
 	DisplayMethod* activeDisplayMethod;
+	Encoding unicodeEncoding;
 
 	//Quality control
 	void validate();
@@ -286,11 +286,35 @@ typename std::set<T>::iterator FindKeyInSet(std::set<T>& container, const std::w
 	return it;
 }
 
+//Same, but for const
+template <class T> 
+typename std::set<T>::const_iterator FindKeyInSet(const std::set<T>& container, const std::wstring& key)
+{
+	std::set<T>::const_iterator it=container.begin();
+	for (; it!=container.end(); it++)  {
+		if ((*it) == key)
+			break;
+	}
+	return it;
+}
+
 //Same, but for a set of references.
 template <class T> 
 typename std::set<T*>::iterator FindKeyInSet(std::set<T*>& container, const std::wstring& key)
 {
 	std::set<T*>::iterator it=container.begin();
+	for (; it!=container.end(); it++)  {
+		if ((*(*it)) == key)
+			break;
+	}
+	return it;
+}
+
+//Ugh, now THIS as const...
+template <class T> 
+typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container, const std::wstring& key)
+{
+	std::set<T*>::const_iterator it=container.begin();
 	for (; it!=container.end(); it++)  {
 		if ((*(*it)) == key)
 			break;
