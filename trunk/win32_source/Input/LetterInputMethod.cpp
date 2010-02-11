@@ -81,8 +81,8 @@ void LetterInputMethod::handleLeftRight(bool isRight)
 	//TODO: ADD LATER
 }
 
-//Ignore numCode
-void LetterInputMethod::handleNumber(int numCode, WPARAM wParam)
+//Ignore numCode, typeBurmeseNumbers
+void LetterInputMethod::handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers)
 {
 	this->handleKeyPress(wParam);
 }

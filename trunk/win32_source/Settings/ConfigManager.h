@@ -195,7 +195,7 @@ public:
 	Encoding unicodeEncoding;
 
 	//Quality control
-	void validate();
+	void validate(HINSTANCE& hInst);
 
 	//Useful
 	static std::wstring sanitize_id(const std::wstring& str);

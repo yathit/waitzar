@@ -99,7 +99,7 @@ public:
 	virtual void handleDelete() = 0;
 	virtual void handleLeftRight(bool isRight) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
-	virtual void handleNumber(int numCode, WPARAM wParam) = 0;
+	virtual void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers) = 0;
 	virtual void handleStop(bool isFull) = 0;
 
 	virtual void handleKeyPress(WPARAM wParam);

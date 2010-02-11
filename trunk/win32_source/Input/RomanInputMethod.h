@@ -19,7 +19,7 @@ public:
 	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords);
 
 	//Needed to add Roman-specific stuff
-	void init(waitzar::WordBuilder* model, waitzar::SentenceList* sentence, bool typeBurmeseNumbers);
+	void init(waitzar::WordBuilder* model, waitzar::SentenceList* sentence);
 
 	//Destructor
 	~RomanInputMethod();
@@ -30,7 +30,7 @@ public:
 	void handleDelete();
 	void handleLeftRight(bool isRight);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam);
+	void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
 	void handleKeyPress(WPARAM wParam);
 

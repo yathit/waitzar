@@ -36,11 +36,10 @@ RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sen
 
 
 //This takes responsibility for the model and sentence memory.
-void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence, bool typeBurmeseNumbers)
+void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence)
 {
 	this->model = model;
 	this->sentence = sentence;
-	this->typeBurmeseNumbers = typeBurmeseNumbers;
 }
 
 
@@ -135,7 +134,7 @@ void RomanInputMethod::handleLeftRight(bool isRight)
 }
 
 
-void RomanInputMethod::handleNumber(int numCode, WPARAM wParam)
+void RomanInputMethod::handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers)
 {
 	if (mainWindow->isVisible()) {
 		//Convert 1..0 to 0..9

@@ -82,6 +82,7 @@ public:
 	unsigned int getTotalDefinedWords() const;
 	std::string reverseLookupWord(unsigned int dictID);
 	bool addShortcut(const std::wstring &baseWord, const std::wstring &toStack, const std::wstring &resultStacked);
+	bool isAllowNonBurmese();
 
 	//Re-order the model
 	bool addRomanization(const std::wstring &myanmar, const std::string &roman);
