@@ -25,8 +25,39 @@ WZFactory::~WZFactory(void)
 }
 
 
-//Something static
+//Static initializations
 HINSTANCE WZFactory::hInst = HINSTANCE();
+MyWin32Window* WZFactory::mainWindow = NULL;
+MyWin32Window* WZFactory::sentenceWindow = NULL;
+MyWin32Window* WZFactory::helpWindow = NULL;
+MyWin32Window* WZFactory::memoryWindow = NULL;
+OnscreenKeyboard* WZFactory::helpKeyboard = NULL;
+std::vector< std::pair <int, unsigned short> > WZFactory::systemWordLookup = std::vector< std::pair <int, unsigned short> >();
+
+//A few more static initializers
+const std::wstring WZFactory::systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
+const int WZFactory::systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
+		HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
+		HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
+		HOTKEY_SHIFT_LEFT_BRACKET, HOTKEY_RIGHT_BRACKET, HOTKEY_SHIFT_RIGHT_BRACKET, HOTKEY_SEMICOLON, 
+		HOTKEY_SHIFT_SEMICOLON, HOTKEY_APOSTROPHE, HOTKEY_SHIFT_APOSTROPHE, HOTKEY_BACKSLASH, HOTKEY_SHIFT_BACKSLASH, 
+		HOTKEY_SHIFT_COMMA, HOTKEY_SHIFT_PERIOD, HOTKEY_FORWARDSLASH, HOTKEY_SHIFT_FORWARDSLASH, HOTKEY_SHIFT_SPACE, 
+		HOTKEY_1, HOTKEY_2, HOTKEY_3, HOTKEY_4, HOTKEY_5, HOTKEY_6, HOTKEY_7, HOTKEY_8, HOTKEY_9, HOTKEY_0};
+
+
+//Build our system lookup
+void WZFactory::buildSystemWordLookup()
+{
+	//Check
+	if (WZFactory::systemDefinedWords.length() != sizeof(systemDefinedKeys)/sizeof(int))
+		throw std::exception("System words arrays of mismatched size.");
+
+	//Build our reverse lookup.
+	for (size_t i=0; i<WZFactory::systemDefinedWords.size(); i++) {
+		int hotkey_id = WZFactory::systemDefinedKeys[i];
+		WZFactory::systemWordLookup.push_back(pair<int, unsigned short>(hotkey_id, i));
+	}
+}
 
 
 
@@ -260,9 +291,7 @@ RomanInputMethod* WZFactory::getWaitZarInput()
 		model->reverseLookupWord(0);
 
 		//Create, init
-		//TODO: Actually hook up the windows, etc.
-		vector< pair <int, unsigned short> > temp;
-		WZFactory::wz_input = new RomanInputMethod(NULL, NULL, NULL, NULL, temp, NULL, L"");
+		WZFactory::wz_input = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
 		WZFactory::wz_input->init(model, sentence);
 	}
 	
@@ -289,9 +318,7 @@ RomanInputMethod* WZFactory::getWordlistBasedInput(string wordlistFileName)
 		throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 	//Now, build the romanisation method and return
-	//TODO: Actually hook up the windows, etc.
-	vector< pair <int, unsigned short> > temp;
-	RomanInputMethod* res = new RomanInputMethod(NULL, NULL, NULL, NULL, temp, NULL, L"");
+	RomanInputMethod* res = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
 	res->init(model, sentence);
 	return res;
 }
@@ -300,10 +327,15 @@ RomanInputMethod* WZFactory::getWordlistBasedInput(string wordlistFileName)
 
 
 
-void WZFactory::InitAll(HINSTANCE& hInst)
+void WZFactory::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard)
 {
 	//Save
 	WZFactory::hInst = hInst;
+	WZFactory::mainWindow = mainWindow;
+	WZFactory::sentenceWindow = sentenceWindow;
+	WZFactory::helpWindow = helpWindow;
+	WZFactory::memoryWindow = memoryWindow;
+	WZFactory::helpKeyboard = helpKeyboard;
 
 	//Call all singleton classes
 	WZFactory::getWaitZarInput();
@@ -326,9 +358,8 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::map<s
 	//First, generate an actual object, based on the type.
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
-		if (id==L"waitzar") {
-			return WZFactory::getWaitZarInput();
-		}
+		if (id==L"waitzar")
+			res = WZFactory::getWaitZarInput();
 		else if (id==L"mywin")
 			res = WZFactory::getWaitZarInput();
 		else

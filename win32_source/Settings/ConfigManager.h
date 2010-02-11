@@ -195,7 +195,7 @@ public:
 	Encoding unicodeEncoding;
 
 	//Quality control
-	void validate(HINSTANCE& hInst);
+	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);
 
 	//Useful
 	static std::wstring sanitize_id(const std::wstring& str);
