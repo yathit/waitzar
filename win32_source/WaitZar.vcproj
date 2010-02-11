@@ -212,10 +212,6 @@
 						RelativePath=".\Input\RomanInputMethod.cpp"
 						>
 					</File>
-					<File
-						RelativePath=".\Input\WaitZar.cpp"
-						>
-					</File>
 				</Filter>
 				<Filter
 					Name="Display"
@@ -433,10 +429,6 @@
 						</File>
 						<File
 							RelativePath=".\Input\RomanInputMethod.h"
-							>
-						</File>
-						<File
-							RelativePath=".\Input\WaitZar.h"
 							>
 						</File>
 					</Filter>

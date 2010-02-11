@@ -117,10 +117,6 @@ const unsigned int STATUS_NID = 144;
 const unsigned int UWM_SYSTRAY = WM_USER+1;
 const unsigned int UWM_HOTKEY_UP = WM_USER+2;
 
-//Grr... notepad...
-const unsigned int UNICOD_BOM = 0xFEFF;
-const unsigned int BACKWARDS_BOM = 0xFFFE;
-
 //Window IDs for the "Language" sub-menu
 const unsigned int DYNAMIC_CMD_START = 50000;
 const wstring WND_TITLE_LANGUAGE = L"Language";
@@ -128,7 +124,7 @@ const wstring WND_TITLE_INPUT = L"Input Method";
 const wstring WND_TITLE_OUTPUT = L"Encoding";
 
 //Font conversion
-wstring currEncStr;
+//wstring currEncStr;
 ENCODING mostRecentEncoding = ENCODING_UNICODE;
 
 //Brushes & Pens
@@ -146,7 +142,7 @@ HPEN g_EmptyPen;
 HINSTANCE hInst;
 HICON mmIcon;
 HICON engIcon;
-WordBuilder *model;
+//WordBuilder *model;
 
 //More globals  --  full program customization happens here
 InputMethod*       currInput;     //Which of the two next inputs are currently in use?
@@ -173,7 +169,7 @@ int numCustomWords;
 INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
-string mywordsFileName = "mywords.txt";
+//string mywordsFileName = "mywords.txt";
 
 
 //Help Window resources
@@ -231,7 +227,7 @@ POINT caretLatestPosition;
 ConfigManager config;
 
 //Configuration variables.
-BOOL customDictWarning = FALSE;
+//BOOL customDictWarning = FALSE;
 
 //These two will take some serious fixing later.
 TCHAR langHotkeyString[100];
@@ -239,14 +235,13 @@ char langHotkeyRaw[100];
 
 //bool typePhrases = true;
 bool dragBothWindowsTogether = true;
-bool typeBurmeseNumbers = true;
 bool showBalloonOnStart = true;
 bool alwaysRunElevated = false;
 bool highlightKeys = true;
 bool experimentalTextCursorTracking = true;
-bool dontLoadModel = false;
-bool allowNonBurmeseLetters = false;
-bool ignoreMywordsWarnings = false;
+//bool dontLoadModel = false;
+//bool allowNonBurmeseLetters = false;
+//bool ignoreMywordsWarnings = false;
 string fontFileRegular;
 string fontFileSmall;
 
@@ -278,7 +273,6 @@ bool numberKeysOn = false;
 bool punctuationKeysOn = false;
 bool extendedKeysOn = false;
 bool helpKeysOn = false;
-SentenceList *sentence;
 int prevProcessID;
 bool showingHelpPopup = false;
 
@@ -508,7 +502,7 @@ vector<wstring> GetConfigSubDirs(std::string dirToCheck, std::string configFileN
 
 
 //False on some error
-bool testAllWordsByHand()
+/*bool testAllWordsByHand()
 {
 	//First, ensure that the reverse-lookup is ready
 	model->reverseLookupWord(0);
@@ -548,7 +542,7 @@ bool testAllWordsByHand()
 	swprintf(msg, L"Type All total time:   %dms", timeMS);
 	MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 	return true;
-}
+}*/
 
 
 void buildSystemWordLookup()
@@ -944,83 +938,7 @@ BOOL waitzarAlreadyStarted()
 }
 
 
-
-void readUserWords() {
-	//Read our words file, if it exists.
-	if (currTest != model_print) {
-		numCustomWords = -1;
-		FILE* userFile = fopen(mywordsFileName.c_str(), "r");
-		if (userFile != NULL) {
-			//Get file size
-			fseek (userFile, 0, SEEK_END);
-			long fileSize = ftell(userFile);
-			rewind(userFile);
-
-			//Read it all into an array, close the file.
-			char * buffer = (char*) malloc(sizeof(char)*fileSize);
-			size_t buff_size = fread(buffer, 1, fileSize, userFile);
-			fclose(userFile);
-
-			numCustomWords = 0;
-			if (buff_size==0) {
-				return; //Empty file.
-			}
-
-			//Finally, convert this array to unicode
-			TCHAR * uniBuffer;
-			size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
-			uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
-			if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars)) {
-				MessageBox(NULL, _T("mywords.txt contains invalid UTF-8 characters.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
-				return;
-			}
-			delete [] buffer;
-
-			//Skip the BOM, if it exists
-			size_t currPosition = 0;
-			if (uniBuffer[currPosition] == UNICOD_BOM)
-				currPosition++;
-			else if (uniBuffer[currPosition] == BACKWARDS_BOM) {
-				MessageBox(NULL, _T("mywords.txt appears to be backwards. You should fix the Unicode encoding using Notepad or another Windows-based text utility.\n\nWait Zar will still function properly; however, your custom dictionary will be ignored."), _T("Warning"), MB_ICONWARNING | MB_OK);
-				return;
-			}
-
-			//Read each line
-			TCHAR* name = new TCHAR[100];
-			char* value = new char[100];
-			while (currPosition<numUniChars) {
-				//Get the name/value pair using our nifty template function....
-				readLine(uniBuffer, currPosition, numUniChars, true, true, false, allowNonBurmeseLetters, true, false, false, false, name, value);
-
-				//Make sure both name and value are non-empty
-				if (strlen(value)==0 || lstrlen(name)==0)
-					continue;
-
-				//Add this romanization
-				if (!model->addRomanization(name, value) && !ignoreMywordsWarnings) {
-					MessageBox(NULL, model->getLastError().c_str(), _T("Error adding Romanisation"), MB_ICONERROR | MB_OK);
-				}
-				numCustomWords++;
-			}
-			delete [] uniBuffer;
-			delete [] name;
-			delete [] value;
-
-
-			if (numCustomWords>0 && customDictWarning==TRUE)
-				MessageBox(NULL, _T("Warning! You are using a custom dictionary: \"mywords.txt\".\nThis feature of Wait Zar is EXPERIMENTAL; WaitZar.exe may crash.\n(You may disable this warning by setting mywordswarning = no in config.txt).\n\nPlease report any crashes at the issues page: \nhttp://code.google.com/p/waitzar/issues/list\n\nPress \"Ok\" to continue using Wait Zar."), _T("Warning..."), MB_ICONWARNING | MB_OK);
-
-		} else {
-			//Special case if testing
-			if (currTest == mywords) {
-				MessageBox(NULL, _T("Error! Custom mywords file does not exist!"), _T("Test-Related Error"), MB_ICONWARNING | MB_OK);
-			}
-		}
-	}
-}
-
-
-void setEncoding(ENCODING encoding)
+/*void setEncoding(ENCODING encoding)
 {
 	if (encoding==ENCODING_WININNWA)
 		currEncStr = L"WI";
@@ -1033,7 +951,7 @@ void setEncoding(ENCODING encoding)
 	mostRecentEncoding = encoding;
 	if (model!=NULL)
 		model->setOutputEncoding(encoding);
-}
+}*/
 
 
 void loadConfigOptions()
@@ -1043,7 +961,7 @@ void loadConfigOptions()
 	strcpy(langHotkeyRaw, "^+");
 
 	//Default encoding
-	setEncoding(ENCODING_UNICODE);
+	//setEncoding(ENCODING_UNICODE);
 
 	//Default font files
 	fontFileRegular = "";
@@ -1081,11 +999,11 @@ void loadConfigOptions()
 		//Deal with our name/value pair.
 		if (strcmp(name, "mywordswarning")==0) {
 			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				customDictWarning = TRUE;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				customDictWarning = FALSE;
-			else
+			else*/
 				numConfigOptions--;
 		} else if (strcmp(name, "lockwindows")==0) {
 			numConfigOptions++;
@@ -1105,11 +1023,11 @@ void loadConfigOptions()
 				numConfigOptions--;*/
 		} else if (strcmp(name, "burmesenumerals")==0) {
 			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				typeBurmeseNumbers = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				typeBurmeseNumbers = false;
-			else
+			else*/
 				numConfigOptions--;
 		} else if (strcmp(name, "ballooononstart")==0) {
 			numConfigOptions++;
@@ -1137,37 +1055,37 @@ void loadConfigOptions()
 				numConfigOptions--;
 		} else if (strcmp(name, "ignoremodel")==0) {
 			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				dontLoadModel = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				dontLoadModel = false;
-			else
+			else*/
 				numConfigOptions--;
 		} else if (strcmp(name, "silencemywordserrors")==0) {
 			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
+			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
 				ignoreMywordsWarnings = true;
 			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
 				ignoreMywordsWarnings = false;
-			else
+			else*/
 				numConfigOptions--;
 		} else if (strcmp(name, "charaset")==0) {
 			numConfigOptions++;
-			if (strcmp(value, "any")==0)
+			/*if (strcmp(value, "any")==0)
 				allowNonBurmeseLetters = true;
 			else if (strcmp(value, "burmese")==0 || strcmp(value, "myanmar")==0)
 				allowNonBurmeseLetters = false;
-			else
+			else*/
 				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
 			numConfigOptions++;
-			if (strcmp(value, "wininnwa")==0)
+			/*if (strcmp(value, "wininnwa")==0)
 				setEncoding(ENCODING_WININNWA);
 			else if (strcmp(value, "zawgyi")==0)
 				setEncoding(ENCODING_ZAWGYI);
 			else if (strcmp(value, "unicode")==0 || strcmp(value, "parabaik")==0 || strcmp(value, "padauk")==0 || strcmp(value, "myanmar3")==0)
 				setEncoding(ENCODING_UNICODE);
-			else
+			else*/
 				numConfigOptions--;
 		} else if (strcmp(name, "hotkey")==0) {
 			//Set it later
@@ -1268,186 +1186,6 @@ bool registerInitialHotkey()
 	delete [] temp;
 
 	return mainWindow->registerHotKey(LANG_HOTKEY, modifier, keycode);
-}
-
-
-
-/**
- * Load the Wait Zar language model.
- */
-void loadModel() {
-	//Load our embedded resource, the WaitZar model
-	HGLOBAL     res_handle = NULL;
-	HRSRC       res;
-    char *      res_data;
-    DWORD       res_size;
-
-	//Previous versions of Wait Zar used the Google sparse hash library; however, even with
-	//  its small footprint, this method required too much memory. So, we'll just allocate
-	//  a jagged array.
-
-	//Special...
-	int numberCheck = 0;
-
-	if (dontLoadModel) {
-		//Create our data structures
-		//In total, this uses 41KB of raw memory just for storing our skeleton, so
-		//  I estimate about 1MB of memory for actually storing the data.
-		//  That's a lot, but it's worth it so that people's custom mywords files don't crash randomly.
-		vector<wstring> dictionary;
-		vector< vector<unsigned int> > nexus;
-		vector< vector<unsigned int> >  prefix;
-
-		//Of all these, only nexus is assumed to have anything in it
-		nexus.push_back(vector<unsigned int>());
-
-		//This should totally work :P (yes, I tested it rigorously)
-		model = new WordBuilder(dictionary, nexus, prefix);
-	} else {
-		{
-			//Load the resource as a byte array and get its size, etc.
-			res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
-			if (!res)
-				throw std::exception("Couldn't find WZ_MODEL");
-			res_handle = LoadResource(NULL, res);
-			if (!res_handle)
-				throw std::exception("Couldn't get a handle on WZ_MODEL");
-			res_data = (char*)LockResource(res_handle);
-			res_size = SizeofResource(NULL, res);
-
-			//Save our "model"
-			model = new WordBuilder(res_data, res_size, allowNonBurmeseLetters);
-
-			//Done - This shouldn't matter, though, since the process only
-			//       accesses it once and, fortunately, this is not an external file.
-			UnlockResource(res_handle);
-		}
-
-
-		//We also need to load our easy pat-sint combinations
-		if (currTest != model_print) {
-			//Load the resource as a byte array and get its size, etc.
-			res = FindResource(hInst, MAKEINTRESOURCE(WZ_EASYPS), _T("Model"));
-			if (!res)
-				throw std::exception("Couldn't find WZ_EASYPS");
-			res_handle = LoadResource(NULL, res);
-			if (!res_handle)
-				throw std::exception("Couldn't get a handle on WZ_EASYPS");
-			res_data = (char*)LockResource(res_handle);
-			res_size = SizeofResource(NULL, res);
-
-			//We, unfortunately, have to convert this to unicode now...
-			wchar_t *uniData = new wchar_t[res_size];
-			mymbstowcs(uniData, res_data, res_size);
-			DWORD uniSize = wcslen(uniData);
-
-			//Now, read through each line and add it to the external words list.
-			wchar_t pre[200];
-			wchar_t curr[200];
-			wchar_t post[200];
-			size_t index = 0;
-
-			//Skip the BOM
-			//if (res_data[index] == 0xFE && res_data[index+1]==0xFF)
-			//	index += 2;
-
-			for (;index<uniSize;) {
-				//Left-trim
-				while (uniData[index] == ' ')
-					index++;
-
-				//Comment? Empty line? If so, skip...
-				if (uniData[index]=='#' || uniData[index]=='\n') {
-					while (uniData[index] != '\n')
-						index++;
-					index++;
-					continue;
-				}
-
-				//Init
-				pre[0] = 0x0000;
-				int pre_pos = 0;
-				bool pre_done = false;
-				curr[0] = 0x0000;
-				int curr_pos = 0;
-				bool curr_done = false;
-				post[0] = 0x0000;
-				int post_pos = 0;
-
-				//Ok, look for pre + curr = post
-				while (index<uniSize) {
-					if (uniData[index] == '\n') {
-						index++;
-						break;
-					} else if (uniData[index] == '+') {
-						//Switch modes
-						pre_done = true;
-						index++;
-					} else if (uniData[index] == '=') {
-						//Switch modes
-						pre_done = true;
-						curr_done = true;
-						index++;
-					} else if (uniData[index] >= 0x1000 && uniData[index] <= 0x109F) {
-						//Add this to the current string
-						if (curr_done) {
-							post[post_pos++] = uniData[index++];
-						} else if (pre_done) {
-							curr[curr_pos++] = uniData[index++];
-						} else {
-							pre[pre_pos++] = uniData[index++];
-						}
-					} else {
-						//Ignore it; avoid weird errors
-						index++;
-					}
-				}
-
-				//Ok, seal the strings
-				post[post_pos++] = 0x0000;
-				curr[curr_pos++] = 0x0000;
-				pre[pre_pos++] = 0x0000;
-
-				//Do we have anything?
-				if (wcslen(post)!=0 && wcslen(curr)!=0 && wcslen(pre)!=0) {
-					//Ok, process these strings and store them
-					if (!model->addShortcut(pre, curr, post)) {
-						throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
-
-						if (isLogging) {
-							for (size_t q=0; q<model->getLastError().size(); q++)
-								fprintf(logFile, "%c", model->getLastError()[q]);
-							fprintf(logFile, "\n  pre: ");
-							for (unsigned int x=0; x<wcslen(pre); x++)
-								fprintf(logFile, "U+%x ", pre[x]);
-							fprintf(logFile, "\n");
-
-							fprintf(logFile, "  curr: ");
-							for (unsigned int x=0; x<wcslen(curr); x++)
-								fprintf(logFile, "U+%x ", curr[x]);
-							fprintf(logFile, "\n");
-
-							fprintf(logFile, "  post: ");
-							for (unsigned int x=0; x<wcslen(post); x++)
-								fprintf(logFile, "U+%x ", post[x]);
-							fprintf(logFile, "\n\n");
-						}
-					}
-				}
-			}
-
-			//Free memory
-			delete [] uniData;
-
-			//Done - This shouldn't matter, though, since the process only
-			//       accesses it once and, fortunately, this is not an external file.
-			UnlockResource(res_handle);
-		}
-	}
-
-	//One final check
-	if (model->isInError())
-		throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
 }
 
 
@@ -1770,7 +1508,6 @@ void recalculate()
 	//  We can short-circuit this if the output and display encodings are the same.
 	bool noEncChange = (currDisplay->encoding==currInput->encoding);
 	std::wstring dispRomanStr = noEncChange ? currInput->getTypedRomanString() : uni2Disp->convert(input2Uni->convert(currInput->getTypedRomanString()));
-	//std::wstring dispSentencePreCursorStr = noEncChange ? currInput->getSentencePreCursorString() : uni2Disp->convert(input2Uni->convert(currInput->getSentencePreCursorString()));
 
 	//TODO: The typed sentence string might have a highlight, which changes things slightly.
 	vector<wstring> dispSentenceStr;
@@ -1827,6 +1564,7 @@ void recalculate()
 	sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
 	//Draw the current encoding
+	wstring currEncStr = L"??";
 	int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
 	sentenceWindow->selectObject(g_BlackPen);
 	sentenceWindow->selectObject(g_GreenBkgrd);
@@ -2288,7 +2026,7 @@ void checkAndInitHelpWindow()
 	memoryWindow->expandWindow(newX+helpKeyboard->getWidth(), newY, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), false);
 	
 	//Might as well build the reverse lookup
-	model->reverseLookupWord(0);
+	//model->reverseLookupWord(0);
 
 	//...and now we can properly initialize its drawing surface
 	helpKeyboard->init(helpWindow, memoryWindow);
@@ -2460,7 +2198,7 @@ bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 
 		case HOTKEY_HELP:
 			//What to do if our user hits "F1".
-			if (!allowNonBurmeseLetters && currHelpInput!=NULL)
+			if (/*!allowNonBurmeseLetters &&*/ currHelpInput!=NULL)
 				toggleHelpMode(true);
 			return true;
 
@@ -2543,7 +2281,8 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 			int numCode = (int)wParam - base;
 
 			//Handle key press; letter-based keyboard should just pass this on through
-			currInput->handleNumber(numCode, wParam);
+			bool typeNumerals = true; //TODO: put this SOMEWHERE in the config file.
+			currInput->handleNumber(numCode, wParam, typeNumerals);
 			return true;
 		}
 
@@ -2649,9 +2388,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				ModifyMenu(hmenu, IDM_MYANMAR, MF_BYCOMMAND|flagM, IDM_MYANMAR, temp);
 
 				//Set checks for our sub-menus:
-				UINT flagU = model->getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
-				UINT flagZ = model->getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
-				UINT flagW = model->getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
+				UINT flagU = MF_CHECKED;//model->getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
+				UINT flagZ = 0;//model->getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
+				UINT flagW = 0;//model->getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
 				ModifyMenu(hmenu, ID_ENCODING_UNICODE5, MF_BYCOMMAND|flagU, ID_ENCODING_UNICODE5, POPUP_UNI.c_str());
 				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG.c_str());
 				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN.c_str());
@@ -2762,13 +2501,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					delete mainWindow;
 					//DestroyWindow(hwnd);
 				} else if (retVal == ID_ENCODING_UNICODE5) {
-					setEncoding(ENCODING_UNICODE);
+					//setEncoding(ENCODING_UNICODE);
 					recalculate();
 				} else if (retVal == ID_ENCODING_ZAWGYI) {
-					setEncoding(ENCODING_ZAWGYI);
+					//setEncoding(ENCODING_ZAWGYI);
 					recalculate();
 				} else if (retVal == ID_ENCODING_WININNWA) {
-					setEncoding(ENCODING_WININNWA);
+					//setEncoding(ENCODING_WININNWA);
 					recalculate();
 				} else if (retVal >= DYNAMIC_CMD_START) {
 					//Switch the language, input manager, or output manager.
@@ -2851,9 +2590,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//First and foremost
 	helpIsCached = false;
 	isDragging = false;
-
-	//TEMP: Create sentence in memory
-	sentence = new SentenceList();
 
 	//Also...
 	try {
@@ -3040,7 +2776,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			throw std::exception("No config directory");
 
 		//Final test: make sure all config files work
-		config.validate();
+		config.validate(hInst);
 	} catch (std::exception ex) {
 		//In case of errors, just reset & use the embedded file
 		config = ConfigManager();
@@ -3080,7 +2816,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			UnlockResource(res_handle);
 
 			//One more test.
-			config.validate();
+			config.validate(hInst);
 		} catch (std::exception ex2) {
 			std::wstringstream msg2;
 			msg2 << "Error loading default config file.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
@@ -3153,8 +2889,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Modify our config options?
 	if (currTest == mywords) {
-		dontLoadModel = true;
-		mywordsFileName = "D:\\Open Source Projects\\Waitzar\\eclipse_project\\MyanmarList_v2.txt";
+		//dontLoadModel = true;
+//		mywordsFileName = "D:\\Open Source Projects\\Waitzar\\eclipse_project\\MyanmarList_v2.txt";
 	}
 
 
@@ -3272,8 +3008,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//If we got this far, let's try to load our file.
-	try {
-		loadModel();
+	/*try {
+		//loadModel();
 	} catch (std::exception ex) {
 		//Prompt user:
 		std::wstringstream msg;
@@ -3287,7 +3023,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		delete helpWindow;
 		delete memoryWindow;
 		return 1;
-	}
+	}*/
 
 
 	//Set defaults
@@ -3296,14 +3032,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Todo... find a better way of setting this (loadModel() and loadConfigOptions() clash)
 	//   Actually, this shold be fixed when we switch to the new config files
-	model->setOutputEncoding(mostRecentEncoding);
+	//model->setOutputEncoding(mostRecentEncoding);
 
 	//Testing mywords?
 	if (currTest == mywords)
 		GetSystemTimeAsFileTime(&startTime);
 
-	//Also load user-specific words
-	readUserWords();
 
 	//Logging mywords?
 	if (currTest == mywords) {
@@ -3367,7 +3101,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		logFile = fopen("wz_log.txt", "w");
 
-		model->debugOut(logFile);
+		//model->debugOut(logFile);
 
 		MessageBox(NULL, L"Model saved to output.", _T("Notice"), MB_ICONERROR | MB_OK);
 		return 1;
@@ -3403,8 +3137,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Logging total time to type all words?
 	if (currTest == type_all) {
-		if (!testAllWordsByHand())
-			MessageBox(NULL, L"Error running type_all check!", L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
+		//if (!testAllWordsByHand())
+		MessageBox(NULL, L"Error running type_all check: currently disabled!", L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 		return 0;
 	}
 

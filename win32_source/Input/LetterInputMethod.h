@@ -26,7 +26,7 @@ public:
 	void handleDelete();
 	void handleLeftRight(bool isRight);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam);
+	void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
 	void handleKeyPress(WPARAM wParam);
 

@@ -508,6 +508,12 @@ unsigned int WordBuilder::getTotalDefinedWords() const
 }
 
 
+bool WordBuilder::isAllowNonBurmese()
+{
+	return !this->restrictToMyanmar;
+}
+
+
 //Given baseword + tostack = resultstacked, add this shortcut to our own internal storage
 //return false in error
 bool WordBuilder::addShortcut(const wstring &baseWord, const wstring &toStack, const wstring &resultStacked)

@@ -7,15 +7,28 @@
 #ifndef _WZFACTORY
 #define _WZFACTORY
 
+//Don't let Visual Studio warn us to use the _s functions
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <map>
 #include <string>
 
 #include "Interfaces.h"
-#include "Input/WaitZar.h"
+#include "Input/RomanInputMethod.h"
+#include "NGram/WordBuilder.h"
+#include "NGram/SentenceList.h"
+#include "NGram/wz_utilities.h"
 #include "Display/PngFont.h"
 #include "Transform/Zg2Uni.h"
 #include "Transform/Uni2Uni.h"
 #include "Settings/ConfigManager.h"
+#include "resource.h"
+
+
+//Grr... notepad...
+const unsigned int UNICOD_BOM = 0xFEFF;
+const unsigned int BACKWARDS_BOM = 0xFFFE;
+
 
 /**
  * Implementation of our factory interface: make input/display managers and transformers on demand
@@ -32,9 +45,27 @@ public:
 	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 
+	//More specific builders/instances
+	static RomanInputMethod* getWaitZarInput();
+	static RomanInputMethod* getWordlistBasedInput(std::string wordlistFileName);
+
+	//Init; load all special builders at least once
+	static void InitAll(HINSTANCE& hInst);
+
 	//Ugh
 	static std::wstring sanitize_id(const std::wstring& str);
 	static bool read_bool(const std::wstring& str);
+
+private:
+	//For loading
+	static HINSTANCE hInst;
+
+	//Instances
+	static RomanInputMethod* wz_input;
+
+	//Helper methods
+	static waitzar::WordBuilder* readModel();
+	static void addWordsToModel(waitzar::WordBuilder* model, std::string userWordsFileName);
 };
 
 
