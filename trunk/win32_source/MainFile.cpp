@@ -179,7 +179,7 @@ PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
 PulpCoreFont *helpFntMemory;
 PulpCoreImage *helpCornerImg;
-OnscreenKeyboard *helpKeyboard;
+OnscreenKeyboard* helpKeyboard;
 
 //BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 //POINT PT_ORIGIN;
@@ -197,19 +197,6 @@ bool threadIsActive; //If "false", this thread must be woken to do anything usef
 
 //User keystrokes
 wstring userKeystrokeVector;
-
-//Special "words" used in our keyboard, like "(" and "`"
-vector< pair <int, unsigned short> > systemWordLookup;
-
-//Parallel data structures for constructing systemWordLookup
-const wstring systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
-const int systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
-				HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
-				HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
-				HOTKEY_SHIFT_LEFT_BRACKET, HOTKEY_RIGHT_BRACKET, HOTKEY_SHIFT_RIGHT_BRACKET, HOTKEY_SEMICOLON, 
-				HOTKEY_SHIFT_SEMICOLON, HOTKEY_APOSTROPHE, HOTKEY_SHIFT_APOSTROPHE, HOTKEY_BACKSLASH, HOTKEY_SHIFT_BACKSLASH, 
-				HOTKEY_SHIFT_COMMA, HOTKEY_SHIFT_PERIOD, HOTKEY_FORWARDSLASH, HOTKEY_SHIFT_FORWARDSLASH, HOTKEY_SHIFT_SPACE, 
-				HOTKEY_1, HOTKEY_2, HOTKEY_3, HOTKEY_4, HOTKEY_5, HOTKEY_6, HOTKEY_7, HOTKEY_8, HOTKEY_9, HOTKEY_0};
 
 //Special resources for tracking the caret
 //Note: This is run synchronously; it's spawned into its own thread just so we can
@@ -543,26 +530,6 @@ vector<wstring> GetConfigSubDirs(std::string dirToCheck, std::string configFileN
 	MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 	return true;
 }*/
-
-
-void buildSystemWordLookup()
-{
-	//Check
-	if (systemDefinedWords.length() != sizeof(systemDefinedKeys)/sizeof(int))
-		throw std::exception("System words arrays of mismatched size.");
-
-	//Build our reverse lookup.
-	for (size_t i=0; i<systemDefinedWords.size(); i++) {
-		//wchar_t c = systemDefinedWords[i];
-		int hotkey_id = systemDefinedKeys[i];
-		systemWordLookup.push_back(pair<int, unsigned short>(hotkey_id, i));
-	}
-}
-
-
-
-
-
 
 
 
@@ -2593,13 +2560,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Also...
 	try {
-		buildSystemWordLookup();
+		//buildSystemWordLookup();
 	} catch (std::exception ex) {
-		std::wstringstream msg;
+	/*	std::wstringstream msg;
 		msg << "Error building system look.\nWaitZar will now terminate.\n\nDetails:\n";
 		msg << ex.what();
 		MessageBox(NULL, msg.str().c_str(), L"System Hotkeys Error", MB_ICONWARNING | MB_OK);
-		return 0;
+		return 0;*/
 	}
 
 	//Log?
@@ -2626,6 +2593,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
+
+
+	//Create our windows so that they exist in memory for config.validate()
+	mainWindow = new MyWin32Window(L"waitZarMainWindow");
+	sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
+	helpWindow = new MyWin32Window(L"waitZarHelpWindow");
+	memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
 
 
 
@@ -2776,7 +2750,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			throw std::exception("No config directory");
 
 		//Final test: make sure all config files work
-		config.validate(hInst);
+		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 	} catch (std::exception ex) {
 		//In case of errors, just reset & use the embedded file
 		config = ConfigManager();
@@ -2816,7 +2790,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			UnlockResource(res_handle);
 
 			//One more test.
-			config.validate(hInst);
+			config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 		} catch (std::exception ex2) {
 			std::wstringstream msg2;
 			msg2 << "Error loading default config file.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
@@ -2915,13 +2889,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create our windows.
 	try {
-		//First, create. This counts the total number of windows
-		mainWindow = new MyWin32Window(L"waitZarMainWindow");
-		sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
-		helpWindow = new MyWin32Window(L"waitZarHelpWindow");
-		memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
-
-		//Then, init
+		//Init
 		mainWindow->init(L"WaitZar", WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, onAllWindowsCreated, false);
 		sentenceWindow->init(L"WaitZar", NULL, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
 		helpWindow->init(L"WaitZar", NULL, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
@@ -3052,7 +3020,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//Did we get any?
-	if (currTest != model_print) {
+	/*if (currTest != model_print) {
 		TCHAR noConfigWarningMsg[1500];
 		lstrcpy(noConfigWarningMsg, _T(""));
 		if (numConfigOptions==0) {
@@ -3071,7 +3039,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			lstrcat(noConfigWarningMsg, _T("\n\nIf you think this was caused by a bug in Wait Zar, please post an issue at http://code.google.com/p/waitzar/issues/list\n\nThis is just a warning --Wait Zar will still work fine without any config.txt or mywords.txt files."));
 			MessageBox(NULL, noConfigWarningMsg, _T("Warning"), MB_ICONWARNING | MB_OK);
 		}
-	}
+	}*/
 
 	//Create (but don't start) our thread tracker
 	if (highlightKeys) {

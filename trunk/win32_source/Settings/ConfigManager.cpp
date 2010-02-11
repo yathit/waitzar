@@ -153,7 +153,7 @@ void ConfigManager::resolvePartialSettings()
 //Make our model worrrrrrrrk......
 // (Note: We also need to replace all of our placeholder encodings with the real thing.
 //        We can't use references, since those might be in validated if we somehow resized the container).
-void ConfigManager::validate(HINSTANCE& hInst) 
+void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard) 
 {
 	//Step 1: Read
 	getSettings();
@@ -162,7 +162,7 @@ void ConfigManager::validate(HINSTANCE& hInst)
 	//getInputManagers();
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
-	WZFactory::InitAll(hInst);
+	WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 
 	//Step 2: Un-cache
 	resolvePartialSettings();

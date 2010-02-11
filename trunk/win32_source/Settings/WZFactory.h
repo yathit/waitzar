@@ -50,7 +50,7 @@ public:
 	static RomanInputMethod* getWordlistBasedInput(std::string wordlistFileName);
 
 	//Init; load all special builders at least once
-	static void InitAll(HINSTANCE& hInst);
+	static void InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);
 
 	//Ugh
 	static std::wstring sanitize_id(const std::wstring& str);
@@ -59,11 +59,24 @@ public:
 private:
 	//For loading
 	static HINSTANCE hInst;
+	static MyWin32Window* mainWindow;
+	static MyWin32Window* sentenceWindow;
+	static MyWin32Window* helpWindow;
+	static MyWin32Window* memoryWindow;
+	static OnscreenKeyboard* helpKeyboard;
+
+	//Special "words" used in our keyboard, like "(" and "`"
+	static std::vector< std::pair <int, unsigned short> > systemWordLookup;
+
+	//Parallel data structures for constructing systemWordLookup
+	static const std::wstring systemDefinedWords;
+	static const int systemDefinedKeys[];
 
 	//Instances
 	static RomanInputMethod* wz_input;
 
 	//Helper methods
+	static void buildSystemWordLookup();
 	static waitzar::WordBuilder* readModel();
 	static void addWordsToModel(waitzar::WordBuilder* model, std::string userWordsFileName);
 };
