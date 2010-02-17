@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import codecs
 from burglish_data import *
 
@@ -10,12 +11,12 @@ from burglish_data import *
 #  we generated an invalid word.
 def isInvalid(word):
     if not word:
-        return False
+        return True
     for i in xrange(len(word)-1):
         for letterpair in INVALID_COMBINATIONS:
             if letterpair[0].find(word[i])!=-1 and letterpair[1].find(word[i+1])!=-1:
-                return False
-    return True
+                return True
+    return False
 
     
 #Performa  series of substitutions to replace normalized (or badly spelled) Zawgyi with displayable Zawgyi
@@ -23,7 +24,7 @@ def zgDeNormalize(word):
     for regex in ZAWGYI_DE_NORMALIZE:
         #Search and replace
         patterns = regex[0]
-        repStr = regex[1]
+        replaceStr = regex[1]
         foundStr = [-1, -1, -1, True] #start, length, erase_index, pass
         currIndex = 0
         for pattern in patterns:
@@ -68,6 +69,10 @@ def zgDeNormalize(word):
             else:
                 raise Exception('Invalid pattern type.')
                 
+            #Break?
+            if currIndex==len(word):
+                break
+                
         #Now, modify the string if we found anything
         if not foundStr[3]:
             continue
@@ -100,16 +105,14 @@ def GenerateStandardCombinations():
                 for rhyme in rhymes:
                     #Some substitution; messy, I know
                     if (onset == u'-'):
-                        onset = u'-'
-                    if (rhyme == u'-'):
-                        rhyme = u'-'
-                    if (romanOns == u'-'):
-                        romanOns = u'-'
+                        onset = u'\u1021'
                     if (romanRhym == u'-'):
-                        romanRhym = u'-'
+                        romanRhym = u'a'
                 
                     #Form the combined word
-                    newWord = [romanOns+romanRhym , rhyme.replace(u'-', onset, 1)]
+                    if rhyme.find(u'-')==-1:
+                        raise Exception('Error: Can\'t have a rhyme with no dash: %s->%s' % (romanRhym, map(lambda x:hex(ord(x)) , rhyme)))
+                    newWord = rhyme.replace(u'-', onset, 1)
                     
                     #Is this invalid?
                     if isInvalid(newWord):
@@ -119,7 +122,7 @@ def GenerateStandardCombinations():
                     newWord = zgDeNormalize(newWord)
                     
                     #Add this word to the result set
-                    results.append(newWord)
+                    results.append([romanOns+romanRhym, newWord])
 
     #Done
     return results
@@ -138,7 +141,7 @@ def GenerateSpecialWords():
 def GenerateNumbers():
     results = []
     for i in xrange(10):
-        results.append([chr(i), NUMBER_CONSTRUCTOR[2][i]])
+        results.append([unichr(ord(u'0')+i), NUMBER_CONSTRUCTOR[2][i]])
     return results
     
     
@@ -151,7 +154,7 @@ def GenerateExpandedWords(wordlist):
             foundIndex = word.find(pattern[0])
             if foundIndex==-1:
                 continue
-            if pattern[1] and pattern[1].find(word[foundIndex+len(pattern[0])])!=-1:
+            if pattern[1] and foundIndex+len(pattern[0])<len(word) and pattern[1].find(word[foundIndex+len(pattern[0])])!=-1:
                 continue
                 
             #Is this word invalid?
@@ -160,25 +163,45 @@ def GenerateExpandedWords(wordlist):
                 continue
                 
             #It passed; add a new entry to our results list
-            results.append(newWord)
+            results.append([entry[0], newWord])
     return results
 
 #Create our full word list. Generates individual lists for each step, then 
 #  returns a full set containing no duplicates.
 def BuildZawgyiWordlist():
     #Get single, partial word lists
+    print 'Step 1'
     words_special     = GenerateSpecialWords()
+    print 'Step 2'
     words_numbers  = GenerateNumbers()
+    print 'Step 3'
     words_standard  = GenerateStandardCombinations()
+    print 'Step 4'
     words_expanded = GenerateExpandedWords(words_special + words_numbers + words_standard)
+    print 'Step 5'
     sublists = [words_special, words_numbers, words_standard, words_expanded]
     
     #Combine them, return
     res = []
+    flags = {}
     for slist in sublists:
         for item in slist:
-            if not res.count(item):
-                res.append(item)
+            try:
+                if not flags.has_key(item[1]):
+                    res.append(item)
+                    flags[item[1]] = True
+            except IndexError as ex:
+                print 'Error: ' , len(item) , ' , ', map(lambda x:hex(ord(x)) , item[0])
+                raise ex
+
+    #Output
+    print '     Standard words: ', len(words_standard) 
+    print ' +   Special words: ', len(words_special)
+    print ' +   Number words: ', len(words_numbers)
+    print ' +   Expanded words: ', len(words_expanded)
+    print '------------------------------------'
+    print ' =   Total words: ', len(res)
+    
     return res
     
 if __name__ == "__main__":
