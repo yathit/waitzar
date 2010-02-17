@@ -94,20 +94,22 @@ def zgDeNormalize(word):
 def GenerateStandardCombinations():
     #Loop through each possible onset/rhyme combination.
     results = []
-    for romanOns in COMMON_ONSETS:
-        for romanRhym in COMMON_RHYMES:
+    for onsPair in COMMON_ONSETS:
+        for rhymPair in COMMON_RHYMES:
             #Pull out the associated array
-            rhymes = COMMON_RHYMES[romanRhym ]
-            onsets = COMMON_ONSETS[romanOns]
+            romanOns = onsPair[0]
+            onsets = onsPair[1]
+            romanRhym = rhymPair[0]
+            rhymes = rhymPair[1]
             
             #Each onset or rhyme array may contain multiple entries. Loop through these
             for onset in onsets:
                 for rhyme in rhymes:
                     #Some substitution; messy, I know
                     if (onset == u'-'):
-                        onset = u'\u1021'
+                        onset = u''
                     if (romanRhym == u'-'):
-                        romanRhym = u'a'
+                        romanRhym = u''
                 
                     #Form the combined word
                     if rhyme.find(u'-')==-1:
@@ -187,9 +189,12 @@ def BuildZawgyiWordlist():
     for slist in sublists:
         for item in slist:
             try:
-                if not flags.has_key(item[1]):
+                #if item[0]==u'lyaun' or item[0]==u'shaun':
+                #    print item[0], flags.has_key(item[1])
+                item_id = item[0] + ':' + item[1]
+                if not flags.has_key(item_id):
                     res.append(item)
-                    flags[item[1]] = True
+                    flags[item_id] = True
             except IndexError as ex:
                 print 'Error: ' , len(item) , ' , ', map(lambda x:hex(ord(x)) , item[0])
                 raise ex
