@@ -9,6 +9,8 @@ from burglish_data import *
 #Uses the INVALID_COMBINATIONS array to determine if 
 #  we generated an invalid word.
 def isInvalid(word):
+    if not word:
+        return False
     for i in xrange(len(word)-1):
         for letterpair in INVALID_COMBINATIONS:
             if letterpair[0].find(word[i])!=-1 and letterpair[1].find(word[i+1])!=-1:
@@ -87,11 +89,25 @@ def zgDeNormalize(word):
 def GenerateStandardCombinations():
     #Loop through each possible onset/rhyme combination.
     results = []
-    for romanOns, onsets in COMMON_ONSETS:
-        for romanRhym, rhymes in COMMON_RHYMES:
+    for romanOns in COMMON_ONSETS:
+        for romanRhym in COMMON_RHYMES:
+            #Pull out the associated array
+            rhymes = COMMON_RHYMES[romanRhym ]
+            onsets = COMMON_ONSETS[romanOns]
+            
             #Each onset or rhyme array may contain multiple entries. Loop through these
             for onset in onsets:
                 for rhyme in rhymes:
+                    #Some substitution; messy, I know
+                    if (onset == u'-'):
+                        onset = u'-'
+                    if (rhyme == u'-'):
+                        rhyme = u'-'
+                    if (romanOns == u'-'):
+                        romanOns = u'-'
+                    if (romanRhym == u'-'):
+                        romanRhym = u'-'
+                
                     #Form the combined word
                     newWord = [romanOns+romanRhym , rhyme.replace(u'-', onset, 1)]
                     
@@ -113,7 +129,7 @@ def GenerateStandardCombinations():
 def GenerateSpecialWords():
     results = []
     for item in SPECIAL_WORDS:
-        results.append(item[0], item[1])
+        results.append([item[0], item[1]])
     return results
 
     
@@ -138,8 +154,12 @@ def GenerateExpandedWords(wordlist):
             if pattern[1] and pattern[1].find(word[foundIndex+len(pattern[0])])!=-1:
                 continue
                 
-            #It passed; add a new entry to our results list
+            #Is this word invalid?
             newWord = word[:foundIndex] + pattern[2] + word[foundIndex+len(pattern[0]):]
+            if isInvalid(newWord):
+                continue
+                
+            #It passed; add a new entry to our results list
             results.append(newWord)
     return results
 
