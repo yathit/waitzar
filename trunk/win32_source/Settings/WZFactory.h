@@ -40,7 +40,7 @@ public:
 	~WZFactory(void);
 
 	//Builders
-	static InputMethod* makeInputMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
+	static InputMethod* makeInputMethod(const std::wstring& id, const std::wstring& languageName, const std::map<std::wstring, std::wstring>& options);
 	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
@@ -72,8 +72,8 @@ private:
 	static const std::wstring systemDefinedWords;
 	static const int systemDefinedKeys[];
 
-	//Instances
-	static RomanInputMethod* wz_input;
+	//Instance Mappings, to save memory
+	static std::map<std::wstring, RomanInputMethod*> cachedInputs;
 
 	//Helper methods
 	static void buildSystemWordLookup();

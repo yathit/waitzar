@@ -252,5 +252,5 @@ if __name__ == "__main__":
     #Print it to a file
     out = codecs.open("burglish_wordlist.txt", "w", "utf-8")
     for entry in wordlist:
-        out.write(u'%s = %s\n' % (entry[0], entry[1]))
+        out.write(u'%s = %s\n' % (entry[1], entry[0]))
     out.close()

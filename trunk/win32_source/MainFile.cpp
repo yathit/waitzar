@@ -2478,13 +2478,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					recalculate();
 				} else if (retVal >= DYNAMIC_CMD_START) {
 					//Switch the language, input manager, or output manager.
-					unsigned int offset = retVal-DYNAMIC_CMD_START;
+					unsigned int offset = retVal-DYNAMIC_CMD_START-1;
 					if (offset<menuopt_languages.size())
 						ChangeLangInputOutput(menuopt_languages[offset], L"", L"");
-					else if (offset-menuopt_languages.size()<menuopt_inputs.size())
-						ChangeLangInputOutput(L"", menuopt_inputs[offset-menuopt_languages.size()], L"");
+					else if (offset-menuopt_languages.size()-1<menuopt_inputs.size())
+						ChangeLangInputOutput(L"", menuopt_inputs[offset-menuopt_languages.size()-1], L"");
 					else
-						ChangeLangInputOutput(L"", L"", menuopt_outputs[offset-menuopt_languages.size()-menuopt_inputs.size()]);
+						ChangeLangInputOutput(L"", L"", menuopt_outputs[offset-menuopt_languages.size()-menuopt_inputs.size()-2]);
 				}
 
 				//Fixes a bug re: MSKB article: Q135788
