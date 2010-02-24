@@ -31,8 +31,8 @@ NUMBER_CONSTRUCTOR = [	 \
 #NOTE: I have re-worked these to a custom format:
 #  Each entry in the list contains two elements:
 #  [matcher, replaceStr] = [[], u''], where matcher helps determine how to match the pattern, and replaceStr is substituted in after a match.
-#  Matcher is defined as a series of pairs of the form:
-#    (type, matchStr) = ('X', u'')
+#  Matcher is defined as a series of strings of the form:
+#    (type, matchStr) = (u'X....'), where "X" is the first letter in the string
 #  Types can be any of the following; the resultant meaning of "matchStr" is also defined:
 #    'M' = "match". Match a single letter from matchStr
 #    'N'  = "not". Ensure that no letter from matchStr matches.
@@ -53,35 +53,35 @@ str1000_1021 = u''.join([unichr(x) for x in range(0x1000, 0x1021+1)])
 str1060_107C = u''.join([unichr(x) for x in range(0x1060, 0x107C+1)])
 str103B_7E_84 = u'\u103B' + u''.join([unichr(x) for x in range(0x107E, 0x1084+1)])
 ZAWGYI_DE_NORMALIZE = [  \
-    [[('N', u'\u103B\u107E'), ('M', u'\u1001\u1002\u1004\u1012\u1015\u101D\u1040'), ('O', str1060_107C+u'\u1087\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A'), ('F', u'\u102C')], u'\u102B'],  \
-    [[('N',u'\u1031'), ('M',u'\u1001\u1002\u1004\u1012\u1015\u101D\u1040'), ('N', u'\u1039'), ('O', u'\u1060-\u107C\u1087\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A'), ('F', u'\u102C')], u'\u102B'],  \
-    [[('F',u'\u102B\u1039')], u'\u105A'],  \
-    [[('F',u'\u1014'), ('O', u'\u1036\u102D\u1032'), ('M', str1060_107C+u'\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A]')], u''],  \
-    [[('M',str1060_107C+u'\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A\u1014\u103A\u1033\u1034'), ('X', u'\u1037'), ('F', u'\u1037')], u'\u1095'],  \
-    [[('M',str1060_107C+u'\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A\u1014\u103A\u1033\u1034'), ('X', u'\u1094'), ('F', u'\u1094')], u'\u1095'],  \
-    [[('M', str103B_7E_84), ('M', str1000_1021+u'\u108F\u1090'), ('O', u'\u102D\u103C\u103D\u108A'), ('F', u'u102F')], u'\u1033'],  \
-    [[('M', str103B_7E_84), ('M', str1000_1021+u'\u108F\u1090'), ('O', u'\u102D\u103C\u103D\u108A'), ('F', u'u1030')], u'\u1034'],  \
-    [[('M',u'\u1008\u1009\u100A\u100B\u100C\u100D\u1020\u1025\u103A' + str1060_107C + u'\u1085\u1091\u1092\u1093'), ('O', u'\u102D\u103C\u103D\u108A'), ('F', u'\u102F')], u'\u1033'],  \
-    [[('M',u'\u1008\u1009\u100A\u100B\u100C\u100D\u1020\u1025\u103A' + str1060_107C + u'\u1085\u1091\u1092\u1093'), ('O', u'\u102D\u103C\u103D\u108A'), ('F', u'\u1030')], u'\u1034'],  \
-    [[('F', u'\u103D'), ('O', u'\u1036\u102D\u108E\u1032'), ('E', u'\u102F')], u'\u1088'],  \
-    [[('F', u'\u103D'), ('O', u'\u1036\u102D\u108E\u1032'), ('E', u'\u1030')], u'\u1089'],  \
-    [[('F', u'\u101B'), ('O', u'\u1036\u102D\u108E\u1032'), ('M', u'\u102F\u1030\u1088\u1089')], u'\u1090'],  \
-    [[('F', u'\u103D'), ('O', u'\u102D\u108E\u1032\u107D\u103A'), ('E', u'\u103D')], u'\u103D'],  \
-    [[('E', u'\u103C\u108A'), ('F', u'\u103D')], u'u108A'],  \
-    [[('E', u'\u103D'), ('F', u'\u103C')], u'u108A'],  \
-    [[('F', u'\u103A\u103C')], u'\u103C\u107D'],  \
-    [[('F', u'\u103D'), ('O', u'\u102D\u102E\u103A\u107D'), ('E', u'\u103C')], u'\u108A'],  \
-    [[('F', u'\u1087'), ('O', u'\u102D\u102E\u103A\u107D'), ('E', u'\u103C')], u'\u108A'],  \
-    [[('F', u'\u103A\u103D')], u'\u103D\u103A'],  \
-    [[('M', u'\u103B\u107E'), ('X', '\u103D'), ('X', '\u103D'), ('F', u'\u103D')], u'\u1087'],  \
-    [[('M', u'\u101D\u103C\u108A'), ('X', '\u103C'), ('X', '\u103C'), ('F', u'\u103C')], u''],  \
-    [[('M', u'\u1025'), ('F', u'\u102F')], u''],  \
-    [[('M', u'\u1025'), ('F', u'\u1033')], u''],  \
-    [[('F', u'\u1064'), ('X', '\u102D'), ('X', '\u102D'), ('E', u'\u102D')], u'\u108B'],  \
-    [[('F', u'\u1064'), ('X', '\u102E'), ('X', '\u102E'), ('E', u'\u102E')], u'\u108C'],  \
-    [[('F', u'\u102C\u1095')], u'\u102C\u1037'],  \
-    [[('F', u'\u107E'), ('M', u'\u1000\u1003\u1006\u100F\u1010\u1011\u1018\u101A\u101C\u101E\u101F'), ('O', u'\u1036\u102D\u108E\u1032'), ('M', '\u103C')], u'\u1082'],  \
-    [[('N', u'\u103B\u107E'), ('M', u'\u1001\u1002\u1004\u1012\u1015\u101D\u1040'), ('O', str1060_107C+u'\u1087\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A'), ('F', u'\u102C\u1039')], u'\u105A']  \
+    [[u'N\u103B\u107E', u'M\u1001\u1002\u1004\u1012\u1015\u101D\u1040', u'O'+str1060_107C+u'\u1087\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A', u'F\u102C'], u'\u102B'],  \
+    [[u'N\u1031', u'M\u1001\u1002\u1004\u1012\u1015\u101D\u1040', u'N\u1039', u'O'+str1060_107C+u'\u1087\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A', u'F\u102C'], u'\u102B'],  \
+    [[u'F\u102B\u1039'], u'\u105A'],  \
+    [[u'F\u1014', u'O\u1036\u102D\u1032', u'M'+str1060_107C+u'\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A'], u''],  \
+    [[u'M'+str1060_107C+u'\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A\u1014\u103A\u1033\u1034', u'X\u1037', u'F\u1037'], u'\u1095'],  \
+    [[u'M'+str1060_107C+u'\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A\u1014\u103A\u1033\u1034', u'X\u1094', u'F\u1094'], u'\u1095'],  \
+    [[u'M'+str103B_7E_84, u'M'+str1000_1021+u'\u108F\u1090', u'O\u102D\u103C\u103D\u108A', u'F\u102F'], u'\u1033'],  \
+    [[u'M'+str103B_7E_84, u'M'+str1000_1021+u'\u108F\u1090', u'O\u102D\u103C\u103D\u108A', u'F\u1030'], u'\u1034'],  \
+    [[u'M\u1008\u1009\u100A\u100B\u100C\u100D\u1020\u1025\u103A'+str1060_107C+u'\u1085\u1091\u1092\u1093', u'O\u102D\u103C\u103D\u108A', u'F\u102F'], u'\u1033'],  \
+    [[u'M\u1008\u1009\u100A\u100B\u100C\u100D\u1020\u1025\u103A'+str1060_107C+u'\u1085\u1091\u1092\u1093', u'O\u102D\u103C\u103D\u108A', u'F\u1030'], u'\u1034'],  \
+    [[u'F\u103D', u'O\u1036\u102D\u108E\u1032', u'E\u102F'], u'\u1088'],  \
+    [[u'F\u103D', u'O\u1036\u102D\u108E\u1032', u'E\u1030'], u'\u1089'],  \
+    [[u'F\u101B', u'O\u1036\u102D\u108E\u1032', u'M\u102F\u1030\u1088\u1089'], u'\u1090'],  \
+    [[u'F\u103D', u'O\u102D\u108E\u1032\u107D\u103A', u'E\u103D'], u'\u103D'],  \
+    [[u'E\u103C\u108A', u'F\u103D'], u'\u108A'],  \
+    [[u'E\u103D', u'F\u103C'], u'\u108A'],  \
+    [[u'F\u103A\u103C'], u'\u103C\u107D'],  \
+    [[u'F\u103D', u'O\u102D\u102E\u103A\u107D', u'E\u103C'], u'\u108A'],  \
+    [[u'F\u1087', u'O\u102D\u102E\u103A\u107D', u'E\u103C'], u'\u108A'],  \
+    [[u'F\u103A\u103D'], u'\u103D\u103A'],  \
+    [[u'M\u103B\u107E', u'X\u103D', u'X\u103D', u'F\u103D'], u'\u1087'],  \
+    [[u'M\u101D\u103C\u108A', u'X\u103C', u'X\u103C', u'F\u103C'], u''],  \
+    [[u'M\u1025', u'F\u102F'], u''],  \
+    [[u'M\u1025', u'F\u1033'], u''],  \
+    [[u'F\u1064', u'X\u102D', u'X\u102D', u'E\u102D'], u'\u108B'],  \
+    [[u'F\u1064', u'X\u102E', u'X\u102E', u'E\u102E'], u'\u108C'],  \
+    [[u'F\u102C\u1095'], u'\u102C\u1037'],  \
+    [[u'F\u107E', u'M\u1000\u1003\u1006\u100F\u1010\u1011\u1018\u101A\u101C\u101E\u101F', u'O\u1036\u102D\u108E\u1032', u'M\u103C'], u'\u1082'],  \
+    [[u'N\u103B\u107E', u'M\u1001\u1002\u1004\u1012\u1015\u101D\u1040', u'O'+str1060_107C+u'\u1087\u1087\u103D\u102F\u1030\u1088\u1089\u103C\u108A', u'F\u102C\u1039'], u'\u105A']  \
 ]
 
 #Used to check for invalid generated combinations. If one of these matches, the string will be rejected.
