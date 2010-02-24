@@ -24,7 +24,7 @@ def isInvalid(word):
 def zgDeNormalize(roman, word):
     count = 0
     
-    debug = u'zzuh'
+    debug = None
     if roman == debug:
         print '%s: %s' % (debug, u' '.join(map(lambda x:hex(ord(x)) , word)))
 
@@ -141,8 +141,8 @@ def GenerateStandardCombinations():
             for onset in onsets:
                 for rhyme in rhymes:
                     #Some substitution; messy, I know
-                    if (onset == u'-'):
-                        onset = u''
+                    if (romanOns == u'-'):
+                        romanOns = u''
                     if (romanRhym == u'-'):
                         romanRhym = u''
                 
