@@ -145,6 +145,10 @@ WZ_HELP_KEY_FONT        COREFONT                "help_ar_letters.font.png"
 WZ_HELP_FORE_FONT       COREFONT                "help_zg_main.font.png"
 WZ_HELP_BACK_FONT       COREFONT                "help_zg_sub.font.png"
 WZ_HELP_CORNER          COREFONT                "keybd_corner.png"
+WZ_PGDOWN_COLOR         COREFONT                "pg_down_color.png"
+WZ_PGUP_COLOR           COREFONT                "pg_up_color.png"
+WZ_PGDOWN_SEPIA         COREFONT                "pg_down_sepia.png"
+WZ_PGUP_SEPIA           COREFONT                "pg_up_sepia.png"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

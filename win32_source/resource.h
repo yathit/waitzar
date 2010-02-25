@@ -18,6 +18,10 @@
 #define WZ_HELP_CORNER                  112
 #define WZ_EASYPS                       113
 #define WZ_DEFAULT_CFG                  114
+#define WZ_PGDOWN_COLOR                 115
+#define WZ_PGUP_COLOR                   116
+#define WZ_PGDOWN_SEPIA                 117
+#define WZ_PGUP_SEPIA                   118
 #define IDM_HELP                        40004
 #define IDM_MYANMAR                     40006
 #define IDM_EXIT                        40008
@@ -47,7 +51,7 @@
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        115
+#define _APS_NEXT_RESOURCE_VALUE        119
 #define _APS_NEXT_COMMAND_VALUE         40031
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
