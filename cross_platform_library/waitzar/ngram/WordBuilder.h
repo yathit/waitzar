@@ -69,6 +69,9 @@ public:
 	std::vector<unsigned int> getPossibleWords() const;
 	void insertTrigram(const std::vector<unsigned int> &trigrams);
 	unsigned int getFirstWordIndex() const;
+	int getNumberOfPages() const;
+	int getCurrPage() const;
+	bool pageUp(bool up);
 
 	//Get information about a particular unsigned short given its ID
 	std::wstring getWordKeyStrokes(unsigned int id);
@@ -136,6 +139,7 @@ private:
 
 	//Tracking user selection
 	int currSelectedAbsoluteID; //0 to size, not -1, etc.
+	int currSelectedPage;
 
 	//Code for loading the model specifically from a variety of options, and the initialization code
 	void loadModel(char * model_buff, size_t model_buff_size, bool allowAnyChar);
