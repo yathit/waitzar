@@ -1534,7 +1534,8 @@ void recalculate()
 	// (Includes pat-sint strings)
 	int cumulativeWidth = (borderWidth+1)*2;
 	for (size_t i=0; i<dispCandidateStrs.size()&&i<10; i++) {
-		cumulativeWidth += mmFontBlack->getStringWidth(dispCandidateStrs[i].first);
+		int id = i + currInput->getPagingInfo().first * 10;
+		cumulativeWidth += mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
 		cumulativeWidth += spaceWidth;
 	}
 
@@ -1605,15 +1606,16 @@ void recalculate()
 
 	//Now, draw the candiate strings and their backgrounds
 	int currLabelID = 1;
-	for (size_t i=0; i<dispCandidateStrs.size()&&i<10; i++) {
+	for (size_t it=0; it<dispCandidateStrs.size()&&it<10; it++) {
 		//Measure the string
-		int thisStrWidth = mmFontBlack->getStringWidth(dispCandidateStrs[i].first);
+		int id = it + (currInput->getPagingInfo().first * 10);
+		int thisStrWidth = mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
 
 		//Select fonts, and draw a box under highlighted words
 		mmFont = mmFontBlack;
-		if (dispCandidateStrs[i].second==1)
+		if (dispCandidateStrs[id].second==1)
 			mmFont = mmFontRed;
-		else if (dispCandidateStrs[i].second==2 || dispCandidateStrs[i].second==3) {
+		else if (dispCandidateStrs[id].second==2 || dispCandidateStrs[id].second==3) {
 			mmFont = mmFontGreen;
 
 			mainWindow->selectObject(g_YellowBkgrd);
@@ -1622,11 +1624,11 @@ void recalculate()
 		}
 
 		//Draw the string (foreground)
-		mainWindow->drawString(mmFont, dispCandidateStrs[i].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
+		mainWindow->drawString(mmFont, dispCandidateStrs[id].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 		//Draw its numbered identifier, or '`' if it's a red-highlighted word
 		std::wstringstream digit;
-		if (dispCandidateStrs[i].second==1 || dispCandidateStrs[i].second==3) {
+		if (dispCandidateStrs[id].second==1 || dispCandidateStrs[id].second==3) {
 			digit <<L"`";
 		} else {
 			digit <<currLabelID++;
@@ -1674,10 +1676,17 @@ void recalculate()
 		//Draw the triangles which specify whether or not we have more entries above/below.
 		int availWidth = (triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2) - (triangleStartX-1+borderWidth);
 		int availHeight = (pageDownHalf-1) - (pageDownStart+borderWidth);
-		PulpCoreImage* pgImg = pageImages[PGDOWNCOLOR_ID];
-		mainWindow->drawImage(pgImg, triangleStartX-1+borderWidth + (availWidth-pgImg->getWidth())/2-1 + 1, pageDownHalf+1 + (availHeight-pgImg->getHeight()) - 1);
-		pgImg = pageImages[PGUPSEPIA_ID];
-		mainWindow->drawImage(pgImg, triangleStartX-1+borderWidth + (availWidth-pgImg->getWidth())/2-1 + 1, pageDownStart+borderWidth + (availHeight-pgImg->getHeight()) - 1);
+		POINT arrowPts[2] = {
+			{triangleStartX-1+borderWidth + (availWidth-pageImages[0]->getWidth())/2-1 + 1, pageDownStart+borderWidth + (availHeight-pageImages[0]->getHeight()) - 1},
+			{triangleStartX-1+borderWidth + (availWidth-pageImages[0]->getWidth())/2-1 + 1, pageDownHalf+1 + (availHeight-pageImages[0]->getHeight()) - 1}
+		};
+		for (int i=0; i<2; i++) {
+			std::pair<int, int> pgInfo = currInput->getPagingInfo();
+			PulpCoreImage* pgImg = i==0
+				?(pgInfo.first==0?pageImages[PGUPSEPIA_ID]: pageImages[PGUPCOLOR_ID])
+				:(pgInfo.first>=pgInfo.second?pageImages[PGDOWNSEPIA_ID]: pageImages[PGDOWNCOLOR_ID]);
+			mainWindow->drawImage(pgImg, arrowPts[i].x, arrowPts[i].y);
+		}
 	}
 
 	//Paint it all to the screen
@@ -2298,6 +2307,16 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 		case HOTKEY_LEFT:
 			//Move the cursor back, pick a word
 			currInput->handleLeftRight(false);
+			return true;
+
+		case HOTKEY_DOWN:
+			//Page
+			currInput->handleUpDown(true);
+			return true;
+
+		case HOTKEY_UP:
+			//Page
+			currInput->handleUpDown(false);
 			return true;
 
 		case HOTKEY_COMMA: case HOTKEY_PERIOD:

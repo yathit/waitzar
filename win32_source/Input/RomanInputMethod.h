@@ -29,6 +29,7 @@ public:
 	void handleBackspace();
 	void handleDelete();
 	void handleLeftRight(bool isRight);
+	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
@@ -55,6 +56,8 @@ public:
 
 	//Real override
 	std::wstring getTypedRomanString();
+
+	std::pair<int, int> getPagingInfo() const;
 
 
 private:

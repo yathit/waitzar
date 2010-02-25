@@ -88,6 +88,11 @@ std::wstring InputMethod::getTypedRomanString()
 	return typedRomanStr.str();
 }
 
+std::pair<int, int> InputMethod::getPagingInfo() const
+{
+	return std::pair<int, int>(0, 0);
+}
+
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

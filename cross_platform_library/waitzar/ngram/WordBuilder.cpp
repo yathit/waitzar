@@ -682,7 +682,7 @@ bool WordBuilder::hasPatSintWord() const {
 	return firstRegularWordIndex > 0;
 }
 
-
+	
 int WordBuilder::getNumberOfPages() const
 {
 	int numWords = getPossibleWords().size();
