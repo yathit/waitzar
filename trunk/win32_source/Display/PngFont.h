@@ -7,7 +7,7 @@
 #ifndef _OUTPUT_PNGFONT
 #define _OUTPUT_PNGFONT
 
-#include "Settings/Interfaces.h"
+#include "Display/DisplayMethod.h"
 
 /**
  * Placeholder class: to be used for PngFont Output method

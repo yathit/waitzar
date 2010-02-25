@@ -14,7 +14,6 @@
 #include <functional>
 #include <locale>
 #include "Json Spirit/json_spirit_value.h"
-#include "Settings/Interfaces.h"
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
 #include "Input/InputMethod.h"

@@ -12,6 +12,8 @@
 #include "MyWin32Window.h"
 #include "Hotkeys.h"
 #include "OnscreenKeyboard.h"
+#include "Settings/Types.h"
+#include "Settings/Encoding.h"
 
 
 //Expected interface: "Input Method"

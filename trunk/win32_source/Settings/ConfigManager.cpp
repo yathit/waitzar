@@ -135,7 +135,7 @@ void ConfigManager::resolvePartialSettings()
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				lang->inputMethods.insert(WZFactory::makeInputMethod(id, lang->displayName, it->second));
+				lang->inputMethods.insert(WZFactory::makeInputMethod(id, *lang, it->second));
 			else if (i==PART_ENC) 
 				lang->encodings.insert(WZFactory::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) 

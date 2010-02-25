@@ -13,12 +13,12 @@
 #include <map>
 #include <string>
 
-#include "Interfaces.h"
 #include "Input/RomanInputMethod.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
 #include "Display/PngFont.h"
+#include "Settings/Language.h"
 #include "Transform/Zg2Uni.h"
 #include "Transform/Uni2Uni.h"
 #include "Settings/ConfigManager.h"

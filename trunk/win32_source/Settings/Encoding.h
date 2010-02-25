@@ -7,6 +7,8 @@
 #ifndef _SETTINGS_ENCODING
 #define _SETTINGS_ENCODING
 
+#include <string>
+
 struct Encoding {
 	std::wstring id;
 	bool canUseAsOutput;

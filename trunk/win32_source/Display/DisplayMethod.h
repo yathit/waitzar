@@ -7,6 +7,10 @@
 #ifndef _DISPLAY_METHOD
 #define _DISPLAY_METHOD
 
+#include <string>
+#include "Settings/Types.h"
+#include "Settings/Encoding.h"
+
 class DisplayMethod {
 public:
 	//Struct-like properties

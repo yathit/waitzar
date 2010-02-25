@@ -465,10 +465,6 @@
 						>
 					</File>
 					<File
-						RelativePath=".\Settings\Interfaces.h"
-						>
-					</File>
-					<File
 						RelativePath=".\Settings\Language.h"
 						>
 					</File>
