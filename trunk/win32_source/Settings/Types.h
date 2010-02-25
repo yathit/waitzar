@@ -4,26 +4,16 @@
  * Please refer to the end of the file for licensing information
  */
 
-#ifndef _TRANSFORM_UNI2UNI
-#define _TRANSFORM_UNI2UNI
-
-#include "Transform/Transformation.h"
-
-/**
- * Empty conversion class to keep code easy to read and understand;
- *    converts unicode to unicode.
- */
-class Uni2Uni : public Transformation
-{
-public:
-	Uni2Uni();
-
-	//Convert
-	const std::wstring& convert(const std::wstring& src) const;
-};
+#ifndef _SETTINGS_TYPES
+#define _SETTINGS_TYPES
 
 
-#endif //_TRANSFORM_UNI2UNI
+//Global "Types" enum
+//TODO: This is kinda lonely out here...
+enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
+
+
+#endif //_SETTINGS_TYPES
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

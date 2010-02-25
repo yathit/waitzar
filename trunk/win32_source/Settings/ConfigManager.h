@@ -16,6 +16,7 @@
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/Interfaces.h"
 #include "Settings/WZFactory.h"
+#include "Settings/Language.h"
 #include "Input/InputMethod.h"
 
 
@@ -95,9 +96,6 @@ private:
 };
 
 
-
-
-
 //Options for our ConfigManager class
 struct Settings {
 	//Simple
@@ -108,50 +106,6 @@ struct Settings {
 	bool trackCaret;
 	bool lockWindows;
 	std::wstring defaultLanguage;
-};
-struct Language {
-	//Basic constructor
-	Language(std::wstring id=L"") {
-		this->id = id;
-	}
-
-	//Simple
-	std::wstring id;
-	std::wstring displayName;
-	Encoding defaultOutputEncoding;
-	std::wstring defaultDisplayMethod;
-	std::wstring defaultInputMethod;
-
-	//Structured
-	std::set<InputMethod*>    inputMethods;
-	std::set<Encoding>        encodings;
-	std::set<Transformation*> transformations;
-	std::set<DisplayMethod*>  displayMethods;
-
-	//For fast lookup & easy validation
-	//Kept internal; would be private except I don't think it matters much.
-	std::map< std::pair<Encoding, Encoding>, Transformation* > transformationLookup;
-
-	//Allow map comparison 
-	bool operator<(const Language& other) const {
-		return id < other.id;
-	}
-
-	//Allow logical equals and not equals
-	bool operator==(const Language &other) const {
-		return id == other.id;
-	}
-	bool operator!=(const Language &other) const {
-		return id != other.id;
-	}
-
-	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
-		return id == other;
-	}
-	bool operator!=(const std::wstring& other) const {
-		return id != other;
-	}
 };
 struct OptionTree {
 	Settings settings;
