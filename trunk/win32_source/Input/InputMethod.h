@@ -46,6 +46,7 @@ struct Encoding {
 
 
 
+
 //Global "Types" enum
 enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
 

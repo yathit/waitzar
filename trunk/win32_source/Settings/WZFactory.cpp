@@ -257,7 +257,7 @@ void WZFactory::addWordsToModel(WordBuilder* model, string userWordsFileName) {
 			continue;
 
 		//Add this romanization
-		if (!model->addRomanization(name, value))
+		if (!model->addRomanization(name, value, true))
 			throw std::exception(string(string("Error adding romanisation: ") + waitzar::escape_wstr(model->getLastError(), false)).c_str());
 	}
 
@@ -270,10 +270,12 @@ void WZFactory::addWordsToModel(WordBuilder* model, string userWordsFileName) {
 
 
 std::map<std::wstring, RomanInputMethod*> WZFactory::cachedInputs = std::map<std::wstring, RomanInputMethod*>();
-RomanInputMethod* WZFactory::getWaitZarInput() 
+RomanInputMethod* WZFactory::getWaitZarInput(wstring langID) 
 {
+	wstring fullID = langID + L"." + L"waitzar";
+
 	//Singleton init
-	if (WZFactory::cachedInputs.count(L"waitzar")==0) {
+	if (WZFactory::cachedInputs.count(fullID)==0) {
 		//Load model; create sentence list
 		//NOTE: These resources will not be reclaimed, but since they're 
 		//      contained within a singleton class, I don't see a problem.
@@ -291,36 +293,41 @@ RomanInputMethod* WZFactory::getWaitZarInput()
 		model->reverseLookupWord(0);
 
 		//Create, init
-		WZFactory::cachedInputs[L"waitzar"] = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
-		WZFactory::cachedInputs[L"waitzar"]->init(model, sentence);
+		WZFactory::cachedInputs[fullID] = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
+		WZFactory::cachedInputs[fullID]->init(model, sentence);
 	}
 	
-	return WZFactory::cachedInputs[L"waitzar"];
+	return WZFactory::cachedInputs[fullID];
 }
 
 //Build a model up from scratch.
-RomanInputMethod* WZFactory::getWordlistBasedInput(string wordlistFileName)
+RomanInputMethod* WZFactory::getWordlistBasedInput(wstring langID, wstring inputID, string wordlistFileName)
 {
-	//Create a basically empty model (Nexus can't be empty)
-	vector< vector<unsigned int> > nexus;
-	nexus.push_back(vector<unsigned int>());
-	WordBuilder* model = new WordBuilder(vector<wstring>(), nexus, vector< vector<unsigned int> >());
-	SentenceList* sentence = new SentenceList();
+	wstring fullID = langID + L"." + inputID;
 
-	//Add user words (there's ONLY user words here)
-	WZFactory::addWordsToModel(model, wordlistFileName);
+	if (WZFactory::cachedInputs.count(fullID)==0) {
+		//Create a basically empty model (Nexus can't be empty)
+		vector< vector<unsigned int> > nexus;
+		nexus.push_back(vector<unsigned int>());
+		WordBuilder* model = new WordBuilder(vector<wstring>(), nexus, vector< vector<unsigned int> >());
+		SentenceList* sentence = new SentenceList();
 
-	//Should probably build the reverse lookup now
-	model->reverseLookupWord(0);
+		//Add user words (there's ONLY user words here)
+		WZFactory::addWordsToModel(model, wordlistFileName);
 
-	//One final check
-	if (model->isInError())
-		throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
+		//Should probably build the reverse lookup now
+		model->reverseLookupWord(0);
 
-	//Now, build the romanisation method and return
-	RomanInputMethod* res = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
-	res->init(model, sentence);
-	return res;
+		//One final check
+		if (model->isInError())
+			throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
+
+		//Now, build the romanisation method and return
+		WZFactory::cachedInputs[fullID] = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
+		WZFactory::cachedInputs[fullID]->init(model, sentence);
+	}
+
+	return WZFactory::cachedInputs[fullID];
 }
 
 
@@ -338,12 +345,13 @@ void WZFactory::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Wind
 	WZFactory::helpKeyboard = helpKeyboard;
 
 	//Call all singleton classes
-	WZFactory::getWaitZarInput();
+	//TODO: Is this needed here?
+	//WZFactory::getWaitZarInput();
 }
 
 
 
-InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::wstring& languageName, const std::map<std::wstring, std::wstring>& options)
+InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options)
 {
 	InputMethod* res = NULL;
 
@@ -359,36 +367,31 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const std::wstri
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
 		if (id==L"waitzar")
-			res = WZFactory::getWaitZarInput();
+			res = WZFactory::getWaitZarInput(language.id);
 		else if (id==L"mywin")
-			res = WZFactory::getWaitZarInput();
+			res = WZFactory::getWaitZarInput(language.id);
 		else
 			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Input Manager: ", id).c_str());
 		res->type = BUILTIN;
 	} else if (sanitize_id(options.find(L"type")->second) == L"roman") {
-		//Make sure we only build this ONCE, to avoid memory leaks
-		if (WZFactory::cachedInputs.count(id)==0) {
-			//These use a wordlist, for now.
-			if (options.count(L"wordlist")==0)
-				throw std::exception("Cannot construct \"roman\" input manager: no \"wordlist\".");
+		//These use a wordlist, for now.
+		if (options.count(L"wordlist")==0)
+			throw std::exception("Cannot construct \"roman\" input manager: no \"wordlist\".");
 
-			//Build the wordlist file; we will need the respective directory, too.
-			//TODO: This should lead DIRECTLY to the "Burglish" directory, to make modules more portable.
-			std::wstring langConfigDir = L"config\\" + languageName + L"\\";
-			std::wstring wordlistFile = langConfigDir + options.find(L"wordlist")->second;
+		//Build the wordlist file; we will need the respective directory, too.
+		//TODO: This should lead DIRECTLY to the "Burglish" directory, to make modules more portable.
+		std::wstring langConfigDir = L"config\\" + language.displayName + L"\\";
+		std::wstring wordlistFile = langConfigDir + options.find(L"wordlist")->second;
 
-			//TODO: Test in a cleaner way.
-			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
-			std::wstringstream temp;
-			temp << wordlistFile.c_str();
-			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-				throw std::exception(ConfigManager::glue(L"Wordlist file does not exist: ", wordlistFile).c_str());
+		//TODO: Test in a cleaner way.
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		std::wstringstream temp;
+		temp << wordlistFile.c_str();
+		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			throw std::exception(ConfigManager::glue(L"Wordlist file does not exist: ", wordlistFile).c_str());
 
-			//Build it
-			WZFactory::cachedInputs[id] = WZFactory::getWordlistBasedInput(waitzar::escape_wstr(wordlistFile, false));
-		}
-
-		res = WZFactory::cachedInputs[id];
+		//Get it, as a singleton
+		res = WZFactory::getWordlistBasedInput(language.id, id, waitzar::escape_wstr(wordlistFile, false));
 		res->type = IME_ROMAN;
 	} else {
 		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
