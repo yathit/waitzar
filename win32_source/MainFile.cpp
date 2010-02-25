@@ -1533,7 +1533,7 @@ void recalculate()
 	sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
 	//Draw the current encoding
-	wstring currEncStr = L"??";
+	wstring currEncStr = uni2Output->toEncoding.initial;
 	int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
 	sentenceWindow->selectObject(g_BlackPen);
 	sentenceWindow->selectObject(g_GreenBkgrd);

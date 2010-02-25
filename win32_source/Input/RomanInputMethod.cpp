@@ -103,7 +103,8 @@ void RomanInputMethod::handleBackspace()
 
 		//Truncate...
 		wstring newStr = !typedRomanStr.str().empty() ? typedRomanStr.str().substr(0, typedRomanStr.str().length()-1) : L"";
-		typedRomanStr.str(newStr);
+		typedRomanStr.str(L"");
+		typedRomanStr <<newStr;
 		viewChanged = true;
 	}
 }
