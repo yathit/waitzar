@@ -666,14 +666,12 @@ bool WordBuilder::moveRight(int amt) {
 	if (newAmt == currSelectedAbsoluteID)
 		return false;
 
-	//Auto-page
-	if (currSelectedAbsoluteID%10==9 && newAmt%10==0)
-		pageUp(false);
-	else if (currSelectedAbsoluteID%10==0 && newAmt%10==9)
-		pageUp(true);
-
 	//Do it!
 	currSelectedAbsoluteID = newAmt;
+
+	//Auto-page
+	currSelectedPage = currSelectedAbsoluteID / 10;
+
 	return true;
 }
 
@@ -705,10 +703,17 @@ int WordBuilder::getCurrPage() const
 
 bool WordBuilder::pageUp(bool up)
 {
+	//Check
 	int newID = currSelectedPage + (up?-1:1);
 	if (newID<0 || newID>=getNumberOfPages())
 		return false;
+
+	//Page
 	currSelectedPage = newID;
+
+	//Select first word on that page
+	currSelectedAbsoluteID = currSelectedPage * 10;
+
 	return true;
 }
 
