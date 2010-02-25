@@ -1534,7 +1534,7 @@ void recalculate()
 	// (Includes pat-sint strings)
 	int cumulativeWidth = (borderWidth+1)*2;
 	for (size_t i=0; i<10; i++) {
-		int id = i + currInput->getPagingInfo().first * 10;
+		unsigned int id = i + currInput->getPagingInfo().first * 10;
 		if (id>=dispCandidateStrs.size())
 			break;
 		cumulativeWidth += mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
@@ -1554,9 +1554,8 @@ void recalculate()
 	// Note: Re-sizing to the same size won't trigger a window update, so we can just all expandWindow()
 	//       without worrying about performance.
 	int newWidth = max(mainWindow->getDefaultWidth(), cumulativeWidth);
-	if (dispCandidateStrs.size()>10) {
+	if (dispCandidateStrs.size()>10)
 		triangleStartX = newWidth - pagerWidth;
-	}
 	mainWindow->expandWindow(newWidth, mainWindow->getClientHeight());
 
 	//Background - Main Window
@@ -1612,7 +1611,7 @@ void recalculate()
 	int currLabelID = 1;
 	for (size_t it=0; it<10; it++) {
 		//Measure the string
-		int id = it + (currInput->getPagingInfo().first * 10);
+		unsigned int id = it + (currInput->getPagingInfo().first * 10);
 		if (id>=dispCandidateStrs.size())
 			break;
 		int thisStrWidth = mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
