@@ -150,7 +150,10 @@ void RomanInputMethod::handleNumber(int numCode, WPARAM wParam, bool typeBurmese
 		if (--numCode<0)
 			numCode = 9;
 
-		//Mangle as usual...
+		//A bit of mangling for pages
+		numCode += model->getCurrPage()*10;
+
+		//Mangle a bit more as usual...
 		if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE)
 			numCode = -1;
 
