@@ -7,6 +7,9 @@
 #ifndef _TRANSFORM
 #define _TRANSFORM
 
+#include "Settings/Types.h"
+#include "Settings/Encoding.h"
+#include <string>
 
 class Transformation {
 public:

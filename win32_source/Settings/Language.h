@@ -7,6 +7,15 @@
 #ifndef _LANGUAGE
 #define _LANGUAGE
 
+#include <string>
+#include <set>
+#include "Transform/Transformation.h"
+#include "Input/InputMethod.h"
+#include "Display/DisplayMethod.h"
+#include "Settings/Encoding.h"
+#include "Settings/Language.h"
+
+
 struct Language {
 	//Basic constructor
 	Language(std::wstring id=L"") {
