@@ -1,20 +1,13 @@
 /*
- * Copyright 2009 by Seth N. Hetu
+ * Copyright 2010 by Seth N. Hetu
  *
  * Please refer to the end of the file for licensing information
  */
 
-#ifndef _INTERFACES
-#define _INTERFACES
-
-#include <string>
-#include <map>
-
-#include "Input/InputMethod.h"
+#ifndef _TRANSFORM
+#define _TRANSFORM
 
 
-
-//Expected interface: "Input Method"
 class Transformation {
 public:
 	//Struct-like properties
@@ -50,42 +43,7 @@ public:
 	}
 };
 
-//Expected interface: "Display Method"
-class DisplayMethod {
-public:
-	//Struct-like properties
-	std::wstring id;
-	Encoding encoding;
-	TYPES type;
-
-	//Temp for now: just force this to be virtual
-	virtual void typeText() = 0;
-
-	//Allow map comparison 
-	bool operator<(const DisplayMethod& other) const {
-		return id < other.id;
-	}
-
-	//Allow logical equals and not equals
-	bool operator==(const DisplayMethod &other) const {
-		return id == other.id;
-	}
-	bool operator!=(const DisplayMethod &other) const {
-		return id != other.id;
-	}
-
-	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
-		return id == other;
-	}
-	bool operator!=(const std::wstring& other) const {
-		return id != other;
-	}
-};
-
-
-
-#endif //_INTERFACES
+#endif //_TRANSFORM
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

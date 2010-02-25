@@ -412,6 +412,10 @@
 						Name="Display"
 						>
 						<File
+							RelativePath=".\Display\DisplayMethod.h"
+							>
+						</File>
+						<File
 							RelativePath=".\Display\PngFont.h"
 							>
 						</File>
@@ -436,6 +440,10 @@
 						Name="Transform"
 						>
 						<File
+							RelativePath=".\Transform\Transformation.h"
+							>
+						</File>
+						<File
 							RelativePath=".\Transform\Uni2Uni.h"
 							>
 						</File>
@@ -453,7 +461,19 @@
 						>
 					</File>
 					<File
+						RelativePath=".\Settings\Encoding.h"
+						>
+					</File>
+					<File
 						RelativePath=".\Settings\Interfaces.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Settings\Language.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Settings\Types.h"
 						>
 					</File>
 					<File
