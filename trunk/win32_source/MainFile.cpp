@@ -1533,8 +1533,10 @@ void recalculate()
 	//First things first: can we fit this in the current background?
 	// (Includes pat-sint strings)
 	int cumulativeWidth = (borderWidth+1)*2;
-	for (size_t i=0; i<dispCandidateStrs.size()&&i<10; i++) {
+	for (size_t i=0; i<10; i++) {
 		int id = i + currInput->getPagingInfo().first * 10;
+		if (id>=dispCandidateStrs.size())
+			break;
 		cumulativeWidth += mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
 		cumulativeWidth += spaceWidth;
 	}
@@ -1545,7 +1547,6 @@ void recalculate()
 	int pagerWidth = 0;
 	if (dispCandidateStrs.size()>10) {
 		pagerWidth = 2*borderWidth + borderWidth + triangleBaseWidth;
-		triangleStartX = cumulativeWidth;
 		cumulativeWidth += pagerWidth;
 	}
 
@@ -1553,6 +1554,9 @@ void recalculate()
 	// Note: Re-sizing to the same size won't trigger a window update, so we can just all expandWindow()
 	//       without worrying about performance.
 	int newWidth = max(mainWindow->getDefaultWidth(), cumulativeWidth);
+	if (dispCandidateStrs.size()>10) {
+		triangleStartX = newWidth - pagerWidth;
+	}
 	mainWindow->expandWindow(newWidth, mainWindow->getClientHeight());
 
 	//Background - Main Window
@@ -1606,9 +1610,11 @@ void recalculate()
 
 	//Now, draw the candiate strings and their backgrounds
 	int currLabelID = 1;
-	for (size_t it=0; it<dispCandidateStrs.size()&&it<10; it++) {
+	for (size_t it=0; it<10; it++) {
 		//Measure the string
 		int id = it + (currInput->getPagingInfo().first * 10);
+		if (id>=dispCandidateStrs.size())
+			break;
 		int thisStrWidth = mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
 
 		//Select fonts, and draw a box under highlighted words
@@ -1684,7 +1690,7 @@ void recalculate()
 			std::pair<int, int> pgInfo = currInput->getPagingInfo();
 			PulpCoreImage* pgImg = i==0
 				?(pgInfo.first==0?pageImages[PGUPSEPIA_ID]: pageImages[PGUPCOLOR_ID])
-				:(pgInfo.first>=pgInfo.second?pageImages[PGDOWNSEPIA_ID]: pageImages[PGDOWNCOLOR_ID]);
+				:(pgInfo.first>=pgInfo.second-1?pageImages[PGDOWNSEPIA_ID]: pageImages[PGDOWNCOLOR_ID]);
 			mainWindow->drawImage(pgImg, arrowPts[i].x, arrowPts[i].y);
 		}
 	}
