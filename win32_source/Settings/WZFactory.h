@@ -40,14 +40,14 @@ public:
 	~WZFactory(void);
 
 	//Builders
-	static InputMethod* makeInputMethod(const std::wstring& id, const std::wstring& languageName, const std::map<std::wstring, std::wstring>& options);
+	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
 	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 
 	//More specific builders/instances
-	static RomanInputMethod* getWaitZarInput();
-	static RomanInputMethod* getWordlistBasedInput(std::string wordlistFileName);
+	static RomanInputMethod* getWaitZarInput(std::wstring langID);
+	static RomanInputMethod* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
 
 	//Init; load all special builders at least once
 	static void InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);

@@ -1329,10 +1329,12 @@ void switchToLanguage(bool toMM) {
 	res = turnOnNumberkeys(toMM) && res;
 	res = turnOnExtendedKeys(toMM) && res;
 
-	//If switching to English, turn off all remaining hotkeys.
+	//If switching to English, turn off all remaining hotkeys. Else, reset the model
 	if (!toMM) {
 		res = turnOnControlkeys(toMM) && res;
 		res = turnOnExtendedKeys(toMM) && res;
+	} else {
+		currInput->reset(true, true, true, true);
 	}
 
 	//Turn on/of our main Help hotkey
