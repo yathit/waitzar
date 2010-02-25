@@ -1661,6 +1661,13 @@ void recalculate()
 		mainWindow->selectObject(g_WhiteBkgrd);
 		mainWindow->drawRectangle(triangleStartX-1+borderWidth, pageDownStart+borderWidth, triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2, fourthLineStart-borderWidth/2);
 
+		//Draw the current page
+		std::pair<int, int> pgInfo = currInput->getPagingInfo();
+		std::wstringstream num;
+		num <<pgInfo.first+1;
+		int strWidth = mmFontSmallWhite->getStringWidth(num.str());
+		mainWindow->drawString(mmFontSmallWhite, num.str(), triangleStartX-1 + (triangleBaseWidth+borderWidth*2+borderWidth)/2 - strWidth/2, pageDownStart-borderWidth-mmFontSmallWhite->getHeight() + 6);
+
 		//Draw a separator line for the box, half-shaded.
 		//Black center line
 		mainWindow->selectObject(g_BlackPen);
@@ -1686,7 +1693,6 @@ void recalculate()
 			{triangleStartX-1+borderWidth + (availWidth-pageImages[0]->getWidth())/2-1 + 1, pageDownHalf+1 + (availHeight-pageImages[0]->getHeight()) - 1}
 		};
 		for (int i=0; i<2; i++) {
-			std::pair<int, int> pgInfo = currInput->getPagingInfo();
 			PulpCoreImage* pgImg = i==0
 				?(pgInfo.first==0?pageImages[PGUPSEPIA_ID]: pageImages[PGUPCOLOR_ID])
 				:(pgInfo.first>=pgInfo.second-1?pageImages[PGDOWNSEPIA_ID]: pageImages[PGDOWNCOLOR_ID]);
@@ -2315,11 +2321,13 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 			return true;
 
 		case HOTKEY_DOWN:
+		case HOTKEY_PAGEDOWN:
 			//Page
 			currInput->handleUpDown(true);
 			return true;
 
 		case HOTKEY_UP:
+		case HOTKEY_PAGEUP:
 			//Page
 			currInput->handleUpDown(false);
 			return true;

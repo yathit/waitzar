@@ -148,6 +148,10 @@ enum {
 	HOTKEY_SHIFT_PERIOD = 149,
 	HOTKEY_SHIFT_SPACE = 150,
 	HOTKEY_SHIFT_ENTER = 151,
+
+	//More hotkeys
+	HOTKEY_PAGEUP = 152,
+	HOTKEY_PAGEDOWN = 153,
 }; 
 
 //Easier way of storing hotkeys
@@ -217,6 +221,8 @@ const Hotkey ControlHotkeys[] = {
 	{HOTKEY_RIGHT,   false, VK_RIGHT},
 	{HOTKEY_UP,      false, VK_UP},
 	{HOTKEY_DOWN,    false, VK_DOWN},
+	{HOTKEY_PAGEUP,  false, VK_PRIOR},
+	{HOTKEY_PAGEDOWN,  false, VK_NEXT},
 
 	//Migrated from "Extended Keys" --makes more sense here
 	{HOTKEY_SHIFT_SPACE,  true,  HOTKEY_SPACE},
