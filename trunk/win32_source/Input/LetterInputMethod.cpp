@@ -83,6 +83,11 @@ void LetterInputMethod::handleLeftRight(bool isRight)
 	//TODO: ADD LATER
 }
 
+void LetterInputMethod::handleUpDown(bool isDown)
+{
+	//For now, nothing.
+}
+
 //Ignore numCode, typeBurmeseNumbers
 void LetterInputMethod::handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers)
 {

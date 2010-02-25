@@ -134,6 +134,14 @@ void RomanInputMethod::handleLeftRight(bool isRight)
 	}
 }
 
+void RomanInputMethod::handleUpDown(bool isDown)
+{
+	if (mainWindow->isVisible()) {
+		if (model->pageUp(!isDown))
+			viewChanged = true;
+	}
+}
+
 
 void RomanInputMethod::handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers)
 {
@@ -394,6 +402,11 @@ std::wstring RomanInputMethod::getTypedRomanString()
 
 	//Done
 	return res.str();
+}
+
+std::pair<int, int> RomanInputMethod::getPagingInfo() const
+{
+	return std::pair<int, int>(model->getCurrPage(), model->getNumberOfPages());
 }
 
 

@@ -63,6 +63,7 @@ public:
 	virtual void handleBackspace() = 0;
 	virtual void handleDelete() = 0;
 	virtual void handleLeftRight(bool isRight) = 0;
+	virtual void handleUpDown(bool isDown) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
 	virtual void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers) = 0;
 	virtual void handleStop(bool isFull) = 0;
@@ -141,6 +142,10 @@ public:  //Abstract methods
 	//Get the typed romanized string. This consists ONLY of all typed valid letters
 	//Not abstract
 	virtual std::wstring getTypedRomanString();
+
+	//Get the status of paging
+	// Returns <currIndex, maxPages>
+	virtual std::pair<int, int> getPagingInfo() const;
 
 	//Called periodically
 	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset) = 0;
