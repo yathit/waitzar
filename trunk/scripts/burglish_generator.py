@@ -1,4 +1,4 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import os
@@ -249,8 +249,20 @@ if __name__ == "__main__":
     #Get the list of words
     wordlist = BuildZawgyiWordlist()
     
+    #Gather data
+    counts = {}
+    
     #Print it to a file
     out = codecs.open("burglish_wordlist.txt", "w", "utf-8")
     for entry in wordlist:
         out.write(u'%s = %s\n' % (entry[1], entry[0]))
+        
+        #Data
+        if not counts.has_key(entry[0]):
+            counts[entry[0]] = 0
+        counts[entry[0]] += 1
     out.close()
+    
+    #Get the max count
+    temp = dict(map(lambda x: (x[1],x[0]),counts.items()))
+    print 'Largest number of entries: ',  temp[max(temp.keys())] , ":", counts[temp[max(temp.keys())]]

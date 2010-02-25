@@ -683,6 +683,30 @@ bool WordBuilder::hasPatSintWord() const {
 }
 
 
+int WordBuilder::getNumberOfPages() const
+{
+	int numWords = getPossibleWords().size();
+	if (numWords % 10 == 0)
+		return numWords / 10;
+	else
+		return numWords / 10 + 1;
+}
+
+int WordBuilder::getCurrPage() const
+{
+	return currSelectedPage;
+}
+
+bool WordBuilder::pageUp(bool up)
+{
+	int newID = currSelectedPage + (up?-1:1);
+	if (newID<0 || newID>=getNumberOfPages())
+		return false;
+	currSelectedPage = newID;
+	return true;
+}
+
+
 //Returns true if the window is still visible.
 bool WordBuilder::backspace()
 {
@@ -749,6 +773,7 @@ void WordBuilder::reset(bool fullReset)
 {
 	//Partial reset
 	this->currNexus = 0;
+	this->currSelectedPage = 0;
 	this->pastNexus.clear();
 	this->currSelectedAbsoluteID = -1;
 	this->possibleChars.clear();
