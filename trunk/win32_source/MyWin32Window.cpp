@@ -622,6 +622,12 @@ bool MyWin32Window::drawRectangle(int left, int top, int right, int bottom)
 	return res;
 }
 
+bool MyWin32Window::drawPolygon(const POINT *points, int numPoints)
+{
+	bool res = (Polygon(underDC, points, numPoints)==TRUE);
+	return res;
+}
+
 bool MyWin32Window::drawImage(PulpCoreImage* img, int x, int y)
 {
 	img->draw(underDC, x, y);

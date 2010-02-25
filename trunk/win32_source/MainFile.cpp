@@ -130,12 +130,14 @@ ENCODING mostRecentEncoding = ENCODING_UNICODE;
 //Brushes & Pens
 HBRUSH g_WhiteBkgrd;
 HBRUSH g_DarkGrayBkgrd;
+HBRUSH g_BlackBkgrd;
 HBRUSH g_YellowBkgrd;
 HBRUSH g_GreenBkgrd;
 HBRUSH g_DlgHelpBkgrd;
 HBRUSH g_DlgHelpSlash;
 HPEN g_GreenPen;
 HPEN g_BlackPen;
+HPEN g_MediumGrayPen;
 HPEN g_EmptyPen;
 
 //Global Variables
@@ -180,6 +182,10 @@ PulpCoreFont *helpFntBack;
 PulpCoreFont *helpFntMemory;
 PulpCoreImage *helpCornerImg;
 OnscreenKeyboard* helpKeyboard;
+
+//Page down/up images
+PulpCoreImage* pageImages[4] = {NULL, NULL, NULL, NULL};
+enum { PGDOWNCOLOR_ID=0, PGUPCOLOR_ID=1, PGDOWNSEPIA_ID=2, PGUPSEPIA_ID=3 };
 
 //BLENDFUNCTION BLEND_FULL = { AC_SRC_OVER, 0, 0xFF, AC_SRC_ALPHA }; //NOTE: This requires premultiplied pixel values
 //POINT PT_ORIGIN;
@@ -758,6 +764,37 @@ void makeFont()
 		if (helpCornerImg->isInError()==TRUE) {
 			wstringstream msg;
 			msg <<"WZ Corner Image File didn't load correctly: " <<helpCornerImg->getErrorMsg();
+
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Unlock this resource for later use.
+		UnlockResource(res_handle);
+	}
+
+	//Load our page down/up images
+	for (int i=0; i<4; i++) {
+		//First the resource
+		int PG_RES_ID = i==0?WZ_PGDOWN_COLOR:i==1?WZ_PGUP_COLOR:i==2?WZ_PGDOWN_SEPIA:WZ_PGUP_SEPIA;
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(PG_RES_ID), _T("COREFONT"));
+		if (!imgRes) {
+			MessageBox(NULL, _T("Couldn't find PG_RES_ID"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, imgRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on PG_RES_ID"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		pageImages[i] = new PulpCoreImage();
+		mainWindow->initPulpCoreImage(pageImages[i], imgRes, res_handle);
+		if (pageImages[i]->isInError()==TRUE) {
+			wstringstream msg;
+			msg <<"WZ Page Image File didn't load correctly: " <<pageImages[i]->getErrorMsg();
 
 			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
@@ -1496,9 +1533,19 @@ void recalculate()
 	//First things first: can we fit this in the current background?
 	// (Includes pat-sint strings)
 	int cumulativeWidth = (borderWidth+1)*2;
-	for (size_t i=0; i<dispCandidateStrs.size(); i++) {
+	for (size_t i=0; i<dispCandidateStrs.size()&&i<10; i++) {
 		cumulativeWidth += mmFontBlack->getStringWidth(dispCandidateStrs[i].first);
 		cumulativeWidth += spaceWidth;
+	}
+
+	//Add the up/down arrows, if we have too many candidates
+	int triangleBaseWidth = pageImages[0]->getWidth() - 1;
+	int triangleStartX = 0;
+	int pagerWidth = 0;
+	if (dispCandidateStrs.size()>10) {
+		pagerWidth = 2*borderWidth + borderWidth + triangleBaseWidth;
+		triangleStartX = cumulativeWidth;
+		cumulativeWidth += pagerWidth;
 	}
 
 	//If not, resize. Also, keep the size small when possible.
@@ -1533,20 +1580,19 @@ void recalculate()
 	sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
 	//Draw the current encoding
-	wstring currEncStr = uni2Output->toEncoding.initial;
+	wstring currEncStr = config.activeOutputEncoding.initial;
 	int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
 	sentenceWindow->selectObject(g_BlackPen);
 	sentenceWindow->selectObject(g_GreenBkgrd);
 	sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
 	sentenceWindow->drawString(mmFontSmallWhite, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmallWhite->getHeight()/2);
 
-
 	//White overlays
 	mainWindow->selectObject(g_EmptyPen);
 	mainWindow->selectObject(g_WhiteBkgrd);
-	mainWindow->drawRectangle(borderWidth+1, firstLineStart+1, mainWindow->getClientWidth()-borderWidth-1, secondLineStart-borderWidth);
-	mainWindow->drawRectangle(borderWidth+1, secondLineStart, mainWindow->getClientWidth()-borderWidth-1, thirdLineStart-borderWidth);
-	mainWindow->drawRectangle(borderWidth+1, thirdLineStart, mainWindow->getClientWidth()-borderWidth-1, fourthLineStart-borderWidth-1);
+	mainWindow->drawRectangle(borderWidth+1, firstLineStart+1, mainWindow->getClientWidth()-borderWidth-pagerWidth-1, secondLineStart-borderWidth);
+	mainWindow->drawRectangle(borderWidth+1, secondLineStart, mainWindow->getClientWidth()-borderWidth-pagerWidth-1, thirdLineStart-borderWidth);
+	mainWindow->drawRectangle(borderWidth+1, thirdLineStart, mainWindow->getClientWidth()-borderWidth-pagerWidth-1, fourthLineStart-borderWidth-1);
 
 	//Now, draw the strings....
 	PulpCoreFont* mmFont = mmFontBlack;
@@ -1559,7 +1605,7 @@ void recalculate()
 
 	//Now, draw the candiate strings and their backgrounds
 	int currLabelID = 1;
-	for (size_t i=0; i<dispCandidateStrs.size(); i++) {
+	for (size_t i=0; i<dispCandidateStrs.size()&&i<10; i++) {
 		//Measure the string
 		int thisStrWidth = mmFontBlack->getStringWidth(dispCandidateStrs[i].first);
 
@@ -1596,6 +1642,43 @@ void recalculate()
 
 	//Draw the current romanized string
 	mainWindow->drawString(mmFontBlack, dispRomanStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
+
+	//Draw the cursor page up/down box if required
+	int pageDownStart = secondLineStart-borderWidth-2;
+	int pageDownHalf = pageDownStart + (fourthLineStart-pageDownStart)/2;
+	if (dispCandidateStrs.size()>10) {
+		//Draw the background of the box.
+		mainWindow->selectObject(g_EmptyPen);
+		mainWindow->selectObject(g_BlackBkgrd);
+		mainWindow->drawRectangle(triangleStartX-1, 0, triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth, fourthLineStart);
+		mainWindow->selectObject(g_WhiteBkgrd);
+		mainWindow->drawRectangle(triangleStartX-1+borderWidth, pageDownStart+borderWidth, triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2, fourthLineStart-borderWidth/2);
+
+		//Draw a separator line for the box, half-shaded.
+		//Black center line
+		mainWindow->selectObject(g_BlackPen);
+		mainWindow->moveTo(triangleStartX-1+borderWidth+2, pageDownHalf);
+		mainWindow->drawLineTo(triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2-3, pageDownHalf);
+		//Gray fringes
+		mainWindow->selectObject(g_MediumGrayPen);
+		mainWindow->moveTo(triangleStartX-1+borderWidth+1, pageDownHalf);
+		mainWindow->drawLineTo(triangleStartX-1+borderWidth+2, pageDownHalf);
+		mainWindow->moveTo(triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2-3, pageDownHalf);
+		mainWindow->drawLineTo(triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2-2, pageDownHalf);
+		//Gray top/bottom lines
+		mainWindow->moveTo(triangleStartX-1+borderWidth+2, pageDownHalf-1);
+		mainWindow->drawLineTo(triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2-3, pageDownHalf-1);
+		mainWindow->moveTo(triangleStartX-1+borderWidth+2, pageDownHalf+1);
+		mainWindow->drawLineTo(triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2-3, pageDownHalf+1);
+
+		//Draw the triangles which specify whether or not we have more entries above/below.
+		int availWidth = (triangleStartX+triangleBaseWidth+borderWidth*2+borderWidth-borderWidth/2) - (triangleStartX-1+borderWidth);
+		int availHeight = (pageDownHalf-1) - (pageDownStart+borderWidth);
+		PulpCoreImage* pgImg = pageImages[PGDOWNCOLOR_ID];
+		mainWindow->drawImage(pgImg, triangleStartX-1+borderWidth + (availWidth-pgImg->getWidth())/2-1 + 1, pageDownHalf+1 + (availHeight-pgImg->getHeight()) - 1);
+		pgImg = pageImages[PGUPSEPIA_ID];
+		mainWindow->drawImage(pgImg, triangleStartX-1+borderWidth + (availWidth-pgImg->getWidth())/2-1 + 1, pageDownStart+borderWidth + (availHeight-pgImg->getHeight()) - 1);
+	}
 
 	//Paint it all to the screen
 	reBlit();
@@ -2588,12 +2671,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Create a white/black brush
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
 	g_DarkGrayBkgrd = CreateSolidBrush(RGB(128, 128, 128));
+	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
 	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
 	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
 	g_DlgHelpBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
 	g_DlgHelpSlash = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+	g_MediumGrayPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
 
 

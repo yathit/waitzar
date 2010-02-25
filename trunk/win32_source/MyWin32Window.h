@@ -90,6 +90,7 @@ public:
 	bool moveTo(int x, int y);
 	bool drawLineTo(int x, int y);
 	bool drawRectangle(int left, int top, int right, int bottom);
+	bool drawPolygon(const POINT *points, int numPoints);
 	bool drawImage(PulpCoreImage* img, int x, int y);
 	bool drawString(PulpCoreFont* font, const std::string& str, int x, int y);
 	bool drawString(PulpCoreFont* font, const std::wstring& str, int x, int y);
