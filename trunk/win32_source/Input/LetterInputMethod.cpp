@@ -58,12 +58,14 @@ void LetterInputMethod::handleBackspace()
 	if (this->isHelpInput()) {
 		//If help mode, delete a letter but don't hide the window
 		wstring newStr = !typedCandidateStr.str().empty() ? typedCandidateStr.str().substr(0, typedCandidateStr.str().length()-1) : L"";
-		typedCandidateStr.str(newStr);
+		typedCandidateStr.str(L"");
+		typedCandidateStr <<newStr;
 		viewChanged = true;
 	} else {
 		// Otherwise, delete a letter from the sentece, and hide if nothing left
 		wstring newStr = !typedSentenceStr.str().empty() ? typedSentenceStr.str().substr(0, typedSentenceStr.str().length()-1) : L"";
-		typedSentenceStr.str(newStr);
+		typedSentenceStr.str(L"");
+		typedSentenceStr <<newStr;
 		viewChanged = true;
 	}
 }
