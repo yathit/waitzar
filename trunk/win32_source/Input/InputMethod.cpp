@@ -14,6 +14,23 @@ InputMethod::~InputMethod()
 {
 }
 
+void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords)
+{
+	//Init
+	providingHelpFor = NULL;
+	viewChanged = false;
+	requestToTypeSentence = false;
+
+	//Save
+	this->mainWindow = mainWindow;
+	this->sentenceWindow = sentenceWindow;
+	this->helpWindow = helpWindow;
+	this->memoryWindow = memoryWindow;
+	this->systemWordLookup = systemWordLookup;
+	this->systemDefinedWords = systemDefinedWords;
+	this->helpKeyboard = helpKeyboard;
+}
+
 
 void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor)
 {

@@ -16,13 +16,11 @@
 class RomanInputMethod : public InputMethod {
 
 public:
-	RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords);
+	RomanInputMethod();
+	virtual ~RomanInputMethod();
 
 	//Needed to add Roman-specific stuff
-	void init(waitzar::WordBuilder* model, waitzar::SentenceList* sentence);
-
-	//Destructor
-	~RomanInputMethod();
+	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, waitzar::WordBuilder* model, waitzar::SentenceList* sentence);
 
 	//Abstract implementation - keypresses
 	void handleEsc();

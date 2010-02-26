@@ -13,23 +13,8 @@ using std::wstring;
 
 
 
-//WARNING: This is currently COPIED in RomanInputMethod.cpp
-//TODO: C++ 0x, chaining constructors can eliminate this
-LetterInputMethod::LetterInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, wstring systemDefinedWords)
+LetterInputMethod::LetterInputMethod()
 {
-	//Init
-	providingHelpFor = NULL;
-	viewChanged = false;
-	requestToTypeSentence = false;
-
-	//Save
-	this->mainWindow = mainWindow;
-	this->sentenceWindow = sentenceWindow;
-	this->helpWindow = helpWindow;
-	this->memoryWindow = memoryWindow;
-	this->systemWordLookup = systemWordLookup;
-	this->systemDefinedWords = systemDefinedWords;
-	this->helpKeyboard = helpKeyboard;
 }
 
 LetterInputMethod::~LetterInputMethod()

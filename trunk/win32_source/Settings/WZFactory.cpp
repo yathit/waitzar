@@ -293,8 +293,8 @@ RomanInputMethod* WZFactory::getWaitZarInput(wstring langID)
 		model->reverseLookupWord(0);
 
 		//Create, init
-		WZFactory::cachedInputs[fullID] = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
-		WZFactory::cachedInputs[fullID]->init(model, sentence);
+		WZFactory::cachedInputs[fullID] = new RomanInputMethod();
+		WZFactory::cachedInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords, model, sentence);
 	}
 	
 	return WZFactory::cachedInputs[fullID];
@@ -323,8 +323,8 @@ RomanInputMethod* WZFactory::getWordlistBasedInput(wstring langID, wstring input
 			throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 		//Now, build the romanisation method and return
-		WZFactory::cachedInputs[fullID] = new RomanInputMethod(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords);
-		WZFactory::cachedInputs[fullID]->init(model, sentence);
+		WZFactory::cachedInputs[fullID] = new RomanInputMethod();
+		WZFactory::cachedInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, WZFactory::systemDefinedWords, model, sentence);
 	}
 
 	return WZFactory::cachedInputs[fullID];

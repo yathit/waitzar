@@ -14,30 +14,17 @@ using std::string;
 using std::wstring;
 
 
-//WARNING: This is currently COPIED in RomanInputMethod.cpp
-//TODO: C++ 0x, chaining constructors can eliminate this
-RomanInputMethod::RomanInputMethod(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const vector< pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, wstring systemDefinedWords)
+RomanInputMethod::RomanInputMethod()
 {
-	//Init
-	providingHelpFor = NULL;
-	viewChanged = false;
-	requestToTypeSentence = false;
-
-	//Save
-	this->mainWindow = mainWindow;
-	this->sentenceWindow = sentenceWindow;
-	this->helpWindow = helpWindow;
-	this->memoryWindow = memoryWindow;
-	this->systemWordLookup = systemWordLookup;
-	this->systemDefinedWords = systemDefinedWords;
-	this->helpKeyboard = helpKeyboard;
 }
 
 
 
 //This takes responsibility for the model and sentence memory.
-void RomanInputMethod::init(WordBuilder* model, SentenceList* sentence)
+void RomanInputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, waitzar::WordBuilder* model, waitzar::SentenceList* sentence)
 {
+	InputMethod::init(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords);
+
 	this->model = model;
 	this->sentence = sentence;
 }
