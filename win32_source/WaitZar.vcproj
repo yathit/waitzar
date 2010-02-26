@@ -424,6 +424,10 @@
 						Name="Input"
 						>
 						<File
+							RelativePath=".\Input\burglish_data.h"
+							>
+						</File>
+						<File
 							RelativePath=".\Input\InputMethod.h"
 							>
 						</File>
