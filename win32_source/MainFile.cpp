@@ -100,11 +100,6 @@ using std::pair;
 using std::wstringstream;
 
 
-//TEMP - delete later
-json_spirit::wValue root1;
-json_spirit::wValue root2;
-
-
 //Current version
 const wstring WAIT_ZAR_VERSION = L"1.7";
 
@@ -2986,6 +2981,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
 
+
+	
+	//TEMP - delete later
+	json_spirit::wValue root1;
+	json_spirit::wValue root2;
 
 	//TEMP: Test space requirements
 	json_spirit::read_or_throw(BURGLISH_ONSETS, root1);
