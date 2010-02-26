@@ -243,6 +243,19 @@ def BuildZawgyiWordlist():
     print '------------------------------------'
     print ' =   Total words: ', len(res)
     
+    #More output
+    print ' '
+    test = {}
+    for pair in COMMON_ONSETS:
+        if test.has_key(pair[0]):
+            print 'Duplicate onset: ' , pair[0]
+        test[pair[0]] = True
+    test = {}
+    for pair in COMMON_RHYMES:
+        if test.has_key(pair[0]):
+            print 'Duplicate rhyme: ' , pair[0]
+        test[pair[0]] = True
+    
     return res
     
 if __name__ == "__main__":
