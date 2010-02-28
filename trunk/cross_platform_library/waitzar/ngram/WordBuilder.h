@@ -84,6 +84,7 @@ public:
 	unsigned short getStopCharacter(bool isFull) const;
 	unsigned int getTotalDefinedWords() const;
 	std::string reverseLookupWord(unsigned int dictID);
+	std::pair<int, std::string> reverseLookupWord(std::wstring word);
 	bool addShortcut(const std::wstring &baseWord, const std::wstring &toStack, const std::wstring &resultStacked);
 	bool isAllowNonBurmese();
 

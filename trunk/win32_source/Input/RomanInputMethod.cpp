@@ -41,24 +41,7 @@ RomanInputMethod::~RomanInputMethod()
 
 std::pair<int, std::string> RomanInputMethod::lookupWord(std::wstring typedWord)
 {
-	//Init
-	std::pair<int, std::string> res;
-	res.first = -1;
-
-	//Get the ID
-	for (unsigned int i=0; i<model->getTotalDefinedWords(); i++) {
-		//Does the word match?
-		wstring currWord = model->getWordString(i);
-		if (currWord == typedWord) {
-			res.first = i;
-			break;
-		}
-	}
-
-	//Get the romanization 
-	res.second = model->reverseLookupWord(res.first);  //Will be empty if word id is -1
-
-	return res;
+	return model->reverseLookupWord(typedWord);
 }
 
 
