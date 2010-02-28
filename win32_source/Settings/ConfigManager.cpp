@@ -135,13 +135,13 @@ void ConfigManager::resolvePartialSettings()
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				lang->inputMethods.insert(WZFactory::makeInputMethod(id, *lang, it->second));
+				lang->inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second));
 			else if (i==PART_ENC) 
-				lang->encodings.insert(WZFactory::makeEncoding(id, it->second));
+				lang->encodings.insert(WZFactory<waitzar::WordBuilder>::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) 
-				lang->transformations.insert(WZFactory::makeTransformation(id, it->second));
+				lang->transformations.insert(WZFactory<waitzar::WordBuilder>::makeTransformation(id, it->second));
 			else if (i==PART_DISP) 
-				lang->displayMethods.insert(WZFactory::makeDisplayMethod(id, it->second));
+				lang->displayMethods.insert(WZFactory<waitzar::WordBuilder>::makeDisplayMethod(id, it->second));
 		}
 
 		//Clear all entries from this map
@@ -162,7 +162,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	//getInputManagers();
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
-	WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+	WZFactory<waitzar::WordBuilder>::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 	waitzar::BurglishBuilder::InitStatic();
 
 	//Step 2: Un-cache

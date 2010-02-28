@@ -8,10 +8,10 @@
 #define _WORDBUILDER
 
 //Don't let Visual Studio warn us to use the _s functions
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 
 //Ignore new swprintf semantics
-#define _CRT_NON_CONFORMING_SWPRINTFS
+//#define _CRT_NON_CONFORMING_SWPRINTFS
 
 //Necessary libraries
 #include <wchar.h>
