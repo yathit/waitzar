@@ -22,7 +22,7 @@ public:
 	virtual ~RomanInputMethod();
 
 	//Needed to add Roman-specific stuff
-	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList* sentence);
+	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence);
 
 	//Abstract implementation - keypresses
 	void handleEsc();
@@ -64,7 +64,7 @@ private:
 	//Romanization model
 	//TODO: Chain constructors, set to null (C++ 0x)
 	ModelType* model;
-	waitzar::SentenceList* sentence;
+	waitzar::SentenceList<ModelType>* sentence;
 
 	bool selectWord(int id, bool indexNegativeEntries);
 
@@ -89,7 +89,7 @@ RomanInputMethod<ModelType>::RomanInputMethod()
 
 //This takes responsibility for the model and sentence memory.
 template <class ModelType>
-void RomanInputMethod<ModelType>::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList* sentence)
+void RomanInputMethod<ModelType>::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence)
 {
 	InputMethod::init(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords);
 

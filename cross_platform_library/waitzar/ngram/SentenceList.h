@@ -12,7 +12,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <list>
-#include "WordBuilder.h"
 
 
 namespace waitzar 
@@ -23,6 +22,7 @@ namespace waitzar
  * Intended to encapsulate the cursor & the list of possible words into a single class,
  *   and to fix the reverse-insertion error at the same time.
  */
+template <class ModelType>
 class SentenceList
 {
 public:
@@ -34,18 +34,18 @@ public:
 	void clear();
 	void insert(int val);
 	int getCursorIndex() const;
-	bool moveCursorRight(int amt, bool allowSameIndex, WordBuilder &model);
-	bool moveCursorRight(int amt, WordBuilder &model);
+	bool moveCursorRight(int amt, bool allowSameIndex, ModelType &model);
+	bool moveCursorRight(int amt, ModelType &model);
 	size_t size() const;
 	bool deleteNext();
-	bool deletePrev(WordBuilder &model);
+	bool deletePrev(ModelType &model);
 
 	//Iterating
 	std::list<int>::const_iterator begin() const;
 	std::list<int>::const_iterator end() const;
 
 	//Consistency
-	void updateTrigrams(WordBuilder &model);
+	void updateTrigrams(ModelType &model);
 
 
 private:
@@ -57,6 +57,167 @@ private:
 	//Helper
 	std::list<int>::iterator newCursor;
 };
+
+
+
+
+template <class ModelType>
+SentenceList<ModelType>::SentenceList ()
+{
+	this->clear();
+}
+
+template <class ModelType>
+SentenceList<ModelType>::~SentenceList()
+{
+}
+
+
+template <class ModelType>
+void SentenceList<ModelType>::clear()
+{
+	prevTypedWords.clear();
+	cursor = prevTypedWords.begin();
+	cursorIndex = -1;
+}
+
+template <class ModelType>
+void SentenceList<ModelType>::insert(int val)
+{
+	prevTypedWords.insert(cursor, val);
+	cursorIndex++;
+}
+
+template <class ModelType>
+int SentenceList<ModelType>::getCursorIndex() const
+{
+	return cursorIndex;
+}
+
+template <class ModelType>
+size_t SentenceList<ModelType>::size() const
+{
+	return prevTypedWords.size();
+}
+
+template <class ModelType>
+bool SentenceList<ModelType>::moveCursorRight(int amt, bool allowSameIndex, ModelType &model)
+{
+	//Any words?
+	if (prevTypedWords.size()==0)
+		return false;
+
+	//Are we in bounds?
+	int newCursorIndex = cursorIndex + amt;
+	newCursor = cursor;
+	while (amt!=0) {
+		if (amt>0 && newCursor!=prevTypedWords.end()) {
+			newCursor++;
+			amt--;
+		} else if (amt<0 && newCursor!=prevTypedWords.begin()) {
+			newCursor--;
+			amt++;
+		} else {
+			//Ignore this update
+			return false;
+		}
+	}
+
+	//Did we make any change?
+	if (newCursor==cursor && !allowSameIndex)
+		return false;
+
+	//Update our model
+	cursor = newCursor;
+	cursorIndex = newCursorIndex;
+
+	//Set the trigram
+	this->updateTrigrams(model);
+	
+	//Success indicator
+	return true;
+}
+
+
+template <class ModelType>
+bool SentenceList<ModelType>::moveCursorRight(int amt, ModelType &model)
+{
+	return this->moveCursorRight(amt, false, model);
+}
+
+
+template <class ModelType>
+bool SentenceList<ModelType>::deleteNext()
+{
+	//No words?
+	if (prevTypedWords.size()==0)
+		return false;
+
+	//At end?
+	if (cursor == prevTypedWords.end())
+		return false;
+
+	//Ok, delete it. No need to advance the cursor
+	cursor = prevTypedWords.erase(cursor);
+	return true;
+}
+
+
+template <class ModelType>
+bool SentenceList<ModelType>::deletePrev(ModelType &model)
+{
+	//No words?
+	if (prevTypedWords.size()==0) 
+		return false;
+
+	//At beginning?
+	if (cursor == prevTypedWords.begin())
+		return false;
+
+	//Ok, delete it, update the cursor.
+	cursor--;
+	cursorIndex--;
+	cursor = prevTypedWords.erase(cursor);
+
+	//Update the trigrams...
+	this->updateTrigrams(model);
+	return true;
+}
+
+
+
+template <class ModelType>
+void SentenceList<ModelType>::updateTrigrams(ModelType &model)
+{
+	std::vector<unsigned int> trigrams;
+	std::list<int>::iterator considered = cursor;
+	while (considered!=prevTypedWords.begin() && trigrams.size()<3) {
+		considered--;
+
+		if (*considered<0)
+			break;
+
+		trigrams.push_back(*considered);
+	}
+	model.insertTrigram(trigrams);
+}
+
+
+
+
+//Iterate
+template <class ModelType>
+std::list<int>::const_iterator SentenceList<ModelType>::begin() const
+{
+	return prevTypedWords.begin();
+}
+template <class ModelType>
+std::list<int>::const_iterator SentenceList<ModelType>::end() const
+{
+	return prevTypedWords.end();
+}
+
+
 
 
 } //End waitzar namespace

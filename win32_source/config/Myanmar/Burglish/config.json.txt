@@ -1,8 +1,7 @@
 # Settings for the Myanmar language, including display name and input method.
 {"languages.myanmar.input-methods.burglish" : {
       "display-name" : "Burglish",
-      "encoding" : "zawgyi-one",
-      "type" : "roman",
-      "wordlist" : "Burglish\\burglish_wordlist.txt"
+      "encoding" : "unicode",
+      "type" : "built-in"
     }
 }

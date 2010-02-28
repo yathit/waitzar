@@ -54,6 +54,9 @@ public:
 	int getNumberOfPages() const;
 	unsigned short getStopCharacter(bool isFull) const;
 
+	//Required by SentenceList
+	void insertTrigram(const std::vector<unsigned int> &trigrams) { } //Burglish doesn't use trigrams.
+
 	//Vestigial (performs no relevant work here)
 	bool hasPatSintWord() const { return false; }
 	unsigned int getFirstWordIndex() const { return 0; }

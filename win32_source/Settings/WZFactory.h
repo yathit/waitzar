@@ -18,6 +18,7 @@
 
 #include "Input/RomanInputMethod.h"
 #include "NGram/WordBuilder.h"
+#include "NGram/BurglishBuilder.h"
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
 #include "Display/PngFont.h"
@@ -51,6 +52,7 @@ public:
 
 	//More specific builders/instances
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID);
+	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
 
 	//Init; load all special builders at least once
@@ -77,7 +79,9 @@ private:
 	static const int systemDefinedKeys[];
 
 	//Instance Mappings, to save memory
-	static std::map<std::wstring, RomanInputMethod<ModelType>*> cachedInputs;
+	//Ugh.... templates are exploding!
+	static std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> cachedWBInputs;
+	static std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> cachedBGInputs;
 
 	//Helper methods
 	static void buildSystemWordLookup();
@@ -354,7 +358,8 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 
 
 
-template <class ModelType> std::map<std::wstring, RomanInputMethod<ModelType>*> WZFactory<ModelType>::cachedInputs = std::map<std::wstring, RomanInputMethod<ModelType>*>();
+template <class ModelType> std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> WZFactory<ModelType>::cachedWBInputs;
+template <class ModelType> std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> WZFactory<ModelType>::cachedBGInputs;
 
 template <class ModelType>
 RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(wstring langID) 
@@ -362,12 +367,12 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(ws
 	wstring fullID = langID + L"." + L"waitzar";
 
 	//Singleton init
-	if (WZFactory<ModelType>::cachedInputs.count(fullID)==0) {
+	if (WZFactory<ModelType>::cachedWBInputs.count(fullID)==0) {
 		//Load model; create sentence list
 		//NOTE: These resources will not be reclaimed, but since they're 
 		//      contained within a singleton class, I don't see a problem.
 		WordBuilder* model = WZFactory<ModelType>::readModel();
-		SentenceList* sentence = new SentenceList();
+		SentenceList<waitzar::WordBuilder>* sentence = new SentenceList<waitzar::WordBuilder>();
 
 		//Add user words
 		WZFactory<ModelType>::addWordsToModel(model, "mywords.txt");
@@ -380,12 +385,35 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(ws
 		model->reverseLookupWord(0);
 
 		//Create, init
-		WZFactory<ModelType>::cachedInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
-		WZFactory<ModelType>::cachedInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
+		WZFactory<ModelType>::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
+		WZFactory<ModelType>::cachedWBInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
 	}
 	
-	return WZFactory<ModelType>::cachedInputs[fullID];
+	return WZFactory<ModelType>::cachedWBInputs[fullID];
 }
+
+
+template <class ModelType>
+RomanInputMethod<waitzar::BurglishBuilder>* WZFactory<ModelType>::getBurglishInput(wstring langID) 
+{
+	wstring fullID = langID + L"." + L"burglish";
+
+	//Singleton init
+	if (WZFactory<ModelType>::cachedBGInputs.count(fullID)==0) {
+		//Load model; create sentence list
+		//NOTE: These resources will not be reclaimed, but since they're 
+		//      contained within a singleton class, I don't see a problem.
+		waitzar::BurglishBuilder* model = new waitzar::BurglishBuilder();
+		SentenceList<waitzar::BurglishBuilder>* sentence = new SentenceList<waitzar::BurglishBuilder>();
+
+		//Create, init
+		WZFactory<ModelType>::cachedBGInputs[fullID] = new RomanInputMethod<waitzar::BurglishBuilder>();
+		WZFactory<ModelType>::cachedBGInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
+	}
+	
+	return WZFactory<ModelType>::cachedBGInputs[fullID];
+}
+
 
 //Build a model up from scratch.
 template <class ModelType>
@@ -393,12 +421,12 @@ RomanInputMethod<WordBuilder>* WZFactory<ModelType>::getWordlistBasedInput(wstri
 {
 	wstring fullID = langID + L"." + inputID;
 
-	if (WZFactory<ModelType>::cachedInputs.count(fullID)==0) {
+	if (WZFactory<ModelType>::cachedWBInputs.count(fullID)==0) {
 		//Create a basically empty model (Nexus can't be empty)
 		vector< vector<unsigned int> > nexus;
 		nexus.push_back(vector<unsigned int>());
 		WordBuilder* model = new WordBuilder(vector<wstring>(), nexus, vector< vector<unsigned int> >());
-		SentenceList* sentence = new SentenceList();
+		SentenceList<waitzar::WordBuilder>* sentence = new SentenceList<waitzar::WordBuilder>();
 
 		//Add user words (there's ONLY user words here)
 		WZFactory<ModelType>::addWordsToModel(model, wordlistFileName);
@@ -411,11 +439,11 @@ RomanInputMethod<WordBuilder>* WZFactory<ModelType>::getWordlistBasedInput(wstri
 			throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 		//Now, build the romanisation method and return
-		WZFactory<ModelType>::cachedInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
-		WZFactory<ModelType>::cachedInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
+		WZFactory<ModelType>::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
+		WZFactory<ModelType>::cachedWBInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
 	}
 
-	return WZFactory<ModelType>::cachedInputs[fullID];
+	return WZFactory<ModelType>::cachedWBInputs[fullID];
 }
 
 
@@ -458,6 +486,8 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 			res = WZFactory<ModelType>::getWaitZarInput(language.id);
 		else if (id==L"mywin")
 			res = WZFactory<ModelType>::getWaitZarInput(language.id);
+		else if (id==L"burglish")
+			res = WZFactory<ModelType>::getBurglishInput(language.id);
 		else
 			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Input Manager: ", id).c_str());
 		res->type = BUILTIN;
