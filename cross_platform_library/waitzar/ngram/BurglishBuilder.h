@@ -10,6 +10,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <sstream>
 
 #include "Input/burglish_data.h"
 #include "Json Spirit/json_spirit_value.h"
@@ -28,7 +29,7 @@ public:
 	//Basic
 	BurglishBuilder();
 	~BurglishBuilder();
-	void InitStatic();
+	static void InitStatic();
 
 	///////////////////////////////////////////////
 	//Functionality expected in RomanInputMethod()
@@ -61,26 +62,24 @@ public:
 
 
 private:
-	static bool IsVowel(wchar_t letter) const;
-	static bool IsValid(const std::wstring& word) const;
+	static bool IsVowel(wchar_t letter);
+	static bool IsValid(const std::wstring& word);
 	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsList);
 
 	void reGenerateWordlist();
 
 private:
-	static json_spirit::wValue onsetRoot;
-	static json_spirit::wValue rhymeRoot;
-
+	static json_spirit::wmObject onsetPairs;
+	static json_spirit::wmObject rhymePairs;
 
 	std::wstring typedRomanStr;
 	std::vector<std::wstring> generatedWords;
 
 
+};
 
+}//End of waitzar namespace
 
-
-
-}
 
 #endif //_BURGLISH_BUILDER
 
