@@ -325,6 +325,10 @@
 					Name="NGram"
 					>
 					<File
+						RelativePath="..\cross_platform_library\waitzar\ngram\BurglishBuilder.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\cross_platform_library\waitzar\ngram\SentenceList.cpp"
 						>
 					</File>

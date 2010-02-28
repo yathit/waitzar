@@ -82,11 +82,6 @@
 #include "Input/RomanInputMethod.h"
 #include "Transform/Uni2Uni.h"
 
-//TEMP
-#include "Json Spirit/json_spirit_value.h"
-#include "Json Spirit/json_spirit_reader.h"
-#include "Input/burglish_data.h"
-
 //VS Includes
 #include "resource.h"
 
@@ -2980,16 +2975,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	}
 	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
-
-
-	
-	//TEMP - delete later
-	json_spirit::wValue root1;
-	json_spirit::wValue root2;
-
-	//TEMP: Test space requirements
-	json_spirit::read_or_throw(BURGLISH_ONSETS, root1);
-	json_spirit::read_or_throw(BURGLISH_RHYMES, root2);
 
 
 	//Load our configuration file now; save some headaches later

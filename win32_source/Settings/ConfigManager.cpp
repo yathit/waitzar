@@ -163,6 +163,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
 	WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+	BurglishBuilder::InitStatic();
 
 	//Step 2: Un-cache
 	resolvePartialSettings();
