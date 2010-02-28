@@ -1039,6 +1039,29 @@ wstring WordBuilder::getWordString(unsigned int id) const
 }
 
 
+std::pair<int, std::string> WordBuilder::reverseLookupWord(std::wstring word)
+{
+	//Init
+	std::pair<int, std::string> res;
+	res.first = -1;
+
+	//Get the ID
+	for (unsigned int i=0; i<this->getTotalDefinedWords(); i++) {
+		//Does the word match?
+		wstring currWord = this->getWordString(i);
+		if (currWord == word) {
+			res.first = i;
+			break;
+		}
+	}
+
+	//Get the romanization 
+	res.second = this->reverseLookupWord(res.first);  //Will be empty if word id is -1
+
+	return res;
+}
+
+
 
 //Allows us to look-up a word and get its romanisation
 void WordBuilder::buildReverseLookup()
