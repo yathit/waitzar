@@ -195,6 +195,10 @@ void BurglishBuilder::reset(bool fullReset)
 	typedRomanStr.str(L"");
 	generatedWords.clear();
 
+	//More...
+	currSelectedPage = 0;
+	currSelectedID = 0;
+
 	if (fullReset)
 		savedWordIDs.clear();
 }
