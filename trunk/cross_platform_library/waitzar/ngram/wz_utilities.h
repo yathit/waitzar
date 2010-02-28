@@ -8,7 +8,7 @@
 #define _WZ_UTILITIES
 
 //Don't let Visual Studio warn us to use the _s functions
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 
 //Necessary libraries
 #include <wchar.h>
