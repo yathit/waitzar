@@ -37,20 +37,20 @@ public:
 	
 	//Key elements of BurglishBuilder
 	bool typeLetter(char letter);
-	std::vector<unsigned int> getPossibleWords() const;
 	void reset(bool fullReset);
 
 	//Requires hacking (mostly b/c WordBuilder assumes word IDs)
+	std::vector<unsigned int> getPossibleWords() const;
 	std::wstring getWordString(unsigned int id) const;
 	std::pair<int, std::string> reverseLookupWord(std::wstring word);
-	int getCurrSelectedID() const;
 
 	//Requires copying of WordBuilder code. (Unfortunate, but unavoidable).
-	std::pair<bool, unsigned int> typeSpace(int quickJumpID, bool useQuickJump);
 	bool backspace();
 	bool moveRight(int amt);
 	bool pageUp(bool up);
+	std::pair<bool, unsigned int> typeSpace(int quickJumpID, bool useQuickJump);
 	int getCurrPage() const;
+	int getCurrSelectedID() const;
 	int getNumberOfPages() const;
 	unsigned short getStopCharacter(bool isFull) const;
 
@@ -72,7 +72,7 @@ private:
 	static json_spirit::wmObject onsetPairs;
 	static json_spirit::wmObject rhymePairs;
 
-	std::wstring typedRomanStr;
+	std::wstringstream typedRomanStr;
 	std::vector<std::wstring> generatedWords;
 
 

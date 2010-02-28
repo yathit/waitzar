@@ -179,12 +179,70 @@ void BurglishBuilder::reGenerateWordlist()
 	set<wstring> results;
 
 	//For now, just do the general combinations
-	addStandardWords(typedRomanStr, results);
+	addStandardWords(typedRomanStr.str(), results);
 
+	//TODO: Special words, numbers, etc.
 
 	//Copy into our vector
 	generatedWords.clear();
 	generatedWords.insert(generatedWords.begin(), results.begin(), results.end());
+}
+
+
+//Reset our lookup
+void BurglishBuilder::reset(bool fullReset)
+{
+	typedRomanStr.str(L"");
+	generatedWords.clear();
+}
+
+
+//Add a new letter
+bool BurglishBuilder::typeLetter(char letter)
+{
+	//Save
+	wstring oldRoman = typedRomanStr.str();
+
+	//Attempt
+	typedRomanStr <<letter;
+	reGenerateWordlist();
+
+	//Rollback?
+	if (generatedWords.empty()) {
+		typedRomanStr.str(L"");
+		typedRomanStr <<oldRoman;
+		reGenerateWordlist();
+		return false;
+	}
+
+	//Success
+	return true;
+}
+
+
+//Get all possible words. Requires IDs, though.
+std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
+{
+	//TEMP: For now, the word's ID is just its index. (We might need to hack around this for 0..9)
+	vector<unsigned int> res;
+	while (res.size()<generatedWords.size())
+		res.push_back(res.size());
+	return res;
+}
+
+
+//Simple.
+std::wstring BurglishBuilder::getWordString(unsigned int id) const
+{
+	return generatedWords[id];
+}
+
+
+//TODO: This is going to be a huge pain in Burglish, esp. considering multiple words.
+//      For now, we return nothing.
+pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
+{
+	return pair<-1, "">;
 }
 
 
