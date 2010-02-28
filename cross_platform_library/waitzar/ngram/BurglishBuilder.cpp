@@ -194,6 +194,9 @@ void BurglishBuilder::reset(bool fullReset)
 {
 	typedRomanStr.str(L"");
 	generatedWords.clear();
+
+	if (fullReset)
+		savedWordIDs.clear();
 }
 
 
@@ -221,20 +224,27 @@ bool BurglishBuilder::typeLetter(char letter)
 
 
 //Get all possible words. Requires IDs, though.
+//IDs are numbered starting after those in savedWordIDs()
+//Note that a word in savedWordIDs and generatedWords might have 1..N 
+//   possible IDs. This isn't really a problem, as the words only build up as sentences are typed.
 std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 {
 	//TEMP: For now, the word's ID is just its index. (We might need to hack around this for 0..9)
 	vector<unsigned int> res;
 	while (res.size()<generatedWords.size())
-		res.push_back(res.size());
+		res.push_back(savedWordIDs.size() + res.size());
 	return res;
 }
 
 
 //Simple.
+//NOTE: An id is in the savedWordIDs array, or it is after that, in the list of candidates.
 std::wstring BurglishBuilder::getWordString(unsigned int id) const
 {
-	return generatedWords[id];
+	if (id<savedWordIDs.size())
+		return savedWordIDs[id];
+
+	return generatedWords[id-savedWordIDs.size()];
 }
 
 
@@ -242,7 +252,149 @@ std::wstring BurglishBuilder::getWordString(unsigned int id) const
 //      For now, we return nothing.
 pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 {
-	return pair<-1, "">;
+	return pair<int, string>(-1, "");
+}
+
+
+//Just cut a letter off the string and update our list.
+bool BurglishBuilder::backspace()
+{
+	if (typedRomanStr.str().empty())
+		return false;
+
+	wstring newStr = typedRomanStr.str().substr(0, typedRomanStr.str().size()-1);
+	typedRomanStr.str(L"");
+	typedRomanStr <<newStr;
+
+	reGenerateWordlist();
+	return true;
+}
+
+
+//Simple, copied.
+bool BurglishBuilder::moveRight(int amt)
+{
+	//Any words?
+	if (generatedWords.size()==0)
+		return false;
+
+	//Any change?
+	int newAmt = currSelectedID + amt;
+	if (newAmt >= (int)generatedWords.size())
+		newAmt = (int)generatedWords.size()-1;
+	else if (newAmt < 0)
+		newAmt = 0;
+	if (newAmt == currSelectedID)
+		return false;
+
+	//Do it!
+	currSelectedID = newAmt;
+
+	//Auto-page
+	currSelectedPage = currSelectedID / 10;
+
+	return true;
+}
+
+
+
+//Simple, copied.
+bool BurglishBuilder::pageUp(bool up)
+{
+	//Check
+	int newID = currSelectedPage + (up?-1:1);
+	if (newID<0 || newID>=getNumberOfPages())
+		return false;
+
+	//Page
+	currSelectedPage = newID;
+
+	//Select first word on that page
+	currSelectedID = currSelectedPage * 10;
+
+	return true;
+}
+
+
+
+//Simple, copied.
+std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID, bool useQuickJump)
+{
+	//We're at a valid stopping point?
+	if (generatedWords.size() == 0)
+		return pair<bool, unsigned int>(false, 0);
+
+	//Quick jump?
+	if (useQuickJump && quickJumpID!=-1)
+		setCurrSelected(quickJumpID);
+
+	//Get the selected word, add it to the prefix array
+	//NOTE: We save the IDs of previously-typed words.
+	unsigned int newWord = savedWordIDs.size();
+	savedWordIDs.push_back(getWordString(currSelectedID));
+
+	//Reset the model, return this word
+	this->reset(false);
+	return pair<bool, unsigned int>(true, newWord);
+}
+
+
+//Simple, copied.
+int BurglishBuilder::getCurrPage() const
+{
+	return currSelectedPage;
+}
+
+
+//Simple, copied.
+int BurglishBuilder::getCurrSelectedID() const
+{
+	return currSelectedID;
+}
+
+
+//Simple, copied.
+int BurglishBuilder::getNumberOfPages() const
+{
+	int numWords = generatedWords.size();
+	if (numWords % 10 == 0)
+		return numWords / 10;
+	else
+		return numWords / 10 + 1;
+}
+
+
+//Simple, copied
+void BurglishBuilder::setCurrSelected(int id)
+{
+	//Any words?
+	if (generatedWords.size()==0)
+		return;
+
+	//Fail silently if this isn't a valid id
+	if (id >= (int)generatedWords.size())
+		return;
+	else if (id < 0)
+		return;
+
+	//Do it!
+	currSelectedID = id;
+}
+
+
+
+
+//Simple, copied.
+unsigned short BurglishBuilder::getStopCharacter(bool isFull) const
+{
+	//TEMP -- put somewhere global later.
+	unsigned short punctHalfStopUni = 0x104A;
+	unsigned short punctFullStopUni = 0x104B;
+
+	if (isFull)
+		return punctFullStopUni;
+	else
+		return punctHalfStopUni;
 }
 
 
