@@ -68,12 +68,18 @@ private:
 
 	void reGenerateWordlist();
 
+	//Borrowed from WordBuilder
+	void setCurrSelected(int id);
+
 private:
 	static json_spirit::wmObject onsetPairs;
 	static json_spirit::wmObject rhymePairs;
 
 	std::wstringstream typedRomanStr;
+	std::vector<std::wstring> savedWordIDs;
 	std::vector<std::wstring> generatedWords;
+	int currSelectedID;
+	int currSelectedPage;
 
 
 };
