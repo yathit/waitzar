@@ -16,6 +16,7 @@
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
+#include "NGram/BurglishBuilder.h"
 #include "Input/InputMethod.h"
 
 

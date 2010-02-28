@@ -28,16 +28,23 @@ BurglishBuilder::BurglishBuilder() {}
 BurglishBuilder::~BurglishBuilder() {}
 
 //Static initializer:
-json_spirit::wValue BurglishBuilder::onsetRoot;
-json_spirit::wValue BurglishBuilder::rhymeRoot;
+json_spirit::wmObject BurglishBuilder::onsetPairs;
+json_spirit::wmObject BurglishBuilder::rhymePairs;
 void BurglishBuilder::InitStatic()
 {
+	//Create, read, save our onsets and rhymes.
+	json_spirit::wmValue onsetRoot;
+	json_spirit::wmValue rhymeRoot;
+
 	json_spirit::read_or_throw(BURGLISH_ONSETS, onsetRoot);
 	json_spirit::read_or_throw(BURGLISH_RHYMES, rhymeRoot);
+
+	onsetPairs = onsetRoot.get_value<json_spirit::wmObject>();
+	rhymePairs = rhymeRoot.get_value<json_spirit::wmObject>();
 }
 
 
-bool BurglishBuilder::IsVowel(wchar_t letter) const
+bool BurglishBuilder::IsVowel(wchar_t letter)
 {
 	switch (letter) {
 		case L'a':
@@ -51,21 +58,22 @@ bool BurglishBuilder::IsVowel(wchar_t letter) const
 }
 
 
-bool BurglishBuilder::IsValid(const wstring& word) const
+bool BurglishBuilder::IsValid(const wstring& word)
 {
 	//Check for invalid pairwise combinations
-	for (int i=0; i<word.size()-1; i++) {
+	for (size_t i=0; i<word.size()-1; i++) {
 		//We build the regex into a switch statement, handling this manually.
 		switch (word[i]) {
 			case L'\u100D':  case L'\u100B':  case L'\u100C':  case L'\u1023':
 				switch (word[i+1]) {
-					case L'\u1087':  L'\u103D': L'\u102F': L'\u1030': L'\u1088': L'\u1089': L'\u103C': L'\u108A':
+					case L'\u1087':  case L'\u103D':  case L'\u102F':  case L'\u1030':  
+					case L'\u1088':  case L'\u1089':  case L'\u103C':  case L'\u108A':
 						return false;
 				}
 				break;
 			case L'\u1020':
 				switch (word[i+1]) {
-					case L'\u103C': L'\u108A':
+					case L'\u103C':  case L'\u108A':
 						return false;
 				}
 				break;
@@ -75,7 +83,8 @@ bool BurglishBuilder::IsValid(const wstring& word) const
 			case L'\u1072':  case L'\u1073':  case L'\u1074':  case L'\u1075':  case L'\u1076':  case L'\u1077':
 			case L'\u1078':  case L'\u1079':  case L'\u107A':  case L'\u107B':  case L'\u107C':  case L'\u1092':
 				switch (word[i+1]) {
-					case L'\u1087': L'\u103D': L'\u1088': L'\u1089': L'\u103C': L'\u108A':
+					case L'\u1087':  case L'\u103D':  case L'\u1088':  case L'\u1089':  
+					case L'\u103C':  case L'\u108A':
 						return false;
 				}
 				break;
@@ -102,14 +111,12 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList)
 		roman = wstring(1, roman[0]) + roman;
 
 	//Step 2: Find the longest matching prefix.
-	wmObject onsPairs = onsetRoot.get_value<wmObject>();
-	wmObject rhymePairs = rhymeRoot.get_value<wmObject>();
 	wstring prefix;
 	wstring suffix;
-	for (int i=1; i<=roman.size(); i++) {
+	for (size_t i=1; i<=roman.size(); i++) {
 		//Done?
 		wstring candPrefix = roman.substr(0, i);
-		if (onsPairs.count(candPrefix)==0)
+		if (onsetPairs.count(candPrefix)==0)
 			break;
 		
 		//Update (suffix is "a" if prefix takes up the whole string)
@@ -117,41 +124,43 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList)
 		suffix = (i==roman.size() ? L"a" : roman.substr(i, roman.size()-i));
 	}
 
-	//Step 3: Null pair?
-	if (onsPairs.count(prefix)==0 || rhymePairs.count(suffix)==0)
+	//Step 3: Null pair? If not, pull their values
+	if (onsetPairs.count(prefix)==0 || rhymePairs.count(suffix)==0)
 		return;
+	wstring prefixStr = onsetPairs[prefix].get_value<wstring>();
+	wstring suffixStr = rhymePairs[suffix].get_value<wstring>();
 
 	//Step 4: For each prefix, for each suffix, get the combined word.
 	// Prefixes & suffixes are just strings separated by pipe marks: ".....|.....|...."
 	// Suffixes, in addition, have a "-" to show where the inserted prefix should go.
 	wstringstream onset;
-	for (int onsID=0; onsID<prefix.size(); onsID++) {
+	for (size_t onsID=0; onsID<prefixStr.size(); onsID++) {
 		//Append?
-		if (prefix[onsID]!=L'|')
-			onset <<prefix[onsID];
+		if (prefixStr[onsID]!=L'|')
+			onset <<prefixStr[onsID];
 		//Skip?
-		if (prefix[onsID]!=L'|' && onsID<prefix.size()-1)
+		if (prefixStr[onsID]!=L'|' && onsID<prefixStr.size()-1)
 			continue;
 
 		//TODO: Somewhere in here, handle capital letters.
 
 		//Ok, we have our onset.
 		wstringstream rhyme;
-		for (int rhymeID=0; rhymeID<suffix.size(); rhymeID++) {
+		for (size_t rhymeID=0; rhymeID<suffixStr.size(); rhymeID++) {
 			//Append?
-			if (suffix[rhymeID]==L'-')
+			if (suffixStr[rhymeID]==L'-')
 				rhyme <<onset.str(); //Insert our onset
-			else if (suffix[rhymeID]!=L'|')
-				rhyme <<suffix[rhymeID];
+			else if (suffixStr[rhymeID]!=L'|')
+				rhyme <<suffixStr[rhymeID];
 			//Skip?
-			if (suffix[rhymeID]!=L'|' && rhymeID<suffix.size()-1)
+			if (suffixStr[rhymeID]!=L'|' && rhymeID<suffixStr.size()-1)
 				continue;
 
 			//We've built our onset + rhyme into rhyme directly. 
 			//Now, we just need to test for errors, etc.
 			wstring word = rhyme.str();
 			if (IsValid(word))
-				resultsList[word];
+				resultsList.insert(word);
 
 			//Finally: reset
 			rhyme.str(L"");
@@ -175,7 +184,7 @@ void BurglishBuilder::reGenerateWordlist()
 
 	//Copy into our vector
 	generatedWords.clear();
-	generatedWords.insert(..........results....);
+	generatedWords.insert(generatedWords.begin(), results.begin(), results.end());
 }
 
 
