@@ -208,7 +208,53 @@ void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>
 			entry.str(L"");
 		}
 	}
+}
 
+
+void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsList)
+{
+	//Just a few simple substitutions
+	//TODO: Double-check this after all words have been added.
+	wstringstream newWord;
+	for (std::set<std::wstring>::const_iterator word=resultsList.begin(); word!=resultsList.end(); word++) {
+		//Try to build up a new match
+		newWord.str(L"");
+		for (size_t i=0; i<word->size(); i++) {
+			//Build the next bit
+			bool consumed = false;
+			if ((*word)[i]==L'\u1021') {
+				//First pattern:
+				// \u1021 \u102F --> \u1025
+				if (i<word->size()-1 && (*word)[i+1]==L'\u102F') {
+					newWord <<L'\u1025';
+					i++;
+					consumed = true;
+				}
+
+				//Second pattern:
+				// \u1021 \u102D [^\u102F]! --> \u1023 (don't replace !-expression)
+				if (i<word->size()-2 && (*word)[i+1]==L'\u102D' && (*word)[i+2]!=L'\u102F') {
+					newWord <<L'\u1023';
+					i+=2; //Don't consume.
+				}
+
+				//Third pattern:
+				// \u1021 \u1031 \u102C [^\u103A \u1037]! --> \u1029 (don't replace !-expression)
+				if (i<word->size()-3 && (*word)[i+1]==L'\u1031' && (*word)[i+2]==L'\u102C' && (*word)[i+3]!=L'\u103A' && (*word)[i+3]!=L'\u1037') {
+					newWord <<L'\u1029';
+					i+=3; //Don't consume.
+				}
+
+				//Append
+				if (!consumed)
+					newWord <<(*word)[i];
+			}
+
+			//Is this word worth adding?
+			if (newWord.str() != *word)
+				resultsList.insert(newWord.str());
+		}
+	}
 }
 
 
@@ -222,8 +268,11 @@ void BurglishBuilder::reGenerateWordlist()
 
 	//For now, just do the general combinations
 	addStandardWords(typedRomanStr.str(), results);
+	addSpecialWords(typedRomanStr.str(), results);
+	//TODO: Numbers, etc.
 
-	//TODO: Special words, numbers, etc.
+	//Expand the set of words with common substitutions
+	expandCurrentWords(results);
 
 	//Copy into our vector
 	generatedWords.clear();
