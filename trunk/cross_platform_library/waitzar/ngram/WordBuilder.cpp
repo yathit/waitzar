@@ -985,6 +985,8 @@ wstring WordBuilder::getWordKeyStrokes(unsigned int id, unsigned int encoding)
 		wchar_t srcStr[200];
 		wchar_t destStr[200];
 		wstring wordStr = this->getWordString(id);
+		if (wordStr.size() >= 200)
+			throw std::exception("String too big in WordBuilder");
 		wcscpy(srcStr, wordStr.c_str());
 		wcscpy(destStr, L"");
 		convertFont(destStr, srcStr, Zawgyi_One, destFont);

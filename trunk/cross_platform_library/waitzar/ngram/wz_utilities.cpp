@@ -1062,11 +1062,9 @@ wstring renderAsZawgyi(const wstring &uniString)
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1025', 0x800000, NULL, ZG_O_CUT));
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_1, 0x2000, NULL, L'\u1037'));
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_2, 0x2000, NULL, L'\u1037'));
-
-
-
-		
 	}
+
+
 	//We maintain a series of offsets for the most recent match. This is used to speed up the process of 
 	// pattern matching. We only track the first occurrance, from left-to-right, of the given flag.
 	//We scan from left-to-right, then apply rules from right-to-left breaking after each consonant.

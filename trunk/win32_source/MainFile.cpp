@@ -80,7 +80,7 @@
 #include "MiscUtils.h"
 #include "Input/InputMethod.h"
 #include "Input/RomanInputMethod.h"
-#include "Transform/Uni2Uni.h"
+#include "Transform/Self2Self.h"
 
 //VS Includes
 #include "resource.h"
@@ -1513,21 +1513,35 @@ void recalculate()
 	//Convert the current input string to the internal encoding, and then convert it to the display encoding.
 	//  We can short-circuit this if the output and display encodings are the same.
 	bool noEncChange = (currDisplay->encoding==currInput->encoding);
-	std::wstring dispRomanStr = noEncChange ? currInput->getTypedRomanString() : uni2Disp->convert(input2Uni->convert(currInput->getTypedRomanString()));
+	std::wstring dispRomanStr = currInput->getTypedRomanString();
+	if (!noEncChange) {
+		input2Uni->convertInPlace(dispRomanStr);
+		uni2Disp->convertInPlace(dispRomanStr);
+	}
 
 	//TODO: The typed sentence string might have a highlight, which changes things slightly.
 	vector<wstring> dispSentenceStr;
 	{
 		vector<wstring> inputSentenceStr = currInput->getTypedSentenceStrings();
-		for (vector<wstring>::iterator i=inputSentenceStr.begin(); i!=inputSentenceStr.end(); i++)
-			dispSentenceStr.push_back(noEncChange ? (*i) : uni2Disp->convert(input2Uni->convert(*i)));
+		for (vector<wstring>::iterator i=inputSentenceStr.begin(); i!=inputSentenceStr.end(); i++) {
+			wstring candidate = *i;
+			if (!noEncChange) {
+				input2Uni->convertInPlace(candidate);
+				uni2Disp->convertInPlace(candidate);
+			}
+			dispSentenceStr.push_back(candidate);
+		}
 	}
 
 	//Candidate strings are slightly more complex; have the convert the entire array
 	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
 	if (!noEncChange) {
-		for (size_t i=0; i<dispCandidateStrs.size(); i++)
-			dispCandidateStrs[i].first = uni2Disp->convert(input2Uni->convert(dispCandidateStrs[i].first));
+		for (size_t i=0; i<dispCandidateStrs.size(); i++) {
+			if (!noEncChange) {
+				input2Uni->convertInPlace(dispCandidateStrs[i].first);
+				uni2Disp->convertInPlace(dispCandidateStrs[i].first);
+			}
+		}
 	}
 
 	//First things first: can we fit this in the current background?
@@ -1715,7 +1729,11 @@ void typeCurrentPhrase()
 
 	//Convert to the right encoding
 	bool noEncChange = (uni2Output->toEncoding==currInput->encoding);
-	wstring keyStrokes = noEncChange ? currInput->getTypedSentenceStrings()[3] : uni2Output->convert(input2Uni->convert(currInput->getTypedSentenceStrings()[3]));
+	wstring keyStrokes = currInput->getTypedSentenceStrings()[3];
+	if (!noEncChange) {
+		input2Uni->convertInPlace(keyStrokes);
+		uni2Output->convertInPlace(keyStrokes);
+	}
 
 
 	//Use SendInput instead of SendMessage, since SendMessage requires the actual

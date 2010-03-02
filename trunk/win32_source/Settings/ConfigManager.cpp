@@ -186,7 +186,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 void ConfigManager::generateInputsDisplaysOutputs() 
 {
 	//Cache our self2self lookup
-	self2self = new Uni2Uni();
+	self2self = new Self2Self();
 
 	//Validate our settings
 	//TODO: Check the hotkey, later

@@ -346,7 +346,7 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 	for (std::list<int>::const_iterator it=sentence->begin(); it!=sentence->end(); it++) {
 		//Get the word
 		int modID = -(*it)-1;
-		wstring currWord = (*it>0) ? model->getWordString(*it) : (modID<(int)systemDefinedWords.size()) ? wstring(1, systemDefinedWords[modID]) : userDefinedWords[modID-systemDefinedWords.size()];
+		wstring currWord = (*it>=0) ? model->getWordString(*it) : (modID<(int)systemDefinedWords.size()) ? wstring(1, systemDefinedWords[modID]) : userDefinedWords[modID-systemDefinedWords.size()];
 
 		//Have we reached a transition?
 		if (currID==sentence->getCursorIndex()-1 && model->getCurrSelectedID()==-1 && model->hasPatSintWord()) {

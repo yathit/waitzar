@@ -21,8 +21,8 @@ public:
 	TYPES type;
 
 	//Convert from fromEncoding to toEncoding.
-	//  The const references allow us to save processing if the source and destination are the same.
-	const virtual std::wstring& convert(const std::wstring& src) const = 0;
+	//  The references allow us to save processing if the source and destination are the same.
+	virtual void convertInPlace(std::wstring& src) const = 0;
 
 	//Allow map comparison 
 	bool operator<(const Transformation& other) const {

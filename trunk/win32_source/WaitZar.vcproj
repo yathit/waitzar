@@ -227,7 +227,11 @@
 					Name="Transform"
 					>
 					<File
-						RelativePath=".\Transform\Uni2Uni.cpp"
+						RelativePath=".\Transform\Self2Self.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Transform\Uni2Zg.cpp"
 						>
 					</File>
 					<File
@@ -450,11 +454,15 @@
 						Name="Transform"
 						>
 						<File
+							RelativePath=".\Transform\Self2Self.h"
+							>
+						</File>
+						<File
 							RelativePath=".\Transform\Transformation.h"
 							>
 						</File>
 						<File
-							RelativePath=".\Transform\Uni2Uni.h"
+							RelativePath=".\Transform\Uni2Zg.h"
 							>
 						</File>
 						<File
