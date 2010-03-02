@@ -267,7 +267,7 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 
 							//Save the ID of this numeral
 							//For now, this won't work for ASCII
-							cachedNumerals[newWord[0]-L'\u1040'] = dictionary.size();
+							cachedNumerals.push_back(std::pair<bool, unsigned short>(true, dictionary.size()));
 						}
 
 						//Add this word to the dictionary (copy semantics)
@@ -490,8 +490,10 @@ void WordBuilder::initModel()
 		unicodeDictionary.assign(dictionary.size(), wstring());
 
 	//Avoid crashing.
-	for (int i=0; i<10; i++)
-		cachedNumerals[i] = 0;
+	if (cachedNumerals.size()==0) {
+		for (int i=0; i<10; i++)
+			cachedNumerals.push_back(pair<bool, unsigned short>(false, 0));
+	}
 
 	//Start off
 	this->reset(true);
@@ -617,7 +619,7 @@ unsigned short WordBuilder::getSingleDigitID(unsigned short arabicNumeral)
 {
 	//Return the word. (Returning 0 is a somewhat unsightly alternative, but at least it won't crash.)
 	if (arabicNumeral>=0 && arabicNumeral<=9)
-		return cachedNumerals[arabicNumeral];
+		return cachedNumerals[arabicNumeral].second;
 	return 0;
 }
 
@@ -1232,8 +1234,8 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 
 		//Is this a special word (number)?
 		//For now, this won't work for ASCII
-		if (myanmar.size()==1 && myanmar[0]>=L'\u1040' && myanmar[0]<=L'\u1049')
-			cachedNumerals[myanmar[0]-L'\u1040'] = dictID;
+		if (myanmar.size()==1 && myanmar[0]>=L'\u1040' && myanmar[0]<=L'\u1049' && !cachedNumerals[myanmar[0]-L'\u1040'].first)
+			cachedNumerals[myanmar[0]-L'\u1040'] = std::pair<bool, unsigned short>(true, dictID);
 	}
 
 

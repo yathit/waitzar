@@ -124,7 +124,7 @@ private:
 	std::vector<std::wstring> unicodeDictionary;
 
 	//Needed to avoid errors in some models (not WZ)
-	unsigned short cachedNumerals[10];
+	std::vector< std::pair<bool, unsigned short> > cachedNumerals;
 
 	//Cached
 	unsigned short punctHalfStopUni;

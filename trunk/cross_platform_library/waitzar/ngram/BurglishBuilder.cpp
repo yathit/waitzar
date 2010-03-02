@@ -30,18 +30,22 @@ BurglishBuilder::~BurglishBuilder() {}
 //Static initializer:
 json_spirit::wmObject BurglishBuilder::onsetPairs;
 json_spirit::wmObject BurglishBuilder::rhymePairs;
+json_spirit::wmObject BurglishBuilder::specialWords;
 std::vector<std::wstring> BurglishBuilder::savedDigitIDs;
 void BurglishBuilder::InitStatic()
 {
 	//Create, read, save our onsets and rhymes.
 	json_spirit::wmValue onsetRoot;
 	json_spirit::wmValue rhymeRoot;
+	json_spirit::wmValue specialRoot;
 
 	json_spirit::read_or_throw(BURGLISH_ONSETS, onsetRoot);
 	json_spirit::read_or_throw(BURGLISH_RHYMES, rhymeRoot);
+	json_spirit::read_or_throw(BURGLISH_SPECIALS, specialRoot);
 
 	onsetPairs = onsetRoot.get_value<json_spirit::wmObject>();
 	rhymePairs = rhymeRoot.get_value<json_spirit::wmObject>();
+	specialWords = specialRoot.get_value<json_spirit::wmObject>();
 
 	//Saved digits; these are never cleared.
 	savedDigitIDs.push_back(L"\u1040");
@@ -182,6 +186,31 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList)
 		onset.str(L"");
 	}
 }
+
+
+void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList)
+{
+	if (specialWords.count(roman)>0) {
+		wstring specialStrs = specialWords[roman].get_value<wstring>();
+		wstringstream entry;
+		for (size_t specID=0; specID<specialStrs.size(); specID++) {
+			//Append?
+			if (specialStrs[specID]!=L'|')
+				entry <<specialStrs[specID];
+			//Skip?
+			if (specialStrs[specID]!=L'|' && specID<specialStrs.size()-1)
+				continue;
+
+			//Add it (no need to check validity)
+			resultsList.insert(entry.str());
+
+			//Finally: reset
+			entry.str(L"");
+		}
+	}
+
+}
+
 
 
 
