@@ -8,6 +8,8 @@
 #define _TRANSFORM_ZG2UNI
 
 #include "Transform/Transformation.h"
+#include "Burglish/fontmap.h"
+#include "Burglish/fontconv.h"
 
 /**
  * Placeholder class: to be used for Zg2Uni Conversion method
@@ -18,7 +20,7 @@ public:
 	Zg2Uni();
 
 	//Convert
-	const std::wstring& convert(const std::wstring& src) const;
+	void convertInPlace(std::wstring& src) const;
 };
 
 
