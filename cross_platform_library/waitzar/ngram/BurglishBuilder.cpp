@@ -252,7 +252,7 @@ void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsList)
 		}
 
 		//Is this word worth adding?
-		if (newWord.str() != *word)
+		if (newWord.str() != *word && IsValid(newWord.str()))
 			resultsList.insert(newWord.str());
 	}
 }
