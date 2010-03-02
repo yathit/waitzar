@@ -69,6 +69,7 @@ private:
 	static bool IsVowel(wchar_t letter);
 	static bool IsValid(const std::wstring& word);
 	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsList);
+	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList);
 
 	void reGenerateWordlist();
 
@@ -78,6 +79,7 @@ private:
 private:
 	static json_spirit::wmObject onsetPairs;
 	static json_spirit::wmObject rhymePairs;
+	static json_spirit::wmObject specialWords;
 
 	std::wstringstream typedRomanStr;
 	static std::vector<std::wstring> savedDigitIDs; //0 through 9
