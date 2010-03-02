@@ -85,6 +85,7 @@ public:
 	unsigned int getTotalDefinedWords() const;
 	std::string reverseLookupWord(unsigned int dictID);
 	std::pair<int, std::string> reverseLookupWord(std::wstring word);
+	unsigned short getSingleDigitID(unsigned short arabicNumeral);
 	bool addShortcut(const std::wstring &baseWord, const std::wstring &toStack, const std::wstring &resultStacked);
 	bool isAllowNonBurmese();
 
@@ -121,6 +122,9 @@ private:
 	//Cached lookups
 	std::vector<std::wstring> winInnwaDictionary;
 	std::vector<std::wstring> unicodeDictionary;
+
+	//Needed to avoid errors in some models (not WZ)
+	unsigned short cachedNumerals[10];
 
 	//Cached
 	unsigned short punctHalfStopUni;

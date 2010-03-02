@@ -30,6 +30,7 @@ BurglishBuilder::~BurglishBuilder() {}
 //Static initializer:
 json_spirit::wmObject BurglishBuilder::onsetPairs;
 json_spirit::wmObject BurglishBuilder::rhymePairs;
+std::vector<std::wstring> BurglishBuilder::savedDigitIDs;
 void BurglishBuilder::InitStatic()
 {
 	//Create, read, save our onsets and rhymes.
@@ -41,6 +42,18 @@ void BurglishBuilder::InitStatic()
 
 	onsetPairs = onsetRoot.get_value<json_spirit::wmObject>();
 	rhymePairs = rhymeRoot.get_value<json_spirit::wmObject>();
+
+	//Saved digits; these are never cleared.
+	savedDigitIDs.push_back(L"\u1040");
+	savedDigitIDs.push_back(L"\u1041");
+	savedDigitIDs.push_back(L"\u1042");
+	savedDigitIDs.push_back(L"\u1043");
+	savedDigitIDs.push_back(L"\u1044");
+	savedDigitIDs.push_back(L"\u1045");
+	savedDigitIDs.push_back(L"\u1046");
+	savedDigitIDs.push_back(L"\u1047");
+	savedDigitIDs.push_back(L"\u1048");
+	savedDigitIDs.push_back(L"\u1049");
 }
 
 
@@ -228,7 +241,7 @@ bool BurglishBuilder::typeLetter(char letter)
 
 
 //Get all possible words. Requires IDs, though.
-//IDs are numbered starting after those in savedWordIDs()
+//IDs are numbered starting after those in savedWordIDs() and savedDigitIDs()
 //Note that a word in savedWordIDs and generatedWords might have 1..N 
 //   possible IDs. This isn't really a problem, as the words only build up as sentences are typed.
 std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
@@ -236,19 +249,23 @@ std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 	//TEMP: For now, the word's ID is just its index. (We might need to hack around this for 0..9)
 	vector<unsigned int> res;
 	while (res.size()<generatedWords.size())
-		res.push_back(savedWordIDs.size() + res.size());
+		res.push_back(savedDigitIDs.size() + savedWordIDs.size() + res.size());
 	return res;
 }
 
 
 //Simple.
-//NOTE: An id is in the savedWordIDs array, or it is after that, in the list of candidates.
+//NOTE: An id is in the savedDigitIDs/savedWordIDs arrays, or it is after those, in the list of candidates.
 std::wstring BurglishBuilder::getWordString(unsigned int id) const
 {
+	if (id<savedDigitIDs.size())
+		return savedDigitIDs[id];
+	id -= savedDigitIDs.size();
 	if (id<savedWordIDs.size())
 		return savedWordIDs[id];
+	id -= savedWordIDs.size();
 
-	return generatedWords[id-savedWordIDs.size()];
+	return generatedWords[id];
 }
 
 
@@ -334,8 +351,9 @@ std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID, bool u
 
 	//Get the selected word, add it to the prefix array
 	//NOTE: We save the IDs of previously-typed words.
-	unsigned int newWord = savedWordIDs.size();
-	savedWordIDs.push_back(getWordString(currSelectedID));
+	unsigned int newWord = savedDigitIDs.size() + savedWordIDs.size();
+	unsigned int adjustedID = savedDigitIDs.size() + savedWordIDs.size() + currSelectedID;
+	savedWordIDs.push_back(getWordString(adjustedID));
 
 	//Reset the model, return this word
 	this->reset(false);
@@ -399,6 +417,16 @@ unsigned short BurglishBuilder::getStopCharacter(bool isFull) const
 		return punctFullStopUni;
 	else
 		return punctHalfStopUni;
+}
+
+
+//Convert 0..9 to an ID.
+unsigned short BurglishBuilder::getSingleDigitID(unsigned short arabicNumeral)
+{
+	//Return the word. (Returning 0 is a somewhat unsightly alternative, but at least it won't crash.)
+	if (arabicNumeral>=0 && arabicNumeral<=9)
+		return arabicNumeral; //"Always on"
+	return 0;
 }
 
 

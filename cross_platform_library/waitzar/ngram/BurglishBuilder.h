@@ -43,6 +43,7 @@ public:
 	std::vector<unsigned int> getPossibleWords() const;
 	std::wstring getWordString(unsigned int id) const;
 	std::pair<int, std::string> reverseLookupWord(std::wstring word);
+	unsigned short getSingleDigitID(unsigned short arabicNumeral);
 
 	//Requires copying of WordBuilder code. (Unfortunate, but unavoidable).
 	bool backspace();
@@ -79,6 +80,7 @@ private:
 	static json_spirit::wmObject rhymePairs;
 
 	std::wstringstream typedRomanStr;
+	static std::vector<std::wstring> savedDigitIDs; //0 through 9
 	std::vector<std::wstring> savedWordIDs;
 	std::vector<std::wstring> generatedWords;
 	int currSelectedID;
