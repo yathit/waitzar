@@ -70,6 +70,7 @@ private:
 	static bool IsValid(const std::wstring& word);
 	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsList);
 	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList);
+	static void expandCurrentWords(std::set<std::wstring>& resultsList);
 
 	void reGenerateWordlist();
 
