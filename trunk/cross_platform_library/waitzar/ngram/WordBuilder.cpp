@@ -264,6 +264,10 @@ void WordBuilder::loadModel(char *model_buff, size_t model_buff_size, bool allow
 								mostRecentError = msg.str();
 								return;
 							}
+
+							//Save the ID of this numeral
+							//For now, this won't work for ASCII
+							cachedNumerals[newWord[0]-L'\u1040'] = dictionary.size();
 						}
 
 						//Add this word to the dictionary (copy semantics)
@@ -485,6 +489,10 @@ void WordBuilder::initModel()
 	if (unicodeDictionary.size() != dictionary.size())
 		unicodeDictionary.assign(dictionary.size(), wstring());
 
+	//Avoid crashing.
+	for (int i=0; i<10; i++)
+		cachedNumerals[i] = 0;
+
 	//Start off
 	this->reset(true);
 }
@@ -601,6 +609,16 @@ unsigned short WordBuilder::getStopCharacter(bool isFull) const
 		else
 			return punctHalfStopUni;
 	}
+}
+
+
+//Convert 0..9 to an ID.
+unsigned short WordBuilder::getSingleDigitID(unsigned short arabicNumeral)
+{
+	//Return the word. (Returning 0 is a somewhat unsightly alternative, but at least it won't crash.)
+	if (arabicNumeral>=0 && arabicNumeral<=9)
+		return cachedNumerals[arabicNumeral];
+	return 0;
 }
 
 
@@ -1211,6 +1229,11 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 		dictionary.push_back(myanmar);
 		unicodeDictionary.push_back(wstring());
 		winInnwaDictionary.push_back(wstring());
+
+		//Is this a special word (number)?
+		//For now, this won't work for ASCII
+		if (myanmar.size()==1 && myanmar[0]>=L'\u1040' && myanmar[0]<=L'\u1049')
+			cachedNumerals[myanmar[0]-L'\u1040'] = dictID;
 	}
 
 

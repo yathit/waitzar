@@ -210,8 +210,8 @@ void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, bool 
 			viewChanged = true;
 		}
 	} else if (typeBurmeseNumbers) {
-		//Type this number
-		sentence->insert(numCode);
+		//Type this number --ask the model for the number directly, to avoid crashing Burglish.
+		sentence->insert(model->getSingleDigitID(numCode));
 		sentence->moveCursorRight(0, true, *model);
 
 		viewChanged = true;
@@ -294,7 +294,7 @@ bool RomanInputMethod<ModelType>::selectWord(int id, bool indexNegativeEntries)
 {
 	//Are there any words to use?
 	int lastModelID = model->getCurrSelectedID();
-	std::pair<bool, unsigned int> typedVal = model->typeSpace(id, !indexNegativeEntries);
+	std::pair<bool, unsigned int> typedVal = model->typeSpace(id, id!=-1); //TODO: check id!=-1
 	if (!typedVal.first)
 		return false;
 	int wordID = typedVal.second;
