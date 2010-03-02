@@ -244,16 +244,16 @@ void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsList)
 					newWord <<L'\u1029';
 					i+=3; //Don't consume.
 				}
-
-				//Append
-				if (!consumed)
-					newWord <<(*word)[i];
 			}
 
-			//Is this word worth adding?
-			if (newWord.str() != *word)
-				resultsList.insert(newWord.str());
+			//Append
+			if (!consumed)
+				newWord <<(*word)[i];
 		}
+
+		//Is this word worth adding?
+		if (newWord.str() != *word)
+			resultsList.insert(newWord.str());
 	}
 }
 
