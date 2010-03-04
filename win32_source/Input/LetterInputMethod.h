@@ -27,9 +27,9 @@ public:
 	void handleLeftRight(bool isRight);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers);
+	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
-	void handleKeyPress(WPARAM wParam);
+	void handleKeyPress(WPARAM wParam, bool isUpper);
 
 	//Abstract implementation - sentence and word
 	std::vector< std::wstring > getTypedSentenceStrings();

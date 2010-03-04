@@ -2309,6 +2309,9 @@ bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 
 bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 {
+	//First, is this an upper-case letter?
+	bool isUpper = (wParam>='A' && wParam<='Z');
+
 	//Handle user input; anything that updates a non-specific "model".
 	//  TODO: Put code for "help" keyboard functionality HERE; DON'T put it into 
 	//        LetterInputMethod.h
@@ -2384,14 +2387,14 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 			//Handle key press; letter-based keyboard should just pass this on through
 			bool typeNumerals = true; //TODO: put this SOMEWHERE in the config file.
-			currInput->handleNumber(numCode, wParam, typeNumerals);
+			currInput->handleNumber(numCode, wParam, isUpper, typeNumerals);
 			return true;
 		}
 
 		default:
 			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
 			// otherwise numbers won't work.
-			currInput->handleKeyPress(wParam);
+			currInput->handleKeyPress(wParam, isUpper);
 			return true;
 	}
 

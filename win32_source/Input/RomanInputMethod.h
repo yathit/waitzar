@@ -31,9 +31,9 @@ public:
 	void handleLeftRight(bool isRight);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers);
+	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
-	void handleKeyPress(WPARAM wParam);
+	void handleKeyPress(WPARAM wParam, bool isUpper);
 
 
 	//Abstract implementation - sentence and word
@@ -190,7 +190,7 @@ void RomanInputMethod<ModelType>::handleUpDown(bool isDown)
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers)
+void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers)
 {
 	if (mainWindow->isVisible()) {
 		//Convert 1..0 to 0..9
@@ -266,14 +266,14 @@ void RomanInputMethod<ModelType>::handleCommit(bool strongCommit)
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam)
+void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 {
 	//Handle regular letter-presses (as lowercase)
 	//NOTE: ONLY handle letters
 	int keyCode = (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) ? (int)wParam+32 : (int)wParam;
 	if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW) {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model->typeLetter(keyCode))
+		if (!model->typeLetter(keyCode, isUpper))
 			return;
 
 		//Update the romanized string, trigger repaint
@@ -281,7 +281,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam)
 		viewChanged = true;
 	} else {
 		//Check for system keys
-		InputMethod::handleKeyPress(wParam);
+		InputMethod::handleKeyPress(wParam, isUpper);
 	}
 }
 
