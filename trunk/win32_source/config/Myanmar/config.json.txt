@@ -1,4 +1,4 @@
-# Settings for the Myanmar language, including display name and input method.
+﻿# Settings for the Myanmar language, including display name and input method.
 {"languages.myanmar" : {
 
   # What name should we display in the menus and settings dialogs?

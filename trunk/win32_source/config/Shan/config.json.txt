@@ -1,4 +1,4 @@
-# Settings for the Shan language, including display name and input method.
+﻿# Settings for the Shan language, including display name and input method.
 # NOTE: This is a stub file until we get better Shan support.
 {"languages.shan" :       {
   "display-name" : "Shan",
