@@ -55,7 +55,7 @@ public:
 	std::pair<int, std::string> lookupWord(std::wstring typedWord);
 
 	//Real override
-	std::wstring getTypedRomanString();
+	std::wstring getTypedRomanString(bool asLowercase);
 
 	std::pair<int, int> getPagingInfo() const;
 
@@ -450,11 +450,11 @@ void RomanInputMethod<ModelType>::reset(bool resetCandidates, bool resetRoman, b
 
 //Add our paren string
 template <class ModelType>
-std::wstring RomanInputMethod<ModelType>::getTypedRomanString()
+std::wstring RomanInputMethod<ModelType>::getTypedRomanString(bool asLowercase)
 {
 	//Initail string
 	std::wstringstream res;
-	res <<InputMethod::getTypedRomanString();
+	res <<InputMethod::getTypedRomanString(asLowercase);
 
 	//Add a paren string, if it exists
 	if (!model->getParenString().empty())

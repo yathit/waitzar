@@ -20,6 +20,7 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 	providingHelpFor = NULL;
 	viewChanged = false;
 	requestToTypeSentence = false;
+	suppressUppercase = true;
 
 	//Save
 	this->mainWindow = mainWindow;
@@ -100,9 +101,12 @@ void InputMethod::handleKeyPress(WPARAM wParam, bool isUpper)
 }
 
 
-std::wstring InputMethod::getTypedRomanString()
+std::wstring InputMethod::getTypedRomanString(bool asLowercase)
 {
-	return typedRomanStr.str();
+	std::wstring ret = typedRomanStr.str();
+	if (asLowercase || suppressUppercase)
+		waitzar::loc_to_lower(ret);
+	return ret;
 }
 
 std::pair<int, int> InputMethod::getPagingInfo() const

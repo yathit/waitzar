@@ -154,7 +154,6 @@ public:
 	//Useful
 	static std::wstring sanitize_id(const std::wstring& str);
 	static std::wstring sanitize(const std::wstring& str);
-	static void loc_to_lower(std::wstring& str);
 	static std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
 	static bool read_bool(const std::wstring& str);
 
@@ -292,20 +291,6 @@ public:
 };
 
 
-//And finally, locale-driven nonsense with to_lower:
-template<class T>
-class ToLower {
-public:
-     ToLower(const std::locale& loc):loc(loc)
-     {
-     }
-     T operator()(const T& src) const
-     {
-          return std::tolower<T>(src, loc);
-     }
-protected:
-     const std::locale& loc;
-};
 
 
 

@@ -1513,7 +1513,7 @@ void recalculate()
 	//Convert the current input string to the internal encoding, and then convert it to the display encoding.
 	//  We can short-circuit this if the output and display encodings are the same.
 	bool noEncChange = (currDisplay->encoding==currInput->encoding);
-	std::wstring dispRomanStr = currInput->getTypedRomanString();
+	std::wstring dispRomanStr = currInput->getTypedRomanString(false);
 	if (!noEncChange) {
 		input2Uni->convertInPlace(dispRomanStr);
 		uni2Disp->convertInPlace(dispRomanStr);
@@ -2210,7 +2210,7 @@ void toggleHelpMode(bool toggleTo)
 void checkAllHotkeysAndWindows()
 {
 	//Should the main window be visible?
-	if (!currInput->getTypedRomanString().empty() || currInput->isHelpInput()) {
+	if (!currInput->getTypedRomanString(false).empty() || currInput->isHelpInput()) {
 		mainWindow->showWindow(true);
 	} else {
 		mainWindow->showWindow(false);
@@ -2441,7 +2441,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				// and thus what needs to be updated.
 				bool wasProvidingHelp = currInput->isHelpInput();
 				bool wasEmptySentence = currInput->getTypedSentenceStrings()[3].empty();
-				bool wasEmptyRoman = currInput->getTypedRomanString().empty();
+				bool wasEmptyRoman = currInput->getTypedRomanString(false).empty();
 
 				//Process the message
 				handleUserHotkeys(wParam, lParam);
@@ -2455,7 +2455,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//         perform unnecessary calculations, but it's not too wasteful, and makes up for it 
 				//         by cleaning up the code sufficiently.
 				if (    (wasEmptySentence != currInput->getTypedSentenceStrings()[3].empty())
-					||  (wasEmptyRoman != currInput->getTypedRomanString().empty())
+					||  (wasEmptyRoman != currInput->getTypedRomanString(false).empty())
 					||  (wasProvidingHelp != currInput->isHelpInput()))
 					checkAllHotkeysAndWindows();
 

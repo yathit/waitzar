@@ -14,6 +14,9 @@
 #include <wchar.h>
 #include <stdio.h>
 #include <vector>
+#include <algorithm>
+#include <functional>
+#include <locale>
 
 //Should probably move 'mymb' function here..
 #include "WordBuilder.h"
@@ -55,6 +58,29 @@ namespace waitzar
 	//Other useful methods
 	std::string escape_wstr(const std::wstring& str);
 	std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
+
+	//And finally, locale-driven nonsense with to_lower:
+	template<class T>
+	class ToLower {
+	public:
+		 ToLower(const std::locale& loc):loc(loc)
+		 {
+		 }
+		 T operator()(const T& src) const
+		 {
+			  return std::tolower<T>(src, loc);
+		 }
+	protected:
+		 const std::locale& loc;
+	};
+
+	static void loc_to_lower(std::wstring& str)
+	{
+		//Locale-aware "toLower" converter
+		std::locale loc(""); //Get native locale
+		std::transform(str.begin(),str.end(),str.begin(),ToLower<wchar_t>(loc));
+	}
+
 
 
 } //End waitzar namespace
