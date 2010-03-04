@@ -546,7 +546,7 @@ namespace
      
         const parse_info< Iter_type > info = parse( begin, end, 
                                                     Json_grammer< Value_type, Iter_type >( semantic_actions ), 
-                                                    space_p | comment_p('#') );
+                                                    space_p | comment_p('#') | L"\uFEFF" );
 
         if( !info.hit )
         {
