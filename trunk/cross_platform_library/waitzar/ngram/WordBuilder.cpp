@@ -629,7 +629,7 @@ unsigned short WordBuilder::getSingleDigitID(unsigned short arabicNumeral)
  * Types a letter and advances the nexus pointer. Returns true if the letter was a valid move,
  *   false otherwise. Updates the available word/letter list appropriately.
  */
-bool WordBuilder::typeLetter(char letter)
+bool WordBuilder::typeLetter(char letter, bool isUpper)
 {
 	//Is this letter meaningful?
 	int nextNexus = jumpToNexus(this->currNexus, letter);

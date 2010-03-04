@@ -83,10 +83,10 @@ int main(int argc, const char* argv[])
 	//Now, we must type each letter individually. Since we know that "kote" is in our dictionary, 
 	//  we just call typeLetter() four times. If we are not sure if the word exists, we should check
 	//  the return value of typeLetter() each time we call it. 
-	model->typeLetter('k'); //Transition -->'k'
-	model->typeLetter('o'); //Transition (k) --> 'o'
-	model->typeLetter('t'); //Transition (k-->o) --> 't'
-	model->typeLetter('e'); //Transition (k-->o-->t) --> 'e'
+	model->typeLetter('k', false); //Transition -->'k'
+	model->typeLetter('o', false); //Transition (k) --> 'o'
+	model->typeLetter('t', false); //Transition (k-->o) --> 't'
+	model->typeLetter('e', false); //Transition (k-->o-->t) --> 'e'
 	
 	//We have arrived at "kote", so we now just list all possible values.
 	wstring currWord;
@@ -128,7 +128,7 @@ int main(int argc, const char* argv[])
 	bool flagOn = false;
 	for (unsigned int i=0; i<strlen(hello); i++) {
 		//Is it in the model?
-		if (!model->typeLetter(hello[i])) {
+		if (!model->typeLetter(hello[i], false)) {
 			wprintf(L"\nUh-oh! Couldn't type: %i\n", i);
 		}
 
@@ -158,7 +158,7 @@ int main(int argc, const char* argv[])
 	//Type an interesting word, like one with kinzi in it
 	const char* sgp = "singapore";
 	for (unsigned int i=0; i<strlen(sgp); i++)
-		model->typeLetter(sgp[i]);
+		model->typeLetter(sgp[i], false);
 	unsigned int wordID = model->getPossibleWords()[0];
 	
 	//Retrieve all three output encodings

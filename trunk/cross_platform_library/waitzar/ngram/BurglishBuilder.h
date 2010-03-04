@@ -36,7 +36,7 @@ public:
 	///////////////////////////////////////////////
 	
 	//Key elements of BurglishBuilder
-	bool typeLetter(char letter);
+	bool typeLetter(char letter, bool isUpper);
 	void reset(bool fullReset);
 
 	//Requires hacking (mostly b/c WordBuilder assumes word IDs)
@@ -68,7 +68,7 @@ public:
 private:
 	static bool IsVowel(wchar_t letter);
 	static bool IsValid(const std::wstring& word);
-	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsList);
+	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsList, bool firstLetterUppercase);
 	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList);
 	static void expandCurrentWords(std::set<std::wstring>& resultsList);
 
@@ -88,7 +88,7 @@ private:
 	std::vector<std::wstring> generatedWords;
 	int currSelectedID;
 	int currSelectedPage;
-
+	bool typeBeginsWithUpper;
 
 };
 

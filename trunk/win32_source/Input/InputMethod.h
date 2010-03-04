@@ -68,10 +68,10 @@ public:
 	virtual void handleLeftRight(bool isRight) = 0;
 	virtual void handleUpDown(bool isDown) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
-	virtual void handleNumber(int numCode, WPARAM wParam, bool typeBurmeseNumbers) = 0;
+	virtual void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers) = 0;
 	virtual void handleStop(bool isFull) = 0;
 
-	virtual void handleKeyPress(WPARAM wParam);
+	virtual void handleKeyPress(WPARAM wParam, bool isUpper);
 
 
 	//Need to move later...

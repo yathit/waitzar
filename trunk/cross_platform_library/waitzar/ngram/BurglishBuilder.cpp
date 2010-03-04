@@ -113,7 +113,7 @@ bool BurglishBuilder::IsValid(const wstring& word)
 }
 
 
-void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList)
+void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList, bool firstLetterUppercase)
 {
 	//Nothing to do?
 	if (roman.empty())
@@ -159,7 +159,22 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList)
 		if (prefixStr[onsID]!=L'|' && onsID<prefixStr.size()-1)
 			continue;
 
-		//TODO: Somewhere in here, handle capital letters.
+		//Replace the current prefix with a pat-sint equivalent if the first letter is capital
+		if (firstLetterUppercase) {
+			wstring oldPrefix = onset.str();
+			if (oldPrefix.length()==1) {
+				wchar_t c = oldPrefix[0];
+				if (  (c>=L'\u1000' && c<=L'\u1008')
+					||(c==L'\u100B' || c==L'\u100C' || c==L'\u101C')
+					||(c>=L'\u100F' && c<=L'\u1009')) 
+				{
+					//Stack it
+					onset.str(L"");
+					onset <<L'\u1039' <<oldPrefix;
+				}
+			}
+		}
+
 
 		//Ok, we have our onset.
 		wstringstream rhyme;
@@ -267,7 +282,7 @@ void BurglishBuilder::reGenerateWordlist()
 	set<wstring> results;
 
 	//For now, just do the general combinations
-	addStandardWords(typedRomanStr.str(), results);
+	addStandardWords(typedRomanStr.str(), results, typeBeginsWithUpper);
 	addSpecialWords(typedRomanStr.str(), results);
 	//TODO: Numbers, etc.
 
@@ -289,6 +304,7 @@ void BurglishBuilder::reset(bool fullReset)
 	//More...
 	currSelectedPage = 0;
 	currSelectedID = 0;
+	typeBeginsWithUpper = false;
 
 	if (fullReset)
 		savedWordIDs.clear();
@@ -296,10 +312,15 @@ void BurglishBuilder::reset(bool fullReset)
 
 
 //Add a new letter
-bool BurglishBuilder::typeLetter(char letter)
+bool BurglishBuilder::typeLetter(char letter, bool isUpper)
 {
 	//Save
 	wstring oldRoman = typedRomanStr.str();
+	bool oldIsUpper = typeBeginsWithUpper;
+
+	//Typing pat-sint?
+	if (isUpper && typedRomanStr.str().length()==0)
+		typeBeginsWithUpper = true;
 
 	//Attempt
 	typedRomanStr <<letter;
@@ -309,6 +330,7 @@ bool BurglishBuilder::typeLetter(char letter)
 	if (generatedWords.empty()) {
 		typedRomanStr.str(L"");
 		typedRomanStr <<oldRoman;
+		typeBeginsWithUpper = oldIsUpper;
 		reGenerateWordlist();
 		return false;
 	}

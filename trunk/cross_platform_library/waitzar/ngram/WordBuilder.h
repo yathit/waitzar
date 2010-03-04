@@ -57,7 +57,7 @@ public:
 	~WordBuilder(void);
 
 	//State-changing functions. Use these to respond to keypresses.
-	bool typeLetter(char letter);
+	bool typeLetter(char letter, bool isUpper);
 	std::pair<bool, unsigned int> typeSpace(int quickJumpID, bool useQuickJump);
 	bool backspace();
 	void reset(bool fullReset);
