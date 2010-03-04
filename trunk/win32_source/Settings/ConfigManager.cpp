@@ -647,13 +647,6 @@ bool ConfigManager::read_bool(const std::wstring& str)
 		throw std::exception(glue(L"Bad boolean value: \"", str, L"\"").c_str());
 }
 
-void ConfigManager::loc_to_lower(std::wstring& str)
-{
-	//Locale-aware "toLower" converter
-	std::locale loc(""); //Get native locale
-	std::transform(str.begin(),str.end(),str.begin(),ToLower<wchar_t>(loc));
-}
-
 
 
 

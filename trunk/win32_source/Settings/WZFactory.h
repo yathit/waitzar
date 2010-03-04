@@ -521,6 +521,10 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 	res->displayName = options.find(sanitize_id(L"display-name"))->second;
 	res->encoding.id = sanitize_id(options.find(L"encoding")->second);
 
+	res->suppressUppercase = true;
+	if (options.count(sanitize_id(L"suppress-uppercase"))>0)
+		res->suppressUppercase = read_bool(options.find(sanitize_id(L"suppress-uppercase"))->second);
+
 	//Return our resultant IM
 	return res;
 }

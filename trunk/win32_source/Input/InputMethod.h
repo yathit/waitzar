@@ -14,6 +14,7 @@
 #include "OnscreenKeyboard.h"
 #include "Settings/Types.h"
 #include "Settings/Encoding.h"
+#include "NGram/wz_utilities.h"
 
 
 //Expected interface: "Input Method"
@@ -52,6 +53,7 @@ public:
 	std::wstring displayName;
 	Encoding encoding;
 	TYPES type;
+	bool suppressUppercase;
 
 	//Useful functionality
 	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor);
@@ -144,7 +146,7 @@ public:  //Abstract methods
 
 	//Get the typed romanized string. This consists ONLY of all typed valid letters
 	//Not abstract
-	virtual std::wstring getTypedRomanString();
+	virtual std::wstring getTypedRomanString(bool asLowercase);
 
 	//Get the status of paging
 	// Returns <currIndex, maxPages>

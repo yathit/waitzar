@@ -1479,7 +1479,6 @@ std::string escape_wstr(const std::wstring& str, bool errOnUnicode)
 
 
 
-
 } //End waitzar namespace
 
 
