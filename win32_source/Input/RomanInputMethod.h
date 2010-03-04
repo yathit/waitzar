@@ -277,7 +277,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 			return;
 
 		//Update the romanized string, trigger repaint
-		typedRomanStr <<(char)keyCode;
+		typedRomanStr <<(char)wParam;
 		viewChanged = true;
 	} else {
 		//Check for system keys
