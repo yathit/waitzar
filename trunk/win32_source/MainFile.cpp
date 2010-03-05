@@ -2363,6 +2363,11 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 			currInput->handleCommit(true);
 			return true;
 
+		case HOTKEY_TAB: case HOTKEY_SHIFT_TAB:
+			//Tab generally behaves as a right-arow.
+			currInput->handleTab();
+			return true;
+
 		case HOTKEY_SPACE: case HOTKEY_SHIFT_SPACE:
 			//Handle word selection, cursor advancing
 			currInput->handleCommit(false);

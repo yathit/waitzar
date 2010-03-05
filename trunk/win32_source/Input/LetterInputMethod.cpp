@@ -68,6 +68,12 @@ void LetterInputMethod::handleLeftRight(bool isRight)
 	//TODO: ADD LATER
 }
 
+void LetterInputMethod::handleTab()
+{
+	//Move right.
+	handleLeftRight(true);
+}
+
 void LetterInputMethod::handleUpDown(bool isDown)
 {
 	//For now, nothing.

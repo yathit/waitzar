@@ -34,6 +34,7 @@ public:
 	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
 	void handleKeyPress(WPARAM wParam, bool isUpper);
+	void handleTab();
 
 
 	//Abstract implementation - sentence and word
@@ -176,6 +177,20 @@ void RomanInputMethod<ModelType>::handleLeftRight(bool isRight)
 		if (sentence->moveCursorRight(amt, *model))
 			viewChanged = true;
 	}
+}
+
+
+template <class ModelType>
+void RomanInputMethod<ModelType>::handleTab()
+{
+	if (mainWindow->isVisible()) {
+		//Change the selection
+		handleLeftRight(true);
+	} else {
+		//Move the sentence window cursor
+		handleLeftRight(true);
+	}
+	
 }
 
 

@@ -72,6 +72,7 @@ public:
 	virtual void handleCommit(bool strongCommit) = 0;
 	virtual void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers) = 0;
 	virtual void handleStop(bool isFull) = 0;
+	virtual void handleTab() = 0;
 
 	virtual void handleKeyPress(WPARAM wParam, bool isUpper);
 

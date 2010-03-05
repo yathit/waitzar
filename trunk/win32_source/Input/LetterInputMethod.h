@@ -30,6 +30,7 @@ public:
 	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
 	void handleKeyPress(WPARAM wParam, bool isUpper);
+	void handleTab();
 
 	//Abstract implementation - sentence and word
 	std::vector< std::wstring > getTypedSentenceStrings();

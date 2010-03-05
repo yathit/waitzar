@@ -152,6 +152,8 @@ enum {
 	//More hotkeys
 	HOTKEY_PAGEUP = 152,
 	HOTKEY_PAGEDOWN = 153,
+	HOTKEY_TAB = 154,
+	HOTKEY_SHIFT_TAB = 155,
 }; 
 
 //Easier way of storing hotkeys
@@ -222,7 +224,8 @@ const Hotkey ControlHotkeys[] = {
 	{HOTKEY_UP,      false, VK_UP},
 	{HOTKEY_DOWN,    false, VK_DOWN},
 	{HOTKEY_PAGEUP,  false, VK_PRIOR},
-	{HOTKEY_PAGEDOWN,  false, VK_NEXT},
+	{HOTKEY_PAGEDOWN,false, VK_NEXT},
+	{HOTKEY_TAB,     false, VK_TAB},
 
 	//Migrated from "Extended Keys" --makes more sense here
 	{HOTKEY_SHIFT_SPACE,  true,  HOTKEY_SPACE},
@@ -249,6 +252,7 @@ const Hotkey ExtendedHotkeys[] = {
 	{HOTKEY_SHIFT_FORWARDSLASH,   true,  VK_OEM_2},
 	{HOTKEY_SHIFT_COMMA,          true,  VK_OEM_COMMA},
 	{HOTKEY_SHIFT_PERIOD,         true,  VK_OEM_PERIOD},
+	{HOTKEY_SHIFT_TAB,            true,  VK_TAB},
 
 	//Keys that appear on our virtual keyboard which aren't, by default, used
 	{HOTKEY_MINUS,         false, VK_OEM_MINUS},
