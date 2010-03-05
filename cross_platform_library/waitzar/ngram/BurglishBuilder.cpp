@@ -202,6 +202,27 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList,
 }
 
 
+
+void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& resultsList)
+{
+	//Make sure it contains only numbers
+	std::wstringstream literalStr;
+	for (size_t i=0; i<roman.size(); i++) {
+		if (!(roman[i]>='0' && roman[i]<='9'))
+			return;
+
+		wchar_t digit = (roman[i]-'0') + L'\u1040';
+		literalStr <<digit;
+	}
+
+	//Add the number string itself
+	resultsList.insert(literalStr.str());
+
+	//TODO: Add the full form of this number, up to a certain limit.
+}
+
+
+
 void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList)
 {
 	if (specialWords.count(roman)>0) {
@@ -283,7 +304,7 @@ void BurglishBuilder::reGenerateWordlist()
 	//For now, just do the general combinations
 	addStandardWords(typedRomanStr.str(), results, typeBeginsWithUpper);
 	addSpecialWords(typedRomanStr.str(), results);
-	//TODO: Numbers, etc.
+	addNumerals(typedRomanStr.str(), results);
 
 	//Expand the set of words with common substitutions
 	expandCurrentWords(results);

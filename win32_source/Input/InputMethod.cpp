@@ -20,7 +20,6 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 	providingHelpFor = NULL;
 	viewChanged = false;
 	requestToTypeSentence = false;
-	suppressUppercase = true;
 
 	//Save
 	this->mainWindow = mainWindow;

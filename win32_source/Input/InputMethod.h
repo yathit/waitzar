@@ -58,6 +58,7 @@ public:
 	Encoding encoding;
 	TYPES type;
 	bool suppressUppercase;
+	bool typeNumeralConglomerates;
 	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality
