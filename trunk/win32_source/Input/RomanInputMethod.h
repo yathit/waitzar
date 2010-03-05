@@ -13,7 +13,6 @@
 #include "OnscreenKeyboard.h"
 
 
-
 template <class ModelType> //Either WordBuilder or BurglishBuilder, or write your own.
 class RomanInputMethod : public InputMethod {
 
@@ -184,8 +183,11 @@ template <class ModelType>
 void RomanInputMethod<ModelType>::handleTab()
 {
 	if (mainWindow->isVisible()) {
-		//Change the selection
-		handleLeftRight(true);
+		//Change the selection, or make a selection (depending on the style)
+		if (controlKeyStyle==CK_CHINESE) 
+			handleLeftRight(true);
+		else if (controlKeyStyle==CK_JAPANESE)
+			handleCommit(true);
 	} else {
 		//Move the sentence window cursor
 		handleLeftRight(true);
@@ -251,11 +253,17 @@ template <class ModelType>
 void RomanInputMethod<ModelType>::handleCommit(bool strongCommit)
 {
 	if (mainWindow->isVisible()) {
-		//The model is visible: select that word
-		if (selectWord(-1, false)) {
-			//Reset, recalc
-			typedRomanStr.str(L"");
-			viewChanged = true;
+		//The model is visible; react to the control key style.
+		if (!strongCommit && controlKeyStyle==CK_JAPANESE) {
+			//Advance
+			handleLeftRight(true);
+		} else {
+			//Select the current word
+			if (selectWord(-1, false)) {
+				//Reset, recalc
+				typedRomanStr.str(L"");
+				viewChanged = true;
+			}
 		}
 	} else {
 		//A bit tricky here. If the cursor's at the end, we'll
@@ -288,8 +296,19 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 	int keyCode = (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) ? (int)wParam+32 : (int)wParam;
 	if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW) {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model->typeLetter(keyCode, isUpper))
-			return;
+		if (!model->typeLetter(keyCode, isUpper)) {
+			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
+			if (controlKeyStyle==CK_CHINESE || typedRomanStr.str().empty())
+				return;
+
+			//Otherwise, try typing the current string directly
+			handleCommit(true);
+			viewChanged = true;
+
+			//Nothing left on the new string?
+			if (!model->typeLetter(keyCode, isUpper))
+				return;
+		}
 
 		//Update the romanized string, trigger repaint
 		typedRomanStr <<(char)wParam;
