@@ -1479,6 +1479,49 @@ std::string escape_wstr(const std::wstring& str, bool errOnUnicode)
 
 
 
+//Remove: 
+//  space_p, comment_p('#'), U+FEFF (BOM)
+std::wstring preparse_json(const std::wstring& str)
+{
+	std::wstringstream res;
+	for (size_t i=0; i<str.length(); i++) {
+		//If you're on a whitespace/BOM, keep skipping until you reach non-whitespace.
+		while (i<str.length() && (iswspace(str[i]) || str[i]==L'\uFEFF' || str[i]==L'\uFFFE'))
+			i++;
+		if (i>=str.length())
+			break;
+
+		//If you're on a quote, read until the endquote (skip escapes) and append. (Then continue)
+		//TODO: We can speed this up later, but for now it doesn't matter.
+		if (str[i]==L'"') {
+			size_t start = i++;
+			while (i<str.length() && (str[i]!=L'"' || str[i-1]==L'\\')) //Skip \" too
+				i++;
+			res <<str.substr(start, i+1-start); //Note: even if this overruns the length of the string, it won't err.
+			continue;
+		}
+
+		//If you're on a comment character, skip until the end of the line and continue
+		if (str[i]==L'#') {
+			while (i<str.length() && str[i]!=L'\n') //Skip until the end of the line; should skip \r too.
+				i++;
+			continue;
+		}
+
+		//Now, we know we're on a valid character. So keep reading until we encounter:
+		//   A double quote, a comment marker, or whitespace (BOMs won't occur more than once)
+		//   The end of the stream
+		size_t start = i;
+		while (i<str.length() && str[i]!=L'#' && !iswspace(str[i]))
+			i++;
+		res <<str.substr(start, i-start);
+	}
+
+	return res.str();
+}
+
+
+
 } //End waitzar namespace
 
 
