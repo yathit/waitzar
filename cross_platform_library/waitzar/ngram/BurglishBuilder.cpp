@@ -218,7 +218,32 @@ void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& re
 	//Add the number string itself
 	resultsList.insert(literalStr.str());
 
-	//TODO: Add the full form of this number, up to a certain limit.
+	//Add compound numbers, when possible
+	//TODO: Does this work right for 100, etc? Right now, it's mostly copied from Burglish.
+	if (roman.length() <= BURGLISH_TOTAL_COMBINERS+1) {
+		//Loop through the string backwards.
+		int index = 0;
+		int lastDigit = 0;
+		bool someFlag = true;
+		std::wstring foundWord;
+		for (wstring::reverse_iterator digit=roman.rbegin(); digit!=roman.rend(); digit++) {
+			if (lastDigit>0)
+				someFlag = false;
+			lastDigit = *digit - '0';
+
+			if (index==0 && lastDigit>0) {
+				foundWord = BURGLISH_NUMBER_LITERALS[lastDigit-1];
+			} else if (lastDigit>0) {
+				const std::wstring* const BURGLISH_NUMBER_COMBINERS = someFlag ? BURGLISH_NUMBER_COMBINERS_SING : BURGLISH_NUMBER_COMBINERS_DOUB;
+				foundWord = BURGLISH_NUMBER_LITERALS[lastDigit-1] + BURGLISH_NUMBER_COMBINERS[index-1] + foundWord;
+			}
+			index++;
+		}
+
+		//Add it.
+		if (!foundWord.empty())
+			resultsList.insert(foundWord);
+	}
 }
 
 
