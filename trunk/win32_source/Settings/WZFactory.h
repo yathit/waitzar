@@ -537,6 +537,11 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 			throw std::exception("Invalid option for \"control keys\"");
 	}
 
+	//Also
+	res->typeNumeralConglomerates = false;
+	if (options.count(sanitize_id(L"numeral-conglomerate"))>0)
+		res->typeNumeralConglomerates = read_bool(options.find(sanitize_id(L"numeral-conglomerate"))->second);
+
 	//Return our resultant IM
 	return res;
 }

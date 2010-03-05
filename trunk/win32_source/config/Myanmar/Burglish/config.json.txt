@@ -4,6 +4,7 @@
       "encoding" : "unicode",
       "suppress-uppercase" : "false",
       "control-keys" : "japanese",
+      "numeral-conglomerate" : "true",
       "type" : "built-in"
     }
 }

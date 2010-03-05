@@ -69,6 +69,8 @@ private:
 	bool selectWord(int id, bool indexNegativeEntries);
 
 	bool typeBurmeseNumbers;
+
+	bool typedStrContainsNoAlpha;
 };
 
 
@@ -209,7 +211,14 @@ void RomanInputMethod<ModelType>::handleUpDown(bool isDown)
 template <class ModelType>
 void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers)
 {
-	if (mainWindow->isVisible()) {
+	//Special case: conglomerate numbers
+	if (typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
+		char numLetter = '0'+numCode;
+		if (model->typeLetter(numLetter, isUpper)) {
+			typedRomanStr <<(char)numLetter;
+			viewChanged = true;
+		}
+	} else if (mainWindow->isVisible()) {
 		//Convert 1..0 to 0..9
 		if (--numCode<0)
 			numCode = 9;
@@ -311,6 +320,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 		}
 
 		//Update the romanized string, trigger repaint
+		typedStrContainsNoAlpha = false;
 		typedRomanStr <<(char)wParam;
 		viewChanged = true;
 	} else {
@@ -477,6 +487,9 @@ void RomanInputMethod<ModelType>::reset(bool resetCandidates, bool resetRoman, b
 	//Reset the sentence?
 	if (resetSentence)
 		sentence->clear();
+
+	if (resetRoman)
+		typedStrContainsNoAlpha = true;
 
 	//Either way
 	typedStopChar = L'\0';
