@@ -63,11 +63,21 @@ public:
 				try {
 					json_spirit::read_or_throw(text, root);	
 				} catch (json_spirit::Error_position ex) {
+					//First, try to build a representative line of text (+/-8 chars)
+					std::wstring segment;
+					if (text.length()>0) {
+						int amt = 8;
+						int startID = std::max<int>(0, ex.column_ - amt);
+						int endID = std::min<int>(text.length()-1, ex.column_ + amt);
+						segment = text.substr(startID, endID-startID);
+					}
+
+					//Now, throw the error.
 					std::stringstream errMsg;
 					errMsg << "Invalid json config file: " << path;
 					errMsg << std::endl << "  Problem: " << ex.reason_;
-					errMsg << std::endl << "    on line: " << ex.line_;
-					errMsg << std::endl << "    at column: " << ex.column_;
+					errMsg << std::endl << "  Surrounding Text: ";
+					errMsg << std::endl << "      " <<"..." << waitzar::escape_wstr(segment, false) <<"...";
 					throw std::exception(errMsg.str().c_str());
 				}
 			}
