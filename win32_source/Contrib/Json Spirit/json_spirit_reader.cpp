@@ -545,8 +545,8 @@ namespace
         Semantic_actions< Value_type, Iter_type > semantic_actions( value );
      
         const parse_info< Iter_type > info = parse( begin, end, 
-                                                    Json_grammer< Value_type, Iter_type >( semantic_actions ), 
-                                                    space_p | comment_p('#') | L"\uFEFF" );
+                                                    Json_grammer< Value_type, Iter_type >( semantic_actions ) 
+                                                    );//, space_p | comment_p('#') | L"\uFEFF" );
 
         if( !info.hit )
         {

@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <functional>
 #include <locale>
+#include <ctype.h>
 
 //Should probably move 'mymb' function here..
 #include "WordBuilder.h"
@@ -58,6 +59,7 @@ namespace waitzar
 	//Other useful methods
 	std::string escape_wstr(const std::wstring& str);
 	std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
+	std::wstring preparse_json(const std::wstring& str);
 
 	//And finally, locale-driven nonsense with to_lower:
 	template<class T>

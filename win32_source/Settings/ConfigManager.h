@@ -45,7 +45,7 @@ public:
 	JsonFile(const std::wstring& text) //Confusing, I know.
 	{
 		this->path = "";
-		this->text = text;
+		this->text = waitzar::preparse_json(text);
 		this->hasReadFile = true;
 		this->hasParsed = false;
 	}
@@ -54,21 +54,26 @@ public:
 		if (!hasParsed) {
 			if (!this->hasReadFile) {
 				text = waitzar::readUTF8File(path);
+				text = waitzar::preparse_json(text);
 				this->hasReadFile = true;
 			}
-			try {
-				json_spirit::read_or_throw(text, root);
 
-				//Save space
-				text = L"";
-			} catch (json_spirit::Error_position ex) {
-				std::stringstream errMsg;
-				errMsg << "Invalid json config file: " << path;
-				errMsg << std::endl << "  Problem: " << ex.reason_;
-				errMsg << std::endl << "    on line: " << ex.line_;
-				errMsg << std::endl << "    at column: " << ex.column_;
-				throw std::exception(errMsg.str().c_str());
+			//First, try to just read it. If there's an error, then try "read or throw" and get a better error message.
+			if (!json_spirit::read(text, root)) {
+				try {
+					json_spirit::read_or_throw(text, root);	
+				} catch (json_spirit::Error_position ex) {
+					std::stringstream errMsg;
+					errMsg << "Invalid json config file: " << path;
+					errMsg << std::endl << "  Problem: " << ex.reason_;
+					errMsg << std::endl << "    on line: " << ex.line_;
+					errMsg << std::endl << "    at column: " << ex.column_;
+					throw std::exception(errMsg.str().c_str());
+				}
 			}
+
+			//Save space
+			text = L"";
 
 			hasParsed = true;
 		}
