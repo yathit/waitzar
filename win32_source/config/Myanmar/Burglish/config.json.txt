@@ -3,6 +3,7 @@
       "display-name" : "Burglish",
       "encoding" : "unicode",
       "suppress-uppercase" : "false",
+      "control-keys" : "japanese",
       "type" : "built-in"
     }
 }

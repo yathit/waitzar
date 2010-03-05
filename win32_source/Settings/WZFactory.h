@@ -525,6 +525,18 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 	if (options.count(sanitize_id(L"suppress-uppercase"))>0)
 		res->suppressUppercase = read_bool(options.find(sanitize_id(L"suppress-uppercase"))->second);
 
+	//Extra for RomanInputMethod
+	res->controlKeyStyle = CK_CHINESE;
+	if (options.count(sanitize_id(L"control-keys"))>0) {
+		std::wstring prop = options.find(sanitize_id(L"control-keys"))->second;
+		if (prop == L"chinese")
+			res->controlKeyStyle = CK_CHINESE;
+		else if (prop == L"japanese")
+			res->controlKeyStyle = CK_JAPANESE;
+		else
+			throw std::exception("Invalid option for \"control keys\"");
+	}
+
 	//Return our resultant IM
 	return res;
 }

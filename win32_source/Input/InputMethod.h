@@ -17,6 +17,10 @@
 #include "NGram/wz_utilities.h"
 
 
+
+enum CONTROL_KEY_STYLES {CK_CHINESE, CK_JAPANESE};
+
+
 //Expected interface: "Input Method"
 class InputMethod {
 public:
@@ -54,6 +58,7 @@ public:
 	Encoding encoding;
 	TYPES type;
 	bool suppressUppercase;
+	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality
 	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor);
