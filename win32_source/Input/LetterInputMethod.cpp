@@ -62,7 +62,7 @@ void LetterInputMethod::handleDelete()
 }
 
 
-void LetterInputMethod::handleLeftRight(bool isRight)
+void LetterInputMethod::handleLeftRight(bool isRight, bool loopToZero)
 {
 	//Move the letter cursor one to the right/left
 	//TODO: ADD LATER
@@ -71,7 +71,7 @@ void LetterInputMethod::handleLeftRight(bool isRight)
 void LetterInputMethod::handleTab()
 {
 	//Move right.
-	handleLeftRight(true);
+	handleLeftRight(true, false);
 }
 
 void LetterInputMethod::handleUpDown(bool isDown)

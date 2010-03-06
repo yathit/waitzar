@@ -60,6 +60,7 @@ namespace waitzar
 	std::string escape_wstr(const std::wstring& str);
 	std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
 	std::wstring preparse_json(const std::wstring& str);
+	std::wstring normalize_bgunicode(const std::wstring& str);
 
 	//And finally, locale-driven nonsense with to_lower:
 	template<class T>
