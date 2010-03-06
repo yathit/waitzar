@@ -902,10 +902,14 @@ wstring readUTF8File(const string& path)
 
 wstring renderAsZawgyi(const wstring &uniString)
 {
+	//Temp:
+	if (uniString.empty())
+		return uniString;
+
 	//For now, just wrap a low-level data structure.
 	//  I want to re-write the entire algorithm to use
 	//  bitflags, so for now we'll just preserve the STL interface.
-	wchar_t zawgyiStr[100];
+	wchar_t zawgyiStr[1000];
 
 	//Perform conversion
 	//Step 1: Determine which finals won't likely combine; add
@@ -1519,6 +1523,113 @@ std::wstring preparse_json(const std::wstring& str)
 
 	return res.str();
 }
+
+
+//Removes some errors that typically occur in Burglish strings. A more solid normalization may be performed later.
+//Return the same string if unknown characters are encountered.
+std::wstring normalize_bgunicode(const std::wstring& str)
+{
+	//Unicode order goes something like this:
+	//KINZI, CONSONANT, STACKED, ASAT, YA-PIN, YA-YIT, WA, HA, AY, "UPPER VOWEL", "LOWER VOWEL", AR, SLASH, DOT UP, DOT DOWN, ASAT, VIS
+	//KINZI = \u1004\u103A\u1039
+	//CONSONANT = [\u1000..\u102A, \u103F, \u104E]
+	//STACKED = \u1039 [\u1000..\u1019 \u101C, \u101E, \u1020, \u1021]
+	//
+	//ASAT = \u103A
+	//YA-PIN = \u103B
+	//YA-YIT = \u103C
+	//WA = \u103D
+	//HA = \u103E
+	//AY  = \1031
+	//UPPER = [\u102D, \u102E]
+	//LOWER = [\u102F, \u1030]
+	//AR = [\u102B, \u102C]
+	//SLASH = \u1032
+	//DOT UP = \u1036
+	//DOW DOWN = \u1037
+	//ASAT
+	//VIS = \u1038
+	//...exclusively for Myanmar. Now... we just have to flag each item, and avoid adding it twice. If something unknown 
+	//   if found, return the orig. word.
+	//This function is very fragile; we'll have to replace it with something better eventually.
+	//We can assume kinzi & stacked letters aren't abused. Also consonant.
+	wstringstream res;
+	bool flags[] = {false,false,false,false,false,false,false,false,false,false,false,false,false};
+	size_t numFlags = 13;
+	for (size_t i=0; i<str.size(); i++) {
+		//First, skip stuff we don't care about
+		if (str[i]==L'\u1004' && i+2<str.size() && str[i+1]==L'\u103A' && str[i+1]==L'\u1039') {
+			//Kinzi, skip
+			res <<str[i] <<str[i+1] <<str[i+2];
+			i += 2;
+			continue;
+		} else if (str[i]==L'\u1039' && i+1<str.size()) {
+			//Stacked letter, skip
+			res <<str[i] <<str[i+1];
+			i += 1;
+			continue;
+		} else if ((str[i]>=L'\u1000' && str[i]<=L'\u102A') || str[i]==L'\u103F' || str[i]==L'\u104E') {
+			//Consonant, skip
+			res <<str[i];
+
+			//Also, reset our "flags" array so that multiple killed consants parse ok.
+			for (size_t x=0; x<numFlags; x++)
+				flags[x] = false;
+			
+			continue;
+		}
+
+		//Now, we're at some definite data. Skip duplicates, return early if we don't know this letter.
+		int x=-1; //Use fallthrough to build up an array index, 0..12 (-1 is filtered by the default statement)
+		switch (str[i]) {
+			case L'\u103A':
+				x++;
+			case L'\u103B':
+				x++;
+			case L'\u103C':
+				x++;
+			case L'\u103D':
+				x++;
+			case L'\u103E':
+				x++;
+			case L'\u1031':
+				x++;
+			case L'\u102D': case L'\u102E':
+				x++;
+			case L'\u102F': case L'\u1030':
+				x++;
+			case L'\u102B': case L'\u102C':
+				x++;
+			case L'\u1032':
+				x++;
+			case L'\u1036':
+				x++;
+			case L'\u1037':
+				x++;
+			case L'\u1038':
+				x++;
+				break;
+			default:
+				return str;
+		}
+
+		//Check our ID anyway
+		if (x<0 || x>=(int)numFlags)
+			throw std::exception("normalize_bgunicode id error!");
+
+		//Now, append the letter ONLY if this flag is false
+		if (!flags[x]) {
+			flags[x] = true;
+			res <<str[i];
+		}
+	}
+
+
+	//Every test passed
+	return res.str();
+}
+
+
 
 
 

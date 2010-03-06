@@ -38,6 +38,7 @@ public:
 	//Key elements of BurglishBuilder
 	bool typeLetter(char letter, bool isUpper);
 	void reset(bool fullReset);
+	std::wstring getParenString() const;
 
 	//Requires hacking (mostly b/c WordBuilder assumes word IDs)
 	std::vector<unsigned int> getPossibleWords() const;
@@ -61,7 +62,6 @@ public:
 	//Vestigial (performs no relevant work here)
 	bool hasPatSintWord() const { return false; }
 	unsigned int getFirstWordIndex() const { return 0; }
-	std::wstring getParenString() const { return L""; }
 
 
 
@@ -69,7 +69,7 @@ private:
 	static bool IsVowel(wchar_t letter);
 	static bool IsValid(const std::wstring& word);
 	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsList, bool firstLetterUppercase);
-	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList);
+	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList, std::wstringstream& parenStr);
 	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsList);
 	static void expandCurrentWords(std::set<std::wstring>& resultsList);
 
@@ -83,6 +83,7 @@ private:
 	static json_spirit::wmObject rhymePairs;
 	static json_spirit::wmObject specialWords;
 
+	std::wstringstream parenStr;
 	std::wstringstream typedRomanStr;
 	static std::vector<std::wstring> savedDigitIDs; //0 through 9
 	std::vector<std::wstring> savedWordIDs;

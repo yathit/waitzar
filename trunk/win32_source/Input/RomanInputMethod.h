@@ -27,7 +27,7 @@ public:
 	void handleEsc();
 	void handleBackspace();
 	void handleDelete();
-	void handleLeftRight(bool isRight);
+	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);
@@ -166,13 +166,18 @@ void RomanInputMethod<ModelType>::handleDelete()
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleLeftRight(bool isRight)
+void RomanInputMethod<ModelType>::handleLeftRight(bool isRight, bool loopToZero)
 {
 	int amt = isRight ? 1 : -1;
 	if (mainWindow->isVisible()) {
 		//Move right/left within the current selection.
 		if (model->moveRight(amt) == TRUE)
 			viewChanged = true;
+		else if (isRight && loopToZero) {
+			//Force back to index zero
+			model->moveRight(-1000); //Hacky, we should eventually set a better wraparound method.
+			viewChanged = true;
+		}
 	} else {
 		//Move right/left within the current phrase.
 		if (sentence->moveCursorRight(amt, *model))
@@ -187,12 +192,12 @@ void RomanInputMethod<ModelType>::handleTab()
 	if (mainWindow->isVisible()) {
 		//Change the selection, or make a selection (depending on the style)
 		if (controlKeyStyle==CK_CHINESE) 
-			handleLeftRight(true);
+			handleLeftRight(true, true);
 		else if (controlKeyStyle==CK_JAPANESE)
 			handleCommit(true);
 	} else {
 		//Move the sentence window cursor
-		handleLeftRight(true);
+		handleLeftRight(true, false);
 	}
 	
 }
@@ -265,7 +270,7 @@ void RomanInputMethod<ModelType>::handleCommit(bool strongCommit)
 		//The model is visible; react to the control key style.
 		if (!strongCommit && controlKeyStyle==CK_JAPANESE) {
 			//Advance
-			handleLeftRight(true);
+			handleLeftRight(true, true);
 		} else {
 			//Select the current word
 			if (selectWord(-1, false)) {

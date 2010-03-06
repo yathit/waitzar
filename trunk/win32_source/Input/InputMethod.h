@@ -73,7 +73,7 @@ public:
 	virtual void handleEsc() = 0;
 	virtual void handleBackspace() = 0;
 	virtual void handleDelete() = 0;
-	virtual void handleLeftRight(bool isRight) = 0;
+	virtual void handleLeftRight(bool isRight, bool loopToZero) = 0;
 	virtual void handleUpDown(bool isDown) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
 	virtual void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers) = 0;

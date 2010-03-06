@@ -191,7 +191,7 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList,
 			//Now, we just need to test for errors, etc.
 			wstring word = rhyme.str();
 			if (IsValid(word))
-				resultsList.insert(word);
+				resultsList.insert(waitzar::normalize_bgunicode(word));
 
 			//Finally: reset
 			rhyme.str(L"");
@@ -248,24 +248,37 @@ void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& re
 
 
 
-void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList)
+void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList, std::wstringstream& parenStr)
 {
-	if (specialWords.count(roman)>0) {
-		wstring specialStrs = specialWords[roman].get_value<wstring>();
-		wstringstream entry;
-		for (size_t specID=0; specID<specialStrs.size(); specID++) {
-			//Append?
-			if (specialStrs[specID]!=L'|')
-				entry <<specialStrs[specID];
-			//Skip?
-			if (specialStrs[specID]!=L'|' && specID<specialStrs.size()-1)
-				continue;
+	//Actually, we have to loop through each special word, to allow "prediction"
+	wstring comma = L"";
+	parenStr.str(L"");
+	for (json_spirit::wmObject::iterator pair=specialWords.begin(); pair!=specialWords.end(); pair++) {
+		wstring key = pair->first;
+		if (key.find(roman)==0) { //If key.startsWith(roman)
+			//Add to the paren str?
+			if (key.length()>roman.length()) {
+				parenStr <<comma+key;
+				comma = L",";
+			}
 
-			//Add it (no need to check validity)
-			resultsList.insert(entry.str());
+			//Append all values
+			wstring specialStrs = pair->second.get_value<wstring>();
+			wstringstream entry;
+			for (size_t specID=0; specID<specialStrs.size(); specID++) {
+				//Append?
+				if (specialStrs[specID]!=L'|')
+					entry <<specialStrs[specID];
+				//Skip?
+				if (specialStrs[specID]!=L'|' && specID<specialStrs.size()-1)
+					continue;
 
-			//Finally: reset
-			entry.str(L"");
+				//Add it (no need to check validity)
+				resultsList.insert(entry.str());
+
+				//Finally: reset
+				entry.str(L"");
+			}
 		}
 	}
 }
@@ -325,14 +338,17 @@ void BurglishBuilder::reGenerateWordlist()
 {
 	//Reset
 	set<wstring> results;
+	parenStr.str(L"");
 
-	//For now, just do the general combinations
-	addStandardWords(typedRomanStr.str(), results, typeBeginsWithUpper);
-	addSpecialWords(typedRomanStr.str(), results);
-	addNumerals(typedRomanStr.str(), results);
+	if (!typedRomanStr.str().empty()) {
+		//For now, just do the general combinations
+		addStandardWords(typedRomanStr.str(), results, typeBeginsWithUpper);
+		addSpecialWords(typedRomanStr.str(), results, parenStr);
+		addNumerals(typedRomanStr.str(), results);
 
-	//Expand the set of words with common substitutions
-	expandCurrentWords(results);
+		//Expand the set of words with common substitutions
+		expandCurrentWords(results);
+	}
 
 	//Copy into our vector
 	generatedWords.clear();
@@ -350,6 +366,7 @@ void BurglishBuilder::reset(bool fullReset)
 	currSelectedPage = 0;
 	currSelectedID = 0;
 	typeBeginsWithUpper = false;
+	parenStr.str(L"");
 
 	if (fullReset)
 		savedWordIDs.clear();
@@ -361,6 +378,7 @@ bool BurglishBuilder::typeLetter(char letter, bool isUpper)
 {
 	//Save
 	wstring oldRoman = typedRomanStr.str();
+	wstring oldParen = parenStr.str();
 	bool oldIsUpper = typeBeginsWithUpper;
 
 	//Typing pat-sint?
@@ -375,6 +393,8 @@ bool BurglishBuilder::typeLetter(char letter, bool isUpper)
 	if (generatedWords.empty()) {
 		typedRomanStr.str(L"");
 		typedRomanStr <<oldRoman;
+		parenStr.str(L"");
+		parenStr <<oldParen;
 		typeBeginsWithUpper = oldIsUpper;
 		reGenerateWordlist();
 		return false;
@@ -383,6 +403,13 @@ bool BurglishBuilder::typeLetter(char letter, bool isUpper)
 	//Success
 	return true;
 }
+
+
+std::wstring BurglishBuilder::getParenString() const
+{
+	return parenStr.str();
+}
+
 
 
 //Get all possible words. Requires IDs, though.

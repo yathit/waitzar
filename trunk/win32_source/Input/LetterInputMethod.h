@@ -24,7 +24,7 @@ public:
 	void handleEsc();
 	void handleBackspace();
 	void handleDelete();
-	void handleLeftRight(bool isRight);
+	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);

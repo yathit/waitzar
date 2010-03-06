@@ -2333,12 +2333,12 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 		case HOTKEY_RIGHT:
 			//Advance the cursor, pick a word
-			currInput->handleLeftRight(true);
+			currInput->handleLeftRight(true, false);
 			return true;
 
 		case HOTKEY_LEFT:
 			//Move the cursor back, pick a word
-			currInput->handleLeftRight(false);
+			currInput->handleLeftRight(false, false);
 			return true;
 
 		case HOTKEY_DOWN:
