@@ -1527,6 +1527,7 @@ std::wstring preparse_json(const std::wstring& str)
 
 //Removes some errors that typically occur in Burglish strings. A more solid normalization may be performed later.
 //Return the same string if unknown characters are encountered.
+//TODO: We also need to fix tall/short "ar".
 std::wstring normalize_bgunicode(const std::wstring& str)
 {
 	//Unicode order goes something like this:
@@ -1534,21 +1535,6 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 	//KINZI = \u1004\u103A\u1039
 	//CONSONANT = [\u1000..\u102A, \u103F, \u104E]
 	//STACKED = \u1039 [\u1000..\u1019 \u101C, \u101E, \u1020, \u1021]
-	//
-	//ASAT = \u103A
-	//YA-PIN = \u103B
-	//YA-YIT = \u103C
-	//WA = \u103D
-	//HA = \u103E
-	//AY  = \1031
-	//UPPER = [\u102D, \u102E]
-	//LOWER = [\u102F, \u1030]
-	//AR = [\u102B, \u102C]
-	//SLASH = \u1032
-	//DOT UP = \u1036
-	//DOW DOWN = \u1037
-	//ASAT
-	//VIS = \u1038
 	//...exclusively for Myanmar. Now... we just have to flag each item, and avoid adding it twice. If something unknown 
 	//   if found, return the orig. word.
 	//This function is very fragile; we'll have to replace it with something better eventually.
@@ -1582,32 +1568,19 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 		//Now, we're at some definite data. Skip duplicates, return early if we don't know this letter.
 		int x=-1; //Use fallthrough to build up an array index, 0..12 (-1 is filtered by the default statement)
 		switch (str[i]) {
-			case L'\u103A':
-				x++;
-			case L'\u103B':
-				x++;
-			case L'\u103C':
-				x++;
-			case L'\u103D':
-				x++;
-			case L'\u103E':
-				x++;
-			case L'\u1031':
-				x++;
-			case L'\u102D': case L'\u102E':
-				x++;
-			case L'\u102F': case L'\u1030':
-				x++;
-			case L'\u102B': case L'\u102C':
-				x++;
-			case L'\u1032':
-				x++;
-			case L'\u1036':
-				x++;
-			case L'\u1037':
-				x++;
-			case L'\u1038':
-				x++;
+			case L'\u103A':                   x++;
+			case L'\u103B':                   x++;
+			case L'\u103C':                   x++;
+			case L'\u103D':                   x++;
+			case L'\u103E':                   x++;
+			case L'\u1031':                   x++;
+			case L'\u102D': case L'\u102E':   x++;
+			case L'\u102F': case L'\u1030':   x++;
+			case L'\u102B': case L'\u102C':   x++;
+			case L'\u1032':                   x++;
+			case L'\u1036':                   x++;
+			case L'\u1037':                   x++;
+			case L'\u1038':                   x++;
 				break;
 			default:
 				return str;
@@ -1620,7 +1593,39 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 		//Now, append the letter ONLY if this flag is false
 		if (!flags[x]) {
 			flags[x] = true;
-			res <<str[i];
+
+			//Adjust one more letter (tall/short "AR")
+			wchar_t toAppend = str[i];
+			if (toAppend==L'\u102C') {
+				//We need to search backwards like so:
+				//Continue on [\u1039\u1000  -  \u1039\u1019  \u103E  \u102F   \u1030  \u103D \u1031 (but not \u103C)]
+				//Stop on [\u1001 \u1002 \u1004 \u1012 \u1015 \u101D \u101D]
+				//(We'll have to check this against the WZ wordlist eventually.).
+				bool match = false;
+				for (int si = ((int)i)-1;si>=0;si--) {
+					//Simple letters
+					if (str[si]==L'\u103E' || str[si]==L'\u102F' || str[si]==L'\u1030' || str[si]==L'\u103D' || str[si]==L'\u1031')
+						continue;
+					//Stacked letters
+					if (str[si]>=L'\u1030' && str[si]<=L'\u1019') {
+						if (si>=1 && str[si-1]==L'\u1039') {
+							si--;
+							continue;
+						} else
+							break;
+					}
+					//What we're searching for.
+					if (str[si]==L'\u1001' || str[si]==L'\u1002' || str[si]==L'\u1004' || str[si]==L'\u1012' || str[si]==L'\u1015' || str[si]==L'\u101D' || str[si]==L'\u101D') {
+						match = true;
+						break;
+					}
+					//Else... (no match)
+					break;
+				}
+				if (match)
+					toAppend=L'\u102B';
+			}
+			res <<toAppend;
 		}
 	}
 
