@@ -120,7 +120,7 @@ const unsigned int UWM_HOTKEY_UP = WM_USER+2;
 
 //Window IDs for the "Language" sub-menu
 const unsigned int DYNAMIC_CMD_START = 50000;
-const wstring WND_TITLE_LANGUAGE = L"Language";
+const wstring WND_TITLE_LANGUAGE = L"Languagexxxxxxxxxxxxxxxxxxxxxxxx";
 const wstring WND_TITLE_INPUT = L"Input Method";
 const wstring WND_TITLE_OUTPUT = L"Encoding";
 
@@ -2424,6 +2424,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 /**
  * Message-handling code.
  */
+HFONT someFont;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
@@ -2514,8 +2515,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HDC currDC = GetDC(hwnd); //We need the direct DC to draw properly
 
 			//TEMP
-			COLORREF crSelBkgrd = GetSysColor(13); //COLOR_HIGHLIGHT
+			COLORREF crSelBkgrd = GetSysColor(COLOR_HIGHLIGHT);
+			COLORREF crSelText = GetSysColor(COLOR_HIGHLIGHTTEXT);
 			COLORREF oldBkgrd = SetBkColor(currDC, crSelBkgrd);
+			COLORREF oldText = SetTextColor(currDC, crSelText); 
+			HFONT hfontOld = (HFONT)SelectObject(currDC, someFont);
 
 			//Leave space for the check-mark bitmap
 			int checkX = GetSystemMetrics(SM_CXMENUCHECK); 
@@ -2527,6 +2531,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//TEMP
 			SetBkColor(currDC, oldBkgrd);
+			SetBkColor(currDC, oldText);
+			SelectObject(currDC, hfontOld);
 
 			break;
 		}
@@ -2580,6 +2586,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Step 2: Add all languages, check the currently-selected one.
 				if (totalMenuItems == 0) {
+					//TEMP
+					LOGFONT lf;
+					GetObject(GetStockObject(ANSI_FIXED_FONT), sizeof(LOGFONT), &lf); 
+					someFont = CreateFont(	lf.lfHeight, lf.lfWidth, lf.lfEscapement, lf.lfOrientation, lf.lfWeight, 
+								lf.lfItalic, lf.lfUnderline, lf.lfStrikeOut, lf.lfCharSet, 
+								lf.lfOutPrecision, lf.lfClipPrecision, lf.lfQuality, 
+								lf.lfPitchAndFamily, lf.lfFaceName);
+
 					//Init the cache
 					WZMenuItem sep = {0, WZMI_SEP, L"", L""};
 					vector<WZMenuItem> myMenuItems;
