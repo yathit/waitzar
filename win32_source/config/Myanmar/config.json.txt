@@ -21,7 +21,7 @@
     # The WaitZar input method. 
     "waitzar" : 
     {
-      "display-name" : "WaitZar",
+      "display-name" : "ဝိဇ္ဇာ",
       "encoding" : "unicode",
       "type" : "builtin"
     },

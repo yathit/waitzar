@@ -32,7 +32,7 @@
 #define OEMRESOURCE         //- OEM Resource values
 #define NOATOM              //- Atom Manager routines
 #define NOCLIPBOARD         //- Clipboard routines
-#define NOCOLOR             //- Screen colors
+//#define NOCOLOR             //- Screen colors
 #define NODRAWTEXT          //- DrawText() and DT_*
 #define NOKERNEL            //- All KERNEL defines and routines
 #define NOMEMMGR            //- GMEM_*, LMEM_*, GHND, LHND, associated routines
@@ -55,6 +55,7 @@
 #define NOMINMAX
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
+//#include <winuser.h> //For colors
 #include <psapi.h> //For getting a list of currently running processes
 //#include <wingdi.h> //For the TEXTINFO stuff
 #include <shlobj.h> //GetFolderPath
@@ -172,6 +173,18 @@ INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
 //string mywordsFileName = "mywords.txt";
+
+
+//User-drawn menu data structures
+enum WZMI_TYPES {WZMI_SEP, WZMI_HEADER, WZMI_LANG, WZMI_INPUT, WZMI_OUTPUT};
+struct WZMenuItem {
+	unsigned int menuID;
+	WZMI_TYPES type;
+	wstring id;
+	wstring title;
+};
+WZMenuItem* customMenuItems; //Because Win32 requires a pointer, and using vectors would be hacky at best.
+unsigned int totalMenuItems = 0;
 
 
 //Help Window resources
@@ -2476,6 +2489,49 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 
 
+
+		case WM_MEASUREITEM:  //Measure our custom menus.
+		{
+			//Retrieve our custom data structure
+			LPMEASUREITEMSTRUCT measureItem = (LPMEASUREITEMSTRUCT) lParam;
+			WZMenuItem* item = (WZMenuItem*)measureItem->itemData;
+			HDC currDC = GetDC(hwnd); //We need the direct DC to draw properly
+
+			//Measure this item by its string.
+			SIZE textSize;
+			GetTextExtentPoint32(currDC, item->title.c_str(), item->title.length(), &textSize);
+            measureItem->itemWidth = textSize.cx;
+            measureItem->itemHeight = textSize.cy;
+
+			break;
+		}
+
+		case WM_DRAWITEM: //Draw custom menu items
+		{
+			//Retrieve our custom data structure.
+			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam; 
+            WZMenuItem* item = (WZMenuItem*)drawInfo->itemData; 
+			HDC currDC = GetDC(hwnd); //We need the direct DC to draw properly
+
+			//TEMP
+			COLORREF crSelBkgrd = GetSysColor(13); //COLOR_HIGHLIGHT
+			COLORREF oldBkgrd = SetBkColor(currDC, crSelBkgrd);
+
+			//Leave space for the check-mark bitmap
+			int checkX = GetSystemMetrics(SM_CXMENUCHECK); 
+            int startX = checkX + drawInfo->rcItem.left; 
+            int startY = drawInfo->rcItem.top; 
+
+			//Draw the text to the DC
+			ExtTextOut(currDC, startX, startY, ETO_OPAQUE, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
+
+			//TEMP
+			SetBkColor(currDC, oldBkgrd);
+
+			break;
+		}
+
+
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
 		{
 			POINT pt;
@@ -2523,7 +2579,66 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				menuopt_outputs.clear();
 
 				//Step 2: Add all languages, check the currently-selected one.
-				AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, WND_TITLE_LANGUAGE.c_str());
+				if (totalMenuItems == 0) {
+					//Init the cache
+					WZMenuItem sep = {0, WZMI_SEP, L"", L""};
+					vector<WZMenuItem> myMenuItems;
+					
+					//Add the "Language" section
+					WZMenuItem next1 = {currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_LANGUAGE};
+					myMenuItems.push_back(next1);
+					myMenuItems.push_back(sep);
+
+					//Add each language as an MI
+					for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
+						WZMenuItem next2 = {currDynamicCmd++, WZMI_LANG, it->id, it->displayName};
+						myMenuItems.push_back(next2);
+					}
+
+					//Add the "Input Methods" section
+					WZMenuItem next3 = {currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_INPUT};
+					myMenuItems.push_back(next3);
+					myMenuItems.push_back(sep);
+
+					//Add each input method as an MI
+					for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
+						WZMenuItem next4 = {currDynamicCmd++, WZMI_LANG, (*it)->id, (*it)->displayName};
+						myMenuItems.push_back(next4);
+					}
+
+					//Add the "Output Encodings" section
+					WZMenuItem next5 = {currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_OUTPUT};
+					myMenuItems.push_back(next5);
+					myMenuItems.push_back(sep);
+
+					//Add each input method as an MI
+					for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
+						if (!it->canUseAsOutput)
+							continue;
+						WZMenuItem next6 = {currDynamicCmd++, WZMI_LANG, it->id, it->displayName};
+						myMenuItems.push_back(next6);
+					}
+
+					//Copy over
+					customMenuItems = new WZMenuItem[myMenuItems.size()];
+					for (size_t i=0; i<myMenuItems.size(); i++)
+						customMenuItems[totalMenuItems++] = myMenuItems[i];
+					
+				}
+
+				//Add each menu in our cached vector
+				for (size_t i=0; i<totalMenuItems; i++) {
+					if (customMenuItems[i].type==WZMI_SEP)
+						AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
+					else {
+						unsigned int flag = (i>0&&customMenuItems[i].type==WZMI_HEADER) ? MF_MENUBARBREAK : 0;
+						AppendMenu(typingMenu, MF_OWNERDRAW|flag, customMenuItems[i].menuID, (LPTSTR)&(customMenuItems[i]));
+					}
+				}
+
+
+
+				/*AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, WND_TITLE_LANGUAGE.c_str());
 				AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
 				mainWindow->hiliteMenu(typingMenu, currDynamicCmd-1, true);
 				unsigned int radioStart = currDynamicCmd;
@@ -2561,7 +2676,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, it->displayName.c_str());
 					menuopt_outputs.push_back((*it).id);
 				}
-				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
+				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);*/
 
 				//Cause our popup to appear in front of any other window.
 				SetForegroundWindow(hwnd);
