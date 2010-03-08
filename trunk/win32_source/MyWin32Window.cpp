@@ -660,6 +660,7 @@ bool MyWin32Window::isWindowCreated()
 }
 
 
+
 //Linking
 void MyWin32Window::linkToWindow(MyWin32Window* other, ATTACH_DIRECTION linkAt)
 {
