@@ -2512,7 +2512,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Retrieve our custom data structure.
 			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam; 
             WZMenuItem* item = (WZMenuItem*)drawInfo->itemData; 
-			HDC currDC = GetDC(hwnd); //We need the direct DC to draw properly
+			HDC& currDC = drawInfo->hDC; //We need the direct DC to draw properly
 
 			//TEMP
 			COLORREF crSelBkgrd = GetSysColor(COLOR_HIGHLIGHT);
