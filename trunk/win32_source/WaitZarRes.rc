@@ -149,6 +149,7 @@ WZ_PGDOWN_COLOR         COREFONT                "pg_down_color.png"
 WZ_PGUP_COLOR           COREFONT                "pg_up_color.png"
 WZ_PGDOWN_SEPIA         COREFONT                "pg_down_sepia.png"
 WZ_PGUP_SEPIA           COREFONT                "pg_up_sepia.png"
+WZ_PADAUK_ZG            COREFONT                "pdkzg.ttf"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

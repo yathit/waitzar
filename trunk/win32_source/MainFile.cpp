@@ -182,6 +182,23 @@ struct WZMenuItem {
 	WZMI_TYPES type;
 	wstring id;
 	wstring title;
+	bool containsMM;
+
+	WZMenuItem(){}
+
+	WZMenuItem(unsigned int menuID, WZMI_TYPES type, const wstring&id, const wstring&title) {
+		this->menuID = menuID;
+		this->type = type;
+		this->id = id;
+		this->title = title;
+		this->containsMM = false;
+		for (size_t i=0; i<title.length(); i++) {
+			if (title[i]>=L'\u1000' && title[i]<=L'\u109F') {
+				this->containsMM = true;
+				break;
+			}
+		}
+	}
 };
 WZMenuItem* customMenuItems; //Because Win32 requires a pointer, and using vectors would be hacky at best.
 unsigned int totalMenuItems = 0;
@@ -2424,7 +2441,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 /**
  * Message-handling code.
  */
-HFONT someFont;
+HFONT padaukFont;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
@@ -2498,11 +2515,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			WZMenuItem* item = (WZMenuItem*)measureItem->itemData;
 			HDC currDC = GetDC(hwnd); //We need the direct DC to draw properly
 
+			//Set the font
+			HFONT hfontOld;
+			if (item->containsMM)
+				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
+
 			//Measure this item by its string.
 			SIZE textSize;
 			GetTextExtentPoint32(currDC, item->title.c_str(), item->title.length(), &textSize);
             measureItem->itemWidth = textSize.cx;
             measureItem->itemHeight = textSize.cy;
+
+			//Undo the font set
+			if (item->containsMM)
+				SelectObject(currDC, hfontOld);
 
 			break;
 		}
@@ -2519,7 +2545,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			COLORREF crSelText = GetSysColor(COLOR_HIGHLIGHTTEXT);
 			COLORREF oldBkgrd = SetBkColor(currDC, crSelBkgrd);
 			COLORREF oldText = SetTextColor(currDC, crSelText); 
-			HFONT hfontOld = (HFONT)SelectObject(currDC, someFont);
+			HFONT hfontOld;
+			if (item->containsMM)
+				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
 
 			//Leave space for the check-mark bitmap
 			int checkX = GetSystemMetrics(SM_CXMENUCHECK); 
@@ -2532,7 +2560,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//TEMP
 			SetBkColor(currDC, oldBkgrd);
 			SetBkColor(currDC, oldText);
-			SelectObject(currDC, hfontOld);
+			if (item->containsMM)
+				SelectObject(currDC, hfontOld);
 
 			break;
 		}
@@ -2586,51 +2615,45 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Step 2: Add all languages, check the currently-selected one.
 				if (totalMenuItems == 0) {
-					//TEMP
-					LOGFONT lf;
-					GetObject(GetStockObject(ANSI_FIXED_FONT), sizeof(LOGFONT), &lf); 
-					someFont = CreateFont(	lf.lfHeight, lf.lfWidth, lf.lfEscapement, lf.lfOrientation, lf.lfWeight, 
-								lf.lfItalic, lf.lfUnderline, lf.lfStrikeOut, lf.lfCharSet, 
-								lf.lfOutPrecision, lf.lfClipPrecision, lf.lfQuality, 
-								lf.lfPitchAndFamily, lf.lfFaceName);
+					//Create the Padauk Font
+					HDC currDC = GetDC(hwnd);
+					int logHeight = -MulDiv(12, GetDeviceCaps(currDC, LOGPIXELSY), 72);
+
+					padaukFont = CreateFont(logHeight, 0, 0, 0, FW_NORMAL, false, false, false, ANSI_CHARSET, 
+											OUT_TT_ONLY_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,  //Possibly CLEARTYPE_QUALITY for winNT+
+											DEFAULT_PITCH|FF_DONTCARE, L"Padauk");
 
 					//Init the cache
-					WZMenuItem sep = {0, WZMI_SEP, L"", L""};
+					WZMenuItem sep = WZMenuItem(0, WZMI_SEP, L"", L"");
 					vector<WZMenuItem> myMenuItems;
 					
 					//Add the "Language" section
-					WZMenuItem next1 = {currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_LANGUAGE};
-					myMenuItems.push_back(next1);
+					myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_LANGUAGE));
 					myMenuItems.push_back(sep);
 
 					//Add each language as an MI
 					for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
-						WZMenuItem next2 = {currDynamicCmd++, WZMI_LANG, it->id, it->displayName};
-						myMenuItems.push_back(next2);
+						myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
 					}
 
 					//Add the "Input Methods" section
-					WZMenuItem next3 = {currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_INPUT};
-					myMenuItems.push_back(next3);
+					myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_INPUT));
 					myMenuItems.push_back(sep);
 
 					//Add each input method as an MI
 					for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
-						WZMenuItem next4 = {currDynamicCmd++, WZMI_LANG, (*it)->id, (*it)->displayName};
-						myMenuItems.push_back(next4);
+						myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, (*it)->id, (*it)->displayName));
 					}
 
 					//Add the "Output Encodings" section
-					WZMenuItem next5 = {currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_OUTPUT};
-					myMenuItems.push_back(next5);
+					myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_OUTPUT));
 					myMenuItems.push_back(sep);
 
 					//Add each input method as an MI
 					for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
 						if (!it->canUseAsOutput)
 							continue;
-						WZMenuItem next6 = {currDynamicCmd++, WZMI_LANG, it->id, it->displayName};
-						myMenuItems.push_back(next6);
+						myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
 					}
 
 					//Copy over
