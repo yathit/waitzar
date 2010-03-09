@@ -2,7 +2,7 @@
 {"languages.myanmar" : {
 
   # What name should we display in the menus and settings dialogs?
-  "display-name" : "မြန်မာစကား",
+  "display-name" : "မြန်မာစ",
   
   # What output encoding, display method, and input method are used by default? 
   "default-output-encoding" : "unicode",
@@ -21,7 +21,7 @@
     # The WaitZar input method. 
     "waitzar" : 
     {
-      "display-name" : "ဝိဇ္ဇာ",
+      "display-name" : "Wait Zar",
       "encoding" : "unicode",
       "type" : "builtin"
     },
