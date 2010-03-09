@@ -2,7 +2,7 @@
 {"languages.myanmar" : {
 
   # What name should we display in the menus and settings dialogs?
-  "display-name" : "Myanmar",
+  "display-name" : "မြန်မာစကား",
   
   # What output encoding, display method, and input method are used by default? 
   "default-output-encoding" : "unicode",

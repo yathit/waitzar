@@ -120,7 +120,7 @@ const unsigned int UWM_HOTKEY_UP = WM_USER+2;
 
 //Window IDs for the "Language" sub-menu
 const unsigned int DYNAMIC_CMD_START = 50000;
-const wstring WND_TITLE_LANGUAGE = L"Languagexxxxxxxxxxxxxxxxxxxxxxxx";
+const wstring WND_TITLE_LANGUAGE = L"Language";
 const wstring WND_TITLE_INPUT = L"Input Method";
 const wstring WND_TITLE_OUTPUT = L"Encoding";
 
@@ -2442,6 +2442,9 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
  * Message-handling code.
  */
 HFONT padaukFont;
+HANDLE padaukHandle = NULL;
+int padaukHeight = 0;
+int sysfontHeight = 0;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
@@ -2514,9 +2517,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			LPMEASUREITEMSTRUCT measureItem = (LPMEASUREITEMSTRUCT) lParam;
 			WZMenuItem* item = (WZMenuItem*)measureItem->itemData;
 			HDC currDC = GetDC(hwnd); //We need the direct DC to draw properly
+			HFONT hfontOld;
+
+			//First time?
+			if (padaukHeight==0 || sysfontHeight==0) {
+				SIZE sz;
+				wstring testStr = L"\u1000\u103C\u1000\u103B";
+				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
+				GetTextExtentPoint32(currDC, testStr.c_str(), testStr.length(), &sz);
+				padaukHeight = sz.cy;
+				SelectObject(currDC, hfontOld);
+				testStr = L"Testing";
+				GetTextExtentPoint32(currDC, testStr.c_str(), testStr.length(), &sz);
+				sysfontHeight = sz.cy;
+			}
 
 			//Set the font
-			HFONT hfontOld;
 			if (item->containsMM)
 				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
 
@@ -2524,7 +2540,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SIZE textSize;
 			GetTextExtentPoint32(currDC, item->title.c_str(), item->title.length(), &textSize);
             measureItem->itemWidth = textSize.cx;
-            measureItem->itemHeight = textSize.cy;
+			measureItem->itemHeight = (padaukHeight>sysfontHeight) ? padaukHeight : sysfontHeight;
 
 			//Undo the font set
 			if (item->containsMM)
@@ -2543,8 +2559,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//TEMP
 			COLORREF crSelBkgrd = GetSysColor(COLOR_HIGHLIGHT);
 			COLORREF crSelText = GetSysColor(COLOR_HIGHLIGHTTEXT);
-			COLORREF oldBkgrd = SetBkColor(currDC, crSelBkgrd);
-			COLORREF oldText = SetTextColor(currDC, crSelText); 
+			//COLORREF oldBkgrd = SetBkColor(currDC, crSelBkgrd);
+			//COLORREF oldText = SetTextColor(currDC, crSelText); 
 			HFONT hfontOld;
 			if (item->containsMM)
 				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
@@ -2555,11 +2571,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             int startY = drawInfo->rcItem.top; 
 
 			//Draw the text to the DC
-			ExtTextOut(currDC, startX, startY, ETO_OPAQUE, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
+			//ExtTextOut(currDC, startX, startY, ETO_OPAQUE, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
+			ExtTextOut(currDC, startX, startY, ETO_CLIPPED, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
 
 			//TEMP
-			SetBkColor(currDC, oldBkgrd);
-			SetBkColor(currDC, oldText);
+			//SetBkColor(currDC, oldBkgrd);
+			//SetBkColor(currDC, oldText);
 			if (item->containsMM)
 				SelectObject(currDC, hfontOld);
 
@@ -2615,13 +2632,41 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Step 2: Add all languages, check the currently-selected one.
 				if (totalMenuItems == 0) {
+					//Get the Padauk embedded resource
+					HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_PADAUK_ZG), _T("COREFONT"));
+					if (!fontRes)
+						throw std::exception("Couldn't find WZ_PADAUK_ZG");
+					HGLOBAL res_handle = LoadResource(NULL, fontRes);
+					if (!res_handle)
+						throw std::exception("Couldn't get a handle on WZ_PADAUK_ZG");
+					void* data = LockResource(res_handle);
+					size_t len = SizeofResource(hInst, fontRes);
+		
+					//Add the Padauk font resource
+					DWORD nFonts;
+					padaukHandle = AddFontMemResourceEx(data, len, 0, &nFonts);
+					if(!padaukHandle)
+						throw std::exception("Embedded Padauk-Zawgyi font could not be loaded.");
+
+					//Unlock this resource for later use.
+					UnlockResource(res_handle);
+
 					//Create the Padauk Font
 					HDC currDC = GetDC(hwnd);
-					int logHeight = -MulDiv(12, GetDeviceCaps(currDC, LOGPIXELSY), 72);
-
-					padaukFont = CreateFont(logHeight, 0, 0, 0, FW_NORMAL, false, false, false, ANSI_CHARSET, 
+					/*padaukFont = CreateFont(logHeight, 0, 0, 0, FW_MEDIUM, false, false, false, ANSI_CHARSET, 
 											OUT_TT_ONLY_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,  //Possibly CLEARTYPE_QUALITY for winNT+
-											DEFAULT_PITCH|FF_DONTCARE, L"Padauk");
+											DEFAULT_PITCH|FF_DONTCARE, L"PdkZgWz");*/
+					LOGFONT lf;
+					memset(&lf, 0, sizeof(lf));
+					lf.lfHeight = -MulDiv(10, GetDeviceCaps(currDC, LOGPIXELSY), 72);
+					lf.lfWeight = FW_NORMAL;
+					lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
+					lf.lfQuality = PROOF_QUALITY;
+					wcscpy_s(lf.lfFaceName, L"PdkZgWz");
+					padaukFont = CreateFontIndirect(&lf);
+					if (!padaukFont)
+						throw std::exception("Could not create Padauk font");
+
 
 					//Init the cache
 					WZMenuItem sep = WZMenuItem(0, WZMI_SEP, L"", L"");
@@ -2807,6 +2852,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			nid.uID = STATUS_NID;
 			nid.uFlags = NIF_TIP; //??? Needed ???
 			Shell_NotifyIcon(NIM_DELETE, &nid);
+
+			//Delete our font from memory
+			if (padaukHandle!=NULL)
+				RemoveFontMemResourceEx(padaukHandle);
 
 			//Close our thread, delete our critical section
 			if (highlightKeys) {
