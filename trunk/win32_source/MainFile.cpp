@@ -51,6 +51,7 @@
 #define NODEFERWINDOWPOS    //- DeferWindowPos routines
 #define NOMCX               //- Modem Configuration Extensions
 
+
 //System includes
 #define NOMINMAX
 #include <windows.h>
@@ -120,7 +121,7 @@ const unsigned int UWM_HOTKEY_UP = WM_USER+2;
 
 //Window IDs for the "Language" sub-menu
 const unsigned int DYNAMIC_CMD_START = 50000;
-const wstring WND_TITLE_LANGUAGE = L"Language";
+const wstring WND_TITLE_LANGUAGE = L"\u1018\u102C\u101E\u102C\u1005\u1000\u102C\u1038";
 const wstring WND_TITLE_INPUT = L"Input Method";
 const wstring WND_TITLE_OUTPUT = L"Encoding";
 
@@ -136,10 +137,21 @@ HBRUSH g_YellowBkgrd;
 HBRUSH g_GreenBkgrd;
 HBRUSH g_DlgHelpBkgrd;
 HBRUSH g_DlgHelpSlash;
+HBRUSH g_MenuItemBkgrd;
+HBRUSH g_MenuItemHilite;
+HBRUSH g_MenuDefaultBkgrd;
 HPEN g_GreenPen;
 HPEN g_BlackPen;
 HPEN g_MediumGrayPen;
 HPEN g_EmptyPen;
+
+//Colors
+COLORREF cr_MenuItemBkgrd;
+COLORREF cr_MenuItemText;
+COLORREF cr_MenuDefaultBkgrd;
+COLORREF cr_MenuDefaultText;
+COLORREF cr_White;
+COLORREF cr_Black;
 
 //Global Variables
 HINSTANCE hInst;
@@ -2539,8 +2551,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Measure this item by its string.
 			SIZE textSize;
 			GetTextExtentPoint32(currDC, item->title.c_str(), item->title.length(), &textSize);
-            measureItem->itemWidth = textSize.cx;
-			measureItem->itemHeight = (padaukHeight>sysfontHeight) ? padaukHeight : sysfontHeight;
+            measureItem->itemWidth = textSize.cx + 3;
+			measureItem->itemHeight = ((padaukHeight>sysfontHeight) ? padaukHeight : sysfontHeight) + 3;
 
 			//Undo the font set
 			if (item->containsMM)
@@ -2551,32 +2563,82 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_DRAWITEM: //Draw custom menu items
 		{
+			//Are we receiving draw events for a menu?
+			if (wParam!=0)
+				break;
+
 			//Retrieve our custom data structure.
 			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam; 
             WZMenuItem* item = (WZMenuItem*)drawInfo->itemData; 
 			HDC& currDC = drawInfo->hDC; //We need the direct DC to draw properly
 
-			//TEMP
-			COLORREF crSelBkgrd = GetSysColor(COLOR_HIGHLIGHT);
-			COLORREF crSelText = GetSysColor(COLOR_HIGHLIGHTTEXT);
-			//COLORREF oldBkgrd = SetBkColor(currDC, crSelBkgrd);
-			//COLORREF oldText = SetTextColor(currDC, crSelText); 
-			HFONT hfontOld;
-			if (item->containsMM)
-				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
+			//Check the type, again
+			if (drawInfo->CtlType != ODT_MENU)
+				break;
 
+			//Set the background (we always set it to something, even if it's no change)
+			//Save the old colors
+			COLORREF oldBkgrd;
+			COLORREF oldText;
+			if (item->type==WZMI_HEADER) {
+				oldBkgrd = SetBkColor(currDC, cr_Black);
+				oldText = SetTextColor(currDC, cr_White); 
+			} else if ((drawInfo->itemState&ODS_HOTLIGHT)||(drawInfo->itemState&ODS_SELECTED)) {
+				oldBkgrd = SetBkColor(currDC, cr_MenuItemBkgrd);
+				oldText = SetTextColor(currDC, cr_MenuItemText);
+			} else {
+				oldBkgrd = SetBkColor(currDC, cr_MenuDefaultBkgrd);
+				oldText = SetTextColor(currDC, cr_MenuDefaultText); 
+			}
+
+			//Conditionally set the font
+			HFONT hfontOld;
+			unsigned int yOffset = 1;
+			if (item->containsMM) {
+				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
+				yOffset = 0;
+			}
+
+
+			//Fill the background (border first)
+			HBRUSH oldBrush;
+			HPEN oldPen = (HPEN)SelectObject(currDC, g_EmptyPen);
+			if (item->type==WZMI_HEADER) {
+				oldBrush = (HBRUSH)SelectObject(currDC, g_BlackBkgrd);
+				Rectangle(currDC, drawInfo->rcItem.left, drawInfo->rcItem.top, drawInfo->rcItem.right, drawInfo->rcItem.bottom);
+			} else if ((drawInfo->itemState&ODS_HOTLIGHT)||(drawInfo->itemState&ODS_SELECTED)) {
+				oldBrush = (HBRUSH)SelectObject(currDC, g_MenuItemHilite);
+				Rectangle(currDC, drawInfo->rcItem.left, drawInfo->rcItem.top, drawInfo->rcItem.right, drawInfo->rcItem.bottom);
+				SelectObject(currDC, g_MenuItemBkgrd);
+				Rectangle(currDC, drawInfo->rcItem.left+1, drawInfo->rcItem.top+1, drawInfo->rcItem.right-1, drawInfo->rcItem.bottom-1);
+			} else {
+				oldBrush = (HBRUSH)SelectObject(currDC, g_MenuDefaultBkgrd);
+				Rectangle(currDC, drawInfo->rcItem.left, drawInfo->rcItem.top, drawInfo->rcItem.right, drawInfo->rcItem.bottom);
+			}
+			SelectObject(currDC, oldPen);
+			SelectObject(currDC, oldBrush);
+			
+			
 			//Leave space for the check-mark bitmap
 			int checkX = GetSystemMetrics(SM_CXMENUCHECK); 
-            int startX = checkX + drawInfo->rcItem.left; 
-            int startY = drawInfo->rcItem.top; 
+            int startX = checkX + drawInfo->rcItem.left + 1;
+            int startY = drawInfo->rcItem.top + yOffset + 1;
+
+
+			//Draw the check mark?
+			if (drawInfo->itemState&ODS_CHECKED) {
+				
+			}
+
 
 			//Draw the text to the DC
 			//ExtTextOut(currDC, startX, startY, ETO_OPAQUE, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
 			ExtTextOut(currDC, startX, startY, ETO_CLIPPED, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
 
-			//TEMP
-			//SetBkColor(currDC, oldBkgrd);
-			//SetBkColor(currDC, oldText);
+
+			//Reset the DC to its original values.
+			SetTextColor(currDC, oldText);
+			SetBkColor(currDC, oldBkgrd);
 			if (item->containsMM)
 				SelectObject(currDC, hfontOld);
 
@@ -2928,12 +2990,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Create a white/black brush
+	cr_MenuItemBkgrd = RGB(0x8F, 0xA1, 0xF8);
+	cr_MenuDefaultBkgrd = GetSysColor(COLOR_MENU);
+	cr_MenuDefaultText = GetSysColor(COLOR_MENUTEXT);
+	cr_MenuItemText = RGB(0x20, 0x31, 0x89);
+	cr_Black = RGB(0x00, 0x00, 0x00);
+	cr_White = RGB(0xFF, 0xFF, 0xFF);
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
 	g_DarkGrayBkgrd = CreateSolidBrush(RGB(128, 128, 128));
 	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
 	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
 	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
 	g_DlgHelpBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
+	g_MenuItemBkgrd = CreateSolidBrush(cr_MenuItemBkgrd);
+	g_MenuDefaultBkgrd = CreateSolidBrush(cr_MenuDefaultBkgrd);
+	g_MenuItemHilite = CreateSolidBrush(RGB(0x07, 0x2B, 0xE4));
 	g_DlgHelpSlash = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
