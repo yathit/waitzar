@@ -56,6 +56,9 @@ public:
 	bool isInvalid();
 	HDC WARNINGgetUnderDC();
 
+	//Temp
+	int deviceLogPixelsY;
+
 	//Process some messages ourselves
 	WNDPROC userWndProc;
 	LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

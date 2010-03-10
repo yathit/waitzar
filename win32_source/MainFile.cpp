@@ -140,10 +140,12 @@ HBRUSH g_DlgHelpSlash;
 HBRUSH g_MenuItemBkgrd;
 HBRUSH g_MenuItemHilite;
 HBRUSH g_MenuDefaultBkgrd;
+HBRUSH g_DotHiliteBkgrd;
 HPEN g_GreenPen;
 HPEN g_BlackPen;
 HPEN g_MediumGrayPen;
 HPEN g_EmptyPen;
+HPEN g_DotHilitePen;
 
 //Colors
 COLORREF cr_MenuItemBkgrd;
@@ -167,6 +169,18 @@ DisplayMethod*     currDisplay;
 const Transformation*    input2Uni;
 const Transformation*    uni2Output;
 const Transformation*    uni2Disp;
+
+//Cache our popup menu
+HMENU contextMenu;
+HMENU contextMenuPopup;
+HMENU typingMenu;
+
+//Some resources, etc., for our popup menu
+HFONT padaukFont;
+HANDLE padaukHandle;
+int padaukHeight;
+int sysfontHeight;
+unsigned int numInputOptions;
 
 
 //These need to be pointers, for now. Reference semantics are just too complex.
@@ -213,6 +227,7 @@ struct WZMenuItem {
 	}
 };
 WZMenuItem* customMenuItems; //Because Win32 requires a pointer, and using vectors would be hacky at best.
+std::map<int, WZMenuItem*> customMenuItemsLookup;
 unsigned int totalMenuItems = 0;
 
 
@@ -286,11 +301,6 @@ MyWin32Window* mainWindow = NULL;
 MyWin32Window* sentenceWindow = NULL;
 MyWin32Window* helpWindow = NULL;
 MyWin32Window* memoryWindow = NULL;
-
-//Temporary id holders until we start managing our own menus
-vector<wstring> menuopt_languages;
-vector<wstring> menuopt_inputs;
-vector<wstring> menuopt_outputs;
 
 //Avoid cyclical messaging:
 bool mainWindowSkipMove = false;
@@ -2089,10 +2099,6 @@ void onAllWindowsCreated()
 }
 
 
-
-
-
-
 void handleNewHighlights(unsigned int keyCode)
 {
 	//If this is a shifted key, get which key is shifted: left or right
@@ -2450,13 +2456,160 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 }
 
 
+void createMyanmarMenuFont()
+{
+	//Get the Padauk embedded resource
+	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_PADAUK_ZG), _T("COREFONT"));
+	if (!fontRes)
+		throw std::exception("Couldn't find WZ_PADAUK_ZG");
+	HGLOBAL res_handle = LoadResource(NULL, fontRes);
+	if (!res_handle)
+		throw std::exception("Couldn't get a handle on WZ_PADAUK_ZG");
+	void* data = LockResource(res_handle);
+	size_t len = SizeofResource(hInst, fontRes);
+
+	//Add the Padauk font resource
+	DWORD nFonts;
+	padaukHandle = AddFontMemResourceEx(data, len, 0, &nFonts);
+	if(!padaukHandle)
+		throw std::exception("Embedded Padauk-Zawgyi font could not be loaded.");
+
+	//Unlock this resource for later use.
+	UnlockResource(res_handle);
+
+	//Create the Padauk Font
+	LOGFONT lf;
+	memset(&lf, 0, sizeof(lf));
+	lf.lfHeight = -MulDiv(10, mainWindow->deviceLogPixelsY, 72);
+	lf.lfWeight = FW_NORMAL;
+	lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
+	lf.lfQuality = PROOF_QUALITY;
+	wcscpy_s(lf.lfFaceName, L"PdkZgWz");
+	padaukFont = CreateFontIndirect(&lf);
+	if (!padaukFont)
+		throw std::exception("Could not create Padauk font");
+}
+
+
+
+//Build the context menu
+void initContextMenu() 
+{
+	//Set these later.
+	padaukHeight = 0;
+	sysfontHeight = 0;
+
+	//Make the font
+	createMyanmarMenuFont();
+
+	//Load the context menu into memory from the resource file.
+	contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(WZ_MENU));
+	contextMenuPopup = GetSubMenu(contextMenu, 0);
+
+	//Build our complex submenu for Language, Input Method, and Output Encoding
+	typingMenu = GetSubMenu(contextMenuPopup, 7); //TODO: Change to 6.... remove "Encoding" menu
+	RemoveMenu(typingMenu, ID_DELETE_ME, MF_BYCOMMAND);
+
+	//Build each sub-menu if none have been created yet. (In case we ever recycle this menu).
+	if (totalMenuItems == 0) {
+		//Give each menu item a unique ID
+		unsigned int currDynamicCmd = DYNAMIC_CMD_START;
+
+		//Init the cache; store in a vector for now.
+		WZMenuItem sep = WZMenuItem(0, WZMI_SEP, L"", L"");
+		vector<WZMenuItem> myMenuItems;
+		
+		//Add the "Language" section
+		myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_LANGUAGE));
+		myMenuItems.push_back(sep);
+		currDynamicCmd++; //Maintain easy access
+
+		//Add each language as a MI
+		for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) 
+			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
+
+		//Add the "Input Methods" section
+		myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_INPUT));
+		myMenuItems.push_back(sep);
+		currDynamicCmd++; //Maintain easy access
+
+		//Add each input method as an MI
+		for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) 
+			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_INPUT, (*it)->id, (*it)->displayName));
+
+		//Add the "Output Encodings" section
+		myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_OUTPUT));
+		myMenuItems.push_back(sep);
+		currDynamicCmd++; //Maintain easy access
+
+		//Add each input method as an MI
+		for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
+			if (!it->canUseAsOutput)
+				continue;
+			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_OUTPUT, it->id, it->displayName));
+		}
+
+		//Copy over to allocated memory --we need a constant pointer to each menu item, and vectors are too risky for this.
+		customMenuItems = new WZMenuItem[myMenuItems.size()];
+		for (size_t i=0; i<myMenuItems.size(); i++) {
+			customMenuItems[totalMenuItems] = myMenuItems[i];
+			customMenuItemsLookup[customMenuItems[totalMenuItems].menuID] = &customMenuItems[totalMenuItems];
+			totalMenuItems++;
+		}
+	}
+
+	//Add each menu in our cache
+	for (size_t i=0; i<totalMenuItems; i++) {
+		if (customMenuItems[i].type==WZMI_SEP)
+			AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
+		else {
+			unsigned int flag = (i>0&&customMenuItems[i].type==WZMI_HEADER) ? MF_MENUBARBREAK : 0;
+			AppendMenu(typingMenu, MF_OWNERDRAW|flag, customMenuItems[i].menuID, (LPTSTR)&(customMenuItems[i]));
+		}
+	}
+}
+
+
+void updateContextMenuState()
+{
+	//Hotkey string, check mark for the current language.
+	std::wstringstream txt;
+	txt <<L"English (" <<langHotkeyString <<")";
+	ModifyMenu(contextMenu, IDM_ENGLISH, MF_BYCOMMAND|(mmOn?0:MF_CHECKED), IDM_ENGLISH, txt.str().c_str());
+	txt.str(L"");
+	txt <<L"Myanmar (" <<langHotkeyString <<")";
+	ModifyMenu(contextMenu, IDM_MYANMAR, MF_BYCOMMAND|(mmOn?MF_CHECKED:0), IDM_MYANMAR, txt.str().c_str());	
+
+	//Set a check for the "Look Up Word" function
+	//  Also remove the "F1" if not applicable.
+	UINT flagL = helpWindow->isVisible() ? MF_CHECKED : 0;
+	const wstring& POPUP_LOOKUP = mmOn ? POPUP_LOOKUP_MM : POPUP_LOOKUP_EN;
+	ModifyMenu(contextMenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP.c_str());
+
+	//Set checks for the current language, input method, and output encoding
+	for (size_t i=0; i<totalMenuItems; i++) {
+		//What are we checking against?
+		wstring idToCheck;
+		if (customMenuItems[i].type==WZMI_LANG)
+			idToCheck = config.activeLanguage.id;
+		else if (customMenuItems[i].type==WZMI_INPUT)
+			idToCheck = config.activeInputMethod->id;
+		else if (customMenuItems[i].type==WZMI_OUTPUT)
+			idToCheck = config.activeOutputEncoding.id;
+		else
+			continue;
+
+		//Check/uncheck manually
+		unsigned int checkFlag = (customMenuItems[i].id==idToCheck) ? MF_CHECKED : MF_UNCHECKED;
+		CheckMenuItem(typingMenu, DYNAMIC_CMD_START+i, MF_BYCOMMAND|checkFlag);
+	}
+}
+
+
+
 /**
  * Message-handling code.
  */
-HFONT padaukFont;
-HANDLE padaukHandle = NULL;
-int padaukHeight = 0;
-int sysfontHeight = 0;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Handle callback
@@ -2576,8 +2729,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (drawInfo->CtlType != ODT_MENU)
 				break;
 
-			//Set the background (we always set it to something, even if it's no change)
-			//Save the old colors
+			//Set the background and save the old colors (we always set it to something, even if it's no change)
 			COLORREF oldBkgrd;
 			COLORREF oldText;
 			if (item->type==WZMI_HEADER) {
@@ -2593,7 +2745,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Conditionally set the font
 			HFONT hfontOld;
-			unsigned int yOffset = 1;
+			unsigned int yOffset = 2;
 			if (item->containsMM) {
 				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
 				yOffset = 0;
@@ -2620,17 +2772,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			
 			
 			//Leave space for the check-mark bitmap
-			int checkX = GetSystemMetrics(SM_CXMENUCHECK);
-			int checkY = GetSystemMetrics(SM_CYMENUCHECK);
-            int startX = checkX + drawInfo->rcItem.left + 1;
+			int checkTop = (drawInfo->rcItem.bottom-drawInfo->rcItem.top)/2-GetSystemMetrics(SM_CYMENUCHECK)/2;
+			RECT checkRect = {drawInfo->rcItem.left, drawInfo->rcItem.top+checkTop, drawInfo->rcItem.left+GetSystemMetrics(SM_CXMENUCHECK), drawInfo->rcItem.top+checkTop+GetSystemMetrics(SM_CYMENUCHECK)};
+			int startX = checkRect.right + 1;
             int startY = drawInfo->rcItem.top + yOffset + 1;
 
 
 			//Draw the check mark?
 			if (drawInfo->itemState&ODS_CHECKED) {
-				HBRUSH oldBrush = (HBRUSH)SelectObject(currDC, g_GreenBkgrd);
-				HPEN oldPen = (HPEN)SelectObject(currDC, g_BlackPen);
-				Ellipse(currDC, drawInfo->rcItem.left, drawInfo->rcItem.top, drawInfo->rcItem.left+checkX, drawInfo->rcItem.top+checkY);
+				if ((drawInfo->itemState&ODS_HOTLIGHT)||(drawInfo->itemState&ODS_SELECTED)) {
+					oldBrush = (HBRUSH)SelectObject(currDC, g_DotHiliteBkgrd);
+					oldPen = (HPEN)SelectObject(currDC, g_DotHilitePen);
+				} else {
+					oldBrush = (HBRUSH)SelectObject(currDC, g_BlackBkgrd);
+					oldPen = (HPEN)SelectObject(currDC, g_MediumGrayPen);
+				}
+				unsigned int offset = 2;
+				Ellipse(currDC, checkRect.left+1+offset, checkRect.top-1+offset, checkRect.right-offset, checkRect.bottom-1-offset);
 				SelectObject(currDC, oldPen);
 				SelectObject(currDC, oldBrush);
 			}
@@ -2653,185 +2811,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
 		{
-			POINT pt;
-			HMENU hmenu, hpopup;
-
 			if (lParam==WM_RBUTTONUP || lParam==WM_LBUTTONUP) {
-				//Make a popup menu
+				//Get the mouse's position; we'll put the menu there
+				POINT pt;
 				GetCursorPos(&pt);
-				hmenu = LoadMenu(hInst, MAKEINTRESOURCE(WZ_MENU));
-				hpopup = GetSubMenu(hmenu, 0);
 
-
-				//Note: set our text apropriately:
-				TCHAR temp[200];
-				UINT flagE = mmOn ? 0 : MF_CHECKED;
-				UINT flagM = mmOn ? MF_CHECKED : 0;
-				swprintf(temp, _T("English (%s)"), langHotkeyString);
-				ModifyMenu(hmenu, IDM_ENGLISH, MF_BYCOMMAND|flagE, IDM_ENGLISH, temp);
-				swprintf(temp, _T("Myanmar (%s)"), langHotkeyString);
-				ModifyMenu(hmenu, IDM_MYANMAR, MF_BYCOMMAND|flagM, IDM_MYANMAR, temp);
-
-				//Set checks for our sub-menus:
-				UINT flagU = MF_CHECKED;//model->getOutputEncoding()==ENCODING_UNICODE ? MF_CHECKED : 0;
-				UINT flagZ = 0;//model->getOutputEncoding()==ENCODING_ZAWGYI ? MF_CHECKED : 0;
-				UINT flagW = 0;//model->getOutputEncoding()==ENCODING_WININNWA ? MF_CHECKED : 0;
-				ModifyMenu(hmenu, ID_ENCODING_UNICODE5, MF_BYCOMMAND|flagU, ID_ENCODING_UNICODE5, POPUP_UNI.c_str());
-				ModifyMenu(hmenu, ID_ENCODING_ZAWGYI, MF_BYCOMMAND|flagZ, ID_ENCODING_ZAWGYI, POPUP_ZG.c_str());
-				ModifyMenu(hmenu, ID_ENCODING_WININNWA, MF_BYCOMMAND|flagW, ID_ENCODING_WININNWA, POPUP_WIN.c_str());
-
-				//Set a check for the "Look Up Word" function
-				//  Also remove the "F1" if not applicable.
-				UINT flagL = helpWindow->isVisible() ? MF_CHECKED : 0;
-				const wstring & POPUP_LOOKUP = mmOn ? POPUP_LOOKUP_MM : POPUP_LOOKUP_EN;
-				ModifyMenu(hmenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP.c_str());
-
-				//Build our complex submenu for language selection, etc.
-				//TODO: Replace "highlight" with a special user-drawn menu that is always highlighted.
-				//TODO2: Replace our "menuopt" vectors with an "id" parameter stored within the user-drawn menus.
-				//Step 1: Remove our placeholder item
-				HMENU typingMenu = GetSubMenu(hpopup, 7);
-				RemoveMenu(typingMenu, ID_DELETE_ME, MF_BYCOMMAND);
-				unsigned int currDynamicCmd = DYNAMIC_CMD_START;
-				menuopt_languages.clear();
-				menuopt_inputs.clear();
-				menuopt_outputs.clear();
-
-				//Step 2: Add all languages, check the currently-selected one.
-				if (totalMenuItems == 0) {
-					//Get the Padauk embedded resource
-					HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_PADAUK_ZG), _T("COREFONT"));
-					if (!fontRes)
-						throw std::exception("Couldn't find WZ_PADAUK_ZG");
-					HGLOBAL res_handle = LoadResource(NULL, fontRes);
-					if (!res_handle)
-						throw std::exception("Couldn't get a handle on WZ_PADAUK_ZG");
-					void* data = LockResource(res_handle);
-					size_t len = SizeofResource(hInst, fontRes);
-		
-					//Add the Padauk font resource
-					DWORD nFonts;
-					padaukHandle = AddFontMemResourceEx(data, len, 0, &nFonts);
-					if(!padaukHandle)
-						throw std::exception("Embedded Padauk-Zawgyi font could not be loaded.");
-
-					//Unlock this resource for later use.
-					UnlockResource(res_handle);
-
-					//Create the Padauk Font
-					HDC currDC = GetDC(hwnd);
-					/*padaukFont = CreateFont(logHeight, 0, 0, 0, FW_MEDIUM, false, false, false, ANSI_CHARSET, 
-											OUT_TT_ONLY_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,  //Possibly CLEARTYPE_QUALITY for winNT+
-											DEFAULT_PITCH|FF_DONTCARE, L"PdkZgWz");*/
-					LOGFONT lf;
-					memset(&lf, 0, sizeof(lf));
-					lf.lfHeight = -MulDiv(10, GetDeviceCaps(currDC, LOGPIXELSY), 72);
-					lf.lfWeight = FW_NORMAL;
-					lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
-					lf.lfQuality = PROOF_QUALITY;
-					wcscpy_s(lf.lfFaceName, L"PdkZgWz");
-					padaukFont = CreateFontIndirect(&lf);
-					if (!padaukFont)
-						throw std::exception("Could not create Padauk font");
-
-
-					//Init the cache
-					WZMenuItem sep = WZMenuItem(0, WZMI_SEP, L"", L"");
-					vector<WZMenuItem> myMenuItems;
-					
-					//Add the "Language" section
-					myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_LANGUAGE));
-					myMenuItems.push_back(sep);
-
-					//Add each language as an MI
-					for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
-						myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
-					}
-
-					//Add the "Input Methods" section
-					myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_INPUT));
-					myMenuItems.push_back(sep);
-
-					//Add each input method as an MI
-					for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
-						myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, (*it)->id, (*it)->displayName));
-					}
-
-					//Add the "Output Encodings" section
-					myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_OUTPUT));
-					myMenuItems.push_back(sep);
-
-					//Add each input method as an MI
-					for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
-						if (!it->canUseAsOutput)
-							continue;
-						myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
-					}
-
-					//Copy over
-					customMenuItems = new WZMenuItem[myMenuItems.size()];
-					for (size_t i=0; i<myMenuItems.size(); i++)
-						customMenuItems[totalMenuItems++] = myMenuItems[i];
-					
-				}
-
-				//Add each menu in our cached vector
-				for (size_t i=0; i<totalMenuItems; i++) {
-					if (customMenuItems[i].type==WZMI_SEP)
-						AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
-					else {
-						unsigned int flag = (i>0&&customMenuItems[i].type==WZMI_HEADER) ? MF_MENUBARBREAK : 0;
-						AppendMenu(typingMenu, MF_OWNERDRAW|flag, customMenuItems[i].menuID, (LPTSTR)&(customMenuItems[i]));
-					}
-				}
-
-
-
-				/*AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, WND_TITLE_LANGUAGE.c_str());
-				AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
-				mainWindow->hiliteMenu(typingMenu, currDynamicCmd-1, true);
-				unsigned int radioStart = currDynamicCmd;
-				unsigned int checkID = 0;
-				for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
-					checkID = (*it == config.activeLanguage) ? currDynamicCmd : checkID;
-					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, it->displayName.c_str());
-					menuopt_languages.push_back(it->id);
-				}
-				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
-
-				//Step 3: Add all input methods, check the currently-selected one.
-				AppendMenu(typingMenu, MF_STRING|MF_MENUBARBREAK, currDynamicCmd++, WND_TITLE_INPUT.c_str());
-				AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
-				mainWindow->hiliteMenu(typingMenu, currDynamicCmd-1, true);
-				radioStart = currDynamicCmd;
-				checkID = 0;
-				for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
-					checkID = (*it == config.activeInputMethod) ? currDynamicCmd : checkID;
-					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, (*it)->displayName.c_str());
-					menuopt_inputs.push_back((*it)->id);
-				}
-				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);
-
-				//Step 4: Add all output encodings, check the currently-selected one.
-				AppendMenu(typingMenu, MF_STRING|MF_MENUBARBREAK, currDynamicCmd++, WND_TITLE_OUTPUT.c_str());
-				AppendMenu(typingMenu, MF_SEPARATOR, 0, NULL);
-				mainWindow->hiliteMenu(typingMenu, currDynamicCmd-1, true);
-				radioStart = currDynamicCmd;
-				checkID = 0;
-				for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
-					if (!it->canUseAsOutput)
-						continue;
-					checkID = (*it == config.activeOutputEncoding) ? currDynamicCmd : checkID;
-					AppendMenu(typingMenu, MF_STRING, currDynamicCmd++, it->displayName.c_str());
-					menuopt_outputs.push_back((*it).id);
-				}
-				CheckMenuRadioItem(typingMenu, radioStart, currDynamicCmd-1, checkID, MF_BYCOMMAND);*/
+				//Update the menu
+				updateContextMenuState();
 
 				//Cause our popup to appear in front of any other window.
 				SetForegroundWindow(hwnd);
 
 				//Force a track on this menu.
-				int retVal = TrackPopupMenu(hpopup, //Which menu to track
+				int retVal = TrackPopupMenu(contextMenuPopup, //Which menu to track
                                  TPM_RETURNCMD |    //This code specifies that we return the ID of the selected menu item.
                                  TPM_RIGHTBUTTON,   //Track right mouse button
                                  pt.x, pt.y,        //Specifies the menu's location.
@@ -2873,32 +2865,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else if (retVal == IDM_EXIT) {
 					//Will generate a WM_DESTROY message
 					delete mainWindow;
-					//DestroyWindow(hwnd);
-				} else if (retVal == ID_ENCODING_UNICODE5) {
-					//setEncoding(ENCODING_UNICODE);
-					recalculate();
-				} else if (retVal == ID_ENCODING_ZAWGYI) {
-					//setEncoding(ENCODING_ZAWGYI);
-					recalculate();
-				} else if (retVal == ID_ENCODING_WININNWA) {
-					//setEncoding(ENCODING_WININNWA);
-					recalculate();
 				} else if (retVal >= DYNAMIC_CMD_START) {
 					//Switch the language, input manager, or output manager.
-					unsigned int offset = retVal-DYNAMIC_CMD_START-1;
-					if (offset<menuopt_languages.size())
-						ChangeLangInputOutput(menuopt_languages[offset], L"", L"");
-					else if (offset-menuopt_languages.size()-1<menuopt_inputs.size())
-						ChangeLangInputOutput(L"", menuopt_inputs[offset-menuopt_languages.size()-1], L"");
-					else
-						ChangeLangInputOutput(L"", L"", menuopt_outputs[offset-menuopt_languages.size()-menuopt_inputs.size()-2]);
+					if (customMenuItemsLookup.count(retVal)==0)
+						throw std::exception("Bad menu item");
+					WZMenuItem* currItem = customMenuItemsLookup[retVal];
+					if (currItem->type==WZMI_LANG)
+						ChangeLangInputOutput(currItem->id, L"", L"");
+					else if (currItem->type==WZMI_INPUT)
+						ChangeLangInputOutput(L"", currItem->id, L"");
+					else if (currItem->type==WZMI_OUTPUT)
+						ChangeLangInputOutput(L"", L"", currItem->id);
 				}
 
 				//Fixes a bug re: MSKB article: Q135788
 				PostMessage(hwnd, 0, 0, 0);
-
-				//Reclaim resources
-				DestroyMenu(hmenu);
 			}
 
 			break;
@@ -2923,6 +2904,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Delete our font from memory
 			if (padaukHandle!=NULL)
 				RemoveFontMemResourceEx(padaukHandle);
+
+			//Delete our custom menu
+			if (contextMenu!=NULL)
+				DestroyMenu(contextMenu);
 
 			//Close our thread, delete our critical section
 			if (highlightKeys) {
@@ -2968,6 +2953,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//First and foremost
 	helpIsCached = false;
 	isDragging = false;
+	contextMenu = NULL;
+	padaukHandle = NULL;
 
 	//Also...
 	try {
@@ -3011,9 +2998,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_MenuDefaultBkgrd = CreateSolidBrush(cr_MenuDefaultBkgrd);
 	g_MenuItemHilite = CreateSolidBrush(RGB(0x07, 0x2B, 0xE4));
 	g_DlgHelpSlash = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
+	g_DotHiliteBkgrd = CreateSolidBrush(RGB(0x00, 0x1A, 0x7A));
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_MediumGrayPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
+	g_DotHilitePen = CreatePen(PS_SOLID, 1, RGB(0x42, 0x5D, 0xBC));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
 
 
@@ -3224,7 +3213,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//TEST: did our settings load?
-	Settings s = config.getSettings();
+	/*Settings s = config.getSettings();
 	wstringstream msg;
 	msg << "Settings" <<std::endl;
 	msg << "Always elevate: " <<s.alwaysElevate <<std::endl;
@@ -3277,7 +3266,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		msg <<"]" <<std::endl;
 
 	}
-	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);
+	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);*/
 
 
 	//Load our configuration file now; save some headaches later
@@ -3327,6 +3316,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, msg.str().c_str(), L"CreateWindow() Error", MB_ICONERROR | MB_OK);
 		return 0;
 	}
+
+	//Create our context menu
+	initContextMenu();
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
