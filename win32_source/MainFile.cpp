@@ -2620,14 +2620,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			
 			
 			//Leave space for the check-mark bitmap
-			int checkX = GetSystemMetrics(SM_CXMENUCHECK); 
+			int checkX = GetSystemMetrics(SM_CXMENUCHECK);
+			int checkY = GetSystemMetrics(SM_CYMENUCHECK);
             int startX = checkX + drawInfo->rcItem.left + 1;
             int startY = drawInfo->rcItem.top + yOffset + 1;
 
 
 			//Draw the check mark?
 			if (drawInfo->itemState&ODS_CHECKED) {
-				
+				HBRUSH oldBrush = (HBRUSH)SelectObject(currDC, g_GreenBkgrd);
+				HPEN oldPen = (HPEN)SelectObject(currDC, g_BlackPen);
+				Ellipse(currDC, drawInfo->rcItem.left, drawInfo->rcItem.top, drawInfo->rcItem.left+checkX, drawInfo->rcItem.top+checkY);
+				SelectObject(currDC, oldPen);
+				SelectObject(currDC, oldBrush);
 			}
 
 
