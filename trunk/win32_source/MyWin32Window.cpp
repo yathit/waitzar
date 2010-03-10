@@ -144,6 +144,9 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			this->topDC = GetDC(hwnd);
 			this->window = hwnd;
 
+			//Save logical pixel information
+			this->deviceLogPixelsY = GetDeviceCaps(topDC, LOGPIXELSY);
+
 			//Perform checks for "on all created"
 			bool allDone = true;
 			for (std::map< std::wstring, MyWin32Window* >::iterator item=WndMap.begin(); item!=WndMap.end(); item++) {
