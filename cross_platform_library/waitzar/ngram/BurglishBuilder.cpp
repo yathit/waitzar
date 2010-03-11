@@ -112,7 +112,7 @@ bool BurglishBuilder::IsValid(const wstring& word)
 }
 
 
-void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList, bool firstLetterUppercase)
+void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, bool firstLetterUppercase)
 {
 	//Nothing to do?
 	if (roman.empty())
@@ -189,9 +189,11 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList,
 
 			//We've built our onset + rhyme into rhyme directly. 
 			//Now, we just need to test for errors, etc.
-			wstring word = rhyme.str();
-			if (IsValid(word))
-				resultsList.insert(waitzar::normalize_bgunicode(word));
+			wstring word = waitzar::normalize_bgunicode(rhyme.str());
+			if (IsValid(word) && resultsKeyset.count(word)==0) {
+				resultSet.push_back(word);
+				resultsKeyset.insert(word);
+			}
 
 			//Finally: reset
 			rhyme.str(L"");
@@ -203,7 +205,7 @@ void BurglishBuilder::addStandardWords(wstring roman, set<wstring>& resultsList,
 
 
 
-void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& resultsList)
+void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet)
 {
 	//Make sure it contains only numbers
 	std::wstringstream literalStr;
@@ -216,7 +218,10 @@ void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& re
 	}
 
 	//Add the number string itself
-	resultsList.insert(literalStr.str());
+	if (resultsKeyset.count(literalStr.str())==0) {
+		resultSet.push_back(literalStr.str());
+		resultsKeyset.insert(literalStr.str());
+	}
 
 	//Add compound numbers, when possible
 	//TODO: Does this work right for 100, etc? Right now, it's mostly copied from Burglish.
@@ -241,14 +246,16 @@ void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& re
 		}
 
 		//Add it.
-		if (!foundWord.empty())
-			resultsList.insert(foundWord);
+		if (!foundWord.empty() && resultsKeyset.count(foundWord)==0) {
+			resultSet.push_back(foundWord);
+			resultsKeyset.insert(foundWord);
+		}
 	}
 }
 
 
 
-void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList, std::wstringstream& parenStr)
+void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, std::wstringstream& parenStr)
 {
 	//Actually, we have to loop through each special word, to allow "prediction"
 	wstring comma = L"";
@@ -274,7 +281,10 @@ void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>
 					continue;
 
 				//Add it (no need to check validity)
-				resultsList.insert(entry.str());
+				if (resultsKeyset.count(entry.str())==0) {
+					resultSet.push_back(entry.str());
+					resultsKeyset.insert(entry.str());
+				}
 
 				//Finally: reset
 				entry.str(L"");
@@ -284,12 +294,13 @@ void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>
 }
 
 
-void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsList)
+void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet)
 {
 	//Just a few simple substitutions
 	//TODO: Double-check this after all words have been added.
+	vector<wstring> newCandidates;
 	wstringstream newWord;
-	for (std::set<std::wstring>::const_iterator word=resultsList.begin(); word!=resultsList.end(); word++) {
+	for (std::set<std::wstring>::const_iterator word=resultsKeyset.begin(); word!=resultsKeyset.end(); word++) {
 		//Try to build up a new match
 		newWord.str(L"");
 		for (size_t i=0; i<word->size(); i++) {
@@ -326,8 +337,18 @@ void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsList)
 
 		//Is this word worth adding?
 		if (newWord.str() != *word && IsValid(newWord.str()))
-			resultsList.insert(newWord.str());
+			newCandidates.push_back(newWord.str());
 	}
+
+
+	//Add each new candidate (this preserves iterators)
+	for (vector<wstring>::iterator it=newCandidates.begin(); it!=newCandidates.end(); it++) {
+		if (resultsKeyset.count(*it)==0) {
+			resultSet.push_back(*it);
+			resultsKeyset.insert(*it);
+		}
+	}
+
 }
 
 
@@ -337,22 +358,19 @@ void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsList)
 void BurglishBuilder::reGenerateWordlist()
 {
 	//Reset
-	set<wstring> results;
+	set<wstring> resultLookup;
+	generatedWords.clear();
 	parenStr.str(L"");
 
 	if (!typedRomanStr.str().empty()) {
-		//For now, just do the general combinations
-		addStandardWords(typedRomanStr.str(), results, typeBeginsWithUpper);
-		addSpecialWords(typedRomanStr.str(), results, parenStr);
-		addNumerals(typedRomanStr.str(), results);
+		//Perform all combinations
+		addStandardWords(typedRomanStr.str(), resultLookup, generatedWords, typeBeginsWithUpper);
+		addSpecialWords(typedRomanStr.str(), resultLookup, generatedWords, parenStr);
+		addNumerals(typedRomanStr.str(), resultLookup, generatedWords);
 
 		//Expand the set of words with common substitutions
-		expandCurrentWords(results);
+		expandCurrentWords(resultLookup, generatedWords);
 	}
-
-	//Copy into our vector
-	generatedWords.clear();
-	generatedWords.insert(generatedWords.begin(), results.begin(), results.end());
 }
 
 

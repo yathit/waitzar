@@ -68,10 +68,10 @@ public:
 private:
 	static bool IsVowel(wchar_t letter);
 	static bool IsValid(const std::wstring& word);
-	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsList, bool firstLetterUppercase);
-	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsList, std::wstringstream& parenStr);
-	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsList);
-	static void expandCurrentWords(std::set<std::wstring>& resultsList);
+	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, bool firstLetterUppercase);
+	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, std::wstringstream& parenStr);
+	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet);
+	static void expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet);
 
 	void reGenerateWordlist();
 
