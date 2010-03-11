@@ -161,6 +161,8 @@ HICON mmIcon;
 HICON engIcon;
 //WordBuilder *model;
 
+void createContextMenu();
+
 //More globals  --  full program customization happens here
 InputMethod*       currInput;     //Which of the two next inputs are currently in use?
 InputMethod*       currTypeInput;
@@ -2295,6 +2297,18 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		config.activeDisplayMethod = *(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethod));
 		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), config.activeLanguage.defaultInputMethod));
 		config.activeOutputEncoding = config.activeLanguage.defaultOutputEncoding;
+
+		//Rebuild the menus?
+		if (contextMenu!=NULL) {
+			//Reclaim
+			DestroyMenu(contextMenu);
+			totalMenuItems = 0;
+			customMenuItemsLookup.clear();
+			delete [] customMenuItems;
+
+			//Reubild
+			createContextMenu();
+		}
 	}
 	if (!inputid.empty())
 		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), inputid));
@@ -2492,16 +2506,9 @@ void createMyanmarMenuFont()
 
 
 
-//Build the context menu
-void initContextMenu() 
+//Rebuild the context menu --any time
+void createContextMenu()
 {
-	//Set these later.
-	padaukHeight = 0;
-	sysfontHeight = 0;
-
-	//Make the font
-	createMyanmarMenuFont();
-
 	//Load the context menu into memory from the resource file.
 	contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(WZ_MENU));
 	contextMenuPopup = GetSubMenu(contextMenu, 0);
@@ -2567,6 +2574,22 @@ void initContextMenu()
 			AppendMenu(typingMenu, MF_OWNERDRAW|flag, customMenuItems[i].menuID, (LPTSTR)&(customMenuItems[i]));
 		}
 	}
+}
+
+
+
+//Build the context menu --first time
+void initContextMenu() 
+{
+	//Set these later.
+	padaukHeight = 0;
+	sysfontHeight = 0;
+
+	//Make the font
+	createMyanmarMenuFont();
+
+	//Make the menu
+	createContextMenu();
 }
 
 
