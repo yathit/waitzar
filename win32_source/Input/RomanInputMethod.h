@@ -392,19 +392,21 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 
 	//Build
 	int currID = -1;
+	std::wstring lastWord = L"";
 	for (std::list<int>::const_iterator it=sentence->begin(); it!=sentence->end(); it++) {
 		//Get the word
 		int modID = -(*it)-1;
 		wstring currWord = (*it>=0) ? model->getWordString(*it) : (modID<(int)systemDefinedWords.size()) ? wstring(1, systemDefinedWords[modID]) : userDefinedWords[modID-systemDefinedWords.size()];
 
 		//Have we reached a transition?
-		if (currID==sentence->getCursorIndex()-1 && model->getCurrSelectedID()==-1 && model->hasPatSintWord()) {
+		int absIndex = model->getCurrSelectedID()+model->getFirstWordIndex();
+		if (currID==sentence->getCursorIndex()-1 && absIndex>=0 && model->isRedHilite(model->getCurrSelectedID(), model->getPossibleWords()[absIndex], lastWord)) {
 			//We're about to start the highlighted word.
 			res.push_back(line.str());
 			line.str(L"");
 
 			//CHANGE the current word to the pat-sint replacement.
-			currWord = model->getWordString(model->getPossibleWords()[0]);
+			currWord = model->getWordString(model->getPossibleWords()[absIndex]);
 		} else if (currID==sentence->getCursorIndex()) {
 			//We're at the cursor
 			res.push_back(line.str());
@@ -418,6 +420,7 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 		full <<currWord;
 
 		//Increment
+		lastWord = currWord;
 		currID++;
 	}
 

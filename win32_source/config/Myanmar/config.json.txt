@@ -22,7 +22,7 @@
     "waitzar" : 
     {
       "display-name" : "Wait Zar",
-      "encoding" : "unicode",
+      "encoding" : "zawgyi-one",
       "type" : "builtin"
     },
 	

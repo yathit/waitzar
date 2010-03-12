@@ -25,7 +25,7 @@
           "waitzar" : 
           {
             "display-name" : "WaitZar",
-            "encoding" : "unicode",
+            "encoding" : "zawgyi-one",
             "type" : "builtin"
           },
           "mywin" : 
