@@ -441,6 +441,10 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 }
 
 
+//0 = reg. word
+//1 = pat-sint
+//2 = selected
+//3 = both
 template <class ModelType>
 vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandidateStrings()
 {
@@ -449,7 +453,17 @@ vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandi
 	std::vector<UINT32> words = model->getPossibleWords();
 	for (size_t i=0; i<words.size(); i++) {
 		std::pair<std::wstring, unsigned int> item = std::pair<std::wstring, unsigned int>(model->getWordString(words[i]), 0);
-		if (i<model->getFirstWordIndex())
+		
+		//Get the previous word
+		std::wstring prevWord = L"";
+		std::list<int>::const_iterator it=sentence->begin();
+		for (int currID=0; currID<=sentence->getCursorIndex(); currID++) {
+			prevWord = model->getWordString(*it);
+			it++;
+		}
+
+		//Color properly.
+		if (model->isRedHilite(i, words[i], prevWord))
 			item.second = 1;
 		if (model->getCurrSelectedID() == i-model->getFirstWordIndex())
 			item.second = item.second==1 ? 3 : 2;

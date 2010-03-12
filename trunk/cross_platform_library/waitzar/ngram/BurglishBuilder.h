@@ -39,6 +39,7 @@ public:
 	bool typeLetter(char letter, bool isUpper);
 	void reset(bool fullReset);
 	std::wstring getParenString() const;
+	bool isRedHilite(int selectionID, unsigned int wordID, const std::wstring& prevSentenceWord) const;
 
 	//Requires hacking (mostly b/c WordBuilder assumes word IDs)
 	std::vector<unsigned int> getPossibleWords() const;
@@ -68,10 +69,13 @@ public:
 private:
 	static bool IsVowel(wchar_t letter);
 	static bool IsValid(const std::wstring& word);
-	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, bool firstLetterUppercase);
-	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, std::wstringstream& parenStr);
-	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet);
-	static void expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet);
+	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet, bool firstLetterUppercase);
+	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet, std::wstringstream& parenStr);
+	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet);
+	static void expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet);
+
+	//Helper
+	std::pair<std::wstring, bool> getWordPair(unsigned int id) const;
 
 	void reGenerateWordlist();
 
@@ -87,7 +91,7 @@ private:
 	std::wstringstream typedRomanStr;
 	static std::vector<std::wstring> savedDigitIDs; //0 through 9
 	std::vector<std::wstring> savedWordIDs;
-	std::vector<std::wstring> generatedWords;
+	std::vector< std::pair<std::wstring, bool> > generatedWords; //"true" if potentially stackable
 	int currSelectedID;
 	int currSelectedPage;
 	bool typeBeginsWithUpper;

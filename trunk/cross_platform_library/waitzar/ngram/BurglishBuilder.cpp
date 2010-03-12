@@ -112,7 +112,7 @@ bool BurglishBuilder::IsValid(const wstring& word)
 }
 
 
-void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, bool firstLetterUppercase)
+void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet, bool firstLetterUppercase)
 {
 	//Nothing to do?
 	if (roman.empty())
@@ -191,7 +191,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 			//Now, we just need to test for errors, etc.
 			wstring word = waitzar::normalize_bgunicode(rhyme.str());
 			if (IsValid(word) && resultsKeyset.count(word)==0) {
-				resultSet.push_back(word);
+				resultSet.push_back(pair<wstring, bool>(word, firstLetterUppercase)); //This is the only place we can add pat-sint words
 				resultsKeyset.insert(word);
 			}
 
@@ -205,7 +205,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 
 
 
-void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet)
+void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet)
 {
 	//Make sure it contains only numbers
 	std::wstringstream literalStr;
@@ -219,7 +219,7 @@ void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& re
 
 	//Add the number string itself
 	if (resultsKeyset.count(literalStr.str())==0) {
-		resultSet.push_back(literalStr.str());
+		resultSet.push_back(pair<wstring, bool>(literalStr.str(), false));
 		resultsKeyset.insert(literalStr.str());
 	}
 
@@ -247,7 +247,7 @@ void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& re
 
 		//Add it.
 		if (!foundWord.empty() && resultsKeyset.count(foundWord)==0) {
-			resultSet.push_back(foundWord);
+			resultSet.push_back(pair<wstring, bool>(foundWord, false));
 			resultsKeyset.insert(foundWord);
 		}
 	}
@@ -255,7 +255,7 @@ void BurglishBuilder::addNumerals(std::wstring roman, std::set<std::wstring>& re
 
 
 
-void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet, std::wstringstream& parenStr)
+void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet, std::wstringstream& parenStr)
 {
 	//Actually, we have to loop through each special word, to allow "prediction"
 	wstring comma = L"";
@@ -282,7 +282,7 @@ void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>
 
 				//Add it (no need to check validity)
 				if (resultsKeyset.count(entry.str())==0) {
-					resultSet.push_back(entry.str());
+					resultSet.push_back(std::pair<wstring, bool>(entry.str(), false));
 					resultsKeyset.insert(entry.str());
 				}
 
@@ -294,7 +294,7 @@ void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>
 }
 
 
-void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector<std::wstring>& resultSet)
+void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet)
 {
 	//Just a few simple substitutions
 	//TODO: Double-check this after all words have been added.
@@ -344,7 +344,7 @@ void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsKeyset, 
 	//Add each new candidate (this preserves iterators)
 	for (vector<wstring>::iterator it=newCandidates.begin(); it!=newCandidates.end(); it++) {
 		if (resultsKeyset.count(*it)==0) {
-			resultSet.push_back(*it);
+			resultSet.push_back(pair<wstring, bool>(*it, false));
 			resultsKeyset.insert(*it);
 		}
 	}
@@ -423,6 +423,29 @@ bool BurglishBuilder::typeLetter(char letter, bool isUpper)
 }
 
 
+//Returns true for pat-sint words, unless they won't combine with the previous word.
+bool BurglishBuilder::isRedHilite(int selectionID, unsigned int wordID, const std::wstring& prevSentenceWord) const
+{
+	//First, is this ID even a pat-sint word?
+	if (!getWordPair(wordID).second)
+		return false;
+
+	//First word?
+	if (prevSentenceWord.empty())
+		return false;
+
+	//Previous word is not combin-able?
+	//Basically, we need U+103A (but not if it's part of kinzi). 
+	//Actually, to prevent double-stacking, we'll just ignore all words with U+1039. 
+	if (prevSentenceWord.find(L"\u103A")==-1 || prevSentenceWord.find(L"\u1039")!=-1)
+		return false;
+
+	//This word is stackable
+	return true;
+}
+
+
+
 std::wstring BurglishBuilder::getParenString() const
 {
 	return parenStr.str();
@@ -444,18 +467,24 @@ std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 }
 
 
+std::pair<std::wstring, bool> BurglishBuilder::getWordPair(unsigned int id) const
+{
+	if (id<savedDigitIDs.size())
+		return pair<wstring, bool>(savedDigitIDs[id], false);
+	id -= savedDigitIDs.size();
+	if (id<savedWordIDs.size())
+		return pair<wstring, bool>(savedWordIDs[id], false);
+	id -= savedWordIDs.size();
+
+	return generatedWords[id];
+}
+
+
 //Simple.
 //NOTE: An id is in the savedDigitIDs/savedWordIDs arrays, or it is after those, in the list of candidates.
 std::wstring BurglishBuilder::getWordString(unsigned int id) const
 {
-	if (id<savedDigitIDs.size())
-		return savedDigitIDs[id];
-	id -= savedDigitIDs.size();
-	if (id<savedWordIDs.size())
-		return savedWordIDs[id];
-	id -= savedWordIDs.size();
-
-	return generatedWords[id];
+	return getWordPair(id).first;
 }
 
 
