@@ -393,7 +393,7 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 	//Build
 	int currID = -1;
 	int actID = model->getCurrSelectedID()+model->getFirstWordIndex();
-	int currReplacementID = (actID<0) ? -1 : model->getWordCombinations()[actID];
+	int currReplacementID = (model->getPossibleWords().empty()) ? -1 : model->getWordCombinations()[actID];
 	for (std::list<int>::const_iterator it=sentence->begin(); it!=sentence->end(); it++) {
 		//Get the word
 		int modID = -(*it)-1;
