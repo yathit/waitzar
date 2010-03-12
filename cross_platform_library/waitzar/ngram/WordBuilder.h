@@ -57,7 +57,7 @@ public:
 	~WordBuilder(void);
 
 	//State-changing functions. Use these to respond to keypresses.
-	bool typeLetter(char letter, bool isUpper);
+	bool typeLetter(char letter, bool isUpper, const std::wstring& prevWord);
 	std::pair<bool, unsigned int> typeSpace(int quickJumpID, bool useQuickJump);
 	bool backspace();
 	void reset(bool fullReset);
@@ -67,6 +67,7 @@ public:
 	int getCurrSelectedID() const; //Returns -1 if PS, etc.
 	std::vector<char> getPossibleChars() const;
 	std::vector<unsigned int> getPossibleWords() const;
+	std::vector<int> getWordCombinations() const; //Tied to getPossibleWords
 	void insertTrigram(const std::vector<unsigned int> &trigrams);
 	unsigned int getFirstWordIndex() const;
 	int getNumberOfPages() const;
@@ -78,8 +79,8 @@ public:
 	std::wstring getWordKeyStrokes(unsigned int id, unsigned int encoding);
 	std::wstring getWordString(unsigned int id) const;
 	std::wstring getParenString() const;
-	bool hasPatSintWord() const; 
-	bool isRedHilite(int selectionID, unsigned int wordID, const std::wstring& prevSentenceWord) const;
+	bool canTypeShortcut() const; 
+
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull) const;
@@ -156,6 +157,7 @@ private:
 	//Internal stuff
 	std::vector<char> possibleChars;
 	std::vector<unsigned int> possibleWords;
+	std::vector<int> wordCombinations;
 	size_t firstRegularWordIndex;
 
 	//Extension: guessing the next bit
