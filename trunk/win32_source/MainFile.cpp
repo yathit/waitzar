@@ -1686,22 +1686,21 @@ void recalculate()
 
 		//Select fonts, and draw a box under highlighted words
 		mmFont = mmFontBlack;
-		if (dispCandidateStrs[id].second==1)
-			mmFont = mmFontRed;
-		else if (dispCandidateStrs[id].second==2 || dispCandidateStrs[id].second==3) {
+		if (dispCandidateStrs[id].second & HF_CURRSELECTION) {
 			mmFont = mmFontGreen;
 
 			mainWindow->selectObject(g_YellowBkgrd);
 			mainWindow->selectObject(g_GreenPen);
 			mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
-		}
+		} else if (dispCandidateStrs[id].second & HF_PATSINT)
+			mmFont = mmFontRed;
 
 		//Draw the string (foreground)
 		mainWindow->drawString(mmFont, dispCandidateStrs[id].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 		//Draw its numbered identifier, or '`' if it's a red-highlighted word
 		std::wstringstream digit;
-		if (dispCandidateStrs[id].second==1 || dispCandidateStrs[id].second==3) {
+		if (dispCandidateStrs[id].second & HF_LABELTILDE) {
 			digit <<L"`";
 		} else {
 			digit <<currLabelID++;

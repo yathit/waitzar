@@ -443,8 +443,8 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 
 //0 = reg. word
 //1 = pat-sint
-//2 = selected
-//3 = both
+//2 = selected 
+//4 = give it a "tilde" label
 template <class ModelType>
 vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandidateStrings()
 {
@@ -452,7 +452,7 @@ vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandi
 	std::vector< std::pair<std::wstring, unsigned int> > res;
 	std::vector<UINT32> words = model->getPossibleWords();
 	for (size_t i=0; i<words.size(); i++) {
-		std::pair<std::wstring, unsigned int> item = std::pair<std::wstring, unsigned int>(model->getWordString(words[i]), 0);
+		std::pair<std::wstring, unsigned int> item = std::pair<std::wstring, unsigned int>(model->getWordString(words[i]), HF_NOTHING);
 		
 		//Get the previous word
 		std::wstring prevWord = L"";
@@ -463,10 +463,13 @@ vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandi
 		}
 
 		//Color properly.
-		if (model->isRedHilite(i, words[i], prevWord))
-			item.second = 1;
+		if (model->isRedHilite(i, words[i], prevWord)) {
+			item.second |= HF_PATSINT;
+			if (model->hasPatSintWord()) //A bit hacky, but fixes the burglish display bug
+				item.second |= HF_LABELTILDE;
+		}
 		if (model->getCurrSelectedID() == i-model->getFirstWordIndex())
-			item.second = item.second==1 ? 3 : 2;
+			item.second |= HF_CURRSELECTION;
 		res.push_back(item);
 	}
 

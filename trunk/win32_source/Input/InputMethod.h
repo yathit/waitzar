@@ -20,6 +20,9 @@
 
 enum CONTROL_KEY_STYLES {CK_CHINESE, CK_JAPANESE};
 
+//Hilite styles
+enum HILITE_FLAGS {HF_NOTHING=0, HF_PATSINT=1, HF_CURRSELECTION=2, HF_LABELTILDE=4};
+
 
 //Expected interface: "Input Method"
 class InputMethod {
