@@ -39,6 +39,7 @@ public:
 	size_t size() const;
 	bool deleteNext();
 	bool deletePrev(ModelType &model);
+	std::wstring getPrevTypedWord(ModelType &model) const;
 
 	//Iterating
 	std::list<int>::const_iterator begin() const;
@@ -182,6 +183,19 @@ bool SentenceList<ModelType>::deletePrev(ModelType &model)
 	//Update the trigrams...
 	this->updateTrigrams(model);
 	return true;
+}
+
+
+template <class ModelType>
+std::wstring SentenceList<ModelType>::getPrevTypedWord(ModelType &model) const
+{
+	std::wstring prevWord = L"";
+	std::list<int>::const_iterator it=this->begin();
+	for (int currID=0; currID<=this->getCursorIndex(); currID++) {
+		prevWord = model.getWordString(*it);
+		it++;
+	}
+	return prevWord;
 }
 
 

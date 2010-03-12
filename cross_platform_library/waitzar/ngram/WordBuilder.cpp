@@ -702,13 +702,8 @@ int WordBuilder::getCurrSelectedID() const {
 	return currSelectedAbsoluteID - firstRegularWordIndex;
 }
 
-bool WordBuilder::hasPatSintWord() const {
+bool WordBuilder::canTypeShortcut() const {
 	return firstRegularWordIndex > 0;
-}
-
-bool WordBuilder::isRedHilite(int selectionID, unsigned int wordID, const std::wstring& prevSentenceWord) const {
-	//Return true for all pat-sint words. This requires just a simple index check.
-	return selectionID < (int)this->getFirstWordIndex();
 }
 
 	
@@ -744,7 +739,7 @@ bool WordBuilder::pageUp(bool up)
 
 
 //Returns true if the window is still visible.
-bool WordBuilder::backspace()
+bool WordBuilder::backspace(const std::wstring& prevWord)
 {
 	if (pastNexus.empty())
 		return false;
