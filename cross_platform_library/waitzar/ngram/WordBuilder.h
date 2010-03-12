@@ -79,6 +79,7 @@ public:
 	std::wstring getWordString(unsigned int id) const;
 	std::wstring getParenString() const;
 	bool hasPatSintWord() const; 
+	bool isRedHilite(int selectionID, unsigned int wordID, const std::wstring& prevSentenceWord) const;
 
 	//Some additional useful info
 	unsigned short getStopCharacter(bool isFull) const;
