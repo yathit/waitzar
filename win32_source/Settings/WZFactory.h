@@ -25,6 +25,7 @@
 #include "Settings/Language.h"
 #include "Transform/Zg2Uni.h"
 #include "Transform/Uni2Zg.h"
+#include "Transform/Uni2WinInnwa.h"
 #include "Transform/Self2Self.h"
 #include "Settings/ConfigManager.h"
 #include "resource.h"
@@ -598,7 +599,7 @@ Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id,
 		if (id==L"uni2zg")
 			res = new Uni2Zg();
 		else if (id==L"uni2wi")
-			res = new Self2Self();   //TODO: Implement
+			res = new Uni2WinInnwa();
 		else if (id==L"zg2uni")
 			res = new Zg2Uni();
 		else
