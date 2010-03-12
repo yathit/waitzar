@@ -36,13 +36,14 @@ public:
 	///////////////////////////////////////////////
 	
 	//Key elements of BurglishBuilder
-	bool typeLetter(char letter, bool isUpper);
+	bool typeLetter(char letter, bool isUpper, const std::wstring& prevWord);
 	void reset(bool fullReset);
 	std::wstring getParenString() const;
-	bool isRedHilite(int selectionID, unsigned int wordID, const std::wstring& prevSentenceWord) const;
 
 	//Requires hacking (mostly b/c WordBuilder assumes word IDs)
 	std::vector<unsigned int> getPossibleWords() const;
+	std::vector<int> getWordCombinations() const; //Tied to getPossibleWords
+	std::vector<int> getWordCombinations() const;
 	std::wstring getWordString(unsigned int id) const;
 	std::pair<int, std::string> reverseLookupWord(std::wstring word);
 	unsigned short getSingleDigitID(unsigned short arabicNumeral);
@@ -61,7 +62,7 @@ public:
 	void insertTrigram(const std::vector<unsigned int> &trigrams) { } //Burglish doesn't use trigrams.
 
 	//Vestigial (performs no relevant work here)
-	bool hasPatSintWord() const { return false; }
+	bool canTypeShortcut() const { return false; }
 	unsigned int getFirstWordIndex() const { return 0; }
 
 
@@ -69,15 +70,15 @@ public:
 private:
 	static bool IsVowel(wchar_t letter);
 	static bool IsValid(const std::wstring& word);
-	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet, bool firstLetterUppercase);
-	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet, std::wstringstream& parenStr);
-	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet);
-	static void expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, bool> >& resultSet);
+	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet, bool firstLetterUppercase, const std::wstring& prevWord);
+	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet, std::wstringstream& parenStr);
+	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet);
+	static void expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet);
 
 	//Helper
-	std::pair<std::wstring, bool> getWordPair(unsigned int id) const;
+	std::pair<std::wstring, int> getWordPair(unsigned int id) const;
 
-	void reGenerateWordlist();
+	void reGenerateWordlist(const std::wstring& prevWord);
 
 	//Borrowed from WordBuilder
 	void setCurrSelected(int id);
@@ -86,12 +87,15 @@ private:
 	static json_spirit::wmObject onsetPairs;
 	static json_spirit::wmObject rhymePairs;
 	static json_spirit::wmObject specialWords;
+	static std::wstring PatSintCombine(const std::wstring& base, const std::wstring& stacked);
 
 	std::wstringstream parenStr;
 	std::wstringstream typedRomanStr;
 	static std::vector<std::wstring> savedDigitIDs; //0 through 9
 	std::vector<std::wstring> savedWordIDs;
-	std::vector< std::pair<std::wstring, bool> > generatedWords; //"true" if potentially stackable
+	std::vector<std::wstring> savedCombinationIDs;
+	std::vector< std::pair<std::wstring, int> > generatedWords; //int refers to the id of its combination in savedCombinationIDs (or -1 if none)
+	
 	int currSelectedID;
 	int currSelectedPage;
 	bool typeBeginsWithUpper;

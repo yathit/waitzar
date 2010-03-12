@@ -629,7 +629,7 @@ unsigned short WordBuilder::getSingleDigitID(unsigned short arabicNumeral)
  * Types a letter and advances the nexus pointer. Returns true if the letter was a valid move,
  *   false otherwise. Updates the available word/letter list appropriately.
  */
-bool WordBuilder::typeLetter(char letter, bool isUpper)
+bool WordBuilder::typeLetter(char letter, bool isUpper, const std::wstring& prevWord)
 {
 	//Is this letter meaningful?
 	int nextNexus = jumpToNexus(this->currNexus, letter);
@@ -814,6 +814,7 @@ void WordBuilder::reset(bool fullReset)
 	this->currSelectedAbsoluteID = -1;
 	this->possibleChars.clear();
 	this->possibleWords.clear();
+	this->wordCombinations.clear();
 	this->parenStr.clear();
 
 	//Full reset: remove all prefixes
@@ -886,6 +887,7 @@ void WordBuilder::resolveWords()
 
 	//What words are possible given this point?
 	possibleWords.clear();
+	wordCombinations.clear();
 	firstRegularWordIndex = 0;
 	this->currSelectedAbsoluteID = -1;
 	if (lowestPrefix == -1)
@@ -906,13 +908,16 @@ void WordBuilder::resolveWords()
 	std::advance(possWord, prefix[highPrefix][0]*2+1);
 	for (; possWord!=prefix[highPrefix].end(); possWord++) {
 		possibleWords.push_back(*possWord);
+		wordCombinations.push_back(-1);
 	}
 	if (highPrefix != lowestPrefix) {
 		possWord = prefix[lowestPrefix].begin();
 		std::advance(possWord, prefix[lowestPrefix][0]*2+1);
 		for (; possWord!=prefix[lowestPrefix].end(); possWord++) {
-			if (!vectorContains(possibleWords, *possWord))
+			if (!vectorContains(possibleWords, *possWord)) {
 				possibleWords.push_back(*possWord);
+				wordCombinations.push_back(-1);
+			}
 		}
 	}
 
@@ -920,6 +925,7 @@ void WordBuilder::resolveWords()
 	if (shortcuts.count(currNexus)>0 && trigrams.size()>0) {
 		if (shortcuts[currNexus].count(trigrams[0])>0) {
 			possibleWords.insert(possibleWords.begin(), shortcuts[currNexus][trigrams[0]]);
+			wordCombinations.insert(wordCombinations.begin(), shortcuts[currNexus][trigrams[0]]); //PS resolves to simply this
 			firstRegularWordIndex++;
 		}
 	}
@@ -952,6 +958,11 @@ void WordBuilder::addPrefix(unsigned int latestPrefix)
 vector<char> WordBuilder::getPossibleChars() const
 {
 	return this->possibleChars;
+}
+
+vector<int> WordBuilder::getWordCombinations() const
+{
+	return this->wordCombinations;
 }
 
 unsigned int WordBuilder::getFirstWordIndex() const
