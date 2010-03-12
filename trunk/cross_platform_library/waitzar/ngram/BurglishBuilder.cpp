@@ -113,7 +113,7 @@ bool BurglishBuilder::IsValid(const wstring& word)
 
 
 
-static std::wstring PatSintCombine(const std::wstring& base, const std::wstring& stacked)
+std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std::wstring& stacked)
 {
 	//Valid if the previous word has U+103A and not anything else stacked (U+1039)
 	if (base.find(L"\u103A")==-1 || base.find(L"\u1039")!=-1)
@@ -125,7 +125,7 @@ static std::wstring PatSintCombine(const std::wstring& base, const std::wstring&
 
 
 
-void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet, bool firstLetterUppercase, const std::wstring& prevWord)
+void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet, bool firstLetterUppercase, const std::wstring& prevWord, std::vector<std::wstring>& combinationSaveLocation)
 {
 	//Nothing to do?
 	if (roman.empty())
@@ -205,8 +205,8 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 				if (firstLetterUppercase) {
 					wstring newCombine = PatSintCombine(prevWord, word);
 					if (!newCombine.empty()) {
-						combID = savedCombinationIDs.size();
-						savedCombinationIDs.push_back(newCombine);
+						combID = combinationSaveLocation.size();
+						combinationSaveLocation.push_back(newCombine);
 					}
 				}
 				resultSet.push_back(pair<wstring, int>(word, combID)); //This is the only place we can add pat-sint words
@@ -382,7 +382,7 @@ void BurglishBuilder::reGenerateWordlist(const std::wstring& prevWord)
 
 	if (!typedRomanStr.str().empty()) {
 		//Perform all combinations
-		addStandardWords(typedRomanStr.str(), resultLookup, generatedWords, typeBeginsWithUpper, prevWord);
+		addStandardWords(typedRomanStr.str(), resultLookup, generatedWords, typeBeginsWithUpper, prevWord, savedCombinationIDs);
 		addSpecialWords(typedRomanStr.str(), resultLookup, generatedWords, parenStr);
 		addNumerals(typedRomanStr.str(), resultLookup, generatedWords);
 
@@ -443,28 +443,6 @@ bool BurglishBuilder::typeLetter(char letter, bool isUpper, const std::wstring& 
 }
 
 
-//Returns true for pat-sint words, unless they won't combine with the previous word.
-bool BurglishBuilder::isRedHilite(int selectionID, unsigned int wordID, const std::wstring& prevSentenceWord) const
-{
-	//First, is this ID even a pat-sint word?
-	if (!getWordPair(wordID).second)
-		return false;
-
-	//First word?
-	if (prevSentenceWord.empty())
-		return false;
-
-	//Previous word is not combin-able?
-	//Basically, we need U+103A (but not if it's part of kinzi). 
-	//Actually, to prevent double-stacking, we'll just ignore all words with U+1039. 
-	if (prevSentenceWord.find(L"\u103A")==-1 || prevSentenceWord.find(L"\u1039")!=-1)
-		return false;
-
-	//This word is stackable
-	return true;
-}
-
-
 
 std::wstring BurglishBuilder::getParenString() const
 {
@@ -489,7 +467,7 @@ std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 std::vector<int> BurglishBuilder::getWordCombinations() const
 {
 	vector<int> res;
-	for (vector< pair<wstring, int> >::iterator it=generatedWords.begin(); it!=generatedWords.end(); it++)
+	for (vector< pair<wstring, int> >::const_iterator it=generatedWords.begin(); it!=generatedWords.end(); it++)
 		res.push_back(savedDigitIDs.size() + savedWordIDs.size() + it->second);
 	return res;
 }
@@ -528,7 +506,7 @@ pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 
 
 //Just cut a letter off the string and update our list.
-bool BurglishBuilder::backspace()
+bool BurglishBuilder::backspace(const std::wstring& prevWord)
 {
 	if (typedRomanStr.str().empty())
 		return false;
@@ -537,7 +515,7 @@ bool BurglishBuilder::backspace()
 	typedRomanStr.str(L"");
 	typedRomanStr <<newStr;
 
-	reGenerateWordlist();
+	reGenerateWordlist(prevWord);
 	return true;
 }
 

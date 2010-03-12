@@ -143,7 +143,7 @@ void RomanInputMethod<ModelType>::handleBackspace()
 			viewChanged = true;
 	} else {
 		//Delete the previously-typed letter
-		model->backspace();
+		model->backspace(sentence->getPrevTypedWord(*model));
 
 		//Truncate...
 		wstring newStr = !typedRomanStr.str().empty() ? typedRomanStr.str().substr(0, typedRomanStr.str().length()-1) : L"";
@@ -219,7 +219,7 @@ void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, bool 
 	//Special case: conglomerate numbers
 	if (typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
 		char numLetter = '0'+numCode;
-		if (model->typeLetter(numLetter, isUpper)) {
+		if (model->typeLetter(numLetter, isUpper, sentence->getPrevTypedWord(*model))) {
 			typedRomanStr <<(char)numLetter;
 			viewChanged = true;
 		}
@@ -310,7 +310,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 	int keyCode = (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) ? (int)wParam+32 : (int)wParam;
 	if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW) {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model->typeLetter(keyCode, isUpper)) {
+		if (!model->typeLetter(keyCode, isUpper, sentence->getPrevTypedWord(*model))) {
 			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
 			if (controlKeyStyle==CK_CHINESE || typedRomanStr.str().empty())
 				return;
@@ -320,7 +320,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 			viewChanged = true;
 
 			//Nothing left on the new string?
-			if (!model->typeLetter(keyCode, isUpper))
+			if (!model->typeLetter(keyCode, isUpper, sentence->getPrevTypedWord(*model)))
 				return;
 		}
 
@@ -392,21 +392,20 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 
 	//Build
 	int currID = -1;
-	std::wstring lastWord = L"";
+	int currReplacementID = model->getWordCombinations()[model->getCurrSelectedID()+model->getFirstWordIndex()];
 	for (std::list<int>::const_iterator it=sentence->begin(); it!=sentence->end(); it++) {
 		//Get the word
 		int modID = -(*it)-1;
 		wstring currWord = (*it>=0) ? model->getWordString(*it) : (modID<(int)systemDefinedWords.size()) ? wstring(1, systemDefinedWords[modID]) : userDefinedWords[modID-systemDefinedWords.size()];
 
 		//Have we reached a transition?
-		int absIndex = model->getCurrSelectedID()+model->getFirstWordIndex();
-		if (currID==sentence->getCursorIndex()-1 && absIndex>=0 && model->isRedHilite(model->getCurrSelectedID(), model->getPossibleWords()[absIndex], lastWord)) {
+		if (currID==sentence->getCursorIndex()-1 && currReplacementID!=-1) {
 			//We're about to start the highlighted word.
 			res.push_back(line.str());
 			line.str(L"");
 
 			//CHANGE the current word to the pat-sint replacement.
-			currWord = model->getWordString(model->getPossibleWords()[absIndex]);
+			currWord = model->getWordString(currReplacementID);
 		} else if (currID==sentence->getCursorIndex()) {
 			//We're at the cursor
 			res.push_back(line.str());
@@ -420,7 +419,6 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 		full <<currWord;
 
 		//Increment
-		lastWord = currWord;
 		currID++;
 	}
 
@@ -453,22 +451,18 @@ vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandi
 {
 	//TODO: cache the results
 	std::vector< std::pair<std::wstring, unsigned int> > res;
-	std::vector<UINT32> words = model->getPossibleWords();
+	std::vector<unsigned int> words = model->getPossibleWords();
+	std::vector<int> combinations = model->getWordCombinations();
 	for (size_t i=0; i<words.size(); i++) {
 		std::pair<std::wstring, unsigned int> item = std::pair<std::wstring, unsigned int>(model->getWordString(words[i]), HF_NOTHING);
 		
 		//Get the previous word
-		std::wstring prevWord = L"";
-		std::list<int>::const_iterator it=sentence->begin();
-		for (int currID=0; currID<=sentence->getCursorIndex(); currID++) {
-			prevWord = model->getWordString(*it);
-			it++;
-		}
+		std::wstring prevWord = sentence->getPrevTypedWord(*model);
 
 		//Color properly.
-		if (model->isRedHilite(i, words[i], prevWord)) {
+		if (combinations[i]!=-1) {
 			item.second |= HF_PATSINT;
-			if (model->hasPatSintWord()) //A bit hacky, but fixes the burglish display bug
+			if (model->canTypeShortcut())
 				item.second |= HF_LABELTILDE;
 		}
 		if (model->getCurrSelectedID() == i-model->getFirstWordIndex())

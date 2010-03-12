@@ -43,13 +43,12 @@ public:
 	//Requires hacking (mostly b/c WordBuilder assumes word IDs)
 	std::vector<unsigned int> getPossibleWords() const;
 	std::vector<int> getWordCombinations() const; //Tied to getPossibleWords
-	std::vector<int> getWordCombinations() const;
 	std::wstring getWordString(unsigned int id) const;
 	std::pair<int, std::string> reverseLookupWord(std::wstring word);
 	unsigned short getSingleDigitID(unsigned short arabicNumeral);
 
 	//Requires copying of WordBuilder code. (Unfortunate, but unavoidable).
-	bool backspace();
+	bool backspace(const std::wstring& prevWord);
 	bool moveRight(int amt);
 	bool pageUp(bool up);
 	std::pair<bool, unsigned int> typeSpace(int quickJumpID, bool useQuickJump);
@@ -70,7 +69,7 @@ public:
 private:
 	static bool IsVowel(wchar_t letter);
 	static bool IsValid(const std::wstring& word);
-	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet, bool firstLetterUppercase, const std::wstring& prevWord);
+	static void addStandardWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet, bool firstLetterUppercase, const std::wstring& prevWord, std::vector<std::wstring>& combinationSaveLocation);
 	static void addSpecialWords(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet, std::wstringstream& parenStr);
 	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet);
 	static void expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet);
