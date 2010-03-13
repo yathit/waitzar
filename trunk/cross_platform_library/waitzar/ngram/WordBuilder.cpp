@@ -754,37 +754,35 @@ bool WordBuilder::backspace(const std::wstring& prevWord)
 }
 
 
-void WordBuilder::setCurrSelected(int id)
+bool WordBuilder::setCurrSelected(int id)
 {
 	//Any words?
 	if (possibleWords.size()==0)
-		return;
+		return false;
 
 	//Fail silently if this isn't a valid id
 	int absoluteID = id + firstRegularWordIndex;
 	if (absoluteID >= (int)possibleWords.size())
-		return;
+		return false;
 	else if (absoluteID < 0)
-		return;
+		return false;
 
 	//Do it!
 	currSelectedAbsoluteID = absoluteID;
+	return true;
 }
 
 
 //Returns the selected ID and a boolean
-pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID, bool useQuickJump)
+pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID)
 {
 	//We're at a valid stopping point?
 	if (this->getPossibleWords().size() == 0)
 		return pair<bool, unsigned int>(false, 0);
 
-	//Quick jump?
-	int quickJumpAbsID = quickJumpID + firstRegularWordIndex;
-	if (quickJumpAbsID > -1)
-		this->setCurrSelected(quickJumpID);
-	if (currSelectedAbsoluteID!=quickJumpAbsID && quickJumpAbsID!=-1)
-		return pair<bool, unsigned int>(false, 0); //No effect
+	//Quick jump
+	if (!setCurrSelected(quickJumpID))
+		return pair<bool, unsigned int>(false, 0);
 
 	//Get the selected word, add it to the prefix array
 	unsigned int newWord = this->getPossibleWords()[this->currSelectedAbsoluteID];

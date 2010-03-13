@@ -66,7 +66,8 @@ private:
 	ModelType* model;
 	waitzar::SentenceList<ModelType>* sentence;
 
-	bool selectWord(int id, bool indexNegativeEntries);
+	bool selectCurrWord();
+	bool selectWord(int id);
 
 	bool typeBurmeseNumbers;
 
@@ -236,7 +237,7 @@ void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, bool 
 			numCode = -1;
 
 		//Select this numbered word
-		if (selectWord(numCode, true)) {
+		if (selectWord(numCode)) {
 			typedRomanStr.str(L"");
 			viewChanged = true;
 		}
@@ -273,7 +274,7 @@ void RomanInputMethod<ModelType>::handleCommit(bool strongCommit)
 			handleLeftRight(true, true);
 		} else {
 			//Select the current word
-			if (selectWord(-1, false)) {
+			if (selectCurrWord()) {
 				//Reset, recalc
 				typedRomanStr.str(L"");
 				viewChanged = true;
@@ -336,21 +337,31 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 
 
 
-//TODO: Make it easier to call this function; e.g., "type current word" or "skip to id"....
-//      It's very confusing now, esp. with pat-sint modifiers.
 template <class ModelType>
-bool RomanInputMethod<ModelType>::selectWord(int id, bool indexNegativeEntries)
+bool RomanInputMethod<ModelType>::selectCurrWord()
+{
+	return this->selectWord(model->getCurrSelectedID());
+}
+
+
+
+
+template <class ModelType>
+bool RomanInputMethod<ModelType>::selectWord(int id)
 {
 	//Are there any words to use?
 	int lastModelID = model->getCurrSelectedID();
-	std::pair<bool, unsigned int> typedVal = model->typeSpace(id, id!=-1); //TODO: check id!=-1
+	std::pair<bool, unsigned int> typedVal = model->typeSpace(id);
 	if (!typedVal.first)
 		return false;
 	int wordID = typedVal.second;
 
-	//Pat-sint clears the previous word
-	if ((id==-1 && indexNegativeEntries) || (lastModelID==-1 && !indexNegativeEntries))
+	//Pat-sint clears the previous word, changes what we're inserting
+	int absID = model->getCurrSelectedID() + model->getFirstWordIndex();
+	if (absID>=0 && model->getWordCombinations()[absID]!=-1) {
 		sentence->deletePrev(*model);
+		wordID = model->getWordCombinations()[absID];
+	}
 
 	//Insert into the current sentence, return
 	sentence->insert(wordID);
@@ -479,7 +490,7 @@ template <class ModelType>
 void RomanInputMethod<ModelType>::appendToSentence(wchar_t letter, int id)
 {
 	//Type it
-	selectWord(id, true);
+	selectWord(id);
 
 	//We need to reset the trigrams here...
 	sentence->updateTrigrams(*model);

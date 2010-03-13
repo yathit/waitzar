@@ -58,7 +58,7 @@ public:
 
 	//State-changing functions. Use these to respond to keypresses.
 	bool typeLetter(char letter, bool isUpper, const std::wstring& prevWord);
-	std::pair<bool, unsigned int> typeSpace(int quickJumpID, bool useQuickJump);
+	std::pair<bool, unsigned int> typeSpace(int quickJumpID);
 	bool backspace(const std::wstring& prevWord);
 	void reset(bool fullReset);
 	bool moveRight(int amt);
@@ -173,7 +173,7 @@ private:
 	int jumpToPrefix(int fromPrefix, int jumpID) const;
 	bool vectorContains(const std::vector<unsigned int> &vec, unsigned int val) const;
 	void addPrefix(unsigned int latestPrefix);
-	void setCurrSelected(int id);
+	bool setCurrSelected(int id);
 	void buildReverseLookup();
 	void addReverseLookupItem(int wordID, const std::string &roman);
 	unsigned int getWordID(const std::wstring &wordStr) const;

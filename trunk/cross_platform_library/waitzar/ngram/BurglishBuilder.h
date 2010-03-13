@@ -51,7 +51,7 @@ public:
 	bool backspace(const std::wstring& prevWord);
 	bool moveRight(int amt);
 	bool pageUp(bool up);
-	std::pair<bool, unsigned int> typeSpace(int quickJumpID, bool useQuickJump);
+	std::pair<bool, unsigned int> typeSpace(int quickJumpID);
 	int getCurrPage() const;
 	int getCurrSelectedID() const;
 	int getNumberOfPages() const;
@@ -80,7 +80,7 @@ private:
 	void reGenerateWordlist(const std::wstring& prevWord);
 
 	//Borrowed from WordBuilder
-	void setCurrSelected(int id);
+	bool setCurrSelected(int id);
 
 private:
 	static json_spirit::wmObject onsetPairs;
