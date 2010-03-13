@@ -468,7 +468,7 @@ std::vector<int> BurglishBuilder::getWordCombinations() const
 {
 	vector<int> res;
 	for (vector< pair<wstring, int> >::const_iterator it=generatedWords.begin(); it!=generatedWords.end(); it++)
-		res.push_back(savedDigitIDs.size() + savedWordIDs.size() + it->second);
+		res.push_back((it->second==-1) ? -1 : savedDigitIDs.size() + savedWordIDs.size() + it->second);
 	return res;
 }
 
@@ -567,15 +567,15 @@ bool BurglishBuilder::pageUp(bool up)
 
 
 //Simple, copied.
-std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID, bool useQuickJump)
+std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID)
 {
 	//We're at a valid stopping point?
 	if (generatedWords.size() == 0)
 		return pair<bool, unsigned int>(false, 0);
 
-	//Quick jump?
-	if (useQuickJump && quickJumpID!=-1)
-		setCurrSelected(quickJumpID);
+	//Quick jump
+	if (!setCurrSelected(quickJumpID))
+		return pair<bool, unsigned int>(false, 0);
 
 	//Get the selected word, add it to the prefix array
 	//NOTE: We save the IDs of previously-typed words.
@@ -615,20 +615,21 @@ int BurglishBuilder::getNumberOfPages() const
 
 
 //Simple, copied
-void BurglishBuilder::setCurrSelected(int id)
+bool BurglishBuilder::setCurrSelected(int id)
 {
 	//Any words?
 	if (generatedWords.size()==0)
-		return;
+		return false;
 
 	//Fail silently if this isn't a valid id
 	if (id >= (int)generatedWords.size())
-		return;
+		return false;
 	else if (id < 0)
-		return;
+		return false;
 
 	//Do it!
 	currSelectedID = id;
+	return true;
 }
 
 
