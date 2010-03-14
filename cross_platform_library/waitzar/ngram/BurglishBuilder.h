@@ -88,6 +88,13 @@ private:
 	static json_spirit::wmObject specialWords;
 	static std::wstring PatSintCombine(const std::wstring& base, const std::wstring& stacked);
 
+	//New candidate words are added like so:
+	//   ID[X] = savedDigitIDs.size() + savedWordIDs.size() + savedCombinationIDs.size() + X
+	//If a word has a combination, then the word it forms is stored as:
+	//   ID[X] = savedDigitIDs.size() + savedWordIDs.size() + X
+	//When "space" is pressed, the word is saved, and that new ID is returned.
+	//   ID[X] = savedDigitIDs.size() + savedWordIDs.size() + 1
+	//   (reset savedCombinationIDs)
 	std::wstringstream parenStr;
 	std::wstringstream typedRomanStr;
 	static std::vector<std::wstring> savedDigitIDs; //0 through 9

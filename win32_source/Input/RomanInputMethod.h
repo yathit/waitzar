@@ -349,18 +349,22 @@ bool RomanInputMethod<ModelType>::selectCurrWord()
 template <class ModelType>
 bool RomanInputMethod<ModelType>::selectWord(int id)
 {
+	//Set pat-sint flag
+	int psOverwrite = -1;
+	int absID = id + model->getFirstWordIndex();
+	if (absID>=0 && absID<model->getWordCombinations().size())
+		psOverwrite = model->getWordCombinations()[absID];
+
 	//Are there any words to use?
-	int lastModelID = model->getCurrSelectedID();
 	std::pair<bool, unsigned int> typedVal = model->typeSpace(id);
 	if (!typedVal.first)
 		return false;
 	int wordID = typedVal.second;
 
 	//Pat-sint clears the previous word, changes what we're inserting
-	int absID = model->getCurrSelectedID() + model->getFirstWordIndex();
-	if (absID>=0 && model->getWordCombinations()[absID]!=-1) {
+	if (psOverwrite!=-1) {
 		sentence->deletePrev(*model);
-		wordID = model->getWordCombinations()[absID];
+		wordID = psOverwrite;
 	}
 
 	//Insert into the current sentence, return
