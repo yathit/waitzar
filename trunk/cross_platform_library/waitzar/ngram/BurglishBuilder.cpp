@@ -116,11 +116,26 @@ bool BurglishBuilder::IsValid(const wstring& word)
 std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std::wstring& stacked)
 {
 	//Valid if the previous word has U+103A and not anything else stacked (U+1039)
-	if (base.find(L"\u103A")==-1 || base.find(L"\u1039")!=-1)
+	int aIndex = base.rfind(L"\u103A");
+	if (aIndex==-1 || base.find(L"\u1039")!=-1)
 		return L"";
 
-	//TODO: stack properly
-	return L"PS";
+	//Step 1: Remove U+103A from the base. 
+	wstring empty = L"";
+	wstring baseRep = base;
+	baseRep.replace(aIndex, 1, empty);
+
+	//Step 2: Remove kinzi from the stacked
+	wstring kinzi = L"\u1004\u103A\u1039";
+	int kIndex = stacked.rfind(L"\u1004\u103A\u1039");
+	wstring stackRep = stacked;
+	if (kIndex!=-1)
+		stackRep.replace(kIndex, kinzi.length(), empty);
+	else
+		kinzi = empty;
+
+	//Step 3: Combine (kinzi?) + base + stacked
+	return kinzi + baseRep + stackRep;
 }
 
 
@@ -466,9 +481,13 @@ std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 
 std::vector<int> BurglishBuilder::getWordCombinations() const
 {
+	//NOTE: The "combination" ID will ALWAYS be the next assignable id; this seems like a hack, but it's just 
+	//      how the Burglish Builder works. We could abstract this into typeSpace, but then we'd have to change
+	//      WordBuilder (and we would probably change the return value, too, to indicate a combination).
+	//      In the long run, we might do this. For now, we hack around it a bit.
 	vector<int> res;
 	for (vector< pair<wstring, int> >::const_iterator it=generatedWords.begin(); it!=generatedWords.end(); it++)
-		res.push_back((it->second==-1) ? -1 : savedDigitIDs.size() + savedWordIDs.size() + it->second);
+		res.push_back((it->second==-1) ? -1 : savedDigitIDs.size() + savedWordIDs.size());
 	return res;
 }
 
@@ -579,9 +598,16 @@ std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID)
 
 	//Get the selected word, add it to the prefix array
 	//NOTE: We save the IDs of previously-typed words.
-	unsigned int newWord = savedDigitIDs.size() + savedWordIDs.size() + savedCombinationIDs.size();
+	unsigned int newWord = savedDigitIDs.size() + savedWordIDs.size();
 	unsigned int adjustedID = savedDigitIDs.size() + savedWordIDs.size() + savedCombinationIDs.size() + currSelectedID;
+
+	//Adjust to pat-sint?
+	if (getWordCombinations()[quickJumpID]!=-1)
+		adjustedID = getWordCombinations()[quickJumpID];
+
+	//Append, save.
 	savedWordIDs.push_back(getWordString(adjustedID));
+	savedCombinationIDs.clear();
 
 	//Reset the model, return this word
 	this->reset(false);
