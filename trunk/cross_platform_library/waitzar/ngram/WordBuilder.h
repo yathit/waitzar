@@ -58,7 +58,7 @@ public:
 
 	//State-changing functions. Use these to respond to keypresses.
 	bool typeLetter(char letter, bool isUpper, const std::wstring& prevWord);
-	std::pair<bool, unsigned int> typeSpace(int quickJumpID);
+	std::pair<int, int> typeSpace(int quickJumpID);
 	bool backspace(const std::wstring& prevWord);
 	void reset(bool fullReset);
 	bool moveRight(int amt);

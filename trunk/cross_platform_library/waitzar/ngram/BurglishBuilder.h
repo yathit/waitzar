@@ -51,7 +51,7 @@ public:
 	bool backspace(const std::wstring& prevWord);
 	bool moveRight(int amt);
 	bool pageUp(bool up);
-	std::pair<bool, unsigned int> typeSpace(int quickJumpID);
+	std::pair<int, int> typeSpace(int quickJumpID); //ID of res. word, ID of comb. of this word
 	int getCurrPage() const;
 	int getCurrSelectedID() const;
 	int getNumberOfPages() const;
