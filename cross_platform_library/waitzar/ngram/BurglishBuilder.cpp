@@ -481,13 +481,9 @@ std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 
 std::vector<int> BurglishBuilder::getWordCombinations() const
 {
-	//NOTE: The "combination" ID will ALWAYS be the next assignable id; this seems like a hack, but it's just 
-	//      how the Burglish Builder works. We could abstract this into typeSpace, but then we'd have to change
-	//      WordBuilder (and we would probably change the return value, too, to indicate a combination).
-	//      In the long run, we might do this. For now, we hack around it a bit.
 	vector<int> res;
 	for (vector< pair<wstring, int> >::const_iterator it=generatedWords.begin(); it!=generatedWords.end(); it++)
-		res.push_back((it->second==-1) ? -1 : savedDigitIDs.size() + savedWordIDs.size());
+		res.push_back((it->second==-1) ? -1 : (savedDigitIDs.size() + savedWordIDs.size()) + it->second);
 	return res;
 }
 
@@ -586,15 +582,15 @@ bool BurglishBuilder::pageUp(bool up)
 
 
 //Simple, copied.
-std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID)
+std::pair<int, int> BurglishBuilder::typeSpace(int quickJumpID)
 {
 	//We're at a valid stopping point?
 	if (generatedWords.size() == 0)
-		return pair<bool, unsigned int>(false, 0);
+		return pair<int, int>(-1, -1);
 
 	//Quick jump
 	if (!setCurrSelected(quickJumpID))
-		return pair<bool, unsigned int>(false, 0);
+		return pair<int, int>(-1, -1);
 
 	//Get the selected word, add it to the prefix array
 	//NOTE: We save the IDs of previously-typed words.
@@ -602,8 +598,11 @@ std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID)
 	unsigned int adjustedID = savedDigitIDs.size() + savedWordIDs.size() + savedCombinationIDs.size() + currSelectedID;
 
 	//Adjust to pat-sint?
-	if (getWordCombinations()[quickJumpID]!=-1)
+	int psWord = -1;
+	if (getWordCombinations()[quickJumpID]!=-1) {
 		adjustedID = getWordCombinations()[quickJumpID];
+		psWord = newWord;
+	}
 
 	//Append, save.
 	savedWordIDs.push_back(getWordString(adjustedID));
@@ -611,7 +610,7 @@ std::pair<bool, unsigned int> BurglishBuilder::typeSpace(int quickJumpID)
 
 	//Reset the model, return this word
 	this->reset(false);
-	return pair<bool, unsigned int>(true, newWord);
+	return pair<int, int>(newWord, psWord);
 }
 
 

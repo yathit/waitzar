@@ -774,15 +774,15 @@ bool WordBuilder::setCurrSelected(int id)
 
 
 //Returns the selected ID and a boolean
-pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID)
+pair<int, int> WordBuilder::typeSpace(int quickJumpID)
 {
 	//We're at a valid stopping point?
 	if (this->getPossibleWords().size() == 0)
-		return pair<bool, unsigned int>(false, 0);
+		return pair<int, int>(-1, -1);
 
 	//Quick jump
 	if (!setCurrSelected(quickJumpID))
-		return pair<bool, unsigned int>(false, 0);
+		return pair<int, int>(-1, -1);
 
 	//Get the selected word, add it to the prefix array
 	unsigned int newWord = this->getPossibleWords()[this->currSelectedAbsoluteID];
@@ -790,7 +790,7 @@ pair<bool, unsigned int> WordBuilder::typeSpace(int quickJumpID)
 
 	//Reset the model, return this word
 	this->reset(false);
-	return pair<bool, unsigned int>(true, newWord);
+	return pair<int, int>(newWord, canTypeShortcut() ? newWord : -1);
 }
 
 
