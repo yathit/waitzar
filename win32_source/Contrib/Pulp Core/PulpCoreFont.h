@@ -68,9 +68,9 @@ public:
 	PulpCoreFont();
 
 	//Initializers
-	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
+	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, unsigned int defaultColor);
 	void init(PulpCoreFont* copyFrom, HDC currDC);
-	void init(char *data, DWORD size, HDC currDC);
+	void init(char *data, DWORD size, HDC currDC, unsigned int defaultColor);
 
 	//Drawing functionality
 	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos);
@@ -82,6 +82,10 @@ public:
 	int getStringWidth(const std::wstring &str, int start, int length);
 	int getCharWidth(char letter);
 	int getHeight();
+	void setColor(unsigned int ARGB);
+
+	//Overriding
+	void tintSelf(UINT rgbColor);
 
 private:
 	//PulpCoreFont-specific properties
@@ -92,6 +96,7 @@ private:
 	int num_char_pos;
 	int* bearingLeft;
 	int* bearingRight;
+	unsigned int* cachedColor;
 	bool uppercaseOnly;
 
 	//Internal Methods
@@ -103,4 +108,7 @@ private:
 	//int getKerning(char left, char right);
 	int getKerning(int leftIndex, int rightIndex);
 	bool shouldIgnoreTracking(int index);
+
+	//Added
+	void tintLetter(int letterID, unsigned int color);
 };

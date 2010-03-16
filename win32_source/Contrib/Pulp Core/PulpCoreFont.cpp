@@ -51,15 +51,49 @@ void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC)
 /**
  * Create a PulpCoreFont.
  */
-void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC) 
+void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, unsigned int defaultColor) 
 {
 	PulpCoreImage::init(resource, dataHandle, currDC);
+
+	//Tint the default color
+	this->currColor = defaultColor;
+	this->tintSelf(defaultColor);
 }
 
 
-void PulpCoreFont::init(char *data, DWORD size, HDC currDC)
+void PulpCoreFont::init(char *data, DWORD size, HDC currDC, unsigned int defaultColor)
 {
 	PulpCoreImage::init(data, size, currDC);
+
+	//Tint the default color
+	this->currColor = defaultColor;
+	this->tintSelf(defaultColor);
+}
+
+void PulpCoreFont::setColor(unsigned int ARGB)
+{
+	//Save it; we tint later, on-the-fly
+	this->currColor = ARGB;
+}
+
+
+void PulpCoreFont::tintSelf(UINT rgbColor)
+{
+	//Same functionality
+	PulpCoreImage::tintSelf(rgbColor);
+
+	//Now set the color cache entries properly
+	for (int i=0; i<num_char_pos-1; i++) 
+		cachedColor[i] = rgbColor;
+}
+
+void PulpCoreFont::tintLetter(int letterID, unsigned int color)
+{
+	//Get the bounds of the letter to tint
+	PulpCoreImage::tintSelf(color, charPositions[letterID], 0, charPositions[letterID+1]-charPositions[letterID], height);
+
+	//Finally, save
+	cachedColor[letterID] = color;
 }
 
 
@@ -96,6 +130,7 @@ void PulpCoreFont::fontSet()
     charPositions = new int[num_char_pos];
     bearingLeft = new int[numChars];
     bearingRight = new int[numChars];
+	cachedColor = new unsigned int[numChars];
 
 	//Java inits...
 	for (int i=0; i<num_char_pos; i++) 
@@ -132,6 +167,10 @@ void PulpCoreFont::drawChar(HDC bufferDC, char letter, int xPos, int yPos)
 	int pos = charPositions[index];
     int charWidth = charPositions[index+1] - pos;
 
+	//Re-tint?
+	if (cachedColor[index]!=currColor)
+		tintLetter(index, currColor);
+
 	//Draw this letter
 	AlphaBlend(
 	   bufferDC, xPos, yPos, charWidth, height,   //Destination
@@ -149,7 +188,6 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 	if (str.empty() || numChars==0 || directPixels==NULL)
 		return;
 
-
 	//Loop through all letters...
 	int nextIndex = getCharIndex(str[0]);
 	int startX = xPos;
@@ -157,6 +195,10 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 		int index = nextIndex;
         int pos = charPositions[index];
         int charWidth = charPositions[index+1] - pos;
+
+		//Re-tint?
+		if (cachedColor[index]!=currColor)
+			tintLetter(index, currColor);
 
 		//Draw this letter
 		AlphaBlend(
@@ -203,6 +245,10 @@ void PulpCoreFont::drawString(HDC bufferDC, const string &str, int xPos, int yPo
 		int index = nextIndex;
         int pos = charPositions[index];
         int charWidth = charPositions[index+1] - pos;
+
+		//Re-tint?
+		if (cachedColor[index]!=currColor)
+			tintLetter(index, currColor);
 
 		//Draw this letter
 		AlphaBlend(

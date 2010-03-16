@@ -76,7 +76,8 @@ public:
 	//Useful for making various color replicas of one image.
 	// Particularly useful for fonts, but used in other places
 	// for monochrome images as well
-	void tintSelf(UINT rgbColor);
+	virtual void tintSelf(UINT rgbColor);
+	virtual void tintSelf(UINT rgbColor, int sX, int sY, int w, int h);
 
 	//Somewhat hackish
 	void fillRectangle(int startX, int startY, int width, int height, int ARGB);

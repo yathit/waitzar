@@ -136,6 +136,18 @@ void PulpCoreImage::tintSelf(UINT rgbColor)
 	} 
 }
 
+//Tint only part of the rectangle
+void PulpCoreImage::tintSelf(UINT rgbColor, int sX, int sY, int w, int h)
+{
+	//Loop through all relevant pixels
+	for (int y=sY; y<sY+h; y++) {
+		for (int x=sX; x<sX+w; x++) {
+			int i = y*width+x;
+			directPixels[i] = premultiply((directPixels[i]&0xff000000)|(rgbColor&0x00ffffff));
+		}
+	}
+}
+
 
 /**
  * This function is a bit of a hack, since it accesses the image's pixels directly.

@@ -189,6 +189,20 @@ unsigned int numInputOptions;
 DisplayMethod *mmFont;
 DisplayMethod *mmFontSmall;
 
+
+//TODO: There are still some places where we use a font without coloring it.
+//      For reference, here are all the old colors:
+/*
+mmFontGreen->tintSelf(0x008000);
+mmFontBlack->tintSelf(0x000000);
+mmFontRed->tintSelf(0xFF0000);
+mmFontSmallWhite->tintSelf(0xFFFFFF);
+mmFontSmallGray->tintSelf(0x333333);
+mmFontSmallRed->tintSelf(0xFF0000);
+*/
+
+
+
 PAINTSTRUCT Ps;
 WORD stopChar;
 int numConfigOptions;
@@ -625,7 +639,7 @@ void makeFont()
 						//Ok, load our font
 						mmFont = new PulpCoreFont();
 						try {
-							mainWindow->initDisplayMethod(mmFont, file_buff, file_buff_size);
+							mainWindow->initDisplayMethod(mmFont, file_buff, file_buff_size, 0x000000);
 						} catch (std::exception ex) {
 							//Is our font in error? If so, load the embedded font
 							wstringstream msg;
@@ -664,7 +678,7 @@ void makeFont()
 			//Create our PulpCoreFont (it's white when we load it, not black, by the way)
 			mmFont = new PulpCoreFont();
 			try {
-				mainWindow->initDisplayMethod(mmFont, fontRes, res_handle);
+				mainWindow->initDisplayMethod(mmFont, fontRes, res_handle, 0x000000);
 			} catch (std::exception ex) {
 				wstringstream msg;
 				msg <<"WZ Font didn't load correctly: " <<ex.what();
@@ -675,19 +689,6 @@ void makeFont()
 			//Unlock this resource for later use.
 			UnlockResource(res_handle);
 		}
-
-		//Copy-construct a new font
-		//mmFontGreen = new PulpCoreFont();
-		//mainWindow->initPulpCoreImage(mmFontGreen, mmFontBlack);
-
-		//mmFontRed = new PulpCoreFont();
-		//mainWindow->initPulpCoreImage(mmFontRed, mmFontBlack);
-
-		//Tint both to their respective colors
-		//TODO: Re-enable tinting
-		//mmFontGreen->tintSelf(0x008000);
-		//mmFontBlack->tintSelf(0x000000);
-		//mmFontRed->tintSelf(0xFF0000);
 	}
 
 
@@ -881,7 +882,7 @@ void makeFont()
 					//Ok, load our font
 					mmFontSmall = new PulpCoreFont();
 					try {
-						sentenceWindow->initDisplayMethod(mmFontSmall, file_buff, file_buff_size);
+						sentenceWindow->initDisplayMethod(mmFontSmall, file_buff, file_buff_size, 0xFFFFFF);
 					} catch (std::exception ex) {
 						//Is our font in error? If so, load the embedded font
 						wstringstream msg;
@@ -920,7 +921,7 @@ void makeFont()
 
 		mmFontSmall = new PulpCoreFont();
 		try {
-			sentenceWindow->initDisplayMethod(mmFontSmall, fontRes2, res_handle_2);
+			sentenceWindow->initDisplayMethod(mmFontSmall, fontRes2, res_handle_2, 0xFFFFFF);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Small Font didn't load correctly: " <<ex.what();
@@ -935,22 +936,6 @@ void makeFont()
 	//Copy this font for use in the memory box
 	helpFntMemory = (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 	//mainWindow->initPulpCoreImage(helpFntMemory, mmFontSmall);
-
-
-	//Tint
-	//TODO: Re-enable tinting
-	//mmFontSmallWhite->tintSelf(0xFFFFFF);
-
-	//New copy
-	//mmFontSmallGray = new PulpCoreFont();
-	//mainWindow->initPulpCoreImage(mmFontSmallGray, mmFontSmallWhite);
-	//mmFontSmallGray->tintSelf(0x333333);
-
-	//New copy
-	//mmFontSmallRed = new PulpCoreFont();
-	//mainWindow->initPulpCoreImage(mmFontSmallRed, mmFontSmallWhite);
-	//mmFontSmallRed->tintSelf(0xFF0000);
-
 }
 
 
@@ -1629,10 +1614,13 @@ void recalculate()
 
 	//Draw each string, highlight the previous word if it's a pat-sint candidate.
 	int currPosX = borderWidth + 1;
+	mmFontSmall->setColor(0xFFFFFF);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1);
 	if (!dispSentenceStr[0].empty())
 		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[0]) + 1;
+	mmFontSmall->setColor(0xFF0000);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1);
+	mmFontSmall->setColor(0xFFFFFF);
 	if (!dispSentenceStr[1].empty())
 		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[1]) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
@@ -1678,16 +1666,14 @@ void recalculate()
 		//Select fonts, and draw a box under highlighted words
 		//mmFont = mmFontBlack;
 		if (dispCandidateStrs[id].second & HF_CURRSELECTION) {
-			//TODO: re-enable tinting
-			//mmFont = mmFontGreen;
-
+			mmFont->setColor(0x008000);
 			mainWindow->selectObject(g_YellowBkgrd);
 			mainWindow->selectObject(g_GreenPen);
 			mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
 		} else if (dispCandidateStrs[id].second & HF_PATSINT) {
-			//TODO: Re-enable tinting.
-			//mmFont = mmFontRed;
-		}
+			mmFont->setColor(0xFF0000);
+		} else
+			mmFont->setColor(0x000000);
 
 		//Draw the string (foreground)
 		mainWindow->drawString(mmFont, dispCandidateStrs[id].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
@@ -1709,6 +1695,7 @@ void recalculate()
 	}
 
 	//Draw the current romanized string
+	mmFont->setColor(0x000000);
 	mainWindow->drawString(mmFont, dispRomanStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
 	//Draw the cursor page up/down box if required
