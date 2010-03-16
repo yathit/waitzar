@@ -30,8 +30,8 @@ PulpCoreImage::PulpCoreImage()
 void PulpCoreImage::init(int width, int height, int bkgrdARGB, HDC currDC, HDC &thisDC, HBITMAP &thisBmp)
 {
 	//Init
-	this->error = FALSE;
-	lstrcpy(this->errorMsg, _T(""));
+	//this->error = FALSE;
+	//lstrcpy(this->errorMsg, _T(""));
 
 	//Init all relevant fields
 	/*this->bitDepth = copyFrom->bitDepth;
@@ -53,11 +53,8 @@ void PulpCoreImage::init(int width, int height, int bkgrdARGB, HDC currDC, HDC &
 	directDC = thisDC = CreateCompatibleDC(currDC);
 	directBitmap = thisBmp = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
 	SelectObject(directDC, directBitmap);
-	if (directBitmap==NULL && error==FALSE) {
-		lstrcpy(errorMsg, _T("Couldn't create image bitmap."));
-		error = TRUE;
-		return;
-	}
+	if (directBitmap==NULL)
+		throw std::exception("Couldn't create image bitmap.");
 
 	//Init with background color
 	for (int i=0; i<width*height; i++)  {
@@ -73,8 +70,8 @@ void PulpCoreImage::init(int width, int height, int bkgrdARGB, HDC currDC, HDC &
 void PulpCoreImage::init(PulpCoreImage *copyFrom, HDC currDC)
 {
 	//Init
-	this->error = copyFrom->error;
-	lstrcpy(this->errorMsg, copyFrom->errorMsg);
+	//this->error = copyFrom->error;
+	//lstrcpy(this->errorMsg, copyFrom->errorMsg);
 
 	//Copy all relevant fields
 	this->bitDepth = copyFrom->bitDepth;
@@ -96,11 +93,8 @@ void PulpCoreImage::init(PulpCoreImage *copyFrom, HDC currDC)
 	directDC = CreateCompatibleDC(currDC);
 	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
 	SelectObject(directDC, directBitmap);
-	if (directBitmap==NULL && error==FALSE) {
-		lstrcpy(errorMsg, _T("Couldn't create font bitmap."));
-		error = TRUE;
-		return;
-	}
+	if (directBitmap==NULL)
+		throw std::exception("Couldn't create font bitmap.");
 
 	//Copy pixels
 	for (int i=0; i<width*height; i++)  {
@@ -216,8 +210,8 @@ void PulpCoreImage::rotateSelf90DegreesClockwise()
 void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
 {
 	//Init
-	this->error = FALSE;
-	lstrcpy(this->errorMsg, _T(""));
+	//this->error = FALSE;
+	//lstrcpy(this->errorMsg, _T(""));
 
 	//Copy reference...
 	this->res_data = data;
@@ -228,16 +222,17 @@ void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
 
 	//Read the png signature
 	for (int i=0; i<8; i++) {
-		if (res_data[currPos++] != PNG_SIGNATURE[i] && error==FALSE) {
-			swprintf(errorMsg, _T("PNG_SIG[%i] is %02X not %02X"), i, res_data[currPos-1], PNG_SIGNATURE[i]);
-			error = TRUE;
+		if (res_data[currPos++] != PNG_SIGNATURE[i]) {
+			std::stringstream msg;
+			msg <<"PNG_SIG[" <<i <<"] is " <<res_data[currPos-1] <<" not " <<PNG_SIGNATURE[i];
+			throw std::exception(msg.str().c_str());
 		}
 	}
 
 	//Read remaining "chunks"
     int length;
     int chunkType;
-	while (error==FALSE) {
+	for (;;) {
 		length = readInt();
 		chunkType = readInt();
 
@@ -253,9 +248,10 @@ void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
 	}
 
 	//Remaining data signifies an error
-	if (currPos != res_size && error==FALSE) {
-		swprintf(errorMsg, _T("Extraneous bytes: %l"), (res_size-currPos));
-		error = TRUE;
+	if (currPos != res_size) {
+		std::stringstream msg;
+		msg <<"Extraneous bytes: %l" <<(res_size-currPos);
+		throw std::exception(msg.str().c_str());
 	}
 
 
@@ -341,10 +337,7 @@ void PulpCoreImage::readHeader(HDC currDC)
 		     colorType != COLOR_TYPE_GRAYSCALE_WITH_ALPHA && colorType != COLOR_TYPE_RGB_WITH_ALPHA))
 	{
 		//It's an error...
-		if (error==FALSE) {
-			lstrcpy(errorMsg, _T("PNG header requires unsupported options"));
-			error = TRUE;
-		}
+		throw std::exception("PNG header requires unsupported options");
 	}
 
 	//Create a new image
@@ -363,21 +356,18 @@ void PulpCoreImage::readHeader(HDC currDC)
 	//Make the bitmap to use....
 	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
 	SelectObject(directDC, directBitmap);
-	if (directBitmap==NULL && error==FALSE) {
-		lstrcpy(errorMsg, _T("Couldn't create font bitmap."));
-		error = TRUE;
-		return;
-	}
+	if (directBitmap==NULL) 
+		throw std::exception("Couldn't create font bitmap.");
 }
 
 
 void PulpCoreImage::readPalette(int length)
 {
 	//Palettes must be %3
-	if (length%3!=0 && error==FALSE) {
-		swprintf(errorMsg, _T("Palette length %i is not mod 3"), length);
-		error = TRUE;
-		return;
+	if (length%3!=0) {
+		std::stringstream msg;
+		msg <<"Palette length " <<length <<" is not mod 3";
+		throw std::exception(msg.str().c_str());
 	}
 
 	//Init palette array
@@ -399,11 +389,8 @@ void PulpCoreImage::readPalette(int length)
 void PulpCoreImage::readTransparency(int length)
 {
 	//Was the palette valid
-	if ((palette == NULL || length > pal_length) && error==FALSE) {
-		swprintf(errorMsg, _T("Pallete is null or too short."));
-		error = TRUE;
-		return;
-	}
+	if ((palette == NULL || length > pal_length)) 
+		throw std::exception("Pallete is null or too short.");
 
 	//Read data
     for (int i=0; i<length; i++) {
@@ -459,24 +446,17 @@ void PulpCoreImage::readData(int length)
 
     for (int i=0; i<height; i++) {
 		inflateFully(inflater, filterBuffer, 1);
-
-		if (error==TRUE)
-			return;
-
 		inflateFully(inflater, currScanline, bytesPerScanline);
         
 		//Apply filter
 		int filter = filterBuffer[0];
         if (filter > 0 && filter < 5)
 			decodeFilter(currScanline, bytesPerScanline, prevScanline, filter, bytesPerPixel);
-        else if (filter!=0 && error==FALSE) {
-			error = TRUE;
-			swprintf(errorMsg, _T("Illegal filter type: %i"), filter);
+		else if (filter!=0) {
+			std::stringstream msg;
+			msg <<"Illegal filter type: " <<filter;
+			throw std::exception(msg.str().c_str());
         }
-
-
-		if (error==TRUE)
-			return;
 
         //Convert bytes into ARGB pixels
         int srcIndex = 0;
@@ -561,18 +541,12 @@ void PulpCoreImage::inflateFully(Inflater* inflater, char* result, int res_lengt
 	int bytesRead = 0;
 
     while (bytesRead < res_length) {
-		if (inflater->needsInput() && error==FALSE) {
-			swprintf(errorMsg, _T("Inflater ran out of input"));
-			error = TRUE;
-			return;
-        }
+		if (inflater->needsInput())
+			throw std::exception("Inflater ran out of input");
 
 		int res = inflater->inflate(result, res_length, bytesRead, res_length - bytesRead);
-		if (res==-1 && error==FALSE) {
-			lstrcpy(errorMsg, _T("0 > off || off > off + len || off + len > buf_length"));
-			error = TRUE;
-			return;
-        }
+		if (res==-1)
+			throw std::exception("0 > off || off > off + len || off + len > buf_length");
 
         bytesRead += res;
     }
@@ -714,7 +688,7 @@ int PulpCoreImage::getHeight()
 /////////////////////
 //Properties
 /////////////////////
-BOOL PulpCoreImage::isInError()
+/*BOOL PulpCoreImage::isInError()
 {
 	return error;
 }
@@ -722,7 +696,7 @@ BOOL PulpCoreImage::isInError()
 TCHAR* PulpCoreImage::getErrorMsg()
 {
 	return errorMsg;
-}
+}*/
 
 
 

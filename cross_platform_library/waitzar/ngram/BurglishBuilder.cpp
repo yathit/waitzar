@@ -116,8 +116,9 @@ bool BurglishBuilder::IsValid(const wstring& word)
 std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std::wstring& stacked)
 {
 	//Valid if the previous word has U+103A and not anything else stacked (U+1039)
+	//Valid if the stacked word has 1039
 	int aIndex = base.rfind(L"\u103A");
-	if (aIndex==-1 || base.find(L"\u1039")!=-1)
+	if (aIndex==-1 || base.find(L"\u1039")!=-1 || stacked.find(L"\u1039")==-1)
 		return L"";
 
 	//Step 1: Remove U+103A from the base. 
@@ -189,7 +190,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 				wchar_t c = oldPrefix[0];
 				if (  (c>=L'\u1000' && c<=L'\u1008')
 					||(c==L'\u100B' || c==L'\u100C' || c==L'\u101C')
-					||(c>=L'\u100F' && c<=L'\u1009')) 
+					||(c>=L'\u100F' && c<=L'\u1019')) 
 				{
 					//Stack it
 					onset.str(L"");

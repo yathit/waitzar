@@ -25,12 +25,12 @@
 
 
 #include <windows.h>
-#include <tchar.h>
 #include <stdio.h>
 
 #include <string>
 
 #include "PulpCoreImage.h"
+#include "Display/DisplayMethod.h"
 
 //Magic number for Pulp Core font header.
 const char PULP_MAGICNUM[] = "pulpfnt\x0B";              //0x70756c70666e740b
@@ -61,7 +61,7 @@ const char PULP_MAGICNUM[] = "pulpfnt\x0B";              //0x70756c70666e740b
  *      on his system. We could embed the Zawgyi-One.ttf file itself, but that's 10 times
  *      larger than our PNG (which uses internal compression, like all PNGs do.)
  */
-class PulpCoreFont : public PulpCoreImage
+class PulpCoreFont : public PulpCoreImage, public DisplayMethod
 {
 public:
 	//Empty constructor
@@ -81,6 +81,7 @@ public:
 	int getStringWidth(const std::wstring &str);
 	int getStringWidth(const std::wstring &str, int start, int length);
 	int getCharWidth(char letter);
+	int getHeight();
 
 private:
 	//PulpCoreFont-specific properties
@@ -96,7 +97,7 @@ private:
 	//Internal Methods
 	void readChunk(int chunkType, int length, HDC currDC);
 	void fontSet();
-	int getCharIndex(TCHAR ch);
+	int getCharIndex(wchar_t ch);
 	int getCharIndex(char ch);
 	//int getKerning(TCHAR left, TCHAR right);
 	//int getKerning(char left, char right);

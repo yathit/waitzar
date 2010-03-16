@@ -186,12 +186,8 @@ unsigned int numInputOptions;
 
 
 //These need to be pointers, for now. Reference semantics are just too complex.
-PulpCoreFont *mmFontBlack;
-PulpCoreFont *mmFontGreen;
-PulpCoreFont *mmFontRed;
-PulpCoreFont *mmFontSmallWhite;
-PulpCoreFont *mmFontSmallGray;
-PulpCoreFont *mmFontSmallRed;
+DisplayMethod *mmFont;
+DisplayMethod *mmFontSmall;
 
 PAINTSTRUCT Ps;
 WORD stopChar;
@@ -627,17 +623,17 @@ void makeFont()
 						validFont = false;
 					else {
 						//Ok, load our font
-						mmFontBlack = new PulpCoreFont();
-						mainWindow->initPulpCoreImage(mmFontBlack, file_buff, file_buff_size);
-
-						//Is our font in error? If so, load the embedded font
-						if (mmFontBlack->isInError()==TRUE) {
+						mmFont = new PulpCoreFont();
+						try {
+							mainWindow->initPulpCoreImage((PulpCoreImage*)mmFont, file_buff, file_buff_size);
+						} catch (std::exception ex) {
+							//Is our font in error? If so, load the embedded font
 							wstringstream msg;
-							msg <<"Custom font didn't load correctly: " <<mmFontBlack->getErrorMsg();
+							msg <<"Custom font didn't load correctly: " <<ex.what();
 							MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 
 							validFont = false;
-							delete mmFontBlack;
+							delete mmFont;
 						}
 					}
 				}
@@ -666,34 +662,32 @@ void makeFont()
 			}
 
 			//Create our PulpCoreFont (it's white when we load it, not black, by the way)
-			mmFontBlack = new PulpCoreFont();
-			//mmFontBlack->init(fontRes, res_handle, mainWindow->WARNINGgetUnderDC());
-			mainWindow->initPulpCoreImage(mmFontBlack, fontRes, res_handle);
+			mmFont = new PulpCoreFont();
+			try {
+				mainWindow->initPulpCoreImage((PulpCoreImage*)mmFont, fontRes, res_handle);
+			} catch (std::exception ex) {
+				wstringstream msg;
+				msg <<"WZ Font didn't load correctly: " <<ex.what();
+				MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+				throw ex;
+			}
 
 			//Unlock this resource for later use.
 			UnlockResource(res_handle);
 		}
 
-		//Is our embedded font in error?
-		if (mmFontBlack->isInError()==TRUE) {
-			wstringstream msg;
-			msg <<"WZ Font didn't load correctly: " <<mmFontBlack->getErrorMsg();
-
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
-		}
-
 		//Copy-construct a new font
-		mmFontGreen = new PulpCoreFont();
-		mainWindow->initPulpCoreImage(mmFontGreen, mmFontBlack);
+		//mmFontGreen = new PulpCoreFont();
+		//mainWindow->initPulpCoreImage(mmFontGreen, mmFontBlack);
 
-		mmFontRed = new PulpCoreFont();
-		mainWindow->initPulpCoreImage(mmFontRed, mmFontBlack);
+		//mmFontRed = new PulpCoreFont();
+		//mainWindow->initPulpCoreImage(mmFontRed, mmFontBlack);
 
 		//Tint both to their respective colors
-		mmFontGreen->tintSelf(0x008000);
-		mmFontBlack->tintSelf(0x000000);
-		mmFontRed->tintSelf(0xFF0000);
+		//TODO: Re-enable tinting
+		//mmFontGreen->tintSelf(0x008000);
+		//mmFontBlack->tintSelf(0x000000);
+		//mmFontRed->tintSelf(0xFF0000);
 	}
 
 
@@ -714,13 +708,13 @@ void makeFont()
 		}
 
 		helpFntKeys = new PulpCoreFont();
-		helpWindow->initPulpCoreImage(helpFntKeys, fontRes, res_handle);
-		if (helpFntKeys->isInError()==TRUE) {
+		try {
+			helpWindow->initPulpCoreImage(helpFntKeys, fontRes, res_handle);
+		} catch (std::exception ex) {
 			wstringstream msg;
-			msg <<"WZ Help Font (keys) didn't load correctly: " <<helpFntKeys->getErrorMsg();
-
+			msg <<"WZ Help Font (keys) didn't load correctly: " <<ex.what();
 			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
+			throw ex;
 		}
 
 		//Tint to default
@@ -747,13 +741,13 @@ void makeFont()
 		}
 
 		helpFntFore = new PulpCoreFont();
-		helpWindow->initPulpCoreImage(helpFntFore, fontRes, res_handle);
-		if (helpFntFore->isInError()==TRUE) {
+		try {
+			helpWindow->initPulpCoreImage(helpFntFore, fontRes, res_handle);
+		} catch (std::exception ex) {
 			wstringstream msg;
-			msg <<"WZ Help Font (foreground) didn't load correctly: " <<helpFntFore->getErrorMsg();
-
+			msg <<"WZ Help Font (foreground) didn't load correctly: " <<ex.what();
 			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
+			throw ex;
 		}
 
 		//Tint to default
@@ -780,13 +774,13 @@ void makeFont()
 		}
 
 		helpFntBack = new PulpCoreFont();
-		helpWindow->initPulpCoreImage(helpFntBack, fontRes, res_handle);
-		if (helpFntBack->isInError()==TRUE) {
+		try {
+			helpWindow->initPulpCoreImage(helpFntBack, fontRes, res_handle);
+		} catch (std::exception ex) {
 			wstringstream msg;
-			msg <<"WZ Help Font (background) didn't load correctly: " <<helpFntBack->getErrorMsg();
-
+			msg <<"WZ Help Font (background) didn't load correctly: " <<ex.what();
 			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
+			throw ex;
 		}
 
 		//Tint to default
@@ -814,13 +808,13 @@ void makeFont()
 		}
 
 		helpCornerImg = new PulpCoreImage();
-		helpWindow->initPulpCoreImage(helpCornerImg, imgRes, res_handle);
-		if (helpCornerImg->isInError()==TRUE) {
+		try {
+			helpWindow->initPulpCoreImage(helpCornerImg, imgRes, res_handle);
+		} catch (std::exception ex) {
 			wstringstream msg;
-			msg <<"WZ Corner Image File didn't load correctly: " <<helpCornerImg->getErrorMsg();
-
+			msg <<"WZ Corner Image File didn't load correctly: " <<ex.what();
 			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
+			throw ex;
 		}
 
 		//Unlock this resource for later use.
@@ -845,13 +839,13 @@ void makeFont()
 		}
 
 		pageImages[i] = new PulpCoreImage();
-		mainWindow->initPulpCoreImage(pageImages[i], imgRes, res_handle);
-		if (pageImages[i]->isInError()==TRUE) {
+		try {
+			mainWindow->initPulpCoreImage(pageImages[i], imgRes, res_handle);
+		} catch (std::exception ex) {
 			wstringstream msg;
-			msg <<"WZ Page Image File didn't load correctly: " <<pageImages[i]->getErrorMsg();
-
+			msg <<"WZ Page Image File didn't load correctly: " <<ex.what();
 			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
+			throw ex;
 		}
 
 		//Unlock this resource for later use.
@@ -885,17 +879,17 @@ void makeFont()
 					validFont = false;
 				else {
 					//Ok, load our font
-					mmFontSmallWhite = new PulpCoreFont();
-					sentenceWindow->initPulpCoreImage(mmFontSmallWhite, file_buff, file_buff_size);
-
-					//Is our font in error? If so, load the embedded font
-					if (mmFontSmallWhite->isInError()==TRUE) {
+					mmFontSmall = new PulpCoreFont();
+					try {
+						sentenceWindow->initPulpCoreImage((PulpCoreImage*)mmFontSmall, file_buff, file_buff_size);
+					} catch (std::exception ex) {
+						//Is our font in error? If so, load the embedded font
 						wstringstream msg;
-						msg <<"Custom (small) font didn't load correctly: " <<mmFontSmallWhite->getErrorMsg();
+						msg <<"Custom (small) font didn't load correctly: " <<ex.what();
 						MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 
 						validFont = false;
-						delete mmFontSmallWhite;
+						delete mmFontSmall;
 					}
 				}
 			}
@@ -924,41 +918,38 @@ void makeFont()
 			return;
 		}
 
-		mmFontSmallWhite = new PulpCoreFont();
-		sentenceWindow->initPulpCoreImage(mmFontSmallWhite, fontRes2, res_handle_2);
+		mmFontSmall = new PulpCoreFont();
+		try {
+			sentenceWindow->initPulpCoreImage((PulpCoreImage*)mmFontSmall, fontRes2, res_handle_2);
+		} catch (std::exception ex) {
+			wstringstream msg;
+			msg <<"WZ Small Font didn't load correctly: " <<ex.what();
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			throw ex;
+		}
 
 		//Unlock this resource for later use.
 		UnlockResource(res_handle_2);
 	}
 
-
-	//Is our embedded font in error?
-	if (mmFontSmallWhite->isInError()==TRUE) {
-		wstringstream msg;
-		msg <<"WZ Small Font didn't load correctly: " <<mmFontSmallWhite->getErrorMsg();
-
-		MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-		return;
-	}
-
-
 	//Copy this font for use in the memory box
-	helpFntMemory = new PulpCoreFont();
-	mainWindow->initPulpCoreImage(helpFntMemory, mmFontSmallWhite);
+	//helpFntMemory = new PulpCoreFont();
+	//mainWindow->initPulpCoreImage(helpFntMemory, mmFontSmallWhite);
 
 
 	//Tint
-	mmFontSmallWhite->tintSelf(0xFFFFFF);
+	//TODO: Re-enable tinting
+	//mmFontSmallWhite->tintSelf(0xFFFFFF);
 
 	//New copy
-	mmFontSmallGray = new PulpCoreFont();
-	mainWindow->initPulpCoreImage(mmFontSmallGray, mmFontSmallWhite);
-	mmFontSmallGray->tintSelf(0x333333);
+	//mmFontSmallGray = new PulpCoreFont();
+	//mainWindow->initPulpCoreImage(mmFontSmallGray, mmFontSmallWhite);
+	//mmFontSmallGray->tintSelf(0x333333);
 
 	//New copy
-	mmFontSmallRed = new PulpCoreFont();
-	mainWindow->initPulpCoreImage(mmFontSmallRed, mmFontSmallWhite);
-	mmFontSmallRed->tintSelf(0xFF0000);
+	//mmFontSmallRed = new PulpCoreFont();
+	//mainWindow->initPulpCoreImage(mmFontSmallRed, mmFontSmallWhite);
+	//mmFontSmallRed->tintSelf(0xFF0000);
 
 }
 
@@ -1534,11 +1525,11 @@ void reBlitHelp(RECT blitArea)
 void initCalculate()
 {
 	//Figure out how big each of our areas is, and where they start
-	spaceWidth = mmFontBlack->getStringWidth(_T(" "));
+	spaceWidth = mmFont->getStringWidth(_T(" "));
 	firstLineStart = borderWidth;
-	secondLineStart = firstLineStart + mmFontBlack->getHeight() + spaceWidth + borderWidth;
-	thirdLineStart = secondLineStart + mmFontBlack->getHeight() + spaceWidth + borderWidth;
-	fourthLineStart = thirdLineStart + (mmFontBlack->getHeight()*8)/13 + borderWidth;
+	secondLineStart = firstLineStart + mmFont->getHeight() + spaceWidth + borderWidth;
+	thirdLineStart = secondLineStart + mmFont->getHeight() + spaceWidth + borderWidth;
+	fourthLineStart = thirdLineStart + (mmFont->getHeight()*8)/13 + borderWidth;
 
 	//Now, set the window's default height
 	mainWindow->setDefaultSize(mainWindow->getDefaultWidth(), fourthLineStart);
@@ -1552,7 +1543,7 @@ void initCalculate()
 void initCalculateHelp()
 {
 	//Initialize our keyboard
-	helpKeyboard = new OnscreenKeyboard(mmFontSmallWhite, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
+	helpKeyboard = new OnscreenKeyboard((PulpCoreFont*)mmFontSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
 }
 
 
@@ -1605,7 +1596,7 @@ void recalculate()
 		unsigned int id = i + currInput->getPagingInfo().first * 10;
 		if (id>=dispCandidateStrs.size())
 			break;
-		cumulativeWidth += mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
+		cumulativeWidth += mmFont->getStringWidth(dispCandidateStrs[id].first);
 		cumulativeWidth += spaceWidth;
 	}
 
@@ -1638,14 +1629,14 @@ void recalculate()
 
 	//Draw each string, highlight the previous word if it's a pat-sint candidate.
 	int currPosX = borderWidth + 1;
-	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr[0], currPosX, borderWidth+1);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1);
 	if (!dispSentenceStr[0].empty())
-		currPosX += mmFontSmallWhite->getStringWidth(dispSentenceStr[0]) + 1;
-	sentenceWindow->drawString(mmFontSmallRed, dispSentenceStr[1], currPosX, borderWidth+1);
+		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[0]) + 1;
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1);
 	if (!dispSentenceStr[1].empty())
-		currPosX += mmFontSmallRed->getStringWidth(dispSentenceStr[1]) + 1;
+		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[1]) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
-	sentenceWindow->drawString(mmFontSmallWhite, dispSentenceStr[2], currPosX, borderWidth+1);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1);
 
 	//Draw the cursor
 	sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
@@ -1653,11 +1644,11 @@ void recalculate()
 
 	//Draw the current encoding
 	wstring currEncStr = config.activeOutputEncoding.initial;
-	int encStrWidth = mmFontSmallWhite->getStringWidth(currEncStr);
+	int encStrWidth = mmFontSmall->getStringWidth(currEncStr);
 	sentenceWindow->selectObject(g_BlackPen);
 	sentenceWindow->selectObject(g_GreenBkgrd);
 	sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
-	sentenceWindow->drawString(mmFontSmallWhite, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmallWhite->getHeight()/2);
+	sentenceWindow->drawString(mmFontSmall, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmall->getHeight()/2);
 
 	//White overlays
 	mainWindow->selectObject(g_EmptyPen);
@@ -1667,13 +1658,13 @@ void recalculate()
 	mainWindow->drawRectangle(borderWidth+1, thirdLineStart, mainWindow->getClientWidth()-borderWidth-pagerWidth-1, fourthLineStart-borderWidth-1);
 
 	//Now, draw the strings....
-	PulpCoreFont* mmFont = mmFontBlack;
+	//PulpCoreFont* mmFont = mmFontBlack;
 	int xOffset = 0;
 	wstring extendedWordString;
 
 	//Before we do this, draw the help text if applicable
 	if (currInput->isHelpInput() && !dispCandidateStrs.empty() && !dispCandidateStrs[0].first.empty())
-		mainWindow->drawString(mmFontSmallGray, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
+		mainWindow->drawString(mmFontSmall, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 
 	//Now, draw the candiate strings and their backgrounds
 	int currLabelID = 1;
@@ -1682,18 +1673,21 @@ void recalculate()
 		unsigned int id = it + (currInput->getPagingInfo().first * 10);
 		if (id>=dispCandidateStrs.size())
 			break;
-		int thisStrWidth = mmFontBlack->getStringWidth(dispCandidateStrs[id].first);
+		int thisStrWidth = mmFont->getStringWidth(dispCandidateStrs[id].first);
 
 		//Select fonts, and draw a box under highlighted words
-		mmFont = mmFontBlack;
+		//mmFont = mmFontBlack;
 		if (dispCandidateStrs[id].second & HF_CURRSELECTION) {
-			mmFont = mmFontGreen;
+			//TODO: re-enable tinting
+			//mmFont = mmFontGreen;
 
 			mainWindow->selectObject(g_YellowBkgrd);
 			mainWindow->selectObject(g_GreenPen);
 			mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
-		} else if (dispCandidateStrs[id].second & HF_PATSINT)
-			mmFont = mmFontRed;
+		} else if (dispCandidateStrs[id].second & HF_PATSINT) {
+			//TODO: Re-enable tinting.
+			//mmFont = mmFontRed;
+		}
 
 		//Draw the string (foreground)
 		mainWindow->drawString(mmFont, dispCandidateStrs[id].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
@@ -1715,7 +1709,7 @@ void recalculate()
 	}
 
 	//Draw the current romanized string
-	mainWindow->drawString(mmFontBlack, dispRomanStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
+	mainWindow->drawString(mmFont, dispRomanStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
 	//Draw the cursor page up/down box if required
 	int pageDownStart = secondLineStart-borderWidth-2;
@@ -1732,8 +1726,8 @@ void recalculate()
 		std::pair<int, int> pgInfo = currInput->getPagingInfo();
 		std::wstringstream num;
 		num <<pgInfo.first+1;
-		int strWidth = mmFontSmallWhite->getStringWidth(num.str());
-		mainWindow->drawString(mmFontSmallWhite, num.str(), triangleStartX-1 + (triangleBaseWidth+borderWidth*2+borderWidth)/2 - strWidth/2, pageDownStart-borderWidth-mmFontSmallWhite->getHeight() + 6);
+		int strWidth = mmFontSmall->getStringWidth(num.str());
+		mainWindow->drawString(mmFontSmall, num.str(), triangleStartX-1 + (triangleBaseWidth+borderWidth*2+borderWidth)/2 - strWidth/2, pageDownStart-borderWidth-mmFontSmall->getHeight() + 6);
 
 		//Draw a separator line for the box, half-shaded.
 		//Black center line
@@ -2069,14 +2063,15 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 void onAllWindowsCreated()
 {
 	//Create our font
-	makeFont();
-
-	//Perform initial calculations if this worked
-	if (mmFontBlack->isInError()) {
+	try {
+		makeFont();
+	} catch (std::exception ex) {
 		//Will generate a WM_DESTROY message
 		delete mainWindow;
 		return;
 	}
+
+	//Perform initial calculations if this worked
 	initCalculate();
 
 	//Initialize the main window
