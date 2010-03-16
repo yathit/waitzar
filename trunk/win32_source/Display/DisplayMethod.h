@@ -40,6 +40,11 @@ public:
 		return id != other;
 	}
 
+
+	//Initialization
+	virtual void init(char *data, unsigned long size, HDC currDC) = 0;
+	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC) = 0;
+
 	//Functionality
 	virtual void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos) = 0;
 	virtual void drawString(HDC bufferDC, const std::string &str, int xPos, int yPos) = 0;

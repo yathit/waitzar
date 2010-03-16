@@ -625,7 +625,7 @@ void makeFont()
 						//Ok, load our font
 						mmFont = new PulpCoreFont();
 						try {
-							mainWindow->initPulpCoreImage((PulpCoreImage*)mmFont, file_buff, file_buff_size);
+							mainWindow->initDisplayMethod(mmFont, file_buff, file_buff_size);
 						} catch (std::exception ex) {
 							//Is our font in error? If so, load the embedded font
 							wstringstream msg;
@@ -664,7 +664,7 @@ void makeFont()
 			//Create our PulpCoreFont (it's white when we load it, not black, by the way)
 			mmFont = new PulpCoreFont();
 			try {
-				mainWindow->initPulpCoreImage((PulpCoreImage*)mmFont, fontRes, res_handle);
+				mainWindow->initDisplayMethod(mmFont, fontRes, res_handle);
 			} catch (std::exception ex) {
 				wstringstream msg;
 				msg <<"WZ Font didn't load correctly: " <<ex.what();
@@ -881,7 +881,7 @@ void makeFont()
 					//Ok, load our font
 					mmFontSmall = new PulpCoreFont();
 					try {
-						sentenceWindow->initPulpCoreImage((PulpCoreImage*)mmFontSmall, file_buff, file_buff_size);
+						sentenceWindow->initDisplayMethod(mmFontSmall, file_buff, file_buff_size);
 					} catch (std::exception ex) {
 						//Is our font in error? If so, load the embedded font
 						wstringstream msg;
@@ -920,7 +920,7 @@ void makeFont()
 
 		mmFontSmall = new PulpCoreFont();
 		try {
-			sentenceWindow->initPulpCoreImage((PulpCoreImage*)mmFontSmall, fontRes2, res_handle_2);
+			sentenceWindow->initDisplayMethod(mmFontSmall, fontRes2, res_handle_2);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Small Font didn't load correctly: " <<ex.what();
@@ -933,8 +933,8 @@ void makeFont()
 	}
 
 	//Copy this font for use in the memory box
-	//helpFntMemory = new PulpCoreFont();
-	//mainWindow->initPulpCoreImage(helpFntMemory, mmFontSmallWhite);
+	helpFntMemory = (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
+	//mainWindow->initPulpCoreImage(helpFntMemory, mmFontSmall);
 
 
 	//Tint
