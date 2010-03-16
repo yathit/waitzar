@@ -563,7 +563,7 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
 		if (id==L"zawgyibmp")
-			res = new PngFont();
+			res = new PulpCoreFont();
 		else
 			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Display Method: ", id).c_str());
 		res->type = BUILTIN;

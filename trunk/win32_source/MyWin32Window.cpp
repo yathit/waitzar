@@ -637,20 +637,20 @@ bool MyWin32Window::drawImage(PulpCoreImage* img, int x, int y)
 	return true;
 }
 
-bool MyWin32Window::drawString(PulpCoreFont* font, const std::string& str, int x, int y)
+bool MyWin32Window::drawString(DisplayMethod* font, const std::string& str, int x, int y)
 {
 	font->drawString(underDC, str, x, y);
 	return true;
 }
 
 
-bool MyWin32Window::drawString(PulpCoreFont* font, const std::wstring& str, int x, int y)
+bool MyWin32Window::drawString(DisplayMethod* font, const std::wstring& str, int x, int y)
 {
 	font->drawString(underDC, str, x, y);
 	return true;
 }
 
-bool MyWin32Window::drawChar(PulpCoreFont* font, char letter, int xPos, int yPos)
+bool MyWin32Window::drawChar(DisplayMethod* font, char letter, int xPos, int yPos)
 {
 	font->drawChar(underDC, letter, xPos, yPos);
 	return true;

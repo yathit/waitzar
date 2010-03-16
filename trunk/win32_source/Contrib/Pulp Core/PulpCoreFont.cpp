@@ -77,9 +77,10 @@ void PulpCoreFont::fontSet()
 {
 	//Read PulpCore's magic number
 	for (int i=0; i<8; i++) {
-		if (res_data[currPos++] != PULP_MAGICNUM[i] && error==FALSE) {
-			swprintf(errorMsg, _T("PULP_MAGICNUM[%i] is %02X not %02X"), i, res_data[currPos-1], PULP_MAGICNUM[i]);
-			error = TRUE;
+		if (res_data[currPos++] != PULP_MAGICNUM[i]) {
+			std::stringstream msg;
+			msg <<"PULP_MAGICNUM[" <<i <<"] is " <<res_data[currPos-1] <<" not " <<PULP_MAGICNUM[i];
+			throw std::exception(msg.str().c_str());
 		}
 	}
 
@@ -174,7 +175,7 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 }
 
 
-int PulpCoreFont::getCharIndex(TCHAR ch)
+int PulpCoreFont::getCharIndex(wchar_t ch)
 {
 	//Special-case (not in WZ)
 	if (uppercaseOnly && ch>='a' &&ch<= 'z')
@@ -194,7 +195,6 @@ void PulpCoreFont::drawString(HDC bufferDC, const string &str, int xPos, int yPo
 	//Don't loop through null or zero-lengthed strings
 	if (str.empty() || directPixels==NULL)
 		return;
-
 
 	//Loop through all letters...
 	int nextIndex = getCharIndex(str[0]);
@@ -263,6 +263,11 @@ int PulpCoreFont::getCharWidth(char letter)
 	return charPositions[index+1] - pos;
 }
 
+int PulpCoreFont::getHeight()
+{
+	return PulpCoreImage::getHeight();
+}
+
 
 int PulpCoreFont::getStringWidth(const wstring &str)
 {
@@ -278,7 +283,7 @@ int PulpCoreFont::getStringWidth(const wstring &str, int start, int end)
         int stringWidth = 0;
         
         int lastIndex = -1;
-        for (int i=start; i<end; i++) {
+        for (int i=start; i<end; i++) {  //FIXME: Something's causing an error here, in this loop...
             int index = getCharIndex(str[i]);
             int charWidth = charPositions[index+1] - charPositions[index];
             

@@ -24,8 +24,9 @@
 #define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <windows.h>
-#include <tchar.h>
 #include <stdio.h>
+#include <string>
+#include <sstream>
 
 #include "Jazzlib/Inflater.h"
 
@@ -85,8 +86,8 @@ public:
 	void draw(HDC bufferDC, int xPos, int yPos);
 
 	//We report errors, though they're unlikely.
-	BOOL isInError();
-	TCHAR* getErrorMsg();
+	//BOOL isInError();
+	//TCHAR* getErrorMsg();
 
 	//Basic properties
 	int getWidth();
@@ -117,8 +118,8 @@ protected:
 	DWORD res_size;
 
 	//Error tracking
-	BOOL error;
-	TCHAR errorMsg[100];
+	//BOOL error;
+	//TCHAR errorMsg[100];
 
 	//Internal Methods
 	void initBmpInfo();

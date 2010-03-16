@@ -95,9 +95,9 @@ public:
 	bool drawRectangle(int left, int top, int right, int bottom);
 	bool drawPolygon(const POINT *points, int numPoints);
 	bool drawImage(PulpCoreImage* img, int x, int y);
-	bool drawString(PulpCoreFont* font, const std::string& str, int x, int y);
-	bool drawString(PulpCoreFont* font, const std::wstring& str, int x, int y);
-	bool drawChar(PulpCoreFont* font, char letter, int xPos, int yPos);
+	bool drawString(DisplayMethod* font, const std::string& str, int x, int y);
+	bool drawString(DisplayMethod* font, const std::wstring& str, int x, int y);
+	bool drawChar(DisplayMethod* font, char letter, int xPos, int yPos);
 
 	//A new property
 	void setDefaultSize(int width, int height);
