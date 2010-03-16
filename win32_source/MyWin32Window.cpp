@@ -566,6 +566,11 @@ bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	return true;
 }
 
+void MyWin32Window::initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle)
+{
+	img->init(resource, dataHandle, topDC);
+}
+
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle)
 {
 	img->init(resource, dataHandle, topDC);
@@ -581,7 +586,7 @@ void MyWin32Window::initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFrom
 	font->init(copyFromFont, topDC);
 }
 
-void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, char *data, DWORD size)
+void MyWin32Window::initDisplayMethod(DisplayMethod* img, char *data, DWORD size)
 {
 	img->init(data, size, topDC);
 }
