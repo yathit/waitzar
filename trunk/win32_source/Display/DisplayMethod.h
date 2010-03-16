@@ -42,8 +42,8 @@ public:
 
 
 	//Initialization
-	virtual void init(char *data, unsigned long size, HDC currDC) = 0;
-	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC) = 0;
+	virtual void init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor) = 0;
+	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, unsigned int defaultColor) = 0;
 
 	//Functionality
 	virtual void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos) = 0;
@@ -51,6 +51,11 @@ public:
 	virtual void drawChar(HDC bufferDC, char letter, int xPos, int yPos) = 0;
 	virtual int getStringWidth(const std::wstring &str) = 0;
 	virtual int getHeight() = 0;
+	virtual void setColor(unsigned int ARGB) = 0;
+
+protected:
+	unsigned int currColor;
+
 };
 
 

@@ -566,10 +566,16 @@ bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	return true;
 }
 
-void MyWin32Window::initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle)
+void MyWin32Window::initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor)
 {
-	img->init(resource, dataHandle, topDC);
+	img->init(resource, dataHandle, topDC, defaultColor);
 }
+
+void MyWin32Window::initDisplayMethod(DisplayMethod* img, char *data, DWORD size, unsigned int defaultColor)
+{
+	img->init(data, size, topDC, defaultColor);
+}
+
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle)
 {
@@ -584,11 +590,6 @@ void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFro
 void MyWin32Window::initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont)
 {
 	font->init(copyFromFont, topDC);
-}
-
-void MyWin32Window::initDisplayMethod(DisplayMethod* img, char *data, DWORD size)
-{
-	img->init(data, size, topDC);
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, int width, int height, int bkgrdARGB)
