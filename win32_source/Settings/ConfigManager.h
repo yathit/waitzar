@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <set>
+#include <iostream>
 #include <algorithm>
 #include <limits>
 #include <functional>
@@ -160,7 +161,7 @@ public:
 	Language activeLanguage;
 	Encoding activeOutputEncoding;
 	InputMethod* activeInputMethod;
-	DisplayMethod* activeDisplayMethod;
+	std::vector<DisplayMethod*> activeDisplayMethods; //Normal, small
 	Encoding unicodeEncoding;
 
 	//Quality control
@@ -171,6 +172,7 @@ public:
 	static std::wstring sanitize(const std::wstring& str);
 	static std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
 	static bool read_bool(const std::wstring& str);
+	static int read_int(const std::wstring& str);
 
 	//For stl exceptions...
 	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3, const std::string& str4)

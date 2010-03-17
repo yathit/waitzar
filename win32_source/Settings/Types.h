@@ -10,7 +10,7 @@
 
 //Global "Types" enum
 //TODO: This is kinda lonely out here...
-enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN};
+enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN, DISPM_TTF, DISPM_PNG};
 
 
 #endif //_SETTINGS_TYPES

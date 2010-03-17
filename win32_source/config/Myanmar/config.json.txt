@@ -7,6 +7,7 @@
   # What output encoding, display method, and input method are used by default? 
   "default-output-encoding" : "unicode",
   "default-display-method" : "zawgyibmp",
+  "default-display-method-small" : "zawgyibmpsmall",
   "default-input-method" : "burglish",
   
   # Declaration of input methods. To add your own input method, create a folder in the 
@@ -132,6 +133,16 @@
     "zawgyibmp" : 
     {
       "encoding" : "zawgyi-one",
+      "type" : "builtin"
+    },
+    "zawgyibmpsmall" : 
+    {
+      "encoding" : "zawgyi-one",
+      "type" : "builtin"
+    },
+    "pdkzgwz" : 
+    {
+      "encoding" : "unicode",
       "type" : "builtin"
     }
   }

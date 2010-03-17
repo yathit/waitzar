@@ -109,6 +109,7 @@ public:
 	void initDisplayMethod(DisplayMethod* img, char *data, DWORD size, unsigned int defaultColor);
 
 	void initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor);
+	void initTtfMethod(DisplayMethod* img, const std::wstring& fontFileName, unsigned int defaultColor);
 
 	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
 	void initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImg);

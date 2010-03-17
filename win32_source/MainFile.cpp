@@ -168,7 +168,8 @@ void createContextMenu();
 InputMethod*       currInput;     //Which of the two next inputs are currently in use?
 InputMethod*       currTypeInput;
 InputMethod*       currHelpInput; //NULL means disable help
-DisplayMethod*     currDisplay;
+DisplayMethod *mmFont;
+DisplayMethod *mmFontSmall;
 const Transformation*    input2Uni;
 const Transformation*    uni2Output;
 const Transformation*    uni2Disp;
@@ -183,10 +184,6 @@ TtfDisplay* menuFont;
 TtfDisplay* sysFont;
 unsigned int numInputOptions;
 
-
-//These need to be pointers, for now. Reference semantics are just too complex.
-DisplayMethod *mmFont;
-DisplayMethod *mmFontSmall;
 
 
 //TODO: There are still some places where we use a font without coloring it.
@@ -1535,7 +1532,7 @@ void recalculate()
 {
 	//Convert the current input string to the internal encoding, and then convert it to the display encoding.
 	//  We can short-circuit this if the output and display encodings are the same.
-	bool noEncChange = (currDisplay->encoding==currInput->encoding);
+	bool noEncChange = (mmFont->encoding==currInput->encoding);
 	std::wstring dispRomanStr = currInput->getTypedRomanString(false);
 	if (!noEncChange) {
 		input2Uni->convertInPlace(dispRomanStr);
@@ -1608,13 +1605,13 @@ void recalculate()
 
 	//Draw each string, highlight the previous word if it's a pat-sint candidate.
 	int currPosX = borderWidth + 1;
-	mmFontSmall->setColor(0xFFFFFF);
+	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1);
 	if (!dispSentenceStr[0].empty())
 		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[0], NULL) + 1;
-	mmFontSmall->setColor(0xFF0000);
+	mmFontSmall->setColor(0xFF, 0x00, 0x00);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1);
-	mmFontSmall->setColor(0xFFFFFF);
+	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	if (!dispSentenceStr[1].empty())
 		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[1], NULL) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
@@ -1660,14 +1657,14 @@ void recalculate()
 		//Select fonts, and draw a box under highlighted words
 		//mmFont = mmFontBlack;
 		if (dispCandidateStrs[id].second & HF_CURRSELECTION) {
-			mmFont->setColor(0x008000);
+			mmFont->setColor(0x00, 0x80, 0x00);
 			mainWindow->selectObject(g_YellowBkgrd);
 			mainWindow->selectObject(g_GreenPen);
 			mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight(NULL)+spaceWidth-1);
 		} else if (dispCandidateStrs[id].second & HF_PATSINT) {
-			mmFont->setColor(0xFF0000);
+			mmFont->setColor(0xFF, 0x00, 0x00);
 		} else
-			mmFont->setColor(0x000000);
+			mmFont->setColor(0x00, 0x00, 0x00);
 
 		//Draw the string (foreground)
 		mainWindow->drawString(mmFont, dispCandidateStrs[id].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
@@ -1689,7 +1686,7 @@ void recalculate()
 	}
 
 	//Draw the current romanized string
-	mmFont->setColor(0x000000);
+	mmFont->setColor(0x00, 0x00, 0x00);
 	mainWindow->drawString(mmFont, dispRomanStr, borderWidth+1+spaceWidth/2, firstLineStart+spaceWidth/2+1);
 
 	//Draw the cursor page up/down box if required
@@ -2269,7 +2266,9 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	if (!langid.empty()) {
 		//Changing the language changes just about everything.
 		config.activeLanguage = *(FindKeyInSet(config.getLanguages(), langid));
-		config.activeDisplayMethod = *(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethod));
+		config.activeDisplayMethods.clear();
+		config.activeDisplayMethods.push_back(*(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethodReg)));
+		config.activeDisplayMethods.push_back(*(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethodSmall)));
 		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), config.activeLanguage.defaultInputMethod));
 		config.activeOutputEncoding = config.activeLanguage.defaultOutputEncoding;
 
@@ -2294,10 +2293,11 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	currInput = config.activeInputMethod;
 	currTypeInput = currInput;
 	currHelpInput = NULL; 
-	currDisplay = config.activeDisplayMethod;
+	mmFont = config.activeDisplayMethods[0];
+	mmFontSmall = config.activeDisplayMethods[1];
 	input2Uni = config.getTransformation(config.activeLanguage, config.activeInputMethod->encoding, config.unicodeEncoding);
 	uni2Output = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeOutputEncoding);
-	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethod->encoding);
+	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethods[0]->encoding);
 
 	//Now, reset?
 	if (!langid.empty() || !inputid.empty()) {
@@ -2457,6 +2457,8 @@ void createMyanmarMenuFont()
 
 	//Now, create it
 	menuFont = new TtfDisplay();
+	menuFont->fontFaceName = L"PdkZgWz";
+	menuFont->pointSize = 10;
 	mainWindow->initTtfMethod(menuFont, fontRes, res_handle, 0x000000);
 }
 
@@ -2700,13 +2702,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			COLORREF oldBkgrd;
 			if (item->type==WZMI_HEADER) {
 				oldBkgrd = SetBkColor(currDC, cr_Black);
-				myFont->setColor(cr_White);
+				myFont->setColor(GetRValue(cr_White), GetGValue(cr_White), GetBValue(cr_White));
 			} else if ((drawInfo->itemState&ODS_HOTLIGHT)||(drawInfo->itemState&ODS_SELECTED)) {
 				oldBkgrd = SetBkColor(currDC, cr_MenuItemBkgrd);
-				myFont->setColor(cr_MenuItemText);
+				myFont->setColor(GetRValue(cr_MenuItemText), GetGValue(cr_MenuItemText), GetBValue(cr_MenuItemText));
 			} else {
 				oldBkgrd = SetBkColor(currDC, cr_MenuDefaultBkgrd);
-				myFont->setColor(cr_MenuDefaultText);
+				myFont->setColor(GetRValue(cr_MenuDefaultText), GetGValue(cr_MenuDefaultText), GetBValue(cr_MenuDefaultText));
 			}
 
 			//Conditionally set the font

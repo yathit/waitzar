@@ -8,6 +8,7 @@
 
 
 using std::wstring;
+using std::string;
 
 
 TtfDisplay::TtfDisplay()
@@ -15,13 +16,16 @@ TtfDisplay::TtfDisplay()
 	this->font = NULL;
 	this->fontHandle = NULL;
 	this->fontHeight = -1;
+	this->fileToDelete = L"";
 }
 
 TtfDisplay::~TtfDisplay()
 {
-	//Delete our font from memory
+	//Delete our font(s) from memory
 	if (fontHandle!=NULL)
 		RemoveFontMemResourceEx(fontHandle);
+	if (!fileToDelete.empty())
+		RemoveFontResourceEx(fileToDelete.c_str(), FR_PRIVATE, 0);
 }
 
 
@@ -34,6 +38,19 @@ void TtfDisplay::init(HFONT existingFont)
 void TtfDisplay::init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor)
 {
 	//No use for now
+}
+
+void TtfDisplay::init(const wstring& fileName, unsigned int defaultColor, int devLogPixelsY)
+{
+	//Create it
+	if (!fileName.empty()) {
+		fileToDelete = fileName;
+		if (AddFontResourceEx(fileName.c_str(), FR_PRIVATE, 0)==0)
+			throw std::exception("Couldn't load internal font file");
+	}
+
+	//Now, add the logical font
+	this->initLogicalFont(devLogPixelsY);
 }
 
 
