@@ -7,6 +7,7 @@
 #ifndef _OUTPUT_TTFDISPLAY
 #define _OUTPUT_TTFDISPLAY
 
+#include "MyWin32Window.h"
 #include "Display/DisplayMethod.h"
 
 /**
@@ -16,20 +17,35 @@ class TtfDisplay : public DisplayMethod
 {
 public:
 	TtfDisplay();
+	virtual ~TtfDisplay();
+
+	//Additional properties
+	int pointSize;
+	std::wstring fontFaceName;
 
 	//Initialization: If we manage to load from another source? (E.g., downloading from a network?)
 	void init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor);
 
 	//Initialization: Load an embedded font resource
-	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, unsigned int defaultColor);
+	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor);
+
+	//Special init case: load an existing font
+	void init(HFONT existingFont);
 
 	//Functionality
 	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos);
 	void drawString(HDC bufferDC, const std::string &str, int xPos, int yPos);
 	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
-	int getStringWidth(const std::wstring &str);
-	int getHeight();
-	void setColor(unsigned int ARGB);
+	int getStringWidth(const std::wstring &str, HDC currDC);
+	int getHeight(HDC currDC);
+
+private:
+	HFONT font;
+	HANDLE fontHandle;
+	int fontHeight;
+
+	void initLogicalFont(int devLogPixelsY);
+
 };
 
 

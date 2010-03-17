@@ -295,6 +295,10 @@ void PulpCoreImage::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
 
 	//Loop through and read this data
 	this->init(res_data, res_size, currDC);
+
+	//Unlock this resource for later use
+	//Apparently not needed anymore? Odd...
+	//UnLockResource(dataHandle);
 }
 
 

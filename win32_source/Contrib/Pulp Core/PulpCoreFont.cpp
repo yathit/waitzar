@@ -51,7 +51,7 @@ void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC)
 /**
  * Create a PulpCoreFont.
  */
-void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, unsigned int defaultColor) 
+void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor) 
 {
 	PulpCoreImage::init(resource, dataHandle, currDC);
 
@@ -68,12 +68,6 @@ void PulpCoreFont::init(char *data, DWORD size, HDC currDC, unsigned int default
 	//Tint the default color
 	this->currColor = defaultColor;
 	this->tintSelf(defaultColor);
-}
-
-void PulpCoreFont::setColor(unsigned int ARGB)
-{
-	//Save it; we tint later, on-the-fly
-	this->currColor = ARGB;
 }
 
 
@@ -309,13 +303,13 @@ int PulpCoreFont::getCharWidth(char letter)
 	return charPositions[index+1] - pos;
 }
 
-int PulpCoreFont::getHeight()
+int PulpCoreFont::getHeight(HDC currDC)
 {
 	return PulpCoreImage::getHeight();
 }
 
 
-int PulpCoreFont::getStringWidth(const wstring &str)
+int PulpCoreFont::getStringWidth(const wstring &str, HDC currDC)
 {
 	return getStringWidth(str, 0, str.length());
 }
