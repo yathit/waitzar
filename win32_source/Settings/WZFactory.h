@@ -63,6 +63,7 @@ public:
 	static DisplayMethod* getZawgyiPngDisplay(std::wstring langID, std::wstring dispID, unsigned int dispResourceID);
 	static DisplayMethod* getPadaukZawgyiTtfDisplay(std::wstring langID, std::wstring dispID);
 	static DisplayMethod* getTtfDisplayManager(std::wstring langID, std::wstring dispID, std::wstring fontFileName, std::wstring fontFaceName, int pointSize);
+	static DisplayMethod* getPngDisplayManager(std::wstring langID, std::wstring dispID, std::wstring fontFileName);
 
 	//Init; load all special builders at least once
 	static void InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);
@@ -540,6 +541,53 @@ DisplayMethod* WZFactory<ModelType>::getTtfDisplayManager(std::wstring langID, s
 
 
 template <class ModelType>
+DisplayMethod* WZFactory<ModelType>::getPngDisplayManager(std::wstring langID, std::wstring dispID, std::wstring fontFileName)
+{
+	wstring fullID = langID + L"." + dispID;
+
+	//Singleton init
+	if (WZFactory<ModelType>::cachedDisplayMethods.count(fullID)==0) {
+		//Does it end in ".png"
+		if (fontFileName.length()<5 || fontFileName[fontFileName.length()-4]!=L'.' || fontFileName[fontFileName.length()-3]!=L'p' || fontFileName[fontFileName.length()-2]!=L'n' || fontFileName[fontFileName.length()-1]!=L'g')
+			throw std::exception("PngFont file does not end in \".png\"");
+
+		//Open it
+		FILE* fontFile = fopen(waitzar::escape_wstr(fontFileName, false).c_str(), "rb");
+		if (fontFile == NULL)
+			throw std::exception("PngFont file could not be opened for reading.");
+
+		//Try to read its data into a char[] array; get the size, too
+		fseek (fontFile, 0, SEEK_END);
+		long fileSize = ftell(fontFile);
+		rewind(fontFile);
+		char * file_buff = new char[fileSize];
+		size_t file_buff_size = fread(file_buff, 1, fileSize, fontFile);
+		fclose(fontFile);
+		if (file_buff_size!=fileSize)
+			throw std::exception("PngFont file could not be read to the end of the file.");
+		
+		//Ok, load our font
+		PulpCoreFont* res = new PulpCoreFont();
+		try {
+			mainWindow->initDisplayMethod(res, file_buff, file_buff_size, 0x000000);
+		} catch (std::exception ex) {
+			//Is our font in error? If so, load the embedded font
+			std::stringstream msg;
+			msg <<"Custom font didn't load correctly: " <<ex.what();
+			delete res;
+			throw std::exception(msg.str().c_str());
+		}
+
+		//Save
+		WZFactory<ModelType>::cachedDisplayMethods[fullID] = res;
+	}
+	
+	return WZFactory<ModelType>::cachedDisplayMethods[fullID];
+}
+
+
+
+template <class ModelType>
 void WZFactory<ModelType>::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard)
 {
 	//Save
@@ -661,14 +709,14 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		res->type = BUILTIN;
 	} else if (sanitize_id(options.find(L"type")->second) == L"ttf") {
 		//Enforce that a font-face-name is given
-		if (options.count(L"font-face-name")==0)
-			throw std::exception("Cannot construct \"ttf\" display method: no \"font-face-name\".");
-		std::wstring fontFaceName = options.find(L"font-face-name")->second;
+		if (options.count(sanitize_id(L"font-face-name"))==0)
+			throw std::exception(ConfigManager::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
+		std::wstring fontFaceName = options.find(sanitize_id(L"font-face-name"))->second;
 
 		//Enforce that a point-size is given
-		if (options.count(L"point-size")==0)
+		if (options.count(sanitize_id(L"point-size"))==0)
 			throw std::exception("Cannot construct \"ttf\" display method: no \"point-size\".");
-		int pointSize = read_int(options.find(L"point-size")->second);
+		int pointSize = read_int(options.find(sanitize_id(L"point-size"))->second);
 		
 		//Get the local directory; add the font-file:
 		//TODO: This should lead DIRECTLY to the "Test" directory, to make modules more portable.
@@ -688,7 +736,26 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		res = WZFactory<ModelType>::getTtfDisplayManager(language.id, id, fontFile, fontFaceName, pointSize);
 		res->type = DISPM_TTF;
 	} else if (sanitize_id(options.find(L"type")->second) == L"png") {
+		//Enforce that a font-file is given
+		if (options.count(sanitize_id(L"font-file"))==0)
+			throw std::exception("Cannot construct \"png\" display method: no \"font-file\".");
+		std::wstring fontFile = options.find(sanitize_id(L"font-file"))->second;
+		
+		//Get the local directory; add the font-file:
+		//TODO: This should lead DIRECTLY to the "Test" directory, to make modules more portable.
+		std::wstring langConfigDir = L"config\\" + language.displayName + L"\\";
+		fontFile = langConfigDir + fontFile;
 
+		//TODO: Test in a cleaner way.
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		std::wstringstream temp;
+		temp << fontFile.c_str();
+		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			throw std::exception(ConfigManager::glue(L"Font file file does not exist: ", fontFile).c_str());
+
+		//Get it, as a singleton
+		res = WZFactory<ModelType>::getPngDisplayManager(language.id, id, fontFile);
+		res->type = DISPM_PNG;
 	} else {
 		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Display Method: ", id).c_str());
 	}
