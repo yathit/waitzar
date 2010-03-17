@@ -633,10 +633,11 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		//These use a wordlist, for now.
 		if (options.count(L"wordlist")==0)
 			throw std::exception("Cannot construct \"roman\" input manager: no \"wordlist\".");
+		if (options.count(sanitize_id(L"current-folder"))==0)
+			throw std::exception("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
 
 		//Build the wordlist file; we will need the respective directory, too.
-		//TODO: This should lead DIRECTLY to the "Burglish" directory, to make modules more portable.
-		std::wstring langConfigDir = L"config\\" + language.displayName + L"\\";
+		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
 		std::wstring wordlistFile = langConfigDir + options.find(L"wordlist")->second;
 
 		//TODO: Test in a cleaner way.
@@ -717,10 +718,12 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		if (options.count(sanitize_id(L"point-size"))==0)
 			throw std::exception("Cannot construct \"ttf\" display method: no \"point-size\".");
 		int pointSize = read_int(options.find(sanitize_id(L"point-size"))->second);
+
+		if (options.count(sanitize_id(L"current-folder"))==0)
+			throw std::exception("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
 		
 		//Get the local directory; add the font-file:
-		//TODO: This should lead DIRECTLY to the "Test" directory, to make modules more portable.
-		std::wstring langConfigDir = L"config\\" + language.displayName + L"\\";
+		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
 		std::wstring fontFile = (options.count(L"font-file")>0) ? langConfigDir + options.find(L"font-file")->second : L"";
 
 		//TODO: Test in a cleaner way.
@@ -740,10 +743,12 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		if (options.count(sanitize_id(L"font-file"))==0)
 			throw std::exception("Cannot construct \"png\" display method: no \"font-file\".");
 		std::wstring fontFile = options.find(sanitize_id(L"font-file"))->second;
+
+		if (options.count(sanitize_id(L"current-folder"))==0)
+			throw std::exception("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
 		
 		//Get the local directory; add the font-file:
-		//TODO: This should lead DIRECTLY to the "Test" directory, to make modules more portable.
-		std::wstring langConfigDir = L"config\\" + language.displayName + L"\\";
+		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
 		fontFile = langConfigDir + fontFile;
 
 		//TODO: Test in a cleaner way.

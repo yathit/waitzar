@@ -759,12 +759,6 @@ void makeFont()
 		//Unlock this resource for later use.
 		//UnlockResource(res_handle);
 	}
-
-
-	//Copy this font for use in the memory box
-	//TODO: Something else.
-	helpFntMemory = (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
-	//mainWindow->initPulpCoreImage(helpFntMemory, mmFontSmall);
 }
 
 
@@ -1336,6 +1330,26 @@ void reBlitHelp(RECT blitArea)
 }
 
 
+/**
+ * Initialize our on-screen keyboard
+ */
+void initCalculateHelp()
+{
+	//Initialize our keyboard
+	//TODO: Is there a better way? 
+	if (helpKeyboard!=NULL)
+		delete helpKeyboard;
+
+	//Copy this font for use in the memory box
+	//TODO: Something else.
+	helpFntMemory = (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
+
+	//Make
+	helpKeyboard = new OnscreenKeyboard((PulpCoreFont*)mmFontSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
+}
+
+
+
 void initCalculate()
 {
 	//Figure out how big each of our areas is, and where they start
@@ -1350,19 +1364,26 @@ void initCalculate()
 
 	//Now, set the window's default height
 	mainWindow->setDefaultSize(mainWindow->getDefaultWidth(), fourthLineStart);
+
+	//Initialize the main window
+	mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight(), false);
+	mainWindow->createDoubleBufferedSurface();
+
+	//Initialize the sentence window
+	sentenceWindow->resizeWindow(sentenceWindow->getDefaultWidth(), sentenceWindow->getDefaultHeight(), false);
+	sentenceWindow->createDoubleBufferedSurface();
+
+	//Initialize the helper window
+	helpWindow->resizeWindow(helpWindow->getDefaultWidth(), helpWindow->getDefaultHeight(), false);
+	helpWindow->createDoubleBufferedSurface();
+
+	//Initialize the memory window
+	memoryWindow->resizeWindow(memoryWindow->getDefaultWidth(), memoryWindow->getDefaultHeight(), false);
+	memoryWindow->createDoubleBufferedSurface();
+
+	//Re-build the help keyboard
+	initCalculateHelp();
 }
-
-
-
-/**
- * Initialize our on-screen keyboard
- */
-void initCalculateHelp()
-{
-	//Initialize our keyboard
-	helpKeyboard = new OnscreenKeyboard((PulpCoreFont*)mmFontSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
-}
-
 
 
 
@@ -1891,27 +1912,8 @@ void onAllWindowsCreated()
 		return;
 	}
 
-	//Perform initial calculations if this worked
-	initCalculate();
-
-	//Initialize the main window
-	mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight(), false);
-	mainWindow->createDoubleBufferedSurface();
-
-	//Initialize the sentence window
-	sentenceWindow->resizeWindow(sentenceWindow->getDefaultWidth(), sentenceWindow->getDefaultHeight(), false);
-	sentenceWindow->createDoubleBufferedSurface();
-
-	//Initialize the helper window
-	helpWindow->resizeWindow(helpWindow->getDefaultWidth(), helpWindow->getDefaultHeight(), false);
-	helpWindow->createDoubleBufferedSurface();
-
-	//Initialize the memory window
-	memoryWindow->resizeWindow(memoryWindow->getDefaultWidth(), memoryWindow->getDefaultHeight(), false);
-	memoryWindow->createDoubleBufferedSurface();
-
 	//Initialize the calculationf for the help window
-	initCalculateHelp();
+	//initCalculateHelp();
 }
 
 
@@ -2113,18 +2115,6 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		config.activeDisplayMethods.push_back(*(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethodSmall)));
 		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), config.activeLanguage.defaultInputMethod));
 		config.activeOutputEncoding = config.activeLanguage.defaultOutputEncoding;
-
-		//Rebuild the menus?
-		if (contextMenu!=NULL) {
-			//Reclaim
-			DestroyMenu(contextMenu);
-			totalMenuItems = 0;
-			customMenuItemsLookup.clear();
-			delete [] customMenuItems;
-
-			//Reubild
-			createContextMenu();
-		}
 	}
 	if (!inputid.empty())
 		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), inputid));
@@ -2151,6 +2141,22 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		//And repaint, just in case
 		checkAllHotkeysAndWindows();
 		recalculate();
+	}
+	if (!langid.empty()) {
+		//Rebuild the menus?
+		if (contextMenu!=NULL) {
+			//Reclaim
+			DestroyMenu(contextMenu);
+			totalMenuItems = 0;
+			customMenuItemsLookup.clear();
+			delete [] customMenuItems;
+
+			//Reubild
+			createContextMenu();
+		}
+
+		//We'll have to re-size the windows, in case a different font is used
+		initCalculate();
 	}
 }
 
@@ -2749,6 +2755,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//First and foremost
 	helpIsCached = false;
 	isDragging = false;
+	helpKeyboard = NULL;
 	contextMenu = NULL;
 	menuFont = NULL;
 	sysFont = NULL;

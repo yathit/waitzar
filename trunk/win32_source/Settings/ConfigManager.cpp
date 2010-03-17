@@ -10,6 +10,7 @@
 using std::vector;
 using std::pair;
 using std::wstring;
+using std::string;
 using json_spirit::wValue;
 using json_spirit::wObject;
 using json_spirit::wPair;
@@ -331,13 +332,13 @@ const Settings& ConfigManager::getSettings()
 		//Parse each config file in turn.
 		//First: main config
 		vector<wstring> ctxt;
-		this->readInConfig(this->mainConfig.json(), ctxt, false);
+		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false);
 
 		//Next: local and user configs
 		if (this->localConfig.isSet())
-			this->readInConfig(this->localConfig.json(), ctxt, true);
+			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true);
 		if (this->userConfig.isSet())
-			this->readInConfig(this->userConfig.json(), ctxt, true);
+			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true);
 
 		//Done
 		loadedSettings = true;
@@ -358,7 +359,7 @@ void ConfigManager::loadLanguageMainFiles()
 	//Parse each language config file.
 	vector<wstring> ctxt;
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-		this->readInConfig(it->first.json(), ctxt, false);
+		this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false);
 	}
 
 	//Done
@@ -376,7 +377,7 @@ void ConfigManager::loadLanguageSubFiles()
 	vector<wstring> ctxt;
 	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 		for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-			this->readInConfig(it2->json(), ctxt, false);
+			this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false);
 		}
 	}
 
@@ -442,7 +443,7 @@ const std::set<Encoding>& ConfigManager::getEncodings()
 
 //Note: Context is managed automatically; never copied.
 //Restricted means don't load new languages, etc.
-void ConfigManager::readInConfig(wValue root, vector<wstring> &context, bool restricted) 
+void ConfigManager::readInConfig(wValue root, const wstring& folderPath, vector<wstring> &context, bool restricted) 
 {
 	//We always operate on maps:
 	json_spirit::Value_type t = root.type();
@@ -459,10 +460,10 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> &context, bool res
 		//React to this option/category
 		if (itr->value_.type()==obj_type) {
 			//Inductive case: Continue reading all options under this type
-			this->readInConfig(itr->value_, context, restricted);
+			this->readInConfig(itr->value_, folderPath, context, restricted);
 		} else if (itr->value_.type()==str_type) {
 			//Base case: the "value" is also a string (set the property)
-			this->setSingleOption(context, sanitize(itr->value_.get_value<std::wstring>()), restricted);
+			this->setSingleOption(folderPath, context, sanitize(itr->value_.get_value<std::wstring>()), restricted);
 		} else {
 			throw std::exception("ERROR: Config file options should always be string or hash types.");
 		}
@@ -476,7 +477,7 @@ void ConfigManager::readInConfig(wValue root, vector<wstring> &context, bool res
 }
 
 
-void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstring& value, bool restricted)
+void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstring>& name, const std::wstring& value, bool restricted)
 {
 	//Read each "context" setting from left to right. Context settings are separated by periods. 
 	//   Note: There are much faster/better ways of doing this, but for now we'll keep all the code
@@ -555,7 +556,10 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Input Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialInputMethods[pair<wstring,wstring>(langName,inputName)][sanitize_id(name[4])] = value;
+					pair<wstring,wstring> key = pair<wstring,wstring>(langName,inputName);
+					partialInputMethods[key][sanitize_id(name[4])] = value;
+					if (partialInputMethods[key].size()==1) //First option
+						partialInputMethods[key][sanitize_id(L"current-folder")] = folderPath;
 				} else if (name[2] == sanitize_id(L"encodings")) {
 					//Encodings
 					wstring encName = name[3];
@@ -565,7 +569,10 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Encoding in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialEncodings[pair<wstring, wstring>(langName,encName)][sanitize_id(name[4])] = value;
+					pair<wstring, wstring> key = pair<wstring, wstring>(langName,encName);
+					partialEncodings[key][sanitize_id(name[4])] = value;
+					if (partialEncodings[key].size()==1) //First option
+						partialEncodings[key][sanitize_id(L"current-folder")] = folderPath;
 				} else if (name[2] == sanitize_id(L"tranformations")) {
 					//Transformations
 					wstring transName = name[3];
@@ -575,7 +582,10 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Tranformation in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialTransformations[pair<wstring, wstring>(langName,transName)][sanitize_id(name[4])] = value;
+					pair<wstring, wstring> key = pair<wstring, wstring>(langName,transName);
+					partialTransformations[key][sanitize_id(name[4])] = value;
+					if (partialTransformations[key].size()==1) //First option
+						partialTransformations[key][sanitize_id(L"current-folder")] = folderPath;
 				} else if (name[2] == sanitize_id(L"display-methods")) {
 					//Display methods
 					wstring dispMethod = name[3];
@@ -585,7 +595,10 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 						throw std::exception("Cannot create a new Display Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
-					partialDisplayMethods[pair<wstring, wstring>(langName,dispMethod)][sanitize_id(name[4])] = value;
+					pair<wstring, wstring> key = pair<wstring, wstring>(langName,dispMethod);
+					partialDisplayMethods[key][sanitize_id(name[4])] = value;
+					if (partialDisplayMethods[key].size()==1) //First option
+						partialDisplayMethods[key][sanitize_id(L"current-folder")] = folderPath;
 				} else {
 					//Error
 					throw 1;
