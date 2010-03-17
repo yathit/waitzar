@@ -78,7 +78,9 @@ void TtfDisplay::initLogicalFont(int devLogPixelsY)
 void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos)
 {
 	//Set the font, set the color
-	HFONT oldFont = (HFONT)SelectObject(bufferDC, font);
+	HFONT oldFont = NULL;
+	if (font!=NULL)
+		oldFont = (HFONT)SelectObject(bufferDC, font);
 	COLORREF oldTextColor = SetTextColor(bufferDC, currColorRGB);
 
 	//Actual drawing code
@@ -87,7 +89,8 @@ void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int
 	
 	//Restore
 	SetTextColor(bufferDC, oldTextColor);
-	SelectObject(bufferDC, oldFont);
+	if (oldFont!=NULL)
+		SelectObject(bufferDC, oldFont);
 }
 
 
@@ -113,11 +116,14 @@ int TtfDisplay::getStringWidth(const std::wstring &str, HDC currDC)
 {
 	//Measure this item by its string.
 	SIZE textSize;
-	HFONT oldFont = (HFONT)SelectObject(currDC, font);
+	HFONT oldFont = NULL;
+	if (font!=NULL)
+		oldFont = (HFONT)SelectObject(currDC, font);
 	GetTextExtentPoint32(currDC, str.c_str(), str.length(), &textSize);
 
 	//Restore the DC, return
-	SelectObject(currDC, oldFont);
+	if (oldFont!=NULL)
+		SelectObject(currDC, oldFont);
 	return textSize.cx;
 }
 
@@ -128,12 +134,15 @@ int TtfDisplay::getHeight(HDC currDC)
 		//Measure the font
 		SIZE sz;
 		wstring testStr = L"Testing: \u1000\u103C\u1000\u103B";
-		HFONT oldFont = (HFONT)SelectObject(currDC, font);
+		HFONT oldFont = NULL;
+		if (font!=NULL)
+			oldFont = (HFONT)SelectObject(currDC, font);
 		GetTextExtentPoint32(currDC, testStr.c_str(), testStr.length(), &sz);
 		fontHeight = sz.cy;
 
 		//Restore the DC
-		SelectObject(currDC, oldFont);
+		if (oldFont!=NULL)
+			SelectObject(currDC, oldFont);
 	}
 
 	return fontHeight;

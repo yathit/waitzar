@@ -2660,24 +2660,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//First time?
 			if (sysFont==NULL) {
-				//This is a bit of a mess....
-				HFONT sysFontRes;
-				{
-					LOGFONT lf;
-					memset(&lf, 0, sizeof(lf));
-					lf.lfHeight = -MulDiv(10, mainWindow->deviceLogPixelsY, 72);
-					lf.lfWeight = FW_NORMAL;
-					lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
-					lf.lfQuality = PROOF_QUALITY;
-					wcscpy_s(lf.lfFaceName, L"Arial");
-					HFONT tempFont = CreateFontIndirect(&lf);
-					if (!tempFont)
-						throw std::exception("Could not create temporary Arial font");
-					sysFontRes = (HFONT)SelectObject(currDC, tempFont);
-					SelectObject(currDC, sysFont);
-				}
 				sysFont = new TtfDisplay();
-				sysFont->init(sysFontRes);
+				//sysFont->init(sysFontRes); //Init to nothing
 			}
 
 			//Get the right width
