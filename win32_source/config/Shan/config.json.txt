@@ -4,6 +4,7 @@
   "display-name" : "ရှမ်းစာ",
   "default-output-encoding" : "unicode",
   "default-display-method" : "zawgyibmp",
+  "default-display-method-small" : "zawgyibmp",
   "default-input-method" : "waitzar",
         
   "encodings" : 

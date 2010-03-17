@@ -39,13 +39,25 @@ public:
 	JsonFile(const std::string& path="") //Confusing, I know. (TODO: Make a better way of loading a file OR a string)
 	{
 		this->path = path;
+		this->folderPath = L"";
 		this->text = L"";
 		this->hasReadFile = false;
 		this->hasParsed = false;
+
+		//Set the folder path
+		int fwIndex = path.rfind("/");
+		int bwIndex = path.rfind("\\");
+		int index = std::max<int>(fwIndex, bwIndex);
+		if (index!=-1) {
+			std::wstringstream temp;
+			temp <<path.substr(0, index+1).c_str();
+			folderPath = temp.str();
+		}
 	}
 	JsonFile(const std::wstring& text) //Confusing, I know.
 	{
 		this->path = "";
+		this->folderPath = L"";
 		this->text = waitzar::preparse_json(text);
 		this->hasReadFile = true;
 		this->hasParsed = false;
@@ -98,6 +110,10 @@ public:
 	{
 		return this->path.length() > 0;
 	}
+	const std::wstring& getFolderPath() const
+	{
+		return this->folderPath;
+	}
 	//For map indexing:
 	bool operator<(const JsonFile& j) const
 	{
@@ -105,6 +121,7 @@ public:
 	}
 private:
 	std::string path;
+	std::wstring folderPath;
 	mutable std::wstring text;
 	mutable json_spirit::wValue root;
 	mutable bool hasReadFile;
@@ -205,8 +222,8 @@ public:
 
 
 private:
-	void readInConfig(json_spirit::wValue root, std::vector<std::wstring> &context, bool restricted);
-	void setSingleOption(const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
+	void readInConfig(json_spirit::wValue root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted);
+	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
 
 	void resolvePartialSettings();
 	void generateInputsDisplaysOutputs();
