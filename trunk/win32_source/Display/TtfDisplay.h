@@ -29,6 +29,9 @@ public:
 	//Initialization: Load an embedded font resource
 	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor);
 
+	//Custom: load a local TTF file
+	void init(const std::wstring& fileName, unsigned int defaultColor, int devLogPixelsY);
+
 	//Special init case: load an existing font
 	void init(HFONT existingFont);
 
@@ -42,6 +45,7 @@ public:
 private:
 	HFONT font;
 	HANDLE fontHandle;
+	std::wstring fileToDelete;
 	int fontHeight;
 
 	void initLogicalFont(int devLogPixelsY);

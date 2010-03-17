@@ -26,7 +26,8 @@ struct Language {
 	std::wstring id;
 	std::wstring displayName;
 	Encoding defaultOutputEncoding;
-	std::wstring defaultDisplayMethod;
+	std::wstring defaultDisplayMethodReg;
+	std::wstring defaultDisplayMethodSmall;
 	std::wstring defaultInputMethod;
 
 	//Structured

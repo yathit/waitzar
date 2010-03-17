@@ -16,7 +16,10 @@
 #include <map>
 #include <string>
 
+#include "resource.h"
+
 #include "Input/RomanInputMethod.h"
+#include "Display/TtfDisplay.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/BurglishBuilder.h"
 #include "NGram/SentenceList.h"
@@ -48,7 +51,7 @@ public:
 	//Builders
 	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
 	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
-	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
+	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
 	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 
 	//More specific builders/instances
@@ -56,12 +59,18 @@ public:
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
 
+	//Display method builders
+	static DisplayMethod* getZawgyiPngDisplay(std::wstring langID, std::wstring dispID, unsigned int dispResourceID);
+	static DisplayMethod* getPadaukZawgyiTtfDisplay(std::wstring langID, std::wstring dispID);
+	static DisplayMethod* getTtfDisplayManager(std::wstring langID, std::wstring dispID, std::wstring fontFileName, std::wstring fontFaceName, int pointSize);
+
 	//Init; load all special builders at least once
 	static void InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);
 
 	//Ugh
 	static std::wstring sanitize_id(const std::wstring& str);
 	static bool read_bool(const std::wstring& str);
+	static int read_int(const std::wstring& str);
 
 private:
 	//For loading
@@ -83,6 +92,7 @@ private:
 	//Ugh.... templates are exploding!
 	static std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> cachedWBInputs;
 	static std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> cachedBGInputs;
+	static std::map<std::wstring, DisplayMethod*> cachedDisplayMethods;
 
 	//Helper methods
 	static void buildSystemWordLookup();
@@ -361,6 +371,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 
 template <class ModelType> std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> WZFactory<ModelType>::cachedWBInputs;
 template <class ModelType> std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> WZFactory<ModelType>::cachedBGInputs;
+template <class ModelType> std::map<std::wstring, DisplayMethod*> WZFactory<ModelType>::cachedDisplayMethods;
 
 template <class ModelType>
 RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(wstring langID) 
@@ -448,6 +459,84 @@ RomanInputMethod<WordBuilder>* WZFactory<ModelType>::getWordlistBasedInput(wstri
 }
 
 
+
+template <class ModelType>
+DisplayMethod* WZFactory<ModelType>::getZawgyiPngDisplay(std::wstring langID, std::wstring dispID, unsigned int dispResourceID)
+{
+	wstring fullID = langID + L"." + dispID;
+
+	//Singleton init
+	if (WZFactory<ModelType>::cachedDisplayMethods.count(fullID)==0) {
+		//Load our internal font
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(dispResourceID), _T("COREFONT"));
+		if (!fontRes)
+			throw std::exception("Couldn't find WZ_FONT");
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, fontRes);
+		if (!res_handle)
+			throw std::exception("Couldn't get a handle on WZ_(SMALL?)_FONT");
+
+		//Create, init
+		WZFactory<ModelType>::cachedDisplayMethods[fullID] = new PulpCoreFont();
+		mainWindow->initDisplayMethod(WZFactory<ModelType>::cachedDisplayMethods[fullID], fontRes, res_handle, 0x000000);
+	}
+	
+	return WZFactory<ModelType>::cachedDisplayMethods[fullID];
+}
+
+
+
+template <class ModelType>
+DisplayMethod* WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(std::wstring langID, std::wstring dispID)
+{
+	wstring fullID = langID + L"." + dispID;
+
+	//Singleton init
+	if (WZFactory<ModelType>::cachedDisplayMethods.count(fullID)==0) {
+		//Init our internal font
+		TtfDisplay* res = new TtfDisplay();
+		res->fontFaceName = L"PdkZgWz";
+		res->pointSize = 10;
+
+		//Get the Padauk embedded resource
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_PADAUK_ZG), _T("COREFONT"));
+		if (!fontRes)
+			throw std::exception("Couldn't find WZ_PADAUK_ZG");
+		HGLOBAL res_handle = LoadResource(NULL, fontRes);
+		if (!res_handle)
+			throw std::exception("Couldn't get a handle on WZ_PADAUK_ZG");
+
+		//Save, init
+		WZFactory<ModelType>::cachedDisplayMethods[fullID] = res;
+		mainWindow->initTtfMethod(WZFactory<ModelType>::cachedDisplayMethods[fullID], fontRes, res_handle, 0x000000);
+	}
+	
+	return WZFactory<ModelType>::cachedDisplayMethods[fullID];
+}
+
+
+
+
+template <class ModelType>
+DisplayMethod* WZFactory<ModelType>::getTtfDisplayManager(std::wstring langID, std::wstring dispID, std::wstring fontFileName, std::wstring fontFaceName, int pointSize)
+{
+	wstring fullID = langID + L"." + dispID;
+
+	//Singleton init
+	if (WZFactory<ModelType>::cachedDisplayMethods.count(fullID)==0) {
+		//Init our internal font
+		TtfDisplay* res = new TtfDisplay();
+		res->fontFaceName = fontFaceName;
+		res->pointSize = pointSize;
+
+		//Save, init
+		WZFactory<ModelType>::cachedDisplayMethods[fullID] = res;
+		mainWindow->initTtfMethod(WZFactory<ModelType>::cachedDisplayMethods[fullID], fontFileName, 0x000000);
+	}
+	
+	return WZFactory<ModelType>::cachedDisplayMethods[fullID];
+}
 
 
 template <class ModelType>
@@ -548,7 +637,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 
 
 template <class ModelType>
-DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
+DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options)
 {
 	DisplayMethod* res = NULL;
 
@@ -562,10 +651,44 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
 		if (id==L"zawgyibmp")
-			res = new PulpCoreFont();
+			res = WZFactory<ModelType>::getZawgyiPngDisplay(language.id, id, WZ_FONT);
+		else if (id==L"zawgyibmpsmall")
+			res = WZFactory<ModelType>::getZawgyiPngDisplay(language.id, id, WZ_SMALL_FONT);
+		else if (id==L"pdkzgwz")
+			res = WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(language.id, id);
 		else
 			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Display Method: ", id).c_str());
 		res->type = BUILTIN;
+	} else if (sanitize_id(options.find(L"type")->second) == L"ttf") {
+		//Enforce that a font-face-name is given
+		if (options.count(L"font-face-name")==0)
+			throw std::exception("Cannot construct \"ttf\" display method: no \"font-face-name\".");
+		std::wstring fontFaceName = options.find(L"font-face-name")->second;
+
+		//Enforce that a point-size is given
+		if (options.count(L"point-size")==0)
+			throw std::exception("Cannot construct \"ttf\" display method: no \"point-size\".");
+		int pointSize = read_int(options.find(L"point-size")->second);
+		
+		//Get the local directory; add the font-file:
+		//TODO: This should lead DIRECTLY to the "Test" directory, to make modules more portable.
+		std::wstring langConfigDir = L"config\\" + language.displayName + L"\\";
+		std::wstring fontFile = (options.count(L"font-file")>0) ? langConfigDir + options.find(L"font-file")->second : L"";
+
+		//TODO: Test in a cleaner way.
+		if (!fontFile.empty()) {
+			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+			std::wstringstream temp;
+			temp << fontFile.c_str();
+			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+				throw std::exception(ConfigManager::glue(L"Font file file does not exist: ", fontFile).c_str());
+		}
+
+		//Get it, as a singleton
+		res = WZFactory<ModelType>::getTtfDisplayManager(language.id, id, fontFile, fontFaceName, pointSize);
+		res->type = DISPM_TTF;
+	} else if (sanitize_id(options.find(L"type")->second) == L"png") {
+
 	} else {
 		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Display Method: ", id).c_str());
 	}
@@ -659,6 +782,11 @@ template <class ModelType>
 bool WZFactory<ModelType>::read_bool(const std::wstring& str)
 {
 	return ConfigManager::read_bool(str);
+}
+template <class ModelType>
+int WZFactory<ModelType>::read_int(const std::wstring& str)
+{
+	return ConfigManager::read_int(str);
 }
 
 

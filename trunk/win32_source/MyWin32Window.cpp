@@ -581,6 +581,11 @@ void MyWin32Window::initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL da
 	img->init(resource, dataHandle, topDC, deviceLogPixelsY, defaultColor);
 }
 
+void MyWin32Window::initTtfMethod(DisplayMethod* img, const std::wstring& fontFileName, unsigned int defaultColor)
+{
+	img->init(fontFileName, defaultColor, deviceLogPixelsY);
+}
+
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle)
 {

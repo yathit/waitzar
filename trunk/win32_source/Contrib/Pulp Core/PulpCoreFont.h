@@ -71,6 +71,7 @@ public:
 	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor);
 	void init(PulpCoreFont* copyFrom, HDC currDC);
 	void init(char *data, DWORD size, HDC currDC, unsigned int defaultColor);
+	void init(const std::wstring& fileName, unsigned int defaultColor, int devLogPixelsY)  {throw std::exception("Error: At the moment, PulpCore fonts must be loaded manually.");}
 
 	//Drawing functionality
 	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos);

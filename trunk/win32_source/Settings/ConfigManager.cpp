@@ -141,7 +141,7 @@ void ConfigManager::resolvePartialSettings()
 			else if (i==PART_TRANS) 
 				lang->transformations.insert(WZFactory<waitzar::WordBuilder>::makeTransformation(id, it->second));
 			else if (i==PART_DISP) 
-				lang->displayMethods.insert(WZFactory<waitzar::WordBuilder>::makeDisplayMethod(id, it->second));
+				lang->displayMethods.insert(WZFactory<waitzar::WordBuilder>::makeDisplayMethod(id, *lang, it->second));
 		}
 
 		//Clear all entries from this map
@@ -175,7 +175,11 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	activeLanguage = *FindKeyInSet(options.languages, options.settings.defaultLanguage);
 	activeOutputEncoding = activeLanguage.defaultOutputEncoding;
 	activeInputMethod = *FindKeyInSet(activeLanguage.inputMethods, activeLanguage.defaultInputMethod);
-	activeDisplayMethod = *FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethod);
+	activeDisplayMethods.clear();
+	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodReg));
+	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodSmall));
+	if (activeDisplayMethods[0]->encoding != activeDisplayMethods[1]->encoding)
+		throw std::exception("Error: \"small\" and \"regular\" sized display methods have different encodings");
 }
 
 
@@ -205,8 +209,10 @@ void ConfigManager::generateInputsDisplaysOutputs()
 		//Next, validate some default settings of the language
 		if (!defEnc->canUseAsOutput)
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" uses a default output encoding which does not support output.").c_str());
-		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethod)==lg->displayMethods.end())
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default display method: ", lg->defaultDisplayMethod).c_str());
+		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethodReg)==lg->displayMethods.end())
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default display method: ", lg->defaultDisplayMethodReg).c_str());
+		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethodSmall)==lg->displayMethods.end())
+			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant \"small\" default display method: ", lg->defaultDisplayMethodSmall).c_str());
 		if (FindKeyInSet(lg->inputMethods, lg->defaultInputMethod)==lg->inputMethods.end())
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default input method: ", lg->defaultInputMethod).c_str());
 
@@ -528,7 +534,9 @@ void ConfigManager::setSingleOption(const vector<wstring>& name, const std::wstr
 			else if (name[2] == sanitize_id(L"default-output-encoding"))
 				lang->defaultOutputEncoding.id = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-display-method"))
-				lang->defaultDisplayMethod = sanitize_id(value);
+				lang->defaultDisplayMethodReg = sanitize_id(value);
+			else if (name[2] == sanitize_id(L"default-display-method-small"))
+				lang->defaultDisplayMethodSmall = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-input-method"))
 				lang->defaultInputMethod = sanitize_id(value);
 			else {
@@ -645,6 +653,22 @@ bool ConfigManager::read_bool(const std::wstring& str)
 		return false;
 	else
 		throw std::exception(glue(L"Bad boolean value: \"", str, L"\"").c_str());
+}
+
+
+int ConfigManager::read_int(const std::wstring& str)
+{
+	//Read
+	int resInt;
+	std::wistringstream reader(str);
+	reader >>resInt;
+
+	//Problem?
+	if (reader.fail())
+		throw std::exception(glue(L"Bad integer value: \"", str, L"\"").c_str());
+
+	//Done
+	return resInt;
 }
 
 
