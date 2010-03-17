@@ -108,6 +108,8 @@ public:
 	void initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor);
 	void initDisplayMethod(DisplayMethod* img, char *data, DWORD size, unsigned int defaultColor);
 
+	void initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor);
+
 	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
 	void initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImg);
 	void initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont); //Needed for a tiny fluke w/ OOP in C++

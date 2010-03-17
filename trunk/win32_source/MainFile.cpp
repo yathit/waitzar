@@ -81,6 +81,7 @@
 #include "Hotkeys.h"
 #include "MiscUtils.h"
 #include "Input/InputMethod.h"
+#include "Display/TtfDisplay.h"
 #include "Input/RomanInputMethod.h"
 #include "Transform/Self2Self.h"
 
@@ -178,10 +179,8 @@ HMENU contextMenuPopup;
 HMENU typingMenu;
 
 //Some resources, etc., for our popup menu
-HFONT padaukFont;
-HANDLE padaukHandle;
-int padaukHeight;
-int sysfontHeight;
+TtfDisplay* menuFont;
+TtfDisplay* sysFont;
 unsigned int numInputOptions;
 
 
@@ -685,9 +684,6 @@ void makeFont()
 				MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 				throw ex;
 			}
-
-			//Unlock this resource for later use.
-			UnlockResource(res_handle);
 		}
 	}
 
@@ -720,9 +716,6 @@ void makeFont()
 
 		//Tint to default
 		helpFntKeys->tintSelf(COLOR_HELPFNT_KEYS);
-
-		//Unlock this resource for later use.
-		UnlockResource(res_handle);
 	}
 
 	//Load our help window font: Foreground
@@ -753,9 +746,6 @@ void makeFont()
 
 		//Tint to default
 		helpFntFore->tintSelf(COLOR_HELPFNT_FORE);
-
-		//Unlock this resource for later use.
-		UnlockResource(res_handle);
 	}
 
 	//Load our help window font: Background
@@ -788,7 +778,7 @@ void makeFont()
 		helpFntBack->tintSelf(COLOR_HELPFNT_BACK);
 
 		//Unlock this resource for later use.
-		UnlockResource(res_handle);
+		//UnlockResource(res_handle);
 	}
 
 
@@ -819,7 +809,7 @@ void makeFont()
 		}
 
 		//Unlock this resource for later use.
-		UnlockResource(res_handle);
+		//UnlockResource(res_handle);
 	}
 
 	//Load our page down/up images
@@ -850,7 +840,7 @@ void makeFont()
 		}
 
 		//Unlock this resource for later use.
-		UnlockResource(res_handle);
+		//UnlockResource(res_handle);
 	}
 
 
@@ -930,7 +920,7 @@ void makeFont()
 		}
 
 		//Unlock this resource for later use.
-		UnlockResource(res_handle_2);
+		//UnlockResource(res_handle_2);
 	}
 
 	//Copy this font for use in the memory box
@@ -1510,11 +1500,14 @@ void reBlitHelp(RECT blitArea)
 void initCalculate()
 {
 	//Figure out how big each of our areas is, and where they start
-	spaceWidth = mmFont->getStringWidth(_T(" "));
+	//TODO: For now, "NULL" is ok, since we're using a bitmapped font. But 
+	//      we'll need a valid DC (which hasn't been created yet) to pass in if we load
+	//      user TTF Fonts. Possible solution: create a dummy window and just copy its DC?
+	spaceWidth = mmFont->getStringWidth(_T(" "), NULL);
 	firstLineStart = borderWidth;
-	secondLineStart = firstLineStart + mmFont->getHeight() + spaceWidth + borderWidth;
-	thirdLineStart = secondLineStart + mmFont->getHeight() + spaceWidth + borderWidth;
-	fourthLineStart = thirdLineStart + (mmFont->getHeight()*8)/13 + borderWidth;
+	secondLineStart = firstLineStart + mmFont->getHeight(NULL) + spaceWidth + borderWidth;
+	thirdLineStart = secondLineStart + mmFont->getHeight(NULL) + spaceWidth + borderWidth;
+	fourthLineStart = thirdLineStart + (mmFont->getHeight(NULL)*8)/13 + borderWidth;
 
 	//Now, set the window's default height
 	mainWindow->setDefaultSize(mainWindow->getDefaultWidth(), fourthLineStart);
@@ -1576,12 +1569,13 @@ void recalculate()
 
 	//First things first: can we fit this in the current background?
 	// (Includes pat-sint strings)
+	//TODO: Again, the "NULL"s will eventually have to go.
 	int cumulativeWidth = (borderWidth+1)*2;
 	for (size_t i=0; i<10; i++) {
 		unsigned int id = i + currInput->getPagingInfo().first * 10;
 		if (id>=dispCandidateStrs.size())
 			break;
-		cumulativeWidth += mmFont->getStringWidth(dispCandidateStrs[id].first);
+		cumulativeWidth += mmFont->getStringWidth(dispCandidateStrs[id].first, NULL);
 		cumulativeWidth += spaceWidth;
 	}
 
@@ -1617,12 +1611,12 @@ void recalculate()
 	mmFontSmall->setColor(0xFFFFFF);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1);
 	if (!dispSentenceStr[0].empty())
-		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[0]) + 1;
+		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[0], NULL) + 1;
 	mmFontSmall->setColor(0xFF0000);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1);
 	mmFontSmall->setColor(0xFFFFFF);
 	if (!dispSentenceStr[1].empty())
-		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[1]) + 1;
+		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[1], NULL) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1);
 
@@ -1632,11 +1626,11 @@ void recalculate()
 
 	//Draw the current encoding
 	wstring currEncStr = config.activeOutputEncoding.initial;
-	int encStrWidth = mmFontSmall->getStringWidth(currEncStr);
+	int encStrWidth = mmFontSmall->getStringWidth(currEncStr, NULL);
 	sentenceWindow->selectObject(g_BlackPen);
 	sentenceWindow->selectObject(g_GreenBkgrd);
 	sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
-	sentenceWindow->drawString(mmFontSmall, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmall->getHeight()/2);
+	sentenceWindow->drawString(mmFontSmall, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmall->getHeight(NULL)/2);
 
 	//White overlays
 	mainWindow->selectObject(g_EmptyPen);
@@ -1661,7 +1655,7 @@ void recalculate()
 		unsigned int id = it + (currInput->getPagingInfo().first * 10);
 		if (id>=dispCandidateStrs.size())
 			break;
-		int thisStrWidth = mmFont->getStringWidth(dispCandidateStrs[id].first);
+		int thisStrWidth = mmFont->getStringWidth(dispCandidateStrs[id].first, NULL);
 
 		//Select fonts, and draw a box under highlighted words
 		//mmFont = mmFontBlack;
@@ -1669,7 +1663,7 @@ void recalculate()
 			mmFont->setColor(0x008000);
 			mainWindow->selectObject(g_YellowBkgrd);
 			mainWindow->selectObject(g_GreenPen);
-			mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight()+spaceWidth-1);
+			mainWindow->drawRectangle(borderWidth+xOffset+1, secondLineStart, borderWidth+1+xOffset+thisStrWidth+spaceWidth, secondLineStart+mmFont->getHeight(NULL)+spaceWidth-1);
 		} else if (dispCandidateStrs[id].second & HF_PATSINT) {
 			mmFont->setColor(0xFF0000);
 		} else
@@ -1687,7 +1681,7 @@ void recalculate()
 			if (currLabelID==10)
 				currLabelID = 0; //Just renumber for now; we never have more than 10 anyway.
 		}
-		int digitWidth = mmFont->getStringWidth(digit.str());
+		int digitWidth = mmFont->getStringWidth(digit.str(), NULL);
 		mainWindow->drawString(mmFont, digit.str(), borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 
 		//Increment
@@ -1713,8 +1707,8 @@ void recalculate()
 		std::pair<int, int> pgInfo = currInput->getPagingInfo();
 		std::wstringstream num;
 		num <<pgInfo.first+1;
-		int strWidth = mmFontSmall->getStringWidth(num.str());
-		mainWindow->drawString(mmFontSmall, num.str(), triangleStartX-1 + (triangleBaseWidth+borderWidth*2+borderWidth)/2 - strWidth/2, pageDownStart-borderWidth-mmFontSmall->getHeight() + 6);
+		int strWidth = mmFontSmall->getStringWidth(num.str(), NULL);
+		mainWindow->drawString(mmFontSmall, num.str(), triangleStartX-1 + (triangleBaseWidth+borderWidth*2+borderWidth)/2 - strWidth/2, pageDownStart-borderWidth-mmFontSmall->getHeight(NULL) + 6);
 
 		//Draw a separator line for the box, half-shaded.
 		//Black center line
@@ -2460,29 +2454,10 @@ void createMyanmarMenuFont()
 	HGLOBAL res_handle = LoadResource(NULL, fontRes);
 	if (!res_handle)
 		throw std::exception("Couldn't get a handle on WZ_PADAUK_ZG");
-	void* data = LockResource(res_handle);
-	size_t len = SizeofResource(hInst, fontRes);
 
-	//Add the Padauk font resource
-	DWORD nFonts;
-	padaukHandle = AddFontMemResourceEx(data, len, 0, &nFonts);
-	if(!padaukHandle)
-		throw std::exception("Embedded Padauk-Zawgyi font could not be loaded.");
-
-	//Unlock this resource for later use.
-	UnlockResource(res_handle);
-
-	//Create the Padauk Font
-	LOGFONT lf;
-	memset(&lf, 0, sizeof(lf));
-	lf.lfHeight = -MulDiv(10, mainWindow->deviceLogPixelsY, 72);
-	lf.lfWeight = FW_NORMAL;
-	lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
-	lf.lfQuality = PROOF_QUALITY;
-	wcscpy_s(lf.lfFaceName, L"PdkZgWz");
-	padaukFont = CreateFontIndirect(&lf);
-	if (!padaukFont)
-		throw std::exception("Could not create Padauk font");
+	//Now, create it
+	menuFont = new TtfDisplay();
+	mainWindow->initTtfMethod(menuFont, fontRes, res_handle, 0x000000);
 }
 
 
@@ -2562,10 +2537,6 @@ void createContextMenu()
 //Build the context menu --first time
 void initContextMenu() 
 {
-	//Set these later.
-	padaukHeight = 0;
-	sysfontHeight = 0;
-
 	//Make the font
 	createMyanmarMenuFont();
 
@@ -2686,35 +2657,38 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			LPMEASUREITEMSTRUCT measureItem = (LPMEASUREITEMSTRUCT) lParam;
 			WZMenuItem* item = (WZMenuItem*)measureItem->itemData;
 			HDC currDC = GetDC(hwnd); //We need the direct DC to draw properly
-			HFONT hfontOld;
 
 			//First time?
-			if (padaukHeight==0 || sysfontHeight==0) {
-				SIZE sz;
-				wstring testStr = L"\u1000\u103C\u1000\u103B";
-				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
-				GetTextExtentPoint32(currDC, testStr.c_str(), testStr.length(), &sz);
-				padaukHeight = sz.cy;
-				SelectObject(currDC, hfontOld);
-				testStr = L"Testing";
-				GetTextExtentPoint32(currDC, testStr.c_str(), testStr.length(), &sz);
-				sysfontHeight = sz.cy;
+			if (sysFont==NULL) {
+				//This is a bit of a mess....
+				HFONT sysFontRes;
+				{
+					LOGFONT lf;
+					memset(&lf, 0, sizeof(lf));
+					lf.lfHeight = -MulDiv(10, mainWindow->deviceLogPixelsY, 72);
+					lf.lfWeight = FW_NORMAL;
+					lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
+					lf.lfQuality = PROOF_QUALITY;
+					wcscpy_s(lf.lfFaceName, L"Arial");
+					HFONT tempFont = CreateFontIndirect(&lf);
+					if (!tempFont)
+						throw std::exception("Could not create temporary Arial font");
+					sysFontRes = (HFONT)SelectObject(currDC, tempFont);
+					SelectObject(currDC, sysFont);
+				}
+				sysFont = new TtfDisplay();
+				sysFont->init(sysFontRes);
 			}
 
-			//Set the font
+			//Get the right width
+			measureItem->itemWidth = 3;
 			if (item->containsMM)
-				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
+				measureItem->itemWidth += menuFont->getStringWidth(item->title, currDC);
+			else
+				measureItem->itemWidth += sysFont->getStringWidth(item->title, currDC);
 
-			//Measure this item by its string.
-			SIZE textSize;
-			GetTextExtentPoint32(currDC, item->title.c_str(), item->title.length(), &textSize);
-            measureItem->itemWidth = textSize.cx + 3;
-			measureItem->itemHeight = ((padaukHeight>sysfontHeight) ? padaukHeight : sysfontHeight) + 3;
-
-			//Undo the font set
-			if (item->containsMM)
-				SelectObject(currDC, hfontOld);
-
+			//And height
+			measureItem->itemHeight = ((menuFont->getHeight(currDC)>sysFont->getHeight(currDC)) ? menuFont->getHeight(currDC) : sysFont->getHeight(currDC)) + 3;
 			break;
 		}
 
@@ -2733,28 +2707,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (drawInfo->CtlType != ODT_MENU)
 				break;
 
+			//Get our font
+			TtfDisplay* myFont = sysFont;
+			if (item->containsMM)
+				myFont = menuFont;
+
 			//Set the background and save the old colors (we always set it to something, even if it's no change)
 			COLORREF oldBkgrd;
-			COLORREF oldText;
 			if (item->type==WZMI_HEADER) {
 				oldBkgrd = SetBkColor(currDC, cr_Black);
-				oldText = SetTextColor(currDC, cr_White); 
+				myFont->setColor(cr_White);
 			} else if ((drawInfo->itemState&ODS_HOTLIGHT)||(drawInfo->itemState&ODS_SELECTED)) {
 				oldBkgrd = SetBkColor(currDC, cr_MenuItemBkgrd);
-				oldText = SetTextColor(currDC, cr_MenuItemText);
+				myFont->setColor(cr_MenuItemText);
 			} else {
 				oldBkgrd = SetBkColor(currDC, cr_MenuDefaultBkgrd);
-				oldText = SetTextColor(currDC, cr_MenuDefaultText); 
+				myFont->setColor(cr_MenuDefaultText);
 			}
 
 			//Conditionally set the font
-			HFONT hfontOld;
 			unsigned int yOffset = 2;
-			if (item->containsMM) {
-				hfontOld = (HFONT)SelectObject(currDC, padaukFont);
+			if (item->containsMM)
 				yOffset = 0;
-			}
-
 
 			//Fill the background (border first)
 			HBRUSH oldBrush;
@@ -2797,18 +2771,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				SelectObject(currDC, oldBrush);
 			}
 
-
 			//Draw the text to the DC
-			//ExtTextOut(currDC, startX, startY, ETO_OPAQUE, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
-			ExtTextOut(currDC, startX, startY, ETO_CLIPPED, &drawInfo->rcItem, item->title.c_str(), item->title.length(), NULL);
-
+			myFont->drawString(currDC, item->title.c_str(), startX, startY);
 
 			//Reset the DC to its original values.
-			SetTextColor(currDC, oldText);
 			SetBkColor(currDC, oldBkgrd);
-			if (item->containsMM)
-				SelectObject(currDC, hfontOld);
-
 			break;
 		}
 
@@ -2905,9 +2872,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			nid.uFlags = NIF_TIP; //??? Needed ???
 			Shell_NotifyIcon(NIM_DELETE, &nid);
 
-			//Delete our font from memory
-			if (padaukHandle!=NULL)
-				RemoveFontMemResourceEx(padaukHandle);
 
 			//Delete our custom menu
 			if (contextMenu!=NULL)
@@ -2958,7 +2922,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	helpIsCached = false;
 	isDragging = false;
 	contextMenu = NULL;
-	padaukHandle = NULL;
+	menuFont = NULL;
+	sysFont = NULL;
 
 	//Also...
 	try {
@@ -3202,7 +3167,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//Reclaim memory and system resources.
 			//delete [] res_data;
 			delete [] uniData;
-			UnlockResource(res_handle);
+			//UnlockResource(res_handle);
 
 			//One more test.
 			config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);

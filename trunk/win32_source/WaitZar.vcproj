@@ -219,7 +219,7 @@
 					Name="Display"
 					>
 					<File
-						RelativePath=".\Display\PngFont.cpp"
+						RelativePath=".\Display\TtfDisplay.cpp"
 						>
 					</File>
 				</Filter>
@@ -430,7 +430,7 @@
 							>
 						</File>
 						<File
-							RelativePath=".\Display\PngFont.h"
+							RelativePath=".\Display\TtfDisplay.h"
 							>
 						</File>
 					</Filter>

@@ -33,11 +33,12 @@ OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFo
 	this->setMode(MODE_HELP);
 
 	//Determine the necessary size of our background image
+	//TODO: Again, fix the NULLs
 	this->width = (BTN_WIDTHS[BUTTON_KEY]+h_gap)*13 + BTN_WIDTHS[BUTTON_BACKSPACE] + this->cornerSize*2;
-	this->height = BTN_HEIGHT*5 + v_gap*4 + titleFont->getHeight()-2+2*this->cornerSize-2 + this->cornerSize;
+	this->height = BTN_HEIGHT*5 + v_gap*4 + titleFont->getHeight(NULL)-2+2*this->cornerSize-2 + this->cornerSize;
 
 	//Determine the necessary size of our memory image
-	this->memWidth = this->foreFont->getStringWidth(L"\u1005\u1000\u1064\u102C\u1015\u1030") + this->keysFont->getStringWidth(L"singapore") + cornerImg->getWidth()*2 + 5;
+	this->memWidth = this->foreFont->getStringWidth(L"\u1005\u1000\u1064\u102C\u1015\u1030", NULL) + this->keysFont->getStringWidth(L"singapore", NULL) + cornerImg->getWidth()*2 + 5;
 	this->memHeight = this->height;
 
 	//Init our keys
@@ -132,7 +133,7 @@ void OnscreenKeyboard::initHelp()
 	}
 
 	//Make our header/body buttons, to be drawn once, and draw them
-	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(HELPWND_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	helpWindow->drawImage(headerButton, 0, 0);
 	helpWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
@@ -170,7 +171,7 @@ void OnscreenKeyboard::initMemory()
 	memoryWindow->initPulpCoreImage(memoryImg, this->memWidth, this->memHeight, 0x00000000);
 
 	//Make our header/body buttons, to be drawn once, and draw them
-	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(MEMLIST_TITLE)+2*this->cornerSize, titleFont->getHeight()-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(MEMLIST_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->memWidth, this->memHeight-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	memoryWindow->drawImage(headerButton, 0, 0);
 	memoryWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
@@ -194,13 +195,13 @@ void OnscreenKeyboard::initMemory()
 	this->titleFont->tintSelf(0xFFFFFF);
 
 	//Underline
-	int yPos = keyboardOrigin.y+1+this->titleFont->getHeight() - 3;
-	memoryImg->fillRectangle(this->cornerSize, yPos, this->titleFont->getStringWidth(L"Myanmar"), 1, 0xFF333333);
-	memoryImg->fillRectangle(this->cornerSize, 1+yPos, this->titleFont->getStringWidth(L"Myanmar"), 1, 0xFF666666);
-	memoryImg->fillRectangle(this->getMemoryWidth()/2+5/2, yPos, this->titleFont->getStringWidth(L"Roman"), 1, 0xFF333333);
-	memoryImg->fillRectangle(this->getMemoryWidth()/2+5/2, 1+yPos, this->titleFont->getStringWidth(L"Roman"), 1, 0xFF666666);
+	int yPos = keyboardOrigin.y+1+this->titleFont->getHeight(NULL) - 3;
+	memoryImg->fillRectangle(this->cornerSize, yPos, this->titleFont->getStringWidth(L"Myanmar", NULL), 1, 0xFF333333);
+	memoryImg->fillRectangle(this->cornerSize, 1+yPos, this->titleFont->getStringWidth(L"Myanmar", NULL), 1, 0xFF666666);
+	memoryImg->fillRectangle(this->getMemoryWidth()/2+5/2, yPos, this->titleFont->getStringWidth(L"Roman", NULL), 1, 0xFF333333);
+	memoryImg->fillRectangle(this->getMemoryWidth()/2+5/2, 1+yPos, this->titleFont->getStringWidth(L"Roman", NULL), 1, 0xFF666666);
 
-	this->memEntriesYPlus = this->memoryFont->getHeight()-1;
+	this->memEntriesYPlus = this->memoryFont->getHeight(NULL)-1;
 	this->memEntriesStartY = yPos + memEntriesYPlus*4/9 + 2;	
 	this->memEntriesMax = (this->getMemoryHeight()-this->cornerSize-memEntriesStartY)/memEntriesYPlus;	
 }

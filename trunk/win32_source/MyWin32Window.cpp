@@ -568,12 +568,17 @@ bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
 void MyWin32Window::initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor)
 {
-	img->init(resource, dataHandle, topDC, defaultColor);
+	img->init(resource, dataHandle, topDC, deviceLogPixelsY, defaultColor);
 }
 
 void MyWin32Window::initDisplayMethod(DisplayMethod* img, char *data, DWORD size, unsigned int defaultColor)
 {
 	img->init(data, size, topDC, defaultColor);
+}
+
+void MyWin32Window::initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor)
+{
+	img->init(resource, dataHandle, topDC, deviceLogPixelsY, defaultColor);
 }
 
 

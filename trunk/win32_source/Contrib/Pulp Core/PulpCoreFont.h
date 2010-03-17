@@ -68,7 +68,7 @@ public:
 	PulpCoreFont();
 
 	//Initializers
-	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, unsigned int defaultColor);
+	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor);
 	void init(PulpCoreFont* copyFrom, HDC currDC);
 	void init(char *data, DWORD size, HDC currDC, unsigned int defaultColor);
 
@@ -78,11 +78,10 @@ public:
 	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
 	
 	//Other useful metrics
-	int getStringWidth(const std::wstring &str);
+	int getStringWidth(const std::wstring &str, HDC currDC);
 	int getStringWidth(const std::wstring &str, int start, int length);
 	int getCharWidth(char letter);
-	int getHeight();
-	void setColor(unsigned int ARGB);
+	int getHeight(HDC currDC);
 
 	//Overriding
 	void tintSelf(UINT rgbColor);
