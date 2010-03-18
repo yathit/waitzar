@@ -583,7 +583,7 @@ void MyWin32Window::initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL da
 
 void MyWin32Window::initTtfMethod(DisplayMethod* img, const std::wstring& fontFileName, unsigned int defaultColor)
 {
-	img->init(fontFileName, defaultColor, deviceLogPixelsY);
+	img->init(fontFileName, topDC, defaultColor, deviceLogPixelsY);
 }
 
 

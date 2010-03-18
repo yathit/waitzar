@@ -474,7 +474,7 @@ DisplayMethod* WZFactory<ModelType>::getZawgyiPngDisplay(std::wstring langID, st
 			throw std::exception("Couldn't find WZ_FONT");
 
 		//Get a handle from this resource.
-		HGLOBAL res_handle = LoadResource(NULL, fontRes);
+		HGLOBAL res_handle = LoadResource(hInst, fontRes);
 		if (!res_handle)
 			throw std::exception("Couldn't get a handle on WZ_(SMALL?)_FONT");
 
@@ -724,7 +724,7 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		
 		//Get the local directory; add the font-file:
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
-		std::wstring fontFile = (options.count(L"font-file")>0) ? langConfigDir + options.find(L"font-file")->second : L"";
+		std::wstring fontFile = (options.count(sanitize_id(L"font-file"))>0) ? langConfigDir + options.find(sanitize_id(L"font-file"))->second : L"";
 
 		//TODO: Test in a cleaner way.
 		if (!fontFile.empty()) {
