@@ -46,7 +46,7 @@ public:
 	//Initialization
 	virtual void init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor) = 0;
 	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor) = 0;
-	virtual void init(const std::wstring& fileName, unsigned int defaultColor, int devLogPixelsY) = 0;
+	virtual void init(const std::wstring& fileName, HDC currDC, unsigned int defaultColor, int devLogPixelsY) = 0;
 
 	//Functionality
 	virtual void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos) = 0;

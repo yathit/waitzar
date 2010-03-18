@@ -1342,7 +1342,8 @@ void initCalculateHelp()
 
 	//Copy this font for use in the memory box
 	//TODO: Something else.
-	helpFntMemory = (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
+	helpFntMemory = (PulpCoreFont*)WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", WZ_SMALL_FONT);
+	//= (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 
 	//Make
 	helpKeyboard = new OnscreenKeyboard((PulpCoreFont*)mmFontSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
@@ -1361,9 +1362,11 @@ void initCalculate()
 	secondLineStart = firstLineStart + mmFont->getHeight(NULL) + spaceWidth + borderWidth;
 	thirdLineStart = secondLineStart + mmFont->getHeight(NULL) + spaceWidth + borderWidth;
 	fourthLineStart = thirdLineStart + (mmFont->getHeight(NULL)*8)/13 + borderWidth;
+	int senWinHeight = mmFontSmall->getHeight(NULL) + borderWidth*3;
 
-	//Now, set the window's default height
+	//Now, set the windows' default heights
 	mainWindow->setDefaultSize(mainWindow->getDefaultWidth(), fourthLineStart);
+	sentenceWindow->setDefaultSize(sentenceWindow->getDefaultWidth(), senWinHeight);
 
 	//Initialize the main window
 	mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight(), false);
@@ -1912,8 +1915,9 @@ void onAllWindowsCreated()
 		return;
 	}
 
-	//Initialize the calculationf for the help window
-	//initCalculateHelp();
+	//Perform some basic default stuff (to get a valid DC)
+	mainWindow->resizeWindow(mainWindow->getDefaultWidth(), mainWindow->getDefaultHeight(), false);
+	mainWindow->createDoubleBufferedSurface();
 }
 
 
@@ -2140,7 +2144,6 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 
 		//And repaint, just in case
 		checkAllHotkeysAndWindows();
-		recalculate();
 	}
 	if (!langid.empty()) {
 		//Rebuild the menus?
@@ -2158,6 +2161,9 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		//We'll have to re-size the windows, in case a different font is used
 		initCalculate();
 	}
+
+	//Just to be safe
+	recalculate();
 }
 
 
@@ -2737,87 +2743,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 
-
-/**
- * Main method for Windows applications
- */
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+bool findAndLoadAllConfigFiles()
 {
-	//Logging time to start?
-	if (currTest == start_up)
-		GetSystemTimeAsFileTime(&startTime);
-
-
-	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
-	//  warnings. Plus, the hInstance should never change.
-	hInst = hInstance;
-
-	//First and foremost
-	helpIsCached = false;
-	isDragging = false;
-	helpKeyboard = NULL;
-	contextMenu = NULL;
-	menuFont = NULL;
-	sysFont = NULL;
-
-	//Also...
-	try {
-		//buildSystemWordLookup();
-	} catch (std::exception ex) {
-	/*	std::wstringstream msg;
-		msg << "Error building system look.\nWaitZar will now terminate.\n\nDetails:\n";
-		msg << ex.what();
-		MessageBox(NULL, msg.str().c_str(), L"System Hotkeys Error", MB_ICONWARNING | MB_OK);
-		return 0;*/
-	}
-
-	//Log?
-	if (isLogging) {
-		logFile = fopen("wz_log.txt", "w");
-		if (logFile==NULL) {
-			MessageBox(NULL, _T("Unable to open Log file"), _T("Warning"), MB_ICONWARNING | MB_OK);
-			isLogging = false;
-		} else {
-			fprintf(logFile, "WaitZar was opened\n");
-		}
-	} else
-		logFile = NULL;
-	waitzar::setLogFile(logFile);
-
-
-	//Create a white/black brush
-	cr_MenuItemBkgrd = RGB(0x8F, 0xA1, 0xF8);
-	cr_MenuDefaultBkgrd = GetSysColor(COLOR_MENU);
-	cr_MenuDefaultText = GetSysColor(COLOR_MENUTEXT);
-	cr_MenuItemText = RGB(0x20, 0x31, 0x89);
-	cr_Black = RGB(0x00, 0x00, 0x00);
-	cr_White = RGB(0xFF, 0xFF, 0xFF);
-	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
-	g_DarkGrayBkgrd = CreateSolidBrush(RGB(128, 128, 128));
-	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
-	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
-	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
-	g_DlgHelpBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
-	g_MenuItemBkgrd = CreateSolidBrush(cr_MenuItemBkgrd);
-	g_MenuDefaultBkgrd = CreateSolidBrush(cr_MenuDefaultBkgrd);
-	g_MenuItemHilite = CreateSolidBrush(RGB(0x07, 0x2B, 0xE4));
-	g_DlgHelpSlash = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
-	g_DotHiliteBkgrd = CreateSolidBrush(RGB(0x00, 0x1A, 0x7A));
-	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
-	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-	g_MediumGrayPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
-	g_DotHilitePen = CreatePen(PS_SOLID, 1, RGB(0x42, 0x5D, 0xBC));
-	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
-
-
-	//Create our windows so that they exist in memory for config.validate()
-	mainWindow = new MyWin32Window(L"waitZarMainWindow");
-	sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
-	helpWindow = new MyWin32Window(L"waitZarHelpWindow");
-	memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
-
-
-
 	//Find all config files
 	try {
 		//Useful shorthands
@@ -3011,67 +2938,94 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			msg2 << "Error loading default config file.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
 			msg2 << ex2.what();
 			MessageBox(NULL, msg2.str().c_str(), L"Default Config Error", MB_ICONERROR | MB_OK);
-			return 0;
+			return false;
 		}
 	}
 
+	return true;
+}
 
-	//TEST: did our settings load?
-	/*Settings s = config.getSettings();
-	wstringstream msg;
-	msg << "Settings" <<std::endl;
-	msg << "Always elevate: " <<s.alwaysElevate <<std::endl;
-	msg << "Balloon start: " <<s.balloonStart <<std::endl;
-	msg << "Lock windows: " <<s.lockWindows <<std::endl;
-	msg << "Silence mywords warnings: " <<s.silenceMywordsErrors <<std::endl;
-	msg << "Track caret: " <<s.trackCaret <<std::endl;
-	msg << "Hotkey: " <<s.hotkey <<std::endl;
-	msg << "Default Language: " <<s.defaultLanguage <<std::endl;
-	msg << "---------------------" <<std::endl;
-	msg << "Languages" <<std::endl;
-	std::set<Language> langs = config.getLanguages();
-	for (std::set<Language>::iterator s=langs.begin(); s!=langs.end(); s++) {
-		msg <<"   " << s->displayName <<std::endl;
-		wstring comma = L"";
 
-		//Input Methods
-		comma = L"";
-		msg <<L"      Input Methods: " <<"[";
-		for (std::set<InputMethod*>::const_iterator i=s->inputMethods.begin(); i!=s->inputMethods.end(); i++)  {
-			msg <<comma <<(*i)->displayName;
-			comma = L", ";
-		}
-		msg <<"]" <<std::endl;
 
-		//Encodings
-		comma = L"";
-		msg <<L"      Encodings: " <<"[";
-		for (std::set<Encoding>::const_iterator i=s->encodings.begin(); i!=s->encodings.end(); i++)  {
-			msg <<comma <<i->displayName <<(i->canUseAsOutput?L"*":L"");
-			comma = L", ";
-		}
-		msg <<"]" <<std::endl;
 
-		//Display Methods
-		comma = L"";
-		msg <<L"      Display Methods: " <<"[";
-		for (std::set<DisplayMethod*>::const_iterator i=s->displayMethods.begin(); i!=s->displayMethods.end(); i++)  {
-			msg <<comma <<(*i)->id;
-			comma = L", ";
-		}
-		msg <<"]" <<std::endl;
 
-		//Transformations
-		msg <<L"      Transformations: " <<"[{self->self}";
-		for (std::set<Transformation*>::const_iterator i=s->transformations.begin(); i!=s->transformations.end(); i++)  {
-			msg <<comma <<"{" <<(*i)->fromEncoding.id <<"->" <<(*i)->toEncoding.id <<"}";
-			comma = L", ";
-		}
-		msg <<"]" <<std::endl;
+/**
+ * Main method for Windows applications
+ */
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	//Logging time to start?
+	if (currTest == start_up)
+		GetSystemTimeAsFileTime(&startTime);
 
+
+	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
+	//  warnings. Plus, the hInstance should never change.
+	hInst = hInstance;
+
+	//First and foremost
+	helpIsCached = false;
+	isDragging = false;
+	helpKeyboard = NULL;
+	contextMenu = NULL;
+	menuFont = NULL;
+	sysFont = NULL;
+
+	//Also...
+	try {
+		//buildSystemWordLookup();
+	} catch (std::exception ex) {
+	/*	std::wstringstream msg;
+		msg << "Error building system look.\nWaitZar will now terminate.\n\nDetails:\n";
+		msg << ex.what();
+		MessageBox(NULL, msg.str().c_str(), L"System Hotkeys Error", MB_ICONWARNING | MB_OK);
+		return 0;*/
 	}
-	MessageBox(NULL, msg.str().c_str(), L"Settings", MB_ICONINFORMATION | MB_OK);*/
 
+	//Log?
+	if (isLogging) {
+		logFile = fopen("wz_log.txt", "w");
+		if (logFile==NULL) {
+			MessageBox(NULL, _T("Unable to open Log file"), _T("Warning"), MB_ICONWARNING | MB_OK);
+			isLogging = false;
+		} else {
+			fprintf(logFile, "WaitZar was opened\n");
+		}
+	} else
+		logFile = NULL;
+	waitzar::setLogFile(logFile);
+
+
+	//Create a white/black brush
+	cr_MenuItemBkgrd = RGB(0x8F, 0xA1, 0xF8);
+	cr_MenuDefaultBkgrd = GetSysColor(COLOR_MENU);
+	cr_MenuDefaultText = GetSysColor(COLOR_MENUTEXT);
+	cr_MenuItemText = RGB(0x20, 0x31, 0x89);
+	cr_Black = RGB(0x00, 0x00, 0x00);
+	cr_White = RGB(0xFF, 0xFF, 0xFF);
+	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
+	g_DarkGrayBkgrd = CreateSolidBrush(RGB(128, 128, 128));
+	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
+	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
+	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
+	g_DlgHelpBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
+	g_MenuItemBkgrd = CreateSolidBrush(cr_MenuItemBkgrd);
+	g_MenuDefaultBkgrd = CreateSolidBrush(cr_MenuDefaultBkgrd);
+	g_MenuItemHilite = CreateSolidBrush(RGB(0x07, 0x2B, 0xE4));
+	g_DlgHelpSlash = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
+	g_DotHiliteBkgrd = CreateSolidBrush(RGB(0x00, 0x1A, 0x7A));
+	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
+	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+	g_MediumGrayPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
+	g_DotHilitePen = CreatePen(PS_SOLID, 1, RGB(0x42, 0x5D, 0xBC));
+	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
+
+
+	//Create our windows so that they exist in memory for config.validate()
+	mainWindow = new MyWin32Window(L"waitZarMainWindow");
+	sentenceWindow = new MyWin32Window(L"waitZarSentenceWindow");
+	helpWindow = new MyWin32Window(L"waitZarHelpWindow");
+	memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
 
 	//Load our configuration file now; save some headaches later
 	loadConfigOptions();
@@ -3120,6 +3074,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, msg.str().c_str(), L"CreateWindow() Error", MB_ICONERROR | MB_OK);
 		return 0;
 	}
+
+
+	//Find all config files, load.
+	if (!findAndLoadAllConfigFiles())
+		return 0;
+
 
 	//Create our context menu
 	initContextMenu();
