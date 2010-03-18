@@ -89,9 +89,9 @@ void TtfDisplay::initLogicalFont(int devLogPixelsY)
 	LOGFONT lf;
 	memset(&lf, 0, sizeof(lf));
 	lf.lfHeight = -MulDiv(pointSize, devLogPixelsY, 72);
-	lf.lfWeight = FW_NORMAL;
+	lf.lfWeight = FW_DONTCARE;
 	lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
-	lf.lfQuality = PROOF_QUALITY;
+	lf.lfQuality = DEFAULT_QUALITY;//PROOF_QUALITY;
 	wcscpy_s(lf.lfFaceName, fontFaceName.c_str());
 	font = CreateFontIndirect(&lf);
 	if (!font)
@@ -115,7 +115,12 @@ void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int
 
 	//Actual drawing code
 	int prevBkgMode = SetBkMode(lastKnownGoodHDC, TRANSPARENT);
+	//int oldSmooth;
+	//SystemParametersInfo(SPI_GETFONTSMOOTHINGCONTRAST, 0, &oldSmooth, FALSE);
+	//int newSmooth = 2200; //Maximum smoothing. BAD: Messes up the entire window!
+	//SystemParametersInfo(SPI_SETFONTSMOOTHINGCONTRAST, 0, &newSmooth, FALSE);
 	ExtTextOut(lastKnownGoodHDC, xPos, yPos, 0, NULL, str.c_str(), str.length(), NULL);
+	//SystemParametersInfo(SPI_SETFONTSMOOTHINGCONTRAST, 0, &oldSmooth, FALSE);
 	SetBkMode(lastKnownGoodHDC, prevBkgMode);
 	
 	//Restore
