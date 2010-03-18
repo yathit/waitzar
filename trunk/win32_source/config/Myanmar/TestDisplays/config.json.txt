@@ -5,7 +5,7 @@
         "encoding" : "unicode",
         "type" : "ttf",
         "font-face-name" : "Padauk Bold",
-        "point-size" : "18",
+        "point-size" : "13",
         "font-file" : "Padauk-Bold.ttf"
       },
       "ayarttf" :  #Load from a file
@@ -13,7 +13,7 @@
         "encoding" : "unicode",
         "type" : "ttf",
         "font-face-name" : "Ayar",
-        "point-size" : "18",
+        "point-size" : "14",
         "font-file" : "ayar31.ttf"
       },
       "myanmar3ttf" :   #Load from the Windows font folder
@@ -21,7 +21,7 @@
         "encoding" : "unicode",
         "type" : "ttf",
         "font-face-name" : "Myanmar3",
-        "point-size" : "14"
+        "point-size" : "12"
       },
       "waitzarbmp" : 
       {
