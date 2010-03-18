@@ -1,4 +1,4 @@
-﻿# Some additional display methods to try out
+# Some additional display methods to try out
 {"languages.myanmar.display-methods" : {
       "padaukttf" :  #Load from a file
       {
@@ -7,6 +7,14 @@
         "font-face-name" : "Padauk Bold",
         "point-size" : "18",
         "font-file" : "Padauk-Bold.ttf"
+      },
+      "ayarttf" :  #Load from a file
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Ayar",
+        "point-size" : "18",
+        "font-file" : "ayar31.ttf"
       },
       "myanmar3ttf" :   #Load from the Windows font folder
       {
