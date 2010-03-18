@@ -1,0 +1,24 @@
+﻿# Some additional display methods to try out
+{"languages.myanmar.display-methods" : {
+      "padaukttf" :  #Load from a file
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Padauk Bold",
+        "point-size" : "18",
+        "font-file" : "Padauk-Bold.ttf"
+      },
+      "myanmar3ttf" :   #Load from the Windows font folder
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Myanmar3",
+        "point-size" : "14"
+      },
+      "waitzarbmp" : 
+      {
+        "encoding" : "zawgyi-one",
+        "type" : "png",
+        "font-file" : "WZTest.png"
+      }
+}}
