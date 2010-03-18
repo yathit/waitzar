@@ -1432,13 +1432,12 @@ void recalculate()
 
 	//First things first: can we fit this in the current background?
 	// (Includes pat-sint strings)
-	//TODO: Again, the "NULL"s will eventually have to go.
 	int cumulativeWidth = (borderWidth+1)*2;
 	for (size_t i=0; i<10; i++) {
 		unsigned int id = i + currInput->getPagingInfo().first * 10;
 		if (id>=dispCandidateStrs.size())
 			break;
-		cumulativeWidth += mmFont->getStringWidth(dispCandidateStrs[id].first, NULL);
+		cumulativeWidth += mainWindow->getStringWidth(mmFont, dispCandidateStrs[id].first);
 		cumulativeWidth += spaceWidth;
 	}
 
@@ -1474,12 +1473,12 @@ void recalculate()
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1);
 	if (!dispSentenceStr[0].empty())
-		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[0], NULL) + 1;
+		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[0]) + 1;
 	mmFontSmall->setColor(0xFF, 0x00, 0x00);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1);
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	if (!dispSentenceStr[1].empty())
-		currPosX += mmFontSmall->getStringWidth(dispSentenceStr[1], NULL) + 1;
+		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[1]) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1);
 
@@ -1489,7 +1488,7 @@ void recalculate()
 
 	//Draw the current encoding
 	wstring currEncStr = config.activeOutputEncoding.initial;
-	int encStrWidth = mmFontSmall->getStringWidth(currEncStr, NULL);
+	int encStrWidth = mainWindow->getStringWidth(mmFontSmall, currEncStr);
 	sentenceWindow->selectObject(g_BlackPen);
 	sentenceWindow->selectObject(g_GreenBkgrd);
 	sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
@@ -1518,7 +1517,7 @@ void recalculate()
 		unsigned int id = it + (currInput->getPagingInfo().first * 10);
 		if (id>=dispCandidateStrs.size())
 			break;
-		int thisStrWidth = mmFont->getStringWidth(dispCandidateStrs[id].first, NULL);
+		int thisStrWidth = mainWindow->getStringWidth(mmFont, dispCandidateStrs[id].first);
 
 		//Select fonts, and draw a box under highlighted words
 		//mmFont = mmFontBlack;
@@ -1544,7 +1543,7 @@ void recalculate()
 			if (currLabelID==10)
 				currLabelID = 0; //Just renumber for now; we never have more than 10 anyway.
 		}
-		int digitWidth = mmFont->getStringWidth(digit.str(), NULL);
+		int digitWidth = mainWindow->getStringWidth(mmFont, digit.str());
 		mainWindow->drawString(mmFont, digit.str(), borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 
 		//Increment
@@ -1570,7 +1569,7 @@ void recalculate()
 		std::pair<int, int> pgInfo = currInput->getPagingInfo();
 		std::wstringstream num;
 		num <<pgInfo.first+1;
-		int strWidth = mmFontSmall->getStringWidth(num.str(), NULL);
+		int strWidth = mainWindow->getStringWidth(mmFontSmall, num.str());
 		mainWindow->drawString(mmFontSmall, num.str(), triangleStartX-1 + (triangleBaseWidth+borderWidth*2+borderWidth)/2 - strWidth/2, pageDownStart-borderWidth-mmFontSmall->getHeight(NULL) + 6);
 
 		//Draw a separator line for the box, half-shaded.

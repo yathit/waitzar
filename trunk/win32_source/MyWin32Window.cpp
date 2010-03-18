@@ -653,6 +653,12 @@ bool MyWin32Window::drawImage(PulpCoreImage* img, int x, int y)
 	return true;
 }
 
+unsigned int MyWin32Window::getStringWidth(DisplayMethod* font, const std::wstring& str)
+{
+	return font->getStringWidth(str, underDC);
+}
+
+
 bool MyWin32Window::drawString(DisplayMethod* font, const std::string& str, int x, int y)
 {
 	font->drawString(underDC, str, x, y);
