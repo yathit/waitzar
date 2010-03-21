@@ -131,8 +131,6 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 }
 
 
-
-
 void LetterInputMethod::handleKeyPress(WPARAM wParam, bool isUpper)
 {
 	//Handle our help menu

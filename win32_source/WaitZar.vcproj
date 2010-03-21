@@ -446,6 +446,10 @@
 							>
 						</File>
 						<File
+							RelativePath=".\Input\keymagic_vkeys.h"
+							>
+						</File>
+						<File
 							RelativePath=".\Input\LetterInputMethod.h"
 							>
 						</File>
