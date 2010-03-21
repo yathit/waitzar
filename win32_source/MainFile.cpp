@@ -2300,19 +2300,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 void createMyanmarMenuFont()
 {
-	//Get the Padauk embedded resource
-	HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_PADAUK_ZG), _T("COREFONT"));
-	if (!fontRes)
-		throw std::exception("Couldn't find WZ_PADAUK_ZG");
-	HGLOBAL res_handle = LoadResource(NULL, fontRes);
-	if (!res_handle)
-		throw std::exception("Couldn't get a handle on WZ_PADAUK_ZG");
-
-	//Now, create it
-	menuFont = new TtfDisplay();
-	menuFont->fontFaceName = L"PdkZgWz";
-	menuFont->pointSize = 10;
-	mainWindow->initTtfMethod(menuFont, fontRes, res_handle, 0x000000);
+	menuFont = (TtfDisplay*)WZFactory<WordBuilder>::getPadaukZawgyiTtfDisplay(L"myanmar", L"pdkzgwz");
 }
 
 
