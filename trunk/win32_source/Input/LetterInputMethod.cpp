@@ -170,10 +170,13 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam, bool isUpper)
 		}
 
 		//Save the results of our temporary calculations.
-		if (isHelpInput())
-			typedCandidateStr.str(currStr);
-		else
-			typedSentenceStr.str(currStr);
+		if (isHelpInput()) {
+			typedCandidateStr.str(L"");
+			typedCandidateStr <<currStr;
+		} else {
+			typedSentenceStr.str(L"");
+			typedSentenceStr <<currStr;
+		}
 
 		//Save a romanized string if in help mode
 		if (this->isHelpInput()) {
