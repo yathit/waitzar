@@ -19,6 +19,7 @@
 #include "resource.h"
 
 #include "Input/RomanInputMethod.h"
+#include "Input/LetterInputMethod.h"
 #include "Display/TtfDisplay.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/BurglishBuilder.h"
@@ -58,6 +59,7 @@ public:
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID);
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
+	static LetterInputMethod* getMywinInput(std::wstring langID);
 
 	//Display method builders
 	static DisplayMethod* getZawgyiPngDisplay(std::wstring langID, std::wstring dispID, unsigned int dispResourceID);
@@ -93,6 +95,7 @@ private:
 	//Ugh.... templates are exploding!
 	static std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> cachedWBInputs;
 	static std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> cachedBGInputs;
+	static std::map<std::wstring, LetterInputMethod*> cachedLetterInputs;
 	static std::map<std::wstring, DisplayMethod*> cachedDisplayMethods;
 
 	//Helper methods
@@ -351,7 +354,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 	char* value = new char[100];
 	while (currPosition<numUniChars) {
 		//Get the name/value pair using our nifty template function....
-		waitzar::readLine(uniBuffer, currPosition, numUniChars, true, true, false, model->isAllowNonBurmese(), true, false, false, false, name, value);
+		waitzar::readLine(uniBuffer, currPosition, numUniChars, true, true, false, true/*model->isAllowNonBurmese()*/, true, false, false, false, name, value);
 
 		//Make sure both name and value are non-empty
 		if (strlen(value)==0 || lstrlen(name)==0)
@@ -373,6 +376,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 template <class ModelType> std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> WZFactory<ModelType>::cachedWBInputs;
 template <class ModelType> std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> WZFactory<ModelType>::cachedBGInputs;
 template <class ModelType> std::map<std::wstring, DisplayMethod*> WZFactory<ModelType>::cachedDisplayMethods;
+template <class ModelType> std::map<std::wstring, LetterInputMethod*> WZFactory<ModelType>::cachedLetterInputs;
 
 template <class ModelType>
 RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(wstring langID) 
@@ -404,6 +408,23 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(ws
 	
 	return WZFactory<ModelType>::cachedWBInputs[fullID];
 }
+
+
+template <class ModelType>
+LetterInputMethod* WZFactory<ModelType>::getMywinInput(std::wstring langID)
+{
+	wstring fullID = langID + L"." + L"mywin";
+
+	//Singleton init
+	if (WZFactory<ModelType>::cachedLetterInputs.count(fullID)==0) {
+		//Create, init
+		WZFactory<ModelType>::cachedLetterInputs[fullID] = new LetterInputMethod();
+		WZFactory<ModelType>::cachedLetterInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords);
+	}
+	
+	return WZFactory<ModelType>::cachedLetterInputs[fullID];
+}
+
 
 
 template <class ModelType>
@@ -623,7 +644,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		if (id==L"waitzar")
 			res = WZFactory<ModelType>::getWaitZarInput(language.id);
 		else if (id==L"mywin")
-			res = WZFactory<ModelType>::getWaitZarInput(language.id);
+			res = WZFactory<ModelType>::getMywinInput(language.id);
 		else if (id==L"burglish")
 			res = WZFactory<ModelType>::getBurglishInput(language.id);
 		else
