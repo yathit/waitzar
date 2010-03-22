@@ -141,23 +141,9 @@ void KeyMagicInputMethod::loadRulesFile(const wstring& datastream)
 int KeyMagicInputMethod::hexVal(wchar_t letter)
 {
 	switch(letter) {
-		case L'0':
-		case L'1':
-		case L'2':
-		case L'3':
-		case L'4':
-		case L'5':
-		case L'6':
-		case L'7':
-		case L'8':
-		case L'9':
+		case L'0':  case L'1':  case L'2':  case L'3':  case L'4':  case L'5':  case L'6':  case L'7':  case L'8':  case L'9':
 			return letter-L'0';
-		case L'a':
-		case L'b':
-		case L'c':
-		case L'd':
-		case L'e':
-		case L'f':
+		case L'a':  case L'b':  case L'c':  case L'd':  case L'e':  case L'f':
 			return letter-L'a' + 10;
 		default:
 			return -1;
@@ -178,13 +164,15 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 
 	//KMRT_VARIABLE: Begins with a $, must be followed by [a-zA-Z0-9_]
 	//KMRT_MATCHVAR: Same, but ONLY numerals
-	//
-	//TODO: Variable modifier like [*] and [$1] and [^] should receive different types.
-	//
+	//KMRT_VARARRAY: Ends with "[" + ([0-9]+) + "]"
+	//KMRT_VARARRAY_SPECIAL: Ends with "[" + [\*\^] + "]"
+	//KMRT_VARARRAY_BACKREF: Ends with "[" + "$" + ([0-9]+) + "]"
 	if (ruleStr[0] == L'$') {
 		//Validate
 		int numberVal = 0;
+		int bracesStartIndex = -1;
 		for (size_t i=1; i<ruleStr.length(); i++) {
+			//First part: letters or numbers only
 			wchar_t c = ruleStr[i];
 			if (c>=L'0'&&c<=L'9') {
 				if (numberVal != -1) {
@@ -197,16 +185,75 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				numberVal = -1;
 				continue;
 			}
+
+			//Switch?
+			if (c==L'[') {
+				if (numberVal!=-1)
+					throw std::exception("Invalid variable: cannot subscript number constants");
+
+				//Flag for further parsing
+				bracesStartIndex = i;
+				break;
+			}
+
+			//Else, error
 			throw std::exception("Invalid variable letter: should be alphanumeric.");
 		}
 
-		//Save
-		result.str = ruleStr;
-		if (numberVal != -1) {
-			result.type = KMRT_MATCHVAR;
-			result.val = numberVal;
+		//No further parsing?
+		if (bracesStartIndex==-1) {
+			//Save
+			if (numberVal != -1) {
+				result.str = ruleStr;
+				result.type = KMRT_MATCHVAR;
+				result.val = numberVal;
+			} else {
+				result.str = ruleStr;
+				result.type = KMRT_VARIABLE;
+			}
 		} else {
-			result.type = KMRT_VARIABLE;
+			//It's a complex variable.
+			if (bracesStartIndex==ruleStr.length()-1 || ruleStr[ruleStr.length()-1]!=L']')
+				throw std::exception("Invalid variable: bracket isn't closed.");
+			result.str = ruleStr.substr(0, bracesStartIndex);
+			
+			//Could be [*] or [^]; check these first
+			if (bracesStartIndex+1==ruleStr.length()-2 && (ruleStr[bracesStartIndex+1]==L'^' || ruleStr[bracesStartIndex+1]==L'*')) {
+				result.type = KMRT_VARARRAY_SPECIAL;
+				result.val = ruleStr[bracesStartIndex+1];
+			} else if (ruleStr[bracesStartIndex+1]==L'$') {
+				//It's a variable reference
+				int total = 0;
+				for (size_t id=ruleStr[bracesStartIndex+2]; id<ruleStr.length()-1; id++) {
+					if (ruleStr[id]>=L'0' && ruleStr[id]<=L'9') {
+						total *= 10;
+						total += (ruleStr[id]-L'0');
+					} else 
+						throw std::exception("Invalid variable: bracket variable contains non-numeric ID characters.");
+				}
+				if (total==0)
+					throw std::exception("Invalid variable: bracket variable has no ID.");
+
+				//Save
+				result.type = KMRT_VARARRAY_BACKREF;
+				result.val = total;
+			} else {
+				//It's a simple ID reference
+				int total = 0;
+				for (size_t id=ruleStr[bracesStartIndex+1]; id<ruleStr.length()-1; id++) {
+					if (ruleStr[id]>=L'0' && ruleStr[id]<=L'9') {
+						total *= 10;
+						total += (ruleStr[id]-L'0');
+					} else 
+						throw std::exception("Invalid variable: bracket id contains non-numeric ID characters.");
+				}
+				if (total==0)
+					throw std::exception("Invalid variable: bracket id has no ID.");
+
+				//Save
+				result.type = KMRT_VARARRAY;
+				result.val = total;
+			}
 		}
 	}
 
@@ -255,12 +302,48 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 	}
 	
 
-	//TODO: Things like:
-	//   < VK_SHIFT & VK_T >
-	//   ....make sure to remove whitespace WITHIN the brackets/ampersands
+	//KMRT_KEYCOMBINATION: <VK_SHIFT & VK_T>
+	else if (ruleStr.size()>2 && ruleStr[0]==L'<' && ruleStr[1]==L'>') {
+		//Read each value into an array
+		vector<wstring> vkeys;
+		std::wstringstream currKey;
+		for (size_t id=0; id<ruleStr.length(); id++) {
+			//Append?
+			if ((ruleStr[id]>='A'&&ruleStr[id]<='Z') || (ruleStr[id]>='0'&&ruleStr[id]<='9') || ruleStr[id]==L'_')
+				currKey <<ruleStr[id];
 
+			//New key?
+			if ((ruleStr[id]==L'&' || ruleStr[id]==L'>') && !ruleStr.empty()) {
+				vkeys.push_back(currKey.str());
+				currKey.str(L"");
+			}
+		}
 
+		//Handle the final key
+		result.type = KMRT_KEYCOMBINATION;
+		result.val = -1;
+		if (vkeys.empty())
+			throw std::exception("Invalid VKEY: nothing specified");
+		for (size_t id=0; !KeyMagicVKeys[id].keyName.empty(); id++) {
+			if (KeyMagicVKeys[id].keyName == vkeys[vkeys.size()-1]) {
+				result.val = KeyMagicVKeys[id].keyValue;
+				break;
+			}
+		}
+		if (result.val == -1)
+			throw std::exception("Unknown VKEY specified");
 
+		//Now, handle all modifiers
+		for (size_t id=0; id<vkeys.size()-1; id++) {
+			if (vkeys[id] == L"VK_SHIFT") {
+				//TODO
+				//TODO: specify all combined values, append it to result.val
+				//TODO
+			} else {
+				throw std::exception("Unknown VKEY specified as modifier");
+			}
+		}
+	}
 
 	//Done?
 	if (result.type==KMRT_UNKNOWN)
