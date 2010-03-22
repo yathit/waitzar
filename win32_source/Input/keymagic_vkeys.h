@@ -132,6 +132,8 @@ const VKeyPair KeyMagicVKeys[] = {
 	{L"VK_EXCM", 0x00DF},
 	{L"VK_OEM_102", 0x00E2},
 	{L"VK_LESSTHEN", 0x00E2},
+
+	{L"", 0} //How we know we're done
 };
 
 

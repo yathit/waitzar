@@ -9,6 +9,7 @@
 
 #include "MyWin32Window.h"
 #include "Input/LetterInputMethod.h"
+#include "Input/keymagic_vkeys.h"
 
 
 //NOTE TO SELF: KMRT_STRING values which appear in sequence COMBINE to form one string
@@ -16,12 +17,16 @@
 // ...must be represented as  $temp = 'abcdef' 
 // ...for array indexing to function properly.
 enum RULE_TYPE {
-	KMRT_UNKNOWN,    //Initializer
-	KMRT_STRING,     //Anything which just matches a string (includes single characters, UXXXX)
-	KMRT_WILDCARD,   //The wildcard character *
-	KMRT_VARIABLE,   //Any "normal" variable like $test
-	KMRT_MATCHVAR,   //Any backreference like $1
-	KMRT_SWITCH,     //Any switch like ('my_switch')
+	KMRT_UNKNOWN,          //Initializer
+	KMRT_STRING,           //Anything which just matches a string (includes single characters, UXXXX)
+	KMRT_WILDCARD,         //The wildcard character *
+	KMRT_VARIABLE,         //Any "normal" variable like $test
+	KMRT_MATCHVAR,         //Any backreference like $1
+	KMRT_SWITCH,           //Any switch like ('my_switch')
+	KMRT_VARARRAY,         //Variable matches like $temp[1]
+	KMRT_VARARRAY_SPECIAL, //Variable matches like $temp[*], $temp[^] (we store the char itself in the val value)
+	KMRT_VARARRAY_BACKREF, //Variable matches like $temp[$1]
+	KMRT_KEYCOMBINATION,   //Something like <VK_SHIFT & VK_T> (val contains the key, combined with modifiers)
 };
 
 struct Rule {
