@@ -207,6 +207,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\Input\KeyMagicInputMethod.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\Input\LetterInputMethod.cpp"
 						>
 					</File>
@@ -447,6 +451,10 @@
 						</File>
 						<File
 							RelativePath=".\Input\keymagic_vkeys.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Input\KeyMagicInputMethod.h"
 							>
 						</File>
 						<File
