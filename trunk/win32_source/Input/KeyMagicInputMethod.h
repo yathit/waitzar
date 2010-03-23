@@ -34,11 +34,13 @@ struct Rule {
 	RULE_TYPE type;
 	std::wstring str;
 	int val;
+	int id; //Used for variables (and switches, later). 
 
 	Rule(RULE_TYPE type1, const std::wstring& str1, int val1) {
 		type = type1;
 		str = str1;
 		val = val1;
+		id = -1;
 	}
 };
 
@@ -55,13 +57,14 @@ public:
 
 private:
 	//Data
-	std::map< std::wstring, std::vector<Rule> > variables;
+	std::vector< std::vector<Rule> > variables;
 	std::vector< std::pair< std::vector<Rule>, std::vector<Rule> > > replacements;
 
 	//Helpers
 	int hexVal(wchar_t letter);
 	Rule parseRule(const std::wstring& ruleStr);
-	void addSingleRule(const std::vector<Rule>& rules, size_t rhsStart, bool isVariable);
+	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, size_t rhsStart, bool isVariable);
+	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, size_t iStart, size_t iEnd);
 
 
 
