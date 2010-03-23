@@ -10,6 +10,7 @@
 #include "MyWin32Window.h"
 #include "Input/LetterInputMethod.h"
 #include "Input/keymagic_vkeys.h"
+#include "Settings/ConfigManager.h"
 
 
 //NOTE TO SELF: KMRT_STRING values which appear in sequence COMBINE to form one string
