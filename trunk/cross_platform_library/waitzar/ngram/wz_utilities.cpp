@@ -858,6 +858,7 @@ void setLogFile(FILE *logFile)
 }
 
 
+//TODO: We should remove the BOM here; it's just a nuisance elsewhere.
 wstring readUTF8File(const string& path) 
 {
 	//Open the file, read-only, binary.

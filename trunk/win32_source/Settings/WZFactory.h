@@ -20,6 +20,7 @@
 
 #include "Input/RomanInputMethod.h"
 #include "Input/LetterInputMethod.h"
+#include "Input/KeyMagicInputMethod.h"
 #include "Display/TtfDisplay.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/BurglishBuilder.h"
@@ -59,6 +60,7 @@ public:
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID);
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
+	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
 	static LetterInputMethod* getMywinInput(std::wstring langID);
 
 	//Display method builders
@@ -449,6 +451,26 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory<ModelType>::getBurglishInp
 }
 
 
+//Get a keymagic input method
+template <class ModelType>
+LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName)
+{
+	wstring fullID = langID + L"." + inputID;
+
+	if (WZFactory<ModelType>::cachedLetterInputs.count(fullID)==0) {
+		//Build our result
+		KeyMagicInputMethod* res = new KeyMagicInputMethod();
+		res->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords);
+		res->loadRulesFile(wordlistFileName);
+
+		WZFactory<ModelType>::cachedLetterInputs[fullID] = res;
+	}
+
+	return WZFactory<ModelType>::cachedLetterInputs[fullID];
+}
+
+
+
 //Build a model up from scratch.
 template <class ModelType>
 RomanInputMethod<WordBuilder>* WZFactory<ModelType>::getWordlistBasedInput(wstring langID, wstring inputID, string wordlistFileName)
@@ -671,6 +693,27 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		//Get it, as a singleton
 		res = WZFactory<ModelType>::getWordlistBasedInput(language.id, id, waitzar::escape_wstr(wordlistFile, false));
 		res->type = IME_ROMAN;
+	} else if (sanitize_id(options.find(L"type")->second) == L"keymagic") {
+		//Requires a keyboard file
+		if (options.count(sanitize_id(L"keyboard-file"))==0)
+			throw std::exception("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
+		if (options.count(sanitize_id(L"current-folder"))==0)
+			throw std::exception("Cannot construct \"keymagic\" input manager: no \"current-folder\" (should be auto-added).");
+
+		//Build the wordlist file; we will need the respective directory, too.
+		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
+		std::wstring keymagicFile = langConfigDir + options.find(sanitize_id(L"keyboard-file"))->second;
+
+		//TODO: Test in a cleaner way.
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		std::wstringstream temp;
+		temp << keymagicFile.c_str();
+		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			throw std::exception(ConfigManager::glue(L"Keyboard file does not exist: ", keymagicFile).c_str());
+
+		//Get it, as a singleton
+		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false));
+		res->type = IME_KEYBOARD;
 	} else {
 		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
 	}

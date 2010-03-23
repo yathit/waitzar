@@ -1,0 +1,13 @@
+﻿# Various input method keyboards, collected in one folder
+{"languages.myanmar.input-methods" : {
+      "ayar" : 
+      {
+        "display-name" : "Ayar Keyboard",
+        "encoding" : "unicode",    #Todo: change to Ayar
+        "type" : "keymagic",
+        "keyboard-file" : "Ayar.kms"
+      }
+      
+      #More later
+
+}}
