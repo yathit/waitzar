@@ -10,6 +10,17 @@
 #include <string>
 
 
+enum modifier_flags {
+	KM_VKMOD_SHIFT = 1 * 0x10000,
+	KM_VKMOD_ALT   = 2 * 0x10000,
+	KM_VKMOD_CTRL  = 4 * 0x10000,
+	KM_VKMOD_CAPS  = 8 * 0x10000,
+
+	//For removing the mask
+	KM_VKMOD_MASK  =      0xFFFF,
+};
+
+
 struct VKeyPair {
 	const std::wstring keyName;
 	const unsigned int keyValue;
@@ -104,8 +115,8 @@ const VKeyPair KeyMagicVKeys[] = {
 	{L"VK_RSHIFT", 0x00A1},
 	{L"VK_LCONTROL", 0x00A2},
 	{L"VK_LCTRL", 0x00A2},
-	{L"VK_LCONTROL", 0x00A3},
-	{L"VK_LCTRL", 0x00A3},
+	{L"VK_RCONTROL", 0x00A3},
+	{L"VK_RCTRL", 0x00A3},
 	{L"VK_LMENU", 0x00A4}, 
 	{L"VK_LALT", 0x00A4},
 	{L"VK_RMENU", 0x00A5},

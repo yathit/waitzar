@@ -308,9 +308,32 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 
 		//KMRT_STRING: Enclosed with ' or "
 		else if (ruleStr.size()>1 && ((ruleStr[0]==L'\''&&ruleStr[ruleStr.size()-1]==L'\'') || ((ruleStr[0]==L'"'&&ruleStr[ruleStr.size()-1]==L'"')))) {
-			//Escaped strings should already have been taken care of.
+			//Escaped strings should already have been taken care of (but not translated)
+			std::wstringstream buff;
+			for (size_t i=1; i<ruleStr.length()-1; i++) {
+				//Normal letters
+				if (ruleStr[i]!=L'\\') {
+					buff <<ruleStr[i];
+					continue;
+				}
+
+				//Escape sequences
+				// Can be: \\, \", \uXXXX
+				if (i+1<ruleStr.length()-1 && ruleStr[i+1]==L'\\') {
+					buff <<L'\\';
+					i++;
+				} else if (i+1<ruleStr.length()-1 && ruleStr[i+1]==L'"') {
+					buff <<L'"';
+					i++;
+				} else if (i+5<ruleStr.length()-1 && (ruleStr[i+1]==L'u'||ruleStr[i+1]==L'U') && hexVal(ruleStr[i+2])!=-1 && hexVal(ruleStr[i+3])!=-1 && hexVal(ruleStr[i+4])!=-1 && hexVal(ruleStr[i+5])!=-1) {
+					int num = hexVal(ruleStr[i+2])*0x1000 + hexVal(ruleStr[i+3])*0x100 + hexVal(ruleStr[i+4])*0x10 + hexVal(ruleStr[i+5]);
+					buff <<(wchar_t)num;
+					i += 5;
+				} else
+					throw std::exception(ConfigManager::glue(L"Invalid escape sequence in: ", ruleStr).c_str());
+			}
 			result.type = KMRT_STRING;
-			result.str = ruleStr.substr(1, ruleStr.length()-2);
+			result.str = buff.str();
 		}
 
 
@@ -396,16 +419,20 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				}
 			}
 			if (result.val == -1)
-				throw std::exception("Unknown VKEY specified");
+				throw std::exception(ConfigManager::glue(L"Unknown VKEY specified \"", vkeys[vkeys.size()-1], L"\"").c_str());
 
 			//Now, handle all modifiers
 			for (size_t id=0; id<vkeys.size()-1; id++) {
-				if (vkeys[id] == L"VK_SHIFT") {
-					//TODO
-					//TODO: specify all combined values, append it to result.val
-					//TODO
+				if (vkeys[id]==L"VK_SHIFT" || vkeys[id] == L"VK_LSHIFT" || vkeys[id] == L"VK_RSHIFT") {
+					result.val |= KM_VKMOD_SHIFT;
+				} else if (vkeys[id]==L"VK_CONTROL" || vkeys[id]==L"VK_CTRL" || vkeys[id] == L"VK_LCONTROL" || vkeys[id] == L"VK_RCONTROL" || vkeys[id] == L"VK_LCTRL" || vkeys[id] == L"VK_RCTRL") {
+					result.val |= KM_VKMOD_CTRL;
+				} else if (vkeys[id]==L"VK_ALT" || vkeys[id]==L"VK_MENU" || vkeys[id] == L"VK_LALT" || vkeys[id] == L"VK_RALT" || vkeys[id] == L"VK_LMENU" || vkeys[id] == L"VK_RMENU") {
+					result.val |= KM_VKMOD_ALT;
+				} else if (vkeys[id]==L"VK_CAPSLOCK" || vkeys[id]==L"VK_CAPITAL") {
+					result.val |= KM_VKMOD_CAPS;
 				} else {
-					throw std::exception("Unknown VKEY specified as modifier");
+					throw std::exception(ConfigManager::glue(L"Unknown VKEY specified as modifier \"", vkeys[id], L"\"").c_str());
 				}
 			}
 		}
