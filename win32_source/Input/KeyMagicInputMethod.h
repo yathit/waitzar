@@ -49,7 +49,7 @@ public:
 	virtual ~KeyMagicInputMethod();
 
 	//Key functionality
-	void loadRulesFile(const std::wstring& datastream);
+	void loadRulesFile(const std::string& rulesFilePath);
 	std::wstring applyRules(const std::wstring& input);
 
 private:

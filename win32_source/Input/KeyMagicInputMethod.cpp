@@ -21,59 +21,71 @@ KeyMagicInputMethod::~KeyMagicInputMethod()
 }
 
 
-void KeyMagicInputMethod::loadRulesFile(const wstring& datastream)
+void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 {
-	//First, parse into an array of single "rules" (or variables), removing 
-	//  comments and combining multiple lines, etc.
-	size_t sz = datastream.size();
-	std::wstringstream line;
 	vector<wstring> lines;
-	wchar_t lastChar = L'\0';
-	for (size_t i=0; i<sz; i++) {
-		//Skip comments: C-style
-		if (i+1<sz && datastream[i]==L'/' && datastream[i+1]==L'*') {
-			i += 2;
-			while (i<sz && (datastream[i]!=L'/' || datastream[i-1]!=L'*'))
-				i++;
-			continue;
-		}
-		//Skip comments: Cpp-style
-		if (i+1<sz && datastream[i]==L'/' && datastream[i+1]==L'/') {
-			i += 2;
-			while (i<sz && datastream[i]!=L'\n')
-				i++;
-			continue;
-		}
 
-		//Skip \r
-		if (datastream[i]==L'\r')
-			continue;
+	{
+		//Step 1: Load the file, convert to wchar_t*, skip the BOM
+		size_t i = 0;
+		wstring datastream = waitzar::readUTF8File(rulesFilePath);
+		if (datastream[i] == L'\uFEFF')
+			i++;
+		else if (datastream[i] == L'\uFFFE')
+			throw std::exception("KeyMagicInputMethod rules file  appears to be encoded backwards.");
 
-		//Newline causes a line break 
-		if (datastream[i]==L'\n') {
-			//...unless preceeded by "\"
-			if (lastChar=='\\') {
+
+		//First, parse into an array of single "rules" (or variables), removing 
+		//  comments and combining multiple lines, etc.
+		size_t sz = datastream.size();
+		std::wstringstream line;
+		wchar_t lastChar = L'\0';
+		for (; i<sz; i++) {
+			//Skip comments: C-style
+			if (i+1<sz && datastream[i]==L'/' && datastream[i+1]==L'*') {
+				i += 2;
+				while (i<sz && (datastream[i]!=L'/' || datastream[i-1]!=L'*'))
+					i++;
+				continue;
+			}
+			//Skip comments: Cpp-style
+			if (i+1<sz && datastream[i]==L'/' && datastream[i+1]==L'/') {
+				i += 2;
+				while (i<sz && datastream[i]!=L'\n')
+					i++;
+				continue;
+			}
+
+			//Skip \r
+			if (datastream[i]==L'\r')
+				continue;
+
+			//Newline causes a line break 
+			if (datastream[i]==L'\n') {
+				//...unless preceeded by "\"
+				if (lastChar=='\\') {
+					lastChar = L'\0';
+					continue;
+				}
+
+				if (!line.str().empty())
+					lines.push_back(line.str());
+				line.str(L"");
 				lastChar = L'\0';
 				continue;
 			}
 
-			if (!line.str().empty())
+			//Anything else is just appended and saved (except \\ in some cases)
+			lastChar = datastream[i];
+			if (lastChar==L'\\' && ((i+1<sz && datastream[i+1]==L'\n')||(i+2<sz && datastream[i+1]==L'\r' && datastream[i+2]==L'\n')))
+				continue;
+			line <<lastChar;
+
+			//Last line?
+			if (i==sz-1 && !line.str().empty())
 				lines.push_back(line.str());
-			line.str(L"");
-			lastChar = L'\0';
 		}
-
-		//Anything else is just appended and saved (except \\ in some cases)
-		lastChar = datastream[i];
-		if (lastChar==L'\\' && ((i+1<sz && datastream[i+1]==L'\n')||(i+2<sz && datastream[i+1]==L'\r' && datastream[i+2]==L'\n')))
-			continue;
-		line <<lastChar;
-
-		//Last line?
-		if (i==sz-1 && !line.str().empty())
-			lines.push_back(line.str());
 	}
-
 
 	//Now, turn the rules into an understandable set of data structures
 	//We have:
@@ -348,6 +360,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 	//Done?
 	if (result.type==KMRT_UNKNOWN)
 		throw std::exception("Error: Unknown rule type");
+	return result;
 }
 
 
