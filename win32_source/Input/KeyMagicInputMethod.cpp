@@ -75,9 +75,13 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 				continue;
 			}
 
-			//Anything else is just appended and saved (except \\ in some cases)
+			//Anything else is just appended and saved (except \\ in some cases, and ' ' and '\t' in others)
 			lastChar = datastream[i];
+			if (lastChar==L'\t') //Replace tab with space
+				lastChar = L' ';
 			if (lastChar==L'\\' && ((i+1<sz && datastream[i+1]==L'\n')||(i+2<sz && datastream[i+1]==L'\r' && datastream[i+2]==L'\n')))
+				continue;
+			if (lastChar==L' ' && i>0 && (datastream[i-1]==L' '||datastream[i-1]==L'\t')) //Remove multiple spaces
 				continue;
 			line <<lastChar;
 
@@ -112,7 +116,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 					separator = 2;
 					i++;
 				}
-				sepIndex = allRules.size();
+				sepIndex = allRules.size()+1;
 				continue;
 			}
 
@@ -135,7 +139,15 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 			//New rule?
 			if ((line[i]==L'+' || i==line.size()-1) && !rule.str().empty()) {
 				//Interpret
-				allRules.push_back(parseRule(rule.str()));
+				try {
+					allRules.push_back(parseRule(rule.str()));
+				} catch (std::exception ex) {
+					std::wstringstream err;
+					err <<ex.what();
+					err <<"\nRule:\n";
+					err <<line;
+					throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
+				}
 
 				//Reset
 				rule.str(L"");
@@ -144,8 +156,16 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 
 		//Interpret and add it
 		if (separator==0)
-			throw std::exception("Error: Rule does not contain = or =>");
-		addSingleRule(allRules, sepIndex, separator==1);
+			throw std::exception(ConfigManager::glue(L"Error: Rule does not contain = or =>: \n", line).c_str());
+		try {
+			addSingleRule(allRules, sepIndex, separator==1);
+		} catch (std::exception ex) {
+			std::wstringstream err;
+			err <<ex.what();
+			err <<"\nRule:\n";
+			err <<line;
+			throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
+		}
 	}
 }
 
