@@ -95,6 +95,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 	//We have:
 	//   $variable = rule+
 	//   rule+ => rule+
+	map< wstring, unsigned int> tempVarLookup;
 	std::wstringstream rule;
 	for (size_t i=0; i<lines.size(); i++) {
 		wstring line = lines[i];
@@ -173,7 +174,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 		if (separator==0)
 			throw std::exception(ConfigManager::glue(L"Error: Rule does not contain = or =>: \n", line).c_str());
 		try {
-			addSingleRule(allRules, sepIndex, separator==1);
+			addSingleRule(allRules, tempVarLookup, sepIndex, separator==1);
 		} catch (std::exception ex) {
 			std::wstringstream err;
 			err <<ex.what();
@@ -449,17 +450,95 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 
 
 
-//Add a rule to our replacements/variables
-void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, size_t rhsStart, bool isVariable)
+//Validate (and slightly transform) a set of rules given a start and an end index
+//We assume that this is never called on the LHS of an assigment statement.
+vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, const map< wstring, unsigned int>& varLookup, size_t iStart, size_t iEnd)
 {
+	//Behave differently depending on the rule type
+	vector<Rule> res;
+	for (size_t i=iStart; i<iEnd; i++) {
+		Rule currRule = rules[i];
+		switch (currRule.type) {
+			case KMRT_UNKNOWN:
+				throw std::exception("Error: A rule was discovered with type \"KMRT_UNKNOWN\"");
+
+			case KMRT_STRING:
+				//If a string is followed by another string, combine them.
+				while (i+1<iEnd && rules[i+1].type==KMRT_STRING) {
+					currRule.str += rules[i+1].str;
+					i++;
+				}
+				break;
+
+			case KMRT_VARIABLE:
+			case KMRT_VARARRAY:
+			case KMRT_VARARRAY_SPECIAL:
+			case KMRT_VARARRAY_BACKREF:
+				//Make sure all variables exist; fill in their implicit ID
+				if (varLookup.count(currRule.str)==0)
+					throw std::exception(ConfigManager::glue(L"Error: Previously undefined variable \"", currRule.str, L"\"").c_str());
+				currRule.id = varLookup.find(currRule.str)->second;
+				break;
+		}
+
+		res.push_back(currRule);
+	}
+
+	return res;
+}
+
+
+
+
+//Add a rule to our replacements/variables
+void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring, unsigned int>& varLookup, size_t rhsStart, bool isVariable)
+{
+	//
+	// Step 1: Validate
+	//
+
 	//Simple checks 1,2: Variables are correct
 	if (isVariable && rhsStart!=1)
 		throw std::exception("Rule error: Variables cannot have multiple assignments left of the parentheses");
 	if (isVariable && rules[0].type!=KMRT_VARIABLE)
 		throw std::exception("Rule error: Assignment ($x = y) can only assign into a variable.");
 
+	//LHS checks: no backreferences
+	for (size_t i=0; i<rhsStart; i++) {
+		if (rules[i].type==KMRT_MATCHVAR || rules[i].type==KMRT_VARARRAY_BACKREF)
+			throw std::exception("Cannot have backreference ($1, $2, or $test[$1]) on the left of an expression");
+	}
+
+	//RHS checks: no ambiguous wildcards
+	for (size_t i=rhsStart; i<rules.size(); i++) {
+		if (rules[i].type==KMRT_WILDCARD || rules[i].type==KMRT_VARARRAY_SPECIAL)
+			throw std::exception("Cannot have wildcards (*, $test[*], $test[^]) on the right of an expression");
+	}
+
+	//TODO: We might consider checking the number of backreferences against the $1...${n} values, but I don't 
+	//      think it's necessary. We can also check this elsewhere.
 
 
+	//
+	// Step 2: Modify
+	//
+
+	//Compute the RHS string first (this also avoids circular variable references)
+	std::vector<Rule> rhsVector = createRuleVector(rules, varLookup, rhsStart, rules.size());
+
+	//LHS storage depends on if this is a variable or not
+	if (isVariable) {
+		//Make sure it's in the array ONLY once. Then add it.
+		const wstring& candidate = rules[0].str;
+		if (varLookup.count(candidate) != 0)
+			throw std::exception(ConfigManager::glue(L"Error: Duplicate variable definition: \"", candidate, L"\"").c_str());
+		varLookup[candidate] = variables.size();
+		variables.push_back(rhsVector);
+	} else {
+		//Get a similar LHS vector, add it to our replacements list
+		std::vector<Rule> lhsVector = createRuleVector(rules, varLookup, 0, rhsStart);
+		replacements.push_back(std::pair< std::vector<Rule>, std::vector<Rule> >(lhsVector, rhsVector));
+	}
 }
 
 
