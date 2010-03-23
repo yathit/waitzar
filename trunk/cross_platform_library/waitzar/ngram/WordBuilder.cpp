@@ -1338,16 +1338,20 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 		lenStr = strlen(src);
 	}
 	for (unsigned int i=0; i<lenStr; i++) {
+		if (i==0x1630)
+			int x = 10;
+
+
 		unsigned short curr = (src[i]&0xFF);
 
 		//Handle carefully to avoid the security risk...
 		if (((curr>>3)^0x1E)==0) {
 			//We can't handle anything outside the BMP
-			return 0;
+			throw std::exception("Error: mymbstowcs does not handle bytes outside the BMP");
 		} else if (((curr>>4)^0xE)==0) {
 			//Verify the next two bytes
 			if (i>=lenStr-2 || (((src[i+1]&0xFF)>>6)^0x2)!=0 || (((src[i+2]&0xFF)>>6)^0x2)!=0)
-				return 0;
+				throw std::exception("Error: 2-byte character error in UTF-8 file");
 
 			//Combine all three bytes, check, increment
 			wchar_t destVal = 0x0000 | ((curr&0xF)<<12) | ((src[i+1]&0x3F)<<6) | (src[i+2]&0x3F);
@@ -1355,7 +1359,7 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 				destIndex++;
 				i+=2;
 			} else
-				return 0;
+				throw std::exception("Error: 2-byte character error in UTF-8 file");
 
 			//Set
 			if (dest!=NULL)
@@ -1363,7 +1367,7 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 		} else if (((curr>>5)^0x6)==0) {
 			//Verify the next byte
 			if (i>=lenStr-1 || (((src[i+1]&0xFF)>>6)^0x2)!=0)
-				return 0;
+				throw std::exception("Error: 1-byte character error in UTF-8 file");
 
 			//Combine both bytes, check, increment
 			wchar_t destVal = 0x0000 | ((curr&0x1F)<<6) | (src[i+1]&0x3F);
@@ -1371,7 +1375,7 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 				destIndex++;
 				i++;
 			} else
-				return 0;
+				throw std::exception("Error: 1-byte character error in UTF-8 file");
 
 			//Set
 			if (dest!=NULL)
@@ -1384,7 +1388,7 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 			if (dest!=NULL)
 				dest[destIndex-1] = destVal;
 		} else {
-			return 0;
+			throw std::exception("Error: Unknown sequence in UTF-8 file");
 		}
 	}
 

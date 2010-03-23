@@ -891,7 +891,7 @@ wstring readUTF8File(const string& path)
 		throw std::exception("Invalid UTF-8 characters in file."); //Invalid UTF-8 characters
 
 	//Done, clean up resources
-	wstring res = wstring(uniBuffer);
+	wstring res = wstring(uniBuffer, numUniChars);
 	delete [] buffer;
 	delete [] uniBuffer;
 
