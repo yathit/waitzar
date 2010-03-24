@@ -37,7 +37,7 @@ Given a list of tokens (for a given line), the parser now attempts to determine 
       int id;
    };
 The "type" of each struct determines what the values of "str", "val", and "id" actually mean. The following is a list of all types
-|| Type || Example || str || val || id ||
+|| *Type* || *Example* || *"str" value* || *"val" value* || *"id" value* ||
 || STRING || 'test', "test", U1000, null, VK_KEY_T || The value of the string.  || N/A || N/A ||
 || WILDCARD || * || The wildchar character, * || N/A || N/A ||
 || VARIABLE || $varX || The variable's name: $varX || N/A || A unique ID for this variable ||
@@ -57,3 +57,19 @@ Some notes:
       * 0x40000 for any of the CTRL keys.
       * 0x80000 for the CAPS LOCK key.
       * (Any other key cannot be used as a modifier).
+
+
+= Step 4: Caching =
+
+Any observant readers will note that we perform a great deal of computation just to load one file. In practice, this does not slow down the program; however, we are still interested in speeding things up. After identifying types, the following data structures have been computed:
+   * _vector< vector<Rule> >_ *variables* -- A list of variables' values (the names of the variables no longer matter, as they are addressed by id.
+   * _vector< pair<vector<Rule>, vector<Rule> > >_ *replacements* -- A list of each replacement; the two pair elements correspond to the LHS and RHS of the replacement equation.
+Each Rule has also been validated and checked; it would make sense to save all of this work. Thus, WaitZar caches any "compiled" KeyMagic keyboards into the shared application directory. In addition to the *variables* and *replacements* structures, it also saves a *hash* value which represents the MD5 checksum of the original source file. If that checksum changes, WaitZar will re-generate and re-cache the compiled file.
+
+
+= Step 5: Matching = 
+
+(to-do: how do we match a given rule against a string?)
+
+
+
