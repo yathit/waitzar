@@ -80,6 +80,7 @@ No more matching is possible once we reach the end:
    `abcdef•`
 ...and when the dot is anywhere else, it means we are between considering these letters. So, the following means "we've just matched c, and are preparing to match d"
    `abc•def`
+Finally, there is one case where matching occurs after the dot has reached the end of the string. Later, we'll see that rules _also_ have dots that move through the rule. If the dot of any rule is located before a *KEYCOMBINATION* rule, then we can move the dot one final time if that combination matches the current-typed-key exactly. This type of move can only occur once per input string.
 
 At each "step", the dot MUST move one character to the right. If, for a given rule, the dot cannot be moved, then that rule is not a match. We maintain a list of which rules currently match; each of these rules also has its "dot". For example, if we have the following rule:
    `"abc" => //Something`
@@ -107,13 +108,48 @@ As mentioned, each step of the algorithm "moves the dot". Before this occurs, an
 This allows us to match a rule even if it does not occur at the beginning of the string.
 
 Following this, it is fairly simple to determine what rules will "allow" the dot to move:
-   * 
+   * *STRING* -- If the character after the dot matches this rule's character after the dot, advancing is allowed.
+   * *WILDCARD* -- Advancing is always allowed.
+   * *VARIABLE* -- The dot is first moved inside the variable (see below).
+   * *SWITCH* -- The dot moves if the switch is on.
+   * *VARARRAY* -- The dot moves if the character at the vararray's index matches the character after the dot.
+   * *VARARRAY_SPECIAL* -- The move is allowed if the character after the dot is _any_ (`*`) character in the vararray, or if the character is _not_ (`^`) listed in the vararray.
+   * *KEYCOMBINATION * -- The move is allowed if the current keypress matches the listed combination exactly. Note that, for the rule `$abc + <VK_KEY_T> => //Something`, pressing *Shift* and *T* will not be considered a match. Special considerations are made for the capslock key, but this will be described elsewhere.
+   * *MATCHVAR* and *VARARRAY_BACKREF* never occur on the LHS of an equation, so they cannot ever be matched. 
 
 
 = Step 5: Matching (Complex) = 
 
 Variables complicate this. What happens if we encounter something like this:
    `"abc" + •$temp => //Something`
-...with the dot located directly before the variable?
+...with the dot located directly before the variable? In this case, before considering matches we first move the dot _inside_ the variable. We then push the new dot location onto a "stack" for the current consideration. That way, when the current variable's dot reaches the end of that variable, we can pop the stack and continue matching until the last level has been removed from the stack.
+
+This approach allows us to handle very large variable strings without wasting space. For example, consider the following rule set:
+   * $alpha = "abcdefghijklmnopqrstuvwxyz"
+   * $many = $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha
+   * $even_more = $many + $many + $many
+
+Altogether, such an example is unlikely to become pathological. In fact, we reference variables in this way as part of our preparations for more complex patterns.
 
 
+= Benefits =
+
+Our approach is complex now, but by mirroring the techniques used by regular expression engines, we allow easy extension of KeyMagic to handle more complex expressions. For example, consider a hypothetical rule type, *REPEATCHAR*, which might be used like this:
+   `'abc' + 'd'* => //Something`
+Such a rule would match "abc", "abcd", "abcdd", etc. Our system could handle this easily. Consider the dot is before the repeat character:
+   `'abc' + •'d'*`
+If "d" matches the input string's next letter, we can either skip "d" entirely or we can match it multiple times. So, we first generate a rule which is a copy of the current one, and add it to the list of replacements under consideration. Then we move the dot forward on the current rule, leaving two rules in the database:
+   `'abc' + •'d'*`
+   `'abc' + 'd'*` •
+If "d" is not the next letter in the input string, we _must_ move the dot. Thus, for the input string:
+   `abcdde`
+...we will generate two new rules as the dot passes each "d", and then all three rules will collapse into one once the "e" is reached. This also works with multi-letter repeats like:
+   `'def'*`
+...which allows us to easily avoid "trick" input strings like:
+   `abcdefdeg`
+...which should match with the dot like so: `abcdef•deg`, even though the `'def'*` pattern wants to try to continue.
+
+
+= About Replacement =
+
+Replacement is not detailed here; it should be fairly obvious given all of the above information. If any major issues are encountered while developing the KeyMagic4WaitZar module, they will be reported here.
