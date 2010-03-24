@@ -26,3 +26,34 @@ So, given the following line:
 ...we can say that the "type" is "variable" and the "tokens" are:
    * ["$row1U", "U1041", "U1042", "U1043", "U1044", "U1045", "U1046", "U1047", "U1048", "U1049", "U1040", "$ZWS"
 
+
+= Step 3: Type Interpretation =
+
+Given a list of tokens (for a given line), the parser now attempts to determine the type of each token. It then saves some data for each type. Data are saved into a simple struct; a list of these structs is returned:
+   struct Rule {
+      RULE_TYPE type;
+      std::wstring str;
+      int val;
+      int id;
+   };
+The "type" of each struct determines what the values of "str", "val", and "id" actually mean. The following is a list of all types
+|| Type || Example || str || val || id ||
+|| STRING || 'test', "test", U1000, null, VK_KEY_T || The value of the string.  || N/A || N/A ||
+|| WILDCARD || * || The wildchar character, * || N/A || N/A ||
+|| VARIABLE || $varX || The variable's name: $varX || N/A || A unique ID for this variable ||
+|| MATCHVAR || $2 || N/A || The ID of the backreference: 2 || N/A ||
+|| SWITCH || ($zg_on) || The switch's name: $zg_on || N/A || A unique ID for this switch ||
+|| VARARRAY || $varArray[3] || The variable's name: $varArray || The id within the array: 3 || A unique ID for this variable ||
+|| VARARRAY_SPECIAL || $varArray[*] or $varArray[^] || The variable's name: $varArray || The character-value of the special character: '^' or '*' || A unique ID for this variable ||
+|| VARARRAY_BACKREF || $varArray[$4] ||  The variable's name: $varArray || The id of the back reference: 4 || A unique ID for this variable ||
+|| KEYCOMBINATION || <VK_SHIFT & VK_KEY_T> || N/A || Value of the key combination || N/A ||
+
+Some notes:
+   * For the STRING type, surrounding quotes are stripped and escape sequences are converted. null is converted to the empty string, UXXXX is converted to '\uXXXX', and virtual key codes are converted to their character values. In addition, multiple STRING types in a row are combined into a single instance. So, ["q" + 'w' + VK_KEY_E + '\u0052' + U0054 + "y"] becomes simply ["qwERTy"]. 
+   * A certain amount of validation is performed at this step, to ensure that variables are not used before declared, etc.
+   * The value of a key combination is simply the value of its FINAL virtual key, with the following flags "or"-ed onto it, depending on the remaining virtual keys:
+      * 0x10000 for any of the SHIFT keys.
+      * 0x20000 for any of the ALT keys.
+      * 0x40000 for any of the CTRL keys.
+      * 0x80000 for the CAPS LOCK key.
+      * (Any other key cannot be used as a modifier).
