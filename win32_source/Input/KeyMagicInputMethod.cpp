@@ -153,6 +153,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 				rule <<line[i];
 
 			//New rule?
+			//NOTE: This won't add the rule if there are ignorable characters (e.g., whitespace) at the end of the line
 			if ((line[i]==L'+' || i==line.size()-1) && !rule.str().empty() && currQuoteChar==L'\0') {
 				//Interpret
 				try {
@@ -169,6 +170,25 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 				rule.str(L"");
 			}
 		}
+
+
+		//Any leftover rules? (To-do: centralize)
+		if (!rule.str().empty()) {
+			//Interpret
+			try {
+				allRules.push_back(parseRule(rule.str()));
+			} catch (std::exception ex) {
+				std::wstringstream err;
+				err <<ex.what();
+				err <<"\nRule:\n";
+				err <<line;
+				throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
+			}
+
+			//Reset
+			rule.str(L"");
+		}
+
 
 		//Interpret and add it
 		if (separator==0)
