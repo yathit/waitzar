@@ -49,7 +49,7 @@ The "type" of each struct determines what the values of "str", "val", and "id" a
 || KEYCOMBINATION || `<VK_SHIFT & VK_KEY_T>` || N/A || Value of the key combination || N/A ||
 
 Some notes:
-   * For the STRING type, surrounding quotes are stripped and escape sequences are converted. null is converted to the empty string, UXXXX is converted to '\uXXXX', and virtual key codes are converted to their character values. In addition, multiple STRING types in a row are combined into a single instance. So, `["q" + 'w' + VK_KEY_E + '\u0052' + U0054 + "y"]` becomes simply `["qwERTy"]` . 
+   * For the STRING type, surrounding quotes are stripped and escape sequences are converted. null is converted to the empty string, UXXXX is converted to '\uXXXX', and virtual key codes are converted to their character values. In addition, multiple STRING types in a row are combined into a single instance. So, `["q" + 'w' + VK_KEY_E + '\u0052' + U0054 + "y"]` becomes simply `["qwERTy"]`. Note that strings on the LHS of equations do NOT combine; otherwise patterns like `"abc" + "def" => $2 + $1` would fail. However, the RHS of equations can always merge; for example: `"abc" => "abc" + "def"`.
    * A certain amount of validation is performed at this step, to ensure that variables are not used before declared, etc.
    * The value of a key combination is simply the value of its FINAL virtual key, with the following flags "or"-ed onto it, depending on the remaining virtual keys:
       * 0x10000 for any of the SHIFT keys.
@@ -67,7 +67,53 @@ Any observant readers will note that we perform a great deal of computation just
 Each Rule has also been validated and checked; it would make sense to save all of this work. Thus, WaitZar caches any "compiled" KeyMagic keyboards into the shared application directory. In addition to the *variables* and *replacements* structures, it also saves a *hash* value which represents the MD5 checksum of the original source file. If that checksum changes, WaitZar will re-generate and re-cache the compiled file.
 
 
-= Step 5: Matching = 
 
-(to-do: how do we match a given rule against a string?)
+= Step 5: Matching (Simple) = 
+
+I haven't looked at the Key Magic source, but I imagine that it expands all variables into one long string and then performs something like String.find() --with added considerations for back references, of course. 
+
+I prefer an approach somewhat similar to traditional regular expression parsers. We'll use "dot syntax" of these approaches: consider, at all times, that "•" means "the location we're currently at in the string or pattern". For example, given the string:
+   `abcdef`
+...the dot begins in the following location:
+   `•abcdef`
+No more matching is possible once we reach the end:
+   `abcdef•`
+...and when the dot is anywhere else, it means we are between considering these letters. So, the following means "we've just matched c, and are preparing to match d"
+   `abc•def`
+
+At each "step", the dot MUST move one character to the right. If, for a given rule, the dot cannot be moved, then that rule is not a match. We maintain a list of which rules currently match; each of these rules also has its "dot". For example, if we have the following rule:
+   `"abc" => //Something`
+...then the dot simply begins before "a" and progresses through to "c". For other types of rules, the dot transitions between all items in the rule list. So, for:
+   `'h' + $test[*] + <VK_KEY_R> => //Something`
+...the dot progresses as follows:
+   * `•'h' + $test[*] + <VK_KEY_R>`
+   * `'h' + •$test[*] + <VK_KEY_R>`
+   * `'h' + $test[*] + •<VK_KEY_R>`
+   * `'h' + $test[*] + <VK_KEY_R>•`
+We already know that rules are removed if they cannot move their dots forward, which leads us to the following (important) point:
+   `*The _first_ rule candidate to move its dot all the way to the right is considered to _match_ the input string; at this point, no other rules are considered.*`
+
+Each rule also maintains a list of string/integer pairs which refer to the back references. In general, the following holds:
+   * String literals are grouped directly. So, `'abc' + 'def'` will generate the match groups `["abc", "def"]`
+   * The wildcard variable arrays store an index, when appropriate. So, `$letters[*] + $whitespace[^]` might lead to the groups `[("c",3), "a"]`. In this example, note that it doesn't make sense to store an index for the `^` wildcard.
+   * Virtual Keys generally store the character of their base keystroke, although one should not generally rely on this behavior.
+
+As mentioned, each step of the algorithm "moves the dot". Before this occurs, an empty copy of the rule is added to the list of candidates. So, if we are at:
+   `abcd•efg`
+...and the rule we're checking is 
+   `"ef" + $g => //Something`
+...then the following candidate is added to the list:
+   `•"ef" + $g`
+This allows us to match a rule even if it does not occur at the beginning of the string.
+
+Following this, it is fairly simple to determine what rules will "allow" the dot to move:
+   * 
+
+
+= Step 5: Matching (Complex) = 
+
+Variables complicate this. What happens if we encounter something like this:
+   `"abc" + •$temp => //Something`
+...with the dot located directly before the variable?
+
 
