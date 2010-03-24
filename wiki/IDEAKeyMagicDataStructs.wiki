@@ -72,7 +72,7 @@ Each Rule has also been validated and checked; it would make sense to save all o
 
 I haven't looked at the Key Magic source, but I imagine that it expands all variables into one long string and then performs something like String.find() --with added considerations for back references, of course. 
 
-I prefer an approach somewhat similar to traditional regular expression parsers. We'll use "dot syntax" of these approaches: consider, at all times, that "•" means "the location we're currently at in the string or pattern". For example, given the string:
+I prefer an approach somewhat similar to traditional regular expression parsers. We'll use the "dot syntax" of these approaches: consider, at all times, that "•" means "the location we're currently at in the string or pattern". For example, given the string:
    `abcdef`
 ...the dot begins in the following location:
    `•abcdef`
@@ -92,12 +92,12 @@ At each "step", the dot MUST move one character to the right. If, for a given ru
    * `'h' + $test[*] + •<VK_KEY_R>`
    * `'h' + $test[*] + <VK_KEY_R>•`
 We already know that rules are removed if they cannot move their dots forward, which leads us to the following (important) point:
-   `*The _first_ rule candidate to move its dot all the way to the right is considered to _match_ the input string; at this point, no other rules are considered.*`
+   The _first_ rule candidate to move its dot all the way to the right is considered to _match_ the input string; at this point, *no other rules are considered.*
 
 Each rule also maintains a list of string/integer pairs which refer to the back references. In general, the following holds:
    * String literals are grouped directly. So, `'abc' + 'def'` will generate the match groups `["abc", "def"]`
    * The wildcard variable arrays store an index, when appropriate. So, `$letters[*] + $whitespace[^]` might lead to the groups `[("c",3), "a"]`. In this example, note that it doesn't make sense to store an index for the `^` wildcard.
-   * Virtual Keys generally store the character of their base keystroke, although one should not generally rely on this behavior.
+   * Virtual Keys generally store the character of their base keystroke, although one should probably not rely on this behavior.
 
 As mentioned, each step of the algorithm "moves the dot". Before this occurs, an empty copy of the rule is added to the list of candidates. So, if we are at:
    `abcd•efg`
@@ -129,7 +129,7 @@ This approach allows us to handle very large variable strings without wasting sp
    * $many = $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha + $alpha
    * $even_more = $many + $many + $many
 
-Altogether, such an example is unlikely to become pathological. In fact, we reference variables in this way as part of our preparations for more complex patterns.
+Altogether, such an example is unlikely to become pathological. In fact, we actually reference variables in this way as part of our preparations for more complex patterns, as described below
 
 
 = Benefits =
@@ -139,8 +139,8 @@ Our approach is complex now, but by mirroring the techniques used by regular exp
 Such a rule would match "abc", "abcd", "abcdd", etc. Our system could handle this easily. Consider the dot is before the repeat character:
    `'abc' + •'d'*`
 If "d" matches the input string's next letter, we can either skip "d" entirely or we can match it multiple times. So, we first generate a rule which is a copy of the current one, and add it to the list of replacements under consideration. Then we move the dot forward on the current rule, leaving two rules in the database:
-   `'abc' + •'d'*`
-   `'abc' + 'd'*` •
+   * `'abc' + •'d'*`
+   * `'abc' + 'd'*` •
 If "d" is not the next letter in the input string, we _must_ move the dot. Thus, for the input string:
    `abcdde`
 ...we will generate two new rules as the dot passes each "d", and then all three rules will collapse into one once the "e" is reached. This also works with multi-letter repeats like:
@@ -152,4 +152,18 @@ If "d" is not the next letter in the input string, we _must_ move the dot. Thus,
 
 = About Replacement =
 
-Replacement is not detailed here; it should be fairly obvious given all of the above information. If any major issues are encountered while developing the KeyMagic4WaitZar module, they will be reported here.
+Replacement is not detailed here; it should be fairly obvious given all of the above information. If any major issues are encountered while developing the KeyMagic4WaitZar module, they will be reported here:
+   * *Order of Replacement* -- Rules are matched one-by-one; however, if a rule matches then the rulebase is scanned for once more for matching rules. This continues until no further rules match the input string. (It has not yet been stated if the remaining rules are matched _before_ the rulebase is re-scanned or not.)
+   * *Single-ASCII Rule* -- KeyMagic has a rule for replacements of *one character* in length, if that character is within the range `(0x20 < x < 0x7F)`. After matching and replacing this one letter, the matching process terminates and returns whatever results it has found. 
+   * The Single ASCII rule was implemented to prevent infinite loops. However, it's pretty easy to generate infinite input anyway. Consider:
+      * Rule 1: `'abc' => 'def'`
+      * Rule 2: `'def' => 'abc'`
+      * Rule X: `'a' => $1 + 'aa'`
+   * I have two solutions for this:
+      * Restrict the matching phase to, say, 500 matches. After that point, terminate with an error message, and write the offending string + input to the log file, so that users can debug on their own.
+      * Add a flag to the KeyMagic comment syntax which is named `single-pass`. If this flag is on, the keyboard only makes ONE pass through the ruleset, matching as many rules as possible. I think many developers wouldn't mind this restriction. We can also add "identifiers" for rules to allow some degree of repetition. Consider, for example:
+      * `RemoveA{* + 'a' + * => $1 + $3}`
+      * `//Match some more rules`
+      * `$temp + 'b' => $temp + 'a' + 'b'`
+      * `RemoveA() //This will try to match RemoveA one more time.`
+
