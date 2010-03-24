@@ -64,7 +64,7 @@ private:
 	int hexVal(wchar_t letter);
 	Rule parseRule(const std::wstring& ruleStr);
 	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, size_t rhsStart, bool isVariable);
-	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, size_t iStart, size_t iEnd);
+	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, size_t iStart, size_t iEnd, bool condenseStrings);
 
 
 

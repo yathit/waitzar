@@ -472,7 +472,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 
 //Validate (and slightly transform) a set of rules given a start and an end index
 //We assume that this is never called on the LHS of an assigment statement.
-vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, const map< wstring, unsigned int>& varLookup, size_t iStart, size_t iEnd)
+vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, const map< wstring, unsigned int>& varLookup, size_t iStart, size_t iEnd, bool condenseStrings)
 {
 	//Behave differently depending on the rule type
 	vector<Rule> res;
@@ -484,9 +484,11 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 
 			case KMRT_STRING:
 				//If a string is followed by another string, combine them.
-				while (i+1<iEnd && rules[i+1].type==KMRT_STRING) {
-					currRule.str += rules[i+1].str;
-					i++;
+				if (condenseStrings) {
+					while (i+1<iEnd && rules[i+1].type==KMRT_STRING) {
+						currRule.str += rules[i+1].str;
+						i++;
+					}
 				}
 				break;
 
@@ -544,7 +546,7 @@ void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring,
 	//
 
 	//Compute the RHS string first (this also avoids circular variable references)
-	std::vector<Rule> rhsVector = createRuleVector(rules, varLookup, rhsStart, rules.size());
+	std::vector<Rule> rhsVector = createRuleVector(rules, varLookup, rhsStart, rules.size(), true);
 
 	//LHS storage depends on if this is a variable or not
 	if (isVariable) {
@@ -556,7 +558,7 @@ void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring,
 		variables.push_back(rhsVector);
 	} else {
 		//Get a similar LHS vector, add it to our replacements list
-		std::vector<Rule> lhsVector = createRuleVector(rules, varLookup, 0, rhsStart);
+		std::vector<Rule> lhsVector = createRuleVector(rules, varLookup, 0, rhsStart, false); //We need to preserve groupings
 		replacements.push_back(std::pair< std::vector<Rule>, std::vector<Rule> >(lhsVector, rhsVector));
 	}
 }
