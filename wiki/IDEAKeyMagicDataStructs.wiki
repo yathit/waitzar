@@ -1,0 +1,28 @@
+#summary How do we "compile" keymagic keyboards efficiently?
+#labels Phase-Design
+
+= Introduction =
+
+KeyMagic was introduced as a free keyboard management system, and its format is fairly concise. Originally, we were going to use a parser (like boost::spirit) to read config files, but since we might drop Boost support in 1.9, I decided to write a very simple tokenizer myself. Details of Key Magic & its formats can be found on the project page:
+http://code.google.com/p/keymagic/
+
+
+= Step 1: Pre-Processing =
+
+WaitZar generally supports UTF-8 in everything, so keymagic source files are first converted from a bytestream to a wide-character stream. The pre-parsing step then takes this wide-character stream and performs the following operations:
+  * Removes all spaces, tabs, and newlines.
+  * Removes all comments, of the form /*...*/ and //...
+  * Combines lines ending in \ with the following line.
+The goal of this pre-processing step is to create a single list of strings, where each string is *one "line"* in the file. Even if a "line" spans multiple visible lines in the file, it will only be seen as a single "line" after pre-processing.
+
+
+= Step 2: Tokenizing =
+
+Given a list of lines, each line can then be processed in isolation. Given a line, we determine the following information:
+   * The "tokens" are individual commands, separated by +, =, or =>
+   * The "type" of that line is either "variable" or "replacement". This is determined by the command separator: = or =>
+So, given the following line:
+   $row1U = U1041 + U1042 + U1043 + U1044 + U1045 + U1046 + U1047 + U1048 + U1049 + U1040 + $ZWS
+...we can say that the "type" is "variable" and the "tokens" are:
+   * ["$row1U", "U1041", "U1042", "U1043", "U1044", "U1045", "U1046", "U1047", "U1048", "U1049", "U1040", "$ZWS"
+
