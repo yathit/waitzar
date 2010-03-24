@@ -162,8 +162,7 @@ Replacement is not detailed here; it should be fairly obvious given all of the a
    * I have two solutions for this:
       * Restrict the matching phase to, say, 500 matches. After that point, terminate with an error message, and write the offending string + input to the log file, so that users can debug on their own.
       * Add a flag to the KeyMagic comment syntax which is named `single-pass`. If this flag is on, the keyboard only makes ONE pass through the ruleset, matching as many rules as possible. I think many developers wouldn't mind this restriction. We can also add "identifiers" for rules to allow some degree of repetition. Consider, for example:
-      * `RemoveA{* + 'a' + * => $1 + $3}`
-      * `//Match some more rules`
-      * `$temp + 'b' => $temp + 'a' + 'b'`
-      * `RemoveA() //This will try to match RemoveA one more time.`
-
+         * `RemoveA{* + 'a' + * => $1 + $3}`
+         * `//Match some more rules`
+         * `$temp + 'b' => $temp + 'a' + 'b'`
+         * `RemoveA() //This will try to match RemoveA one more time.`
