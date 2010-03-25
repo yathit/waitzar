@@ -7,6 +7,7 @@
 #ifndef _KEYMAGIC_INPUT_METHOD
 #define _KEYMAGIC_INPUT_METHOD
 
+#include <stack>
 #include "MyWin32Window.h"
 #include "Input/LetterInputMethod.h"
 #include "Input/keymagic_vkeys.h"
@@ -41,6 +42,93 @@ struct Rule {
 		str = str1;
 		val = val1;
 		id = -1;
+	}
+};
+
+
+//String/int pairs
+struct Group {
+	std::wstring value;
+	unsigned int group_match_id; //Groups count up from ONE
+	Group() {
+		value = L"";
+		group_match_id = 0;
+	}
+	Group(const std::wstring& value1) {
+		value = value1;
+		group_match_id = 0;
+	}
+};
+
+
+//A rule being matched and any relevant data (like the dot)
+struct Matcher {
+	const std::vector<Rule>& rulestream;
+	int dot; //0 means "before the first rule"
+	int strDot; //Special dot for the string.
+	Matcher(const std::vector<Rule>& rules) {
+		rulestream = rules;
+		dot = 0;
+		strDot = 0;
+	}
+	void moveDot() {
+		if (rules[dot].type==KMRT_STRING && strDot<rules[dot].str.length()-1)
+			strDot++;
+		else {
+			dot++;
+			strDot = 0;
+		}
+	}
+	bool isDone() {
+		return dot==rulestream.size();
+	}
+};
+
+
+//Candidate matches.
+struct Candidate {
+	//Matches we've already made
+	std::vector<Group> matches;
+
+	//Match in the progress of being matched
+	Matcher& currMatch;
+
+	//Matches put on hold while we recurse
+	std::stack<Matcher> matchStack;
+
+	//Init
+	Candidate(const std::vector<Rule>& firstRule) {
+		currMatch = Matcher(firstRule);
+	}
+
+	//Useful stuff
+	Rule& getCurrRule() {
+		if (currMatch.dot<currMatch.rulestream.size())
+			return currMatch.rulestream[currMatch.dot];
+		throw std::exception("Bad programming: the dot has exceeded the length of the current rulestream.");
+	}
+	wchar_t getCurrStringRuleChar() {
+		if (getCurrRule().type!=KMRT_STRING)
+			throw std::exception("Can only call getCurrStringRuleChar() on a STRING type");
+		return getCurrRule().str[currMatch.strDot];
+	}
+	void newCurr(const std::vector<Rule>& rule) {
+		matchStack.push(currMatch);
+		currRule = Matcher(rule);
+	}
+	void advance() { //Called if a match is allowed
+		if (isDone())
+			return;
+
+		//Move the dot
+		currMatch.moveDot();
+
+		//Pop the stack
+		if (currMatch.isDone() && matchStack.empty())
+			currMatch = matchStack.pop();
+	}
+	bool isDone() { //Did we match?
+		return currMatch.isDone() && matchStack.empty();
 	}
 };
 

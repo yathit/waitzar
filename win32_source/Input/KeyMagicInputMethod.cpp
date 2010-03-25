@@ -568,6 +568,84 @@ void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring,
 
 wstring KeyMagicInputMethod::applyRules(const wstring& input)
 {
+	//For each rule, generate and match a series of candidates
+	//  As we do this, move the "dot" from position 0 to position len(input)
+	bool matchedOneVirtualKey = false;
+	unsigned int numMatchesFound = 0;
+	unsigned int totalMatchesOverall = 0;
+	for (unsigned int rpmID=0; rpmID<replacements.size(); rpmID++) {
+		int dot = 0;
+		vector<Candidate> candidates;
+		const std::vector<Rule>& currRepCheck = replacements[rpmID].first;
+		Candidate* result = NULL;
+		for (;result==NULL;) {
+			//Add a new empty candidate
+			candidates.push_back(Candidate(currRepCheck));
+
+			//Do we stop?
+			if (dot==input.length()) {
+				if (matchedOneVirtualKey) 
+					break;
+
+				//TODO: Match the <VK_*> values on all candidates
+			}
+
+			//Continue matching.
+			//Note: For now, the candidates list won't expand while we move the dot. (It might shrink, however)
+			//      Later, we will have to dynamically update i, but this should be fairly simple.
+			for (size_t i=0; i<candidates.size(); i++) {
+				//Before attemping to "move the dot", we must expand any variables by adding new entries to the stack.
+				Candidate curr = candidates[i];
+				while (curr.getCurrRule().type==KMRT_VARIABLE)
+					curr.newCurr(variables[curr.getCurrRule().id]);
+
+				//"Moving the dot" is allowed under different circumstances, depending on the type of rule we're dealing with.
+				bool allow = true;
+				switch(curr.getCurrRule().type) {
+					//Wildcard: always move
+					case KMRT_WILDCARD:
+						curr.advance();
+						break;
+
+					//String: only if the current char matches
+					case KMRT_STRING:
+						if (curr.getCurrStringRuleChar() == input[dot])
+							curr.advance();
+						else
+							allow = false;
+						break;
+
+					default:
+						throw std::exception("Bad match: inavlid rule type.");
+				}
+
+				//Did this rule fail?
+				if (!allow) {
+					//TODO: Remove the current entry; decrement the pointer
+				}
+
+				//Did this match finish?
+				if (curr.isDone()) {
+					result = &curr;
+					break;
+				}
+			}
+		}
+
+		//Did we match anything?
+		if (result!=NULL) {
+			//TODO: Apply the match
+			//TODO: Either continue searching for matches, or reset to the first entry.
+			//TODO: Apply the "single ascii replacement" rule.
+			numMatchesFound++;
+			totalMatchesOverall++;
+
+			//TODO: If numMatchesFound is zero, we're done.
+			//TODO: If totalMatchesOverall > 500, show an error and log the offending string.
+		}
+	}
+
+
 	return NULL;
 }
 
