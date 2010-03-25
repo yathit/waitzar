@@ -573,10 +573,10 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input)
 	bool matchedOneVirtualKey = false;
 	unsigned int numMatchesFound = 0;
 	unsigned int totalMatchesOverall = 0;
-	for (unsigned int rpmID=0; rpmID<replacements.size(); rpmID++) {
+	for (int rpmID=0; rpmID<(int)replacements.size(); rpmID++) {
 		int dot = 0;
 		vector<Candidate> candidates;
-		const std::vector<Rule>& currRepCheck = replacements[rpmID].first;
+		std::vector<Rule>& currRepCheck = replacements[rpmID].first;
 		Candidate* result = NULL;
 		for (;result==NULL;) {
 			//Add a new empty candidate
@@ -593,24 +593,30 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input)
 			//Continue matching.
 			//Note: For now, the candidates list won't expand while we move the dot. (It might shrink, however)
 			//      Later, we will have to dynamically update i, but this should be fairly simple.
-			for (size_t i=0; i<candidates.size(); i++) {
+			bool eraseFlag = false;
+			for (vector<Candidate>::iterator curr=candidates.begin(); curr!=candidates.end(); curr++) {
+				//Did we just erase an element? If so, decrement the pointer
+				if (eraseFlag) {
+					curr--;
+					eraseFlag = false;
+				}
+
 				//Before attemping to "move the dot", we must expand any variables by adding new entries to the stack.
-				Candidate curr = candidates[i];
-				while (curr.getCurrRule().type==KMRT_VARIABLE)
-					curr.newCurr(variables[curr.getCurrRule().id]);
+				while (curr->getCurrRule().type==KMRT_VARIABLE)
+					curr->newCurr(variables[curr->getCurrRule().id]);
 
 				//"Moving the dot" is allowed under different circumstances, depending on the type of rule we're dealing with.
 				bool allow = true;
-				switch(curr.getCurrRule().type) {
+				switch(curr->getCurrRule().type) {
 					//Wildcard: always move
 					case KMRT_WILDCARD:
-						curr.advance();
+						curr->advance();
 						break;
 
 					//String: only if the current char matches
 					case KMRT_STRING:
-						if (curr.getCurrStringRuleChar() == input[dot])
-							curr.advance();
+						if (curr->getCurrStringRuleChar() == input[dot])
+							curr->advance();
 						else
 							allow = false;
 						break;
@@ -621,12 +627,15 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input)
 
 				//Did this rule fail?
 				if (!allow) {
-					//TODO: Remove the current entry; decrement the pointer
+					//Remove the current entry; decrement the pointer
+					curr = candidates.erase(curr);
+					eraseFlag = true;
+					continue;
 				}
 
 				//Did this match finish?
-				if (curr.isDone()) {
-					result = &curr;
+				if (curr->isDone()) {
+					result = &(*curr);
 					break;
 				}
 			}
@@ -634,14 +643,20 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input)
 
 		//Did we match anything?
 		if (result!=NULL) {
-			//TODO: Apply the match
-			//TODO: Either continue searching for matches, or reset to the first entry.
+			//Before we apply the rule, check if we've looped "forever"
+			if (totalMatchesOverall >= 500) {
+				//To do: We might also consider logging this, later.
+				throw std::exception(ConfigManager::glue(L"Error on keymagic regex; infinite loop on input: \n   ", input).c_str());
+			}
+
+			//TODO: Apply the match/replacement
 			//TODO: Apply the "single ascii replacement" rule.
-			numMatchesFound++;
-			totalMatchesOverall++;
 
 			//TODO: If numMatchesFound is zero, we're done.
-			//TODO: If totalMatchesOverall > 500, show an error and log the offending string.
+			numMatchesFound++;
+			totalMatchesOverall++;
+			numMatchesFound = 0;
+			rpmID = -1; //Reset to the first rule when we continue;
 		}
 	}
 

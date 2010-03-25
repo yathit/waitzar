@@ -50,29 +50,27 @@ struct Rule {
 struct Group {
 	std::wstring value;
 	unsigned int group_match_id; //Groups count up from ONE
-	Group() {
-		value = L"";
-		group_match_id = 0;
-	}
-	Group(const std::wstring& value1) {
-		value = value1;
-		group_match_id = 0;
-	}
+	Group() : value(L""), group_match_id(0) {}
+	Group(const std::wstring& value1) : value(value1), group_match_id(0) {}
 };
 
 
 //A rule being matched and any relevant data (like the dot)
 struct Matcher {
-	const std::vector<Rule>& rulestream;
+	std::vector<Rule>& rulestream; //Can't make this const or it won't let itself be copied easily.
 	int dot; //0 means "before the first rule"
 	int strDot; //Special dot for the string.
-	Matcher(const std::vector<Rule>& rules) {
-		rulestream = rules;
-		dot = 0;
-		strDot = 0;
+	Matcher(std::vector<Rule>& rules) : rulestream(rules), dot(0), strDot(0) {}
+
+	Matcher operator=(const Matcher& m2) {
+		rulestream = m2.rulestream;
+		dot = m2.dot;
+		strDot = m2.strDot;
+		return *this;
 	}
+
 	void moveDot() {
-		if (rules[dot].type==KMRT_STRING && strDot<rules[dot].str.length()-1)
+		if (rulestream[dot].type==KMRT_STRING && strDot<(int)rulestream[dot].str.length()-1)
 			strDot++;
 		else {
 			dot++;
@@ -87,50 +85,55 @@ struct Matcher {
 
 //Candidate matches.
 struct Candidate {
+private:
 	//Matches we've already made
 	std::vector<Group> matches;
-
-	//Match in the progress of being matched
-	Matcher& currMatch;
 
 	//Matches put on hold while we recurse
 	std::stack<Matcher> matchStack;
 
+public:
 	//Init
-	Candidate(const std::vector<Rule>& firstRule) {
-		currMatch = Matcher(firstRule);
+	Candidate(std::vector<Rule>& firstRule) {
+		matchStack.push(Matcher(firstRule));
+	}
+
+	//Our "current match" is the top entry on the stack; this greatly simplifies memory management
+	Matcher& currMatch() {
+		if (matchStack.empty())
+			throw std::exception("Error: cannot match on a rule which is already done");
+		return matchStack.top();
 	}
 
 	//Useful stuff
-	Rule& getCurrRule() {
-		if (currMatch.dot<currMatch.rulestream.size())
-			return currMatch.rulestream[currMatch.dot];
+	const Rule& getCurrRule() {
+		if (currMatch().dot<(int)currMatch().rulestream.size())
+			return currMatch().rulestream[currMatch().dot];
 		throw std::exception("Bad programming: the dot has exceeded the length of the current rulestream.");
 	}
 	wchar_t getCurrStringRuleChar() {
 		if (getCurrRule().type!=KMRT_STRING)
 			throw std::exception("Can only call getCurrStringRuleChar() on a STRING type");
-		return getCurrRule().str[currMatch.strDot];
+		return getCurrRule().str[currMatch().strDot];
 	}
-	void newCurr(const std::vector<Rule>& rule) {
-		matchStack.push(currMatch);
-		currRule = Matcher(rule);
+	void newCurr(std::vector<Rule>& rule) {
+		matchStack.push(Matcher(rule));
 	}
 	void advance() { //Called if a match is allowed
 		if (isDone())
 			return;
 
 		//Move the dot
-		currMatch.moveDot();
+		currMatch().moveDot();
 
 		//Pop the stack
-		if (currMatch.isDone() && matchStack.empty()) {
-			currMatch = matchStack.pop();
+		if (currMatch().isDone()) {
+			matchStack.pop();
 			advance(); //We need to move the current match's dot by one, signifying that we've "matched" this variable.
 		}
 	}
-	bool isDone() { //Did we match?
-		return currMatch.isDone() && matchStack.empty();
+	bool isDone() { //Did we finish matching?
+		matchStack.empty();
 	}
 };
 
