@@ -124,8 +124,10 @@ struct Candidate {
 		currMatch.moveDot();
 
 		//Pop the stack
-		if (currMatch.isDone() && matchStack.empty())
+		if (currMatch.isDone() && matchStack.empty()) {
 			currMatch = matchStack.pop();
+			advance(); //We need to move the current match's dot by one, signifying that we've "matched" this variable.
+		}
 	}
 	bool isDone() { //Did we match?
 		return currMatch.isDone() && matchStack.empty();
