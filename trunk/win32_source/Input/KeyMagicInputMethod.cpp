@@ -648,17 +648,55 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input, unsigned int vkeyC
 							allow = false;
 						break;
 
-					//Matching a switch only works if that switch is ON, and doing so turns that switch OFF later.
+					//Switch: only if that switch is ON, and matching will turn that switch OFF later.
 					case KMRT_SWITCH:
-						if (switches[curr->getCurrRule().val])
-							curr->queueSwitchOff(curr->getCurrRule().val);
+						if (switches[curr->getCurrRule().id])
+							curr->queueSwitchOff(curr->getCurrRule().id);
 						else
 							allow = false;
 						break;
 
+					//Vararray: Only if that particular character matches
+					//Silently fail to match if an invalid index is given.
+					case KMRT_VARARRAY:
+					{
+						//TODO: Right now, this fails for anything except a string array
+						vector<Rule> var = variables[curr->getCurrRule().id];
+						if (var.size()!=1 || var[0].type!=KMRT_STRING)
+							allow = false;
+						else {
+							wstring str = var[0].str;
+							if (curr->getCurrRule().val<0 || curr->getCurrRule().val>=(int)str.length() || (str[curr->getCurrRule().val] != input[dot]))
+								allow = false;
+						}
+						break;
+					}
 
+					//Match "any" or "not any"; silently fail on anything else.
+					case KMRT_VARARRAY_SPECIAL:
+						if (curr->getCurrRule().val!='*' && curr->getCurrRule().val!='^')
+							allow = false;
+						else {
+							//TODO: Right now, this fails silently for anything except strings
+							vector<Rule> var = variables[curr->getCurrRule().id];
+							if (var.size()!=1 || var[0].type!=KMRT_STRING)
+								allow = false;
+							int foundID = -1;
+							for (size_t i=0; i<var[0].str.length(); i++) {
+								//Does it match?
+								if (var[0].str[i] == input[dot]) {
+									foundID = i;
+									break;	
+								}
+							}
 
-
+							//We allow if '*' and found, or '^' and not
+							if (curr->getCurrRule().val=='*' && foundID==-1)
+								allow = false;
+							else if (curr->getCurrRule().val=='^' && foundID!=-1)
+								allow = false;
+						}
+						break;
 
 					//Key combinations only match in certain conditions, which are checked before this.
 					case KMRT_KEYCOMBINATION:
