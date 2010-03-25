@@ -92,6 +92,9 @@ private:
 	//Matches put on hold while we recurse
 	std::stack<Matcher> matchStack;
 
+	//What switches will this candidate turn off?
+	std::vector<unsigned int> switchesToOff;
+
 public:
 	//Init
 	Candidate(std::vector<Rule>& firstRule) {
@@ -135,6 +138,14 @@ public:
 	bool isDone() { //Did we finish matching?
 		matchStack.empty();
 	}
+
+	//For switches
+	void queueSwitchOff(unsigned int id) {
+		switchesToOff.push_back(id);
+	}
+	const std::vector<unsigned int>& getPendingSwitches() {
+		return switchesToOff;
+	}
 };
 
 
@@ -146,18 +157,19 @@ public:
 
 	//Key functionality
 	void loadRulesFile(const std::string& rulesFilePath);
-	std::wstring applyRules(const std::wstring& input);
+	std::wstring applyRules(const std::wstring& input, unsigned int vkeyCode);
 
 private:
 	//Data
+	std::vector<bool> switches;
 	std::vector< std::vector<Rule> > variables;
 	std::vector< std::pair< std::vector<Rule>, std::vector<Rule> > > replacements;
 
 	//Helpers
 	int hexVal(wchar_t letter);
 	Rule parseRule(const std::wstring& ruleStr);
-	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, size_t rhsStart, bool isVariable);
-	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, size_t iStart, size_t iEnd, bool condenseStrings);
+	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
+	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings);
 
 
 
