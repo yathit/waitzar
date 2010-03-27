@@ -170,6 +170,7 @@ private:
 	Rule parseRule(const std::wstring& ruleStr);
 	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
 	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings);
+	Rule compressToSingleStringRule(const std::vector<Rule>& rules);
 
 
 
