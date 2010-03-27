@@ -49,9 +49,10 @@ struct Rule {
 //String/int pairs
 struct Group {
 	std::wstring value;
-	unsigned int group_match_id; //Groups count up from ONE
+	int group_match_id; //Groups count up from ONE
 	Group() : value(L""), group_match_id(0) {}
 	Group(const std::wstring& value1) : value(value1), group_match_id(0) {}
+	Group(const std::wstring& value1, int id1) : value(value1), group_match_id(id1) {}
 };
 
 
@@ -77,6 +78,9 @@ struct Matcher {
 			strDot = 0;
 		}
 	}
+	int getDot() {
+		return dot;
+	}
 	bool isDone() {
 		return dot==rulestream.size();
 	}
@@ -88,6 +92,7 @@ struct Candidate {
 private:
 	//Matches we've already made
 	std::vector<Group> matches;
+	unsigned int currRootDot;
 
 	//Matches put on hold while we recurse
 	std::stack<Matcher> matchStack;
@@ -102,6 +107,11 @@ public:
 	//Init
 	Candidate(std::vector<Rule>& firstRule, std::vector<Rule>& repRule) : replacementRules(repRule) {
 		matchStack.push(Matcher(firstRule));
+
+		//Init array sizes
+		for (unsigned int i=0; i<firstRule.size(); i++)
+			matches.push_back(Group(L"", -1));
+		currRootDot = 0;
 	}
 
 	//For vector contexts
@@ -134,7 +144,7 @@ public:
 	void newCurr(std::vector<Rule>& rule) {
 		matchStack.push(Matcher(rule));
 	}
-	void advance() { //Called if a match is allowed
+	void advance(const wstring& foundStr, int foundID) { //Called if a match is allowed
 		if (isDone())
 			return;
 
@@ -144,8 +154,21 @@ public:
 		//Pop the stack
 		if (currMatch().isDone()) {
 			matchStack.pop();
-			advance(); //We need to move the current match's dot by one, signifying that we've "matched" this variable.
+			advance(foundStr, foundID); //We need to move the current match's dot by one, signifying that we've "matched" this variable.
 		}
+
+		//Save our match data
+		matches[currRootDot].value += foundStr;
+		matches[currRootDot].group_match_id = foundID;
+
+		//Update root dot?
+		if (matchStack.size()==1)
+			currRootDot = currMatch().getDot();
+	}
+	void advance(wchar_t foundChar, int foundID) {
+		std::wstringstream str;
+		str <<foundChar;
+		advance(str.str(), foundID);
 	}
 	bool isDone() { //Did we finish matching?
 		matchStack.empty();
@@ -157,6 +180,14 @@ public:
 	}
 	const std::vector<unsigned int>& getPendingSwitches() {
 		return switchesToOff;
+	}
+
+	//Return
+	std::wstring getMatch(unsigned int id) {
+		return matches[id].value;
+	}
+	int getMatchID(unsigned int id) {
+		return matches[id].group_match_id;
 	}
 };
 

@@ -644,7 +644,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 				for (vector<Candidate>::iterator curr=candidates.begin(); curr!=candidates.end(); curr++) {
 					//Move on the VKEY?
 					if (curr->getCurrRule().type==KMRT_KEYCOMBINATION && curr->getCurrRule().val==vkeyCode) {
-						curr->advance();
+						curr->advance(L"", -1);
 						if (curr->isDone()) {
 							result = &(*curr);
 							matchedOneVirtualKey = true;
@@ -670,88 +670,97 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 				}
 
 				//Before attemping to "move the dot", we must expand any variables by adding new entries to the stack.
-				while (curr->getCurrRule().type==KMRT_VARIABLE)
-					curr->newCurr(variables[curr->getCurrRule().id]);
+				//NOTE: We also need to handle switches, which shouldn't move the dot anyway
+				bool allow = true;
+				while (curr->getCurrRule().type==KMRT_VARIABLE || curr->getCurrRule().type==KMRT_SWITCH) {
+					if (curr->getCurrRule().type==KMRT_VARIABLE) {
+						//Variable: Push to stack
+						curr->newCurr(variables[curr->getCurrRule().id]);
+					} else {
+						//Switch: only if that switch is ON, and matching will turn that switch OFF later.
+						if (switches[curr->getCurrRule().id]) {
+							curr->advance(L'', -1);
+							curr->queueSwitchOff(curr->getCurrRule().id);
+						} else {
+							allow = false;
+							break;
+						}
+					}
+				}
 
 				//"Moving the dot" is allowed under different circumstances, depending on the type of rule we're dealing with.
-				bool allow = true;
-				switch(curr->getCurrRule().type) {
-					//Wildcard: always move
-					case KMRT_WILDCARD:
-						curr->advance();
-						break;
+				if (allow) {
+					switch(curr->getCurrRule().type) {
+						//Wildcard: always move
+						case KMRT_WILDCARD:
+							curr->advance(input[dot], -1);
+							break;
 
-					//String: only if the current char matches
-					case KMRT_STRING:
-						if (curr->getCurrStringRuleChar() != input[dot])
-							allow = false;
-						break;
-
-					//Switch: only if that switch is ON, and matching will turn that switch OFF later.
-					case KMRT_SWITCH:
-						if (switches[curr->getCurrRule().id])
-							curr->queueSwitchOff(curr->getCurrRule().id);
-						else
-							allow = false;
-						break;
-
-					//Vararray: Only if that particular character matches
-					//Silently fail to match if an invalid index is given.
-					case KMRT_VARARRAY:
-					{
-						//TODO: Right now, this fails for anything except a string array
-						vector<Rule> var = variables[curr->getCurrRule().id];
-						if (var.size()!=1 || var[0].type!=KMRT_STRING)
-							allow = false;
-						else {
-							wstring str = var[0].str;
-							if (curr->getCurrRule().val<0 || curr->getCurrRule().val>=(int)str.length() || (str[curr->getCurrRule().val] != input[dot]))
+						//String: only if the current char matches
+						case KMRT_STRING:
+							if (curr->getCurrStringRuleChar() == input[dot])
+								curr->advance(input[dot], -1);
+							else
 								allow = false;
-						}
-						break;
-					}
+							break;
 
-					//Match "any" or "not any"; silently fail on anything else.
-					case KMRT_VARARRAY_SPECIAL:
-						if (curr->getCurrRule().val!='*' && curr->getCurrRule().val!='^')
-							allow = false;
-						else {
-							//TODO: Right now, this fails silently for anything except strings and simple variables.
+						//Vararray: Only if that particular character matches
+						//Silently fail to match if an invalid index is given.
+						case KMRT_VARARRAY:
+						{
+							//TODO: Right now, this fails for anything except a string array (and anything simple)
 							Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id]);
-							int foundID = -1;
-							for (size_t i=0; i<toCheck.str.length(); i++) {
-								//Does it match?
-								if (toCheck.str[i] == input[dot]) {
-									foundID = i;
-									break;	
-								}
-							}
-
-							//We allow if '*' and found, or '^' and not
-							if (curr->getCurrRule().val=='*' && foundID==-1)
+							wstring str = toCheck.str;
+							if (curr->getCurrRule().val>=0 && curr->getCurrRule().val<(int)str.length() && (str[curr->getCurrRule().val] == input[dot]))
+								curr->advance(input[dot], -1);
+							else
 								allow = false;
-							else if (curr->getCurrRule().val=='^' && foundID!=-1)
-								allow = false;
+							break;
 						}
-						break;
 
-					//Key combinations only match in certain conditions, which are checked before this.
-					case KMRT_KEYCOMBINATION:
-						allow = false;
-						break;
+						//Match "any" or "not any"; silently fail on anything else.
+						case KMRT_VARARRAY_SPECIAL:
+							if (curr->getCurrRule().val!='*' && curr->getCurrRule().val!='^')
+								allow = false;
+							else {
+								//TODO: Right now, this fails silently for anything except strings and simple variables.
+								Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id]);
+								int foundID = -1;
+								for (size_t i=0; i<toCheck.str.length(); i++) {
+									//Does it match?
+									if (toCheck.str[i] == input[dot]) {
+										foundID = i;
+										break;	
+									}
+								}
 
-					//"Error" and "quasi-error" cases.
-					case KMRT_VARIABLE:
-						throw std::exception("Bad match: variables should be dealt with outside the main loop.");
-					default:
-						throw std::exception("Bad match: inavlid rule type.");
+								//We allow if '*' and found, or '^' and not
+								if (curr->getCurrRule().val=='*' && foundID==-1)
+									allow = false;
+								else if (curr->getCurrRule().val=='^' && foundID!=-1)
+									allow = false;
+								else
+									curr->advance(input[dot], -1);
+							}
+							break;
+
+						//Key combinations only match in certain conditions, which are checked before this.
+						case KMRT_KEYCOMBINATION:
+							allow = false;
+							break;
+
+						//"Error" and "quasi-error" cases.
+						case KMRT_VARIABLE:
+							throw std::exception("Bad match: variables should be dealt with outside the main loop.");
+						case KMRT_SWITCH:
+							throw std::exception("Bad match: switches should be dealt with outside the main loop.");
+						default:
+							throw std::exception("Bad match: inavlid rule type.");
+					}
 				}
 
 				//Did this rule pass or fail?
-				if (allow) {
-					//Always advance on pass
-					curr->advance();
-				} else {
+				if (!allow) {
 					//Remove the current entry; decrement the pointer
 					curr = candidates.erase(curr);
 					eraseFlag = true;
@@ -810,19 +819,18 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 						break;
 					}
 
-
-
-					//Vararray backref
-					case KMRT_VARARRAY_BACKREF:
-						//TODO
-						break;
-
-
-					//Variable
+					//Variable: Just add the saved backref
 					case KMRT_MATCHVAR:
-						//TODO
+						replacementStr <<result->getMatch(repRule->val);
 						break;
 
+					//Vararray backref: Requires a little more indexing
+					case KMRT_VARARRAY_BACKREF:
+					{
+						Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
+						replacementStr <<toAdd.str[result->getMatchID(repRule->val)];
+						break;
+					}
 
 					//Anything else (WILDCARD, VARARRAY_SPECIAL , KEYCOMBINATION) is an error.
 					default:
@@ -830,10 +838,14 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 				}
 			}
 
-
-			//TODO: Apply the match/replacement
-			//TODO: Apply the "single ascii replacement" rule.
-
+			//Apply the "single ASCII replacement" rule
+			if (result->replacementRules.size()==1 && result->replacementRules[0].type==KMRT_STRING && result->replacementRules[0].str.length()==1) {
+				wchar_t ch = result->replacementRules[0].str[0];
+				if (ch>L'\x020' && ch<L'\x07F') {
+					rpmID = replacements.size();
+					break;
+				}
+			}
 
 			//Save new string
 			input = replacementStr.str();
