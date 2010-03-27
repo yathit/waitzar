@@ -471,6 +471,34 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 
 
 
+//This function will likely be replaced by something more powerful later
+Rule KeyMagicInputMethod::compressToSingleStringRule(const std::vector<Rule>& rules)
+{
+	//Init
+	Rule res(KMRT_STRING, L"", 0);
+
+	//Combine all strings, and all variables which point ONLY to strings
+	for (std::vector<Rule>::const_iterator topRule = rules.begin(); topRule!=rules.end(); topRule++) {
+		if (topRule->type==KMRT_STRING) {
+			res.str += topRule->str;
+		} else if (topRule->type==KMRT_VARARRAY) {
+			if (variables[topRule->id].size()!=1 || variables[topRule->id][0].type!=KMRT_STRING)
+				throw std::exception("Error: Variable depth too great for '^' or '*' reference as \"VARARRAY\"");
+			res.str += variables[topRule->id][0].str[topRule->val];
+		} else if (topRule->type==KMRT_VARIABLE) {
+			if (variables[topRule->id].size()!=1 || variables[topRule->id][0].type!=KMRT_STRING)
+				throw std::exception("Error: Variable depth too great for '^' or '*' reference as \"VARIABLE\"");
+			res.str += variables[topRule->id][0].str;
+		} else
+			throw std::exception("Error: Variable accessed with '*' or '^', but points to non-obvious data structure.");
+	}
+
+	return res;
+}
+
+
+
+
 //Validate (and slightly transform) a set of rules given a start and an end index
 //We assume that this is never called on the LHS of an assigment statement.
 vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, const map< wstring, unsigned int>& varLookup, map< wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings)
@@ -498,9 +526,17 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 			case KMRT_VARARRAY_SPECIAL:
 			case KMRT_VARARRAY_BACKREF:
 				//Make sure all variables exist; fill in their implicit ID
+				//NOTE: We cannot assume variables before they are declared; this would allow for circular references.
 				if (varLookup.count(currRule.str)==0)
 					throw std::exception(ConfigManager::glue(L"Error: Previously undefined variable \"", currRule.str, L"\"").c_str());
 				currRule.id = varLookup.find(currRule.str)->second;
+
+				//Special check
+				if (currRule.type==KMRT_VARARRAY_SPECIAL || currRule.type==KMRT_VARARRAY_BACKREF) {
+					//For now, we need to treat these as arrays of strings. To avoid crashing at runtime, we
+					//   attempt to conver them here. (We let the result fizzle)
+					compressToSingleStringRule(variables[currRule.id]);
+				}
 				break;
 
 			case KMRT_SWITCH:
@@ -677,14 +713,12 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input, unsigned int vkeyC
 						if (curr->getCurrRule().val!='*' && curr->getCurrRule().val!='^')
 							allow = false;
 						else {
-							//TODO: Right now, this fails silently for anything except strings
-							vector<Rule> var = variables[curr->getCurrRule().id];
-							if (var.size()!=1 || var[0].type!=KMRT_STRING)
-								allow = false;
+							//TODO: Right now, this fails silently for anything except strings and simple variables.
+							Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id]);
 							int foundID = -1;
-							for (size_t i=0; i<var[0].str.length(); i++) {
+							for (size_t i=0; i<toCheck.str.length(); i++) {
 								//Does it match?
-								if (var[0].str[i] == input[dot]) {
+								if (toCheck.str[i] == input[dot]) {
 									foundID = i;
 									break;	
 								}
