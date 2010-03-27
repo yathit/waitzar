@@ -96,9 +96,21 @@ private:
 	std::vector<unsigned int> switchesToOff;
 
 public:
+	//What to replace after
+	std::vector<Rule>& replacementRules;
+
 	//Init
-	Candidate(std::vector<Rule>& firstRule) {
+	Candidate(std::vector<Rule>& firstRule, std::vector<Rule>& repRule) : replacementRules(repRule) {
 		matchStack.push(Matcher(firstRule));
+	}
+
+	//For vector contexts
+	Candidate operator=(const Candidate& c2) {
+		matches = c2.matches;
+		matchStack = c2.matchStack;
+		switchesToOff = c2.switchesToOff;
+		replacementRules = c2.replacementRules;
+		return *this;
 	}
 
 	//Our "current match" is the top entry on the stack; this greatly simplifies memory management
@@ -157,7 +169,7 @@ public:
 
 	//Key functionality
 	void loadRulesFile(const std::string& rulesFilePath);
-	std::wstring applyRules(const std::wstring& input, unsigned int vkeyCode);
+	std::wstring applyRules(const std::wstring& origInput, unsigned int vkeyCode);
 
 private:
 	//Data
