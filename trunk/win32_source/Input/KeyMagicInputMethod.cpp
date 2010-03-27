@@ -612,8 +612,11 @@ void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring,
 
 
 
-wstring KeyMagicInputMethod::applyRules(const wstring& input, unsigned int vkeyCode)
+wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int vkeyCode)
 {
+	//Volatile version of our input
+	wstring input = origInput;
+
 	//First, turn all switches off
 	for (size_t i=0; i<switches.size(); i++)
 		switches[i] = false;
@@ -630,7 +633,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input, unsigned int vkeyC
 		Candidate* result = NULL;
 		for (;result==NULL;) {
 			//Add a new empty candidate
-			candidates.push_back(Candidate(currRepCheck));
+			candidates.push_back(Candidate(currRepCheck, replacements[rpmID].second));
 
 			//Do we stop?
 			if (dot==input.length()) {
@@ -771,13 +774,69 @@ wstring KeyMagicInputMethod::applyRules(const wstring& input, unsigned int vkeyC
 				throw std::exception(ConfigManager::glue(L"Error on keymagic regex; infinite loop on input: \n   ", input).c_str());
 			}
 
-			//TODO: Apply the match/replacement
-			//TODO: Apply the "single ascii replacement" rule.
-
 			//Turn "off" all switches that were matched
 			const vector<unsigned int>& switchesToOff = result->getPendingSwitches();
 			for (vector<unsigned int>::const_iterator it=switchesToOff.begin(); it!=switchesToOff.end(); it++)
 				switches[*it] = false;
+
+			//We've got a match! Apply our replacements algorithm
+			std::wstringstream replacementStr;
+			for (std::vector<Rule>::iterator repRule=result->replacementRules.begin(); repRule!=result->replacementRules.end(); repRule++) {
+				switch(repRule->type) {
+					//String: Just append it.
+					case KMRT_STRING:
+						replacementStr <<repRule->str;
+						break;
+
+					//Variable: try to append that variable.
+					case KMRT_VARIABLE:
+					{
+						//To-do: Right now, this only applies for simple & semi-complex rules.
+						Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
+						replacementStr <<toAdd.str;
+						break;
+					}
+
+					//Turn switches back on.
+					case KMRT_SWITCH:
+						switches[repRule->id] = true;
+						break;
+
+					//Vararray: just add that character
+					case KMRT_VARARRAY:
+					{
+						Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
+						replacementStr <<toAdd.str[repRule->val];
+						break;
+					}
+
+
+
+					//Vararray backref
+					case KMRT_VARARRAY_BACKREF:
+						//TODO
+						break;
+
+
+					//Variable
+					case KMRT_MATCHVAR:
+						//TODO
+						break;
+
+
+					//Anything else (WILDCARD, VARARRAY_SPECIAL , KEYCOMBINATION) is an error.
+					default:
+						throw std::exception("Bad match: inavlid replacement type.");
+				}
+			}
+
+
+			//TODO: Apply the match/replacement
+			//TODO: Apply the "single ascii replacement" rule.
+
+
+			//Save new string
+			input = replacementStr.str();
 
 			//Reset for the next rule.
 			numMatchesFound++;
