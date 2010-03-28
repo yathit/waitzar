@@ -617,7 +617,7 @@ Candidate* KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rul
 	vector<Candidate> candidates;
 	for (size_t dot=0; dot<input.length(); dot++) {
 		//Add a new empty candidate
-		candidates.push_back(Candidate(rule.first, rule.second));
+		candidates.push_back(Candidate(rule));
 
 		//Continue matching.
 		//Note: For now, the candidates list won't expand while we move the dot. (It might shrink, however)
