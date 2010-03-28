@@ -105,11 +105,11 @@ public:
 	std::vector<Rule>& replacementRules;
 
 	//Init
-	Candidate(std::vector<Rule>& firstRule, std::vector<Rule>& repRule) : replacementRules(repRule) {
-		matchStack.push(Matcher(firstRule));
+	Candidate(std::pair< std::vector<Rule>, std::vector<Rule> >& rulePair) : replacementRules(rulePair.second) {
+		matchStack.push(Matcher(rulePair.first));
 
 		//Init array sizes
-		for (unsigned int i=0; i<firstRule.size(); i++)
+		for (unsigned int i=0; i<rulePair.first.size(); i++)
 			matches.push_back(Group(L"", -1));
 		currRootDot = 0;
 	}
