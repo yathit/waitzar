@@ -178,15 +178,15 @@ public:
 	void queueSwitchOff(unsigned int id) {
 		switchesToOff.push_back(id);
 	}
-	const std::vector<unsigned int>& getPendingSwitches() {
+	const std::vector<unsigned int>& getPendingSwitches() const {
 		return switchesToOff;
 	}
 
 	//Return
-	std::wstring getMatch(unsigned int id) {
+	std::wstring getMatch(unsigned int id) const {
 		return matches[id].value;
 	}
-	int getMatchID(unsigned int id) {
+	int getMatchID(unsigned int id) const {
 		return matches[id].group_match_id;
 	}
 };
@@ -214,6 +214,8 @@ private:
 	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
 	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings);
 	Rule compressToSingleStringRule(const std::vector<Rule>& rules);
+	Candidate* getCandidateMatch(std::pair< std::vector<Rule>, std::vector<Rule> >& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
+	std::wstring applyMatch(const Candidate& result, bool& resetLoop, bool& breakLoop);
 
 
 
