@@ -131,49 +131,61 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 }
 
 
+
+//False means nothing else to type
+pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode)
+{
+	//Nothing to do?
+	wstring nextBit = helpKeyboard->typeLetter(nextKeycode);
+	if (nextBit.empty())
+		return pair<wstring, bool>(prevStr, false);
+
+	//Temp var
+	wstring currStr = prevStr + nextBit;
+	size_t len = currStr.length();
+
+	//Special cases
+	if (nextBit.length()==1 && nextBit[0]==L'\u1039') {
+		//Combiner functions in reverse
+		if (len>1 && canStack(currStr[len-2])) {
+			currStr[len-1] = currStr[len-2];
+			currStr[len-2] = nextBit[0];
+		} else {
+			currStr.erase(currStr.length()-1); //Not standard behavior, but let's avoid bad combinations.
+		}
+	} else if (nextBit == wstring(L"\u1004\u103A\u1039")) {
+		//Kinzi can be typed after the consonant instead of before it.
+		//For now, we only cover the general case of typing "kinzi" directly after a consonant
+		if (len>3 && canStack(currStr[len-4])) {
+			currStr[len-1] = currStr[len-4];
+			currStr[len-4] = nextBit[0];
+			currStr[len-3] = nextBit[1];
+			currStr[len-2] = nextBit[2];
+		}
+	}
+
+	return pair<wstring, bool>(currStr, true);
+}
+
+
+
 void LetterInputMethod::handleKeyPress(WPARAM wParam, bool isUpper)
 {
-	//Handle our help menu
-	wstring nextBit = helpKeyboard->typeLetter(wParam);
-	if (!nextBit.empty()) {
-		//Valid letter
-		//typedRomanStr <<(char)wParam;
-		if (isHelpInput())
-			typedCandidateStr <<nextBit;
-		else
-			typedSentenceStr <<nextBit;
+	//Delegate our combination algorithm
+	wstring curr = typedSentenceStr.str();
+	if (isHelpInput())
+		curr = typedCandidateStr.str();
+	pair<wstring, bool> next = appendTypedLetter(curr, (wchar_t)(wParam&0xFFFF), wParam);
 
-		//Save a temporary string to make calculations easier.
-		wstring currStr = isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
-		size_t len = currStr.length();
-
-		//Special cases
-		if (nextBit.length()==1 && nextBit[0]==L'\u1039') {
-			//Combiner functions in reverse
-			if (len>1 && canStack(currStr[len-2])) {
-				currStr[len-1] = currStr[len-2];
-				currStr[len-2] = nextBit[0];
-			} else {
-				currStr.erase(currStr.length()-1); //Not standard behavior, but let's avoid bad combinations.
-			}
-		} else if (nextBit == wstring(L"\u1004\u103A\u1039")) {
-			//Kinzi can be typed after the consonant instead of before it.
-			//For now, we only cover the general case of typing "kinzi" directly after a consonant
-			if (len>3 && canStack(currStr[len-4])) {
-				currStr[len-1] = currStr[len-4];
-				currStr[len-4] = nextBit[0];
-				currStr[len-3] = nextBit[1];
-				currStr[len-2] = nextBit[2];
-			}
-		}
-
-		//Save the results of our temporary calculations.
+	//Did we change anything?
+	if (next.second) {
+		//Update
 		if (isHelpInput()) {
 			typedCandidateStr.str(L"");
-			typedCandidateStr <<currStr;
+			typedCandidateStr <<next.first;
 		} else {
 			typedSentenceStr.str(L"");
-			typedSentenceStr <<currStr;
+			typedSentenceStr <<next.first;
 		}
 
 		//Save a romanized string if in help mode

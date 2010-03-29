@@ -171,7 +171,7 @@ public:
 		advance(str.str(), foundID);
 	}
 	bool isDone() { //Did we finish matching?
-		matchStack.empty();
+		return matchStack.empty();
 	}
 
 	//For switches
@@ -201,6 +201,9 @@ public:
 	//Key functionality
 	void loadRulesFile(const std::string& rulesFilePath);
 	std::wstring applyRules(const std::wstring& origInput, unsigned int vkeyCode);
+
+	//Overrides of LetterInputMethod
+	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode);
 
 private:
 	//Data
