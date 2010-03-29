@@ -622,14 +622,7 @@ Candidate* KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rul
 		//Continue matching.
 		//Note: For now, the candidates list won't expand while we move the dot. (It might shrink, however)
 		//      Later, we will have to dynamically update i, but this should be fairly simple.
-		bool eraseFlag = false;
-		for (vector<Candidate>::iterator curr=candidates.begin(); curr!=candidates.end(); curr++) {
-			//Did we just erase an element? If so, decrement the pointer
-			if (eraseFlag) {
-				curr--;
-				eraseFlag = false;
-			}
-
+		for (vector<Candidate>::iterator curr=candidates.begin(); curr!=candidates.end();) {
 			//Before attemping to "move the dot", we must expand any variables by adding new entries to the stack.
 			//NOTE: We also need to handle switches, which shouldn't move the dot anyway
 			bool allow = true;
@@ -721,6 +714,7 @@ Candidate* KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rul
 			}
 
 			//Did this rule pass or fail?
+			bool eraseFlag = false;
 			if (!allow) {
 				//Remove the current entry; decrement the pointer
 				curr = candidates.erase(curr);
@@ -731,6 +725,12 @@ Candidate* KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rul
 			//Did this match finish?
 			if (curr->isDone())
 				return &(*curr);
+
+			//Did we just erase an element? If so, the pointer doesn't increment
+			if (eraseFlag) 
+				eraseFlag = false;
+			else
+				curr++;
 		}
 	}
 
@@ -833,6 +833,14 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 	resetLoop = true;
 
 	return newStr;
+}
+
+
+
+pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode)
+{
+	//Append, apply rules
+	return pair<wstring, bool>(applyRules(prevStr+wstring(1,nextASCII), nextKeycode), true);
 }
 
 

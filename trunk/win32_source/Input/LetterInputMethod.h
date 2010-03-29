@@ -32,6 +32,9 @@ public:
 	void handleKeyPress(WPARAM wParam, bool isUpper);
 	void handleTab();
 
+	//Intended to be overridden by subclasses
+	virtual std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode);
+
 	//Abstract implementation - sentence and word
 	std::vector< std::wstring > getTypedSentenceStrings();
 	std::vector< std::pair<std::wstring, unsigned int> > getTypedCandidateStrings();
