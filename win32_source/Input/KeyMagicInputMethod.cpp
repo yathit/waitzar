@@ -612,7 +612,7 @@ void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring,
 
 
 //NOTE: This function will update matchedOneVirtualKey
-Candidate* KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rule> >& rule, const wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey)
+pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rule> >& rule, const wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey)
 {
 	vector<Candidate> candidates;
 	for (size_t dot=0; dot<input.length(); dot++) {
@@ -724,7 +724,7 @@ Candidate* KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rul
 
 			//Did this match finish?
 			if (curr->isDone())
-				return &(*curr);
+				return pair<Candidate, bool>(*curr, true);
 
 			//Did we just erase an element? If so, the pointer doesn't increment
 			if (eraseFlag) 
@@ -744,14 +744,15 @@ Candidate* KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rul
 				curr->advance(L"", -1);
 				if (curr->isDone()) {
 					matchedOneVirtualKey = true;
-					return &(*curr);
+					return pair<Candidate, bool>(*curr, true);
 				}
 			}
 		}
 	}
 
 	//No matches: past the end of the input string.
-	return NULL;
+	vector<Rule> temp;
+	return pair<Candidate, bool>(Candidate(temp), false);
 }
 
 
@@ -866,10 +867,10 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			rpmID = 0;
 
 		//Match this rule
-		Candidate* result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
+		pair<Candidate, bool> result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
 
 		//Did we match anything?
-		if (result!=NULL) {
+		if (result.second) {
 			//Before we apply the rule, check if we've looped "forever"
 			if (++totalMatchesOverall >= 500) {
 				//To do: We might also consider logging this, later.
@@ -877,7 +878,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			}
 
 			//Apply, update input.
-			input = applyMatch(*result, resetLoop, breakLoop);
+			input = applyMatch(result.first, resetLoop, breakLoop);
 			if (breakLoop)
 				break;
 		}
