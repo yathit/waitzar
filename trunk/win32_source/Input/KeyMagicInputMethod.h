@@ -104,6 +104,9 @@ public:
 	//What to replace after
 	std::vector<Rule>& replacementRules;
 
+	//Default constructor
+	Candidate(std::vector<Rule> tempVec) : replacementRules(tempVec) {}
+
 	//Init
 	Candidate(std::pair< std::vector<Rule>, std::vector<Rule> >& rulePair) : replacementRules(rulePair.second) {
 		matchStack.push(Matcher(rulePair.first));
@@ -217,7 +220,7 @@ private:
 	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
 	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings);
 	Rule compressToSingleStringRule(const std::vector<Rule>& rules);
-	Candidate* getCandidateMatch(std::pair< std::vector<Rule>, std::vector<Rule> >& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
+	std::pair<Candidate, bool> getCandidateMatch(std::pair< std::vector<Rule>, std::vector<Rule> >& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
 	std::wstring applyMatch(const Candidate& result, bool& resetLoop, bool& breakLoop);
 
 
