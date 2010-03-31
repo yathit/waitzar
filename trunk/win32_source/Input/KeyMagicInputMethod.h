@@ -104,17 +104,23 @@ public:
 	//What to replace after
 	std::vector<Rule>& replacementRules;
 
+	//Dot IDS
+	int dotStartID;
+	int dotEndID;
+
 	//Default constructor
 	Candidate(std::vector<Rule> tempVec) : replacementRules(tempVec) {}
 
 	//Init
-	Candidate(std::pair< std::vector<Rule>, std::vector<Rule> >& rulePair) : replacementRules(rulePair.second) {
+	Candidate(std::pair< std::vector<Rule>, std::vector<Rule> >& rulePair, int dotStartID1) : replacementRules(rulePair.second) {
 		matchStack.push(Matcher(rulePair.first));
 
 		//Init array sizes
 		for (unsigned int i=0; i<rulePair.first.size(); i++)
 			matches.push_back(Group(L"", -1));
 		currRootDot = 0;
+
+		dotStartID = dotStartID1;
 	}
 
 	//For vector contexts

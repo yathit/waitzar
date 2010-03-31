@@ -617,7 +617,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 	vector<Candidate> candidates;
 	for (size_t dot=0; dot<input.length(); dot++) {
 		//Add a new empty candidate
-		candidates.push_back(Candidate(rule));
+		candidates.push_back(Candidate(rule, dot));
 
 		//Continue matching.
 		//Note: For now, the candidates list won't expand while we move the dot. (It might shrink, however)
@@ -723,8 +723,10 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 			}
 
 			//Did this match finish?
-			if (curr->isDone())
+			if (curr->isDone()) {
+				curr->dotEndID = dot+1;
 				return pair<Candidate, bool>(*curr, true);
+			}
 
 			//Did we just erase an element? If so, the pointer doesn't increment
 			if (eraseFlag) 
@@ -744,6 +746,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 				curr->advance(L"", -1);
 				if (curr->isDone()) {
 					matchedOneVirtualKey = true;
+					curr->dotEndID = input.length();
 					return pair<Candidate, bool>(*curr, true);
 				}
 			}
@@ -880,7 +883,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			}
 
 			//Apply, update input.
-			input = applyMatch(result.first, resetLoop, breakLoop);
+			input = input.substr(0, result.first.dotStartID) + applyMatch(result.first, resetLoop, breakLoop) + input.substr(result.first.dotEndID, input.size());
 			if (breakLoop)
 				break;
 		}
