@@ -665,7 +665,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 						//TODO: Right now, this fails for anything except a string array (and anything simple)
 						Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id]);
 						wstring str = toCheck.str;
-						if (curr->getCurrRule().val>=0 && curr->getCurrRule().val<(int)str.length() && (str[curr->getCurrRule().val] == input[dot]))
+						if (curr->getCurrRule().val>0 && curr->getCurrRule().val<=(int)str.length() && (str[curr->getCurrRule().val-1] == input[dot]))
 							curr->advance(input[dot], -1);
 						else
 							allow = false;
@@ -694,7 +694,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 							else if (curr->getCurrRule().val=='^' && foundID!=-1)
 								allow = false;
 							else
-								curr->advance(input[dot], -1);
+								curr->advance(input[dot], foundID);
 						}
 						break;
 
@@ -796,21 +796,21 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 			case KMRT_VARARRAY:
 			{
 				Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
-				replacementStr <<toAdd.str[repRule->val];
+				replacementStr <<toAdd.str[repRule->val-1];
 				break;
 			}
 
 			//Variable: Just add the saved backref
 			case KMRT_MATCHVAR:
-				replacementStr <<result.getMatch(repRule->val);
+				replacementStr <<result.getMatch(repRule->val-1);
 				break;
 
 			//Vararray backref: Requires a little more indexing
 			case KMRT_VARARRAY_BACKREF:
 			{
 				Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
-				replacementStr <<toAdd.str[result.getMatchID(repRule->val)];
-				break;
+				replacementStr <<toAdd.str[result.getMatchID(repRule->val-1)];
+ 				break;
 			}
 
 			//Anything else (WILDCARD, VARARRAY_SPECIAL , KEYCOMBINATION) is an error.
@@ -863,8 +863,10 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 	unsigned int totalMatchesOverall = 0;
 	for (int rpmID=0; rpmID<(int)replacements.size(); rpmID++) {
 		//Somewhat of a hack...
-		if (resetLoop)
+		if (resetLoop) {
 			rpmID = 0;
+			resetLoop = false;
+		}
 
 		//Match this rule
 		pair<Candidate, bool> result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
