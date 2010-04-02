@@ -877,7 +877,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 		//Did we match anything?
 		if (result.second) {
 			//Before we apply the rule, check if we've looped "forever"
-			if (++totalMatchesOverall >= 500) {
+			if (++totalMatchesOverall >= std::max<size_t>(50, replacements.size())) {
 				//To do: We might also consider logging this, later.
 				throw std::exception(ConfigManager::glue(L"Error on keymagic regex; infinite loop on input: \n   ", input).c_str());
 			}
