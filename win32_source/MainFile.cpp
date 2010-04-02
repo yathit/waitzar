@@ -151,8 +151,10 @@ HPEN g_DotHilitePen;
 //Colors
 COLORREF cr_MenuItemBkgrd;
 COLORREF cr_MenuItemText;
+COLORREF cr_MenuItemDisabledText;
 COLORREF cr_MenuDefaultBkgrd;
 COLORREF cr_MenuDefaultText;
+COLORREF cr_MenuDefaultDisabledText;
 COLORREF cr_White;
 COLORREF cr_Black;
 
@@ -217,6 +219,7 @@ struct WZMenuItem {
 	wstring id;
 	wstring title;
 	bool containsMM;
+	bool disabled;
 
 	WZMenuItem(){}
 
@@ -226,6 +229,7 @@ struct WZMenuItem {
 		this->id = id;
 		this->title = title;
 		this->containsMM = false;
+		this->disabled = false;
 		for (size_t i=0; i<title.length(); i++) {
 			if (title[i]>=L'\u1000' && title[i]<=L'\u109F') {
 				this->containsMM = true;
@@ -327,7 +331,10 @@ bool punctuationKeysOn = false;
 bool extendedKeysOn = false;
 bool helpKeysOn = false;
 int prevProcessID;
+
+//Disable input
 bool showingHelpPopup = false;
+bool showingKeyInputPopup = false;
 
 
 //Calculate's integers
@@ -2425,6 +2432,41 @@ void updateContextMenuState()
 
 
 
+//If there's an exception, show an error message and disable that input in the future. 
+void disableCurrentInput(HWND currHwnd, const std::exception& ex)
+{
+	//First, display our warning message.
+	{
+	std::wstringstream msg;
+	msg << "WaitZar has encountered an error with the current Input Method.\nThe input method \"";
+	msg <<config.activeInputMethod->displayName;
+	msg <<"\" has been disabled; you must switch the Language or restart WaitZar to re-enable it.\n\nDetails:\n";
+	msg << ex.what();
+	MessageBox((mainWindow->isVisible()||sentenceWindow->isVisible())?currHwnd:NULL, msg.str().c_str(), L"WaitZar IM Runtime Error", MB_ICONWARNING | MB_OK);
+	}
+
+
+	//Next, disable the active input method (temporarily)
+	for (size_t i=0; i<totalMenuItems; i++) {
+		if (customMenuItems[i].type!=WZMI_INPUT)
+			continue;
+		if (customMenuItems[i].id != config.activeInputMethod->id)
+			continue;
+		customMenuItems[i].disabled = true;
+	}
+
+
+	//Finally, switch the input to WaitZar. 
+	if (FindKeyInSet(config.activeLanguage.inputMethods, L"waitzar")==config.activeLanguage.inputMethods.end())
+		ChangeLangInputOutput(L"myanmar", L"waitzar", L""); //Removes our blacklisted item, but at least we're back in MM
+	else
+		ChangeLangInputOutput(L"", L"waitzar", L"");
+}
+
+
+
+
+
 /**
  * Message-handling code.
  */
@@ -2453,6 +2495,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		 */
 		case WM_HOTKEY:
 		{
+			//We don't handle hotkeys if a higher-level dialog is showing
+			if (showingHelpPopup || showingKeyInputPopup)
+				break;
+
+
 			//First, handle all "system" or "meta" level commands, like switching the language,
 			// switching into help mode, etc.
 			//Then, handle all "dynamic" commands; those which change depending on the 
@@ -2466,7 +2513,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				bool wasEmptyRoman = currInput->getTypedRomanString(false).empty();
 
 				//Process the message
-				handleUserHotkeys(wParam, lParam);
+				try {
+					handleUserHotkeys(wParam, lParam);
+				} catch (std::exception ex) {
+					if (!showingKeyInputPopup) {
+						//Properly handle hotkeys
+						//NOTE: We need this here so that "Enter" is passed to the window.
+						bool refreshControl = controlKeysOn;
+						if  (refreshControl==true)
+							turnOnControlkeys(false);
+
+						//Show
+						showingKeyInputPopup = true;
+						disableCurrentInput(hwnd, ex);
+						showingKeyInputPopup = false;
+
+						//Control keys again
+						if  (refreshControl==true)
+							turnOnControlkeys(true);
+					}
+					break;
+				}
 
 				//Check 1: Did we just switch out of help mode?
 				if (wasProvidingHelp != currInput->isHelpInput()) 
@@ -2546,10 +2613,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				myFont->setColor(GetRValue(cr_White), GetGValue(cr_White), GetBValue(cr_White));
 			} else if ((drawInfo->itemState&ODS_HOTLIGHT)||(drawInfo->itemState&ODS_SELECTED)) {
 				oldBkgrd = SetBkColor(currDC, cr_MenuItemBkgrd);
-				myFont->setColor(GetRValue(cr_MenuItemText), GetGValue(cr_MenuItemText), GetBValue(cr_MenuItemText));
+				if (item->disabled)
+					myFont->setColor(GetRValue(cr_MenuItemDisabledText), GetGValue(cr_MenuItemDisabledText), GetBValue(cr_MenuItemDisabledText));
+				else
+					myFont->setColor(GetRValue(cr_MenuItemText), GetGValue(cr_MenuItemText), GetBValue(cr_MenuItemText));
 			} else {
 				oldBkgrd = SetBkColor(currDC, cr_MenuDefaultBkgrd);
-				myFont->setColor(GetRValue(cr_MenuDefaultText), GetGValue(cr_MenuDefaultText), GetBValue(cr_MenuDefaultText));
+				if (item->disabled)
+					myFont->setColor(GetRValue(cr_MenuDefaultDisabledText), GetGValue(cr_MenuDefaultDisabledText), GetBValue(cr_MenuDefaultDisabledText));
+				else
+					myFont->setColor(GetRValue(cr_MenuDefaultText), GetGValue(cr_MenuDefaultText), GetBValue(cr_MenuDefaultText));
 			}
 
 			//Conditionally set the font
@@ -2668,12 +2741,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (customMenuItemsLookup.count(retVal)==0)
 						throw std::exception("Bad menu item");
 					WZMenuItem* currItem = customMenuItemsLookup[retVal];
-					if (currItem->type==WZMI_LANG)
-						ChangeLangInputOutput(currItem->id, L"", L"");
-					else if (currItem->type==WZMI_INPUT)
-						ChangeLangInputOutput(L"", currItem->id, L"");
-					else if (currItem->type==WZMI_OUTPUT)
-						ChangeLangInputOutput(L"", L"", currItem->id);
+					if (!currItem->disabled) {
+						if (currItem->type==WZMI_LANG)
+							ChangeLangInputOutput(currItem->id, L"", L"");
+						else if (currItem->type==WZMI_INPUT)
+							ChangeLangInputOutput(L"", currItem->id, L"");
+						else if (currItem->type==WZMI_OUTPUT)
+							ChangeLangInputOutput(L"", L"", currItem->id);
+					}
 				}
 
 				//Fixes a bug re: MSKB article: Q135788
@@ -2987,7 +3062,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	cr_MenuItemBkgrd = RGB(0x8F, 0xA1, 0xF8);
 	cr_MenuDefaultBkgrd = GetSysColor(COLOR_MENU);
 	cr_MenuDefaultText = GetSysColor(COLOR_MENUTEXT);
+	cr_MenuDefaultDisabledText = RGB(0x6D, 0x6D, 0x6D);
 	cr_MenuItemText = RGB(0x20, 0x31, 0x89);
+	cr_MenuItemDisabledText = RGB(0x4D, 0x4D, 0xBD);
 	cr_Black = RGB(0x00, 0x00, 0x00);
 	cr_White = RGB(0xFF, 0xFF, 0xFF);
 	g_WhiteBkgrd = CreateSolidBrush(RGB(255, 255, 255));
