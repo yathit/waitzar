@@ -215,15 +215,22 @@ public:
 	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode);
 
 private:
+	//Trace?
+	static bool LOG_KEYMAGIC_TRACE;
+	static std::string keyMagicLogFileName;
+	static void clearLogFile(const std::string& fileName);
+	static void writeLogLine(const std::string& fileName, const std::wstring& logLine); //We'll escape MM outselves
+
 	//Data
 	std::vector<bool> switches;
 	std::vector< std::vector<Rule> > variables;
 	std::vector< std::pair< std::vector<Rule>, std::vector<Rule> > > replacements;
+	std::vector<std::wstring> debugRuleText; //NOTE: If we load rules from a cached file, this will contain empty strings.
 
 	//Helpers
 	int hexVal(wchar_t letter);
 	Rule parseRule(const std::wstring& ruleStr);
-	void addSingleRule(const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
+	void addSingleRule(const std::wstring& fullRuleText, const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
 	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings);
 	Rule compressToSingleStringRule(const std::vector<Rule>& rules);
 	std::pair<Candidate, bool> getCandidateMatch(std::pair< std::vector<Rule>, std::vector<Rule> >& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);

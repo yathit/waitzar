@@ -12,8 +12,49 @@ using std::string;
 using std::wstring;
 
 
+//"True" provides a full trace of all KeyMagic rule matches.
+bool KeyMagicInputMethod::LOG_KEYMAGIC_TRACE = true;
+string KeyMagicInputMethod::keyMagicLogFileName = "wz_log_keymagic.txt";
+
+
+//Logging
+void KeyMagicInputMethod::clearLogFile(const string& fileName)
+{
+	if (!LOG_KEYMAGIC_TRACE)
+		return;
+	FILE* log;
+	log = fopen (fileName.c_str(), "w");
+	if (log != NULL)
+		fclose (log);
+}
+
+void KeyMagicInputMethod::writeLogLine(const string& fileName, const wstring& logLine)
+{
+	if (!LOG_KEYMAGIC_TRACE)
+		return;
+	FILE* log;
+	log = fopen (fileName.c_str(), "a");
+	if (log != NULL) {
+		std::stringstream msg;
+		for (size_t i=0; i<logLine.length(); i++) {
+			if (logLine[i]<=0xFF)
+				msg <<(char)logLine[i];
+			else
+				msg <<'(' <<std::hex <<logLine[i] <<std::dec <<')';
+		}
+		msg <<std::endl;
+		fprintf(log, msg.str().c_str());
+		fclose (log);
+	}
+}
+
+
+
+
 KeyMagicInputMethod::KeyMagicInputMethod()
 {
+	if (LOG_KEYMAGIC_TRACE)
+		KeyMagicInputMethod::clearLogFile(keyMagicLogFileName);
 }
 
 KeyMagicInputMethod::~KeyMagicInputMethod()
@@ -195,7 +236,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath)
 		if (separator==0)
 			throw std::exception(ConfigManager::glue(L"Error: Rule does not contain = or =>: \n", line).c_str());
 		try {
-			addSingleRule(allRules, tempVarLookup, tempSwitchLookup, sepIndex, separator==1);
+			addSingleRule(line, allRules, tempVarLookup, tempSwitchLookup, sepIndex, separator==1);
 		} catch (std::exception ex) {
 			std::wstringstream err;
 			err <<ex.what();
@@ -559,7 +600,7 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 
 
 //Add a rule to our replacements/variables
-void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring, unsigned int>& varLookup, map< wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable)
+void KeyMagicInputMethod::addSingleRule(const std::wstring& fullRuleText, const vector<Rule>& rules, map< wstring, unsigned int>& varLookup, map< wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable)
 {
 	//
 	// Step 1: Validate
@@ -606,6 +647,7 @@ void KeyMagicInputMethod::addSingleRule(const vector<Rule>& rules, map< wstring,
 		//Get a similar LHS vector, add it to our replacements list
 		std::vector<Rule> lhsVector = createRuleVector(rules, varLookup, switchLookup, 0, rhsStart, false); //We need to preserve groupings
 		replacements.push_back(std::pair< std::vector<Rule>, std::vector<Rule> >(lhsVector, rhsVector));
+		debugRuleText.push_back(fullRuleText);
 	}
 }
 
@@ -851,6 +893,9 @@ pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevSt
 
 wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int vkeyCode)
 {
+	if (LOG_KEYMAGIC_TRACE)
+		KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"User typed:  " + origInput);
+
 	//Volatile version of our input
 	wstring input = origInput;
 
@@ -876,6 +921,12 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 
 		//Did we match anything?
 		if (result.second) {
+			//Log match rule
+			if (LOG_KEYMAGIC_TRACE) {
+				wstring ruleTxt = !debugRuleText[rpmID].empty() ? debugRuleText[rpmID] : L"<Empty Rule Text>";
+				KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"   " + ruleTxt);
+			}
+
 			//Before we apply the rule, check if we've looped "forever"
 			if (++totalMatchesOverall >= std::max<size_t>(50, replacements.size())) {
 				//To do: We might also consider logging this, later.
@@ -884,10 +935,15 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 
 			//Apply, update input.
 			input = input.substr(0, result.first.dotStartID) + applyMatch(result.first, resetLoop, breakLoop) + input.substr(result.first.dotEndID, input.size());
+			if (LOG_KEYMAGIC_TRACE)
+				KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"      ==>" + input);
+
 			if (breakLoop)
 				break;
 		}
 	}
+	if (LOG_KEYMAGIC_TRACE)
+		KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"");
 
 	return input;
 }
