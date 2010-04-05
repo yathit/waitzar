@@ -231,7 +231,15 @@
 					Name="Transform"
 					>
 					<File
+						RelativePath=".\Transform\Ayar2Uni.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\Transform\Self2Self.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Transform\Uni2Ayar.cpp"
 						>
 					</File>
 					<File
@@ -470,11 +478,19 @@
 						Name="Transform"
 						>
 						<File
+							RelativePath=".\Transform\Ayar2Uni.h"
+							>
+						</File>
+						<File
 							RelativePath=".\Transform\Self2Self.h"
 							>
 						</File>
 						<File
 							RelativePath=".\Transform\Transformation.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Transform\Uni2Ayar.h"
 							>
 						</File>
 						<File

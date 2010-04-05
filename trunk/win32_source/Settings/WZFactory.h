@@ -29,6 +29,8 @@
 #include "Settings/Language.h"
 #include "Transform/Zg2Uni.h"
 #include "Transform/Uni2Zg.h"
+#include "Transform/Uni2Ayar.h"
+#include "Transform/Ayar2Uni.h"
 #include "Transform/Uni2WinInnwa.h"
 #include "Transform/Self2Self.h"
 #include "Settings/ConfigManager.h"
@@ -860,6 +862,10 @@ Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id,
 			res = new Uni2WinInnwa();
 		else if (id==L"zg2uni")
 			res = new Zg2Uni();
+		else if (id==L"uni2ayar")
+			res = new Uni2Ayar();
+		else if (id==L"ayar2uni")
+			res = new Ayar2Uni();
 		else
 			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
 		res->type = BUILTIN;

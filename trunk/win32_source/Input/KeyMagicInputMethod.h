@@ -163,15 +163,15 @@ public:
 		//Move the dot
 		currMatch().moveDot();
 
-		//Pop the stack
-		if (currMatch().isDone()) {
-			matchStack.pop();
-			advance(foundStr, foundID); //We need to move the current match's dot by one, signifying that we've "matched" this variable.
-		}
-
 		//Save our match data
 		matches[currRootDot].value += foundStr;
 		matches[currRootDot].group_match_id = foundID;
+
+		//Pop the stack
+		if (currMatch().isDone()) {
+			matchStack.pop();
+			advance(L"", foundID); //We need to move the current match's dot by one, signifying that we've "matched" this variable.
+		}
 
 		//Update root dot?
 		if (matchStack.size()==1)
