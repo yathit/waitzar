@@ -30,9 +30,9 @@ public:
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);
+	void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
-	void handleKeyPress(WPARAM wParam, bool isUpper);
+	void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);
 	void handleTab();
 
 
@@ -215,7 +215,7 @@ void RomanInputMethod<ModelType>::handleUpDown(bool isDown)
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers)
+void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers)
 {
 	//Special case: conglomerate numbers
 	if (typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
@@ -304,7 +304,7 @@ void RomanInputMethod<ModelType>::handleCommit(bool strongCommit)
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
+void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper)
 {
 	//Handle regular letter-presses (as lowercase)
 	//NOTE: ONLY handle letters
@@ -331,7 +331,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, bool isUpper)
 		viewChanged = true;
 	} else {
 		//Check for system keys
-		InputMethod::handleKeyPress(wParam, isUpper);
+		InputMethod::handleKeyPress(wParam, lParam, isUpper);
 	}
 }
 

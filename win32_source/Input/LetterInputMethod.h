@@ -27,13 +27,13 @@ public:
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers);
+	void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers);
 	void handleStop(bool isFull);
-	void handleKeyPress(WPARAM wParam, bool isUpper);
+	void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);
 	void handleTab();
 
 	//Intended to be overridden by subclasses
-	virtual std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode);
+	virtual std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam);
 
 	//Abstract implementation - sentence and word
 	std::vector< std::wstring > getTypedSentenceStrings();

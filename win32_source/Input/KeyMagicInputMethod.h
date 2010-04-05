@@ -215,7 +215,7 @@ public:
 	std::wstring applyRules(const std::wstring& origInput, unsigned int vkeyCode);
 
 	//Overrides of LetterInputMethod
-	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode);
+	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam);
 
 private:
 	//Trace?

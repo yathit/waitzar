@@ -2289,14 +2289,14 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 			//Handle key press; letter-based keyboard should just pass this on through
 			bool typeNumerals = true; //TODO: put this SOMEWHERE in the config file.
-			currInput->handleNumber(numCode, wParam, isUpper, typeNumerals);
+			currInput->handleNumber(numCode, wParam, lParam, isUpper, typeNumerals);
 			return true;
 		}
 
 		default:
 			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
 			// otherwise numbers won't work.
-			currInput->handleKeyPress(wParam, isUpper);
+			currInput->handleKeyPress(wParam, lParam, isUpper);
 			return true;
 	}
 
