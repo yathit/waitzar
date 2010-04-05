@@ -13,19 +13,20 @@ However, it has some distinct advantages over the other "partial Unicode" encodi
    # Shan/Mon/etc. fonts are under development. 
    # The encoding is fairly sensible; definitely Unicode-inspired. (So, we could conceivably use it as a BMP font with some hacking.)
 
-Given these advantages, the main problem is creating a Transformation. I'd like Ayar to be the first example of a user-written Javascript converter; however, I also want a demo in 1.8. So, we'll just take the Unicode2Zawgyi and build on that for a temporary solution.
+Given these advantages, the main problem is creating a Transformation. I'd like Ayar to be the first example of a user-written Javascript converter; however, I also want a demo in 1.8. So, we'll just do a simple one for this release.
 
 
 = Unicode 2 Ayar =
 
-  * First, we convert to Zawgyi.
-  * Then, we have to scan for Zawgyi "syllables" (like we do in the Zawgyi converter). For each syllable:
-     * Convert [--္, --်, ျ-, --ြ, --ွ]  [(1039), (103A), (103B), (103C), (103D)] to [(103A), (103B), (103C), (103D), (103E)]
-     * If the syllable contains ေ(1031) or ျ (103C), put them in front of the consonant. Put 1031 first.
-     * Convert kinzi: (1064) to ????
-     * Convert pat-sint: [(1060), (1061), (1062), (1063), (1065), (1066), (1067)]
+  * First, scan for syllables (remember that Kinzi comes BEFORE the consonant).
+  * Then, for each syllable:
+     * Put kinzi (1004) (103A) (1039) after the consonant.
+     * Put ေ(1031) or ျ (103C) before the consonant.
 
-*TODO:* Right now, we're approaching it wrong.... need to re-think this....
+= Ayar 2 Unicode =
 
-
+  * First, scan for syllables (use the Zawgyi method of finding them).
+  * Then, for each syllable:
+     * Put kinzi (1004) (103A) (1039) before the consonant.
+     * Put ေ(1031) or ျ (103C) after the consonant.
 
