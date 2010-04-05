@@ -656,6 +656,19 @@ void KeyMagicInputMethod::addSingleRule(const std::wstring& fullRuleText, const 
 //NOTE: This function will update matchedOneVirtualKey
 pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rule> >& rule, const wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey)
 {
+	//Skip entries that obviously will never match?
+	//NOTE: This only checks TOP-level key_combination matches. If someone were to put
+	//      a match inside a $var[*], we'd have to catch that later.
+	if (matchedOneVirtualKey) {
+		for (size_t i=0; i<rule.first.size(); i++) {
+			if (rule.first[i].type==KMRT_KEYCOMBINATION) {
+				//Can't work; we've already matched a key combination. 
+				vector<Rule> temp;
+				return pair<Candidate, bool>(Candidate(temp), false);
+			}
+		}
+	}
+
 	vector<Candidate> candidates;
 	for (size_t dot=0; dot<input.length(); dot++) {
 		//Add a new empty candidate
@@ -740,9 +753,24 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 						}
 						break;
 
-					//Key combinations only match in certain conditions, which are checked before this.
+					//Key combinations only match if this is the LAST letter.
+					//By definition, if one matches, it will replace the last letter (however, it won't 
+					//   then cause a paradox, as key combinations will be diabled for remaining matches.
 					case KMRT_KEYCOMBINATION:
 						allow = false;
+						if (!matchedOneVirtualKey && dot==input.length()-1) {
+							//Move on the VKEY?
+							if (curr->getCurrRule().val==vkeyCode) {
+								curr->advance(input[dot], -1);
+								if (curr->isDone()) {
+									//Kind of hackish, but it works (for now).
+									matchedOneVirtualKey = true;
+									curr->dotEndID = input.length();
+									return pair<Candidate, bool>(*curr, true);
+								}
+							}
+						}
+
 						break;
 
 					//"Error" and "quasi-error" cases.
@@ -775,23 +803,6 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 				eraseFlag = false;
 			else
 				curr++;
-		}
-	}
-
-	//There is one case where the dot can be at the end of the string and a rule is still matched: if 
-	//   a VK_* matches and no VK_* has previously been matched.
-	if (!matchedOneVirtualKey) {
-		//Match the <VK_*> values on all candidates
-		for (vector<Candidate>::iterator curr=candidates.begin(); curr!=candidates.end(); curr++) {
-			//Move on the VKEY?
-			if (curr->getCurrRule().type==KMRT_KEYCOMBINATION && curr->getCurrRule().val==vkeyCode) {
-				curr->advance(L"", -1);
-				if (curr->isDone()) {
-					matchedOneVirtualKey = true;
-					curr->dotEndID = input.length();
-					return pair<Candidate, bool>(*curr, true);
-				}
-			}
 		}
 	}
 
