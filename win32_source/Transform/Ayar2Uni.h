@@ -7,6 +7,7 @@
 #ifndef _TRANSFORM_AYAR2UNI
 #define _TRANSFORM_AYAR2UNI
 
+#include <sstream>
 #include "Transform/Transformation.h"
 
 /**
@@ -19,6 +20,9 @@ public:
 
 	//Convert
 	void convertInPlace(std::wstring& src) const;
+
+private:
+	bool IsConsonant(wchar_t letter) const;
 };
 
 

@@ -7,8 +7,8 @@
 #ifndef _TRANSFORM_UNI2AYAR
 #define _TRANSFORM_UNI2AYAR
 
-#include "Transform/Transformation.h"
 #include <sstream>
+#include "Transform/Transformation.h"
 
 /**
  * Enable the "Ayar" encoding
