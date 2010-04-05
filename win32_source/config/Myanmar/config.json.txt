@@ -5,7 +5,7 @@
   "display-name" : "မြန်မာစာ",
   
   # What output encoding, display method, and input method are used by default? 
-  "default-output-encoding" : "unicode",
+  "default-output-encoding" : "ayar",
   "default-input-method" : "ayar",
   "default-display-method" : "zawgyibmp",
   "default-display-method-small" : "zawgyibmpsmall",
@@ -72,6 +72,15 @@
       "initial" : "WI",
       "image" : "wi.png"
     },
+    
+    # The Ayar encoding
+    "ayar" : 
+    {
+      "display-name" : "Ayar",
+      "use-as-output" : "yes",
+      "initial" : "AY",
+      "image" : "ay.png"
+    },
 
     # Special output encoding used by our help keyboard    
     "zawgyi-help-wz" : 
@@ -114,6 +123,22 @@
     {
       "from-encoding" : "unicode",
       "to-encoding" : "win innwa",
+      "type" : "builtin"
+    },
+    
+	# Convert from Unicode to Ayar
+    "uni2ayar" :
+    {
+      "from-encoding" : "unicode",
+      "to-encoding" : "ayar",
+      "type" : "builtin"
+    },
+    
+	# Convert from Ayar to Unicode
+    "ayar2uni" :
+    {
+      "from-encoding" : "ayar",
+      "to-encoding" : "unicode",
       "type" : "builtin"
     }
   },

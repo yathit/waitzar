@@ -3,7 +3,7 @@
       "ayar" : 
       {
         "display-name" : "Ayar Keyboard",
-        "encoding" : "unicode",    #Todo: change to Ayar
+        "encoding" : "ayar", 
         "type" : "keymagic",
         "keyboard-file" : "Ayar.kms"
       }

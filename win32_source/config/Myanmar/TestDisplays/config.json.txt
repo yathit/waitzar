@@ -16,6 +16,14 @@
         "point-size" : "14",
         "font-file" : "ayar31.ttf"
       },
+      "ayarttfsmall" :  #Load from a file
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Ayar",
+        "point-size" : "12",
+        "font-file" : "ayar31.ttf"
+      },
       "myanmar3ttf" :   #Load from the Windows font folder
       {
         "encoding" : "unicode",

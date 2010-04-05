@@ -945,7 +945,10 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			}
 
 			//Apply, update input.
-			input = input.substr(0, result.first.dotStartID) + applyMatch(result.first, resetLoop, breakLoop) + input.substr(result.first.dotEndID, input.size());
+			wstring part1 = input.substr(0, result.first.dotStartID);
+			wstring part2 = applyMatch(result.first, resetLoop, breakLoop);
+			wstring part3 = input.substr(result.first.dotEndID, input.size());
+			input = part1 + part2 + part3;
 			if (LOG_KEYMAGIC_TRACE)
 				KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"      ==>" + input);
 
