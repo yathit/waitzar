@@ -894,8 +894,26 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 
 
 
-pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode)
+pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam)
 {
+	//Get the REAL keycode (to-do: we should fix this later)
+	nextKeycode = HIWORD(lParam);
+
+	//Change the keycode; set shift key.
+	/*if (nextKeycode>=HOTKEY_A_LOW && nextKeycode<=HOTKEY_Z_LOW)
+		nextKeycode = (nextKeycode-HOTKEY_A_LOW)+HOTKEY_A;
+	else
+		nextKeycode |= KM_VKMOD_SHIFT;*/
+
+	//Set modifiers manually
+	lParam = LOWORD(lParam);
+	if ((lParam&MOD_SHIFT)!=0)
+		nextKeycode |= KM_VKMOD_SHIFT;
+	if ((lParam&MOD_CONTROL)!=0)
+		nextKeycode |= KM_VKMOD_CTRL;
+	if ((lParam&MOD_ALT)!=0)
+		nextKeycode |= KM_VKMOD_ALT;
+
 	//Append, apply rules
 	return pair<wstring, bool>(applyRules(prevStr+wstring(1,nextASCII), nextKeycode), true);
 }

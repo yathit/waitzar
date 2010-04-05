@@ -72,7 +72,7 @@ std::pair <std::string, std::wstring> InputMethod::getAndClearMostRecentRomaniza
 
 
 //Handle system keys
-void InputMethod::handleKeyPress(WPARAM wParam, bool isUpper)
+void InputMethod::handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper)
 {
 	//Get an adjusted numcode.
 	int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9) ? HOTKEY_NUM0 : -1;

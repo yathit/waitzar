@@ -80,9 +80,9 @@ void LetterInputMethod::handleUpDown(bool isDown)
 }
 
 //Ignore numCode, typeBurmeseNumbers
-void LetterInputMethod::handleNumber(int numCode, WPARAM wParam, bool isUpper, bool typeBurmeseNumbers)
+void LetterInputMethod::handleNumber(int numCode, WPARAM wParam,  LPARAM lParam, bool isUpper, bool typeBurmeseNumbers)
 {
-	this->handleKeyPress(wParam, isUpper);
+	this->handleKeyPress(wParam, lParam, isUpper);
 }
 
 void LetterInputMethod::handleStop(bool isFull)
@@ -133,7 +133,7 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 
 
 //False means nothing else to type
-pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode)
+pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam)
 {
 	//Nothing to do?
 	wstring nextBit = helpKeyboard->typeLetter(nextKeycode);
@@ -169,13 +169,13 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 
 
 
-void LetterInputMethod::handleKeyPress(WPARAM wParam, bool isUpper)
+void LetterInputMethod::handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper)
 {
 	//Delegate our combination algorithm
 	wstring curr = typedSentenceStr.str();
 	if (isHelpInput())
 		curr = typedCandidateStr.str();
-	pair<wstring, bool> next = appendTypedLetter(curr, (wchar_t)(wParam&0xFFFF), wParam);
+	pair<wstring, bool> next = appendTypedLetter(curr, (wchar_t)(wParam&0xFFFF), wParam, lParam);
 
 	//Did we change anything?
 	if (next.second) {
@@ -201,7 +201,7 @@ void LetterInputMethod::handleKeyPress(WPARAM wParam, bool isUpper)
 		viewChanged = true;
 	} else {
 		//Check for system keys
-		InputMethod::handleKeyPress(wParam, isUpper);
+		InputMethod::handleKeyPress(wParam, lParam, isUpper);
 	}
 }
 

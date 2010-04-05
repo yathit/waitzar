@@ -7,8 +7,8 @@
   # What output encoding, display method, and input method are used by default? 
   "default-output-encoding" : "ayar",
   "default-input-method" : "ayar",
-  "default-display-method" : "zawgyibmp",
-  "default-display-method-small" : "zawgyibmpsmall",
+  "default-display-method" : "ayarttf",
+  "default-display-method-small" : "ayarttfsmall",
   
   # Declaration of input methods. To add your own input method, create a folder in the 
   # "Myanmar" directory, then add a config.json.txt file in that folder which starts with the
