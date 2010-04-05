@@ -29,7 +29,7 @@ bool Uni2Ayar::IsConsonant(wchar_t letter) const
 //Convert
 void Uni2Ayar::convertInPlace(std::wstring& src) const
 {
-	//Temporary algorithm: just split and move kinzi + yay-cha + ya-yit
+	//Temporary algorithm: just split and move kinzi + tha-way-htoe + ya-yit
 	std::wstringstream res;
 	std::wstringstream currSyllable;
 	std::wstringstream currSyllablePrefix;
