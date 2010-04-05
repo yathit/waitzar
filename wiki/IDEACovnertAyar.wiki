@@ -1,0 +1,31 @@
+#summary We need a temporary fix for the Ayar font for version 1.8.
+
+= Introduction =
+
+The Ayar Unicode project is another non-compliant encoding of Unicode:
+http://code.google.com/p/ayarunicode/
+
+However, it has some distinct advantages over the other "partial Unicode" encodings:
+   # It has a very open license (MIT).
+   # It is under active development (unlike Zawgyi 2010).
+   # It looks nice (as a system font). 
+   # It does not use minority code points (like Zawgyi-One, Mya Zedi).
+   # Shan/Mon/etc. fonts are under development. 
+   # The encoding is fairly sensible; definitely Unicode-inspired. (So, we could conceivably use it as a BMP font with some hacking.)
+
+Given these advantages, the main problem is creating a Transformation. I'd like Ayar to be the first example of a user-written Javascript converter; however, I also want a demo in 1.8. So, we'll just take the Unicode2Zawgyi and build on that for a temporary solution.
+
+
+= Unicode 2 Ayar =
+
+  * First, we convert to Zawgyi.
+  * Then, we have to scan for Zawgyi "syllables" (like we do in the Zawgyi converter). For each syllable:
+     * Convert [--္, --်, ျ-, --ြ, --ွ]  [(1039), (103A), (103B), (103C), (103D)] to [(103A), (103B), (103C), (103D), (103E)]
+     * If the syllable contains ေ(1031) or ျ (103C), put them in front of the consonant. Put 1031 first.
+     * Convert kinzi: (1064) to ????
+     * Convert pat-sint: [(1060), (1061), (1062), (1063), (1065), (1066), (1067)]
+
+*TODO:* Right now, we're approaching it wrong.... need to re-think this....
+
+
+
