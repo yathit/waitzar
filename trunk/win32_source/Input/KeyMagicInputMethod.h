@@ -129,6 +129,9 @@ public:
 		matchStack = c2.matchStack;
 		switchesToOff = c2.switchesToOff;
 		replacementRules = c2.replacementRules;
+		dotStartID = c2.dotStartID;
+		dotEndID = c2.dotEndID;
+		currRootDot = c2.currRootDot;
 		return *this;
 	}
 
