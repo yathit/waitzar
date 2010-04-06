@@ -74,7 +74,7 @@ public:
 
 	//Keypress handlers (abstract virtual)
 	virtual void handleEsc() = 0;
-	virtual void handleBackspace() = 0;
+	virtual void handleBackspace(WPARAM wParam, LPARAM lParam) = 0;
 	virtual void handleDelete() = 0;
 	virtual void handleLeftRight(bool isRight, bool loopToZero) = 0;
 	virtual void handleUpDown(bool isDown) = 0;

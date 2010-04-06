@@ -25,7 +25,7 @@ public:
 
 	//Abstract implementation - keypresses
 	void handleEsc();
-	void handleBackspace();
+	void handleBackspace(WPARAM wParam, LPARAM lParam);
 	void handleDelete();
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
@@ -136,7 +136,7 @@ void RomanInputMethod<ModelType>::handleEsc()
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleBackspace()
+void RomanInputMethod<ModelType>::handleBackspace(WPARAM wParam, LPARAM lParam)
 {
 	if (!mainWindow->isVisible()) {
 		//Delete the previous word in the sentence
