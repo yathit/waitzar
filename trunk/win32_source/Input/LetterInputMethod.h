@@ -22,7 +22,7 @@ public:
 
 	//Abstract implementation - keypresses
 	void handleEsc();
-	void handleBackspace();
+	virtual void handleBackspace(WPARAM wParam, LPARAM lParam);
 	void handleDelete();
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
@@ -49,10 +49,11 @@ public:
 
 	std::pair<int, std::string> lookupWord(std::wstring typedWord);
 
-private:
+protected:
 	std::wstringstream typedSentenceStr;
 	std::wstringstream typedCandidateStr;
 
+private:
 	//myWin 2.1 rules for stacking
 	bool canStack(wchar_t letter) { return (letter>=0x1000 && letter<=0x1003) || (letter>=0x1005 && letter<=0x1021); }
 

@@ -2220,7 +2220,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 		case HOTKEY_BACK:
 			//Back up
-			currInput->handleBackspace();
+			currInput->handleBackspace(wParam, lParam);
 			return true;
 
 		case HOTKEY_DELETE:

@@ -216,6 +216,7 @@ public:
 
 	//Overrides of LetterInputMethod
 	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam);
+	virtual void handleBackspace(WPARAM wParam, LPARAM lParam);
 
 private:
 	//Trace?

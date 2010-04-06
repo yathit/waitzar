@@ -37,7 +37,7 @@ void LetterInputMethod::handleEsc()
 
 
 
-void LetterInputMethod::handleBackspace()
+void LetterInputMethod::handleBackspace(WPARAM wParam, LPARAM lParam)
 {
 	//Delete a letter (performs differently in help mode)
 	if (this->isHelpInput()) {

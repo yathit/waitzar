@@ -894,6 +894,29 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 
 
 
+void KeyMagicInputMethod::handleBackspace(WPARAM wParam, LPARAM lParam)
+{
+	//Simply handle this key-press
+	wstring currStr = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
+	pair<wstring, bool> next = appendTypedLetter(currStr, 0x0008, wParam, lParam);
+	if (next.first.length()>0 && next.first[next.first.length()-1]==0x0008) {
+		//Default backspace rules
+		LetterInputMethod::handleBackspace(wParam, lParam);
+	} else {
+		if (this->isHelpInput()) {
+			typedCandidateStr.str(L"");
+			typedCandidateStr <<next.first;
+		} else {
+			typedSentenceStr.str(L"");
+			typedSentenceStr <<next.first;
+		}
+		viewChanged = true;
+	}
+}
+
+
+
+
 pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam)
 {
 	//Get the REAL keycode (to-do: we should fix this later)
