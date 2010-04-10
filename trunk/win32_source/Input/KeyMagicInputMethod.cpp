@@ -659,6 +659,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 	//Skip entries that obviously will never match?
 	//NOTE: This only checks TOP-level key_combination matches. If someone were to put
 	//      a match inside a $var[*], we'd have to catch that later.
+	//TODO: Cache this upon loading the rule.
 	if (matchedOneVirtualKey) {
 		for (size_t i=0; i<rule.first.size(); i++) {
 			if (rule.first[i].type==KMRT_KEYCOMBINATION) {
@@ -669,8 +670,24 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 		}
 	}
 
+	//Get an estimate of rule size (useful later)
+	//NOTE: This will always be <= the actual size of the match.
+	//TODO: Cache and build this when the rule first loads.
+	int estRuleSize = 0;
+	for (size_t i=0; i<rule.first.size(); i++) {
+		if (rule.first[i].type==KMRT_STRING)
+			estRuleSize += rule.first[i].str.length();
+		else if (rule.first[i].type!=KMRT_SWITCH)
+			estRuleSize++;
+	}
+
 	vector<Candidate> candidates;
 	for (size_t dot=0; dot<input.length(); dot++) {
+		//Skip entries that are obviously too big to finish at the end of the string
+		int lenLeft = input.length()-dot;
+		if (estRuleSize > lenLeft)
+			continue;
+
 		//Add a new empty candidate
 		candidates.push_back(Candidate(rule, dot));
 
@@ -785,17 +802,26 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 
 			//Did this rule pass or fail?
 			bool eraseFlag = false;
+			bool isDone = curr->isDone();
 			if (!allow) {
 				//Remove the current entry; decrement the pointer
 				curr = candidates.erase(curr);
 				eraseFlag = true;
-				continue;
+				//continue;
 			}
 
 			//Did this match finish?
-			if (curr->isDone()) {
-				curr->dotEndID = dot+1;
-				return pair<Candidate, bool>(*curr, true);
+			if (allow && isDone) {
+				//Are we also at the end of the string?
+				if (dot==input.length()-1) {
+					//Match successful
+					curr->dotEndID = dot+1;
+					return pair<Candidate, bool>(*curr, true);
+				} else {
+					//Match failed; too short
+					curr = candidates.erase(curr);
+					eraseFlag = true;
+				}
 			}
 
 			//Did we just erase an element? If so, the pointer doesn't increment
