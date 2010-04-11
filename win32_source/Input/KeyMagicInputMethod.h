@@ -46,6 +46,16 @@ struct Rule {
 };
 
 
+
+struct RuleSet {
+	std::vector<Rule> match;
+	std::vector<Rule> replace;
+	std::vector<unsigned int> requiredSwitches;
+	std::wstring debugRuleText;
+};
+
+
+
 //String/int pairs
 struct Group {
 	std::wstring value;
@@ -112,11 +122,12 @@ public:
 	Candidate(std::vector<Rule> tempVec) : replacementRules(tempVec) {}
 
 	//Init
-	Candidate(std::pair< std::vector<Rule>, std::vector<Rule> >& rulePair, int dotStartID1) : replacementRules(rulePair.second) {
-		matchStack.push(Matcher(rulePair.first));
+	Candidate(RuleSet& ruleSet, int dotStartID1) : replacementRules(ruleSet.replace) {
+		matchStack.push(Matcher(ruleSet.match));
+		switchesToOff = ruleSet.requiredSwitches;
 
 		//Init array sizes
-		for (unsigned int i=0; i<rulePair.first.size(); i++)
+		for (unsigned int i=0; i<ruleSet.match.size(); i++)
 			matches.push_back(Group(L"", -1));
 		currRootDot = 0;
 
@@ -187,9 +198,9 @@ public:
 	}
 
 	//For switches
-	void queueSwitchOff(unsigned int id) {
+	/*void queueSwitchOff(unsigned int id) {
 		switchesToOff.push_back(id);
-	}
+	}*/
 	const std::vector<unsigned int>& getPendingSwitches() const {
 		return switchesToOff;
 	}
@@ -229,16 +240,15 @@ private:
 	//Data
 	std::vector<bool> switches;
 	std::vector< std::vector<Rule> > variables;
-	std::vector< std::pair< std::vector<Rule>, std::vector<Rule> > > replacements;
-	std::vector<std::wstring> debugRuleText; //NOTE: If we load rules from a cached file, this will contain empty strings.
+	std::vector< RuleSet > replacements;
 
 	//Helpers
 	int hexVal(wchar_t letter);
 	Rule parseRule(const std::wstring& ruleStr);
 	void addSingleRule(const std::wstring& fullRuleText, const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
-	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings);
+	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, std::vector<unsigned int>& switchesUsed, size_t iStart, size_t iEnd, bool condenseStrings);
 	Rule compressToSingleStringRule(const std::vector<Rule>& rules);
-	std::pair<Candidate, bool> getCandidateMatch(std::pair< std::vector<Rule>, std::vector<Rule> >& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
+	std::pair<Candidate, bool> getCandidateMatch(RuleSet& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
 	std::wstring applyMatch(const Candidate& result, bool& resetLoop, bool& breakLoop);
 
 
