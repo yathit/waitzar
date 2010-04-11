@@ -8,6 +8,7 @@
 #define _KEYMAGIC_INPUT_METHOD
 
 #include <stack>
+#include <fstream>
 #include "MyWin32Window.h"
 #include "Input/LetterInputMethod.h"
 #include "Input/keymagic_vkeys.h"
@@ -29,6 +30,11 @@ enum RULE_TYPE {
 	KMRT_VARARRAY_SPECIAL, //Variable matches like $temp[*], $temp[^] (we store the char itself in the val value)
 	KMRT_VARARRAY_BACKREF, //Variable matches like $temp[$1]
 	KMRT_KEYCOMBINATION,   //Something like <VK_SHIFT & VK_T> (val contains the key, combined with modifiers)
+};
+
+//Current version of our binary file format.
+enum {
+	KEYMAGIC_BINARY_VERSION = 1
 };
 
 struct Rule {
@@ -222,7 +228,10 @@ public:
 	virtual ~KeyMagicInputMethod();
 
 	//Key functionality
-	void loadRulesFile(const std::string& rulesFilePath);
+	void loadTextRulesFile(const std::string& rulesFilePath);
+	void loadBinaryRulesFile(const std::string& rulesFilePath);
+	void saveBinaryRulesFile(const std::string& rulesFilePath, const std::string& checksum);
+	void loadRulesFile(const std::string& rulesFilePath, const std::string& binaryFilePath, bool disableCache);
 	std::wstring applyRules(const std::wstring& origInput, unsigned int vkeyCode);
 
 	//Overrides of LetterInputMethod
@@ -236,6 +245,8 @@ private:
 	static std::string keyMagicLogFileName;
 	static void clearLogFile(const std::string& fileName);
 	static void writeLogLine(const std::string& fileName, const std::wstring& logLine); //We'll escape MM outselves
+	static void writeInt(vector<char>& stream, int intVal);
+	static int readInt(char* buffer, size_t currPos, size_t bufferSize);
 
 	//Data
 	std::vector<bool> switches;
