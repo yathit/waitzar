@@ -685,11 +685,10 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 	for (size_t dot=0; dot<input.length(); dot++) {
 		//Skip entries that are obviously too big to finish at the end of the string
 		int lenLeft = input.length()-dot;
-		if (estRuleSize > lenLeft)
-			continue;
 
 		//Add a new empty candidate
-		candidates.push_back(Candidate(rule, dot));
+		if (estRuleSize <= lenLeft)
+			candidates.push_back(Candidate(rule, dot));
 
 		//Continue matching.
 		//Note: For now, the candidates list won't expand while we move the dot. (It might shrink, however)
@@ -995,6 +994,8 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 		}
 
 		//Match this rule
+		if (rpmID==12)
+			printf("hi");
 		pair<Candidate, bool> result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
 
 		//Did we match anything?
