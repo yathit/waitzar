@@ -2252,7 +2252,7 @@ bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
 
 		case HOTKEY_COMMA: case HOTKEY_PERIOD:
 			//Handle stops
-			currInput->handleStop(wParam==HOTKEY_PERIOD);
+			currInput->handleStop(wParam==HOTKEY_PERIOD, wParam, lParam);
 			return true;
 
 		case HOTKEY_ENTER: case HOTKEY_SHIFT_ENTER:
