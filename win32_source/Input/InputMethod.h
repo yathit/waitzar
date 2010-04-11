@@ -62,6 +62,7 @@ public:
 	TYPES type;
 	bool suppressUppercase;
 	bool typeNumeralConglomerates;
+	bool disableCache;
 	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality

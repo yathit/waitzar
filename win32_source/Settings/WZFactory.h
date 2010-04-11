@@ -16,6 +16,10 @@
 #include <map>
 #include <string>
 
+#define _UNICODE
+#define UNICODE
+#include <shlobj.h> //GetFolderPath
+
 #include "resource.h"
 
 #include "Input/RomanInputMethod.h"
@@ -62,7 +66,7 @@ public:
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID);
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
-	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
+	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache);
 	static LetterInputMethod* getMywinInput(std::wstring langID);
 
 	//Display method builders
@@ -455,15 +459,50 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory<ModelType>::getBurglishInp
 
 //Get a keymagic input method
 template <class ModelType>
-LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName)
+LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache)
 {
 	wstring fullID = langID + L"." + inputID;
 
 	if (WZFactory<ModelType>::cachedLetterInputs.count(fullID)==0) {
+		//Prepare our binary path/name
+		string fs = "\\";
+		std::stringstream binaryName;
+		if (!disableCache) {
+			//Get the path
+			wchar_t localAppPath[MAX_PATH];
+			if (FAILED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, localAppPath))) 
+				disableCache = true;
+			else {
+				binaryName <<waitzar::escape_wstr(localAppPath, true) <<fs <<"WaitZar";
+				WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+
+				//Create the directory if it doesn't exist
+				std::wstringstream temp;
+				temp << binaryName.str().c_str();
+				if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+					CreateDirectory(temp.str().c_str(), NULL);
+
+				//Get the name
+				binaryName <<fs <<waitzar::escape_wstr(fullID, false) <<'.';
+				size_t firstValidID = wordlistFileName.rfind('\\');
+				if (firstValidID==std::string::npos)
+					firstValidID = 0;
+				else
+					firstValidID++;
+				size_t lastDotID = wordlistFileName.find('.');
+				if (lastDotID!=std::string::npos) {
+					for (size_t i=firstValidID; i<lastDotID; i++)
+						binaryName <<wordlistFileName[i];
+				}
+				binaryName <<".bin";
+			}
+		}
+
 		//Build our result
 		KeyMagicInputMethod* res = new KeyMagicInputMethod();
 		res->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords);
-		res->loadRulesFile(wordlistFileName);
+		res->loadRulesFile(wordlistFileName, binaryName.str(), disableCache);
+		res->disableCache = disableCache;
 
 		WZFactory<ModelType>::cachedLetterInputs[fullID] = res;
 	}
@@ -713,8 +752,13 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
 			throw std::exception(ConfigManager::glue(L"Keyboard file does not exist: ", keymagicFile).c_str());
 
+		//Check the cache
+		bool disableCache = false;
+		if (options.count(sanitize_id(L"disable-cache"))>0)
+			disableCache = read_bool(options.find(sanitize_id(L"disable-cache"))->second);
+
 		//Get it, as a singleton
-		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false));
+		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache);
 		res->type = IME_KEYBOARD;
 	} else {
 		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
