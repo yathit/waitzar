@@ -542,7 +542,7 @@ Rule KeyMagicInputMethod::compressToSingleStringRule(const std::vector<Rule>& ru
 
 //Validate (and slightly transform) a set of rules given a start and an end index
 //We assume that this is never called on the LHS of an assigment statement.
-vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, const map< wstring, unsigned int>& varLookup, map< wstring, unsigned int>& switchLookup, size_t iStart, size_t iEnd, bool condenseStrings)
+vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, const map< wstring, unsigned int>& varLookup, map< wstring, unsigned int>& switchLookup, std::vector<unsigned int>& switchesUsed, size_t iStart, size_t iEnd, bool condenseStrings)
 {
 	//Behave differently depending on the rule type
 	vector<Rule> res;
@@ -587,10 +587,13 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 					switches.push_back(false);
 				}
 				currRule.id = switchLookup.find(currRule.str)->second;
+				switchesUsed.push_back(currRule.id);
 				break;
 		}
 
-		res.push_back(currRule);
+		//Add all rules that consume input.
+		if (currRule.type != KMRT_SWITCH)
+			res.push_back(currRule);
 	}
 
 	return res;
@@ -633,10 +636,15 @@ void KeyMagicInputMethod::addSingleRule(const std::wstring& fullRuleText, const 
 	//
 
 	//Compute the RHS string first (this also avoids circular variable references)
-	std::vector<Rule> rhsVector = createRuleVector(rules, varLookup, switchLookup, rhsStart, rules.size(), true);
+	std::vector<unsigned int> temp;
+	std::vector<Rule> rhsVector = createRuleVector(rules, varLookup, switchLookup, temp, rhsStart, rules.size(), true);
 
 	//LHS storage depends on if this is a variable or not
 	if (isVariable) {
+		//TODO: Allow switches in variables under some conditions
+		if (!temp.empty())
+			throw std::exception("Error: At the moment, Key Magic on WaitZar does not support switches inside of variables");
+
 		//Make sure it's in the array ONLY once. Then add it.
 		const wstring& candidate = rules[0].str;
 		if (varLookup.count(candidate) != 0)
@@ -645,24 +653,40 @@ void KeyMagicInputMethod::addSingleRule(const std::wstring& fullRuleText, const 
 		variables.push_back(rhsVector);
 	} else {
 		//Get a similar LHS vector, add it to our replacements list
-		std::vector<Rule> lhsVector = createRuleVector(rules, varLookup, switchLookup, 0, rhsStart, false); //We need to preserve groupings
-		replacements.push_back(std::pair< std::vector<Rule>, std::vector<Rule> >(lhsVector, rhsVector));
-		debugRuleText.push_back(fullRuleText);
+		std::vector<unsigned int> switches;
+		std::vector<Rule> lhsVector = createRuleVector(rules, varLookup, switchLookup, switches, 0, rhsStart, false); //We need to preserve groupings
+		RuleSet rule;
+		rule.match = lhsVector;
+		rule.replace = rhsVector;
+		rule.requiredSwitches = switches;
+		rule.debugRuleText = fullRuleText;
+		replacements.push_back(rule);
 	}
 }
 
 
 
 //NOTE: This function will update matchedOneVirtualKey
-pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>, vector<Rule> >& rule, const wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey)
+pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, const wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey)
 {
+	//Check all switches that this rule relies on:
+	for (unsigned int i=0; i<rule.requiredSwitches.size(); i++) {
+		//Switch: only if that switch is ON, and matching will turn that switch OFF later.
+		if (!switches[rule.requiredSwitches[i]]) {
+			//It won't work; a switch is off
+			vector<Rule> temp;
+			return pair<Candidate, bool>(Candidate(temp), false);
+		}
+
+	}
+
 	//Skip entries that obviously will never match?
 	//NOTE: This only checks TOP-level key_combination matches. If someone were to put
 	//      a match inside a $var[*], we'd have to catch that later.
 	//TODO: Cache this upon loading the rule.
 	if (matchedOneVirtualKey) {
-		for (size_t i=0; i<rule.first.size(); i++) {
-			if (rule.first[i].type==KMRT_KEYCOMBINATION) {
+		for (size_t i=0; i<rule.match.size(); i++) {
+			if (rule.match[i].type==KMRT_KEYCOMBINATION) {
 				//Can't work; we've already matched a key combination. 
 				vector<Rule> temp;
 				return pair<Candidate, bool>(Candidate(temp), false);
@@ -674,10 +698,10 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 	//NOTE: This will always be <= the actual size of the match.
 	//TODO: Cache and build this when the rule first loads.
 	int estRuleSize = 0;
-	for (size_t i=0; i<rule.first.size(); i++) {
-		if (rule.first[i].type==KMRT_STRING)
-			estRuleSize += rule.first[i].str.length();
-		else if (rule.first[i].type!=KMRT_SWITCH)
+	for (size_t i=0; i<rule.match.size(); i++) {
+		if (rule.match[i].type==KMRT_STRING)
+			estRuleSize += rule.match[i].str.length();
+		else if (rule.match[i].type!=KMRT_SWITCH)
 			estRuleSize++;
 	}
 
@@ -697,26 +721,17 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 			//Before attemping to "move the dot", we must expand any variables by adding new entries to the stack.
 			//NOTE: We also need to handle switches, which shouldn't move the dot anyway
 			bool allow = true;
-			while (allow && curr->getCurrRule().type==KMRT_VARIABLE || curr->getCurrRule().type==KMRT_SWITCH) {
-				if (curr->getCurrRule().type==KMRT_VARIABLE) {
-					//Variable: Push to stack
-					curr->newCurr(variables[curr->getCurrRule().id]);
-				} else {
-					//Switch: only if that switch is ON, and matching will turn that switch OFF later.
-					if (switches[curr->getCurrRule().id]) {
-						curr->queueSwitchOff(curr->getCurrRule().id);
-						curr->advance(L'', -1);
-						if (curr->isDone())
-							break;
-					} else {
-						allow = false;
-						break;
-					}
-				}
+			while (allow && curr->getCurrRule().type==KMRT_VARIABLE) {
+				//Variable: Push to stack
+				curr->newCurr(variables[curr->getCurrRule().id]);
 			}
 
+
+			//TODO: Our code for handling switches doesn't work properly.We need to look at the entire loop & re-do it.
+
+
 			//"Moving the dot" is allowed under different circumstances, depending on the type of rule we're dealing with.
-			if (allow && !curr->isDone()) {
+			if (allow) {
 				switch(curr->getCurrRule().type) {
 					//Wildcard: always move
 					case KMRT_WILDCARD:
@@ -1019,7 +1034,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 		if (result.second) {
 			//Log match rule
 			if (LOG_KEYMAGIC_TRACE) {
-				wstring ruleTxt = !debugRuleText[rpmID].empty() ? debugRuleText[rpmID] : L"<Empty Rule Text>";
+				wstring ruleTxt = !replacements[rpmID].debugRuleText.empty() ? replacements[rpmID].debugRuleText : L"<Empty Rule Text>";
 				KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"   " + ruleTxt);
 			}
 
