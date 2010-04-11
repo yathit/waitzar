@@ -697,15 +697,17 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 			//Before attemping to "move the dot", we must expand any variables by adding new entries to the stack.
 			//NOTE: We also need to handle switches, which shouldn't move the dot anyway
 			bool allow = true;
-			while (curr->getCurrRule().type==KMRT_VARIABLE || curr->getCurrRule().type==KMRT_SWITCH) {
+			while (allow && curr->getCurrRule().type==KMRT_VARIABLE || curr->getCurrRule().type==KMRT_SWITCH) {
 				if (curr->getCurrRule().type==KMRT_VARIABLE) {
 					//Variable: Push to stack
 					curr->newCurr(variables[curr->getCurrRule().id]);
 				} else {
 					//Switch: only if that switch is ON, and matching will turn that switch OFF later.
 					if (switches[curr->getCurrRule().id]) {
-						curr->advance(L'', -1);
 						curr->queueSwitchOff(curr->getCurrRule().id);
+						curr->advance(L'', -1);
+						if (curr->isDone())
+							break;
 					} else {
 						allow = false;
 						break;
@@ -714,7 +716,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(pair< vector<Rule>,
 			}
 
 			//"Moving the dot" is allowed under different circumstances, depending on the type of rule we're dealing with.
-			if (allow) {
+			if (allow && !curr->isDone()) {
 				switch(curr->getCurrRule().type) {
 					//Wildcard: always move
 					case KMRT_WILDCARD:
@@ -919,6 +921,23 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 
 
 
+void KeyMagicInputMethod::handleStop(bool isFull, WPARAM wParam, LPARAM lParam)
+{
+	//Handle this as a regular key press
+	wstring currStr = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
+	pair<wstring, bool> next = appendTypedLetter(currStr, (isFull?L'.':L','), wParam, lParam);
+	if (this->isHelpInput()) {
+		typedCandidateStr.str(L"");
+		typedCandidateStr <<next.first;
+	} else {
+		typedSentenceStr.str(L"");
+		typedSentenceStr <<next.first;
+	}
+	viewChanged = true;
+}
+
+
+
 void KeyMagicInputMethod::handleBackspace(WPARAM wParam, LPARAM lParam)
 {
 	//Simply handle this key-press
@@ -994,8 +1013,6 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 		}
 
 		//Match this rule
-		if (rpmID==12)
-			printf("hi");
 		pair<Candidate, bool> result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
 
 		//Did we match anything?

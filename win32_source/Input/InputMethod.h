@@ -80,7 +80,7 @@ public:
 	virtual void handleUpDown(bool isDown) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
 	virtual void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers) = 0;
-	virtual void handleStop(bool isFull) = 0;
+	virtual void handleStop(bool isFull, WPARAM wParam, LPARAM lParam) = 0;
 	virtual void handleTab() = 0;
 
 	virtual void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);

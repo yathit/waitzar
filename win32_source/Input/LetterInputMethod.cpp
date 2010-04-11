@@ -85,7 +85,7 @@ void LetterInputMethod::handleNumber(int numCode, WPARAM wParam,  LPARAM lParam,
 	this->handleKeyPress(wParam, lParam, isUpper);
 }
 
-void LetterInputMethod::handleStop(bool isFull)
+void LetterInputMethod::handleStop(bool isFull, WPARAM wParam, LPARAM lParam)
 {
 	//Perform the normal "enter" routine.
 	typedStopChar = isFull ? L'\u104B' : L'\u'; //TODO: Make this based on encoding...

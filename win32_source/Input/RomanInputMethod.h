@@ -31,7 +31,7 @@ public:
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers);
-	void handleStop(bool isFull);
+	void handleStop(bool isFull, WPARAM wParam, LPARAM lParam);
 	void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);
 	void handleTab();
 
@@ -252,7 +252,7 @@ void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, LPARA
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleStop(bool isFull)
+void RomanInputMethod<ModelType>::handleStop(bool isFull, WPARAM wParam, LPARAM lParam)
 {
 	unsigned short stopChar = model->getStopCharacter(isFull);
 	if (!mainWindow->isVisible()) {	

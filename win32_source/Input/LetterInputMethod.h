@@ -28,7 +28,7 @@ public:
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
 	void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers);
-	void handleStop(bool isFull);
+	virtual void handleStop(bool isFull, WPARAM wParam, LPARAM lParam);
 	void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);
 	void handleTab();
 
