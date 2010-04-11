@@ -61,16 +61,89 @@ Some notes:
 
 = Step 4: Caching =
 
-Any observant readers will note that we perform a great deal of computation just to load one file. In practice, this does not slow down the program; however, we are still interested in speeding things up. After identifying types, the following data structures have been computed:
-   * _ `vector< vector<Rule> >` _ *variables* -- A list of variables' values (the names of the variables no longer matter, as they are addressed by id.
-   * _ `vector< pair<vector<Rule>, vector<Rule> > >` _ *replacements* -- A list of each replacement; the two pair elements correspond to the LHS and RHS of the replacement equation.
-Each Rule has also been validated and checked; it would make sense to save all of this work. Thus, WaitZar caches any "compiled" KeyMagic keyboards into the shared application directory. In addition to the *variables* and *replacements* structures, it also saves a *hash* value which represents the MD5 checksum of the original source file. If that checksum changes, WaitZar will re-generate and re-cache the compiled file.
+Any observant readers will note that we perform a great deal of computation just to load one file. In practice, this does not slow down the program; however, we are still interested in speeding things up. Generally speaking, the following information must be cached:
+   * A list of variables' values (the names of the variables no longer matter, as they are addressed by id.
+   * The total number of switches.
+   * For each "replacement", the following:
+      * A list of "match" expressions.
+      * A list of "replace" expressions.
+      * A list of which switches must be on for matching to be considered valid.
+
+WaitZar caches any "compiled" KeyMagic keyboards into the shared application directory. In addition to the structures listed above, it also saves a *hash* value which represents the MD5 checksum of the original source file. If that checksum changes, WaitZar will re-generate and re-cache the compiled file. This behavior can be overridden in the config file --one good reason for doing so is that compiled keyboard files do not contain the original "replacement" texts, which would make debugging difficult for developers.
+
+
+== Binary Format for Compiled Keyboard ==
+
+Compiled keyboards are stored in binary files in the shared application directory. The file name is the fully-qualified path of the keyboard file with redundant elements removed and the "bin" extension appended. For example, given:
+   {{{
+   {"languages.myanmar.input-methods" : {
+     "ayar" : 
+     {
+       "display-name" : "Ayar Keyboard",
+       "encoding" : "ayar", 
+       "type" : "keymagic",
+       "keyboard-file" : "AyarFile.kms"
+     }
+   }}
+   }}}
+
+...the compiled file would be named:
+   `myanmar.ayar.ayarfile.bin`
+
+The file's contents are divided into a fixed-length header and a variable-length body.
+
+
+== Binary Format: Header Specification ==
+
+The header is organized as follows. "Size" entries are listed in bytes. 
+
+|| *Size* || *Name* || *Description* ||
+|| 1 || Version || Version of the binary format, currently "1". If the version does not match the version stored internally to WaitZar, the bin file will be re-generated. ||
+|| 2 || BOM || Will be 0xFEFF. If the BOM appears as 0xFFFE, then the file was encoded backwards. ||
+|| 16     || Checksum || If the MD5 checksum of the source file does not match this value, the bin file must be re-generated. ||
+|| 2 || Switches || Number of switches in our file. Limit: 65535 ||
+|| 2 || Variables || Number of variables in our file. Limit: 65535 ||
+|| 2 || Replacements || Number of replacements in our file. Limit: 65535 ||
+
+
+== Binary Format: Body Specification ==
+
+Following the header is a body consisting of *Variables* + *Replacements * number of entries. Variables and replacements are stored in the same data structure, detailed below. Variables will always have *Switches_Size* and *LHS_Size* set to zero. Note that, in general, where an integer is expected, 0xFFFF represents -1 or "invalid", and all other values represent unsigned integers. 
+
+|| *Size* || *Name* || *Description* ||
+|| 2 || Switches_Size || Number of switches this rule requires. ||
+|| 2 || LHS_Size || Number of Rules on the LHS. ||
+|| 2 || RHS_Size || Number of Rules on the RHS. ||
+
+Following this mini-header are *Switches_Size* entries of the form:
+|| *Size* || *Name* || *Description* ||
+|| 2 || Switch ID || The ID of the switch this replacement expects. ||
+
+Following the switch entries are *LHS_Size* + *RHS_Size* entries of the form:
+|| *Size* || *Name* || *Description* ||
+|| 1 || Rule Type || Zero-indexed: {STRING, WILDCARD, VARIABLE, MATCHVAR, SWITCH, VARARRAY, VARARRAY_SPECIAL, VARARRAY_BACKREF, KMRT_KEYCOMBINATION} ||
+|| 2 || Rule Value || The "value" field of a rule. ||
+|| 2 || Rule ID || The "id" field of a rule. ||
+|| 2 + X || Rule String || First 2 bytes specify the size of the string; remaining 2*X bytes represent X wide characters. Letters outside the BMP not supported. ||
+
+
+It is imperative to remember that the binary format expects minimal error checking to be performed. 
 
 
 
 = Step 5: Matching (Simple) = 
 
 I haven't looked at the Key Magic source, but I imagine that it expands all variables into one long string and then performs something like String.find() --with added considerations for back references, of course. 
+
+*NOTE:* It would be prudent to mention at this point that matches are only valid if they occur at the END of a string. For example, if the user types:
+   `'abc' <VK_KEY_D>`
+...then the following will match:
+   {{{
+    'c' + <VK_KEY_D> ==> $1
+    'cd' ==> $1
+   }}}
+...but the following will not:
+   `'ab' ==> $1`
 
 I prefer an approach somewhat similar to traditional regular expression parsers. We'll use the "dot syntax" of these approaches: consider, at all times, that "•" means "the location we're currently at in the string or pattern". For example, given the string:
    `abcdef`
