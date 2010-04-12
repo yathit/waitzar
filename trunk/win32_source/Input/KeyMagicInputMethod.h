@@ -12,7 +12,6 @@
 #include "MyWin32Window.h"
 #include "Input/LetterInputMethod.h"
 #include "Input/keymagic_vkeys.h"
-#include "Settings/ConfigManager.h"
 
 
 //NOTE TO SELF: KMRT_STRING values which appear in sequence COMBINE to form one string
@@ -173,7 +172,7 @@ public:
 	void newCurr(std::vector<Rule>& rule) {
 		matchStack.push(Matcher(rule));
 	}
-	void advance(const wstring& foundStr, int foundID) { //Called if a match is allowed
+	void advance(const std::wstring& foundStr, int foundID) { //Called if a match is allowed
 		if (isDone())
 			return;
 
@@ -231,7 +230,7 @@ public:
 	void loadTextRulesFile(const std::string& rulesFilePath);
 	void loadBinaryRulesFile(const std::string& rulesFilePath);
 	void saveBinaryRulesFile(const std::string& rulesFilePath, const std::string& checksum);
-	void loadRulesFile(const std::string& rulesFilePath, const std::string& binaryFilePath, bool disableCache);
+	void loadRulesFile(const std::string& rulesFilePath, const std::string& binaryFilePath, bool disableCache, std::string (*fileMD5Function)(const std::string&));
 	std::wstring applyRules(const std::wstring& origInput, unsigned int vkeyCode);
 
 	//Overrides of LetterInputMethod
@@ -245,7 +244,7 @@ private:
 	static std::string keyMagicLogFileName;
 	static void clearLogFile(const std::string& fileName);
 	static void writeLogLine(const std::string& fileName, const std::wstring& logLine); //We'll escape MM outselves
-	static void writeInt(vector<char>& stream, int intVal);
+	static void writeInt(std::vector<char>& stream, int intVal);
 	static int readInt(char* buffer, size_t currPos, size_t bufferSize);
 
 	//Data
