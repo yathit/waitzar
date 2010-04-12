@@ -261,8 +261,11 @@ void KeyMagicInputMethod::writeInt(vector<char>& stream, int intVal)
 	}
 
 	//In bounds?
-	if (intVal<0 || intVal>=0xFFFF)
-		throw std::exception("Integer is too big or too small");
+	if (intVal<0 || intVal>=0xFFFF) {
+		std::stringstream msg;
+		msg <<"Integer is too big or too small: " <<intVal;
+		throw std::exception(msg.str().c_str());
+	}
 
 	//Write first half, write second half
 	stream.push_back((intVal>>8)&0xFF);
@@ -315,27 +318,40 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 		size_t totalRules = isVar ? (variables[actID].size()) : (replacements[actID].match.size() + replacements[actID].replace.size());
 		for (size_t ruleRelID=0; ruleRelID<totalRules; ruleRelID++) {
 			//Actually get this rule.
-			bool transpose = !isVar && ruleRelID<replacements[actID].match.size();
+			bool transpose = !isVar && ruleRelID>=replacements[actID].match.size(); //Transpose to RHS
 			int ruleActID = !transpose ? ruleRelID : ruleRelID-replacements[actID].match.size();
 			Rule& r = isVar ? variables[actID][ruleActID] : !transpose ? replacements[actID].match[ruleActID] : replacements[actID].replace[ruleActID];
 
 			//Write this rule.
-			switch (r.type) {
-				case KMRT_STRING:     binStream.push_back(0);   break;
-				case KMRT_WILDCARD:   binStream.push_back(1);   break;
-				case KMRT_VARIABLE:   binStream.push_back(2);   break;
-				case KMRT_MATCHVAR:   binStream.push_back(3);   break;
-				case KMRT_SWITCH:     binStream.push_back(4);   break;
-				case KMRT_VARARRAY:   binStream.push_back(5);   break;
-				case KMRT_VARARRAY_SPECIAL:     binStream.push_back(6);   break;
-				case KMRT_VARARRAY_BACKREF:     binStream.push_back(7);   break;
-				case KMRT_KEYCOMBINATION:  binStream.push_back(8);        break;
+			try {
+				switch (r.type) {
+					case KMRT_STRING:     binStream.push_back(0);   break;
+					case KMRT_WILDCARD:   binStream.push_back(1);   break;
+					case KMRT_VARIABLE:   binStream.push_back(2);   break;
+					case KMRT_MATCHVAR:   binStream.push_back(3);   break;
+					case KMRT_SWITCH:     binStream.push_back(4);   break;
+					case KMRT_VARARRAY:   binStream.push_back(5);   break;
+					case KMRT_VARARRAY_SPECIAL:     binStream.push_back(6);   break;
+					case KMRT_VARARRAY_BACKREF:     binStream.push_back(7);   break;
+					case KMRT_KEYCOMBINATION:  binStream.push_back(8);        break;
+				}
+				writeInt(binStream, r.val);
+				writeInt(binStream, r.id);
+				writeInt(binStream, r.str.length());
+				for (size_t i=0; i<r.str.length(); i++) 
+					writeInt(binStream, r.str[i]);
+			} catch (std::exception ex) {
+				std::stringstream msg;
+				msg <<"Error writing rule file: \n";
+				msg <<ex.what() <<std::endl;
+				if (isVar)
+					msg <<"On variable:" <<actID <<std::endl;
+				else {
+					msg <<"On rule:\n";
+					msg <<waitzar::escape_wstr(replacements[actID].debugRuleText, false) <<std::endl;
+				}
+				throw std::exception(msg.str().c_str());
 			}
-			writeInt(binStream, r.val);
-			writeInt(binStream, r.id);
-			writeInt(binStream, r.str.length());
-			for (size_t i=0; i<r.str.length(); i++) 
-				writeInt(binStream, r.str[i]);
 		}
 	}
 
