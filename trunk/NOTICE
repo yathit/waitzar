@@ -103,3 +103,14 @@ The myWin Myanmar Unicode keyboard layout, version 2.2
 License: GNU General Public License, version 3.0
 Site: http://www.thanlwinsoft.org/ThanLwinSoft/Downloads/index.php#keyboards
 Contact: Keith Stribley, Martin Hosken
+
+
+The Crypto++ Library, version 5.60
+ The files:
+ - *.h, *.cpp in Contrib/CryptoPP
+ The Crypto++ library provides an excellent implementation of various hashing algorithms and cryptographic
+ algorithms in C++. All files are released under the public domain, while the library itself has a separate license.
+ We only include the files needed for the MD5 algorithm.
+License: Public Domain
+Site: http://www.cryptopp.com/
+Contact: Wei Dai
