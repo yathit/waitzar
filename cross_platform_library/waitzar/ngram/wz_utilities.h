@@ -86,6 +86,35 @@ namespace waitzar
 
 
 
+	//For stl exceptions...
+	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3, const std::string& str4)
+	{
+		std::stringstream msg;
+		msg <<str1 <<str2 <<str3 <<str4;
+		return msg.str();
+	}
+	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3)
+	{
+		return glue(str1, str2, str3, "");
+	}
+	static std::string glue(const std::string& str1, const std::string& str2)
+	{
+		return glue(str1, str2, "", "");
+	}
+	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3, const std::wstring& str4)
+	{
+		return glue(waitzar::escape_wstr(str1, false), waitzar::escape_wstr(str2, false), waitzar::escape_wstr(str3, false), waitzar::escape_wstr(str4, false));
+	}
+	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3)
+	{
+		return glue(str1, str2, str3, L"");
+	}
+	static std::string glue(const std::wstring& str1, const std::wstring& str2)
+	{
+		return glue(str1, str2, L"", L"");
+	}
+
+
 } //End waitzar namespace
 
 

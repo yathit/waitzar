@@ -37,7 +37,6 @@
 #include "Transform/Ayar2Uni.h"
 #include "Transform/Uni2WinInnwa.h"
 #include "Transform/Self2Self.h"
-#include "Settings/ConfigManager.h"
 #include "resource.h"
 
 
@@ -57,7 +56,7 @@ public:
 	~WZFactory(void);
 
 	//Builders
-	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
+	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options, std::string (*fileMD5Function)(const std::string&));
 	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
 	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
@@ -66,7 +65,7 @@ public:
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID);
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
-	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache);
+	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache, std::string (*fileMD5Function)(const std::string&));
 	static LetterInputMethod* getMywinInput(std::wstring langID);
 
 	//Display method builders
@@ -459,7 +458,7 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory<ModelType>::getBurglishInp
 
 //Get a keymagic input method
 template <class ModelType>
-LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache)
+LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache, std::string (*fileMD5Function)(const std::string&))
 {
 	wstring fullID = langID + L"." + inputID;
 
@@ -501,7 +500,7 @@ LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring lang
 		//Build our result
 		KeyMagicInputMethod* res = new KeyMagicInputMethod();
 		res->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords);
-		res->loadRulesFile(wordlistFileName, binaryName.str(), disableCache);
+		res->loadRulesFile(wordlistFileName, binaryName.str(), disableCache, fileMD5Function);
 		res->disableCache = disableCache;
 
 		WZFactory<ModelType>::cachedLetterInputs[fullID] = res;
@@ -689,7 +688,7 @@ void WZFactory<ModelType>::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, 
 
 
 template <class ModelType>
-InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options)
+InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options, std::string (*fileMD5Function)(const std::string&))
 {
 	InputMethod* res = NULL;
 
@@ -711,7 +710,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		else if (id==L"burglish")
 			res = WZFactory<ModelType>::getBurglishInput(language.id);
 		else
-			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Input Manager: ", id).c_str());
+			throw std::exception(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", id).c_str());
 		res->type = BUILTIN;
 	} else if (sanitize_id(options.find(L"type")->second) == L"roman") {
 		//These use a wordlist, for now.
@@ -729,7 +728,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		std::wstringstream temp;
 		temp << wordlistFile.c_str();
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::exception(ConfigManager::glue(L"Wordlist file does not exist: ", wordlistFile).c_str());
+			throw std::exception(waitzar::glue(L"Wordlist file does not exist: ", wordlistFile).c_str());
 
 		//Get it, as a singleton
 		res = WZFactory<ModelType>::getWordlistBasedInput(language.id, id, waitzar::escape_wstr(wordlistFile, false));
@@ -750,7 +749,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		std::wstringstream temp;
 		temp << keymagicFile.c_str();
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::exception(ConfigManager::glue(L"Keyboard file does not exist: ", keymagicFile).c_str());
+			throw std::exception(waitzar::glue(L"Keyboard file does not exist: ", keymagicFile).c_str());
 
 		//Check the cache
 		bool disableCache = false;
@@ -758,10 +757,10 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 			disableCache = read_bool(options.find(sanitize_id(L"disable-cache"))->second);
 
 		//Get it, as a singleton
-		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache);
+		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache, fileMD5Function);
 		res->type = IME_KEYBOARD;
 	} else {
-		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
+		throw std::exception(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
 	}
 
 	//Now, add general settings
@@ -816,12 +815,12 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		else if (id==L"pdkzgwz")
 			res = WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(language.id, id);
 		else
-			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Display Method: ", id).c_str());
+			throw std::exception(waitzar::glue(L"Invalid \"builtin\" Display Method: ", id).c_str());
 		res->type = BUILTIN;
 	} else if (sanitize_id(options.find(L"type")->second) == L"ttf") {
 		//Enforce that a font-face-name is given
 		if (options.count(sanitize_id(L"font-face-name"))==0)
-			throw std::exception(ConfigManager::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
+			throw std::exception(waitzar::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
 		std::wstring fontFaceName = options.find(sanitize_id(L"font-face-name"))->second;
 
 		//Enforce that a point-size is given
@@ -842,7 +841,7 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 			std::wstringstream temp;
 			temp << fontFile.c_str();
 			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-				throw std::exception(ConfigManager::glue(L"Font file file does not exist: ", fontFile).c_str());
+				throw std::exception(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
 		}
 
 		//Get it, as a singleton
@@ -866,13 +865,13 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		std::wstringstream temp;
 		temp << fontFile.c_str();
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::exception(ConfigManager::glue(L"Font file file does not exist: ", fontFile).c_str());
+			throw std::exception(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
 
 		//Get it, as a singleton
 		res = WZFactory<ModelType>::getPngDisplayManager(language.id, id, fontFile);
 		res->type = DISPM_PNG;
 	} else {
-		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Display Method: ", id).c_str());
+		throw std::exception(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Display Method: ", id).c_str());
 	}
 
 	//Now, add general settings
@@ -911,10 +910,10 @@ Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id,
 		else if (id==L"ayar2uni")
 			res = new Ayar2Uni();
 		else
-			throw std::exception(ConfigManager::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
+			throw std::exception(waitzar::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
 		res->type = BUILTIN;
 	} else {
-		throw std::exception(ConfigManager::glue(L"Invalid type (",options.find(L"type")->second, L") for Transformation: ", id).c_str());
+		throw std::exception(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Transformation: ", id).c_str());
 	}
 
 	//Now, add general settings

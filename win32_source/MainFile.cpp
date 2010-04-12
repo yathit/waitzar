@@ -10,6 +10,18 @@
 #define _UNICODE
 #define UNICODE
 
+
+
+//NOTE: This won't compile unless it's in the main file.... not sure why. :( We'll link it here for now...
+#define CRYPTOPP_DEFAULT_NO_DLL
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
+#include "CryptoPP/md5.h"
+#include "CryptoPP/hex.h"
+#include "CryptoPP/files.h"
+
+
+
+
 //Don't let Visual Studio warn us to use the _s functions
 //#define _CRT_SECURE_NO_WARNINGS
 
@@ -187,20 +199,6 @@ TtfDisplay* sysFont;
 unsigned int numInputOptions;
 
 
-
-//TODO: There are still some places where we use a font without coloring it.
-//      For reference, here are all the old colors:
-/*
-mmFontGreen->tintSelf(0x008000);
-mmFontBlack->tintSelf(0x000000);
-mmFontRed->tintSelf(0xFF0000);
-mmFontSmallWhite->tintSelf(0xFFFFFF);
-mmFontSmallGray->tintSelf(0x333333);
-mmFontSmallRed->tintSelf(0xFF0000);
-*/
-
-
-
 PAINTSTRUCT Ps;
 WORD stopChar;
 int numConfigOptions;
@@ -208,7 +206,6 @@ int numCustomWords;
 INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
-//string mywordsFileName = "mywords.txt";
 
 
 //User-drawn menu data structures
@@ -265,11 +262,6 @@ list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being track
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
 
 
-//NOTE: A sep. Zawgyi list is not needed; all words are only stored in one encoding.
-//vector<wstring> userDefinedWords; //Words the user types in. Stored with a negative +1 index
-//vector<wstring> userDefinedWordsZg; //Cache of the Zawgyi version of the word typed
-
-
 //User keystrokes
 wstring userKeystrokeVector;
 
@@ -286,7 +278,8 @@ POINT caretLatestPosition;
 #define COLOR_HELPFNT_BACK        0x0019FF
 
 //Our configuration
-ConfigManager config;
+string getMD5Hash(const std::string& fileName);
+ConfigManager config(getMD5Hash);
 
 //Configuration variables.
 //BOOL customDictWarning = FALSE;
@@ -301,9 +294,6 @@ bool showBalloonOnStart = true;
 bool alwaysRunElevated = false;
 bool highlightKeys = true;
 bool experimentalTextCursorTracking = true;
-//bool dontLoadModel = false;
-//bool allowNonBurmeseLetters = false;
-//bool ignoreMywordsWarnings = false;
 string fontFileRegular;
 string fontFileSmall;
 
@@ -374,6 +364,15 @@ template< typename T >
 inline T min(const T & a, const T & b) { return std::min(a, b); }
 inline long min (const long &a, const int &b) { return min<long>(a,b); }
 
+
+//Crypto++ implementation of MD5; we'll pass this as a pointer later.
+string getMD5Hash(const std::string& fileName) {
+	string md5Res;
+	CryptoPP::Weak::MD5 hash;
+	CryptoPP::FileSource(fileName.c_str(), true, new
+		CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(md5Res),false)));
+	return md5Res;
+}
 
 
 unsigned long getTimeDifferenceMS(const FILETIME &st, const FILETIME &end)
@@ -2957,7 +2956,7 @@ bool findAndLoadAllConfigFiles()
 		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 	} catch (std::exception ex) {
 		//In case of errors, just reset & use the embedded file
-		config = ConfigManager();
+		config = ConfigManager(getMD5Hash);
 
 		//Inform the user, UNLESS they set the magic number...
 		if (strcmp(ex.what(), "No config directory")!=0) {
@@ -3301,6 +3300,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			highlightKeys = false;
 		}
 	}
+
+	//TEMP
+	/*string rulesFilePath;
+	string actualMD5;
+	CryptoPP::Weak::MD5 hash;
+	CryptoPP::FileSource(rulesFilePath.c_str(), true, new
+		CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(actualMD5),false))); */
 
 
 	//Potential debug loop (useful)

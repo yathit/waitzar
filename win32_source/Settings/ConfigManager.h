@@ -14,6 +14,7 @@
 #include <limits>
 #include <functional>
 #include <locale>
+
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
@@ -155,7 +156,7 @@ struct OptionTree {
 class ConfigManager
 {
 public:
-	ConfigManager(void);
+	ConfigManager(std::string (*myMD5Function)(const std::string&));
 	~ConfigManager(void);
 
 	//Build our config. manager up slowly
@@ -191,35 +192,6 @@ public:
 	static bool read_bool(const std::wstring& str);
 	static int read_int(const std::wstring& str);
 
-	//For stl exceptions...
-	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3, const std::string& str4)
-	{
-		std::stringstream msg;
-		msg <<str1 <<str2 <<str3 <<str4;
-		return msg.str();
-	}
-	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3)
-	{
-		return glue(str1, str2, str3, "");
-	}
-	static std::string glue(const std::string& str1, const std::string& str2)
-	{
-		return glue(str1, str2, "", "");
-	}
-	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3, const std::wstring& str4)
-	{
-		return glue(waitzar::escape_wstr(str1, false), waitzar::escape_wstr(str2, false), waitzar::escape_wstr(str3, false), waitzar::escape_wstr(str4, false));
-	}
-	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3)
-	{
-		return glue(str1, str2, str3, L"");
-	}
-	static std::string glue(const std::wstring& str1, const std::wstring& str2)
-	{
-		return glue(str1, str2, L"", L"");
-	}
-
-
 
 private:
 	void readInConfig(json_spirit::wValue root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted);
@@ -234,6 +206,9 @@ private:
 	std::map<JsonFile , std::vector<JsonFile> > langConfigs;
 	JsonFile localConfig;
 	JsonFile userConfig;
+
+	//Workaround
+	std::string (*getMD5Function)(const std::string&);
 
 	//Have we loaded...?
 	bool loadedSettings;

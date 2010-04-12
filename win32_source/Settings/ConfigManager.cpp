@@ -18,10 +18,12 @@ using json_spirit::obj_type;
 using json_spirit::str_type;
 
 
-ConfigManager::ConfigManager(void){
+ConfigManager::ConfigManager(std::string (*myMD5Function)(const std::string&)){
 	this->loadedSettings = false;
 	this->loadedLanguageMainFiles = false;
 	this->loadedLanguageSubFiles = false;
+
+	this->getMD5Function = myMD5Function;
 }
 
 ConfigManager::~ConfigManager(void){}
@@ -136,7 +138,7 @@ void ConfigManager::resolvePartialSettings()
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				lang->inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second));
+				lang->inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second, getMD5Function));
 			else if (i==PART_ENC) 
 				lang->encodings.insert(WZFactory<waitzar::WordBuilder>::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) 

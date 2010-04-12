@@ -7,6 +7,7 @@
 #include "KeyMagicInputMethod.h"
 
 using std::vector;
+using std::map;
 using std::pair;
 using std::string;
 using std::wstring;
@@ -65,13 +66,13 @@ KeyMagicInputMethod::~KeyMagicInputMethod()
 }
 
 
-void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const string& binaryFilePath, bool disableCache)
+void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const string& binaryFilePath, bool disableCache, std::string (*fileMD5Function)(const std::string&))
 {
 	//The first thing we need to do is determine whether we're loading the source file (text) or a binary compiled cache
 	// of this file. Then, just pass off the relevant data to whichever function performs the relevant loading.
 	// Finally, we may choose to cache the resultant file.
 	bool reloadSourceText = true;
-	string actualMD5;
+	string actualMD5 = fileMD5Function(rulesFilePath);
 	if (!disableCache) {
 		//Does the binary file exist?
 		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
@@ -109,11 +110,13 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 			//Compare with the actual checksum
 			if (!expectedMD5.empty()) {
 				//Get it
-				CryptoPP::Weak::MD5 hash;
-				CryptoPP::FileSource(rulesFilePath, true, new
-					CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(actualMD5),false))); 
+				/*CryptoPP::Weak::MD5 hash;
+				CryptoPP::FileSource(rulesFilePath.c_str(), true, new
+					CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(actualMD5),false))); */
 
 				//Check
+				if (actualMD5.length()!=32 || expectedMD5.length()!=32)
+					throw std::exception("Bad MD5 length in KeyMagic binary file (or source file)");
 				if (actualMD5==expectedMD5)
 					reloadSourceText = false;
 			}
@@ -128,8 +131,8 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 
 
 	//Now, we may save the text file back as a binary file
-	if (!disableCache && relaodSourceText)
-		saveBinarRulesFile(binaryFilePath, actualMD5);
+	if (!disableCache && reloadSourceText)
+		saveBinaryRulesFile(binaryFilePath, actualMD5);
 }
 
 
@@ -145,16 +148,16 @@ int KeyMagicInputMethod::readInt(char* buffer, size_t currPos, size_t bufferSize
 	return res;
 }
 
-void KeyMagicInputMethod::loadBinaryRulesFile(const string& rulesFilePath)
+void KeyMagicInputMethod::loadBinaryRulesFile(const string& binaryFilePath)
 {
 	//Open the file
 	ifstream binFile;
 	binFile.open(binaryFilePath.c_str(), ios::in | ios::binary);
 
 	//Get the size, rewind
-	binFile.seekg (0, ios::end);
-	file_size = is.tellg();
-	binFile.seekg (0, ios::beg);
+	binFile.seekg(0, ios::end);
+	std::streampos file_size = binFile.tellg();
+	binFile.seekg(0, ios::beg);
 
 	//Load the entire file at once to minimize file I/O
 	char* buffer = new char [file_size];
@@ -171,13 +174,13 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& rulesFilePath)
 		throw std::exception("Error: invalid Key Magic binary file BOM");
 	pos += 16; //Skip checksum
 	int numSwitches = readInt(buffer, pos, file_size);
-	for (size_t i=0; i<numSwitches; i++)
+	for (int i=0; i<numSwitches; i++)
 		switches.push_back(false);
 	int numVariables = readInt(buffer, pos, file_size);
 	int numReplacements = readInt(buffer, pos, file_size);
 
 	//Step 2: Read all rules/variables
-	for (size_t relID=0; i<numVariables+numReplacements; i++) {
+	for (int relID=0; relID<numVariables+numReplacements; relID++) {
 		//Get the actual ID
 		bool isVar = relID<numVariables;
 		int actID = isVar ? relID : relID-numVariables;
@@ -202,7 +205,7 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& rulesFilePath)
 			bool isLHS = relRuleID<numMatches;
 
 			//Read the rule
-			Rule r;
+			Rule r(KMRT_UNKNOWN, L"?", 0);
 			int rType = buffer[pos++];
 			switch(rType) {
 				case 0:   r.type = KMRT_STRING;     break;
@@ -212,14 +215,14 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& rulesFilePath)
 				case 4:   r.type = KMRT_SWITCH;     break;
 				case 5:   r.type = KMRT_VARARRAY;           break;
 				case 6:   r.type = KMRT_VARARRAY_SPECIAL;   break;
-				case 7:   r.type = VARARRAY_BACKREF;        break;
+				case 7:   r.type = KMRT_VARARRAY_BACKREF;   break;
 				case 8:   r.type = KMRT_KEYCOMBINATION;     break;
 				default:   throw std::exception("Error: bad rule \"type\" in binary Key Magic file");
 			}
 			r.val = readInt(buffer, pos, file_size);
 			r.id = readInt(buffer, pos, file_size);
 			size_t strSize = readInt(buffer, pos, file_size);
-			std::stringstream strStr;
+			std::wstringstream strStr;
 			for (size_t i=0; i<strSize; i++)
 				strStr <<(wchar_t)readInt(buffer, pos, file_size);
 			r.str = strStr.str();
@@ -252,8 +255,8 @@ void KeyMagicInputMethod::writeInt(vector<char>& stream, int intVal)
 {
 	//Special case 1
 	if (intVal==-1) {
-		stream.push_back(0xFF);
-		stream.push_back(0xFF);
+		stream.push_back('\xFF');
+		stream.push_back('\xFF');
 		return;
 	}
 
@@ -266,7 +269,7 @@ void KeyMagicInputMethod::writeInt(vector<char>& stream, int intVal)
 	stream.push_back(intVal&0xFF);
 }
 
-void KeyMagicInputMethod::saveBinaryRulesFile(const string& rulesFilePath, const string& checksum)
+void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, const string& checksum)
 {
 	//Save the file into a vector first; this will allow us to 
 	//  minimize file I/O to one call.
@@ -276,10 +279,12 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& rulesFilePath, const
 	//Write the header
 	binStream.push_back(KEYMAGIC_BINARY_VERSION);
 	writeInt(binStream, 0xFEFF);
-	if (checksum.size()!=16)
+	if (checksum.size()!=32)
 		throw std::exception((string("Invalid checksum: ") + checksum).c_str());
-	for (size_t i=0; i<16; i++)
-		binStream.push_back(checksum[i]);
+	for (size_t i=0; i<16; i++) {
+		int nextInt = (hexVal(checksum[i*2])<<4) | hexVal(checksum[i*2+1]);
+		binStream.push_back((char)(nextInt&0xFF));
+	}
 	writeInt(binStream, switches.size());
 	writeInt(binStream, variables.size());
 	writeInt(binStream, replacements.size());
@@ -295,9 +300,9 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& rulesFilePath, const
 			writeInt(binStream, 0);
 			writeInt(binStream, variables[actID].size());
 		} else {
-			writeInt(binStream, replacements[actID].requiredSwitches.size);
-			writeInt(binStream, replacements[actID].match.size);
-			writeInt(binStream, replacements[actID].replace.size);
+			writeInt(binStream, replacements[actID].requiredSwitches.size());
+			writeInt(binStream, replacements[actID].match.size());
+			writeInt(binStream, replacements[actID].replace.size());
 		}
 
 		//Write switches (if this is a replacement)
@@ -312,19 +317,19 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& rulesFilePath, const
 			//Actually get this rule.
 			bool transpose = !isVar && ruleRelID<replacements[actID].match.size();
 			int ruleActID = !transpose ? ruleRelID : ruleRelID-replacements[actID].match.size();
-			Rule& r = isVar ? variables[ruleActID] : !transpose ? replacements[actID].match[ruleActID] : replacements[actID].replace[ruleActID];
+			Rule& r = isVar ? variables[actID][ruleActID] : !transpose ? replacements[actID].match[ruleActID] : replacements[actID].replace[ruleActID];
 
 			//Write this rule.
 			switch (r.type) {
-				case KMRT_STRING:     binStream <<0;   break;
-				case KMRT_WILDCARD:   binStream <<1;   break;
-				case KMRT_VARIABLE:   binStream <<2;   break;
-				case KMRT_MATCHVAR:   binStream <<3;   break;
-				case KMRT_SWITCH:     binStream <<4;   break;
-				case KMRT_VARARRAY:   binStream <<5;   break;
-				case KMRT_VARARRAY_SPECIAL:     binStream <<6;   break;
-				case KMRT_VARARRAY_BACKREF:     binStream <<7;   break;
-				case KMRT_KMRT_KEYCOMBINATION:  binStream <<8;   break;
+				case KMRT_STRING:     binStream.push_back(0);   break;
+				case KMRT_WILDCARD:   binStream.push_back(1);   break;
+				case KMRT_VARIABLE:   binStream.push_back(2);   break;
+				case KMRT_MATCHVAR:   binStream.push_back(3);   break;
+				case KMRT_SWITCH:     binStream.push_back(4);   break;
+				case KMRT_VARARRAY:   binStream.push_back(5);   break;
+				case KMRT_VARARRAY_SPECIAL:     binStream.push_back(6);   break;
+				case KMRT_VARARRAY_BACKREF:     binStream.push_back(7);   break;
+				case KMRT_KEYCOMBINATION:  binStream.push_back(8);        break;
 			}
 			writeInt(binStream, r.val);
 			writeInt(binStream, r.id);
@@ -336,7 +341,7 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& rulesFilePath, const
 
 	//Now, convert what we've written into a native array.
 	ofstream binFile;
-	binFile.open(binaryFilePath, ios::iout | ios::binary);
+	binFile.open(binaryFilePath.c_str(), ios::out | ios::binary);
 	char* binArray = new char[binStream.size()];
 	std::copy(binStream.begin(), binStream.end(), binArray);
 	binFile.write(binArray, binStream.size());
@@ -517,7 +522,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 
 		//Interpret and add it
 		if (separator==0)
-			throw std::exception(ConfigManager::glue(L"Error: Rule does not contain = or =>: \n", line).c_str());
+			throw std::exception(waitzar::glue(L"Error: Rule does not contain = or =>: \n", line).c_str());
 		try {
 			addSingleRule(line, allRules, tempVarLookup, tempSwitchLookup, sepIndex, separator==1);
 		} catch (std::exception ex) {
@@ -676,7 +681,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 					buff <<(wchar_t)num;
 					i += 5;
 				} else
-					throw std::exception(ConfigManager::glue(L"Invalid escape sequence in: ", ruleStr).c_str());
+					throw std::exception(waitzar::glue(L"Invalid escape sequence in: ", ruleStr).c_str());
 			}
 			result.type = KMRT_STRING;
 			result.str = buff.str();
@@ -765,7 +770,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				}
 			}
 			if (result.val == -1)
-				throw std::exception(ConfigManager::glue(L"Unknown VKEY specified \"", vkeys[vkeys.size()-1], L"\"").c_str());
+				throw std::exception(waitzar::glue(L"Unknown VKEY specified \"", vkeys[vkeys.size()-1], L"\"").c_str());
 
 			//Now, handle all modifiers
 			for (size_t id=0; id<vkeys.size()-1; id++) {
@@ -778,7 +783,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				} else if (vkeys[id]==L"VK_CAPSLOCK" || vkeys[id]==L"VK_CAPITAL") {
 					result.val |= KM_VKMOD_CAPS;
 				} else {
-					throw std::exception(ConfigManager::glue(L"Unknown VKEY specified as modifier \"", vkeys[id], L"\"").c_str());
+					throw std::exception(waitzar::glue(L"Unknown VKEY specified as modifier \"", vkeys[id], L"\"").c_str());
 				}
 			}
 		}
@@ -787,7 +792,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 		if (result.type==KMRT_UNKNOWN)
 			throw std::exception("Error: Unknown rule type");
 	} catch (std::exception ex) {
-		throw std::exception(ConfigManager::glue(ex.what(), "  \"", waitzar::escape_wstr(ruleStr, false), "\"").c_str());
+		throw std::exception(waitzar::glue(ex.what(), "  \"", waitzar::escape_wstr(ruleStr, false), "\"").c_str());
 	}
 
 	return result;
@@ -852,7 +857,7 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 				//Make sure all variables exist; fill in their implicit ID
 				//NOTE: We cannot assume variables before they are declared; this would allow for circular references.
 				if (varLookup.count(currRule.str)==0)
-					throw std::exception(ConfigManager::glue(L"Error: Previously undefined variable \"", currRule.str, L"\"").c_str());
+					throw std::exception(waitzar::glue(L"Error: Previously undefined variable \"", currRule.str, L"\"").c_str());
 				currRule.id = varLookup.find(currRule.str)->second;
 
 				//Special check
@@ -931,7 +936,7 @@ void KeyMagicInputMethod::addSingleRule(const std::wstring& fullRuleText, const 
 		//Make sure it's in the array ONLY once. Then add it.
 		const wstring& candidate = rules[0].str;
 		if (varLookup.count(candidate) != 0)
-			throw std::exception(ConfigManager::glue(L"Error: Duplicate variable definition: \"", candidate, L"\"").c_str());
+			throw std::exception(waitzar::glue(L"Error: Duplicate variable definition: \"", candidate, L"\"").c_str());
 		varLookup[candidate] = variables.size();
 		variables.push_back(rhsVector);
 	} else {
@@ -1324,7 +1329,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			//Before we apply the rule, check if we've looped "forever"
 			if (++totalMatchesOverall >= std::max<size_t>(50, replacements.size())) {
 				//To do: We might also consider logging this, later.
-				throw std::exception(ConfigManager::glue(L"Error on keymagic regex; infinite loop on input: \n   ", input).c_str());
+				throw std::exception(waitzar::glue(L"Error on keymagic regex; infinite loop on input: \n   ", input).c_str());
 			}
 
 			//Apply, update input.
