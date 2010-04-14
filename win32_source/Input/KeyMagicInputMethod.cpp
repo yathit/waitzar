@@ -337,9 +337,14 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 				}
 				writeInt(binStream, r.val);
 				writeInt(binStream, r.id);
-				writeInt(binStream, r.str.length());
-				for (size_t i=0; i<r.str.length(); i++) 
-					writeInt(binStream, r.str[i]);
+				if (r.type!=KMRT_STRING) {
+					writeInt(binStream, 0);
+				} else {
+					//Trim "string" values where not necessary.
+					writeInt(binStream, r.str.length());
+					for (size_t i=0; i<r.str.length(); i++) 
+						writeInt(binStream, r.str[i]);
+				}
 			} catch (std::exception ex) {
 				std::stringstream msg;
 				msg <<"Error writing rule file: \n";
