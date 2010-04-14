@@ -95,7 +95,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 							std::stringstream digit;
 							digit <<std::hex;
 							for (size_t i=0; i<16; i++) {
-								digit <<buffer[3+i];
+								digit <<(unsigned int)buffer[3+i];
 								if (digit.str().size()==1)
 									expectedMD5 += "0";
 								expectedMD5 += digit.str();
