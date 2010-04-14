@@ -5,7 +5,8 @@
         "display-name" : "Ayar Keyboard",
         "encoding" : "ayar", 
         "type" : "keymagic",
-        "keyboard-file" : "Ayar.kms"
+        "keyboard-file" : "Ayar.kms",
+		"disable-cache" : "false"
       }
       
       #More later
