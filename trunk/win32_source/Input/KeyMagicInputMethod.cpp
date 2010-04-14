@@ -84,8 +84,8 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 			{
 				ifstream binFile;
 				binFile.open(binaryFilePath.c_str(), ios::in | ios::binary);
-				char buffer[19];
-				if (binFile.read(buffer, 19)) {
+				unsigned char buffer[19];
+				if (binFile.read((char*)(&buffer[0]), 19)) {
 					//Check the version
 					if (buffer[0]==KEYMAGIC_BINARY_VERSION) {
 						//Check the BOM
@@ -136,7 +136,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 }
 
 
-int KeyMagicInputMethod::readInt(char* buffer, size_t currPos, size_t bufferSize)
+int KeyMagicInputMethod::readInt(unsigned char* buffer, size_t currPos, size_t bufferSize)
 {
 	if (currPos+2>bufferSize)
 		throw std::exception("Error: buffer overrun when reading KeyMagic file");
@@ -160,8 +160,8 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& binaryFilePath)
 	binFile.seekg(0, ios::beg);
 
 	//Load the entire file at once to minimize file I/O
-	char* buffer = new char [file_size];
-	binFile.read(buffer, file_size);
+	unsigned char* buffer = new unsigned char [file_size];
+	binFile.read((char*)(&buffer[0]), file_size);
 	binFile.close();
 
 	//Step 1: Read header
@@ -251,7 +251,7 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& binaryFilePath)
 }
 
 
-void KeyMagicInputMethod::writeInt(vector<char>& stream, int intVal)
+void KeyMagicInputMethod::writeInt(vector<unsigned char>& stream, int intVal)
 {
 	//Special case 1
 	if (intVal==-1) {
@@ -276,7 +276,7 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 {
 	//Save the file into a vector first; this will allow us to 
 	//  minimize file I/O to one call.
-	vector<char> binStream;
+	vector<unsigned char> binStream;
 	binStream.reserve(1024); //Avoid slow startup
 
 	//Write the header
@@ -286,7 +286,7 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 		throw std::exception((string("Invalid checksum: ") + checksum).c_str());
 	for (size_t i=0; i<16; i++) {
 		int nextInt = (hexVal(checksum[i*2])<<4) | hexVal(checksum[i*2+1]);
-		binStream.push_back((char)(nextInt&0xFF));
+		binStream.push_back((unsigned char)(nextInt&0xFF));
 	}
 	writeInt(binStream, switches.size());
 	writeInt(binStream, variables.size());
@@ -358,9 +358,9 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 	//Now, convert what we've written into a native array.
 	ofstream binFile;
 	binFile.open(binaryFilePath.c_str(), ios::out | ios::binary);
-	char* binArray = new char[binStream.size()];
+	unsigned char* binArray = new unsigned char[binStream.size()];
 	std::copy(binStream.begin(), binStream.end(), binArray);
-	binFile.write(binArray, binStream.size());
+	binFile.write((char*)(&binArray[0]), binStream.size());
 	delete [] binArray;
 	binFile.close();
 

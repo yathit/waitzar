@@ -244,8 +244,8 @@ private:
 	static std::string keyMagicLogFileName;
 	static void clearLogFile(const std::string& fileName);
 	static void writeLogLine(const std::string& fileName, const std::wstring& logLine); //We'll escape MM outselves
-	static void writeInt(std::vector<char>& stream, int intVal);
-	static int readInt(char* buffer, size_t currPos, size_t bufferSize);
+	static void writeInt(std::vector<unsigned char>& stream, int intVal);
+	static int readInt(unsigned char* buffer, size_t currPos, size_t bufferSize);
 
 	//Data
 	std::vector<bool> switches;
