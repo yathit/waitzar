@@ -901,7 +901,7 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 		}
 
 		//Add all rules that consume input.
-		if (currRule.type != KMRT_SWITCH)
+		if (condenseStrings || (currRule.type!=KMRT_SWITCH)) //Only keep the switch if we're on the RHS.
 			res.push_back(currRule);
 	}
 
