@@ -124,7 +124,7 @@ Following the switch entries are *LHS_Size* + *RHS_Size* entries of the form:
 || 1 || Rule Type || Zero-indexed: {STRING, WILDCARD, VARIABLE, MATCHVAR, SWITCH, VARARRAY, VARARRAY_SPECIAL, VARARRAY_BACKREF, KMRT_KEYCOMBINATION} ||
 || 2 || Rule Value || The "value" field of a rule. ||
 || 2 || Rule ID || The "id" field of a rule. ||
-|| 2 + X || Rule String || First 2 bytes specify the size of the string; remaining 2*X bytes represent X wide characters. Letters outside the BMP not supported. ||
+|| 2 + X || Rule String || First 2 bytes specify the size of the string; remaining 2*X bytes represent X wide characters. Letters outside the BMP not supported. The rule string is ONLY saved for STRING type variables. ||
 
 
 It is imperative to remember that the binary format expects minimal error checking to be performed. 
