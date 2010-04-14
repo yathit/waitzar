@@ -136,7 +136,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 }
 
 
-int KeyMagicInputMethod::readInt(unsigned char* buffer, size_t currPos, size_t bufferSize)
+int KeyMagicInputMethod::readInt(unsigned char* buffer, size_t& currPos, size_t bufferSize)
 {
 	if (currPos+2>bufferSize)
 		throw std::exception("Error: buffer overrun when reading KeyMagic file");
