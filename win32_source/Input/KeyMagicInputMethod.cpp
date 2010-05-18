@@ -390,12 +390,82 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 		size_t sz = datastream.size();
 		std::wstringstream line;
 		wchar_t lastChar = L'\0';
+		bool firstComment = true;
 		for (; i<sz; i++) {
 			//Skip comments: C-style
 			if (i+1<sz && datastream[i]==L'/' && datastream[i+1]==L'*') {
+				//Also track commentBegin and commentEnd, which will be equal to all text inside the /*,*/
 				i += 2;
+				size_t commentBegin = i;
+				size_t commentEnd = i;
 				while (i<sz && (datastream[i]!=L'/' || datastream[i-1]!=L'*'))
-					i++;
+					commentEnd = ++i;
+				commentEnd -= 2;
+				
+				//Parse options if this is the first comment. 
+				// An option begins on a newline and begins with an @, following possible whitespace.
+				if (firstComment) {
+					std::wstringstream currOptKey;
+					std::wstringstream currOptVal;
+					std::wstringstream* currOpt = &currOptKey;
+					bool newline = true;
+					for (size_t x=commentBegin; x<=commentEnd; x++)  {
+						//If we just started a new line, skip whitespace and look for a @. Otherwise,
+						// skip this entire new line too.
+						if (newline) {
+							newline = false;
+
+							//Skip
+							while (x<=commentEnd && (datastream[x]==L' ' || datastream[x]==L'\t'))
+								x++;
+
+							//Done?
+							if (x>commentEnd)
+								break;
+
+							//At-sign?
+							if (datastream[x] == L'@')
+								continue; //Good.
+
+							//Not a comment
+							while (x<=commentEnd && datastream[x]!=L'\n')
+								x++;
+
+							//Done?
+							if (x>commentEnd)
+								break;
+
+							//Otherwise, just process the newline later.
+						}
+
+						//Append the letter. We strictly support only lowercase characters.
+						wchar_t c = datastream[x]; 
+						if (c>=L'A' && c<=L'Z')
+							c = (c-L'A') + 'a';
+						if (c>='a' && c<='z')
+							(*currOpt) <<c;
+
+						//Advance the option
+						if (datastream[x] == L'=')
+							currOpt = &currOptVal;
+
+						//Append the option
+						if (datastream[x] == L'\n' || x==commentEnd) {
+							//Only matters if we have a key/value pair.
+							if (!currOptKey.str().empty() && !currOptVal.str().empty()) {
+								options[currOptKey.str()] = currOptVal.str();
+								currOptKey.str(L"");
+								currOptVal.str(L"");
+							}
+
+							//Reset the pointer & flag
+							currOpt = &currOptKey;
+							newline = true;
+						}
+					}
+				}
+
+				firstComment = false;
 				continue;
 			}
 			//Skip comments: Cpp-style
@@ -403,6 +473,8 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				i += 2;
 				while (i<sz && datastream[i]!=L'\n')
 					i++;
+
+				firstComment = false;
 				continue;
 			}
 

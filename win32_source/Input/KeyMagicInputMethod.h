@@ -251,6 +251,7 @@ private:
 	std::vector<bool> switches;
 	std::vector< std::vector<Rule> > variables;
 	std::vector< RuleSet > replacements;
+	std::map<std::wstring, std::wstring> options; //Loaded from the first comment.
 
 	//Helpers
 	int hexVal(wchar_t letter);
