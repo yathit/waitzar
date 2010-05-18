@@ -1,7 +1,10 @@
 ﻿/*
  * Regression tests for the Ayar keyboard. Run on the command line with:
  * WaitZar.exe -t ayar_tests.txt
- * TODO: Add config file options...
+ * The following options help WZ initialize the testing environment. 
+     @language = myanmar
+     @input-method = ayar
+     @output-encoding = ayar
 */
 
 
