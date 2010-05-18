@@ -1,0 +1,11 @@
+﻿/*
+ * Regression tests for the Ayar keyboard. Run on the command line with:
+ * WaitZar.exe -t ayar_tests.txt
+ * TODO: Add config file options...
+*/
+
+
+//Simple tests
+u => က
+uf => က်
+
