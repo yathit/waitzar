@@ -174,6 +174,7 @@ public:
 	const std::set<Encoding>& getEncodings();
 	const Transformation* getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const;
 	const std::set<DisplayMethod*>& getDisplayMethods();
+	void overrideSetting(const std::wstring& settingName, bool value);
 
 	//Control
 	Language activeLanguage;

@@ -322,6 +322,32 @@ const Transformation* ConfigManager::getTransformation(const Language& lang, con
 }
 
 
+void ConfigManager::overrideSetting(const wstring& settingName, bool value)
+{
+	wstring settingPure = sanitize_id(settingName);
+
+	//TODO: We should merge this later with the regular settings code, to avoid duplicating
+	//      the list of options
+			//Set this based on name/value pair
+	if (settingPure == L"hotkey")
+		throw std::exception("Cannot override hotkey setting");
+	else if (settingPure == sanitize_id(L"default-language"))
+		throw std::exception("Cannot override default language setting");
+	else if (settingPure == sanitize_id(L"silence-mywords-errors"))
+		options.settings.silenceMywordsErrors = value;
+	else if (settingPure == sanitize_id(L"balloon-start"))
+		options.settings.balloonStart = value;
+	else if (settingPure == sanitize_id(L"always-elevate"))
+		options.settings.alwaysElevate = value;
+	else if (settingPure == sanitize_id(L"track-caret"))
+		options.settings.trackCaret = value;
+	else if (settingPure == sanitize_id(L"lock-windows"))
+		options.settings.lockWindows = value;
+	else
+		throw std::exception(waitzar::glue(L"Cannot override setting: ", settingName).c_str());
+}
+
+
 
 const Settings& ConfigManager::getSettings() 
 {
