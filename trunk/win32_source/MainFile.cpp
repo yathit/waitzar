@@ -288,12 +288,8 @@ ConfigManager config(getMD5Hash);
 TCHAR langHotkeyString[100];
 char langHotkeyRaw[100];
 
-//bool typePhrases = true;
-bool dragBothWindowsTogether = true;
-bool showBalloonOnStart = true;
-bool alwaysRunElevated = false;
+//More old-style settings; have to remove somehow.
 bool highlightKeys = true;
-bool experimentalTextCursorTracking = true;
 string fontFileRegular;
 string fontFileSmall;
 
@@ -861,95 +857,16 @@ void loadConfigOptions()
 
 		//Deal with our name/value pair.
 		if (strcmp(name, "mywordswarning")==0) {
-			numConfigOptions++;
-			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				customDictWarning = TRUE;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				customDictWarning = FALSE;
-			else*/
-				numConfigOptions--;
 		} else if (strcmp(name, "lockwindows")==0) {
-			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				dragBothWindowsTogether = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				dragBothWindowsTogether = false;
-			else
-				numConfigOptions--;
 		} else if (strcmp(name, "powertyping")==0) {
-			numConfigOptions++;
-			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				typePhrases = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				typePhrases = false;
-			else
-				numConfigOptions--;*/
 		} else if (strcmp(name, "burmesenumerals")==0) {
-			numConfigOptions++;
-			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				typeBurmeseNumbers = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				typeBurmeseNumbers = false;
-			else*/
-				numConfigOptions--;
 		} else if (strcmp(name, "ballooononstart")==0) {
-			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				showBalloonOnStart = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				showBalloonOnStart = false;
-			else
-				numConfigOptions--;
 		} else if (strcmp(name, "alwayselevate")==0) {
-			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				alwaysRunElevated = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				alwaysRunElevated = false;
-			else
-				numConfigOptions--;
 		} else if (strcmp(name, "trackcaret")==0) {
-			numConfigOptions++;
-			if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				experimentalTextCursorTracking = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				experimentalTextCursorTracking = false;
-			else
-				numConfigOptions--;
 		} else if (strcmp(name, "ignoremodel")==0) {
-			numConfigOptions++;
-			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				dontLoadModel = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				dontLoadModel = false;
-			else*/
-				numConfigOptions--;
 		} else if (strcmp(name, "silencemywordserrors")==0) {
-			numConfigOptions++;
-			/*if (strcmp(value, "yes")==0 || strcmp(value, "true")==0)
-				ignoreMywordsWarnings = true;
-			else if (strcmp(value, "no")==0 || strcmp(value, "false")==0)
-				ignoreMywordsWarnings = false;
-			else*/
-				numConfigOptions--;
 		} else if (strcmp(name, "charaset")==0) {
-			numConfigOptions++;
-			/*if (strcmp(value, "any")==0)
-				allowNonBurmeseLetters = true;
-			else if (strcmp(value, "burmese")==0 || strcmp(value, "myanmar")==0)
-				allowNonBurmeseLetters = false;
-			else*/
-				numConfigOptions--;
 		} else if (strcmp(name, "defaultencoding")==0) {
-			numConfigOptions++;
-			/*if (strcmp(value, "wininnwa")==0)
-				setEncoding(ENCODING_WININNWA);
-			else if (strcmp(value, "zawgyi")==0)
-				setEncoding(ENCODING_ZAWGYI);
-			else if (strcmp(value, "unicode")==0 || strcmp(value, "parabaik")==0 || strcmp(value, "padauk")==0 || strcmp(value, "myanmar3")==0)
-				setEncoding(ENCODING_UNICODE);
-			else*/
-				numConfigOptions--;
 		} else if (strcmp(name, "hotkey")==0) {
 			//Set it later
 			strcpy(langHotkeyRaw, value);
@@ -1056,7 +973,7 @@ bool registerInitialHotkey()
 void positionAtCaret()
 {
 	//Default "off" flag
-	if (!experimentalTextCursorTracking)
+	if (!config.getSettings().trackCaret)
 		return;
 
 	//Also skip if one window is already visible
@@ -1078,7 +995,7 @@ void positionAtCaret()
 		&caretTrackThreadID);//Pointer to return the thread's id into
 	if (caretTrackThread==NULL) {
 		MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
-		experimentalTextCursorTracking = false;
+		config.overrideSetting(L"track-caret", false);
 	}
 
 	//Wait for it.
@@ -3008,56 +2925,8 @@ bool findAndLoadAllConfigFiles()
 
 
 
-
-
-/**
- * Main method for Windows applications
- */
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+void createPaintResources() 
 {
-	//Logging time to start?
-	if (currTest == start_up)
-		GetSystemTimeAsFileTime(&startTime);
-
-
-	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
-	//  warnings. Plus, the hInstance should never change.
-	hInst = hInstance;
-
-	//First and foremost
-	helpIsCached = false;
-	isDragging = false;
-	helpKeyboard = NULL;
-	contextMenu = NULL;
-	menuFont = NULL;
-	sysFont = NULL;
-
-	//Also...
-	try {
-		//buildSystemWordLookup();
-	} catch (std::exception ex) {
-	/*	std::wstringstream msg;
-		msg << "Error building system look.\nWaitZar will now terminate.\n\nDetails:\n";
-		msg << ex.what();
-		MessageBox(NULL, msg.str().c_str(), L"System Hotkeys Error", MB_ICONWARNING | MB_OK);
-		return 0;*/
-	}
-
-	//Log?
-	if (isLogging) {
-		logFile = fopen("wz_log.txt", "w");
-		if (logFile==NULL) {
-			MessageBox(NULL, _T("Unable to open Log file"), _T("Warning"), MB_ICONWARNING | MB_OK);
-			isLogging = false;
-		} else {
-			fprintf(logFile, "WaitZar was opened\n");
-		}
-	} else
-		logFile = NULL;
-	waitzar::setLogFile(logFile);
-
-
-	//Create a white/black brush
 	cr_MenuItemBkgrd = RGB(0x8F, 0xA1, 0xF8);
 	cr_MenuDefaultBkgrd = GetSysColor(COLOR_MENU);
 	cr_MenuDefaultText = GetSysColor(COLOR_MENUTEXT);
@@ -3082,6 +2951,89 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_MediumGrayPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
 	g_DotHilitePen = CreatePen(PS_SOLID, 1, RGB(0x42, 0x5D, 0xBC));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
+}
+
+
+
+bool checkUserSpecifiedRegressionTests(wstring cmdLine)
+{
+	//Find the parameter -t or -test, followed by a space
+	size_t cmdID = std::min<size_t>(cmdLine.find(L"-t "), cmdLine.find(L"-test "));
+	if (cmdID == std::string::npos)
+		return false;
+	cmdID = cmdLine.find(L" ", cmdID) + 1;
+
+	//Build it
+	wstringstream val;
+	bool inQuote = false;
+	for (size_t i=cmdID; i<cmdLine.length(); i++) {
+		if (cmdLine[i]==L' ' && !inQuote)
+			break;
+		if (cmdLine[i]==L'"') 
+			inQuote = !inQuote;
+		else
+			val <<cmdLine[i];
+	}
+
+	//Open our test file, read it into a Key Magic Keyboard
+	try {
+		KeyMagicInputMethod testFile;
+		testFile.loadTextRulesFile(waitzar::escape_wstr(val.str(), false));
+
+	} catch (std::exception ex) {
+		wstringstream msg;
+		msg <<L"Error running test file: \"" <<val.str() <<L"\"" <<std::endl;
+		msg <<L"WaitZar will now exit.\n\nDetails: " <<ex.what() <<std::endl;
+		MessageBox(NULL, msg.str().c_str(), L"Testing Error", MB_ICONERROR | MB_OK);
+		return true;
+	}
+
+
+	MessageBox(NULL, L"Tests complete.", L"Test Results", MB_ICONINFORMATION | MB_OK);
+
+	return true;
+}
+
+
+
+/**
+ * Main method for Windows applications
+ */
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	//Logging time to start?
+	if (currTest == start_up)
+		GetSystemTimeAsFileTime(&startTime);
+
+	//First and foremost
+	helpIsCached = false;
+	isDragging = false;
+	helpKeyboard = NULL;
+	contextMenu = NULL;
+	menuFont = NULL;
+	sysFont = NULL;
+
+	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
+	//  warnings. Plus, the hInstance should never change.
+	hInst = hInstance;
+
+
+	//Log?
+	if (isLogging) {
+		logFile = fopen("wz_log.txt", "w");
+		if (logFile==NULL) {
+			MessageBox(NULL, _T("Unable to open Log file"), _T("Warning"), MB_ICONWARNING | MB_OK);
+			isLogging = false;
+		} else {
+			fprintf(logFile, "WaitZar was opened\n");
+		}
+	} else
+		logFile = NULL;
+	waitzar::setLogFile(logFile);
+
+
+	//Create our brushes and pens
+	createPaintResources();
 
 
 	//Create our windows so that they exist in memory for config.validate()
@@ -3090,46 +3042,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	helpWindow = new MyWin32Window(L"waitZarHelpWindow");
 	memoryWindow = new MyWin32Window(L"waitZarMemoryWindow");
 
+
 	//Load our configuration file now; save some headaches later
+	//NOTE: These are the OLD config settings; we should be able to remove them eventually.
 	loadConfigOptions();
 
-	//Modify our config options?
-	if (currTest == mywords) {
-		//dontLoadModel = true;
-//		mywordsFileName = "D:\\Open Source Projects\\Waitzar\\eclipse_project\\MyanmarList_v2.txt";
-	}
-
-
-	//Should we run a UAC test on startup?
-	if (alwaysRunElevated) {
-		//Will elevating help?
-		if (IsVistaOrMore() && !IsAdmin()) {
-			TCHAR szCurFileName[1024];
-            GetModuleFileName(GetModuleHandle(NULL), szCurFileName, 1023);
-			if (!elevateWaitZar(szCurFileName))
-				MessageBox(NULL, _T("Could not elevate WaitZar. Program will now exit."), _T("Error!"), MB_ICONERROR | MB_OK);
-
-			//Return either way; the current thread must exit.
-			return 0;
-		}
-	}
 
 	//Give this process a low background priority
 	//  NOTE: We need to balance this eventually.
 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
 
-	//Create our windows.
+	//Initialize all our windows.
 	try {
 		//Init
 		mainWindow->init(L"WaitZar", WndProc, g_DarkGrayBkgrd, hInst, 100, 100, 240, 120, positionAtCaret, onAllWindowsCreated, false);
 		sentenceWindow->init(L"WaitZar", NULL, g_DarkGrayBkgrd, hInst, 100, 100+mainWindow->getDefaultHeight(), 300, 26, positionAtCaret, onAllWindowsCreated, false);
 		helpWindow->init(L"WaitZar", NULL, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
 		memoryWindow->init(L"WaitZar", NULL, g_GreenBkgrd, hInst, 400, 300, 200, 200, NULL, onAllWindowsCreated, true);
-
-		//Then link
-		if (dragBothWindowsTogether)
-			mainWindow->linkToWindow(sentenceWindow, SOUTH);
 	} catch (std::exception err) {
 		std::wstringstream msg;
 		msg << "Error creating WaitZar's windows.\nWaitZar will now exit.\n\nDetails:\n";
@@ -3142,6 +3072,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Find all config files, load.
 	if (!findAndLoadAllConfigFiles())
 		return 0;
+
+
+	//Link windows if necessary.
+	if (config.getSettings().lockWindows)
+		mainWindow->linkToWindow(sentenceWindow, SOUTH);
+
+
+	//Should we run a UAC test on startup?
+	if (config.getSettings().alwaysElevate) {
+		//Will elevating help?
+		if (IsVistaOrMore() && !IsAdmin()) {
+			TCHAR szCurFileName[1024];
+            GetModuleFileName(GetModuleHandle(NULL), szCurFileName, 1023);
+			if (!elevateWaitZar(szCurFileName))
+				MessageBox(NULL, _T("Could not elevate WaitZar. Program will now exit."), _T("Error!"), MB_ICONERROR | MB_OK);
+
+			//Return either way; the current thread must exit.
+			return 0;
+		}
+	}
 
 
 	//Create our context menu
@@ -3181,8 +3131,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	mmOn = false;
 
-	//Edit: Add support for balloon tooltips
-	if (showBalloonOnStart) {
+	//Support for balloon tooltips
+	if (config.getSettings().balloonStart) {
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
 		swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
@@ -3192,7 +3142,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Add our icon to the tray
 	Shell_NotifyIcon(NIM_ADD, &nid);
-
 
 	//Initialize our keyboard input structures
 	for (int i=0; i<1000; i++) {
@@ -3216,32 +3165,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	//If we got this far, let's try to load our file.
-	/*try {
-		//loadModel();
-	} catch (std::exception ex) {
-		//Prompt user:
-		std::wstringstream msg;
-		msg << "Couldn't load the model.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
-		msg << ex.what();
-		MessageBox(NULL, msg.str().c_str(), L"Model Error", MB_ICONERROR | MB_OK);
 
-		//Remove resources, exit
+	//Now that everything has been loaded, run any user-driven tests
+	std::wstringstream tempW;
+	tempW <<lpCmdLine;
+	if (checkUserSpecifiedRegressionTests(tempW.str())) {
+		//Cleanly exit.
 		delete mainWindow;
-		delete sentenceWindow;
-		delete helpWindow;
-		delete memoryWindow;
-		return 1;
-	}*/
+	}
 
 
 	//Set defaults
 	ChangeLangInputOutput(config.activeLanguage.id, config.activeInputMethod->id, config.activeOutputEncoding.id);
 
-
-	//Todo... find a better way of setting this (loadModel() and loadConfigOptions() clash)
-	//   Actually, this shold be fixed when we switch to the new config files
-	//model->setOutputEncoding(mostRecentEncoding);
 
 	//Testing mywords?
 	if (currTest == mywords)
@@ -3260,27 +3196,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	//Did we get any?
-	/*if (currTest != model_print) {
-		TCHAR noConfigWarningMsg[1500];
-		lstrcpy(noConfigWarningMsg, _T(""));
-		if (numConfigOptions==0) {
-			lstrcpy(noConfigWarningMsg, _T("config.txt contained no valid configuration options."));
-		}
-		if (numCustomWords==0) {
-			if (lstrlen(noConfigWarningMsg)==0)
-				lstrcpy(noConfigWarningMsg, _T("mywords.txt contained no Burmese words."));
-			else
-				lstrcat(noConfigWarningMsg, _T(" Also, mywords.txt contained no Burmese words."));
-		}
-		if (lstrlen(noConfigWarningMsg)>0) {
-			lstrcat(noConfigWarningMsg, _T("\nThis could be caused by a number of things:\n   + config.txt should be ASCII-encoded. mywords.txt should be UTF-8-encoded. Possibly you used another encoding?"));
-			lstrcat(noConfigWarningMsg, _T("\n   + Perhaps you mis-spelled a configuration option. Check the Wait Zar manual to make sure you spelled each configuration option correctly.\n   + Maybe you commented out a line by mistake? The \"#\" key means to ignore a line."));
-			lstrcat(noConfigWarningMsg, _T("\n   + Maybe your line-endings are wrong? Wait Zar can handle \\n OR \\r\\l (Windows or Linux) but that's all..."));
-			lstrcat(noConfigWarningMsg, _T("\n\nIf you think this was caused by a bug in Wait Zar, please post an issue at http://code.google.com/p/waitzar/issues/list\n\nThis is just a warning --Wait Zar will still work fine without any config.txt or mywords.txt files."));
-			MessageBox(NULL, noConfigWarningMsg, _T("Warning"), MB_ICONWARNING | MB_OK);
-		}
-	}*/
+
 
 	//Create (but don't start) our thread tracker
 	if (highlightKeys) {
@@ -3300,13 +3216,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			highlightKeys = false;
 		}
 	}
-
-	//TEMP
-	/*string rulesFilePath;
-	string actualMD5;
-	CryptoPP::Weak::MD5 hash;
-	CryptoPP::FileSource(rulesFilePath.c_str(), true, new
-		CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(actualMD5),false))); */
 
 
 	//Potential debug loop (useful)
