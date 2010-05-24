@@ -2974,11 +2974,64 @@ bool checkUserSpecifiedRegressionTests(wstring cmdLine)
 		else
 			val <<cmdLine[i];
 	}
+	wstring testFileName = val.str();
 
-	//Open our test file, read it into a Key Magic Keyboard
+	//Main processing loop
+	wstring outFileName;
 	try {
+		//Open our test file, read it into a Key Magic Keyboard
 		KeyMagicInputMethod testFile;
-		testFile.loadTextRulesFile(waitzar::escape_wstr(val.str(), false));
+		testFile.loadTextRulesFile(waitzar::escape_wstr(testFileName, false));
+
+		//Now, check for various options
+		const std::wstring& language = testFile.getOption(L"language");
+		const std::wstring& inputMethod = testFile.getOption(ConfigManager::sanitize_id(L"input-method"));
+		const std::wstring& outEncoding = testFile.getOption(ConfigManager::sanitize_id(L"output-encoding"));
+		if (language.empty())
+			throw std::exception("Invalid test file: missing the \"language\" option.");
+		if (inputMethod.empty())
+			throw std::exception("Invalid test file: missing the \"input-method\" option.");
+		if (outEncoding.empty())
+			throw std::exception("Invalid test file: missing the \"output-encoding\" option.");
+
+		//Convert all Rules to "single string" format; this will test them, too.
+		vector< pair<wstring, wstring> > testPairs = testFile.convertToRulePairs();
+
+		//Set the language, input method, and output encoding.
+		//First check if they exist, though.
+		if (FindKeyInSet(config.getLanguages(), language)==config.getLanguages().end())
+			throw std::exception(waitzar::glue(L"Unknown language: \"", language, L"\"").c_str());
+		if (FindKeyInSet(config.getInputMethods(), inputMethod)==config.getInputMethods().end())
+			throw std::exception(waitzar::glue(L"Unknown input method: \"", inputMethod, L"\"").c_str());
+		if (FindKeyInSet(config.getEncodings(), outEncoding)==config.getEncodings().end())
+			throw std::exception(waitzar::glue(L"Unknown output encoding: \"", outEncoding, L"\"").c_str());
+		ChangeLangInputOutput(language, inputMethod, outEncoding);
+
+		//Construct the output file name
+		size_t lastSlash = string::npos;
+		{
+			size_t lastSlash1 = testFileName.rfind(L"/");
+			size_t lastSlash2 = testFileName.rfind(L"\\");
+			if (lastSlash1!=string::npos && lastSlash2!=string::npos)
+				lastSlash = std::max<size_t>(lastSlash1, lastSlash2);
+			else
+				lastSlash = std::min<size_t>(lastSlash1, lastSlash2);
+		}
+		size_t lastDot = testFileName.rfind(L".");
+		if (lastDot<lastSlash || lastDot==string::npos)
+			outFileName = testFileName + L".results";
+		else
+			outFileName = testFileName.substr(0, lastDot) + L".results" + testFileName.substr(lastDot, testFileName.size());
+
+
+		//Delete the old error file, if it exists
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		std::wstringstream temp;
+		temp <<outFileName.c_str();
+		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE) {
+			remove(waitzar::escape_wstr(outFileName, false).c_str()); //Will only fail if the file doesn't exist anyway.
+		}
+		
 
 	} catch (std::exception ex) {
 		wstringstream msg;
@@ -2988,8 +3041,14 @@ bool checkUserSpecifiedRegressionTests(wstring cmdLine)
 		return true;
 	}
 
+	
 
-	MessageBox(NULL, L"Tests complete.", L"Test Results", MB_ICONINFORMATION | MB_OK);
+
+
+
+	wstringstream msg; 
+	msg <<"Test complete. Log saved to: \n\n   " <<outFileName <<std::endl;
+	MessageBox(NULL, msg.str().c_str(), L"Test Results", MB_ICONINFORMATION | MB_OK);
 
 	return true;
 }
