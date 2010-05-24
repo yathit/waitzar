@@ -66,6 +66,33 @@ KeyMagicInputMethod::~KeyMagicInputMethod()
 }
 
 
+const std::wstring KeyMagicInputMethod::emptyStr = L"";
+const wstring& KeyMagicInputMethod::getOption(const wstring& optName)
+{
+	if (options.count(optName)>0)
+		return options[optName];
+	return emptyStr;
+}
+
+vector< pair<wstring, wstring> > KeyMagicInputMethod::convertToRulePairs()
+{
+	vector< pair<wstring, wstring> > res;
+
+	//Add a rule for each pair; enforce that they're string/string pairs.
+	for (size_t i=0; i<replacements.size(); i++) {
+		Rule lhs = compressToSingleStringRule(replacements[i].match);
+		Rule rhs = compressToSingleStringRule(replacements[i].replace);
+		if (lhs.type!=KMRT_STRING)
+			throw std::exception("Error: LHS is not of type \"string\".");
+		if (rhs.type!=KMRT_STRING)
+			throw std::exception("Error: RHS is not of type \"string\".");
+		res.push_back(pair<wstring, wstring>(lhs.str, rhs.str));
+	}
+
+	return res;
+}
+
+
 void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const string& binaryFilePath, bool disableCache, std::string (*fileMD5Function)(const std::string&))
 {
 	//The first thing we need to do is determine whether we're loading the source file (text) or a binary compiled cache

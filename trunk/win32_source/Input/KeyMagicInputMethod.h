@@ -233,6 +233,10 @@ public:
 	void loadRulesFile(const std::string& rulesFilePath, const std::string& binaryFilePath, bool disableCache, std::string (*fileMD5Function)(const std::string&));
 	std::wstring applyRules(const std::wstring& origInput, unsigned int vkeyCode);
 
+	//Additional useful stuff
+	const std::wstring& getOption(const std::wstring& optName);
+	std::vector< std::pair<std::wstring, std::wstring> > convertToRulePairs();
+
 	//Overrides of LetterInputMethod
 	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam);
 	virtual void handleBackspace(WPARAM wParam, LPARAM lParam);
@@ -246,6 +250,9 @@ private:
 	static void writeLogLine(const std::string& fileName, const std::wstring& logLine); //We'll escape MM outselves
 	static void writeInt(std::vector<unsigned char>& stream, int intVal);
 	static int readInt(unsigned char* buffer, size_t& currPos, size_t bufferSize);
+	
+	//Ugh
+	static const std::wstring emptyStr;
 
 	//Data
 	std::vector<bool> switches;
