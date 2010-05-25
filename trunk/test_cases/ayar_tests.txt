@@ -9,6 +9,6 @@
 
 
 //Simple tests
-"u" => "က"
+"u" => "က်"   //Purposefully invalid test...
 "uf" => "က်"
 
