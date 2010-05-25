@@ -2955,29 +2955,16 @@ void createPaintResources()
 
 
 
-bool checkUserSpecifiedRegressionTests(wstring cmdLine)
+bool checkUserSpecifiedRegressionTests(wstring testFileName)
 {
-	//Find the parameter -t or -test, followed by a space
-	size_t cmdID = std::min<size_t>(cmdLine.find(L"-t "), cmdLine.find(L"-test "));
-	if (cmdID == std::string::npos)
+	//Anything to process?
+	if (testFileName.empty())
 		return false;
-	cmdID = cmdLine.find(L" ", cmdID) + 1;
-
-	//Build it
-	wstringstream val;
-	bool inQuote = false;
-	for (size_t i=cmdID; i<cmdLine.length(); i++) {
-		if (cmdLine[i]==L' ' && !inQuote)
-			break;
-		if (cmdLine[i]==L'"') 
-			inQuote = !inQuote;
-		else
-			val <<cmdLine[i];
-	}
-	wstring testFileName = val.str();
 
 	//Main processing loop
 	wstring outFileName;
+	FILE* outFile = NULL; //Don't open unless we need it.
+	unsigned int numErrors = 0;
 	try {
 		//Open our test file, read it into a Key Magic Keyboard
 		KeyMagicInputMethod testFile;
@@ -3028,26 +3015,78 @@ bool checkUserSpecifiedRegressionTests(wstring cmdLine)
 		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 		std::wstringstream temp;
 		temp <<outFileName.c_str();
-		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE) {
+		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
 			remove(waitzar::escape_wstr(outFileName, false).c_str()); //Will only fail if the file doesn't exist anyway.
+		
+
+		//Now, let's track our errors!
+		for (vector< pair<wstring, wstring> >::iterator currTest = testPairs.begin(); currTest!=testPairs.end(); currTest++) {
+			//Reset the input method
+			currInput->reset(true, true, true, true);
+
+			//Now, type each letter in the test sequence
+			for (size_t i=0; i<currTest->first.length(); i++) {
+				//wParam = Hotkey ID. Note that wPararm is ALSO used to track each letter.
+				//     We should really remove this in later versions.
+				//lParam = low: mod keys, high: key pressed
+				wchar_t c = currTest->first[i];
+				unsigned int mods = c>='A'&&c<='Z' ? MOD_SHIFT : 0;
+				WPARAM wParam = c;
+				LPARAM lParam = MAKELPARAM(mods, c);
+				currInput->handleKeyPress(wParam, lParam, (mods&MOD_SHIFT)!=0);
+			}
+
+			//Retrieve the output, in the correct encoding.
+			bool noEncChange = (uni2Output->toEncoding==currInput->encoding);
+			wstring resOut = currInput->getTypedSentenceStrings()[3];
+			if (!noEncChange) {
+				input2Uni->convertInPlace(resOut);
+				uni2Output->convertInPlace(resOut);
+			}
+
+			//Now, compare
+			if (currTest->second != resOut) {
+				//First time? Then init our file
+				if (numErrors++ == 0) {
+					outFile = fopen(waitzar::escape_wstr(outFileName.c_str(), false).c_str(), "w");
+					if (outFile==NULL)
+						throw std::exception(waitzar::glue(L"Cannot open output file: ", outFileName).c_str());
+					fprintf(outFile, "Test results\n-----------\n");
+					fflush(outFile);
+				}
+
+				//Print our test results
+				fprintf(outFile, "%s => %s\n   Actual result: %s\n", waitzar::escape_wstr(currTest->first, false).c_str(), waitzar::escape_wstr(currTest->second, false).c_str(), waitzar::escape_wstr(resOut, false).c_str());
+				fflush(outFile);
+			}
 		}
 		
 
+		//Close output file
+		if (outFile!=NULL) {
+			fclose(outFile);
+			outFile = NULL;
+		}
 	} catch (std::exception ex) {
 		wstringstream msg;
-		msg <<L"Error running test file: \"" <<val.str() <<L"\"" <<std::endl;
+		msg <<L"Error running test file: \"" <<testFileName <<L"\"" <<std::endl;
 		msg <<L"WaitZar will now exit.\n\nDetails: " <<ex.what() <<std::endl;
 		MessageBox(NULL, msg.str().c_str(), L"Testing Error", MB_ICONERROR | MB_OK);
+
+		//Close output file
+		if (outFile!=NULL) {
+			fclose(outFile);
+			outFile = NULL;
+		}
 		return true;
 	}
 
-	
-
-
-
-
-	wstringstream msg; 
-	msg <<"Test complete. Log saved to: \n\n   " <<outFileName <<std::endl;
+	wstringstream msg;
+	msg <<"Test complete.";
+	if (numErrors==0)
+		msg <<"\n\n   No errors detected." <<std::endl;
+	else
+		msg <<"\n\nThere were " <<numErrors <<" errors.\nLog saved to: \n\n   " <<outFileName <<std::endl;
 	MessageBox(NULL, msg.str().c_str(), L"Test Results", MB_ICONINFORMATION | MB_OK);
 
 	return true;
@@ -3075,6 +3114,34 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
+
+
+	//Parse the command line
+	wstring testFileName;
+	{
+		std::wstringstream tempW;
+		tempW <<lpCmdLine;
+		wstring cmdLine = tempW.str();
+
+		//Find the parameter -t or -test, followed by a space
+		size_t cmdID = std::min<size_t>(cmdLine.find(L"-t "), cmdLine.find(L"-test "));
+		if (cmdID != std::string::npos) {
+			cmdID = cmdLine.find(L" ", cmdID) + 1;
+
+			//Build it
+			wstringstream val;
+			bool inQuote = false;
+			for (size_t i=cmdID; i<cmdLine.length(); i++) {
+				if (cmdLine[i]==L' ' && !inQuote)
+					break;
+				if (cmdLine[i]==L'"') 
+					inQuote = !inQuote;
+				else
+					val <<cmdLine[i];
+			}
+			testFileName = val.str();
+		}
+	}
 
 
 	//Log?
@@ -3194,7 +3261,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (config.getSettings().balloonStart) {
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
-		swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
+		if (testFileName.empty())
+			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
+		else
+			swprintf(nid.szInfo, _T("WaitZar is running regression tests. \n\nPlease wait for these to finish."));
 		nid.uTimeout = 20;
 		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported?
 	}
@@ -3224,11 +3294,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-
 	//Now that everything has been loaded, run any user-driven tests
-	std::wstringstream tempW;
-	tempW <<lpCmdLine;
-	if (checkUserSpecifiedRegressionTests(tempW.str())) {
+	if (checkUserSpecifiedRegressionTests(testFileName)) {
 		//Cleanly exit.
 		delete mainWindow;
 	}
