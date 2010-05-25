@@ -428,6 +428,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				while (i<sz && (datastream[i]!=L'/' || datastream[i-1]!=L'*'))
 					commentEnd = ++i;
 				commentEnd -= 2;
+				//i--; //We want to parse the final newline.
 				
 				//Parse options if this is the first comment. 
 				// An option begins on a newline and begins with an @, following possible whitespace.
@@ -500,10 +501,14 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				i += 2;
 				while (i<sz && datastream[i]!=L'\n')
 					i++;
+				i--; //We want to process the newline.
 
 				firstComment = false;
 				continue;
 			}
+
+			//For debugging
+			wchar_t currC = datastream[i];
 
 			//Skip \r
 			if (datastream[i]==L'\r')
@@ -512,7 +517,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 			//Newline causes a line break 
 			if (datastream[i]==L'\n') {
 				//...unless preceeded by "\"
-				if (lastChar=='\\') {
+				if (lastChar==L'\\') {
 					lastChar = L'\0';
 					continue;
 				}

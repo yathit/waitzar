@@ -100,6 +100,7 @@ public:
 	bool drawString(DisplayMethod* font, const std::wstring& str, int x, int y);
 	bool drawChar(DisplayMethod* font, char letter, int xPos, int yPos);
 
+
 	//A new property
 	void setDefaultSize(int width, int height);
 	int getDefaultWidth();
