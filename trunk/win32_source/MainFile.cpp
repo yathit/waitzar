@@ -108,6 +108,7 @@ using std::vector;
 using std::list;
 using std::pair;
 using std::wstringstream;
+using std::ofstream;
 
 
 //Current version
@@ -2954,6 +2955,18 @@ void createPaintResources()
 }
 
 
+//Temp code; borrowed for now:
+std::string to_utf8(const wchar_t* buffer, int len) {
+  int nChars = ::WideCharToMultiByte(CP_UTF8, 0, buffer, len, NULL, 0, NULL, NULL);
+  if (nChars == 0) return "";
+  string newbuffer;
+  newbuffer.resize(nChars) ;
+  WideCharToMultiByte(CP_UTF8, 0, buffer, len, const_cast< char* >(newbuffer.c_str()), nChars, NULL, NULL); 
+  return newbuffer;
+}
+std::string to_utf8(const std::wstring& str) { return to_utf8(str.c_str(), (int)str.size()); }
+
+
 
 bool checkUserSpecifiedRegressionTests(wstring testFileName)
 {
@@ -2963,7 +2976,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 
 	//Main processing loop
 	wstring outFileName;
-	FILE* outFile = NULL; //Don't open unless we need it.
+	ofstream outFile;  //Don't open unless we need it.
 	unsigned int numErrors = 0;
 	try {
 		//Open our test file, read it into a Key Magic Keyboard
@@ -3048,25 +3061,28 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 			if (currTest->second != resOut) {
 				//First time? Then init our file
 				if (numErrors++ == 0) {
-					outFile = fopen(waitzar::escape_wstr(outFileName.c_str(), false).c_str(), "w");
-					if (outFile==NULL)
+					outFile.open(outFileName.c_str(), std::ios::out|std::ios::binary); //binary needed for utf-8
+					if (outFile.fail())
 						throw std::exception(waitzar::glue(L"Cannot open output file: ", outFileName).c_str());
-					fprintf(outFile, "Test results\n-----------\n");
-					fflush(outFile);
+					outFile <<"Test results\n-----------\n";
+					outFile.flush();
 				}
 
 				//Print our test results
-				fprintf(outFile, "%s => %s\n   Actual result: %s\n", waitzar::escape_wstr(currTest->first, false).c_str(), waitzar::escape_wstr(currTest->second, false).c_str(), waitzar::escape_wstr(resOut, false).c_str());
-				fflush(outFile);
+				outFile <<to_utf8(currTest->first) 
+					<<" => " <<to_utf8(currTest->second) 
+					<<std::endl 
+					<<"   Actual result: " 
+					<<to_utf8(resOut) 
+					<<std::endl;
+				outFile.flush();
 			}
 		}
 		
 
 		//Close output file
-		if (outFile!=NULL) {
-			fclose(outFile);
-			outFile = NULL;
-		}
+		if (outFile.is_open())
+			outFile.close();
 	} catch (std::exception ex) {
 		wstringstream msg;
 		msg <<L"Error running test file: \"" <<testFileName <<L"\"" <<std::endl;
@@ -3074,19 +3090,21 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		MessageBox(NULL, msg.str().c_str(), L"Testing Error", MB_ICONERROR | MB_OK);
 
 		//Close output file
-		if (outFile!=NULL) {
-			fclose(outFile);
-			outFile = NULL;
-		}
+		if (outFile.is_open())
+			outFile.close();
 		return true;
 	}
+
+	//Prepare verbs, etc.
+	wstring werewas = numErrors==1 ? L"was" : L"were";
+	wstring plural = numErrors==1 ? L"" : L"s";
 
 	wstringstream msg;
 	msg <<"Test complete.";
 	if (numErrors==0)
 		msg <<"\n\n   No errors detected." <<std::endl;
 	else
-		msg <<"\n\nThere were " <<numErrors <<" errors.\nLog saved to: \n\n   " <<outFileName <<std::endl;
+		msg <<"\n\nThere " <<werewas <<" " <<numErrors <<" error" <<plural <<".\nLog saved to: \n\n   " <<outFileName <<std::endl;
 	MessageBox(NULL, msg.str().c_str(), L"Test Results", MB_ICONINFORMATION | MB_OK);
 
 	return true;
@@ -3142,6 +3160,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			testFileName = val.str();
 		}
 	}
+
+
+////////////////
+//DEBUG
+////////////////
+//testFileName = L"../test_cases/ayar_tests.txt";
+////////////////
+////////////////
 
 
 	//Log?
