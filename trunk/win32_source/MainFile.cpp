@@ -3165,7 +3165,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 ////////////////
 //DEBUG
 ////////////////
-//testFileName = L"../test_cases/ayar_tests.txt";
+testFileName = L"../test_cases/ayar_tests.txt";
 ////////////////
 ////////////////
 
@@ -3322,7 +3322,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Now that everything has been loaded, run any user-driven tests
 	if (checkUserSpecifiedRegressionTests(testFileName)) {
-		//Cleanly exit.
+		//Cleanly exit. (Sort of... this might be bad since no messages are being pumped).
 		delete mainWindow;
 	}
 
