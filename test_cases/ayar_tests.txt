@@ -7,8 +7,125 @@
      @output-encoding = ayar
 */
 
+//Single Letters: Row 1
+"q" => "ဆ"
+"w" => "တ"
+"e" => "န"
+"E" => "ၮ"
+"r" => "မ"
+"t" => "အ"
+"T" => "ဤ"
+"y" => "ပ"
+"Y" => "၌"
+"u" => "က"
+"i" => "င"
+"I" => "၍"
+"o" => "သ"
+"O" => "ဥ"
+"p" => "စ"
 
-//Simple tests
-"u" => "က်"   //Purposefully invalid test...
-"uf" => "က်"
+//Single Letters: Row 2
+"a" => "ေ"
+"A" => "ဗ"
+"s" => "ျ"
+"S" => "ှ"
+"d" => "ိ"
+"D" => "ီ"
+"f" => "်"
+"F" => "င်္"
+"g" => "ါ"
+"G" => "ွ"
+"h" => "့"
+"H" => "ံ"
+"j" => "ြ"
+"J" => "ဲ"
+"k" => "ု"
+"K" => "ှု"
+"l" => "ူ"
+"L" => "ှူ"
+
+//Single letters: Row 3
+"z" => "ဖ"
+"Z" => "ဇ"
+"x" => "ထ"
+"X" => "ဌ"
+"c" => "ခ"
+"C" => "ဃ"
+"v" => "လ"
+"V" => "ဠ"
+"b" => "ဘ"
+"n" => "ည"
+"m" => "ာ"
+
+//Single letters stacked using Shift
+"uQ" => "က္ခ"
+"uW" => "က္တ"
+"uR" => "က္မ"
+"uU" => "က္က"
+"uP" => "က္စ"
+"uiF" => "ကငင်္"
+"uB" => "က္ဘ"
+"uN" => "က္ဒ"
+"uM" => "က္န"
+
+
+//TODO: We need to enable these keys
+//TODO: We  also need to auto-detect "|" = Shift + "\\"
+//Row 1:
+"[" => "ဟ"
+"{" => "ဧ"
+"]" => "ဉ"
+"}" => "ဦ"
+"\\" => "ဿ"
+"|" => "၎င်း"
+//Row 2:
+";" => "း"
+":" => "ါ်"
+"'" => "ဒ"
+"\"" => "ဓ"
+//Row 4:
+"," => "ယ"
+"." => "၏"
+"/" => "။"
+"?" => "၊"
+//Stacked
+"u<" => "က္ဓ"
+"u>" => "က္ဆ"
+
+//TODO: We need to enable number keys and their shifted counterparts
+"1" => "၁"
+"!" => "ဋ"
+"2" => "၂"
+"@" => "ဍ"
+"3" => "၃"
+"#" => "ဎ"
+"4" => "၄"
+"$" => "ဣ"
+"5" => "၅"
+"%" => "စျ"
+"6" => "၆"
+"^" => "/"
+"7" => "၇"
+"&" => "ရ"
+"8" => "၈"
+"*" => "ဂ"
+"9" => "၉"
+"0" => "၀"
+")" => "၀"
+"_" => "ြသ"
+"+" => "ေြသာ်"
+
+//TODO: We need to enable the AUX key
+//TODO: There are actually 2 aux keys
+"uw`" => "က္တ"
+"uw=" => "က္တ"
+
+//TODO: Test various combinations of letters, various words, multiple words in a row, et cettera
+
+
+//TODO: Add in test cases for the various bugs reported by users; that way we can avoid them in the future! :D
+
+
+
+
 
