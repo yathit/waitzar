@@ -82,13 +82,13 @@ void LetterInputMethod::handleUpDown(bool isDown)
 //Ignore numCode, typeBurmeseNumbers
 void LetterInputMethod::handleNumber(VirtKey& vkey, bool typeBurmeseNumbers)
 {
-	this->handleKeyPress(wParam, lParam, isUpper);
+	this->handleKeyPress(vkey);
 }
 
 void LetterInputMethod::handleStop(bool isFull, VirtKey& vkey)
 {
 	//Perform the normal "enter" routine.
-	typedStopChar = isFull ? L'\u104B' : L'\u'; //TODO: Make this based on encoding...
+	typedStopChar = isFull ? L'\u104B' : L'\u104A'; //TODO: Make this based on encoding...
 	requestToTypeSentence = true;
 }
 
@@ -135,8 +135,9 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 //False means nothing else to type
 pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& prevStr, VirtKey& vkey)
 {
-	//Nothing to do?
-	wstring nextBit = helpKeyboard->typeLetter(nextKeycode);
+	//Nothing to do? NOTE: We need to eventually abstract the mywin functionality from the helpKeyboard. 
+	//    For now, though, it will cause no error (KeyMagic overrides this method.)
+	wstring nextBit = helpKeyboard->typeLetter(vkey.vkCode, vkey.alphanum, vkey.modShift);
 	if (nextBit.empty())
 		return pair<wstring, bool>(prevStr, false);
 
@@ -175,7 +176,7 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 	wstring curr = typedSentenceStr.str();
 	if (isHelpInput())
 		curr = typedCandidateStr.str();
-	pair<wstring, bool> next = appendTypedLetter(curr, (wchar_t)(wParam&0xFFFF), wParam, lParam);
+	pair<wstring, bool> next = appendTypedLetter(curr, vkey);
 
 	//Did we change anything?
 	if (next.second) {
@@ -201,7 +202,7 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 		viewChanged = true;
 	} else {
 		//Check for system keys
-		InputMethod::handleKeyPress(wParam, lParam, isUpper);
+		InputMethod::handleKeyPress(vkey);
 	}
 }
 

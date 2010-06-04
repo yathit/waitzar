@@ -125,13 +125,13 @@ public:
 	void initHelp();
 	void initMemory();
 
-	bool highlightKey(UINT hotkeyCode, bool highlightON);
+	bool highlightKey(unsigned int vkCode, char alphanum, bool modShift, bool highlightON);
 
 	void setMode(int newMode);
 
-	int getVirtualKeyID(UINT hotkeyCode) const;
+	int getVirtualKeyID(unsigned int vkCode, char alphanum, bool modShift) const;
 
-	std::wstring typeLetter(DWORD hotkeyCode);
+	std::wstring typeLetter(unsigned int vkCode, char alphanum, bool modShift);
 
 	void addMemoryEntry(const std::wstring &my, const std::string &rom);
 	size_t getMaxMemoryEntries() const;
@@ -195,7 +195,7 @@ private:
 	void drawKey(key currKey, int keyID, bool isPressed);
 
 	//Helper
-	int getKeyID(UINT hkCode) const;
+	int getKeyID(unsigned int vkCode, char alphanum, bool modShift) const;
 
 
 };

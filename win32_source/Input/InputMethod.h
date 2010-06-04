@@ -30,9 +30,14 @@ struct VirtKey {
 	//The virtual key code of the this keypress. Guaranteed.
 	unsigned int vkCode;
 
-	//The alpha-numeric value of this keypress. 
+	//The alpha-numeric value of this keypress. (Also: ascii value for some additional, common keys)
 	//  Guaranteed to be 'a'-'z' for [a-zA-Z].
 	//  Guaranteed to be '0'-'9' for any numeric (numpad, regular).
+	//  Guaranteed to be "!@#$%^&*()" for the shifted number keys, respectively.
+	//  Guaranteed to be '`', '~', '-', '_', '=', '+', for the other top-row keys.
+	//  Guaranteed to be '[', '{', ']', '}', '\\', '|', for the other first-row keys.
+	//  Guaranteed to be ';', ':', '\'', '"', for the other second-row keys.
+	//  Guaranteed to be ',', '<', '.', '>', '/', '?', for the other third-row keys.
 	//  Guaranteed to be '\0' for anything else.
 	char alphanum; 
 
@@ -56,15 +61,62 @@ struct VirtKey {
 		modAlt = (LOWORD(wmHotkeyLParam)&MOD_ALT) != 0;
 
 		//Alphanum: letters & numbers
-		alphanum = '\0';
 		if (vkCode>='a' && vkCode<='z')
 			alphanum = vkCode;
 		else if (vkCode>='A' && vkCode<='Z') 
 			alphanum = (vkCode-'A')+'a';
-		else if (vkCode>='0' && vkCode<='9')
+		else if (vkCode>='0' && vkCode<='9' && !modShift)
 			alphanum = vkCode;
 		else if (vkCode>=VK_NUMPAD0 && vkCode<=VK_NUMPAD9)
 			alphanum = (vkCode-VK_NUMPAD0)+'0';
+		else {
+			switch (vkCode) {
+				case '1':
+					alphanum = '!';  break;
+				case '2':
+					alphanum = '@';  break;
+				case '3':
+					alphanum = '#';  break;
+				case '4':
+					alphanum = '$';  break;
+				case '5':
+					alphanum = '%';  break;
+				case '6':
+					alphanum = '^';  break;
+				case '7':
+					alphanum = '&';  break;
+				case '8':
+					alphanum = '*';  break;
+				case '9':
+					alphanum = '(';  break;
+				case '0':
+					alphanum = ')';  break;
+				case VK_OEM_3:
+					alphanum = modShift ? '~' : '`';  break;
+				case VK_OEM_MINUS:
+					alphanum = modShift ? '_' : '-';  break;
+				case VK_OEM_PLUS:
+					alphanum = modShift ? '+' : '=';  break;
+				case VK_OEM_4:
+					alphanum = modShift ? '{' : '[';  break;
+				case VK_OEM_6:
+					alphanum = modShift ? '}' : ']';  break;
+				case VK_OEM_5:
+					alphanum = modShift ? '|' : '\\';  break;
+				case VK_OEM_1:
+					alphanum = modShift ? ':' : ';';  break;
+				case VK_OEM_7:
+					alphanum = modShift ? '"' : '\'';  break;
+				case VK_OEM_COMMA:
+					alphanum = modShift ? '<' : ',';  break;
+				case VK_OEM_PERIOD:
+					alphanum = modShift ? '>' : '.';  break;
+				case VK_OEM_2:
+					alphanum = modShift ? '?' : '/';  break;
+				default:
+					alphanum = '\0';
+			}
+		}
 	}
 
 	//Useful functions: represent as a key magic integer.

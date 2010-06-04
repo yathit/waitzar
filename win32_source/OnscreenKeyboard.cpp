@@ -214,7 +214,7 @@ void OnscreenKeyboard::initMemory()
  */
 bool OnscreenKeyboard::isShifted()
 {
-	return shiftedKeys[getKeyID(HOTKEY_VIRT_LSHIFT)] || shiftedKeys[getKeyID(HOTKEY_VIRT_RSHIFT)];
+	return shiftedKeys[getKeyID(VK_LSHIFT, '\0', true)] || shiftedKeys[getKeyID(VK_RSHIFT, '\0', true)];
 }
 
 
@@ -270,10 +270,10 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
  *  hotkeyCode must be either a letter, or a hotkey code (hotkeys.h)
  * Returns -1 if we don't track this
  */
-bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
+bool OnscreenKeyboard::highlightKey(unsigned int vkCode, char alphanum, bool modShift, bool highlightON)
 {
 	//Get the key code, unshifted
-	int id = getKeyID(hotkeyCode);
+	int id = getKeyID(vkCode, alphanum, modShift);
 	if (id>=61)
 		id -= 61;
 	if (id==-1)
@@ -296,9 +296,9 @@ bool OnscreenKeyboard::highlightKey(UINT hotkeyCode, bool highlightON)
 	return true;
 }
 
-int OnscreenKeyboard::getVirtualKeyID(UINT hotkeyCode) const
+int OnscreenKeyboard::getVirtualKeyID(unsigned int vkCode, char alphanum, bool modShift) const
 {
-	int id = getKeyID(hotkeyCode);
+	int id = getKeyID(vkCode, alphanum, modShift);
 	if (id>=61)
 		id -= 61;
 	if (id==-1)
@@ -312,265 +312,282 @@ int OnscreenKeyboard::getVirtualKeyID(UINT hotkeyCode) const
 //  with the supered keys from IDs 61 to 121.
 //We could just use isShifted() for the super keys, but we don't want to rely on our thread.
 //Also, some keys will never be used, like HOTKEY_SUPER_ENTER; we're just adding them for completeness.
-int OnscreenKeyboard::getKeyID(UINT hkCode) const
+int OnscreenKeyboard::getKeyID(unsigned int vkCode, char alphanum, bool modShift) const
 {
-	switch (hkCode) 
-	{
-		case HOTKEY_COMBINE:
-			return 0;
-		case HOTKEY_1:
-			return 1;
-		case HOTKEY_2:
-			return 2;
-		case HOTKEY_3:
-			return 3;
-		case HOTKEY_4:
-			return 4;
-		case HOTKEY_5:
-			return 5;
-		case HOTKEY_6:
-			return 6;
-		case HOTKEY_7:
-			return 7;
-		case HOTKEY_8:
-			return 8;
-		case HOTKEY_9:
-			return 9;
-		case HOTKEY_0:
-			return 10;
-		case HOTKEY_MINUS:
-			return 11;
-		case HOTKEY_EQUALS:
-			return 12;
-		//case [HOTKEY_BACKSPACE]:
-		//	return 13;
-		//case [HOTKEY_TAB]:
-		//	return 14;
-		case 'q':
-			return 15;
-		case 'w':
-			return 16;
-		case 'e':
-			return 17;
-		case 'r':
-			return 18;
-		case 't':
-			return 19;
-		case 'y':
-			return 20;
-		case 'u':
-			return 21;
-		case 'i':
-			return 22;
-		case 'o':
-			return 23;
-		case 'p':
-			return 24;
-		case HOTKEY_LEFT_BRACKET:
-			return 25;
-		case HOTKEY_RIGHT_BRACKET:
-			return 26;
-		case HOTKEY_BACKSLASH:
-			return 27;
-		//case [HOTKEY_CAPSLOCK]:
-		//	return 28;
-		case 'a':
-			return 29;
-		case 's':
-			return 30;
-		case 'd':
-			return 31;
-		case 'f':
-			return 32;
-		case 'g':
-			return 33;
-		case 'h':
-			return 34;
-		case 'j':
-			return 35;
-		case 'k':
-			return 36;
-		case 'l':
-			return 37;
-		case HOTKEY_SEMICOLON:
-			return 38;
-		case HOTKEY_APOSTROPHE:
-			return 39;
-		case HOTKEY_ENTER:
-			return 40;
-		case HOTKEY_VIRT_LSHIFT:
-			return 41;
-		case 'z':
-			return 42;
-		case 'x':
-			return 43;
-		case 'c':
-			return 44;
-		case 'v':
-			return 45;
-		case 'b':
-			return 46;
-		case 'n':
-			return 47;
-		case 'm':
-			return 48;
-		case HOTKEY_COMMA:
-			return 49;
-		case HOTKEY_PERIOD:
-			return 50;
-		case HOTKEY_FORWARDSLASH:
-			return 51;
-		case HOTKEY_VIRT_RSHIFT:
-			return 52;
-		//case [HOTKEY_LEFT_CONTROL]:
-		//	return 53;
-		//case [HOTKEY_LEFT_WIN]:
-		//	return 54;
-		//case [HOTKEY_LEFT_ALT]:
-		//	return 55;
-		case HOTKEY_SPACE:
-			return 56;
-		//case [HOTKEY_RIGHT_ALT]:
-		//	return 57;
-		//case [HOTKEY_RIGHT_WIN]:
-		//	return 58;
-		//case [HOTKEY_CMENU]:
-		//	return 59;
-		//case [HOTKEY_RIGHT_CTRL]:
-		//	return 60;
-		case HOTKEY_SHIFT_COMBINE:
-			return 61;
-		case HOTKEY_SHIFT_1:
-			return 62;
-		case HOTKEY_SHIFT_2:
-			return 63;
-		case HOTKEY_SHIFT_3:
-			return 64;
-		case HOTKEY_SHIFT_4:
-			return 65;
-		case HOTKEY_SHIFT_5:
-			return 66;
-		case HOTKEY_SHIFT_6:
-			return 67;
-		case HOTKEY_SHIFT_7:
-			return 68;
-		case HOTKEY_SHIFT_8:
-			return 69;
-		case HOTKEY_SHIFT_9:
-			return 70;
-		case HOTKEY_SHIFT_0:
-			return 71;
-		case HOTKEY_SHIFT_MINUS:
-			return 72;
-		case HOTKEY_SHIFT_EQUALS:
-			return 73;
-		//case [HOTKEY_SUP_BACKSPACE]:
-		//	return 74;
-		//case [HOTKEY_SUP_TAB]:
-		//	return 75;
-		case 'Q':
-			return 76;
-		case 'W':
-			return 77;
-		case 'E':
-			return 78;
-		case 'R':
-			return 79;
-		case 'T':
-			return 80;
-		case 'Y':
-			return 81;
-		case 'U':
-			return 82;
-		case 'I':
-			return 83;
-		case 'O':
-			return 84;
-		case 'P':
-			return 85;
-		case HOTKEY_SHIFT_LEFT_BRACKET:
-			return 86;
-		case HOTKEY_SHIFT_RIGHT_BRACKET:
-			return 87;
-		case HOTKEY_SHIFT_BACKSLASH:
-			return 88;
-		//case [HOTKEY_SUP_CAPSLOCK]:
-		//	return 89;
-		case 'A':
-			return 90;
-		case 'S':
-			return 91;
-		case 'D':
-			return 92;
-		case 'F':
-			return 93;
-		case 'G':
-			return 94;
-		case 'H':
-			return 95;
-		case 'J':
-			return 96;
-		case 'K':
-			return 97;
-		case 'L':
-			return 98;
-		case HOTKEY_SHIFT_SEMICOLON:
-			return 99;
-		case HOTKEY_SHIFT_APOSTROPHE:
-			return 100;
-		case HOTKEY_SHIFT_ENTER:
-			return 101;
-		//case [HOTKEY_SUP_LSHIFT]:
-		//	return 102;
-		case 'Z':
-			return 103;
-		case 'X':
-			return 104;
-		case 'C':
-			return 105;
-		case 'V':
-			return 106;
-		case 'B':
-			return 107;
-		case 'N':
-			return 108;
-		case 'M':
-			return 109;
-		case HOTKEY_SHIFT_COMMA:
-			return 110;
-		case HOTKEY_SHIFT_PERIOD:
-			return 111;
-		case HOTKEY_SHIFT_FORWARDSLASH:
-			return 112;
-		//case [HOTKEY_SUP_RSHIFT]:
-		//	return 113;
-		//case [HOTKEY_SUP_LEFT_CONTROL]:
-		//	return 114;
-		//case [HOTKEY_SUP_LEFT_WIN]:
-		//	return 115;
-		//case [HOTKEY_SUP_LEFT_ALT]:
-		//	return 116;
-		case HOTKEY_SHIFT_SPACE:
-			return 117;
-		//case [HOTKEY_SUP_RIGHT_ALT]:
-		//	return 118;
-		//case [HOTKEY_SUP_RIGHT_WIN]:
-		//	return 119;
-		//case [HOTKEY_SUP_CMENU]:
-		//	return 120;
-		//case [HOTKEY_SUP_RIGHT_CTRL]:
-		//	return 121;
-		default:
-			return -1;
+	if (alphanum=='\0') {
+		//Special keys
+		switch (vkCode) 
+		{
+			case VK_RETURN:
+				return modShift ? 101 : 40;
+			case VK_LSHIFT:
+				return 41;
+			case VK_RSHIFT:
+				return 52;
+			case ' ': //Special case
+				return modShift ? 117 : 56;
+			default:
+				return -1;
+		}
+	} else {
+		switch (alphanum) 
+		{
+			case '`':
+				return 0;
+			case '1':
+				return 1;
+			case '2':
+				return 2;
+			case '3':
+				return 3;
+			case '4':
+				return 4;
+			case '5':
+				return 5;
+			case '6':
+				return 6;
+			case '7':
+				return 7;
+			case '8':
+				return 8;
+			case '9':
+				return 9;
+			case '0':
+				return 10;
+			case '-':
+				return 11;
+			case '=':
+				return 12;
+			//case [HOTKEY_BACKSPACE]:
+			//	return 13;
+			//case [HOTKEY_TAB]:
+			//	return 14;
+			case 'q':
+				return 15;
+			case 'w':
+				return 16;
+			case 'e':
+				return 17;
+			case 'r':
+				return 18;
+			case 't':
+				return 19;
+			case 'y':
+				return 20;
+			case 'u':
+				return 21;
+			case 'i':
+				return 22;
+			case 'o':
+				return 23;
+			case 'p':
+				return 24;
+			case '[':
+				return 25;
+			case ']':
+				return 26;
+			case '\\':
+				return 27;
+			//case [HOTKEY_CAPSLOCK]:
+			//	return 28;
+			case 'a':
+				return 29;
+			case 's':
+				return 30;
+			case 'd':
+				return 31;
+			case 'f':
+				return 32;
+			case 'g':
+				return 33;
+			case 'h':
+				return 34;
+			case 'j':
+				return 35;
+			case 'k':
+				return 36;
+			case 'l':
+				return 37;
+			case ';':
+				return 38;
+			case '\'':
+				return 39;
+//			case HOTKEY_ENTER:
+//				return 40;
+//			case HOTKEY_VIRT_LSHIFT:
+//				return 41;
+			case 'z':
+				return 42;
+			case 'x':
+				return 43;
+			case 'c':
+				return 44;
+			case 'v':
+				return 45;
+			case 'b':
+				return 46;
+			case 'n':
+				return 47;
+			case 'm':
+				return 48;
+			case ',':
+				return 49;
+			case '.':
+				return 50;
+			case '/':
+				return 51;
+//			case HOTKEY_VIRT_RSHIFT:
+//				return 52;
+			//case [HOTKEY_LEFT_CONTROL]:
+			//	return 53;
+			//case [HOTKEY_LEFT_WIN]:
+			//	return 54;
+			//case [HOTKEY_LEFT_ALT]:
+			//	return 55;
+//			case ' ':
+//				return 56;
+			//case [HOTKEY_RIGHT_ALT]:
+			//	return 57;
+			//case [HOTKEY_RIGHT_WIN]:
+			//	return 58;
+			//case [HOTKEY_CMENU]:
+			//	return 59;
+			//case [HOTKEY_RIGHT_CTRL]:
+			//	return 60;
+			case '~':
+				return 61;
+			case '!':
+				return 62;
+			case '@':
+				return 63;
+			case '#':
+				return 64;
+			case '$':
+				return 65;
+			case '%':
+				return 66;
+			case '^':
+				return 67;
+			case '&':
+				return 68;
+			case '*':
+				return 69;
+			case '(':
+				return 70;
+			case ')':
+				return 71;
+			case '_':
+				return 72;
+			case '+':
+				return 73;
+			//case [HOTKEY_SUP_BACKSPACE]:
+			//	return 74;
+			//case [HOTKEY_SUP_TAB]:
+			//	return 75;
+			case 'Q':
+				return 76;
+			case 'W':
+				return 77;
+			case 'E':
+				return 78;
+			case 'R':
+				return 79;
+			case 'T':
+				return 80;
+			case 'Y':
+				return 81;
+			case 'U':
+				return 82;
+			case 'I':
+				return 83;
+			case 'O':
+				return 84;
+			case 'P':
+				return 85;
+			case '{':
+				return 86;
+			case '}':
+				return 87;
+			case '|':
+				return 88;
+			//case [HOTKEY_SUP_CAPSLOCK]:
+			//	return 89;
+			case 'A':
+				return 90;
+			case 'S':
+				return 91;
+			case 'D':
+				return 92;
+			case 'F':
+				return 93;
+			case 'G':
+				return 94;
+			case 'H':
+				return 95;
+			case 'J':
+				return 96;
+			case 'K':
+				return 97;
+			case 'L':
+				return 98;
+			case ':':
+				return 99;
+			case '"':
+				return 100;
+//			case HOTKEY_SHIFT_ENTER:
+//				return 101;
+			//case [HOTKEY_SUP_LSHIFT]:
+			//	return 102;
+			case 'Z':
+				return 103;
+			case 'X':
+				return 104;
+			case 'C':
+				return 105;
+			case 'V':
+				return 106;
+			case 'B':
+				return 107;
+			case 'N':
+				return 108;
+			case 'M':
+				return 109;
+			case '<':
+				return 110;
+			case '>':
+				return 111;
+			case '?':
+				return 112;
+			//case [HOTKEY_SUP_RSHIFT]:
+			//	return 113;
+			//case [HOTKEY_SUP_LEFT_CONTROL]:
+			//	return 114;
+			//case [HOTKEY_SUP_LEFT_WIN]:
+			//	return 115;
+			//case [HOTKEY_SUP_LEFT_ALT]:
+			//	return 116;
+//			case HOTKEY_SHIFT_SPACE:
+//				return 117;
+			//case [HOTKEY_SUP_RIGHT_ALT]:
+			//	return 118;
+			//case [HOTKEY_SUP_RIGHT_WIN]:
+			//	return 119;
+			//case [HOTKEY_SUP_CMENU]:
+			//	return 120;
+			//case [HOTKEY_SUP_RIGHT_CTRL]:
+			//	return 121;
+			default:
+				return -1;
+		}
 	}
 }
 
 
 
 
-wstring OnscreenKeyboard::typeLetter(DWORD hotkeyCode)
+wstring OnscreenKeyboard::typeLetter(unsigned int vkCode, char alphanum, bool modShift)
 {
-	int id = getKeyID(hotkeyCode);
+	int id = getKeyID(vkCode, alphanum, modShift);
 	if (id==-1 || hide_for_help[id])
 		return L"";
 

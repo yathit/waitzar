@@ -1845,19 +1845,19 @@ void onAllWindowsCreated()
 
 
 //NOTE: This should be possible entirely with hotkeys (no need for a VirtKey argument)
-void handleNewHighlights(unsigned int hotkeyCode)
+void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 {
 	//If this is a shifted key, get which key is shifted: left or right
 	if (hotkeyCode==HOTKEY_SHIFT) {
 		//Well, I like posting fake messages. :D
 		// Note that (lParam>>16)&VK_LSHIFT doesn't work here
 		if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
-			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MOD_SHIFT);
+			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MAKELPARAM(MOD_SHIFT, VK_LSHIFT));
 		if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
-			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
+			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MAKELPARAM(MOD_SHIFT, VK_RSHIFT));
 	} else {
 		//Is this a valid key? If so, highlight it and repaint the help window
-		if (helpKeyboard->highlightKey(hotkeyCode, true)) {
+		if (helpKeyboard->highlightKey(vkey.vkCode, vkey.alphanum, vkey.modShift, true)) {
 			reBlitHelp();
 
 			//CRITICAL SECTION
@@ -2110,7 +2110,7 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 		default:
 			if (helpWindow->isVisible() && highlightKeys) {
 				//Highlight our virtual keyboard
-				handleNewHighlights(hotkeyCode);
+				handleNewHighlights(hotkeyCode, vkey);
 
 				//Doesn't consume a keypress
 				return false;
@@ -2394,8 +2394,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg) {
 		case UWM_HOTKEY_UP: //HOTKEY_UP is defined by us, it is just like HOTKEY_DOWN except it doesn't use the lparam
 		{
+			//Turn this lparam into a virtual key
+			VirtKey vk(lParam);
+
 			//Update our virtual keyboard
-			if (helpKeyboard->highlightKey(wParam, false))
+			if (helpKeyboard->highlightKey(vk.vkCode, vk.alphanum, vk.modShift, false))
 				reBlitHelp();
 
 			break;
