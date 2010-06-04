@@ -2092,7 +2092,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 
 
 
-bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
+bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 {
 	switch (wParam) {
 		case LANG_HOTKEY:
@@ -2121,7 +2121,7 @@ bool handleMetaHotkeys(WPARAM wParam, LPARAM lParam)
 }
 
 
-bool handleUserHotkeys(WPARAM wParam, LPARAM lParam)
+bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 {
 	//First, is this an upper-case letter?
 	bool isUpper = (wParam>='A' && wParam<='Z');
@@ -2416,12 +2416,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (showingHelpPopup || showingKeyInputPopup)
 				break;
 
+			//Turn this hotkey into a virtual key, to make things simpler.
+			VirtKey vk(lParam);
+
 
 			//First, handle all "system" or "meta" level commands, like switching the language,
 			// switching into help mode, etc.
 			//Then, handle all "dynamic" commands; those which change depending on the 
 			// current IM or mode.
-			if (!handleMetaHotkeys(wParam, lParam)) {
+			if (!handleMetaHotkeys(wParam, vk)) {
 				//Set flags for the current state of the Input Manager. We will
 				// check these against the exit state to see what has changed,
 				// and thus what needs to be updated.
@@ -2431,7 +2434,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Process the message
 				try {
-					handleUserHotkeys(wParam, lParam);
+					handleUserHotkeys(wParam, vk);
 				} catch (std::exception ex) {
 					if (!showingKeyInputPopup) {
 						//Properly handle hotkeys
@@ -3165,7 +3168,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 ////////////////
 //DEBUG
 ////////////////
-testFileName = L"../test_cases/ayar_tests.txt";
+//testFileName = L"../test_cases/ayar_tests.txt";
 ////////////////
 ////////////////
 

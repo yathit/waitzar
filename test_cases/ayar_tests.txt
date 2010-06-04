@@ -72,7 +72,7 @@
 //TODO: We need to enable these keys
 //TODO: We  also need to auto-detect "|" = Shift + "\\"
 //Row 1:
-"[" => "ဟ"
+"[" => "ဟ"
 "{" => "ဧ"
 "]" => "ဉ"
 "}" => "ဦ"
@@ -117,8 +117,8 @@
 
 //TODO: We need to enable the AUX key
 //TODO: There are actually 2 aux keys
-"uw`" => "က္တ"
-"uw=" => "က္တ"
+"u`w" => "က္တ"
+"u=w" => "က္တ"
 
 //TODO: Test various combinations of letters, various words, multiple words in a row, et cettera
 
