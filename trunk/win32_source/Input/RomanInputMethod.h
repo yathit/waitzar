@@ -25,14 +25,14 @@ public:
 
 	//Abstract implementation - keypresses
 	void handleEsc();
-	void handleBackspace(WPARAM wParam, LPARAM lParam);
+	void handleBackspace(VirtKey& vkey);
 	void handleDelete();
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers);
-	void handleStop(bool isFull, WPARAM wParam, LPARAM lParam);
-	void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);
+	void handleNumber(VirtKey& vkey, bool typeBurmeseNumbers);
+	void handleStop(bool isFull, VirtKey& vkey);
+	void handleKeyPress(VirtKey& vkey);
 	void handleTab();
 
 
@@ -136,7 +136,7 @@ void RomanInputMethod<ModelType>::handleEsc()
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleBackspace(WPARAM wParam, LPARAM lParam)
+void RomanInputMethod<ModelType>::handleBackspace(VirtKey& vkey)
 {
 	if (!mainWindow->isVisible()) {
 		//Delete the previous word in the sentence
@@ -215,7 +215,7 @@ void RomanInputMethod<ModelType>::handleUpDown(bool isDown)
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers)
+void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey, bool typeBurmeseNumbers)
 {
 	//Special case: conglomerate numbers
 	if (typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
@@ -252,7 +252,7 @@ void RomanInputMethod<ModelType>::handleNumber(int numCode, WPARAM wParam, LPARA
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleStop(bool isFull, WPARAM wParam, LPARAM lParam)
+void RomanInputMethod<ModelType>::handleStop(bool isFull, VirtKey& vkey)
 {
 	unsigned short stopChar = model->getStopCharacter(isFull);
 	if (!mainWindow->isVisible()) {	
@@ -304,7 +304,7 @@ void RomanInputMethod<ModelType>::handleCommit(bool strongCommit)
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper)
+void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 {
 	//Handle regular letter-presses (as lowercase)
 	//NOTE: ONLY handle letters

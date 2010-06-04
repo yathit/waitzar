@@ -47,7 +47,7 @@ struct VirtKey {
 	VirtKey(unsigned int vkCode, char alphanum, bool modShift, bool modAlt, bool modCtrl) 
 		: vkCode(vkCode), alphanum(alphanum), modShift(modShift), modAlt(modAlt), modCtrl(modCtrl) {}
 
-	//Useful functions: construct from a wParam and lParam (presumably a WM_HOTKEY message)
+	//Useful functions: construct from an lParam (presumably a WM_HOTKEY message)
 	VirtKey(LPARAM wmHotkeyLParam) {
 		//Easy
 		vkCode = HIWORD(wmHotkeyLParam);
@@ -140,16 +140,16 @@ public:
 
 	//Keypress handlers (abstract virtual)
 	virtual void handleEsc() = 0;
-	virtual void handleBackspace(WPARAM wParam, LPARAM lParam) = 0;
+	virtual void handleBackspace(VirtKey& vkey) = 0;
 	virtual void handleDelete() = 0;
 	virtual void handleLeftRight(bool isRight, bool loopToZero) = 0;
 	virtual void handleUpDown(bool isDown) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
-	virtual void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers) = 0;
-	virtual void handleStop(bool isFull, WPARAM wParam, LPARAM lParam) = 0;
+	virtual void handleNumber(VirtKey& vkey, bool typeBurmeseNumbers) = 0;
+	virtual void handleStop(bool isFull, VirtKey& vkey) = 0;
 	virtual void handleTab() = 0;
 
-	virtual void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);
+	virtual void handleKeyPress(VirtKey& vkey);
 
 
 	//Need to move later...

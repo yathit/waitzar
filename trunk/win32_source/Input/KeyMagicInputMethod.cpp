@@ -1349,7 +1349,7 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 
 
 
-void KeyMagicInputMethod::handleStop(bool isFull, WPARAM wParam, LPARAM lParam)
+void KeyMagicInputMethod::handleStop(bool isFull, VirtKey& vkey)
 {
 	//Handle this as a regular key press
 	wstring currStr = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
@@ -1366,7 +1366,7 @@ void KeyMagicInputMethod::handleStop(bool isFull, WPARAM wParam, LPARAM lParam)
 
 
 
-void KeyMagicInputMethod::handleBackspace(WPARAM wParam, LPARAM lParam)
+void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 {
 	//Simply handle this key-press
 	wstring currStr = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
@@ -1389,7 +1389,7 @@ void KeyMagicInputMethod::handleBackspace(WPARAM wParam, LPARAM lParam)
 
 
 
-pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam)
+pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, VirtKey& vkey)
 {
 	//Get the REAL keycode (to-do: we should fix this later)
 	nextKeycode = HIWORD(lParam);

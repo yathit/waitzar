@@ -238,9 +238,9 @@ public:
 	std::vector< std::pair<std::wstring, std::wstring> > convertToRulePairs();
 
 	//Overrides of LetterInputMethod
-	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam);
-	virtual void handleBackspace(WPARAM wParam, LPARAM lParam);
-	virtual void handleStop(bool isFull, WPARAM wParam, LPARAM lParam);
+	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, VirtKey& vkey);
+	virtual void handleBackspace(VirtKey& vkey);
+	virtual void handleStop(bool isFull, VirtKey& vkey);
 
 private:
 	//Trace?
