@@ -15,6 +15,7 @@
 #include "Settings/Types.h"
 #include "Settings/Encoding.h"
 #include "NGram/wz_utilities.h"
+#include "Input/keymagic_vkeys.h"
 
 
 
@@ -22,6 +23,70 @@ enum CONTROL_KEY_STYLES {CK_CHINESE, CK_JAPANESE};
 
 //Hilite styles
 enum HILITE_FLAGS {HF_NOTHING=0, HF_PATSINT=1, HF_CURRSELECTION=2, HF_LABELTILDE=4};
+
+
+//Structure for virtual key presses
+struct VirtKey {
+	//The virtual key code of the this keypress. Guaranteed.
+	unsigned int vkCode;
+
+	//The alpha-numeric value of this keypress. 
+	//  Guaranteed to be 'a'-'z' for [a-zA-Z].
+	//  Guaranteed to be '0'-'9' for any numeric (numpad, regular).
+	//  Guaranteed to be '\0' for anything else.
+	char alphanum; 
+
+	//Modifiers. Guaranteed
+	bool modShift;
+	bool modAlt;
+	bool modCtrl;
+
+	//Possibly use more modifiers? 
+
+	//Useful functions: constructor
+	VirtKey(unsigned int vkCode, char alphanum, bool modShift, bool modAlt, bool modCtrl) 
+		: vkCode(vkCode), alphanum(alphanum), modShift(modShift), modAlt(modAlt), modCtrl(modCtrl) {}
+
+	//Useful functions: construct from a wParam and lParam (presumably a WM_HOTKEY message)
+	VirtKey(LPARAM wmHotkeyLParam) {
+		//Easy
+		vkCode = HIWORD(wmHotkeyLParam);
+		modShift = (LOWORD(wmHotkeyLParam)&MOD_SHIFT) != 0;
+		modCtrl = (LOWORD(wmHotkeyLParam)&MOD_CONTROL) != 0;
+		modAlt = (LOWORD(wmHotkeyLParam)&MOD_ALT) != 0;
+
+		//Alphanum: letters & numbers
+		alphanum = '\0';
+		if (vkCode>='a' && vkCode<='z')
+			alphanum = vkCode;
+		else if (vkCode>='A' && vkCode<='Z') 
+			alphanum = (vkCode-'A')+'a';
+		else if (vkCode>='0' && vkCode<='9')
+			alphanum = vkCode;
+		else if (vkCode>=VK_NUMPAD0 && vkCode<=VK_NUMPAD9)
+			alphanum = (vkCode-VK_NUMPAD0)+'0';
+	}
+
+	//Useful functions: represent as a key magic integer.
+	unsigned int toKeyMagicVal() {
+		//Some Japanese keyboards can generate very large keycode values. Ignore these for now.
+		unsigned int ret = (vkCode & KM_VKMOD_MASK);
+		if (ret != vkCode)
+			return 0;
+
+		//Add parameters
+		if (modShift)
+			ret |= KM_VKMOD_SHIFT;
+		if (modCtrl)
+			ret |= KM_VKMOD_CTRL;
+		if (modAlt)
+			ret |= KM_VKMOD_ALT;
+
+		return ret;
+	}
+
+};
+
 
 
 //Expected interface: "Input Method"
