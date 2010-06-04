@@ -37,7 +37,7 @@ void LetterInputMethod::handleEsc()
 
 
 
-void LetterInputMethod::handleBackspace(WPARAM wParam, LPARAM lParam)
+void LetterInputMethod::handleBackspace(VirtKey& vkey)
 {
 	//Delete a letter (performs differently in help mode)
 	if (this->isHelpInput()) {
@@ -80,12 +80,12 @@ void LetterInputMethod::handleUpDown(bool isDown)
 }
 
 //Ignore numCode, typeBurmeseNumbers
-void LetterInputMethod::handleNumber(int numCode, WPARAM wParam,  LPARAM lParam, bool isUpper, bool typeBurmeseNumbers)
+void LetterInputMethod::handleNumber(VirtKey& vkey, bool typeBurmeseNumbers)
 {
 	this->handleKeyPress(wParam, lParam, isUpper);
 }
 
-void LetterInputMethod::handleStop(bool isFull, WPARAM wParam, LPARAM lParam)
+void LetterInputMethod::handleStop(bool isFull, VirtKey& vkey)
 {
 	//Perform the normal "enter" routine.
 	typedStopChar = isFull ? L'\u104B' : L'\u'; //TODO: Make this based on encoding...
@@ -133,7 +133,7 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 
 
 //False means nothing else to type
-pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam)
+pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& prevStr, VirtKey& vkey)
 {
 	//Nothing to do?
 	wstring nextBit = helpKeyboard->typeLetter(nextKeycode);
@@ -169,7 +169,7 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 
 
 
-void LetterInputMethod::handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper)
+void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 {
 	//Delegate our combination algorithm
 	wstring curr = typedSentenceStr.str();

@@ -22,18 +22,18 @@ public:
 
 	//Abstract implementation - keypresses
 	void handleEsc();
-	virtual void handleBackspace(WPARAM wParam, LPARAM lParam);
+	virtual void handleBackspace(VirtKey& vkey);
 	void handleDelete();
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(int numCode, WPARAM wParam, LPARAM lParam, bool isUpper, bool typeBurmeseNumbers);
-	virtual void handleStop(bool isFull, WPARAM wParam, LPARAM lParam);
-	void handleKeyPress(WPARAM wParam, LPARAM lParam, bool isUpper);
+	void handleNumber(VirtKey& vkey, bool typeBurmeseNumbers);
+	virtual void handleStop(bool isFull, VirtKey& vkey);
+	void handleKeyPress(VirtKey& vkey);
 	void handleTab();
 
 	//Intended to be overridden by subclasses
-	virtual std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, wchar_t nextASCII, WPARAM nextKeycode, LPARAM lParam);
+	virtual std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, VirtKey& vkey);
 
 	//Abstract implementation - sentence and word
 	std::vector< std::wstring > getTypedSentenceStrings();

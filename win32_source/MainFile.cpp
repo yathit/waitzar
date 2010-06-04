@@ -1844,10 +1844,11 @@ void onAllWindowsCreated()
 }
 
 
-void handleNewHighlights(unsigned int keyCode)
+//NOTE: This should be possible entirely with hotkeys (no need for a VirtKey argument)
+void handleNewHighlights(unsigned int hotkeyCode)
 {
 	//If this is a shifted key, get which key is shifted: left or right
-	if (keyCode==HOTKEY_SHIFT) {
+	if (hotkeyCode==HOTKEY_SHIFT) {
 		//Well, I like posting fake messages. :D
 		// Note that (lParam>>16)&VK_LSHIFT doesn't work here
 		if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
@@ -1856,7 +1857,7 @@ void handleNewHighlights(unsigned int keyCode)
 			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MOD_SHIFT);
 	} else {
 		//Is this a valid key? If so, highlight it and repaint the help window
-		if (helpKeyboard->highlightKey(keyCode, true)) {
+		if (helpKeyboard->highlightKey(hotkeyCode, true)) {
 			reBlitHelp();
 
 			//CRITICAL SECTION
@@ -1867,8 +1868,8 @@ void handleNewHighlights(unsigned int keyCode)
 					fprintf(logFile, "  Key down: %c\n", keyCode);*/
 
 				//Manage our thread's list of currently pressed hotkeys
-				hotkeysDown.remove(keyCode);
-				hotkeysDown.push_front(keyCode);
+				hotkeysDown.remove(hotkeyCode);
+				hotkeysDown.push_front(hotkeyCode);
 
 				//Do we need to start our thread?
 				if (!threadIsActive) {
@@ -2094,7 +2095,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 
 bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 {
-	switch (wParam) {
+	switch (hotkeyCode) {
 		case LANG_HOTKEY:
 			//Switch language
 			switchToLanguage(!mmOn);
@@ -2109,7 +2110,7 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 		default:
 			if (helpWindow->isVisible() && highlightKeys) {
 				//Highlight our virtual keyboard
-				handleNewHighlights(wParam);
+				handleNewHighlights(hotkeyCode);
 
 				//Doesn't consume a keypress
 				return false;
@@ -2124,12 +2125,12 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 {
 	//First, is this an upper-case letter?
-	bool isUpper = (wParam>='A' && wParam<='Z');
+	//bool isUpper = (wParam>='A' && wParam<='Z');
 
 	//Handle user input; anything that updates a non-specific "model".
 	//  TODO: Put code for "help" keyboard functionality HERE; DON'T put it into 
 	//        LetterInputMethod.h
-	switch (wParam) {
+	switch (hotkeyCode) {
 		case HOTKEY_ESC:
 			//Close the window, exit help mode
 			currInput->handleEsc();
@@ -2137,7 +2138,7 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 
 		case HOTKEY_BACK:
 			//Back up
-			currInput->handleBackspace(wParam, lParam);
+			currInput->handleBackspace(vkey);
 			return true;
 
 		case HOTKEY_DELETE:
@@ -2169,7 +2170,7 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 
 		case HOTKEY_COMMA: case HOTKEY_PERIOD:
 			//Handle stops
-			currInput->handleStop(wParam==HOTKEY_PERIOD, wParam, lParam);
+			currInput->handleStop(hotkeyCode==HOTKEY_PERIOD, vkey);
 			return true;
 
 		case HOTKEY_ENTER: case HOTKEY_SHIFT_ENTER:
@@ -2201,19 +2202,19 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 		{
 			//Handle numbers and combiners; pick a word, type a letter, combine/stack letters.
 			//numCode = 0 through 9 for numbers, undefined for combiners
-			int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : HOTKEY_NUM0;
-			int numCode = (int)wParam - base;
+			//int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : HOTKEY_NUM0;
+			//int numberValue = vkey.alphanum - '0';
 
 			//Handle key press; letter-based keyboard should just pass this on through
 			bool typeNumerals = true; //TODO: put this SOMEWHERE in the config file.
-			currInput->handleNumber(numCode, wParam, lParam, isUpper, typeNumerals);
+			currInput->handleNumber(vkey, typeNumerals);
 			return true;
 		}
 
 		default:
 			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
 			// otherwise numbers won't work.
-			currInput->handleKeyPress(wParam, lParam, isUpper);
+			currInput->handleKeyPress(vkey);
 			return true;
 	}
 
