@@ -1353,7 +1353,7 @@ void KeyMagicInputMethod::handleStop(bool isFull, VirtKey& vkey)
 {
 	//Handle this as a regular key press
 	wstring currStr = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
-	pair<wstring, bool> next = appendTypedLetter(currStr, (isFull?L'.':L','), wParam, lParam);
+	pair<wstring, bool> next = appendTypedLetter(currStr, vkey);
 	if (this->isHelpInput()) {
 		typedCandidateStr.str(L"");
 		typedCandidateStr <<next.first;
@@ -1370,10 +1370,10 @@ void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 {
 	//Simply handle this key-press
 	wstring currStr = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
-	pair<wstring, bool> next = appendTypedLetter(currStr, 0x0008, wParam, lParam);
+	pair<wstring, bool> next = appendTypedLetter(currStr, vkey);
 	if (next.first.length()>0 && next.first[next.first.length()-1]==0x0008) {
 		//Default backspace rules
-		LetterInputMethod::handleBackspace(wParam, lParam);
+		LetterInputMethod::handleBackspace(vkey);
 	} else {
 		if (this->isHelpInput()) {
 			typedCandidateStr.str(L"");
@@ -1391,26 +1391,8 @@ void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 
 pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, VirtKey& vkey)
 {
-	//Get the REAL keycode (to-do: we should fix this later)
-	nextKeycode = HIWORD(lParam);
-
-	//Change the keycode; set shift key.
-	/*if (nextKeycode>=HOTKEY_A_LOW && nextKeycode<=HOTKEY_Z_LOW)
-		nextKeycode = (nextKeycode-HOTKEY_A_LOW)+HOTKEY_A;
-	else
-		nextKeycode |= KM_VKMOD_SHIFT;*/
-
-	//Set modifiers manually
-	lParam = LOWORD(lParam);
-	if ((lParam&MOD_SHIFT)!=0)
-		nextKeycode |= KM_VKMOD_SHIFT;
-	if ((lParam&MOD_CONTROL)!=0)
-		nextKeycode |= KM_VKMOD_CTRL;
-	if ((lParam&MOD_ALT)!=0)
-		nextKeycode |= KM_VKMOD_ALT;
-
 	//Append, apply rules
-	return pair<wstring, bool>(applyRules(prevStr+wstring(1,nextASCII), nextKeycode), true);
+	return pair<wstring, bool>(applyRules(prevStr+wstring(1,vkey.alphanum), vkey.toKeyMagicVal()), true);
 }
 
 

@@ -219,31 +219,32 @@ void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey, bool typeBurmeseNu
 {
 	//Special case: conglomerate numbers
 	if (typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
-		char numLetter = '0'+numCode;
-		if (model->typeLetter(numLetter, isUpper, sentence->getPrevTypedWord(*model))) {
-			typedRomanStr <<(char)numLetter;
+		if (model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
+			typedRomanStr <<vkey.alphanum;
 			viewChanged = true;
 		}
 	} else if (mainWindow->isVisible()) {
 		//Convert 1..0 to 0..9
-		if (--numCode<0)
-			numCode = 9;
+		int numMinOne = vkey.alphanum - '0' - 1;
+		if (numMinOne<0)
+			numMinOne = 9;
 
 		//A bit of mangling for pages
-		numCode += model->getCurrPage()*10;
+		numMinOne += model->getCurrPage()*10;
 
 		//Mangle a bit more as usual...
-		if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE)
-			numCode = -1;
+		//if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE)
+		if (vkey.alphanum=='`' || vkey.alphanum=='~') //TODO: Find a better way to do this later. (Not crucial.)
+			numMinOne = -1;
 
 		//Select this numbered word
-		if (selectWord(numCode)) {
+		if (selectWord(numMinOne)) {
 			typedRomanStr.str(L"");
 			viewChanged = true;
 		}
 	} else if (typeBurmeseNumbers) {
 		//Type this number --ask the model for the number directly, to avoid crashing Burglish.
-		sentence->insert(model->getSingleDigitID(numCode));
+		sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
 		sentence->moveCursorRight(0, true, *model);
 
 		viewChanged = true;
@@ -308,10 +309,9 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 {
 	//Handle regular letter-presses (as lowercase)
 	//NOTE: ONLY handle letters
-	int keyCode = (wParam >= HOTKEY_A && wParam <= HOTKEY_Z) ? (int)wParam+32 : (int)wParam;
-	if (keyCode >= HOTKEY_A_LOW && keyCode <= HOTKEY_Z_LOW) {
+	if (vkey.alphanum>='a' && vkey.alphanum<='z') {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model->typeLetter(keyCode, isUpper, sentence->getPrevTypedWord(*model))) {
+		if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
 			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
 			if (controlKeyStyle==CK_CHINESE || typedRomanStr.str().empty())
 				return;
@@ -321,17 +321,17 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 			viewChanged = true;
 
 			//Nothing left on the new string?
-			if (!model->typeLetter(keyCode, isUpper, sentence->getPrevTypedWord(*model)))
+			if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model)))
 				return;
 		}
 
 		//Update the romanized string, trigger repaint
 		typedStrContainsNoAlpha = false;
-		typedRomanStr <<(char)wParam;
+		typedRomanStr <<vkey.alphanum; //alphanum will always be something visible, or '\0' if nothing on the keyboard.
 		viewChanged = true;
 	} else {
 		//Check for system keys
-		InputMethod::handleKeyPress(wParam, lParam, isUpper);
+		InputMethod::handleKeyPress(vkey);
 	}
 }
 
