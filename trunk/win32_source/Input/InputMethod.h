@@ -119,6 +119,108 @@ struct VirtKey {
 		}
 	}
 
+	//Extrapolate "shfit" and vk values from the "alphanum" parameter. 
+	VirtKey(char alphanum) : alphanum(alphanum), vkCode(0), modShift(false), modAlt(false), modCtrl(false) {
+		//Primary goal: figure out the vkCode. It remains at "0" if there was any error.
+		if (alphanum>='a' && alphanum<='z') {
+			vkCode = alphanum;
+		} else if (alphanum>='A' && alphanum<='Z') {
+			vkCode = (alphanum-'A')+'a';
+			modShift = true;
+		} else if (alphanum>='0' && alphanum<='9') {
+			//We can represent these as number keys or NUMPAD vkeys. We'll choose the former.
+			vkCode = alphanum;
+		} else {
+			switch (alphanum) {
+				case '!':
+					vkCode = '1';
+					modShift = true;
+					break;
+				case '@':
+					vkCode = '2';
+					modShift = true;
+					break;
+				case '#':
+					vkCode = '3';
+					modShift = true;
+					break;
+				case '$':
+					vkCode = '4';
+					modShift = true;
+					break;
+				case '%':
+					vkCode = '5';
+					modShift = true;
+					break;
+				case '^':
+					vkCode = '6';
+					modShift = true;
+					break;
+				case '&':
+					vkCode = '7';
+					modShift = true;
+					break;
+				case '*':
+					vkCode = '8';
+					modShift = true;
+					break;
+				case '(':
+					vkCode = '9';
+					modShift = true;
+					break;
+				case ')':
+					vkCode = '0';
+					modShift = true;
+					break;
+				case '~':  modShift = true; //Fall-through
+				case '`':
+					vkCode = VK_OEM_3;
+					break;
+				case '_':  modShift = true; //Fall-through
+				case '-':
+					vkCode = VK_OEM_MINUS;
+					break;
+				case '+':  modShift = true; //Fall-through
+				case '=':
+					vkCode = VK_OEM_PLUS;
+					break;
+				case '{':  modShift = true; //Fall-through
+				case '[':
+					vkCode = VK_OEM_4;
+					break;
+				case '}':  modShift = true; //Fall-through
+				case ']':
+					vkCode = VK_OEM_6;
+					break;
+				case '|':  modShift = true; //Fall-through
+				case '\\':
+					vkCode = VK_OEM_5;
+					break;
+				case ':':  modShift = true; //Fall-through
+				case ';':
+					vkCode = VK_OEM_1;
+					break;
+				case '"':  modShift = true; //Fall-through
+				case '\'':
+					vkCode = VK_OEM_7;
+					break;
+				case '<':  modShift = true; //Fall-through
+				case ',':
+					vkCode = VK_OEM_COMMA;
+					break;
+				case '>':  modShift = true; //Fall-through
+				case '.':
+					vkCode = VK_OEM_PERIOD;
+					break;
+				case '?':  modShift = true; //Fall-through
+				case '/':
+					vkCode = VK_OEM_2;
+					break;
+			}
+		}
+	}
+
+
 	//Useful functions: represent as a key magic integer.
 	unsigned int toKeyMagicVal() {
 		//Some Japanese keyboards can generate very large keycode values. Ignore these for now.
