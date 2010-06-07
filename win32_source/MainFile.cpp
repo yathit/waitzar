@@ -3064,14 +3064,15 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 
 			//Now, type each letter in the test sequence
 			for (size_t i=0; i<currTest->first.length(); i++) {
-				//wParam = Hotkey ID. Note that wPararm is ALSO used to track each letter.
-				//     We should really remove this in later versions.
-				//lParam = low: mod keys, high: key pressed
-				wchar_t c = currTest->first[i];
-				unsigned int mods = c>='A'&&c<='Z' ? MOD_SHIFT : 0;
-				WPARAM wParam = c;
-				LPARAM lParam = MAKELPARAM(mods, c);
-				currInput->handleKeyPress(wParam, lParam, (mods&MOD_SHIFT)!=0);
+				//Construct a VirtKey. Do some extra checking to avoid silent errors.
+				wchar_t wc = currTest->first[i];
+				if (wc >= 0x7F)
+					throw std::exception("Error: Cannot type unicode sequences as input.");
+				char c = (wc&0x7F);
+				VirtKey vk(c);
+				if (vk.vkCode==0)
+					throw std::exception(waitzar::glue("Error: Unknown input letter: ", string(1, c)).c_str());
+				currInput->handleKeyPress(vk);
 			}
 
 			//Retrieve the output, in the correct encoding.
