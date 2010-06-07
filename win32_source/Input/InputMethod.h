@@ -137,6 +137,11 @@ struct VirtKey {
 		return ret;
 	}
 
+	//Useful for going the other way
+	LPARAM toLParam() {
+		return MAKELPARAM((modShift?MOD_SHIFT:0)|(modAlt?MOD_ALT:0)|(modCtrl?MOD_CONTROL:0), vkCode);
+	}
+
 };
 
 

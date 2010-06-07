@@ -105,6 +105,7 @@ using namespace waitzar;
 using std::string;
 using std::wstring;
 using std::vector;
+using std::map;
 using std::list;
 using std::pair;
 using std::wstringstream;
@@ -259,7 +260,8 @@ enum { PGDOWNCOLOR_ID=0, PGUPCOLOR_ID=1, PGDOWNSEPIA_ID=2, PGUPSEPIA_ID=3 };
 HANDLE keyTrackThread;   //Handle to our thread
 DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
-list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked
+//list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked (note: map to VirtKey? No... must be in order)
+list< pair<unsigned int, VirtKey> > hotkeysDown; //If a hotkey code (wparam) is in this list, its corresponding VKey is being tracked.
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
 
 
@@ -461,16 +463,16 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 				fprintf(logFile, "Thread:\n");*/
 
 			//Loop through our list
-			for (std::list<unsigned int>::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
+			for (std::list< std::pair<unsigned int, VirtKey> >::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
 				//Get the state of this key
-				SHORT keyState = GetKeyState(helpKeyboard->getVirtualKeyID(*keyItr)); //We need to use CAPITAL letters for virtual keys. Gah!
+				SHORT keyState = GetKeyState(helpKeyboard->getVirtualKeyID(keyItr->second.vkCode, keyItr->second.alphanum, keyItr->second.modShift)); //We need to use CAPITAL letters for virtual keys. Gah!
 
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
 					/*if (isLogging)
 						fprintf(logFile, "  Key up: %c  (%x)\n", *keyItr, keyState);*/
 
-					if (!mainWindow->postMessage(UWM_HOTKEY_UP, *keyItr, 0)) {
+					if (!mainWindow->postMessage(UWM_HOTKEY_UP, keyItr->first, keyItr->second.toLParam())) {
 						//SendMessage(mainWindow, UWM_HOTKEY_UP, *keyItr,0); //Send message seems to make no difference
 						MessageBox(NULL, _T("Couldn't post message to Main Window"), _T("Error"), MB_OK);
 					}
@@ -1844,6 +1846,17 @@ void onAllWindowsCreated()
 }
 
 
+
+//TEMP
+struct pairmatches : public std::binary_function<pair<unsigned int, VirtKey>, unsigned int, bool>
+{
+	bool operator() (pair<unsigned int, VirtKey>& pr, unsigned int hkid) const { return pr.first == hkid; }
+};
+/*bool pairmatches(const pair<unsigned int, VirtKey>& pr, unsigned int hkid) {
+	return pr.first==hkid;
+}*/
+
+
 //NOTE: This should be possible entirely with hotkeys (no need for a VirtKey argument)
 void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 {
@@ -1868,8 +1881,12 @@ void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 					fprintf(logFile, "  Key down: %c\n", keyCode);*/
 
 				//Manage our thread's list of currently pressed hotkeys
-				hotkeysDown.remove(hotkeyCode);
-				hotkeysDown.push_front(hotkeyCode);
+				//Remove any previous reference to this hotkey and add it to the beginning of the list.
+				//NOTE: We don't need "erase" too, since hotkeysDown is a list (and it CAN shuffle memory inside remove_if)
+				hotkeysDown.remove_if(std::bind2nd(pairmatches(), hotkeyCode));
+				hotkeysDown.push_front(pair<unsigned int, VirtKey>(hotkeyCode, vkey));
+				//hotkeysDown.remove(hotkeyCode);
+				//hotkeysDown.push_front(hotkeyCode);
 
 				//Do we need to start our thread?
 				if (!threadIsActive) {
@@ -1923,7 +1940,8 @@ void checkAndInitHelpWindow()
 		//NOTE: This is the workaround: just process a dummy event.
 		//      GetKeyState() is failing for some unknown reason on the first press.
 		//                    All attempts to "update" it somehow have failed.
-		hotkeysDown.push_front(117); //Comment this line to re-trigger the bug.
+		hotkeysDown.push_front(pair<unsigned int, VirtKey>(HOTKEY_U_LOW, VirtKey('u', 'u', false, false, false))); //Comment this line to re-trigger the bug.
+		//hotkeysDown.push_front(117); //Comment this line to re-trigger the bug.
 		if (!threadIsActive) {
 			threadIsActive = true;
 			ResumeThread(keyTrackThread);
