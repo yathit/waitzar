@@ -1331,8 +1331,11 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 	}
 
 	//Apply the "single ASCII replacement" rule
-	if (result.replacementRules.size()==1 && result.replacementRules[0].type==KMRT_STRING && result.replacementRules[0].str.length()==1) {
-		wchar_t ch = result.replacementRules[0].str[0];
+	//NOTE: We need to check "single letters" in $var[$1] as well... the easiest way to check this is to just use the "replacementStr" variable.
+	//if (result.replacementRules.size()==1 && result.replacementRules[0].type==KMRT_STRING && result.replacementRules[0].str.length()==1) {
+	if (replacementStr.str().length()==1) {
+		//wchar_t ch = result.replacementRules[0].str[0];
+		wchar_t ch = replacementStr.str()[0];
 		if (ch>L'\x020' && ch<L'\x07F') {
 			breakLoop = true;
 		}
@@ -1371,7 +1374,7 @@ void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 	//Simply handle this key-press
 	wstring currStr = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
 	pair<wstring, bool> next = appendTypedLetter(currStr, vkey);
-	if (next.first.length()>0 && next.first[next.first.length()-1]==0x0008) {
+	if (currStr == next.first) {
 		//Default backspace rules
 		LetterInputMethod::handleBackspace(vkey);
 	} else {
@@ -1392,7 +1395,25 @@ void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, VirtKey& vkey)
 {
 	//Append, apply rules
-	return pair<wstring, bool>(applyRules(prevStr+wstring(1,vkey.alphanum), vkey.toKeyMagicVal()), true);
+	char c = vkey.alphanum;
+	if (c>='a' && c<='z' && vkey.modShift) 
+		c = (c-'a') + 'A';
+
+	//Don't append "unknown" key strokes.
+	wstring appended = prevStr;
+	//if (c!='\0')
+	appended += wstring(1,c);
+
+	//Now apply.
+	wstring result = applyRules(appended, vkey.toKeyMagicVal());
+	//Remove all trailing '\0's //TODO: Replace this with a "removeall" at some point...
+	for (;;) {
+		size_t zeroIndex = result.rfind(L'\0');
+		if (zeroIndex==wstring::npos)
+			break;
+		result.replace(zeroIndex, 1, L"");
+	}
+	return pair<wstring, bool>(result, true);
 }
 
 
