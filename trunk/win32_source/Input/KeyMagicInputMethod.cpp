@@ -801,8 +801,8 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				} else if (i+1<ruleStr.length()-1 && ruleStr[i+1]==L'"') {
 					buff <<L'"';
 					i++;
-				} else if (i+5<ruleStr.length()-1 && (ruleStr[i+1]==L'u'||ruleStr[i+1]==L'U') && hexVal(ruleStr[i+2])!=-1 && hexVal(ruleStr[i+3])!=-1 && hexVal(ruleStr[i+4])!=-1 && hexVal(ruleStr[i+5])!=-1) {
-					int num = hexVal(ruleStr[i+2])*0x1000 + hexVal(ruleStr[i+3])*0x100 + hexVal(ruleStr[i+4])*0x10 + hexVal(ruleStr[i+5]);
+				} else if (i+5<ruleStr.length()-1 && (ruleLowercase[i+1]==L'u') && hexVal(ruleLowercase[i+2])!=-1 && hexVal(ruleLowercase[i+3])!=-1 && hexVal(ruleLowercase[i+4])!=-1 && hexVal(ruleLowercase[i+5])!=-1) {
+					int num = hexVal(ruleLowercase[i+2])*0x1000 + hexVal(ruleLowercase[i+3])*0x100 + hexVal(ruleLowercase[i+4])*0x10 + hexVal(ruleLowercase[i+5]);
 					buff <<(wchar_t)num;
 					i += 5;
 				} else

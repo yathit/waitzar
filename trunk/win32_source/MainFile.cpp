@@ -3003,6 +3003,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 	wstring outFileName;
 	ofstream outFile;  //Don't open unless we need it.
 	unsigned int numErrors = 0;
+	unsigned int numTests = 0;
 	try {
 		//Open our test file, read it into a Key Magic Keyboard
 		KeyMagicInputMethod testFile;
@@ -3084,6 +3085,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 			}
 
 			//Now, compare
+			numTests++;
 			if (currTest->second != resOut) {
 				//First time? Then init our file
 				if (numErrors++ == 0) {
@@ -3129,8 +3131,11 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 	msg <<"Test complete.";
 	if (numErrors==0)
 		msg <<"\n\n   No errors detected." <<std::endl;
-	else
-		msg <<"\n\nThere " <<werewas <<" " <<numErrors <<" error" <<plural <<".\nLog saved to: \n\n   " <<outFileName <<std::endl;
+	else {
+		msg <<"\n\nThere " <<werewas <<" " <<numErrors <<" error" <<plural <<".\n";
+		msg <<"Total test" <<plural <<": " <<numTests <<"\n";
+		msg <<"Log saved to: \n\n   " <<outFileName <<std::endl;
+	}
 	MessageBox(NULL, msg.str().c_str(), L"Test Results", MB_ICONINFORMATION | MB_OK);
 
 	return true;
