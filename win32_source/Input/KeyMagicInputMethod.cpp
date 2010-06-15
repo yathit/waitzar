@@ -299,6 +299,7 @@ void KeyMagicInputMethod::writeInt(vector<unsigned char>& stream, int intVal)
 	stream.push_back(intVal&0xFF);
 }
 
+//TODO: Save and load the "options" stored in comment headers.
 void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, const string& checksum)
 {
 	//Save the file into a vector first; this will allow us to 
@@ -564,8 +565,8 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 		vector<Rule> allRules;
 		wchar_t currQuoteChar = L'\0';
 		for (size_t i=0; i<line.size(); i++) {
-			//Separator?
-			if (line[i] == L'=') {
+			//Separator? (Must NOT be inside a string sequence)
+			if (line[i]==L'=' && currQuoteChar==L'\0') {
 				//= or =>
 				separator = 1;
 				if (i+1<line.size() && line[i+1] == L'>') {
@@ -599,8 +600,16 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 			if (line[i]==L'"' || line[i]==L'\'') {
 				if (currQuoteChar==L'\0')
 					currQuoteChar = line[i];
-				else if (line[i]==currQuoteChar && (i==0 || line[i-1]!=L'\\'))
-					currQuoteChar = L'\0';
+				else if (line[i]==currQuoteChar){
+					//It gets a little tricky here...
+					//First, check if the previous character was a "\". If not, then we're good.
+					//Next, check if the previous TWO letters were backslashes. If so, that was a literal 
+					// backslash, and we're also ok. Otherwise, we're not.
+					if (i==0 || line[i-1]!=L'\\')
+						currQuoteChar = L'\0';
+					else if (i>1 && line[i-1]==L'\\' && line[i-2]==L'\\')
+						currQuoteChar = L'\0';
+				}
 			}
 
 			//Append the letter?

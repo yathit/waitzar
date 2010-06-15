@@ -228,6 +228,11 @@ struct VirtKey {
 		if (ret != vkCode)
 			return 0;
 
+		//Deal with the fact that letters are upper-case in KeyMagic VK codes.
+		if (ret>='a' && ret<='z') {
+			ret = (ret-'a') + 0x041; //TODO: Add some inline function for finding "VK_KEY_A" more easily...
+		}
+
 		//Add parameters
 		if (modShift)
 			ret |= KM_VKMOD_SHIFT;

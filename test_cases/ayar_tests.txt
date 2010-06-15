@@ -25,7 +25,7 @@
 "p" => "စ"
 
 //Single Letters: Row 2
-"a" => "ေ"
+"a" => "\u200B" + "ေ"
 "A" => "ဗ"
 "s" => "ျ"
 "S" => "ှ"
@@ -63,7 +63,7 @@
 "uR" => "က္မ"
 "uU" => "က္က"
 "uP" => "က္စ"
-"uiF" => "ကငင်္"
+"uiF" => "က" + "\u200B" + "ငင်္"
 "uB" => "က္ဘ"
 "uN" => "က္ဒ"
 "uM" => "က္န"
@@ -129,7 +129,7 @@
 
 //TODO: We need to enable the AUX key
 //TODO: There are actually 2 aux keys
-//"u=w" => "က္တ" //TOFIX: Syntax Error.
+"u=w" => "က္တ"
 "u`w" => "က္တ"
 
 //TODO: Test various combinations of letters, various words, multiple words in a row, et cettera
