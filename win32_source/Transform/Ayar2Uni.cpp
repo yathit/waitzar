@@ -72,8 +72,14 @@ void Ayar2Uni::convertInPlace(std::wstring& src) const
 			i+=2;
 		} else if (IsConsonant(src[i]) && currSyllablePrefix.str().empty()) //Only the first consonant is the prefix.
 			currSyllablePrefix <<src[i];
-		else
-			currSyllable <<src[i];
+		else {
+			//Enforce ordering of 103C 1031 in Unicode
+			if (i+1<src.length() && src[i]==L'\u1031' && src[i+1]==L'\u103C') {
+				currSyllable <<L"\u103C\u1031";
+				i+=1;
+			} else 
+				currSyllable <<src[i];
+		}
 
 		if (i==src.length()-1) {
 			res <<currSyllablePrefix.str() <<currSyllable.str();
