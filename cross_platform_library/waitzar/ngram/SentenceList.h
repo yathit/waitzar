@@ -192,7 +192,10 @@ std::wstring SentenceList<ModelType>::getPrevTypedWord(ModelType &model) const
 	std::wstring prevWord = L"";
 	std::list<int>::const_iterator it=this->begin();
 	for (int currID=0; currID<=this->getCursorIndex(); currID++) {
-		prevWord = model.getWordString(*it);
+		if (*it>=0)
+			prevWord = model.getWordString(*it);
+		else
+			prevWord = std::wstring(1, WZFactory<ModelType>::systemDefinedWords[-1 - (*it)]);
 		it++;
 	}
 	return prevWord;

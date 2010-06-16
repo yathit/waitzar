@@ -218,11 +218,11 @@ template <class ModelType>
 void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey, bool typeBurmeseNumbers)
 {
 	//Special case: conglomerate numbers
-	if (typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
-		if (model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
-			typedRomanStr <<vkey.alphanum;
-			viewChanged = true;
-		}
+	if ((vkey.alphanum>='0'&&vkey.alphanum<='9') && typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
+	 if (model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
+		 typedRomanStr <<vkey.alphanum;
+		 viewChanged = true;
+	 }
 	} else if (mainWindow->isVisible()) {
 		//Convert 1..0 to 0..9
 		int numMinOne = vkey.alphanum - '0' - 1;
@@ -242,6 +242,9 @@ void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey, bool typeBurmeseNu
 			typedRomanStr.str(L"");
 			viewChanged = true;
 		}
+	} else if (vkey.alphanum=='`' || vkey.alphanum=='~') {
+		//Check for system keys
+		InputMethod::handleKeyPress(vkey);
 	} else if (typeBurmeseNumbers) {
 		//Type this number --ask the model for the number directly, to avoid crashing Burglish.
 		sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
@@ -310,7 +313,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 	//Handle regular letter-presses (as lowercase)
 	//NOTE: ONLY handle letters
 	wchar_t alpha = vkey.alphanum;
-	if (vkey.alphanum>='a' && vkey.alphanum<='z') {
+	if ((alpha>='a' && alpha<='z') || alpha==';') {
 		//Run this keypress into the model. Accomplish anything?
 		if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
 			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
@@ -327,7 +330,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 		}
 
 		//Update the alhpanum property
-		if (!suppressUppercase && vkey.modShift)
+		if (!suppressUppercase && vkey.modShift && alpha>='a' && alpha<='z')
 			alpha = (alpha-'a') + 'A';
 
 		//Update the romanized string, trigger repaint
@@ -351,6 +354,7 @@ bool RomanInputMethod<ModelType>::selectCurrWord()
 
 
 
+//NOTE: The only time a negative ID is used is if we're choosing a PS combination.
 template <class ModelType>
 bool RomanInputMethod<ModelType>::selectWord(int id)
 {
@@ -495,7 +499,8 @@ template <class ModelType>
 void RomanInputMethod<ModelType>::appendToSentence(wchar_t letter, int id)
 {
 	//Type it
-	selectWord(id);
+	//selectWord(id);
+	sentence->insert(id);
 
 	//We need to reset the trigrams here...
 	sentence->updateTrigrams(*model);
