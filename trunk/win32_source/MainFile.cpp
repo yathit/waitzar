@@ -1537,7 +1537,7 @@ void recalculate()
 
 
 
-void typeCurrentPhrase()
+void typeCurrentPhrase(const wstring& stringToType)
 {
 	//Send key presses to the top-level program.
 	HWND fore = GetForegroundWindow();
@@ -1545,7 +1545,7 @@ void typeCurrentPhrase()
 
 	//Convert to the right encoding
 	bool noEncChange = (uni2Output->toEncoding==currInput->encoding);
-	wstring keyStrokes = currInput->getTypedSentenceStrings()[3];
+	wstring keyStrokes = stringToType;
 	if (!noEncChange) {
 		input2Uni->convertInPlace(keyStrokes);
 		uni2Output->convertInPlace(keyStrokes);
@@ -2477,6 +2477,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 
+				//Save the "typed string" for later
+				wstring stringToType = currInput->getTypedSentenceStrings()[3];
+
 				//Check 1: Did we just switch out of help mode?
 				if (wasProvidingHelp != currInput->isHelpInput()) 
 					toggleHelpMode(!wasProvidingHelp);
@@ -2492,7 +2495,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Feedback Check 1: Do we need to type the current sentence?
 				if (currInput->getAndClearRequestToTypeSentence())
-					typeCurrentPhrase();
+					typeCurrentPhrase(stringToType);
 
 				//Feedback Check 2: Do we need to repaint the window?
 				if (currInput->getAndClearViewChanged())

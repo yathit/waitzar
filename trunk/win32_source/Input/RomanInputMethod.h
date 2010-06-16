@@ -309,6 +309,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 {
 	//Handle regular letter-presses (as lowercase)
 	//NOTE: ONLY handle letters
+	wchar_t alpha = vkey.alphanum;
 	if (vkey.alphanum>='a' && vkey.alphanum<='z') {
 		//Run this keypress into the model. Accomplish anything?
 		if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
@@ -325,9 +326,13 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 				return;
 		}
 
+		//Update the alhpanum property
+		if (!suppressUppercase && vkey.modShift)
+			alpha = (alpha-'a') + 'A';
+
 		//Update the romanized string, trigger repaint
 		typedStrContainsNoAlpha = false;
-		typedRomanStr <<vkey.alphanum; //alphanum will always be something visible, or '\0' if nothing on the keyboard.
+		typedRomanStr <<alpha; //alphanum will always be something visible, or '\0' if nothing on the keyboard.
 		viewChanged = true;
 	} else {
 		//Check for system keys
@@ -433,8 +438,10 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 	}
 
 	//Add the final entry, and the typedStopChar if necessary
-	if (typedStopChar!=L'\0')
+	if (typedStopChar!=L'\0') {
 		line <<typedStopChar;
+		full <<typedStopChar;
+	}
 	res.push_back(line.str());
 
 	//I think this might always be true...
