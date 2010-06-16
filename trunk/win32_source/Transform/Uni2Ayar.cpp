@@ -70,9 +70,14 @@ void Uni2Ayar::convertInPlace(std::wstring& src) const
 			i+=2;
 		} else if (IsConsonant(src[i]) && currSyllablePrefix.str().empty()) //Only the first consonant is the prefix.
 			currSyllablePrefix <<src[i];
-		else if (src[i]==L'\u1031' || src[i]==L'\u103C')
-			res <<src[i];
-		else
+		else if (src[i]==L'\u1031' || src[i]==L'\u103C') {
+			if (i+1<src.length() && src[i]==L'\u103C' && src[i+1]==L'\u1031') {
+				//If BOTH prefix letters are present, enforce Ayar's ordering
+				res <<L"\u1031\u103C";
+				i+=1;
+			} else 
+				res <<src[i];
+		} else
 			currSyllable <<src[i];
 
 		if (i==src.length()-1) {
