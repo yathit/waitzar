@@ -30,7 +30,7 @@ PulpCoreFont::PulpCoreFont()
 /**
  * Copy initializers.
  */
-void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC) 
+void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC, unsigned int defaultColor) 
 {
 	PulpCoreImage::init(copyFrom, currDC);
 
@@ -45,6 +45,10 @@ void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC)
 	this->charPositions = copyFrom->charPositions;
 	this->bearingLeft = copyFrom->bearingLeft;
 	this->bearingRight = copyFrom->bearingRight;
+
+	//Color, however, should be re-created
+	this->cachedColor = new unsigned int[num_char_pos-1];
+	this->tintSelf(defaultColor);
 }
 
 

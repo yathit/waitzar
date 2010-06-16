@@ -6,7 +6,7 @@
   
   # What output encoding, display method, and input method are used by default? 
   "default-output-encoding" : "ayar",
-  "default-input-method" : "burglish",
+  "default-input-method" : "ayar",
   "default-display-method" : "ayarttf",
   "default-display-method-small" : "ayarttfsmall",
   
