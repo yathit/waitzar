@@ -608,8 +608,21 @@ std::pair<int, int> BurglishBuilder::typeSpace(int quickJumpID)
 		psWord = newWord;
 	}
 
+	//Remove unwanted characters
+	//TODO: Somewhere else I need a "remove all" function....
+	wstring candidateStr = getWordString(adjustedID);
+	{
+		wstringstream toSave;
+		for (size_t i=0; i<candidateStr.size(); i++) {
+			if (candidateStr[i] != '-')
+				toSave <<candidateStr[i];
+		}
+		if (!toSave.str().empty())
+			candidateStr = toSave.str();
+	}
+
 	//Append, save.
-	savedWordIDs.push_back(getWordString(adjustedID));
+	savedWordIDs.push_back(candidateStr);
 	savedCombinationIDs.clear();
 
 	//Reset the model, return this word
