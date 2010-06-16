@@ -597,9 +597,9 @@ void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFro
 	img->init(copyFromImage, topDC);
 }
 
-void MyWin32Window::initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont)
+void MyWin32Window::initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont, unsigned int defaultColor)
 {
-	font->init(copyFromFont, topDC);
+	font->init(copyFromFont, topDC, defaultColor);
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, int width, int height, int bkgrdARGB)

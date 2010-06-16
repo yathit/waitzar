@@ -115,7 +115,7 @@ public:
 
 	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
 	void initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImg);
-	void initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont); //Needed for a tiny fluke w/ OOP in C++
+	void initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont, unsigned int defaultColor); //Needed for a tiny fluke w/ OOP in C++
 	void initPulpCoreImage(PulpCoreImage* img, int width, int height, int bkgrdARGB);
 
 	//Post fake messages

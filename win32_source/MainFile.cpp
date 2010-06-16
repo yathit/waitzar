@@ -2077,6 +2077,19 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	uni2Output = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeOutputEncoding);
 	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethods[0]->encoding);
 
+	//TEMP: Enable myWin2.2 for Roman Input Methods
+	bool isRoman = false;
+	bool isPulpFontDisplay = (mmFontSmall->type==DISPM_PNG||mmFontSmall->type==BUILTIN);
+	try {
+		currInput->treatAsHelpKeyboard(NULL);
+	} catch (std::exception ex) {
+		isRoman = true;
+	}
+	if (isRoman && isPulpFontDisplay) {
+		currHelpInput = *(FindKeyInSet(config.getInputMethods(), ConfigManager::sanitize_id(L"mywin")));
+	}
+	//END TEMP HACKERY... ugh.
+
 	//Now, reset?
 	if (!langid.empty() || !inputid.empty()) {
 		//Input has changed; reset
@@ -2675,9 +2688,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					currInput->reset(true, true, true, true);
 				} else if (retVal == IDM_LOOKUP) {
 					//Manage our help window
-					if (!mmOn)
-						switchToLanguage(true);
-					toggleHelpMode(!currInput->isHelpInput()); //TODO: Check this works!
+					if (currHelpInput!=NULL) {
+						if (!mmOn)
+							switchToLanguage(true);
+						toggleHelpMode(!currInput->isHelpInput()); //TODO: Check this works!
+					}
 				} else if (retVal == IDM_EXIT) {
 					//Will generate a WM_DESTROY message
 					delete mainWindow;
