@@ -76,16 +76,17 @@ void InputMethod::handleKeyPress(VirtKey& vkey)
 {
 	//Get an adjusted numcode.
 	//int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9) ? HOTKEY_NUM0 : -1;
-	int numberValue = vkey.alphanum - '0'; //(base==-1) ? wParam : HOTKEY_0 + (int)wParam - base;
+	//int numberValue = vkey.alphanum - '0'; //(base==-1) ? wParam : HOTKEY_0 + (int)wParam - base;
 
 	//Check system keys, but ONLY if the sentence window is the only thing visible.
 	if (!mainWindow->isVisible()) { //helpWindow implies mainWindow is visible.
-		wchar_t letter = '\0';
+		//wchar_t letter = '\0'; //Any defaults are fine.
+		int numberValue = 0; //Any defaults are fine.
 		for (size_t i=0; i<systemWordLookup.size(); i++) {
-			if (systemWordLookup[i].first==numberValue) {
+			if (systemWordLookup[i].first==vkey.alphanum) {
 				//This represents a negative offset
 				numberValue = -1-i;
-				letter = systemWordLookup[i].second;
+				//letter = systemWordLookup[i].second;
 				break;
 			}
 
@@ -95,7 +96,7 @@ void InputMethod::handleKeyPress(VirtKey& vkey)
 		}
 
 		//Try to type this word; we now have its numCode and letter.
-		this->appendToSentence(letter, numberValue);
+		this->appendToSentence(vkey.alphanum, numberValue);
 	}
 }
 

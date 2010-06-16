@@ -82,6 +82,10 @@ public:
 	static bool read_bool(const std::wstring& str);
 	static int read_int(const std::wstring& str);
 
+	//Parallel data structures for constructing systemWordLookup
+	static const std::wstring systemDefinedWords;
+	//static const int systemDefinedKeys[];
+
 private:
 	//For loading
 	static HINSTANCE hInst;
@@ -93,10 +97,6 @@ private:
 
 	//Special "words" used in our keyboard, like "(" and "`"
 	static std::vector< std::pair <int, unsigned short> > systemWordLookup;
-
-	//Parallel data structures for constructing systemWordLookup
-	static const std::wstring systemDefinedWords;
-	static const int systemDefinedKeys[];
 
 	//Instance Mappings, to save memory
 	//Ugh.... templates are exploding!
@@ -144,27 +144,29 @@ template <class ModelType> std::vector< std::pair <int, unsigned short> > WZFact
 
 //A few more static initializers
 template <class ModelType> const std::wstring WZFactory<ModelType>::systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
-template <class ModelType> const int WZFactory<ModelType>::systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
+/*template <class ModelType> const int WZFactory<ModelType>::systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
 		HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
 		HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
 		HOTKEY_SHIFT_LEFT_BRACKET, HOTKEY_RIGHT_BRACKET, HOTKEY_SHIFT_RIGHT_BRACKET, HOTKEY_SEMICOLON, 
 		HOTKEY_SHIFT_SEMICOLON, HOTKEY_APOSTROPHE, HOTKEY_SHIFT_APOSTROPHE, HOTKEY_BACKSLASH, HOTKEY_SHIFT_BACKSLASH, 
 		HOTKEY_SHIFT_COMMA, HOTKEY_SHIFT_PERIOD, HOTKEY_FORWARDSLASH, HOTKEY_SHIFT_FORWARDSLASH, HOTKEY_SHIFT_SPACE, 
-		HOTKEY_1, HOTKEY_2, HOTKEY_3, HOTKEY_4, HOTKEY_5, HOTKEY_6, HOTKEY_7, HOTKEY_8, HOTKEY_9, HOTKEY_0};
+		HOTKEY_1, HOTKEY_2, HOTKEY_3, HOTKEY_4, HOTKEY_5, HOTKEY_6, HOTKEY_7, HOTKEY_8, HOTKEY_9, HOTKEY_0};*/
 
 
 //Build our system lookup
 template <class ModelType>
 void WZFactory<ModelType>::buildSystemWordLookup()
 {
-	//Check
-	if (WZFactory<ModelType>::systemDefinedWords.length() != sizeof(systemDefinedKeys)/sizeof(int))
-		throw std::exception("System words arrays of mismatched size.");
+	//Check (if only....)
+	//Checked in TextPad: 41 == 41
+	//if (WZFactory<ModelType>::systemDefinedWords.length() != sizeof(WZFactory<ModelType>::systemDefinedKeys)/sizeof(int))
+	//	throw std::exception("System words arrays of mismatched size.");
 
 	//Build our reverse lookup.
 	for (size_t i=0; i<WZFactory<ModelType>::systemDefinedWords.size(); i++) {
-		int hotkey_id = WZFactory<ModelType>::systemDefinedKeys[i];
-		WZFactory<ModelType>::systemWordLookup.push_back(pair<int, unsigned short>(hotkey_id, i));
+		//int hotkey_id = WZFactory<ModelType>::systemDefinedKeys[i];
+		int letter_id = WZFactory<ModelType>::systemDefinedWords[i];
+		WZFactory<ModelType>::systemWordLookup.push_back(pair<int, unsigned short>(letter_id, i));
 	}
 }
 
@@ -680,6 +682,9 @@ void WZFactory<ModelType>::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, 
 	WZFactory<ModelType>::helpWindow = helpWindow;
 	WZFactory<ModelType>::memoryWindow = memoryWindow;
 	WZFactory<ModelType>::helpKeyboard = helpKeyboard;
+
+	//Initialize our system word lookup
+	WZFactory<ModelType>::buildSystemWordLookup();
 
 	//Call all singleton classes
 	//TODO: Is this needed here?
