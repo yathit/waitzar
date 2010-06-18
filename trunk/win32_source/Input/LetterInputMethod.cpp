@@ -106,10 +106,6 @@ void LetterInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, in
 
 void LetterInputMethod::handleCommit(bool strongCommit)
 {
-	//Anything to commit?
-	if (typedSentenceStr.str().empty()) 
-		return;
-
 	//If we are in help mode, add the word we chose to the dictionary, and flag 
 	//   it so that it can be cleared later when the entire sentence is selected.
 	//If in normal mode, commit the entire sentence. 
@@ -117,7 +113,8 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 	//      some functions around (like word lookup, etc.). 
 	if (!this->isHelpInput()) {
 		//Just commit the current sentence.
-		requestToTypeSentence = true;
+		if (!typedSentenceStr.str().empty()) 
+			requestToTypeSentence = true;
 	} else {
 		//Get its romanization, if it exists.
 		std::pair<int, std::string> wordData = providingHelpFor->lookupWord(typedCandidateStr.str());

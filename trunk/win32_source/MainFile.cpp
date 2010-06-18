@@ -1137,6 +1137,8 @@ bool turnOnAlphaHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 
 
 
+//Prototype needed by switchToLanguage
+void toggleHelpMode(bool toggleTo);
 
 void switchToLanguage(bool toMM) {
 	//Don't do anything if we are switching to the SAME language.
@@ -1160,8 +1162,13 @@ void switchToLanguage(bool toMM) {
 	//Turn on/of our main Help hotkey
 	if (toMM)
 		res = mainWindow->registerHotKey(HOTKEY_HELP, NULL, VK_F1) && res;
-	else
+	else {
 		mainWindow->unregisterHotKey(HOTKEY_HELP);
+	}
+
+	//Turn off "help mode" if we're in it
+	if (!toMM)
+		toggleHelpMode(false);
 
 	//Any errors?
 	if (!res)
