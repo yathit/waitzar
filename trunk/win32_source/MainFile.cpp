@@ -1272,7 +1272,7 @@ void initCalculateHelp()
 	//= (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 
 	//Make
-	helpKeyboard = new OnscreenKeyboard((PulpCoreFont*)mmFontSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
+	helpKeyboard = new OnscreenKeyboard(*(FindKeyInSet(config.getDisplayMethods(), L"zawgyibmpsmall")), helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
 }
 
 
@@ -1977,7 +1977,7 @@ void toggleHelpMode(bool toggleTo)
 			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
 
 		//Switch inputs, set as helper
-		currTypeInput->treatAsHelpKeyboard(currHelpInput);
+		currHelpInput->treatAsHelpKeyboard(currTypeInput);
 		currInput = currHelpInput;
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
@@ -2079,13 +2079,14 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 
 	//TEMP: Enable myWin2.2 for Roman Input Methods
 	bool isRoman = false;
-	bool isPulpFontDisplay = (mmFontSmall->type==DISPM_PNG||mmFontSmall->type==BUILTIN);
+	//bool isPulpFontDisplay = (mmFontSmall->type==DISPM_PNG||mmFontSmall->type==BUILTIN);
 	try {
+		//Intentionally try to cause an exception
 		currInput->treatAsHelpKeyboard(NULL);
 	} catch (std::exception ex) {
 		isRoman = true;
 	}
-	if (isRoman && isPulpFontDisplay) {
+	if (isRoman /*&& isPulpFontDisplay*/) {
 		currHelpInput = *(FindKeyInSet(config.getInputMethods(), ConfigManager::sanitize_id(L"mywin")));
 	}
 	//END TEMP HACKERY... ugh.
