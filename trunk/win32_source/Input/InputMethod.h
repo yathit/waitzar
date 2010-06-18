@@ -16,6 +16,7 @@
 #include "Settings/Encoding.h"
 #include "NGram/wz_utilities.h"
 #include "Input/keymagic_vkeys.h"
+#include "Transform/Transformation.h"
 
 
 
@@ -295,7 +296,7 @@ public:
 	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality
-	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor);
+	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* myenc2Uni, const Transformation* uni2Romanenc);
 	bool isHelpInput();
 	void forceViewChanged();
 	bool getAndClearViewChanged();
@@ -346,6 +347,8 @@ protected:
 
 	//Helper typing control
 	InputMethod* providingHelpFor;
+	const Transformation* myenc2Uni;
+	const Transformation* uni2Romanenc;
 
 	//Repaint after this?
 	bool viewChanged;

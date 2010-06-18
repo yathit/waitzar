@@ -191,9 +191,17 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 
 		//Save a romanized string if in help mode
 		if (this->isHelpInput()) {
+			//We need to first convert this string to the target Roman method's encoding.
+			bool noEncChange = (uni2Romanenc->toEncoding==myenc2Uni->fromEncoding);
+			wstring myanmar = typedCandidateStr.str();
+			if (!noEncChange) {
+				myenc2Uni->convertInPlace(myanmar);
+				uni2Romanenc->convertInPlace(myanmar);
+			}
+
 			//Check each romanisation
 			typedRomanStr.str(L"");
-			string roman = providingHelpFor->lookupWord(typedCandidateStr.str()).second;
+			string roman = providingHelpFor->lookupWord(myanmar).second;
 			if (!roman.empty())
 				typedRomanStr <<L'(' <<roman.c_str() <<L')';
 		}
