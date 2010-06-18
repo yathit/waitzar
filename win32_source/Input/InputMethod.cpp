@@ -20,6 +20,8 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 	providingHelpFor = NULL;
 	viewChanged = false;
 	requestToTypeSentence = false;
+	myenc2Uni = NULL;
+	uni2Romanenc = NULL;
 
 	//Save
 	this->mainWindow = mainWindow;
@@ -32,9 +34,11 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 }
 
 
-void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor)
+void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* myenc2Uni, const Transformation* uni2Romanenc)
 {
 	this->providingHelpFor = providingHelpFor;
+	this->myenc2Uni = myenc2Uni;
+	this->uni2Romanenc = uni2Romanenc;
 }
 
 bool InputMethod::isHelpInput()

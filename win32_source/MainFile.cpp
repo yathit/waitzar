@@ -189,6 +189,7 @@ DisplayMethod *mmFontSmall;
 const Transformation*    input2Uni;
 const Transformation*    uni2Output;
 const Transformation*    uni2Disp;
+//const Transformation*    uni2ReverseLookup; //Roman
 
 //Cache our popup menu
 HMENU contextMenu;
@@ -1981,17 +1982,20 @@ void toggleHelpMode(bool toggleTo)
 		if (!turnOnHelpKeys(true) || !res)
 			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
 
+		//Reset our input2uni transformer (others shouldn't need changing).
+		input2Uni = config.getTransformation(config.activeLanguage, currHelpInput->encoding, config.unicodeEncoding);
+
+		//Get an encoding switcher for the reverse-roman lookup
+		const Transformation* uni2Roman = config.getTransformation(config.activeLanguage, config.unicodeEncoding, currTypeInput->encoding);
+
 		//Switch inputs, set as helper
-		currHelpInput->treatAsHelpKeyboard(currTypeInput);
+		currHelpInput->treatAsHelpKeyboard(currTypeInput, input2Uni, uni2Roman);
 		currInput = currHelpInput;
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
 		//Also reset the helper keyboard. 
 		currTypeInput->reset(true, true, false, false);
 		currHelpInput->reset(true, true, true, true); 
-
-		//Reset our input2uni transformer (others shouldn't need changing).
-		input2Uni = config.getTransformation(config.activeLanguage, currInput->encoding, config.unicodeEncoding);
 
 		//Show the help window
 		helpWindow->showWindow(true);
@@ -2087,13 +2091,14 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	input2Uni = config.getTransformation(config.activeLanguage, config.activeInputMethod->encoding, config.unicodeEncoding);
 	uni2Output = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeOutputEncoding);
 	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethods[0]->encoding);
+	
 
 	//TEMP: Enable myWin2.2 for Roman Input Methods
 	bool isRoman = false;
 	//bool isPulpFontDisplay = (mmFontSmall->type==DISPM_PNG||mmFontSmall->type==BUILTIN);
 	try {
 		//Intentionally try to cause an exception
-		currInput->treatAsHelpKeyboard(NULL);
+		currInput->treatAsHelpKeyboard(NULL, NULL, NULL);
 	} catch (std::exception ex) {
 		isRoman = true;
 	}
@@ -2101,6 +2106,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		currHelpInput = *(FindKeyInSet(config.getInputMethods(), ConfigManager::sanitize_id(L"mywin")));
 	}
 	//END TEMP HACKERY... ugh.
+
 
 	//Now, reset?
 	if (!langid.empty() || !inputid.empty()) {
