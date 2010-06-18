@@ -53,6 +53,9 @@ protected:
 	std::wstringstream typedSentenceStr;
 	std::wstringstream typedCandidateStr;
 
+	//General
+	void updateRomanHelpString();
+
 private:
 	//myWin 2.1 rules for stacking
 	bool canStack(wchar_t letter) { return (letter>=0x1000 && letter<=0x1003) || (letter>=0x1005 && letter<=0x1021); }

@@ -1390,6 +1390,7 @@ void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 		if (this->isHelpInput()) {
 			typedCandidateStr.str(L"");
 			typedCandidateStr <<next.first;
+			updateRomanHelpString(); //TODO: Fix; bad to have this in two places...
 		} else {
 			typedSentenceStr.str(L"");
 			typedSentenceStr <<next.first;
