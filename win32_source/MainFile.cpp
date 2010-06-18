@@ -1433,8 +1433,11 @@ void recalculate()
 	wstring extendedWordString;
 
 	//Before we do this, draw the help text if applicable
-	if (currInput->isHelpInput() && !dispCandidateStrs.empty() && !dispCandidateStrs[0].first.empty())
+	if (currInput->isHelpInput() && !dispCandidateStrs.empty() && !dispCandidateStrs[0].first.empty()) {
+		mmFontSmall->setColor(0x33, 0x33, 0x33); //Gray
 		mainWindow->drawString(mmFontSmall, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
+		mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
+	}
 
 	//Now, draw the candiate strings and their backgrounds
 	int currLabelID = 1;
@@ -1461,16 +1464,18 @@ void recalculate()
 		mainWindow->drawString(mmFont, dispCandidateStrs[id].first, borderWidth+1+spaceWidth/2 + xOffset, secondLineStart+spaceWidth/2);
 
 		//Draw its numbered identifier, or '`' if it's a red-highlighted word
-		std::wstringstream digit;
-		if (dispCandidateStrs[id].second & HF_LABELTILDE) {
-			digit <<L"`";
-		} else {
-			digit <<currLabelID++;
-			if (currLabelID==10)
-				currLabelID = 0; //Just renumber for now; we never have more than 10 anyway.
+		if (!currInput->isHelpInput()) {
+			std::wstringstream digit;
+			if (dispCandidateStrs[id].second & HF_LABELTILDE) {
+				digit <<L"`";
+			} else {
+				digit <<currLabelID++;
+				if (currLabelID==10)
+					currLabelID = 0; //Just renumber for now; we never have more than 10 anyway.
+			}
+			int digitWidth = mainWindow->getStringWidth(mmFont, digit.str());
+			mainWindow->drawString(mmFont, digit.str(), borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 		}
-		int digitWidth = mainWindow->getStringWidth(mmFont, digit.str());
-		mainWindow->drawString(mmFont, digit.str(), borderWidth+1+spaceWidth/2 + xOffset + thisStrWidth/2 -digitWidth/2, thirdLineStart-spaceWidth/2-1);
 
 		//Increment
 		xOffset += thisStrWidth + spaceWidth;
@@ -1985,6 +1990,9 @@ void toggleHelpMode(bool toggleTo)
 		currTypeInput->reset(true, true, false, false);
 		currHelpInput->reset(true, true, true, true); 
 
+		//Reset our input2uni transformer (others shouldn't need changing).
+		input2Uni = config.getTransformation(config.activeLanguage, currInput->encoding, config.unicodeEncoding);
+
 		//Show the help window
 		helpWindow->showWindow(true);
 		memoryWindow->showWindow(true);
@@ -2004,6 +2012,9 @@ void toggleHelpMode(bool toggleTo)
 		pair<string, wstring> checkEntry = currInput->getAndClearMostRecentRomanizationCheck();
 		if (!checkEntry.first.empty() && !checkEntry.second.empty())
 			helpKeyboard->addMemoryEntry(checkEntry.second, checkEntry.first);
+
+		//Reset our input2uni transformer (others shouldn't need changing).
+		input2Uni = config.getTransformation(config.activeLanguage, currInput->encoding, config.unicodeEncoding);
 
 		//Turn off help keys
 		turnOnHelpKeys(false);

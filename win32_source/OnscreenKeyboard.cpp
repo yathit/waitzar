@@ -24,9 +24,11 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	this->foreFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
 	//this->foreFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->shiftFont = shiftFont;
-	this->shiftFont->tintSelf(COLOR_LETTERS_REGULAR);
+	this->shiftFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
+	//this->shiftFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->memoryFont = memoryFont;
-	this->memoryFont->tintSelf(COLOR_LETTERS_REGULAR);
+	this->memoryFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
+	//this->memoryFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
 	for (int i=0; i<61; i++) 
