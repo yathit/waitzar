@@ -99,12 +99,12 @@ void OnscreenKeyboard::initHelp()
 	helpWindow->initPulpCoreImage(bkgrdImg, this->width, this->height, 0x00000000);
 
 	//Color some fonts
-	this->foreFontBlue = new PulpCoreFont();
-	helpWindow->initPulpCoreImage(foreFontBlue, foreFont, COLOR_LETTERS_SHIFTED);
+	//this->foreFontBlue = new PulpCoreFont();
+	//helpWindow->initPulpCoreImage(foreFontBlue, foreFont, COLOR_LETTERS_SHIFTED);
 	//this->foreFontBlue->init(foreFont, helpMainDC);
 	//this->foreFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
-	this->shiftFontBlue = new PulpCoreFont();
-	helpWindow->initPulpCoreImage(shiftFontBlue, shiftFont, COLOR_LETTERS_SHIFTED);
+	//this->shiftFontBlue = new PulpCoreFont();
+	//helpWindow->initPulpCoreImage(shiftFontBlue, shiftFont, COLOR_LETTERS_SHIFTED);
 	//this->shiftFontBlue->init(shiftFont, helpMainDC);
 	//this->shiftFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
 
@@ -243,27 +243,34 @@ void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
 	//Prepare to draw keys
 	int myKeyID = keyID;
 	int myShiftKeyID = keyID + 61;
-	PulpCoreFont *myFont = this->foreFont;
-	PulpCoreFont *myShiftFont = this->shiftFontBlue;
-	if (this->isShifted()) {
+	//PulpCoreFont *myFont = this->foreFont;
+	//PulpCoreFont *myShiftFont = this->shiftFontBlue;
+	if (!this->isShifted()) {
+		//Regular colors
+		this->foreFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
+		this->shiftFont->setColor(((COLOR_LETTERS_SHIFTED&0xFF0000)>>16), ((COLOR_LETTERS_SHIFTED&0xFF00)>>8), (COLOR_LETTERS_SHIFTED&0xFF));
+	} else {
+		//Inverted colors
+		this->foreFont->setColor(((COLOR_LETTERS_SHIFTED&0xFF0000)>>16), ((COLOR_LETTERS_SHIFTED&0xFF00)>>8), (COLOR_LETTERS_SHIFTED&0xFF));
+		this->shiftFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
+
+		//Also adjust the key ID
 		myShiftKeyID = myKeyID;
 		myKeyID += 61;
-		myFont = this->foreFontBlue;
-		myShiftFont = this->shiftFont;
 	}
 
 	//Draw the main label
 	if (!hide_for_help[myKeyID]) {
-		xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-myFont->getCharWidth(myKeyID)/2;
+		xPos = keyboardOrigin.x+currKey.location.x+keyImg->getWidth()/2-foreFont->getCharWidth(myKeyID)/2;
 		yPos = keyboardOrigin.y+currKey.location.y+19;
-		helpWindow->drawChar(myFont, myKeyID, xPos+offset_fore[myKeyID], yPos);
+		helpWindow->drawChar(foreFont, myKeyID, xPos+offset_fore[myKeyID], yPos);
 	}
 
 	//Draw the shifted label
 	if (!hide_for_help[myShiftKeyID]) {
-		xPos = keyboardOrigin.x+currKey.location.x+23-myShiftFont->getCharWidth(myShiftKeyID)/2;
+		xPos = keyboardOrigin.x+currKey.location.x+23-shiftFont->getCharWidth(myShiftKeyID)/2;
 		yPos = keyboardOrigin.y+currKey.location.y+3;
-		helpWindow->drawChar(myShiftFont, myShiftKeyID, xPos+offset_super[myShiftKeyID], yPos);
+		helpWindow->drawChar(shiftFont, myShiftKeyID, xPos+offset_super[myShiftKeyID], yPos);
 	}
 }
 

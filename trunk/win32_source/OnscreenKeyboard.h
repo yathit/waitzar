@@ -161,8 +161,8 @@ private:
 	PulpCoreFont *foreFont;
 	PulpCoreFont *shiftFont;
 	PulpCoreFont *memoryFont;
-	PulpCoreFont *foreFontBlue;
-	PulpCoreFont *shiftFontBlue;
+	//PulpCoreFont *foreFontBlue;
+	//PulpCoreFont *shiftFontBlue;
 	PulpCoreImage *cornerImg[4];
 
 	//Buttons

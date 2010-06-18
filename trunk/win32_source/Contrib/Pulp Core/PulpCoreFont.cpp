@@ -82,7 +82,7 @@ void PulpCoreFont::tintSelf(UINT rgbColor)
 
 	//Now set the color cache entries properly
 	for (int i=0; i<num_char_pos-1; i++) 
-		cachedColor[i] = rgbColor;
+		cachedColor[i] = (0xFFFFFF&rgbColor); //Don't save the alpha component.
 }
 
 void PulpCoreFont::tintLetter(int letterID, unsigned int color)
@@ -91,7 +91,7 @@ void PulpCoreFont::tintLetter(int letterID, unsigned int color)
 	PulpCoreImage::tintSelf(color, charPositions[letterID], 0, charPositions[letterID+1]-charPositions[letterID], height);
 
 	//Finally, save
-	cachedColor[letterID] = color;
+	cachedColor[letterID] = (0xFFFFFF&color); //Don't save the alpha component.
 }
 
 
