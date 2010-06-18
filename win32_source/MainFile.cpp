@@ -3295,6 +3295,40 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 
+	///////TEMP: Test data
+	//NOTE: MapVirtualKey(letters[i], MAPVK_VK_TO_VSC) is what we want. And we can use it in reverse too!
+	/*char letters[] = {'Q', 'W', 'E', 'R', 'T', 'Y'};
+	char letters2[] = {'A', 'Z', 'E', 'R', 'T', 'Y'};
+	size_t lettersSz = 6;
+	wstringstream msg; 
+	msg <<L"Results:" <<std::endl;
+	for (size_t i=0; i<lettersSz; i++) {
+		SHORT key1 = LOBYTE(VkKeyScan(letters[i]));
+		UINT key2 = MapVirtualKey(letters[i], MAPVK_VK_TO_VSC);
+		msg <<letters[i] <<L" : " <<key1 <<L"," <<key2 <<std::endl;
+	}
+	MessageBox(NULL, msg.str().c_str(), L"Test Keys", MB_ICONHAND | MB_OK);
+	msg.str(L"");
+	msg <<L"Results:" <<std::endl;
+	for (size_t i=0; i<lettersSz; i++) {
+		SHORT key1 = LOBYTE(VkKeyScan(letters2[i]));
+		UINT key2 = MapVirtualKey(letters2[i], MAPVK_VK_TO_VSC);
+		msg <<letters2[i] <<L" : " <<key1 <<L"," <<key2 <<std::endl;
+	}
+	MessageBox(NULL, msg.str().c_str(), L"Test Keys2", MB_ICONHAND | MB_OK);
+	return 0;*/
+	/*MessageBox(NULL, L"Change keyboard now...", L"Test Keys2", MB_ICONHAND | MB_OK);
+	WORD currKeyboard = LOWORD(GetKeyboardLayout(0)); //Get the current thread's keyboard layout
+	WORD enUS = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+	wstringstream msg;
+	msg <<"Current keyboard: " <<std::hex <<currKeyboard <<std::dec <<std::endl;
+	msg <<"en_US   keyboard: " <<std::hex <<enUS         <<std::dec <<std::endl;
+	MessageBox(NULL, msg.str().c_str(), L"Test Keys2", MB_ICONHAND | MB_OK);
+	return 0;	*/
+	///////END TEMP
+
+
+
 	//Create our context menu
 	initContextMenu();
 
