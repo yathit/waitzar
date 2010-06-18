@@ -45,6 +45,8 @@ void LetterInputMethod::handleBackspace(VirtKey& vkey)
 		wstring newStr = !typedCandidateStr.str().empty() ? typedCandidateStr.str().substr(0, typedCandidateStr.str().length()-1) : L"";
 		typedCandidateStr.str(L"");
 		typedCandidateStr <<newStr;
+
+		updateRomanHelpString();
 		viewChanged = true;
 	} else {
 		// Otherwise, delete a letter from the sentece, and hide if nothing left
@@ -190,21 +192,8 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 		}
 
 		//Save a romanized string if in help mode
-		if (this->isHelpInput()) {
-			//We need to first convert this string to the target Roman method's encoding.
-			bool noEncChange = (uni2Romanenc->toEncoding==myenc2Uni->fromEncoding);
-			wstring myanmar = typedCandidateStr.str();
-			if (!noEncChange) {
-				myenc2Uni->convertInPlace(myanmar);
-				uni2Romanenc->convertInPlace(myanmar);
-			}
-
-			//Check each romanisation
-			typedRomanStr.str(L"");
-			string roman = providingHelpFor->lookupWord(myanmar).second;
-			if (!roman.empty())
-				typedRomanStr <<L'(' <<roman.c_str() <<L')';
-		}
+		if (this->isHelpInput())
+			updateRomanHelpString();
 
 		//Trigger view change.
 		viewChanged = true;
@@ -213,6 +202,26 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 		InputMethod::handleKeyPress(vkey);
 	}
 }
+
+
+
+void LetterInputMethod::updateRomanHelpString()
+{
+	//We need to first convert this string to the target Roman method's encoding.
+	bool noEncChange = (uni2Romanenc->toEncoding==myenc2Uni->fromEncoding);
+	wstring myanmar = typedCandidateStr.str();
+	if (!noEncChange) {
+		myenc2Uni->convertInPlace(myanmar);
+		uni2Romanenc->convertInPlace(myanmar);
+	}
+
+	//Check each romanisation
+	typedRomanStr.str(L"");
+	string roman = providingHelpFor->lookupWord(myanmar).second;
+	if (!roman.empty())
+		typedRomanStr <<L'(' <<roman.c_str() <<L')';
+}
+
 
 
 

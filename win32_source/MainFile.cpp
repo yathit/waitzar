@@ -122,6 +122,9 @@ const wstring POPUP_WIN = L"Win Innwa";
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
 const wstring POPUP_LOOKUP_EN = L"&Look Up Word";
 
+//Another string...
+const wstring ROMAN_INPUT_PROMPT = L"(Press \"Space\" to type this word)";
+
 //Better support for dragging
 bool isDragging;
 POINT dragFrom;
@@ -1377,10 +1380,15 @@ void recalculate()
 		cumulativeWidth += pagerWidth;
 	}
 
+	//Consider a separate width for the "help string". We should probably eventually call this "third line width" or something...
+	int helpStringWidth = 0;
+	if (currInput->isHelpInput())
+		helpStringWidth = (borderWidth+1)*2 + spaceWidth + mainWindow->getStringWidth(mmFontSmall, ROMAN_INPUT_PROMPT) + 1;
+
 	//If not, resize. Also, keep the size small when possible.
 	// Note: Re-sizing to the same size won't trigger a window update, so we can just all expandWindow()
 	//       without worrying about performance.
-	int newWidth = max(mainWindow->getDefaultWidth(), cumulativeWidth);
+	int newWidth = max(max(mainWindow->getDefaultWidth(), cumulativeWidth), helpStringWidth);
 	if (dispCandidateStrs.size()>10)
 		triangleStartX = newWidth - pagerWidth;
 	mainWindow->expandWindow(newWidth, mainWindow->getClientHeight());
@@ -1436,7 +1444,7 @@ void recalculate()
 	//Before we do this, draw the help text if applicable
 	if (currInput->isHelpInput() && !dispCandidateStrs.empty() && !dispCandidateStrs[0].first.empty()) {
 		mmFontSmall->setColor(0x33, 0x33, 0x33); //Gray
-		mainWindow->drawString(mmFontSmall, L"(Press \"Space\" to type this word)", borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
+		mainWindow->drawString(mmFontSmall, ROMAN_INPUT_PROMPT, borderWidth+1+spaceWidth/2, thirdLineStart-spaceWidth/2);
 		mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	}
 
@@ -2030,7 +2038,8 @@ void toggleHelpMode(bool toggleTo)
 
 
 	//Redraw all
-	currInput->forceViewChanged();
+	//currInput->forceViewChanged(); //Won't work... yet
+	recalculate(); //Shouldn't cause any problems...
 }
 
 
