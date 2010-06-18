@@ -13,14 +13,16 @@ using std::pair;
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg)
+OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg)
 {
 	//Save for later
 	this->titleFont = titleFont;
 	this->keysFont = keysFont;
-	this->keysFont->tintSelf(COLOR_LETTERS_LABEL);
+	this->keysFont->setColor(((COLOR_LETTERS_LABEL&0xFF0000)>>16), ((COLOR_LETTERS_LABEL&0xFF00)>>8), (COLOR_LETTERS_LABEL&0xFF));
+	//this->keysFont->tintSelf(COLOR_LETTERS_LABEL);
 	this->foreFont = foreFont;
-	this->foreFont->tintSelf(COLOR_LETTERS_REGULAR);
+	this->foreFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
+	//this->foreFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->shiftFont = shiftFont;
 	this->shiftFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->memoryFont = memoryFont;
@@ -96,13 +98,13 @@ void OnscreenKeyboard::initHelp()
 
 	//Color some fonts
 	this->foreFontBlue = new PulpCoreFont();
-	helpWindow->initPulpCoreImage(foreFontBlue, foreFont);
+	helpWindow->initPulpCoreImage(foreFontBlue, foreFont, COLOR_LETTERS_SHIFTED);
 	//this->foreFontBlue->init(foreFont, helpMainDC);
-	this->foreFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
+	//this->foreFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
 	this->shiftFontBlue = new PulpCoreFont();
-	helpWindow->initPulpCoreImage(shiftFontBlue, shiftFont);
+	helpWindow->initPulpCoreImage(shiftFontBlue, shiftFont, COLOR_LETTERS_SHIFTED);
 	//this->shiftFontBlue->init(shiftFont, helpMainDC);
-	this->shiftFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
+	//this->shiftFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
 
 	//Create rotated copies of our one corner image
 	for (int i=1; i<4; i++) {
@@ -152,9 +154,9 @@ void OnscreenKeyboard::initHelp()
 	delete bodyButton;
 
 	//Now draw the string
-	this->titleFont->tintSelf(0x000000);
+	this->titleFont->setColor(0x00, 0x00, 0x00);
 	helpWindow->drawString(titleFont, HELPWND_TITLE, this->cornerSize, this->cornerSize);
-	this->titleFont->tintSelf(0xFFFFFF);
+	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
 
 	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
 	for (int i=0; i<keys_total; i++) {
@@ -186,13 +188,13 @@ void OnscreenKeyboard::initMemory()
 	delete bodyButton;
 
 	//Draw the title string
-	this->titleFont->tintSelf(0x000000);
+	this->titleFont->setColor(0x00, 0x00, 0x00);
 	memoryWindow->drawString(titleFont, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
 
 	//Draw some heading strings
 	memoryWindow->drawString(titleFont, L"Myanmar", this->cornerSize, keyboardOrigin.y+1);
 	memoryWindow->drawString(titleFont, L"Roman", this->getMemoryWidth()/2+5/2, keyboardOrigin.y+1);
-	this->titleFont->tintSelf(0xFFFFFF);
+	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
 
 	//Underline
 	int yPos = keyboardOrigin.y+1+this->titleFont->getHeight(NULL) - 3;

@@ -120,7 +120,7 @@ const int keyboard_vk_codes[] = {
 class OnscreenKeyboard
 {
 public:
-	OnscreenKeyboard(PulpCoreFont *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg);
+	OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg);
 	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow);
 	void initHelp();
 	void initMemory();
@@ -156,7 +156,7 @@ private:
 	std::list< std::pair<std::wstring, std::string> > memoryList;
 
 	//Cached pics
-	PulpCoreFont *titleFont;
+	DisplayMethod *titleFont;
 	PulpCoreFont *keysFont;
 	PulpCoreFont *foreFont;
 	PulpCoreFont *shiftFont;

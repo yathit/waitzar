@@ -83,6 +83,7 @@ void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLog
 }
 
 
+
 void TtfDisplay::initLogicalFont(int devLogPixelsY)
 {
 	//Create the Font
