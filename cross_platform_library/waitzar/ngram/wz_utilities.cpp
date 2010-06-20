@@ -776,6 +776,10 @@ namespace
 namespace waitzar 
 {
 
+
+//TODO: This will sometimes append "\0" to a string for no apparent reason. 
+//      Try: U+1000 U+1037
+//      Need to fix eventually...
 std::wstring sortMyanmarString(const std::wstring &uniString)
 {
 	//Count array for use with counting sort
