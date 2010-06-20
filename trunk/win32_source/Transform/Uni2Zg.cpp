@@ -15,6 +15,7 @@ Uni2Zg::Uni2Zg()
 void Uni2Zg::convertInPlace(std::wstring& src) const
 {
 	//Use our code, from the utilities package.
+	src = waitzar::sortMyanmarString(src);
 	src = waitzar::renderAsZawgyi(src);
 }
 

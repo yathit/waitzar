@@ -48,7 +48,7 @@ public:
 	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
 	//Override
-	void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* myenc2Uni, const Transformation* uni2Romanenc);
+	void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc));
 
 	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID);
 
@@ -560,7 +560,7 @@ std::pair<int, int> RomanInputMethod<ModelType>::getPagingInfo() const
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* myenc2Uni, const Transformation* uni2Romanenc)
+void RomanInputMethod<ModelType>::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc))
 {
 	throw std::exception("Cannot use a Romanized keyboard for a help input method");
 }

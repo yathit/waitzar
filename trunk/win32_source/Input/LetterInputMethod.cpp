@@ -213,7 +213,7 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 void LetterInputMethod::updateRomanHelpString()
 {
 	//We need to first convert this string to the target Roman method's encoding.
-	bool noEncChange = (uni2Romanenc->toEncoding==myenc2Uni->fromEncoding);
+	bool noEncChange = (myenc2Uni->fromEncoding==uni2Romanenc->toEncoding);
 	wstring myanmar = typedCandidateStr.str();
 	if (!noEncChange) {
 		myenc2Uni->convertInPlace(myanmar);
@@ -233,8 +233,27 @@ void LetterInputMethod::updateRomanHelpString()
 vector<wstring> LetterInputMethod::getTypedSentenceStrings()
 {
 	//Special case: don't overwrite the sentence string if we're just showing help.
-	if (this->isHelpInput())
-		return providingHelpFor->getTypedSentenceStrings();
+	if (this->isHelpInput()) {
+		//Easy
+		bool noEncChange = (romanenc2Uni->fromEncoding==uni2Myenc->toEncoding);
+		if (noEncChange)
+			return providingHelpFor->getTypedSentenceStrings();
+
+		//Major pain converting encodings, but it has to be done.
+		vector<wstring> res;
+		{
+			vector<wstring> romanRes = providingHelpFor->getTypedSentenceStrings();
+			for (vector<wstring>::iterator i=romanRes.begin(); i!=romanRes.end(); i++) {
+				//Convert & add
+				wstring candidate = *i;
+				romanenc2Uni->convertInPlace(candidate);
+				uni2Myenc->convertInPlace(candidate);
+				res.push_back(candidate);
+			}
+		}
+
+		return res;
+	}
 
 	vector<wstring> res;
 	res.push_back(typedSentenceStr.str());

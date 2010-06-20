@@ -377,6 +377,12 @@ string getMD5Hash(const std::string& fileName) {
 	return md5Res;
 }
 
+//Means of getting a transformation; we'll have to pass this as a functional pointer later, 
+//   because of circular dependencies. TODO: Fix this.
+const Transformation* ConfigGetTransformation(const Encoding& fromEnc, const Encoding& toEnc) {
+	return config.getTransformation(config.activeLanguage, fromEnc, toEnc);
+}
+
 
 unsigned long getTimeDifferenceMS(const FILETIME &st, const FILETIME &end)
 {
@@ -2002,10 +2008,10 @@ void toggleHelpMode(bool toggleTo)
 		input2Uni = config.getTransformation(config.activeLanguage, currHelpInput->encoding, config.unicodeEncoding);
 
 		//Get an encoding switcher for the reverse-roman lookup
-		const Transformation* uni2Roman = config.getTransformation(config.activeLanguage, config.unicodeEncoding, currTypeInput->encoding);
+		//const Transformation* uni2Roman = config.getTransformation(config.activeLanguage, config.unicodeEncoding, currTypeInput->encoding);
 
 		//Switch inputs, set as helper
-		currHelpInput->treatAsHelpKeyboard(currTypeInput, input2Uni, uni2Roman);
+		currHelpInput->treatAsHelpKeyboard(currTypeInput, config.unicodeEncoding, ConfigGetTransformation);
 		currInput = currHelpInput;
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
@@ -2115,7 +2121,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	//bool isPulpFontDisplay = (mmFontSmall->type==DISPM_PNG||mmFontSmall->type==BUILTIN);
 	try {
 		//Intentionally try to cause an exception
-		currInput->treatAsHelpKeyboard(NULL, NULL, NULL);
+		currInput->treatAsHelpKeyboard(NULL, config.unicodeEncoding, NULL);
 	} catch (std::exception ex) {
 		isRoman = true;
 	}
