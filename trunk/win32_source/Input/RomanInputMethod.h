@@ -385,8 +385,8 @@ void RomanInputMethod<ModelType>::typeHelpWord(std::string roman, std::wstring m
 
 	//Add it to the dictionary?
 	if (currStrDictID==-1) {
-		wstring tempStr = waitzar::sortMyanmarString(myanmar);
-		userDefinedWords.push_back(tempStr);
+		//wstring tempStr = waitzar::sortMyanmarString(myanmar); //We've already passed in the native encoding
+		userDefinedWords.push_back(myanmar);
 		currStrDictID = -1*(systemDefinedWords.size()+userDefinedWords.size());
 	}
 
@@ -413,9 +413,17 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 	int actID = model->getCurrSelectedID()+model->getFirstWordIndex();
 	int currReplacementID = (model->getPossibleWords().empty()) ? -1 : model->getWordCombinations()[actID];
 	for (std::list<int>::const_iterator it=sentence->begin(); it!=sentence->end(); it++) {
-		//Get the word
-		int modID = -(*it)-1;
-		wstring currWord = (*it>=0) ? model->getWordString(*it) : (modID<(int)systemDefinedWords.size()) ? wstring(1, systemDefinedWords[modID]) : userDefinedWords[modID-systemDefinedWords.size()];
+		//Get the word. This depends on the ID's negativity, size, etc.
+		wstring currWord;
+		if (*it>=0)
+			currWord = model->getWordString(*it);
+		else {
+			int modID = -(*it)-1;
+			if (modID<(int)systemDefinedWords.size())
+				currWord = wstring(1, systemDefinedWords[modID]);
+			else
+				currWord = userDefinedWords[modID-systemDefinedWords.size()];
+		}
 
 		//Have we reached a transition?
 		if (currID==sentence->getCursorIndex()-1 && currReplacementID!=-1) {
