@@ -116,13 +116,21 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 		if (!typedSentenceStr.str().empty()) 
 			requestToTypeSentence = true;
 	} else {
+		//We need to first convert this string to the target Roman method's encoding.
+		bool noEncChange = (uni2Romanenc->toEncoding==myenc2Uni->fromEncoding);
+		wstring myanmar = typedCandidateStr.str();
+		if (!noEncChange) {
+			myenc2Uni->convertInPlace(myanmar);
+			uni2Romanenc->convertInPlace(myanmar);
+		}
+
 		//Get its romanization, if it exists.
-		std::pair<int, std::string> wordData = providingHelpFor->lookupWord(typedCandidateStr.str());
+		std::pair<int, std::string> wordData = providingHelpFor->lookupWord(myanmar);
 		int currStrDictID = wordData.first;
 		string revWord = (wordData.first!=-1) ? wordData.second : "<no entry>";
 
 		//Add it to the memory list, dictionary, and current sentence.
-		providingHelpFor->typeHelpWord(revWord, typedSentenceStr.str(), currStrDictID);
+		providingHelpFor->typeHelpWord(revWord, myanmar, currStrDictID);
 
 		//Flag for removal
 		this->providingHelpFor = NULL;
@@ -224,6 +232,10 @@ void LetterInputMethod::updateRomanHelpString()
 
 vector<wstring> LetterInputMethod::getTypedSentenceStrings()
 {
+	//Special case: don't overwrite the sentence string if we're just showing help.
+	if (this->isHelpInput())
+		return providingHelpFor->getTypedSentenceStrings();
+
 	vector<wstring> res;
 	res.push_back(typedSentenceStr.str());
 	res.push_back(L"");

@@ -1156,6 +1156,7 @@ void switchToLanguage(bool toMM) {
 		res = turnOnControlkeys(toMM) && res;
 		res = turnOnExtendedKeys(toMM) && res;
 	} else {
+		res = turnOnControlkeys(toMM) && res; //Turn ON control keys? Ugh, we need to check...
 		currInput->reset(true, true, true, true);
 	}
 
