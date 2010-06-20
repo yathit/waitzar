@@ -419,6 +419,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 		std::wstringstream line;
 		wchar_t lastChar = L'\0';
 		bool firstComment = true;
+		bool onlywhitespace = true;
 		for (; i<sz; i++) {
 			//Skip comments: C-style
 			if (i+1<sz && datastream[i]==L'/' && datastream[i+1]==L'*') {
@@ -540,8 +541,12 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				continue;
 			line <<lastChar;
 
+			//Update our flag
+			if (onlywhitespace && lastChar!=' ' && lastChar!='\t' && lastChar!='\r' && lastChar!='\n')
+				onlywhitespace = false;
+
 			//Last line?
-			if (i==sz-1 && !line.str().empty())
+			if (i==sz-1 && !line.str().empty() && !onlywhitespace)
 				lines.push_back(line.str());
 		}
 	}
@@ -553,8 +558,8 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 	map< wstring, unsigned int> tempVarLookup;
 	map< wstring, unsigned int> tempSwitchLookup;
 	std::wstringstream rule;
-	for (size_t i=0; i<lines.size(); i++) {
-		wstring line = lines[i];
+	for (size_t id=0; id<lines.size(); id++) {
+		wstring line = lines[id];
 		rule.str(L"");
 
 		//Break the current line into a series of:

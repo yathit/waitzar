@@ -60,7 +60,7 @@ $twtsh = U1084
 //Re-order; ya-yit is always before the vowel
 $twt + <VK_SHIFT & VK_KEY_L> => $yayit + $1
 $twtsh + <VK_SHIFT & VK_KEY_L> => $yayit + $1
-				
+
 //Default 'a', 's', 'L'
 <VK_KEY_A> => $twt
 <VK_KEY_S> => $twtsh
