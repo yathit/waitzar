@@ -1287,10 +1287,12 @@ void initCalculateHelp()
 	//Copy this font for use in the memory box
 	//TODO: Something else.
 	helpFntMemory = (PulpCoreFont*)WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", WZ_SMALL_FONT);
+	DisplayMethod* zgSmall = WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", WZ_SMALL_FONT);
 	//= (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 
 	//Make
-	helpKeyboard = new OnscreenKeyboard(*(FindKeyInSet(config.getDisplayMethods(), L"zawgyibmpsmall")), helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
+	helpKeyboard = new OnscreenKeyboard(zgSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
+	
 }
 
 
