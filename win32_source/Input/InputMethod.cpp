@@ -34,11 +34,19 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 }
 
 
-void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* myenc2Uni, const Transformation* uni2Romanenc)
+void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc))
 {
 	this->providingHelpFor = providingHelpFor;
-	this->myenc2Uni = myenc2Uni;
-	this->uni2Romanenc = uni2Romanenc;
+
+	if (ConfigGetTransformation!=NULL) {
+		//Get a set of encoding transformations for the reverse lookup
+		this->myenc2Uni = ConfigGetTransformation(this->encoding, uniEnc);
+		this->uni2Romanenc = ConfigGetTransformation(uniEnc, providingHelpFor->encoding);
+
+		//Get a set of encoding transformations for returning the Roman Input Method's encoding
+		this->uni2Myenc = ConfigGetTransformation(uniEnc, this->encoding);
+		this->romanenc2Uni = ConfigGetTransformation(providingHelpFor->encoding, uniEnc);
+	}
 }
 
 bool InputMethod::isHelpInput()

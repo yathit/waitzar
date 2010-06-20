@@ -296,7 +296,7 @@ public:
 	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality
-	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* myenc2Uni, const Transformation* uni2Romanenc);
+	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc));
 	bool isHelpInput();
 	void forceViewChanged();
 	bool getAndClearViewChanged();
@@ -348,7 +348,9 @@ protected:
 	//Helper typing control
 	InputMethod* providingHelpFor;
 	const Transformation* myenc2Uni;
+	const Transformation* uni2Myenc;
 	const Transformation* uni2Romanenc;
+	const Transformation* romanenc2Uni;
 
 	//Repaint after this?
 	bool viewChanged;
