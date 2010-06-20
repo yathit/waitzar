@@ -3,9 +3,9 @@
 {"languages.shan" :       {
   "display-name" : "ရှမ်းစာ",
   "default-output-encoding" : "unicode",
-  "default-display-method" : "zawgyibmp",
-  "default-display-method-small" : "zawgyibmp",
-  "default-input-method" : "waitzar",
+  "default-display-method" : "yghkttf",
+  "default-display-method-small" : "yghkttfsmall",
+  "default-input-method" : "shantemp",
         
   "encodings" : 
   {
@@ -18,20 +18,33 @@
         
   "input-methods" : 
   {
-    "waitzar" : 
-    {
-      "display-name" : "WaitZar(Shan)",
-      "encoding" : "unicode",
-      "type" : "builtin"
-    }
+      "shantemp" : 
+      {
+        "display-name" : "Test Keyboard",
+        "encoding" : "unicode", 
+        "type" : "keymagic",
+        "keyboard-file" : "shan_temp.kms",
+		"disable-cache" : "false"
+      }
   },
 
   "display-methods" : 
   {
-    "zawgyibmp" : 
-    {
-    "encoding" : "unicode",
-    "type" : "builtin"
-    }
+      "yghkttf" :  #Load from a file
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Yunghkio Unicode",
+        "point-size" : "14",
+        "font-file" : "yghk_uni.ttf"
+      },
+      "yghkttfsmall" :  #Load from a file
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Yunghkio Unicode",
+        "point-size" : "12",
+        "font-file" : "yghk_uni.ttf"
+      }
   }
 }}
