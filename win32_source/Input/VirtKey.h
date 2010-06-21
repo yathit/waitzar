@@ -7,12 +7,17 @@
 #ifndef _INPUT_VIRT_KEY
 #define _INPUT_VIRT_KEY
 
-
 //Include windows libraries
 #define _UNICODE
 #define UNICODE
 
 #include <windows.h>
+
+//System includes
+#include <map>
+#include <vector>
+
+//Normal includes
 #include "Input/keymagic_vkeys.h"
 
 
@@ -21,6 +26,36 @@
 //Class unified virtual key presses for virtual/physical/etc. hotkeys.
 //   Masks the "scan code" property by simply generating a new key if instructed to.
 class VirtKey {
+//Static methods
+public:
+	//Change the locale for all future VKeys
+	static void SetCurrLocale(WORD newLocale);
+
+	//Is this locale capable enough for WZ? 
+	static bool IsCurrLocaleInsufficient();
+
+
+//Static data
+private:
+	//Lookup table: converting from physical scan-codes to VK_* codes in the en-US locale
+	//NOTE: Both scancodes and VK_* codes are UINTs. 
+	//NOTE: VK_*'s are Virtual Keys, NOT characters. Further conversion is necessary before using them.
+	static std::map<unsigned int, unsigned int> scancode2VirtKey;
+
+	//Reverse lookup table: converting from VK_* codes in the current locale to VK_* codes.
+	//NOTE: Both scancodes and VK_* codes are UINTs. However, we will convert VK_* codes to wchar_t values for clarity.
+	static std::map<unsigned int, unsigned int> localevkey2Scancode;
+
+	//Current locale for all generated VirtKeys
+	static WORD currLocale;
+
+	//Does this locale contain all possible vkeys we might need to type?
+	static bool currLocaleInsufficient;
+
+public:
+	//Handy lookup for the "en-US" locale.
+	static const WORD en_usLocale;
+
 
 //Public methods
 public:
@@ -44,6 +79,19 @@ public:
 
 	//Convert back into a Windows message.
 	LPARAM toLParam();
+
+	//Convert this VKey to the en-US locale.
+	//We do NOT convert "control"-style keys, like VK_BACK, since this will likely just confuse the user.
+	//  TODO: Double-check if this is a good idea or not...
+	void stripLocale();
+
+
+//Private helper methods
+private:
+	//Given a valid VK_* code and set of modifiers, generate the alphanum value.
+	// Named very obtusely to imply that this function should rarely be used. 
+	//  (it'd be manually inlined, except I use it in two places.)
+	void constructAlphanumFromVkcodeAndModifiers();
 
 
 
