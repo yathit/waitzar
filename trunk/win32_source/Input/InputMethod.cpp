@@ -86,6 +86,10 @@ std::pair <std::string, std::wstring> InputMethod::getAndClearMostRecentRomaniza
 //Handle system keys
 void InputMethod::handleKeyPress(VirtKey& vkey)
 {
+	//Convert locale
+	//TODO: Centralize this elsewhere
+	vkey.stripLocale();
+
 	//Get an adjusted numcode.
 	//int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9) ? HOTKEY_NUM0 : -1;
 	//int numberValue = vkey.alphanum - '0'; //(base==-1) ? wParam : HOTKEY_0 + (int)wParam - base;
