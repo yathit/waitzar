@@ -27,12 +27,15 @@
 //   Masks the "scan code" property by simply generating a new key if instructed to.
 class VirtKey {
 //Static methods
-public:
+private: //Internal?
 	//Change the locale for all future VKeys
-	static void SetCurrLocale(WORD newLocale);
+	static void SetCurrLocale(HKL newLocale);
 
 	//Is this locale capable enough for WZ? 
 	static bool IsCurrLocaleInsufficient();
+
+	//Double-check that the locale is up-to-date.
+	static void updateLocale();
 
 
 //Static data
@@ -46,15 +49,19 @@ private:
 	//NOTE: Both scancodes and VK_* codes are UINTs. However, we will convert VK_* codes to wchar_t values for clarity.
 	static std::map<unsigned int, unsigned int> localevkey2Scancode;
 
+	//Similar maps for converting BACK to the current locale
+	static std::map<unsigned int, unsigned int> scancode2CurrLocale;
+	static std::map<unsigned int, unsigned int> enusvkey2Scancode;
+
 	//Current locale for all generated VirtKeys
-	static WORD currLocale;
+	static HKL currLocale;
 
 	//Does this locale contain all possible vkeys we might need to type?
 	static bool currLocaleInsufficient;
 
 public:
 	//Handy lookup for the "en-US" locale.
-	static const WORD en_usLocale;
+	static const HKL en_usLocale;
 
 
 //Public methods
@@ -62,6 +69,8 @@ public:
 	//Simple constructor
 	VirtKey(unsigned int vkCode, char alphanum, bool modShift, bool modAlt, bool modCtrl) 
 		: vkCode(vkCode), alphanum(alphanum), modShift(modShift), modAlt(modAlt), modCtrl(modCtrl) {}
+
+	//Copy constructor (note: just use the default copy constructor)
 
 	//Construct from an lParam (presumably a WM_HOTKEY message)
 	VirtKey(LPARAM wmHotkeyLParam);
@@ -84,6 +93,9 @@ public:
 	//We do NOT convert "control"-style keys, like VK_BACK, since this will likely just confuse the user.
 	//  TODO: Double-check if this is a good idea or not...
 	void stripLocale();
+
+	//Convert from en-US to whatever the current locale is.
+	void considerLocale();
 
 
 //Private helper methods

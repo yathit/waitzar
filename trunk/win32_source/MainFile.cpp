@@ -474,18 +474,24 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 			//Loop through our list
 			for (std::list< std::pair<unsigned int, VirtKey> >::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
+				//Create a version of this vkey in the current keyboard layout
+				VirtKey translated(keyItr->second);
+				translated.considerLocale();
+
 				//Get the state of this key
-				SHORT keyState = GetKeyState(helpKeyboard->getVirtualKeyID(keyItr->second.vkCode, keyItr->second.alphanum, keyItr->second.modShift)); //We need to use CAPITAL letters for virtual keys. Gah!
+				SHORT keyState = GetKeyState(helpKeyboard->getVirtualKeyID(translated.vkCode, translated.alphanum, translated.modShift)); //We need to use CAPITAL letters for virtual keys. Gah!
 
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
 					/*if (isLogging)
 						fprintf(logFile, "  Key up: %c  (%x)\n", *keyItr, keyState);*/
 
-					if (!mainWindow->postMessage(UWM_HOTKEY_UP, keyItr->first, keyItr->second.toLParam())) {
+					//Send an en_US-style HOTKEY_UP message to the main Window. Do NOT check for failure.
+					mainWindow->postMessage(UWM_HOTKEY_UP, keyItr->first, keyItr->second.toLParam());
 						//SendMessage(mainWindow, UWM_HOTKEY_UP, *keyItr,0); //Send message seems to make no difference
-						MessageBox(NULL, _T("Couldn't post message to Main Window"), _T("Error"), MB_OK);
-					}
+						//MessageBox(NULL, _T("Couldn't post message to Main Window"), _T("Error"), MB_OK);
+						//Bad! Don't send Message Boxes from a critical section!
+					
 
 					//Key has been released, stop tracking it
 					keyItr = hotkeysDown.erase(keyItr); //Returns the next valid value
@@ -1887,7 +1893,7 @@ struct pairmatches : public std::binary_function<pair<unsigned int, VirtKey>, un
 }*/
 
 
-//NOTE: This should be possible entirely with hotkeys (no need for a VirtKey argument)
+//NOTE: We should avoid using hotkeyCode when possible, since it doesn't account for locale-specific information
 void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 {
 	//If this is a shifted key, get which key is shifted: left or right
@@ -2183,8 +2189,12 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 
 		default:
 			if (helpWindow->isVisible() && highlightKeys) {
+				//Convert:
+				VirtKey vk2(vkey);
+				vk2.stripLocale();
+
 				//Highlight our virtual keyboard
-				handleNewHighlights(hotkeyCode, vkey);
+				handleNewHighlights(hotkeyCode, vk2);
 
 				//Doesn't consume a keypress
 				return false;
@@ -2469,6 +2479,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			//Turn this lparam into a virtual key
 			VirtKey vk(lParam);
+			//vk.stripLocale(); We don't need to strip the locale, since the ACTUAL en_US id was sent.
 
 			//Update our virtual keyboard
 			if (helpKeyboard->highlightKey(vk.vkCode, vk.alphanum, vk.modShift, false))
@@ -2558,6 +2569,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
+
+
+		/*case WM_INPUTLANGCHANGE:
+		{
+			//This doens't work (because the language doesn't change for WaitZar, but rather for the focus window.
+			//    ....we're going to have to use attachthreadinput, aren't we....
+			//But that's not right, because we want the ACTUAL keyboard for this thread. Hmm....
+			WORD id = (WORD)lParam;
+			break;
+		}*/
 
 
 
@@ -3452,7 +3473,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//Set the locale to the current system locale.
-	VirtKey::SetCurrLocale(LOWORD(GetKeyboardLayout(0)));
+	//VirtKey::SetCurrLocale(LOWORD(GetKeyboardLayout(0)));
 	//TODO: Check IsCurrLocaleInsufficient() and show a balloon (or something) if this is the case.
 
 	//Set defaults
