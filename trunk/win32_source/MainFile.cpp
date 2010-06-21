@@ -2447,7 +2447,6 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 		customMenuItems[i].disabled = true;
 	}
 
-
 	//Finally, switch the input to WaitZar. 
 	if (FindKeyInSet(config.activeLanguage.inputMethods, L"waitzar")==config.activeLanguage.inputMethods.end())
 		ChangeLangInputOutput(L"myanmar", L"waitzar", L""); //Removes our blacklisted item, but at least we're back in MM
@@ -3452,6 +3451,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		delete mainWindow;
 	}
 
+	//Set the locale to the current system locale.
+	VirtKey::SetCurrLocale(LOWORD(GetKeyboardLayout(0)));
+	//TODO: Check IsCurrLocaleInsufficient() and show a balloon (or something) if this is the case.
 
 	//Set defaults
 	ChangeLangInputOutput(config.activeLanguage.id, config.activeInputMethod->id, config.activeOutputEncoding.id);
