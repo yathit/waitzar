@@ -179,6 +179,10 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 
 void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 {
+	//Convert locale
+	//TODO: Centralize this elsewhere
+	vkey.stripLocale();
+
 	//Delegate our combination algorithm
 	wstring curr = typedSentenceStr.str();
 	if (isHelpInput())
@@ -203,6 +207,10 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 		//Trigger view change.
 		viewChanged = true;
 	} else {
+		//Un-Convert locale
+		//TODO: Centralize this elsewhere
+		vkey.considerLocale();
+
 		//Check for system keys
 		InputMethod::handleKeyPress(vkey);
 	}
