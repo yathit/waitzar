@@ -94,17 +94,19 @@ void VirtKey::SetCurrLocale(WORD newLocale)
 	VirtKey::currLocale = newLocale;
 	VirtKey::currLocaleInsufficient = false;
 
-	//Re-generate the current locale
-	VirtKey::localevkey2Scancode.clear();
-	for (map<unsigned int, unsigned int>::iterator mapval=VirtKey::scancode2VirtKey.begin(); mapval!=VirtKey::scancode2VirtKey.end(); mapval++) {
-		unsigned int scancode = mapval->first;
-		unsigned int vkey_in_locale = MapVirtualKey(scancode, MAPVK_VSC_TO_VK);
-		if (vkey_in_locale != 0)
-			VirtKey::localevkey2Scancode[vkey_in_locale] = scancode;
-	}
+	//Re-generate the current locale if not en_US
+	if (VirtKey::currLocale != VirtKey::en_usLocale) {
+		VirtKey::localevkey2Scancode.clear();
+		for (map<unsigned int, unsigned int>::iterator mapval=VirtKey::scancode2VirtKey.begin(); mapval!=VirtKey::scancode2VirtKey.end(); mapval++) {
+			unsigned int scancode = mapval->first;
+			unsigned int vkey_in_locale = MapVirtualKey(scancode, MAPVK_VSC_TO_VK);
+			if (vkey_in_locale != 0)
+				VirtKey::localevkey2Scancode[vkey_in_locale] = scancode;
+		}
 
-	//Does this locale contain enough keys?
-	VirtKey::currLocaleInsufficient = (VirtKey::scancode2VirtKey.size() != VirtKey::localevkey2Scancode.size());
+		//Does this locale contain enough keys?
+		VirtKey::currLocaleInsufficient = (VirtKey::scancode2VirtKey.size() != VirtKey::localevkey2Scancode.size());
+	}
 }
 
 
