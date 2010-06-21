@@ -12,7 +12,8 @@
     "unicode" : 
     {
       "display-name" : "Unicode",
-      "use-as-output" : "yes"
+      "use-as-output" : "yes",
+	  "initial" : "UNI"
     }
   },
         

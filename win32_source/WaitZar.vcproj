@@ -218,6 +218,10 @@
 						RelativePath=".\Input\RomanInputMethod.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\Input\VirtKey.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Display"
@@ -567,6 +571,10 @@
 						</File>
 						<File
 							RelativePath=".\Input\RomanInputMethod.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Input\VirtKey.h"
 							>
 						</File>
 					</Filter>
