@@ -10,11 +10,13 @@ using std::map;
 
 
 //Initialize static data
-WORD VirtKey::currLocale = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+HKL VirtKey::currLocale = NULL;//MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
 bool VirtKey::currLocaleInsufficient = false;
-const WORD VirtKey::en_usLocale = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+const HKL VirtKey::en_usLocale = LoadKeyboardLayout(L"00000409", 0); //Should represent the "default layout"
 map<unsigned int, unsigned int> VirtKey::scancode2VirtKey;
 map<unsigned int, unsigned int> VirtKey::localevkey2Scancode;
+map<unsigned int, unsigned int> VirtKey::scancode2CurrLocale;
+map<unsigned int, unsigned int> VirtKey::enusvkey2Scancode;
 
 
 //Do we contain enough keys to type this locale? (Always true for en_US)
@@ -25,7 +27,7 @@ bool VirtKey::IsCurrLocaleInsufficient()
 
 
 //Convert from currLocale to en_US
-void VirtKey::SetCurrLocale(WORD newLocale)
+void VirtKey::SetCurrLocale(HKL newLocale)
 {
 	//Only occurs once: initialize the en-us lookup table:
 	//We only add "single-case" (virtual key) values.
@@ -86,6 +88,12 @@ void VirtKey::SetCurrLocale(WORD newLocale)
 		VirtKey::scancode2VirtKey[0x35] =  VK_OEM_2;		
 	}
 
+	//Now push these keys in reverse:
+	for (map<unsigned int, unsigned int>::iterator it=VirtKey::scancode2VirtKey.begin(); it!=VirtKey::scancode2VirtKey.end(); it++) {
+		VirtKey::enusvkey2Scancode[it->second] = it->first;
+	}
+	
+
 	//Do nothing if there's no change in locale.
 	if (newLocale==VirtKey::currLocale)
 		return;
@@ -95,13 +103,24 @@ void VirtKey::SetCurrLocale(WORD newLocale)
 	VirtKey::currLocaleInsufficient = false;
 
 	//Re-generate the current locale if not en_US
+	//NOTE: Need to use MapVirtualKeyEx to handle this properly.
 	if (VirtKey::currLocale != VirtKey::en_usLocale) {
 		VirtKey::localevkey2Scancode.clear();
-		for (map<unsigned int, unsigned int>::iterator mapval=VirtKey::scancode2VirtKey.begin(); mapval!=VirtKey::scancode2VirtKey.end(); mapval++) {
-			unsigned int scancode = mapval->first;
-			unsigned int vkey_in_locale = MapVirtualKey(scancode, MAPVK_VSC_TO_VK);
-			if (vkey_in_locale != 0)
-				VirtKey::localevkey2Scancode[vkey_in_locale] = scancode;
+
+		//Load the locale
+		//NOTE: We can just use the HKL entry returned by GetKeyboardLayout()
+		//HKL nonUSLayout = LoadKeyboardLayout(test, KLF_NOTELLSHELL);
+
+		//Reset the keys if this layout exists.
+		if (VirtKey::currLocale!=NULL) {
+			for (map<unsigned int, unsigned int>::iterator mapval=VirtKey::scancode2VirtKey.begin(); mapval!=VirtKey::scancode2VirtKey.end(); mapval++) {
+				unsigned int scancode = mapval->first;
+				unsigned int vkey_in_locale = MapVirtualKeyEx(scancode, MAPVK_VSC_TO_VK, VirtKey::currLocale);
+				if (vkey_in_locale != 0) {
+					VirtKey::localevkey2Scancode[vkey_in_locale] = scancode;
+					VirtKey::scancode2CurrLocale[scancode] = vkey_in_locale;
+				}
+			}
 		}
 
 		//Does this locale contain enough keys?
@@ -327,12 +346,28 @@ LPARAM VirtKey::toLParam()
 }
 
 
+void VirtKey::updateLocale()
+{
+	//Test: perform automatically.
+	//Not working; we might actually need to check the "focus" window.
+	//...or possibly just the ThreadID of the top-most window's windowing thread.
+	HWND foreWnd = GetForegroundWindow();
+	DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
+	HKL newLocale = GetKeyboardLayout(foreID);
+	if (newLocale != VirtKey::currLocale)
+		VirtKey::SetCurrLocale(newLocale);
+}
+
+
 
 //Convert this virtual key into its equivalent in the en_US locale.
 //  Will not change the virtual key if it has no en_US equivalent (e.g., accented letters in French),
 //    since this might be useful for keyboard layotu designers.
 void VirtKey::stripLocale()
 {
+	//Make sure our locale is up-to-date.
+	VirtKey::updateLocale();
+
 	//No change if currently in en_US; avoid spurious errors
 	if (VirtKey::currLocale==VirtKey::en_usLocale)
 		return;
@@ -345,6 +380,32 @@ void VirtKey::stripLocale()
 		return;
 	map<unsigned int, unsigned int>::iterator it2 = VirtKey::scancode2VirtKey.find(it1->second);
 	if (it2==VirtKey::scancode2VirtKey.end())
+		return;
+	vkCode = it2->second;
+
+	//Now, re-generate the alphanum (unless nothing changed).
+	if (vkCode != oldVKCode) 
+		constructAlphanumFromVkcodeAndModifiers();
+}
+
+
+void VirtKey::considerLocale()
+{
+	//Make sure our locale is up-to-date.
+	VirtKey::updateLocale();
+
+	//No change if currently in en_US; avoid spurious errors
+	if (VirtKey::currLocale==VirtKey::en_usLocale)
+		return;
+
+	//Only vkcode and alphanum change; the modifiers remain. Vkcode must be changed first.
+	// Abort the conversion whenever we encounter trouble.
+	unsigned int oldVKCode = vkCode;
+	map<unsigned int, unsigned int>::iterator it1 = VirtKey::enusvkey2Scancode.find(vkCode);
+	if (it1==VirtKey::enusvkey2Scancode.end())
+		return;
+	map<unsigned int, unsigned int>::iterator it2 = VirtKey::scancode2CurrLocale.find(it1->second);
+	if (it2==VirtKey::scancode2CurrLocale.end())
 		return;
 	vkCode = it2->second;
 
