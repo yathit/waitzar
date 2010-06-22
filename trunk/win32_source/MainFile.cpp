@@ -2054,6 +2054,11 @@ void toggleHelpMode(bool toggleTo)
 		//Turn off help keys
 		turnOnHelpKeys(false);
 
+		//Hide the mainWindow and (optionally) sentence window)
+		mainWindow->showWindow(false);
+		if (currInput->getTypedSentenceStrings()[3].empty())
+			sentenceWindow->showWindow(false);
+
 		//Hide windows
 		helpWindow->showWindow(false);
 		memoryWindow->showWindow(false);
@@ -2185,7 +2190,7 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 		case HOTKEY_HELP:
 			//What to do if our user hits "F1".
 			if (/*!allowNonBurmeseLetters &&*/ currHelpInput!=NULL)
-				toggleHelpMode(true);
+				toggleHelpMode(!helpWindow->isVisible());
 			return true;
 
 		default:

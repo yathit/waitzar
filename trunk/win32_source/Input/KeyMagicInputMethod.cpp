@@ -17,7 +17,7 @@ using std::ios;
 
 
 //"True" provides a full trace of all KeyMagic rule matches.
-bool KeyMagicInputMethod::LOG_KEYMAGIC_TRACE = true;
+bool KeyMagicInputMethod::LOG_KEYMAGIC_TRACE = false;
 string KeyMagicInputMethod::keyMagicLogFileName = "wz_log_keymagic.txt";
 
 
