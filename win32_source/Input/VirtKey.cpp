@@ -352,10 +352,28 @@ void VirtKey::updateLocale()
 	//Not working; we might actually need to check the "focus" window.
 	//...or possibly just the ThreadID of the top-most window's windowing thread.
 	HWND foreWnd = GetForegroundWindow();
+	{
+		//Get the associated IMEWnd ("Default IM"). 
+		// This remains accurate even with console apps
+		HWND immWnd = ImmGetDefaultIMEWnd(foreWnd);
+		if (immWnd!=NULL)
+			foreWnd = immWnd;
+	}
 	DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
 	HKL newLocale = GetKeyboardLayout(foreID);
-	if (newLocale != VirtKey::currLocale)
-		VirtKey::SetCurrLocale(newLocale);
+
+	//Just because I'm superstitious, fall back on the Desktop's Layout if all else fails.
+	if (newLocale==NULL) {
+		foreWnd = GetDesktopWindow();
+		foreID = GetWindowThreadProcessId(foreWnd, NULL);
+		newLocale = GetKeyboardLayout(foreID); 
+	}
+
+	//Set the layout, if it even exists.
+	if (newLocale!=NULL) {
+		if (newLocale != VirtKey::currLocale)
+			VirtKey::SetCurrLocale(newLocale);
+	}
 }
 
 

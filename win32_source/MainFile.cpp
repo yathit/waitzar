@@ -77,6 +77,7 @@
 #include <string>
 #include <list>
 #include <limits>
+#include <set>
 #include <sstream>
 #include <fstream>
 #include <iostream>
