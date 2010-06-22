@@ -141,7 +141,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msimg32.lib Psapi.lib shell32.lib"
+				AdditionalDependencies="msimg32.lib Psapi.lib shell32.lib Imm32.lib"
 				OutputFile="$(OutDir)/WaitZar.exe"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
