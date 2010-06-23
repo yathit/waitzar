@@ -1169,7 +1169,7 @@ void switchToLanguage(bool toMM) {
 		res = turnOnControlkeys(toMM) && res;
 		res = turnOnExtendedKeys(toMM) && res;
 	} else {
-		res = turnOnControlkeys(toMM) && res; //Turn ON control keys? Ugh, we need to check...
+		//res = turnOnControlkeys(toMM) && res; //Turn ON control keys? Ugh, we need to check...
 		currInput->reset(true, true, true, true);
 	}
 
@@ -2518,7 +2518,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// switching into help mode, etc.
 			//Then, handle all "dynamic" commands; those which change depending on the 
 			// current IM or mode.
-			if (!handleMetaHotkeys(wParam, vk)) {
+			if (handleMetaHotkeys(wParam, vk)) {
+				//Make sure our hotkeys are set
+				//TODO: Remove specific hotkey calls from toggleHelp() and other meta functions...
+				checkAllHotkeysAndWindows();
+			} else {
 				//Set flags for the current state of the Input Manager. We will
 				// check these against the exit state to see what has changed,
 				// and thus what needs to be updated.
@@ -2761,6 +2765,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (!mmOn)
 							switchToLanguage(true);
 						toggleHelpMode(!currInput->isHelpInput()); //TODO: Check this works!
+						checkAllHotkeysAndWindows();
 					}
 				} else if (retVal == IDM_EXIT) {
 					//Will generate a WM_DESTROY message
