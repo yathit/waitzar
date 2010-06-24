@@ -115,6 +115,10 @@ bool BurglishBuilder::IsValid(const wstring& word)
 
 std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std::wstring& stacked)
 {
+	//Is there enough to go on?
+	if (base.length()<2) //Need consonant + asat
+		return L"";
+
 	//Valid if the previous word has U+103A and not anything else stacked (U+1039)
 	//Valid if the stacked word has 1039
 	int aIndex = base.rfind(L"\u103A");
@@ -132,8 +136,24 @@ std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std
 	wstring stackRep = stacked;
 	if (kIndex!=-1)
 		stackRep.replace(kIndex, kinzi.length(), empty);
-	else
-		kinzi = empty;
+	else {
+		//The "stacked" section will contain U+1039 + consonant letter
+		wchar_t letter = L'\0';
+		if (stackRep.length()>1 && stackRep[0]==L'\u1039')
+			letter = stackRep[1];
+
+		//Special case: we keep kinzi if base is stacking "nga"
+		if (baseRep[aIndex-1]==L'\u1004' && letter!=L'\0') {
+			//First, remove the stacked consonant.
+			stackRep = stackRep.substr(2, stackRep.length());
+
+			//Next, replace the base letter
+			baseRep[aIndex-1] = letter;
+		} else {
+			//Ditch kinzi
+			kinzi = empty;
+		}
+	}
 
 	//Step 3: Combine (kinzi?) + base + stacked. Note that kinzi should appear to the left of the killed consonant, not the base consonant
 	return baseRep.substr(0, aIndex-1) + kinzi + baseRep.substr(aIndex-1, baseRep.length()) + stackRep;
