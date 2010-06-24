@@ -134,25 +134,25 @@ std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std
 	wstring kinzi = L"\u1004\u103A\u1039";
 	int kIndex = stacked.rfind(L"\u1004\u103A\u1039");
 	wstring stackRep = stacked;
-	if (kIndex!=-1)
+	if (kIndex!=-1) {
 		stackRep.replace(kIndex, kinzi.length(), empty);
-	else {
-		//The "stacked" section will contain U+1039 + consonant letter
-		wchar_t letter = L'\0';
-		if (stackRep.length()>1 && stackRep[0]==L'\u1039')
-			letter = stackRep[1];
-
+	} else if (baseRep[aIndex-1]==L'\u1004') {
 		//Special case: we keep kinzi if base is stacking "nga"
-		if (baseRep[aIndex-1]==L'\u1004' && letter!=L'\0') {
-			//First, remove the stacked consonant.
-			stackRep = stackRep.substr(2, stackRep.length());
+		//See if we've got U+1039 followed by at least one letter
+		size_t asatID = stackRep.find(L'\u1039');
+		if (asatID!=wstring::npos && asatID+1<stackRep.length()) {
+			//Step 1: replace the base letter
+			baseRep[aIndex-1] = stackRep[asatID+1];
 
-			//Next, replace the base letter
-			baseRep[aIndex-1] = letter;
+			//Step 2: Re-work the stacked letter; remove the consonant and U+1039
+			stackRep = stackRep.substr(0, asatID) + stackRep.substr(asatID+2, stackRep.length());			
 		} else {
 			//Ditch kinzi
 			kinzi = empty;
 		}
+	} else {
+		//No kinzi
+		kinzi = empty;
 	}
 
 	//Step 3: Combine (kinzi?) + base + stacked. Note that kinzi should appear to the left of the killed consonant, not the base consonant
