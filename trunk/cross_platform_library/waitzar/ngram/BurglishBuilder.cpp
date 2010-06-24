@@ -204,10 +204,12 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 			continue;
 
 		//Replace the current prefix with a pat-sint equivalent if the first letter is capital
-		if (firstLetterUppercase) {
+		if (firstLetterUppercase && !onset.str().empty()) {
+			//Stacking only occurs with single-letter onsets (exception: the ya medials)
 			wstring oldPrefix = onset.str();
-			if (oldPrefix.length()==1) {
-				wchar_t c = oldPrefix[0];
+			wchar_t c = oldPrefix[0];
+			if (oldPrefix.length()==1 || (oldPrefix.length()==2 && c!=L'\u1004' && (oldPrefix[1]==L'\u103B' || oldPrefix[1]==L'\u103C'))) {
+				
 				if (  (c>=L'\u1000' && c<=L'\u1008')
 					||(c==L'\u100B' || c==L'\u100C' || c==L'\u101C')
 					||(c>=L'\u100F' && c<=L'\u1019')) 
