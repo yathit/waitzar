@@ -84,11 +84,11 @@ BEGIN
         MENUITEM "&English (Alt+Shift)",        IDM_ENGLISH, CHECKED
         MENUITEM "&Myanmar (Alt+Shift)",        IDM_MYANMAR
         MENUITEM SEPARATOR
-        POPUP "Enc&oding"
+        POPUP "-----"
         BEGIN
-            MENUITEM "Unicode 5.1",                 ID_ENCODING_UNICODE5, CHECKED
-            MENUITEM "Zawgyi-One",                  ID_ENCODING_ZAWGYI
-            MENUITEM "Win Innwa",                   ID_ENCODING_WININNWA
+            MENUITEM "-----",                 ID_ENCODING_UNICODE5, CHECKED
+            MENUITEM "-----",                  ID_ENCODING_ZAWGYI
+            MENUITEM "-----",                   ID_ENCODING_WININNWA
         END
         POPUP "Typing"
         BEGIN

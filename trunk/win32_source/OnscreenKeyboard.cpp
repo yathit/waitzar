@@ -690,6 +690,7 @@ void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string 
 	memoryImg->fillRectangle(this->cornerSize, memEntriesStartY, this->getMemoryWidth()-this->cornerSize*2, this->getMemoryHeight()-memEntriesStartY-this->cornerSize, COLOR_KEYBOARD_FOREGRD);
 	int currY = memEntriesStartY;
 	for (list< pair<wstring,string> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
+		this->memoryFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
 		memoryWindow->drawString(memoryFont, keyItr->first, this->cornerSize, currY);
 		memoryWindow->drawString(memoryFont, keyItr->second, this->getMemoryWidth()/2+5/2, currY);
 		currY += memEntriesYPlus;

@@ -117,9 +117,9 @@ using std::ofstream;
 const wstring WAIT_ZAR_VERSION = L"1.7";
 
 //Menu item texts
-const wstring POPUP_UNI = L"Unicode 5.1";
-const wstring POPUP_ZG = L"Zawgyi-One";
-const wstring POPUP_WIN = L"Win Innwa";
+const wstring POPUP_UNI = L"-----";
+const wstring POPUP_ZG = L"-----";
+const wstring POPUP_WIN = L"-----";
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
 const wstring POPUP_LOOKUP_EN = L"&Look Up Word";
 
@@ -2189,8 +2189,10 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 
 		case HOTKEY_HELP:
 			//What to do if our user hits "F1".
-			if (/*!allowNonBurmeseLetters &&*/ currHelpInput!=NULL)
+			if (/*!allowNonBurmeseLetters &&*/ currHelpInput!=NULL) {
 				toggleHelpMode(!helpWindow->isVisible());
+				checkAllHotkeysAndWindows();
+			}
 			return true;
 
 		default:
@@ -2521,7 +2523,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (handleMetaHotkeys(wParam, vk)) {
 				//Make sure our hotkeys are set
 				//TODO: Remove specific hotkey calls from toggleHelp() and other meta functions...
-				checkAllHotkeysAndWindows();
+				//checkAllHotkeysAndWindows();
 			} else {
 				//Set flags for the current state of the Input Manager. We will
 				// check these against the exit state to see what has changed,
