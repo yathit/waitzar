@@ -2,6 +2,11 @@
 #Size: 5416 k after
 #Uses   24 k extra space (could be more or less)
 
+#ONSET-ONLY EXTENSIONS:
+{
+'ြ','ျ','ှ','ွ'
+}
+
 #ONSETS:
 {
 'zz':'ဈ',
