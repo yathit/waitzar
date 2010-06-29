@@ -76,7 +76,10 @@ private:
 
 	//Looking backwards
 	static std::vector<std::wstring> reverseExpandWords(const std::wstring& myanmar);
-	static std::wstring matchSpecialWord(const std::wstring& myanmar);
+	static std::string matchSpecialWord(const std::wstring& myanmar);
+	static bool matchOnsetFirstLetter(wchar_t letter);
+	static std::string matchOnset(const std::wstring& myanmar);
+	static std::string matchRhyme(const std::wstring& myanmar);
 	
 
 	//Helper

@@ -542,7 +542,7 @@ std::wstring BurglishBuilder::getWordString(unsigned int id) const
 //Turns the current myanmar word into a list of all possible spellings. 
 //The original word is the first item in the list.
 //Does not check for validity.
-static vector<wstring> reverseExpandWords(const wstring& myanmar)
+vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 {
 	//Add the current word
 	set<wstring> resSet;
@@ -581,7 +581,7 @@ static vector<wstring> reverseExpandWords(const wstring& myanmar)
 
 			//Second pattern:
 			// \u1023 [^\u102F]! --> \u1021 \u102D (don't replace !-expression)
-			if (i+1<word->size() && currMM[i]==L'\u1023' && currMM[i+1]!=L'\u102F') {
+			if (i+1<currMM.size() && currMM[i]==L'\u1023' && currMM[i+1]!=L'\u102F') {
 				currWord <<currMM[i];
 				newWord <<L"\u1021\u102D";
 				i+=1; //Don't consume
@@ -590,7 +590,7 @@ static vector<wstring> reverseExpandWords(const wstring& myanmar)
 
 			//Third pattern:
 			// \u1029 [^\u103A \u1037]! --> \u1021 \u1031 \u102C (don't replace !-expression)
-			if (i+1<word->size() && currMM[i]==L'\u1029' && currMM[i+1]!=L'\u103A' && currMM[i+1]!=L'\u1037') {
+			if (i+1<currMM.size() && currMM[i]==L'\u1029' && currMM[i+1]!=L'\u103A' && currMM[i+1]!=L'\u1037') {
 				currWord <<currMM[i];
 				newWord <<L"\u1021\u1031\u102C";
 				i+=1; //Don't consume
@@ -629,7 +629,7 @@ static vector<wstring> reverseExpandWords(const wstring& myanmar)
 
 
 //Match the given myanmar word to its romanisation. Returns "" if no match can be made
-static wstring matchSpecialWord(const wstring& myanmar)
+string BurglishBuilder::matchSpecialWord(const wstring& myanmar)
 {
 	for (json_spirit::wmObject::iterator pair=specialWords.begin(); pair!=specialWords.end(); pair++) {
 		wstring roman = pair->first;
@@ -647,7 +647,7 @@ static wstring matchSpecialWord(const wstring& myanmar)
 
 			//Boundary reached; check
 			if (myanmar == entry.str())
-				return roman; 
+				return waitzar::escape_wstr(roman, false);
 
 			//Finally: reset
 			entry.str(L"");
@@ -655,8 +655,91 @@ static wstring matchSpecialWord(const wstring& myanmar)
 	}
 
 	//No matches
-	return L"";
+	return "";
 }
+
+
+
+bool BurglishBuilder::matchOnsetFirstLetter(wchar_t letter)
+{
+	//Iterate through each pair.
+	for (json_spirit::wmObject::iterator it=onsetPairs.begin(); it!=onsetPairs.end(); it++) {
+		const wstring& myanmar = it->second.get_value<wstring>();
+		for (size_t i=0; i<myanmar.size(); i++) {
+			//Does it match?
+			if (myanmar[i] == letter)
+				return true;
+
+			//Else, fast-forward to the next pipe character, "|"
+			while (i<myanmar.size() && myanmar[i]!=L'|')
+				i++;
+		}
+	}
+
+	//No matches
+	return false;
+}
+
+
+
+string BurglishBuilder::matchOnset(const wstring& myanmar)
+{
+	//Iterate through each pair.
+	for (json_spirit::wmObject::iterator it=onsetPairs.begin(); it!=onsetPairs.end(); it++) {
+		wstring roman = it->first;
+		const wstring& myStrs = it->second.get_value<wstring>();
+		wstringstream entry;
+		for (size_t itemID=0; itemID<myStrs.size(); itemID++) {
+			//Append?
+			if (myStrs[itemID]!=L'|')
+				entry <<myStrs[itemID];
+			//Skip?
+			if (myStrs[itemID]!=L'|' && itemID<myStrs.size()-1)
+				continue;
+
+			//Boundary reached; check
+			if (myanmar == entry.str())
+				return waitzar::escape_wstr(roman, false);
+
+			//Finally: reset
+			entry.str(L"");
+		}
+	}
+
+	//No matches
+	return "";
+}
+
+
+string BurglishBuilder::matchRhyme(const wstring& myanmar)
+{
+	//Iterate through each pair.
+	for (json_spirit::wmObject::iterator it=rhymePairs.begin(); it!=rhymePairs.end(); it++) {
+		wstring roman = it->first;
+		const wstring& myStrs = it->second.get_value<wstring>();
+		wstringstream entry;
+		for (size_t itemID=0; itemID<myStrs.size(); itemID++) {
+			//Append?
+			if (myStrs[itemID]!=L'|')
+				entry <<myStrs[itemID];
+			//Skip?
+			if (myStrs[itemID]!=L'|' && itemID<myStrs.size()-1)
+				continue;
+
+			//Boundary reached; check
+			if (myanmar == entry.str())
+				return waitzar::escape_wstr(roman, false);
+
+			//Finally: reset
+			entry.str(L"");
+		}
+	}
+
+	//No matches
+	return "";
+}
+
+
 
 
 //We return what would be the "first match" in Burglish. 
@@ -667,117 +750,117 @@ pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 	if (word.empty())
 		return pair<int, string>(-1, "");
 
+	//Prepare a result string; we'll generate the ID later.
+	string roman = "";
 
 	//If the word itself is invalid, we can ONLY match against the special words. 
 	//Best to get that out of the way here.
 	if (!IsValid(word)) {
-		wstring roman = matchSpecialWord(word);
-		if (roman.empty())
-			return pair<int, string>(-1, "");
-		else {
-			/////////////////////////////////////////
-			//TODO: Return the word with a proper ID.
-			/////////////////////////////////////////
-			return pair<int, string>(-1, "");
-		}
-	}
-
-
-	//Special case: All numbers
-	wstringstream romanNum;
-	for (size_t i=0; i<word.length(); i++) {
-		if (word[i]<L'\u1040' || word[i]>L'\u1049')
-			break;
-		romanNum <<(wchar_t)((word[i]-L'\u1040')+'0');
-
-		if (i==word.length()-1) {
-			/////////////////////////////////////////
-			//TODO: Return romanNum.str() with a proper ID.
-			/////////////////////////////////////////
-			return pair<int, string>(-1, "");
-		}
-	}
-
-
-	//Have to consider the effect of expandCurrentWords
-	// Since some of them (like "oo" and "u") don't require expanding, we form a list of 
-	// possible words and their candidate romanisations. We keep the original word at the top of the list.
-	vector< pair<wstring, wstring> > my2rom;
-	vector<wstring> altSpellings = reverseExpandWords(word);
-	for (vector<wstring>::iterator it=altSpellings.begin(); it!=altSpellings.end(); it++) {
-		if (IsValid(*it))
-			my2rom.push_back(pair<wstring, wstring>(*it, L""));
-	}
-
-	//Now, match all special words
-	for (size_t i=0; i<my2rom.size(); i++) {
-		if (!my2rom[i].second.empty())
-			continue;
-		wstring roman = matchSpecialWord(my2rom[i].first);
-		if (!roman.empty())
-			my2rom[i].second = roman;
-	}
-
-	//Next, all that's left is the set of regular matches. We'll need to match each
-	// candidate, of course, and also check for of the "extended" letters (e.g., ya-yit)
-	// that Burglish also allows in onsets.
-	for (size_t i=0; i<my2rom.size(); i++) {
-		if (!my2rom[i].second.empty()) {
-			//For efficiency, break if the first candidate has matched already.
-			if (i==0)
-				break;
-			continue;
-		}
-
-		//Step 1: find the consonant. It is likely to be
-		//   one of the first few letters. Additionally, each
-		//   onset begins with a consonant (since we're working in Unicode)
-		//   So, we'll just scan the onset list each time.
-		wstring my = my2rom[i].first;
-		size_t onsetIndex = wstring::npos;
-		for (size_t myID=0; myID<my.length(); myID++) {
-			if (matchOnsetFirstLetter(my[myID])) {
-				onsetIndex = myID;
+		//Look it up directly.
+		roman = matchSpecialWord(word);
+	} else {
+		//Special case: All numbers
+		roman = string(word.length(), 'X'); //Allocate enough space.
+		for (size_t i=0; i<word.length(); i++) {
+			//Break if our assumption fails
+			if (word[i]<L'\u1040' || word[i]>L'\u1049') {
+				roman = ""; //"Still nothing"
 				break;
 			}
-		}
-		if (onsetIndex==wstring::npos)
-			break;
 
-		//Step 2: Now, we need to consider each onset, starting with the base consonant,
-		//        and appending any of the allowed onset extensions after that.
-		wstringstream currOnset;
-		for (size_t myID=onsetIndex; myID<my.length(); myID++) {
-			//Are we done?
-			if (myID!=onsetIndex) {
-				//Only allow a few medials/vowels after the consonant.
-				if (BURGLISH_ONSET_EXTENSIONS.find(my[myID]==BURGLISH_ONSET_EXTENSIONS.end())
+			//Else, keep building.
+			roman[i] = (char)((word[i]-L'\u1040')+'0');
+		}
+
+		//Only continue if we haven't found it yet
+		if (roman.empty()) {
+			//Have to consider the effect of expandCurrentWords
+			// Since some of them (like "oo" and "u") don't require expanding, we form a list of 
+			// possible words and their candidate romanisations. We keep the original word at the top of the list.
+			vector< pair<wstring, string> > my2rom;
+			vector<wstring> altSpellings = reverseExpandWords(word);
+			for (vector<wstring>::iterator it=altSpellings.begin(); it!=altSpellings.end(); it++) {
+				if (IsValid(*it))
+					my2rom.push_back(pair<wstring, string>(*it, ""));
+			}
+
+			//Now, match all special words
+			for (size_t i=0; i<my2rom.size(); i++) {
+				if (!my2rom[i].second.empty())
+					continue;
+				my2rom[i].second = matchSpecialWord(my2rom[i].first);
+			}
+
+			//Next, all that's left is the set of regular matches. We'll need to match each
+			// candidate, of course, and also check for of the "extended" letters (e.g., ya-yit)
+			// that Burglish also allows in onsets.
+			for (size_t i=0; i<my2rom.size(); i++) {
+				if (!my2rom[i].second.empty()) {
+					//For efficiency, break if the first candidate has matched already.
+					//Otherwise, just skip this entry (continue)
+					if (i==0)
+						break;
+					continue;
+				}
+
+				//Step 1: find the consonant. It is likely to be
+				//   one of the first few letters. Additionally, each
+				//   onset begins with a consonant (since we're working in Unicode)
+				//   So, we'll just scan the onset list each time.
+				wstring my = my2rom[i].first;
+				size_t onsetIndex = wstring::npos;
+				for (size_t myID=0; myID<my.length(); myID++) {
+					if (matchOnsetFirstLetter(my[myID])) {
+						onsetIndex = myID;
+						break;
+					}
+				}
+				if (onsetIndex==wstring::npos)
 					break;
-			}
 
-			//Append
-			currOnset <<my[myID];
+				//Step 2: Now, we need to consider each onset, starting with the base consonant,
+				//        and appending any of the allowed onset extensions after that.
+				wstringstream currOnset;
+				for (size_t myID=onsetIndex; myID<my.length(); myID++) {
+					//Are we done?
+					if (myID!=onsetIndex) {
+						//Only allow a few medials/vowels after the consonant.
+						if (BURGLISH_ONSET_EXTENSIONS.find(wstring(1,my[myID]))==wstring::npos)
+							break;
+					}
 
-			//Search
-			wstring onsRoman = matchOnset(currOnset.str());
-			if (!onsRoman.empty() {
-				//We have a candidate onset. Now, we have to search for the rhyme.
-				wstring suffix = my.substr(0, myID) + L"-" + my.substr(myID+1, my.length());
-				wstring rhymRoman = matchRhyme(suffix);
-				if (!rhymRoman.empty()) {
-					//We have a match! Add it.
-					my2rom[i].second = onsRoman + rhymRoman;
-					break;   //Go to the next item in the list
+					//Append
+					currOnset <<my[myID];
+
+					//Search
+					string onsRoman = matchOnset(currOnset.str());
+					if (!onsRoman.empty()) {
+						//We have a candidate onset. Now, we have to search for the rhyme.
+						wstring suffix = my.substr(0, myID) + L"-" + my.substr(myID+1, my.length());
+						string rhymRoman = matchRhyme(suffix);
+						if (!rhymRoman.empty()) {
+							//We have a match! Add it.
+							my2rom[i].second = onsRoman + rhymRoman;
+							break;   //Go to the next item in the list
+						}
+					}
 				}
 			}
+
+			//At this point, the correct roman string is the first non-empty one in my2roman
+			for (size_t consID=0; consID<my2rom.size()&&roman.empty(); consID++) {
+				roman = my2rom[consID].second;
+			}
 		}
 	}
 
-
-	//At this point, the correct roman string is the first non-empty one in my2roman
-	/////////////////////////////////////////
-	//TODO: Return this with a proper ID, or nothing if none match
-	/////////////////////////////////////////
+	//Return the right word.
+	///////////////////////////////
+	// TODO: Set ID properly for words with a romanisation!
+	//  NOTE: Can we always return -1? That way, the HelpKeyboard will track it externally...
+	///////////////////////////////
+	int id = roman.empty() ? -1 : -1;
+	return pair<int, string>(id, roman);
 }
 
 
