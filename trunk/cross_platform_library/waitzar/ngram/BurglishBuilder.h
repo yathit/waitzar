@@ -74,6 +74,11 @@ private:
 	static void addNumerals(std::wstring roman, std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet);
 	static void expandCurrentWords(std::set<std::wstring>& resultsKeyset, std::vector< std::pair<std::wstring, int> >& resultSet);
 
+	//Looking backwards
+	static std::vector<std::wstring> reverseExpandWords(const std::wstring& myanmar);
+	static std::wstring matchSpecialWord(const std::wstring& myanmar);
+	
+
 	//Helper
 	std::pair<std::wstring, int> getWordPair(unsigned int id) const;
 
