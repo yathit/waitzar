@@ -144,7 +144,10 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 {
 	//Nothing to do? NOTE: We need to eventually abstract the mywin functionality from the helpKeyboard. 
 	//    For now, though, it will cause no error (KeyMagic overrides this method.)
-	wstring nextBit = helpKeyboard->typeLetter(vkey.vkCode, vkey.alphanum, vkey.modShift);
+	char modAlpha = vkey.alphanum;
+	if (modAlpha>='a' && modAlpha<='z' && vkey.modShift)
+		modAlpha = (modAlpha-'a') + 'A';
+	wstring nextBit = helpKeyboard->typeLetter(vkey.vkCode, modAlpha, vkey.modShift);
 	if (nextBit.empty())
 		return pair<wstring, bool>(prevStr, false);
 
