@@ -559,6 +559,7 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 	vector<wstring> res;
 	resSet.insert(myanmar);
 	res.push_back(myanmar);
+	unsigned int MAX_NUM_CONSIDERED = 5; //Reasonable for most words
 
 
 	//Prepare a list of "candidates", along with starting indices
@@ -578,9 +579,12 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 		prefix <<currMM.substr(0, startAt);
 
 		//Build a new word based on this. Keep the old word handy too.
-		size_t matchIndex = wstring::npos;
-		wstring matchRep = L"";
-		for (size_t i=startAt; i<currMM.size();) {
+		for (size_t i=startAt; i<currMM.size(); i++) {
+			//Used to store the replacement string, so we can put our 
+			// "new candidate" logic all in one place.
+			size_t matchIndex = wstring::npos;
+			wstring matchRep = L"";
+
 			//Build the next bit
 			if (currMM[i]==L'\u1025') {
 				//First pattern:
@@ -599,26 +603,22 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 				matchRep = L"\u1021\u1031\u102C";
 			}
 
-			//React if matched (or not)
-			if (matchIndex==wstring::npos) {
-				//Append
-				prefix <<currMM[i];
-			} else {
-				//If we matched once, add both words to the list of new candidates and restart.
+			//React if matched 
+			if (matchIndex!=wstring::npos) {
+				//If we matched once, add ONLY the new word to the list of new candidates.
 				wstring suffix = currMM.substr(i+1, currMM.length());
-				wstring toAddCurr = prefix.str() + currMM[i] + suffix;
 				wstring toAddNew = prefix.str() + matchRep + suffix;
-				if (!toAddCurr.empty())
-					candidates.push_back(pair<wstring, unsigned int>(toAddCurr, toAddCurr.length()-suffix.length()));
-				if (!toAddNew.empty())
+				if (!toAddNew.empty() && res.size()<MAX_NUM_CONSIDERED)
 					candidates.push_back(pair<wstring, unsigned int>(toAddNew, toAddNew.length()-suffix.length()));
-				break;
 			}
+
+			//Either way, continue
+			prefix <<currMM[i];
 		}
 
 		//Add. The set preserves uniformity.
 		wstring word = currMM;//currWord.str();
-		if (matchIndex==wstring::npos && resSet.find(word)==resSet.end()) { //Matching only occurs for null rounds.
+		if (resSet.find(word)==resSet.end()) {
 			resSet.insert(word);
 			res.push_back(word);
 		}
@@ -670,15 +670,27 @@ string BurglishBuilder::matchSpecialWord(const wstring& myanmar)
 
 
 
+//TODO: Since we cache onset extensions, why not cache all possible onsets as well?
+//      This will greatly speed up this function.
 bool BurglishBuilder::matchOnsetFirstLetter(wchar_t letter)
 {
+	return BURGLISH_ONSET_CONSONANTS.find(wstring(1, letter))!=wstring::npos;
+
+	//TEMP
+/*	wstringstream temp;
+	set<wchar_t> tempSet;
+
 	//Iterate through each pair.
 	for (json_spirit::wmObject::iterator it=onsetPairs.begin(); it!=onsetPairs.end(); it++) {
 		const wstring& myanmar = it->second.get_value<wstring>();
 		for (size_t i=0; i<myanmar.size(); i++) {
 			//Does it match?
-			if (myanmar[i] == letter)
-				return true;
+			//if (myanmar[i] == letter)
+			//	return true;
+			if (tempSet.find(myanmar[i])==tempSet.end()) {
+				tempSet.insert(myanmar[i]);
+				temp <<myanmar[i];
+			}
 
 			//Else, fast-forward to the next pipe character, "|"
 			while (i<myanmar.size() && myanmar[i]!=L'|')
@@ -686,8 +698,10 @@ bool BurglishBuilder::matchOnsetFirstLetter(wchar_t letter)
 		}
 	}
 
+	wstring temp2 = temp.str();
+
 	//No matches
-	return false;
+	return false;*/
 }
 
 
