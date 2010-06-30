@@ -646,7 +646,16 @@ string BurglishBuilder::matchSpecialWord(const wstring& myanmar)
 				continue;
 
 			//Boundary reached; check
-			if (myanmar == entry.str())
+			wstring matcher = entry.str();
+			if (matcher.length()>0 && matcher[0]==L'-') {
+				entry.str(L"");
+				for (size_t x=0; x<matcher.length(); x++) {
+					if (matcher[x]!=L'-')
+						entry <<matcher[x];
+				}
+				matcher = entry.str();
+			}
+			if (myanmar == matcher)
 				return waitzar::escape_wstr(roman, false);
 
 			//Finally: reset
