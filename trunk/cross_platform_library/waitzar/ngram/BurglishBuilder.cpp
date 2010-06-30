@@ -566,82 +566,59 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 	candidates.push_back(pair<wstring, unsigned int>(myanmar, 0));
 
 	//Process each canidate, dynamically updating as you go along.
-	std::wstringstream currWord;
-	std::wstringstream newWord;
+	std::wstringstream prefix;
 	while (!candidates.empty()) {
 		//Get the current word to check.
-		std::wstring currMM = candidates[0].first;
+		wstring currMM = candidates[0].first;
 		unsigned int startAt = candidates[0].second;
 		candidates.erase(candidates.begin());
 
+		//Reset the prefix string
+		prefix.str(L"");
+		prefix <<currMM.substr(0, startAt);
+
 		//Build a new word based on this. Keep the old word handy too.
-		bool matched = false;
-		currWord.str(L"");
-		newWord.str(L"");
+		size_t matchIndex = wstring::npos;
+		wstring matchRep = L"";
 		for (size_t i=startAt; i<currMM.size();) {
 			//Build the next bit
-			bool consumed = false;
-
-			//First pattern:
-			// \u1025 --> \u1021 \u102F
 			if (currMM[i]==L'\u1025') {
-				currWord <<currMM[i];
-				newWord <<L"\u1021\u102F";
-				consumed = true;
-				matched = true;
+				//First pattern:
+				// \u1025 --> \u1021 \u102F
+				matchIndex = i;
+				matchRep = L"\u1021\u102F";
+			} else if (!(i+1<currMM.size()) || (currMM[i]==L'\u1023' && currMM[i+1]!=L'\u102F')) {
+				//Second pattern:
+				// \u1023 [^\u102F]! --> \u1021 \u102D (don't replace !-expression)
+				matchIndex = i;
+				matchRep = L"\u1021\u102D";
+			} else if (!(i+1<currMM.size()) || (currMM[i]==L'\u1029' && currMM[i+1]!=L'\u103A' && currMM[i+1]!=L'\u1037')) {
+				//Third pattern:
+				// \u1029 [^\u103A \u1037]! --> \u1021 \u1031 \u102C (don't replace !-expression)
+				matchIndex = i;
+				matchRep = L"\u1021\u1031\u102C";
 			}
 
-			//Second pattern:
-			// \u1023 [^\u102F]! --> \u1021 \u102D (don't replace !-expression)
-			else if (!(i+1<currMM.size()) || (currMM[i]==L'\u1023' && currMM[i+1]!=L'\u102F')) {
-				currWord <<currMM[i];
-				newWord <<L"\u1021\u102D";
-				if (i+1<currMM.size())
-					i+=1; //Advance, don't consume
-				else
-					consumed = true;
-				matched = true;
-			}
-
-			//Third pattern:
-			// \u1029 [^\u103A \u1037]! --> \u1021 \u1031 \u102C (don't replace !-expression)
-			else if (!(i+1<currMM.size()) || (currMM[i]==L'\u1029' && currMM[i+1]!=L'\u103A' && currMM[i+1]!=L'\u1037')) {
-				currWord <<currMM[i];
-				newWord <<L"\u1021\u1031\u102C";
-				if (i+1<currMM.size())
-					i+=1; //Advance, don't consume
-				else
-					consumed = true;
-				matched = true;
-			}
-
-//			wstring test = currWord.str();
-
-			//Append
-			if (!consumed) {
-				currWord <<currMM[i];
-				newWord <<currMM[i];
-			}
-
-			//Increment
-			i++;
-
-			//If we matched once, add both words to the list of new candidates and restart.
-			if (matched) {
-				wstring suffix = currMM.substr(i, currMM.length());
-				wstring toAddCurr = currWord.str()+suffix;
-				wstring toAddNew = newWord.str()+suffix;
+			//React if matched (or not)
+			if (matchIndex==wstring::npos) {
+				//Append
+				prefix <<currMM[i];
+			} else {
+				//If we matched once, add both words to the list of new candidates and restart.
+				wstring suffix = currMM.substr(i+1, currMM.length());
+				wstring toAddCurr = prefix.str() + currMM[i] + suffix;
+				wstring toAddNew = prefix.str() + matchRep + suffix;
 				if (!toAddCurr.empty())
-					candidates.push_back(pair<wstring, unsigned int>(toAddCurr, currWord.str().length()));
+					candidates.push_back(pair<wstring, unsigned int>(toAddCurr, toAddCurr.length()-suffix.length()));
 				if (!toAddNew.empty())
-					candidates.push_back(pair<wstring, unsigned int>(toAddNew, newWord.str().length()));
+					candidates.push_back(pair<wstring, unsigned int>(toAddNew, toAddNew.length()-suffix.length()));
 				break;
 			}
 		}
 
 		//Add. The set preserves uniformity.
 		wstring word = currMM;//currWord.str();
-		if (!matched && resSet.find(word)==resSet.end()) { //Matching only occurs for null rounds.
+		if (matchIndex==wstring::npos && resSet.find(word)==resSet.end()) { //Matching only occurs for null rounds.
 			resSet.insert(word);
 			res.push_back(word);
 		}
