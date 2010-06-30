@@ -76,6 +76,10 @@ bool BurglishBuilder::IsVowel(wchar_t letter)
 
 bool BurglishBuilder::IsValid(const wstring& word)
 {
+	//Warning: empty strings
+	if (word.empty())
+		return true; //Let's say.... valid.
+
 	//Check for invalid pairwise combinations
 	for (size_t i=0; i<word.size()-1; i++) {
 		//We build the regex into a switch statement, handling this manually.
@@ -376,16 +380,22 @@ void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsKeyset, 
 
 				//Second pattern:
 				// \u1021 \u102D [^\u102F]! --> \u1023 (don't replace !-expression)
-				if (i<word->size()-2 && (*word)[i+1]==L'\u102D' && (*word)[i+2]!=L'\u102F') {
+				if (!(i+2<word->size()) || ((*word)[i+1]==L'\u102D' && (*word)[i+2]!=L'\u102F')) {
 					newWord <<L'\u1023';
-					i+=2; //Don't consume.
+					if (i+2<word->size())
+						i+=2; //Don't consume.
+					else
+						consumed = true;
 				}
 
 				//Third pattern:
 				// \u1021 \u1031 \u102C [^\u103A \u1037]! --> \u1029 (don't replace !-expression)
-				if (i<word->size()-3 && (*word)[i+1]==L'\u1031' && (*word)[i+2]==L'\u102C' && (*word)[i+3]!=L'\u103A' && (*word)[i+3]!=L'\u1037') {
+				if (!(i+3<word->size()) || ((*word)[i+1]==L'\u1031' && (*word)[i+2]==L'\u102C' && (*word)[i+3]!=L'\u103A' && (*word)[i+3]!=L'\u1037')) {
 					newWord <<L'\u1029';
-					i+=3; //Don't consume.
+					if (i+3<word->size())
+						i+=3; //Don't consume.
+					else
+						consumed = true;
 				}
 			}
 
@@ -556,6 +566,8 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 	candidates.push_back(pair<wstring, unsigned int>(myanmar, 0));
 
 	//Process each canidate, dynamically updating as you go along.
+	std::wstringstream currWord;
+	std::wstringstream newWord;
 	while (!candidates.empty()) {
 		//Get the current word to check.
 		std::wstring currMM = candidates[0].first;
@@ -564,9 +576,9 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 
 		//Build a new word based on this. Keep the old word handy too.
 		bool matched = false;
-		std::wstringstream currWord;
-		std::wstringstream newWord;
-		for (size_t i=0; i<currMM.size();) {
+		currWord.str(L"");
+		newWord.str(L"");
+		for (size_t i=startAt; i<currMM.size();) {
 			//Build the next bit
 			bool consumed = false;
 
@@ -581,21 +593,29 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 
 			//Second pattern:
 			// \u1023 [^\u102F]! --> \u1021 \u102D (don't replace !-expression)
-			if (i+1<currMM.size() && currMM[i]==L'\u1023' && currMM[i+1]!=L'\u102F') {
+			else if (!(i+1<currMM.size()) || (currMM[i]==L'\u1023' && currMM[i+1]!=L'\u102F')) {
 				currWord <<currMM[i];
 				newWord <<L"\u1021\u102D";
-				i+=1; //Don't consume
+				if (i+1<currMM.size())
+					i+=1; //Advance, don't consume
+				else
+					consumed = true;
 				matched = true;
 			}
 
 			//Third pattern:
 			// \u1029 [^\u103A \u1037]! --> \u1021 \u1031 \u102C (don't replace !-expression)
-			if (i+1<currMM.size() && currMM[i]==L'\u1029' && currMM[i+1]!=L'\u103A' && currMM[i+1]!=L'\u1037') {
+			else if (!(i+1<currMM.size()) || (currMM[i]==L'\u1029' && currMM[i+1]!=L'\u103A' && currMM[i+1]!=L'\u1037')) {
 				currWord <<currMM[i];
 				newWord <<L"\u1021\u1031\u102C";
-				i+=1; //Don't consume
+				if (i+1<currMM.size())
+					i+=1; //Advance, don't consume
+				else
+					consumed = true;
 				matched = true;
 			}
+
+//			wstring test = currWord.str();
 
 			//Append
 			if (!consumed) {
@@ -609,14 +629,18 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 			//If we matched once, add both words to the list of new candidates and restart.
 			if (matched) {
 				wstring suffix = currMM.substr(i, currMM.length());
-				candidates.push_back(pair<wstring, unsigned int>(currWord.str()+suffix, currWord.str().length()));
-				candidates.push_back(pair<wstring, unsigned int>(newWord.str()+suffix, newWord.str().length()));
+				wstring toAddCurr = currWord.str()+suffix;
+				wstring toAddNew = newWord.str()+suffix;
+				if (!toAddCurr.empty())
+					candidates.push_back(pair<wstring, unsigned int>(toAddCurr, currWord.str().length()));
+				if (!toAddNew.empty())
+					candidates.push_back(pair<wstring, unsigned int>(toAddNew, newWord.str().length()));
 				break;
 			}
 		}
 
 		//Add. The set preserves uniformity.
-		wstring word = currWord.str();
+		wstring word = currMM;//currWord.str();
 		if (!matched && resSet.find(word)==resSet.end()) { //Matching only occurs for null rounds.
 			resSet.insert(word);
 			res.push_back(word);
