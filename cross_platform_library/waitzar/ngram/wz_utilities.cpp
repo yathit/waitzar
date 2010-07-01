@@ -1641,6 +1641,16 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 
 
 
+std::wstring removeZWS(const std::wstring& str)
+{
+	std::wstringstream res; 
+	for (size_t i=0; i<str.length(); i++) {
+		if (str[i]!=L'\u200B')
+			res <<str[i];
+	}
+	return res.str();
+}
+
 
 
 } //End waitzar namespace
