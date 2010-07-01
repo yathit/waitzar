@@ -201,7 +201,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 	wstringstream onset;
 	for (size_t onsID=0; onsID<prefixStr.size(); onsID++) {
 		//Append?
-		if (prefixStr[onsID]!=L'|')
+		if (prefixStr[onsID]!=L'|' && prefixStr[onsID]!=L'+')
 			onset <<prefixStr[onsID];
 		//Skip?
 		if (prefixStr[onsID]!=L'|' && onsID<prefixStr.size()-1)
@@ -235,7 +235,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 			//Append?
 			if (suffixStr[rhymeID]==L'-')
 				rhyme <<onset.str(); //Insert our onset
-			else if (suffixStr[rhymeID]!=L'|')
+			else if (suffixStr[rhymeID]!=L'|' && suffixStr[rhymeID]!=L'+')
 				rhyme <<suffixStr[rhymeID];
 			//Skip?
 			if (suffixStr[rhymeID]!=L'|' && rhymeID<suffixStr.size()-1)
@@ -244,7 +244,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 			//We've built our onset + rhyme into rhyme directly. 
 			//Now, we just need to test for errors, etc.
 			wstring word = waitzar::normalize_bgunicode(rhyme.str());
-			if (IsValid(word) && resultsKeyset.count(word)==0) {
+			if (IsValid(word) && resultsKeyset.count(word)==0 && !word.empty()) {
 				//If this is a pat-sint word, we have to add an entry to the combination array
 				int combID = -1;
 				if (firstLetterUppercase) {
@@ -706,61 +706,74 @@ bool BurglishBuilder::matchOnsetFirstLetter(wchar_t letter)
 
 
 
-string BurglishBuilder::matchOnset(const wstring& myanmar)
+pair<string, bool> BurglishBuilder::matchOnset(const wstring& myanmar)
 {
 	//Iterate through each pair.
+	string unprefRes;
 	for (json_spirit::wmObject::iterator it=onsetPairs.begin(); it!=onsetPairs.end(); it++) {
 		wstring roman = it->first;
 		const wstring& myStrs = it->second.get_value<wstring>();
 		wstringstream entry;
+		bool isPref = myStrs.size()>0 && myStrs[myStrs.size()-1] == L'+';
 		for (size_t itemID=0; itemID<myStrs.size(); itemID++) {
 			//Append?
-			if (myStrs[itemID]!=L'|')
+			if (myStrs[itemID]!=L'|' && myStrs[itemID]!=L'+')
 				entry <<myStrs[itemID];
 			//Skip?
 			if (myStrs[itemID]!=L'|' && itemID<myStrs.size()-1)
 				continue;
 
 			//Boundary reached; check
-			if (myanmar == entry.str())
-				return waitzar::escape_wstr(roman, false);
+			if (myanmar == entry.str() && !entry.str().empty()) {
+				if (isPref)
+					return pair<string, bool>(waitzar::escape_wstr(roman, false), true);
+				else if (unprefRes.empty())
+					unprefRes = waitzar::escape_wstr(roman, false);
+			}
+				
 
 			//Finally: reset
 			entry.str(L"");
 		}
 	}
 
-	//No matches
-	return "";
+	//No matches, or an "unpreferred" match
+	return pair<string, bool>(unprefRes, false);
 }
 
 
-string BurglishBuilder::matchRhyme(const wstring& myanmar)
+pair<string, bool> BurglishBuilder::matchRhyme(const wstring& myanmar)
 {
 	//Iterate through each pair.
+	string unprefRes;
 	for (json_spirit::wmObject::iterator it=rhymePairs.begin(); it!=rhymePairs.end(); it++) {
 		wstring roman = it->first;
 		const wstring& myStrs = it->second.get_value<wstring>();
 		wstringstream entry;
+		bool isPref = myStrs.size()>0 && myStrs[myStrs.size()-1] == L'+';
 		for (size_t itemID=0; itemID<myStrs.size(); itemID++) {
 			//Append?
-			if (myStrs[itemID]!=L'|')
+			if (myStrs[itemID]!=L'|' && myStrs[itemID]!=L'+')
 				entry <<myStrs[itemID];
 			//Skip?
 			if (myStrs[itemID]!=L'|' && itemID<myStrs.size()-1)
 				continue;
 
 			//Boundary reached; check
-			if (myanmar == entry.str())
-				return waitzar::escape_wstr(roman, false);
+			if (myanmar == entry.str() && !entry.str().empty()) {
+				if (isPref)
+					return pair<string, bool>(waitzar::escape_wstr(roman, false), true);
+				else if (unprefRes.empty())
+					unprefRes = waitzar::escape_wstr(roman, false);
+			}
 
 			//Finally: reset
 			entry.str(L"");
 		}
 	}
 
-	//No matches
-	return "";
+	//No matches, or an "unpreferred" result
+	return pair<string, bool>(unprefRes, false);
 }
 
 
@@ -866,17 +879,42 @@ pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 					//Append
 					currOnset <<my[myID];
 
+					//We need to find the most PREFERED match. Preference goes:
+					// onset+rhyme, onset, rhyme, none
+					vector<string> prefRoman(4, "");
+
 					//Search
-					string onsRoman = matchOnset(currOnset.str());
+					pair<string,bool> onsRomanPr = matchOnset(currOnset.str());
+					string onsRoman = onsRomanPr.first;
 					if (!onsRoman.empty()) {
 						//We have a candidate onset. Now, we have to search for the rhyme.
 						wstring suffix = my.substr(0, myID) + L"-" + my.substr(myID+1, my.length());
-						string rhymRoman = matchRhyme(suffix);
+						pair<string, bool> rhymRomanPr = matchRhyme(suffix);
+						string rhymRoman = rhymRomanPr.first;
 						if (!rhymRoman.empty()) {
-							//We have a match! Add it.
-							my2rom[i].second = onsRoman + rhymRoman;
-							break;   //Go to the next item in the list
+							//We have a match! Add it to the appropriate place.
+							string newRoman = onsRoman + rhymRoman;
+							if (onsRomanPr.second && rhymRomanPr.second) {
+								prefRoman[0] = newRoman;
+								break; //Will always be the best
+							} else if (onsRomanPr.second) {
+								if (prefRoman[1].empty())
+									prefRoman[1] = newRoman; //Keep searching
+							} else if (rhymRomanPr.second) {
+								if (prefRoman[2].empty())
+									prefRoman[2] = newRoman; //Keep searching
+							} else {
+								if (prefRoman[3].empty())
+									prefRoman[3] = newRoman; //Keep searching
+							}
 						}
+					}
+
+					//Save the best match
+					for (size_t j=0; j<prefRoman.size(); j++) {
+						my2rom[i].second = prefRoman[j];
+						if (!prefRoman[j].empty())
+							break;
 					}
 				}
 			}

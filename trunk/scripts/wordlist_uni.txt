@@ -8,6 +8,12 @@
 }
 
 #ONSETS:
+#NOTE: A final "|+" means this is the "prefered" onset, which only matters for reverse lookup. 
+# The preference goes:
+#   pref_onset AND pref_rhyme
+#   pref_onset
+#   pref_rhyme
+#   neither
 {
 'zz':'ဈ',
 'zw':'ဇွ',
@@ -73,7 +79,7 @@
 'kw':'ကွ',
 'khw':'ခွ',
 'kh':'ခ',
-'k':'က|ခ',
+'k':'က|ခ|+',
 'j':'ဂျ|ဂြ',
 'i':'အ',
 'hw':'ဟွ',

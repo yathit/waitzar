@@ -78,8 +78,8 @@ private:
 	static std::vector<std::wstring> reverseExpandWords(const std::wstring& myanmar);
 	static std::string matchSpecialWord(const std::wstring& myanmar);
 	static bool matchOnsetFirstLetter(wchar_t letter);
-	static std::string matchOnset(const std::wstring& myanmar);
-	static std::string matchRhyme(const std::wstring& myanmar);
+	static std::pair<std::string, bool> matchOnset(const std::wstring& myanmar);
+	static std::pair<std::string, bool> matchRhyme(const std::wstring& myanmar);
 	
 
 	//Helper
