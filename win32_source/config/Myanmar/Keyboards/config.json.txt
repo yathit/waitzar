@@ -7,8 +7,23 @@
         "type" : "keymagic",
         "keyboard-file" : "Ayar.kms",
 		"disable-cache" : "false"
-      }
-      
-      #More later
+      },
+	  
+      "myanmar3" : 
+      {
+        "display-name" : "Myanmar3 Keyboard",
+        "encoding" : "unicode", 
+        "type" : "keymagic",
+        "keyboard-file" : "Myanmar3.kms",
+		"disable-cache" : "false"
+      },
 
+      "parabaik" : 
+      {
+        "display-name" : "Parabaik Keyboard",
+        "encoding" : "unicode", 
+        "type" : "keymagic",
+        "keyboard-file" : "Parabaik.kms",
+		"disable-cache" : "false"
+      }
 }}
