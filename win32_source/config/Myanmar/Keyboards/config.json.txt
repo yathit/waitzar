@@ -17,13 +17,22 @@
         "keyboard-file" : "Myanmar3.kms",
 		"disable-cache" : "false"
       },
-
-      "parabaik" : 
+	  
+      "zawgyikbd" : 
       {
-        "display-name" : "Parabaik Keyboard",
+        "display-name" : "Zawgyi-One Keyboard",
         "encoding" : "unicode", 
         "type" : "keymagic",
-        "keyboard-file" : "Parabaik.kms",
+        "keyboard-file" : "Zawgyi.kms",
 		"disable-cache" : "false"
       }
+
+#      "parabaik" : 
+#      {
+#        "display-name" : "Parabaik Keyboard",
+#        "encoding" : "unicode", 
+#        "type" : "keymagic",
+#        "keyboard-file" : "Parabaik.kms",
+#		"disable-cache" : "false"
+#      }
 }}
