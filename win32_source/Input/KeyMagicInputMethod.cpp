@@ -524,10 +524,11 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 					continue;
 				}
 
-				if (!line.str().empty())
+				if (!line.str().empty() && !onlywhitespace)
 					lines.push_back(line.str());
 				line.str(L"");
 				lastChar = L'\0';
+				onlywhitespace = true;
 				continue;
 			}
 
@@ -558,6 +559,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 	map< wstring, unsigned int> tempVarLookup;
 	map< wstring, unsigned int> tempSwitchLookup;
 	std::wstringstream rule;
+	wstring prevLine = L"(N/A)";
 	for (size_t id=0; id<lines.size(); id++) {
 		wstring line = lines[id];
 		rule.str(L"");
@@ -586,9 +588,12 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 					allRules.push_back(parseRule(rule.str()));
 				} catch (std::exception ex) {
 					std::wstringstream err;
+					err <<"File: " <<rulesFilePath.c_str() <<"\n";
 					err <<ex.what();
 					err <<"\nRule:\n";
 					err <<line;
+					err <<"\nPrevious rule:\n";
+					err <<prevLine;
 					throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
 				}
 				//Reset
@@ -629,9 +634,12 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 					allRules.push_back(parseRule(rule.str()));
 				} catch (std::exception ex) {
 					std::wstringstream err;
+					err <<"File: " <<rulesFilePath.c_str() <<"\n";
 					err <<ex.what();
 					err <<"\nRule:\n";
 					err <<line;
+					err <<"\nPrevious rule:\n";
+					err <<prevLine;
 					throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
 				}
 
@@ -648,9 +656,12 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				allRules.push_back(parseRule(rule.str()));
 			} catch (std::exception ex) {
 				std::wstringstream err;
+				err <<"File: " <<rulesFilePath.c_str() <<"\n";
 				err <<ex.what();
 				err <<"\nRule:\n";
 				err <<line;
+				err <<"\nPrevious rule:\n";
+				err <<prevLine;
 				throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
 			}
 
@@ -660,17 +671,26 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 
 
 		//Interpret and add it
-		if (separator==0)
-			throw std::exception(waitzar::glue(L"Error: Rule does not contain = or =>: \n", line).c_str());
 		try {
+			//Check
+			if (separator==0)
+				throw std::exception("Error: Rule does not contain = or =>");
+
+			//Try to add
 			addSingleRule(line, allRules, tempVarLookup, tempSwitchLookup, sepIndex, separator==1);
 		} catch (std::exception ex) {
 			std::wstringstream err;
+			err <<"File: " <<rulesFilePath.c_str() <<"\n";
 			err <<ex.what();
 			err <<"\nRule:\n";
 			err <<line;
+			err <<"\nPrevious rule:\n";
+			err <<prevLine;
 			throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
 		}
+
+		//Save previous line; it sometimes helps with error messages.
+		prevLine = line;
 	}
 }
 
