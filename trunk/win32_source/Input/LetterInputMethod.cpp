@@ -267,10 +267,10 @@ vector<wstring> LetterInputMethod::getTypedSentenceStrings()
 	}
 
 	vector<wstring> res;
-	res.push_back(typedSentenceStr.str());
+	res.push_back(waitzar::removeZWS(typedSentenceStr.str()));
 	res.push_back(L"");
 	res.push_back(L"");
-	res.push_back(typedSentenceStr.str());
+	res.push_back(waitzar::removeZWS(typedSentenceStr.str()));
 	return res;
 }
 
@@ -278,7 +278,7 @@ vector<wstring> LetterInputMethod::getTypedSentenceStrings()
 vector< pair<wstring, unsigned int> > LetterInputMethod::getTypedCandidateStrings()
 {
 	vector< pair<wstring, unsigned int> > res;
-	res.push_back(pair<wstring, unsigned int>(typedCandidateStr.str(), 0));
+	res.push_back(pair<wstring, unsigned int>(waitzar::removeZWS(typedCandidateStr.str()), 0));
 	return res;
 }
 
