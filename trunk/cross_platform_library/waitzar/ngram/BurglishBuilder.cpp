@@ -774,6 +774,16 @@ pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 	if (word.empty())
 		return pair<int, string>(-1, "");
 
+	//Sort the string. NOTE: a blank '\0' is sometimes appended for no reason
+	//TODO: Fix sortMyanmarString() and remove trailing zeroes, then remove this workaround.
+	wstringstream newWordPost;
+	wstring newWord = waitzar::sortMyanmarString(word);
+	for (size_t i=0; i<newWord.size(); i++) {
+		if (newWord[i]!=L'\0')
+			newWordPost <<newWord[i];
+	}
+	word = newWordPost.str();
+
 	//Prepare a result string; we'll generate the ID later.
 	string roman = "";
 
