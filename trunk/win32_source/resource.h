@@ -27,10 +27,11 @@
 #define IDM_MYANMAR                     40006
 #define IDM_EXIT                        40008
 #define IDM_ENGLISH                     40010
-#define ID_MAIN_ENCODING                40011
-#define ID_ENCODING_UNICODE5            40012
-#define ID_ENCODING_ZAWGYI              40013
-#define ID_ENCODING_WININNWA            40014
+//#define ID_MAIN_ENCODING                40011
+//#define ID_ENCODING_UNICODE5            40012
+//#define ID_ENCODING_ZAWGYI              40013
+//#define ID_ENCODING_WININNWA            40014
+#define IDM_SETTINGS_DLG                40011
 #define IDM_LOOKUP                      40015
 #define IDD_WZ_HELP                     40016
 #define ID_HELP_OK                      40017

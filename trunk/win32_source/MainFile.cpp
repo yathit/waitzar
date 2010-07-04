@@ -117,9 +117,9 @@ using std::ofstream;
 const wstring WAIT_ZAR_VERSION = L"1.7";
 
 //Menu item texts
-const wstring POPUP_UNI = L"-----";
-const wstring POPUP_ZG = L"-----";
-const wstring POPUP_WIN = L"-----";
+//const wstring POPUP_UNI = L"-----";
+//const wstring POPUP_ZG = L"-----";
+//const wstring POPUP_WIN = L"-----";
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
 const wstring POPUP_LOOKUP_EN = L"&Look Up Word";
 
@@ -146,7 +146,7 @@ const wstring WND_TITLE_OUTPUT = L"Encoding";
 
 //Font conversion
 //wstring currEncStr;
-ENCODING mostRecentEncoding = ENCODING_UNICODE;
+//ENCODING mostRecentEncoding = ENCODING_UNICODE;
 
 //Brushes & Pens
 HBRUSH g_WhiteBkgrd;
@@ -329,6 +329,7 @@ int prevProcessID;
 //Disable input
 bool showingHelpPopup = false;
 bool showingKeyInputPopup = false;
+bool showingSettingsPopup = false;
 
 
 //Calculate's integers
@@ -618,6 +619,9 @@ vector<wstring> GetConfigSubDirs(std::string dirToCheck, std::string configFileN
 	MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 	return true;
 }*/
+
+
+
 
 
 
@@ -1147,6 +1151,34 @@ bool turnOnAlphaHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 ///////////////////////////////////////////
 // End hotkey functions
 ///////////////////////////////////////////
+
+
+
+
+//Show our simple settings dialog.
+void showSettingsMenu() 
+{
+	//Properly handle hotkeys
+	bool refreshControl = controlKeysOn;
+	if  (refreshControl)
+		turnOnControlkeys(false);
+
+
+	//MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
+	if (!showingSettingsPopup) {
+		showingSettingsPopup = true;
+
+		//DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_HELP), hwnd, HelpDlgProc);
+		MessageBox(NULL, L"Settings", L"Settings", MB_ICONINFORMATION|MB_OK);
+
+		showingSettingsPopup = false;
+	}
+
+	//Hotkeys again
+	if  (refreshControl)
+		turnOnControlkeys(true);
+}
+
 
 
 
@@ -2329,8 +2361,42 @@ void createContextMenu()
 	contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(WZ_MENU));
 	contextMenuPopup = GetSubMenu(contextMenu, 0);
 
-	//Build our complex submenu for Language, Input Method, and Output Encoding
-	typingMenu = GetSubMenu(contextMenuPopup, 7); //TODO: Change to 6.... remove "Encoding" menu
+	//Get some useful statistics about our menu items
+	int maxMenuItems = GetMenuItemCount(contextMenuPopup);
+	if (maxMenuItems==-1)
+		throw std::exception("Could not find context menu submenus.");
+	UINT cmpID = 0;
+	{
+		MENUITEMINFO miinfo;
+		miinfo.cbSize = sizeof(MENUITEMINFO);
+		miinfo.fMask = MIIM_ID; //Retrieve the submenu
+		if (GetMenuItemInfo(contextMenu, ID_DELETE_ME, FALSE, &miinfo)==TRUE)
+			cmpID = miinfo.wID;
+		else
+			throw std::exception("Could not find context menu's ID_DELETE_ME item.");
+	}
+
+	//Find the ID of our "Typing" popup menuitem
+	typingMenu = NULL;
+	for (size_t i=0; i<(size_t)maxMenuItems; i++) {
+		//Does this ID represent a submenu?
+		typingMenu = GetSubMenu(contextMenuPopup, i);
+		if (typingMenu!=NULL) {
+			//Confirm that the first sub-menu-item is the same as our DELETE_ME item.
+			UINT itID1 = GetMenuItemID(typingMenu, 0);
+			if(itID1==cmpID)
+				break;
+			else
+				typingMenu = NULL; //Reset
+		}
+	}
+
+	//Found it?
+	if (typingMenu==NULL)
+		throw std::exception("Could not retrieve context menu submenu");
+	//typingMenu = GetSubMenu(contextMenuPopup, 7); //TODO: Change to 6.... remove "Encoding" menu
+
+	//Build our complex submenu for Language, Input Method, and Output Encoding	
 	RemoveMenu(typingMenu, ID_DELETE_ME, MF_BYCOMMAND);
 
 	//Build each sub-menu if none have been created yet. (In case we ever recycle this menu).
@@ -2509,7 +2575,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_HOTKEY:
 		{
 			//We don't handle hotkeys if a higher-level dialog is showing
-			if (showingHelpPopup || showingKeyInputPopup)
+			if (showingHelpPopup || showingKeyInputPopup || showingSettingsPopup)
 				break;
 
 			//Turn this hotkey into a virtual key, to make things simpler.
@@ -2751,6 +2817,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Hotkeys again
 					if  (refreshControl)
 						turnOnControlkeys(true);
+				} else if (retVal == IDM_SETTINGS_DLG) {
+					showSettingsMenu();
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(false);
 
@@ -3406,7 +3474,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//Create our context menu
-	initContextMenu();
+	try {
+		initContextMenu();
+	} catch (std::exception ex) {
+		wstringstream msg;
+		msg <<ex.what();
+		mainWindow->showMessageBox(msg.str(), L"Context Menu Error", MB_ICONERROR|MB_OK);
+		return 0;
+	}
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(ICON_WZ_MM), IMAGE_ICON,
