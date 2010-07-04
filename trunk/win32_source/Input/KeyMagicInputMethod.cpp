@@ -832,15 +832,22 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				if (i+1<ruleStr.length()-1 && ruleStr[i+1]==L'\\') {
 					buff <<L'\\';
 					i++;
-				} else if (i+1<ruleStr.length()-1 && ruleStr[i+1]==L'"') {
-					buff <<L'"';
+				} else if (i+1<ruleStr.length()-1 && (ruleStr[i+1]==L'"'||ruleStr[i+1]==L'\'')) {
+					buff <<wstring(1, ruleStr[i+1]);
 					i++;
 				} else if (i+5<ruleStr.length()-1 && (ruleLowercase[i+1]==L'u') && hexVal(ruleLowercase[i+2])!=-1 && hexVal(ruleLowercase[i+3])!=-1 && hexVal(ruleLowercase[i+4])!=-1 && hexVal(ruleLowercase[i+5])!=-1) {
 					int num = hexVal(ruleLowercase[i+2])*0x1000 + hexVal(ruleLowercase[i+3])*0x100 + hexVal(ruleLowercase[i+4])*0x10 + hexVal(ruleLowercase[i+5]);
 					buff <<(wchar_t)num;
 					i += 5;
-				} else
-					throw std::exception(waitzar::glue(L"Invalid escape sequence in: ", ruleStr).c_str());
+				} else {
+					std::wstringstream tempEsc;
+					for (size_t eOff=0; eOff<=4; eOff++) {
+						size_t eID = eOff + i;
+						if (eID>=0 && eID<ruleStr.length())
+							tempEsc <<wstring(1, ruleStr[eID]);
+					}
+					throw std::exception(waitzar::glue(L"Invalid escape sequence around: ", tempEsc.str()).c_str());
+				}
 			}
 			result.type = KMRT_STRING;
 			result.str = buff.str();
@@ -1461,9 +1468,9 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 	//Volatile version of our input
 	wstring input = origInput;
 
-	//First, turn all switches off
-	for (size_t i=0; i<switches.size(); i++)
-		switches[i] = false;
+	//First, turn all switches off ///WHY?
+	/*for (size_t i=0; i<switches.size(); i++)
+		switches[i] = false;*/
 
 	//For each rule, generate and match a series of candidates
 	//  As we do this, move the "dot" from position 0 to position len(input)
@@ -1512,6 +1519,20 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 
 	return input;
 }
+
+
+void KeyMagicInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset)
+{
+	//Reset all switches.
+	if (performFullReset) {
+		for (size_t i=0; i<switches.size(); i++) 
+			switches[i] = false;
+	}
+
+	//Normal reset
+	LetterInputMethod::reset(resetCandidates, resetRoman, resetSentence, performFullReset);
+}
+
 
 
 

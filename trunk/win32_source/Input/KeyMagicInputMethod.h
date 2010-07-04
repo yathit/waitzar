@@ -241,6 +241,7 @@ public:
 	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, VirtKey& vkey);
 	virtual void handleBackspace(VirtKey& vkey);
 	virtual void handleStop(bool isFull, VirtKey& vkey);
+	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
 private:
 	//Trace?

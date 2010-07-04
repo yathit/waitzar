@@ -9,11 +9,14 @@ $consU =    U1000 + u1001 + u1002 + u1003 +        U1005 + u1006 + u1007 + \
 			U1010 + u1011 + u1012 + u1013 + u1014 + u1015 + u1016 + u1017 + \
 			U1018 + u1019 + u101A + u101B + u101C + u101D + u101E + u101F + \
 			U1020 + u1021 
-/*$consK = 'uc*CpqZ' +\
-	'NUn#X!@P' +\
-	"wx'" +\
-	'"eyzAbr,&vWo[' +\
-	'Vt'*/
+
+
+//NOTE: Temporarily moved from the bottom of the file.
+//NOTE: Temporarily re-worded the '*' syntax to only allow letter keys
+$uskeys = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?`~'
+< VK_OEM_MINUS > => ('eng_key')
+$uskeys[*] + ('eng_key') => $1
+
 
 $twh = U1031
 $yayit = U103C
@@ -197,8 +200,9 @@ U1044 + U1004 + U103A + U1038 => U104E + U1004 + U103A + U1038
 U103C + U101E => U1029
 U1031 + U103C + U101E + U102C + U103A => U102A
 
-< VK_OEM_MINUS > => ('eng_key')
-* + ('eng_key') => $1
+//NOTE: Temporarily moved to the top of the file.
+//< VK_OEM_MINUS > => ('eng_key')
+//* + ('eng_key') => $1
 
 < VK_CAPSLOCK > => ('zg_gk')
 ('zg_gk') + * => $1 + ('zg_gk')

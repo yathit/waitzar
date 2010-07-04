@@ -43,7 +43,7 @@ public:
 	//Abstract implementation - simple
 	bool isPlaceholder() { return false; }
 
-	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
+	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
 	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID);
 
