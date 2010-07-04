@@ -27,11 +27,10 @@
 #define IDM_MYANMAR                     40006
 #define IDM_EXIT                        40008
 #define IDM_ENGLISH                     40010
-//#define ID_MAIN_ENCODING                40011
-//#define ID_ENCODING_UNICODE5            40012
-//#define ID_ENCODING_ZAWGYI              40013
-//#define ID_ENCODING_WININNWA            40014
-#define IDM_SETTINGS_DLG                40011
+#define IDD_WZ_SETTINGS                 40011
+#define ID_SETTINGS_L1                  40012
+#define ID_SETTINGS_CB1                 40013
+#define ID_SETTINGS_OK                  40014
 #define IDM_LOOKUP                      40015
 #define IDD_WZ_HELP                     40016
 #define ID_HELP_OK                      40017
@@ -48,13 +47,15 @@
 #define ID_HELP_L6                      40028
 #define ID_HELP_H6                      40029
 #define ID_DELETE_ME                    40030
+#define IDM_SETTINGS_DLG                40031
+#define ID_SETTINGS_CNCL                40032
 
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        120
-#define _APS_NEXT_COMMAND_VALUE         40031
+#define _APS_NEXT_COMMAND_VALUE         40033
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

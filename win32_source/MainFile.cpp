@@ -215,6 +215,10 @@ KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
 
 
+//Ugh, prototypes...
+BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+
 //User-drawn menu data structures
 enum WZMI_TYPES {WZMI_SEP, WZMI_HEADER, WZMI_LANG, WZMI_INPUT, WZMI_OUTPUT};
 struct WZMenuItem {
@@ -1156,7 +1160,7 @@ bool turnOnAlphaHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 
 
 //Show our simple settings dialog.
-void showSettingsMenu() 
+void showSettingsMenu(HWND hwnd) 
 {
 	//Properly handle hotkeys
 	bool refreshControl = controlKeysOn;
@@ -1168,8 +1172,8 @@ void showSettingsMenu()
 	if (!showingSettingsPopup) {
 		showingSettingsPopup = true;
 
-		//DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_HELP), hwnd, HelpDlgProc);
-		MessageBox(NULL, L"Settings", L"Settings", MB_ICONINFORMATION|MB_OK);
+		DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_SETTINGS), hwnd, SettingsDlgProc);
+		//MessageBox(NULL, L"Settings", L"Settings", MB_ICONINFORMATION|MB_OK);
 
 		showingSettingsPopup = false;
 	}
@@ -1178,8 +1182,6 @@ void showSettingsMenu()
 	if  (refreshControl)
 		turnOnControlkeys(true);
 }
-
-
 
 
 //Prototype needed by switchToLanguage
@@ -1668,7 +1670,7 @@ void typeCurrentPhrase(const wstring& stringToType)
 
 
 
-//Message handling for our dialog box
+//Message handling for our about/help dialog box
 BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	switch(Message)
@@ -1896,6 +1898,55 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	}
 	return TRUE;
 }
+
+
+
+//Message handling for our settings dialog box
+BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg)
+	{
+		case WM_INITDIALOG:
+		{
+			//Deafult input method?
+			wstring defaultLangID = config.activeLanguage.defaultInputMethod;
+
+			//Add all combo menu items
+			HWND hwComboBox = GetDlgItem(hwnd, ID_SETTINGS_CB1);
+			SendMessage(hwComboBox, CB_RESETCONTENT, 0, 0);
+			for (std::set<InputMethod*>::const_iterator it=config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
+				LRESULT res = SendMessage(hwComboBox, CB_ADDSTRING, 0, (LPARAM)(*it)->displayName.c_str());
+				if (res!=CB_ERR && (*it)->id==defaultLangID) {
+					//Select it.
+					SendMessage(hwComboBox, CB_SETCURSEL, (WPARAM)res, 0);
+				}
+			}
+
+			break;
+		}
+		case WM_CTLCOLORDLG:
+			return (BOOL)g_DlgHelpBkgrd;
+		case WM_COMMAND:
+			switch(LOWORD(wParam))
+			{
+				case ID_SETTINGS_OK:
+					EndDialog(hwnd, IDOK);
+					break;
+				case ID_SETTINGS_CNCL:
+					EndDialog(hwnd, IDCANCEL);
+					break;
+			}
+			break;
+		case WM_CLOSE:
+			EndDialog(hwnd, IDCANCEL);
+			break;
+		default:
+			return FALSE;
+	}
+	return TRUE;
+}
+
+
 
 
 void onAllWindowsCreated()
@@ -2818,7 +2869,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if  (refreshControl)
 						turnOnControlkeys(true);
 				} else if (retVal == IDM_SETTINGS_DLG) {
-					showSettingsMenu();
+					showSettingsMenu(hwnd);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(false);
 
