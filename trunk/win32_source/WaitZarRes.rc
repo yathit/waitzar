@@ -96,7 +96,7 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Dialog
+// Dialog  -- About/Help
 //
 
 IDD_WZ_HELP DIALOGEX 0, 0, 239, 66
@@ -118,6 +118,24 @@ BEGIN
     DEFPUSHBUTTON   "&Ok",ID_HELP_OK,174,18,50,14
     ICON            ICON_WZ,ID_HELP_IC,117,33,20,20
 END
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog  -- Settings
+//
+IDD_WZ_SETTINGS DIALOGEX 0, 0, 200, 150
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "WaitZar's Settings"
+FONT 8, "MS Sans Serif", 400, 0, 0x0
+BEGIN
+    LTEXT           "Default Input Method",ID_SETTINGS_L1,16,18,70,33
+    COMBOBOX        ID_SETTINGS_CB1,76,18,100,100, WS_TABSTOP | CBS_DROPDOWNLIST
+    DEFPUSHBUTTON   "&Ok",ID_SETTINGS_OK,120,120,50,14
+    PUSHBUTTON      "&Cancel",ID_SETTINGS_CNCL,174,120,50,14
+END
+
 
 
 /////////////////////////////////////////////////////////////////////////////
