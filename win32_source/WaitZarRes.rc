@@ -79,20 +79,15 @@ BEGIN
     POPUP "Main"
     BEGIN
         MENUITEM "&Help/About",                 IDM_HELP
+        MENUITEM "&Settings",                   IDM_SETTINGS_DLG
         MENUITEM "E&xit",                       IDM_EXIT
         MENUITEM SEPARATOR
         MENUITEM "&English (Alt+Shift)",        IDM_ENGLISH, CHECKED
         MENUITEM "&Myanmar (Alt+Shift)",        IDM_MYANMAR
         MENUITEM SEPARATOR
-        POPUP "-----"
-        BEGIN
-            MENUITEM "-----",                 ID_ENCODING_UNICODE5, CHECKED
-            MENUITEM "-----",                  ID_ENCODING_ZAWGYI
-            MENUITEM "-----",                   ID_ENCODING_WININNWA
-        END
         POPUP "Typing"
         BEGIN
-            MENUITEM "(To Delete)",                 ID_DELETE_ME
+            MENUITEM "(To Delete)",             ID_DELETE_ME
         END
         MENUITEM "&Look Up Word (F1)",          IDM_LOOKUP
     END
