@@ -1680,12 +1680,14 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		case WM_INITDIALOG:
 		{
 			//Resize the help dialog; keep it at the same position.
-			//helpWindow->resizeWindow(473, 262);  //NOOO!
+			//Also, set its caption.
 			RECT wndR;
 			size_t wndWidth = 473;
 			size_t wndHeight = 262;
 			GetWindowRect(hwnd, &wndR);
 			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
+			SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)L"About");
+			
 
 			//Get our dialog's default font, since the DS_SETFONT style doesn't apply outside the 
 			//  resource editor. Load it into the DC, so that we can measure text.
@@ -1705,86 +1707,71 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			////////////////////////////////////////////////
 			vector<WControl> pendingItems;
 
-			//Ok button, background label, icon
-			size_t bkgrdH = (192+14+(fHeight-1)*2);
-			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", 206, 192, 50, 14, false));
-			pendingItems.push_back(WControl(IDC_HELP_BKGRD, L"", L"STATIC", 0, 236-bkgrdH, 467, bkgrdH, false));
-			pendingItems.push_back(WControl(IDC_HELP_ICON, L"wz.ico", L"ICON", fHeight*2, fHeight*2, 20, 20, false));
-
 			//Determine our new client area, set our starting Y co-ordinate.
 			RECT txtR;
-			txtR.left = fHeight*2 + fHeight*2+20 + fHeight/2;
+			txtR.left = fHeight*3 + 20 + fHeight/2 - fHeight%2; //The icon is roughly 20px
 			txtR.top = fHeight*2 + buff;
+			size_t bkgrdH = (192+14+(fHeight-1)*2);
 			GetClientRect(hwnd, &wndR);
 			txtR.right = wndR.right-txtR.left - fHeight*2 - fHeight/2;
 			txtR.bottom = wndR.bottom-txtR.top - fHeight - bkgrdH;
+
+			//For each of these controls, if x or y is set, keep that value. 
+			// Else, keep adding components to the right (x + width of prev. component).
+			//If h is set, add that to y after adding the component.
+			{
+				//Line 1
+				wstringstream txtS;
+				txtS << "WaitZar version " <<WAIT_ZAR_VERSION <<" - for the latest news, visit ";
+				pendingItems.push_back(WControl(IDC_HELP_L1, txtS.str(), L"STATIC", false, txtR.left));
+				pendingItems.push_back(WControl(IDC_HELP_H1, L"WaitZar.com", L"STATIC", true));
+				pendingItems[pendingItems.size()-1].h = fHeight*2;
+
+				//Line 2
+				txtS.str(L"");
+				txtS <<langHotkeyString <<" - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".";
+				pendingItems.push_back(WControl(IDC_HELP_L2, txtS.str(), L"STATIC", false, txtR.left));
+				pendingItems[pendingItems.size()-1].h = fHeight*3;
+
+				//Line 3
+				pendingItems.push_back(WControl(IDC_HELP_L4, L"WaitZar users should have the relevant fonts installed, if they want to see \nwhat they type after it's chosen.", L"STATIC", false, txtR.left));
+				pendingItems[pendingItems.size()-1].h = fHeight*2;
+
+				//Line 4
+				pendingItems.push_back(WControl(IDC_HELP_L5A, L"Feel free to ", L"STATIC", false, txtR.left));
+				pendingItems.push_back(WControl(IDC_HELP_H5, L"contact us", L"STATIC", true));
+				pendingItems.push_back(WControl(IDC_HELP_L5B, L" if you have any questions.", L"STATIC"));
+				pendingItems[pendingItems.size()-1].h = fHeight*2;
+
+				//Line 5
+				pendingItems.push_back(WControl(IDC_HELP_L6, L"For more information, please read the ", L"STATIC", false, txtR.left));
+				pendingItems.push_back(WControl(IDC_HELP_L6, L"WaitZar User's Guide", L"STATIC"));
+			}
+
+			//Now adjust
+			size_t accX = txtR.left;
 			size_t accY = txtR.top;
+			for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
+				//Set x/y, update accX/accY (artificial)
+				accX = it->x = (it->x==0 ? accX : it->x);
+				it->y = (it->y==0 ? accY : it->y);
+				accY += it->h;
 
-			//Prepare some variables
-			wstringstream txtS;
-			wstring txt;
-			size_t width;
-			size_t accX;
+				//Set w/h, update accX/accY (natural)
+				it->w = LOWORD(GetTabbedTextExtent(currDC, it->text.c_str(), it->text.length(), 0, NULL));
+				it->h = (waitzar::count_letter(it->text, L'\n')+1)*fHeight;
+				accX += it->w;
+				//accY += it->h;
+			}
 
-			//Label 1
-			txtS.str(L"");
-			txtS << "WaitZar version " <<WAIT_ZAR_VERSION <<" - for the latest news, visit ";
-			txt = txtS.str();
-			accX = width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L1, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
 
-			//Label 1 - Link
-			txt = L"WaitZar.com";
-			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_H1, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, true));
-			accY += fHeight*2;
+			//A few more controls that don't fit this pattern.
+			//Ok button, background label, icon
+			//pendingItems.push_back(WControl(IDC_HELP_BKGRD, L"", L"STATIC", false, 0, 236-bkgrdH, 467, bkgrdH));
+			pendingItems.push_back(WControl(IDC_HELP_ICON, L"", L"STATIC", false, fHeight*2, fHeight*2));
+			pendingItems[pendingItems.size()-1].iconID = IDI_WAITZAR;
+			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, 206, 192, 50, 14));
 
-			//Label 2
-			txtS.str(L"");
-			txtS <<langHotkeyString <<" - Switch between Myanmar and English";
-			txt = txtS.str();
-			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L2, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
-			accY += fHeight;
-
-			//Label 3
-			txt = L"Type Burmese words like they sound, and press \"space\".";
-			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L3, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
-			accY += fHeight*2;
-
-			//Label 4
-			txt = L"WaitZar users should have the relevant fonts installed, if they want to see \nwhat they type after it's chosen.";
-			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L4, txt, L"STATIC", txtR.left, accY, width, fHeight*2, false));
-			accY += fHeight*2;
-
-			//Label 5 - LHS
-			txt = L"Feel free to ";
-			accX = width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L5A, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
-
-			//Label 5 - Middle Link
-			txt = L"contact us";
-			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			accX += width;
-			pendingItems.push_back(WControl(IDC_HELP_H5, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, true));
-
-			//Label 5 - RHS
-			txt = L" if you have any questions.";
-			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L5B, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, false));
-			accY += fHeight*2;
-
-			//Label 6
-			txt = L"For more information, please read the ";
-			accX = width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L6, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
-
-			//Label 6 - Link
-			txt = L"WaitZar User's Guide";
-			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
-			pendingItems.push_back(WControl(IDC_HELP_L6, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, true));
 
 			//DC's no longer needed.
 			ReleaseDC(hwnd, currDC);
@@ -1794,10 +1781,8 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			unsigned int flags = 0;
 			for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
 				//Set flags
-				if (it->type==L"STATIC")
-					flags = WS_CHILD | WS_VISIBLE;
-				else if (it->type==L"ICON")
-					flags = WS_CHILD | WS_VISIBLE;
+				if (it->type==L"STATIC") //Optionally SS_ICON to auto-resize.
+					flags = WS_CHILD | WS_VISIBLE | (it->iconID!=0 ? SS_ICON : 0);
 				else if (it->type==L"BUTTON")
 					flags = WS_CHILD | WS_VISIBLE | WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
 				else
@@ -1808,10 +1793,16 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						 it->x, it->y, it->w, it->h,
                          hwnd, NULL, hInst, NULL );
 				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+				if (it->iconID!=0) {
+					//Send an update_icon method. I tried SS_ICON before, but it didn't work.
+					HICON hicon = LoadIcon(hInst, MAKEINTRESOURCE(it->iconID));
+					SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hicon);
+				}
 
 				//Turn it into a hyperlink?
 				if (it->convertToHyperlink && it->type==L"STATIC")
 					ConvertStaticToHyperlink(hwnd, it->id);
+				UpdateWindow(ctl); //Might not be needed, but keep here for now.
 			}
 
 			return TRUE;

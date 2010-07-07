@@ -1652,6 +1652,17 @@ std::wstring removeZWS(const std::wstring& str)
 }
 
 
+size_t count_letter(const std::wstring& str, wchar_t letter) 
+{
+	size_t res = 0;
+	for (size_t i=0; i<str.length(); i++) {
+		if (str[i]==letter)
+			res++;
+	}
+	return res;
+}
+
+
 
 } //End waitzar namespace
 

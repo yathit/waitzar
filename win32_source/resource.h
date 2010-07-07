@@ -89,7 +89,7 @@
 #define IDC_HELP_L1            41001
 #define IDC_HELP_H1            41002
 #define IDC_HELP_L2            41003
-#define IDC_HELP_L3            41004
+//#define IDC_HELP_L3            41004
 #define IDC_HELP_L4            41005
 #define IDC_HELP_L5A           41006
 #define IDC_HELP_L5B           41007
@@ -115,14 +115,15 @@ public:
 	unsigned int id;
 	std::wstring text;
 	std::wstring type;
+	bool convertToHyperlink;
 	size_t x;
 	size_t y;
 	size_t w;
 	size_t h;
-	bool convertToHyperlink;
+	unsigned int iconID;
 
-	WControl(unsigned int id, std::wstring text, std::wstring type, size_t x=0, size_t y=0, size_t w=0, size_t h=0, bool convertToHyperlink=false) 
-		: id(id), text(text), type(type), x(x), y(y), w(w), h(h), convertToHyperlink(convertToHyperlink)
+	WControl(unsigned int id, std::wstring text, std::wstring type, bool convertToHyperlink=false, size_t x=0, size_t y=0, size_t w=0, size_t h=0) 
+		: id(id), text(text), type(type), convertToHyperlink(convertToHyperlink), x(x), y(y), w(w), h(h), iconID(0)
 	{}
 };
 
