@@ -85,19 +85,19 @@
 #define IDM_LOOKUP             40008
 
 //"Help/About" Dialog
-#define IDD_HELP_ABOUT         41000
-#define IDC_HELP_L1            41001
-#define IDC_HELP_H1            41002
-#define IDC_HELP_L2            41003
-//#define IDC_HELP_L3            41004
-#define IDC_HELP_L4            41005
-#define IDC_HELP_L5A           41006
-#define IDC_HELP_L5B           41007
-#define IDC_HELP_H5            41008
-#define IDC_HELP_L6            41009
-#define IDC_HELP_H6            41010
-#define IDC_HELP_BKGRD         41011
-#define IDC_HELP_ICON          41012
+enum {
+	IDC_HELP_L1              = 41001,
+    IDC_HELP_H1,
+    IDC_HELP_L2,
+    IDC_HELP_L4,
+    IDC_HELP_L5A,
+    IDC_HELP_L5B,
+    IDC_HELP_H5,
+    IDC_HELP_L6,
+    IDC_HELP_H6,
+    IDC_HELP_BKGRD,
+    IDC_HELP_ICON,
+};
 
 //"Settings" Dialog
 #define IDD_SETTINGS           42000
