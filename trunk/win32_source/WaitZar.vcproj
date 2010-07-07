@@ -483,10 +483,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\icon1.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\loading.ico"
 				>
 			</File>
@@ -495,15 +491,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Wz.ico"
+				RelativePath=".\wz.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\Wz_eng.ico"
+				RelativePath=".\wz_eng.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\Wz_mm.ico"
+				RelativePath=".\wz_mm.ico"
 				>
 			</File>
 			<Filter

@@ -26,13 +26,26 @@
 //
 
 
-//TODO: Re-order the following, categorize:
-#define ICON_WZ                         101
-#define ICON_WZ_ENG                     102
-#define ICON_WZ_MM                      103
+////////////////////////////////
+// General Resources
+////////////////////////////////
+
+//Icons
+#define IDI_WAITZAR                     101
+#define IDI_ENGLISH                     102
+#define IDI_MYANMAR                     103
+#define IDI_LOADING                     104
+
+
+//////////////////////////////////
+// Dialogs, Controls, Menu Items
+//////////////////////////////////
+
+
+
 #define WZ_MENU                         104
 #define WZ_MODEL                        105
-#define ICON_WZ_LOADING                 106
+
 #define WZ_FONT                         107
 #define IDR_COREFONT1                   108
 #define WZ_SMALL_FONT                   108

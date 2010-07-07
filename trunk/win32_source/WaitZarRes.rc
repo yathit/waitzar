@@ -1,29 +1,15 @@
-// Microsoft Visual C++ generated resource script.
 //
+// This file is now maintained entirely by hand
+//
+
+#include "windows.h"
 #include "resource.h"
 
-
-//Should be able to safely delete this block.
-#define APSTUDIO_READONLY_SYMBOLS
-#ifndef APSTUDIO_INVOKED
-//#include "targetver.h"
-#endif
-#define APSTUDIO_HIDDEN_SYMBOLS
-#include "windows.h"
-#undef APSTUDIO_HIDDEN_SYMBOLS
-#undef APSTUDIO_READONLY_SYMBOLS
-
-
-
-//AFX_TARG_ENU is defined if we're working on an English version of Windows.
-//  So, it only compiles the English resources if we're working on an
-//  en_US Windows OR if there's no "resource DLL". So let's just delete this.
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU) //NOTE: We should delete THIS LINE and its corresponding endif
 
 
 //Set the following resources to be tagged as "EN_US".
 //Can be retrieved with EnumResourceLanguages() and FindResourceEx().
-//We don't do this, but it's considered good form.
+//We'll leave this in as a matter of style; we don't use resource bundles per se.
 #ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
@@ -31,46 +17,22 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 
 
-//If the editor invoked this file.
-//Definitely delete this entire block.
-#ifdef APSTUDIO_INVOKED
-1 TEXTINCLUDE
-BEGIN
-    "resource.h\0"
-END
+////////////////////////////////
+// General Resources
+////////////////////////////////
 
-2 TEXTINCLUDE
-BEGIN
-    "#ifndef APSTUDIO_INVOKED\r\n"
-    "#include ""targetver.h""\r\n"
-    "#endif\r\n"
-    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
-    "#include ""windows.h""\r\n"
-    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
-    "\0"
-END
 
-3 TEXTINCLUDE
-BEGIN
-    "\r\n"
-    "\0"
-END
-#endif    // APSTUDIO_INVOKED
+//The application Icon
+IDI_WAITZAR             ICON                    "wz.ico"
+
+//Other Icons
+IDI_ENGLISH             ICON                    "wz_eng.ico"
+IDI_MYANMAR             ICON                    "wz_mm.ico"
+IDI_LOADING             ICON                    "loading.ico"
 
 
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-ICON_WZ                 ICON                    "WZ.ICO"
-ICON_WZ_ENG             ICON                    "WZ_ENG.ICO"
-ICON_WZ_MM              ICON                    "WZ_MM.ICO"
-ICON_WZ_LOADING         ICON                    "loading.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -119,7 +81,7 @@ BEGIN
 	LTEXT           "WaitZar User's Guide", ID_HELP_H6, 16, 18, 81, 33
     LTEXT           "",ID_HELP_BKGRD,0,31,108,30
     DEFPUSHBUTTON   "&Ok",ID_HELP_OK,174,18,50,14
-    ICON            ICON_WZ,ID_HELP_IC,117,33,20,20
+    ICON            IDI_WAITZAR,ID_HELP_IC,117,33,20,20
 END
 
 
@@ -169,8 +131,6 @@ WZ_PADAUK_ZG            COREFONT                "pdkzg.ttf"
 
 
 
-#endif    // English (U.S.) resources TODO - Delete this line.
-/////////////////////////////////////////////////////////////////////////////
-
-
-
+//////////////////////////////////
+// Dialogs, Controls, Menu Items
+//////////////////////////////////
