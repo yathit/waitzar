@@ -89,29 +89,6 @@ BEGIN
 END
 
 
-//"Help/About" Dialog
-/*IDD_HELP_ABOUT DIALOGEX 0, 0, 239, 66
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About"
-FONT 8, "MS Sans Serif", 400, 0, 0x0
-BEGIN
-    LTEXT           "wz_ver",IDC_HELP_L1,16,18,81,33
-    LTEXT           "WaitZar.com",IDC_HELP_H1,16,18,30,33
-    LTEXT           "wz_switch",IDC_HELP_L2,16,18,81,33
-    LTEXT           "Type Burmese words like they sound, and press \x22space\x22.", IDC_HELP_L3, 16, 18, 81, 33
-	LTEXT           "WaitZar users should have the relevant fonts installed, if they want to see \nwhat they type after it's chosen.", IDC_HELP_L4, 16, 58, 81, 33
-	LTEXT           "Feel free to ", IDC_HELP_L5A, 16, 18, 81, 33
-	LTEXT           " if you have any questions.", IDC_HELP_L5B, 16, 18, 81, 33
-	LTEXT           "contact us", IDC_HELP_H5, 16, 18, 81, 33
-	LTEXT           "For more information, please read the ", IDC_HELP_L6, 16, 18, 81, 33
-	LTEXT           "WaitZar User's Guide", IDC_HELP_H6, 16, 18, 81, 33
-    LTEXT           "",IDC_HELP_BKGRD,0,31,108,30
-    DEFPUSHBUTTON   "&Ok",IDOK,174,18,50,14
-    ICON            IDI_WAITZAR,IDC_HELP_ICON,117,33,20,20
-END*/
-
-
-
 //"Settings" Dialog
 IDD_SETTINGS DIALOGEX 0, 0, 200, 150
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
