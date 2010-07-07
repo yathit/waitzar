@@ -3,20 +3,6 @@
 #include "resource.h"
 
 
-/*
-_APS_NEXT_RESOURCE_VALUE is the next symbol value that will be used for a dialog resource, menu resource, and so on. The valid range for resource symbol values is 1 to 0x6FFF.
-
-_APS_NEXT_COMMAND_VALUE is the next symbol value that will be used for a command identification. The valid range for command symbol values is 0x8000 to 0xDFFF.
-
-_APS_NEXT_CONTROL_VALUE is the next symbol value that will be used for a dialog control. The valid range for dialog control symbol values is 8 to 0xDFFF.
-
-_APS_NEXT_SYMED_VALUE is the next symbol value that will be issued when you manually assign a symbol value using the New command in the Symbol Browser.
-*/
-//TODO: Check "Technical Note 20" --we want to make sure we're not using invalid identifier ranges.
-
-
-
-
 //Should be able to safely delete this block.
 #define APSTUDIO_READONLY_SYMBOLS
 #ifndef APSTUDIO_INVOKED
