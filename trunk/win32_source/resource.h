@@ -1,8 +1,32 @@
-//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by WaitZarRes.rc
-// Modified by hand (silly free VS restrictions)
 //
+// Resource header file; see WaitZarRes.rc for implementation.
+// This file is now maintained entirely by hand.
+//
+// According to Technical Note 20: ID Naming & Numbering Conventions
+//  http://msdn.microsoft.com/en-us/library/t2zechd4%28v=VS.80%29.aspx
+// ..which is for MFC, but is somewhat "standard" for Windows, and thus a good idea.
+//  1) Variable prefix strings:
+//     IDC_  for cursors
+//     IDI_  for icons
+//     IDB_  for bitmaps
+//     IDM_  for menu items
+//     //Dialog-specific:
+//     IDD_  for dialog resources
+//     IDC_  for dialog controls (exception: IDOK|IDCANCEL)
+//  2) Variable ranges by prefix string:
+//     IDC_,IDI_,IDB_ 1 -> 0x6FFF
+//     //Dialog-specific:
+//     IDD_  1 -> 0x6FFF
+//     IDC_  8 -> 0xDFFF
+//     ???   1 -> 7 (IDOK|IDCANCEL, more... should be in Windows.h anyway)
+//     IDM_  (seems to share with IDD)
+//  3) My interpretation:
+//     Start Icons/Cursors/Bitmaps/CustomResources at 101. Use IDR_ for embedded files.
+//     Start Dialogs, Controls, and Menu Items at 40001.
+//
+
+
+//TODO: Re-order the following, categorize:
 #define ICON_WZ                         101
 #define ICON_WZ_ENG                     102
 #define ICON_WZ_MM                      103
@@ -50,13 +74,15 @@
 #define IDM_SETTINGS_DLG                40031
 #define ID_SETTINGS_CNCL                40032
 
+
+
 // Next default values for new objects
 //
-#ifdef APSTUDIO_INVOKED
+/*#ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        120
 #define _APS_NEXT_COMMAND_VALUE         40033
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
-#endif
+#endif*/
