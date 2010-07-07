@@ -2,36 +2,52 @@
 //
 #include "resource.h"
 
+
+/*
+_APS_NEXT_RESOURCE_VALUE is the next symbol value that will be used for a dialog resource, menu resource, and so on. The valid range for resource symbol values is 1 to 0x6FFF.
+
+_APS_NEXT_COMMAND_VALUE is the next symbol value that will be used for a command identification. The valid range for command symbol values is 0x8000 to 0xDFFF.
+
+_APS_NEXT_CONTROL_VALUE is the next symbol value that will be used for a dialog control. The valid range for dialog control symbol values is 8 to 0xDFFF.
+
+_APS_NEXT_SYMED_VALUE is the next symbol value that will be issued when you manually assign a symbol value using the New command in the Symbol Browser.
+*/
+//TODO: Check "Technical Note 20" --we want to make sure we're not using invalid identifier ranges.
+
+
+
+
+//Should be able to safely delete this block.
 #define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
 #ifndef APSTUDIO_INVOKED
 //#include "targetver.h"
 #endif
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include "windows.h"
 #undef APSTUDIO_HIDDEN_SYMBOLS
-
-/////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+
+//AFX_TARG_ENU is defined if we're working on an English version of Windows.
+//  So, it only compiles the English resources if we're working on an
+//  en_US Windows OR if there's no "resource DLL". So let's just delete this.
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU) //NOTE: We should delete THIS LINE and its corresponding endif
+
+
+//Set the following resources to be tagged as "EN_US".
+//Can be retrieved with EnumResourceLanguages() and FindResourceEx().
+//We don't do this, but it's considered good form.
 #ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
+#endif
 
+
+
+//If the editor invoked this file.
+//Definitely delete this entire block.
 #ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
 1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
@@ -53,8 +69,9 @@ BEGIN
     "\r\n"
     "\0"
 END
-
 #endif    // APSTUDIO_INVOKED
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -163,18 +180,11 @@ WZ_PGUP_COLOR           COREFONT                "pg_up_color.png"
 WZ_PGDOWN_SEPIA         COREFONT                "pg_down_sepia.png"
 WZ_PGUP_SEPIA           COREFONT                "pg_up_sepia.png"
 WZ_PADAUK_ZG            COREFONT                "pdkzg.ttf"
-#endif    // English (U.S.) resources
+
+
+
+#endif    // English (U.S.) resources TODO - Delete this line.
 /////////////////////////////////////////////////////////////////////////////
 
 
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
 
