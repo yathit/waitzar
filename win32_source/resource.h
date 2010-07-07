@@ -1,6 +1,9 @@
 //
 // Resource header file; see WaitZarRes.rc for implementation.
 // This file is now maintained entirely by hand.
+// 
+// WARNING: It seems that the resource compiler ONLY understands preprocessor directives.
+//          Using enums, const ints, or anything else will cause the resource to fail to load.
 //
 // According to Technical Note 20: ID Naming & Numbering Conventions
 //  http://msdn.microsoft.com/en-us/library/t2zechd4%28v=VS.80%29.aspx
@@ -26,76 +29,100 @@
 //
 
 
+//Include guard
+#pragma once
+
+//Needed by an inner class
+#include <string>
+
+
 ////////////////////////////////
 // General Resources
 ////////////////////////////////
 
 //Icons
-#define IDI_WAITZAR                     101
-#define IDI_ENGLISH                     102
-#define IDI_MYANMAR                     103
-#define IDI_LOADING                     104
+#define IDI_WAITZAR            101
+#define IDI_ENGLISH            102
+#define IDI_MYANMAR            103
+#define IDI_LOADING            104
+
+//Embedded Data Files
+#define IDR_WAITZAR_MODEL      201
+#define IDR_WAITZAR_EASYPS     202
+#define IDR_DEFAULT_CONFIG     203
+#define IDR_PADAUK_ZG          204
+
+//Pulp Core Font Files (main)
+#define IDR_MAIN_FONT          301
+#define IDR_SMALL_FONT         302
+
+//Pulp Core Font Files (help keyboard)
+#define IDR_HELP_KEY_FONT      303
+#define IDR_HELP_FORE_FONT     304
+#define IDR_HELP_BACK_FONT     305
+#define IDR_HELP_CORNER_IMG    306
+
+//Pulp Core Font Files (pagination images)
+#define IDR_PGDOWN_COLOR       307
+#define IDR_PGUP_COLOR         308
+#define IDR_PGDOWN_SEPIA       309
+#define IDR_PGUP_SEPIA         310
+
 
 
 //////////////////////////////////
 // Dialogs, Controls, Menu Items
 //////////////////////////////////
 
+//Main Context Menu & its Menu Items
+#define IDM_CONTEXT_MENU       40001
+#define IDM_HELP               40002
+#define IDM_SETTINGS           40003
+#define IDM_EXIT               40004
+#define IDM_ENGLISH            40005
+#define IDM_MYANMAR            40006
+#define IDM_DELETE_ME          40007
+#define IDM_LOOKUP             40008
 
+//"Help/About" Dialog
+#define IDD_HELP_ABOUT         41000
+#define IDC_HELP_L1            41001
+#define IDC_HELP_H1            41002
+#define IDC_HELP_L2            41003
+#define IDC_HELP_L3            41004
+#define IDC_HELP_L4            41005
+#define IDC_HELP_L5A           41006
+#define IDC_HELP_L5B           41007
+#define IDC_HELP_H5            41008
+#define IDC_HELP_L6            41009
+#define IDC_HELP_H6            41010
+#define IDC_HELP_BKGRD         41011
+#define IDC_HELP_ICON          41012
 
-#define WZ_MENU                         104
-#define WZ_MODEL                        105
+//"Settings" Dialog
+#define IDD_SETTINGS           42000
+#define IDC_SETTINGS_L1        42001
+#define IDC_SETTINGS_CB1       42002
 
-#define WZ_FONT                         107
-#define IDR_COREFONT1                   108
-#define WZ_SMALL_FONT                   108
-#define WZ_HELP_KEY_FONT                109
-#define WZ_HELP_FORE_FONT               110
-#define WZ_HELP_BACK_FONT               111
-#define WZ_HELP_CORNER                  112
-#define WZ_EASYPS                       113
-#define WZ_DEFAULT_CFG                  114
-#define WZ_PGDOWN_COLOR                 115
-#define WZ_PGUP_COLOR                   116
-#define WZ_PGDOWN_SEPIA                 117
-#define WZ_PGUP_SEPIA                   118
-#define WZ_PADAUK_ZG                    119
-#define IDM_HELP                        40004
-#define IDM_MYANMAR                     40006
-#define IDM_EXIT                        40008
-#define IDM_ENGLISH                     40010
-#define IDD_WZ_SETTINGS                 40011
-#define ID_SETTINGS_L1                  40012
-#define ID_SETTINGS_CB1                 40013
-#define ID_SETTINGS_OK                  40014
-#define IDM_LOOKUP                      40015
-#define IDD_WZ_HELP                     40016
-#define ID_HELP_OK                      40017
-#define ID_HELP_L1                      40018
-#define ID_HELP_BKGRD                   40019
-#define ID_HELP_H1                      40020
-#define ID_HELP_IC                      40021
-#define ID_HELP_L2                      40022
-#define ID_HELP_L3                      40023
-#define ID_HELP_L4                      40024
-#define ID_HELP_L5A                     40025
-#define ID_HELP_L5B                     40026
-#define ID_HELP_H5                      40027
-#define ID_HELP_L6                      40028
-#define ID_HELP_H6                      40029
-#define ID_DELETE_ME                    40030
-#define IDM_SETTINGS_DLG                40031
-#define ID_SETTINGS_CNCL                40032
+//Our dummy "blank" dialog, to be filled in programmatically
+#define IDD_BLANK              43000
 
 
 
-// Next default values for new objects
-//
-/*#ifdef APSTUDIO_INVOKED
-#ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        120
-#define _APS_NEXT_COMMAND_VALUE         40033
-#define _APS_NEXT_CONTROL_VALUE         1001
-#define _APS_NEXT_SYMED_VALUE           101
-#endif
-#endif*/
+//Small class used to add Window components
+class WControl {
+public:
+	unsigned int id;
+	std::wstring text;
+	std::wstring type;
+	size_t x;
+	size_t y;
+	size_t w;
+	size_t h;
+	bool convertToHyperlink;
+
+	WControl(unsigned int id, std::wstring text, std::wstring type, size_t x=0, size_t y=0, size_t w=0, size_t h=0, bool convertToHyperlink=false) 
+		: id(id), text(text), type(type), x(x), y(y), w(w), h(h), convertToHyperlink(convertToHyperlink)
+	{}
+};
+

@@ -186,12 +186,12 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 	WordBuilder* model = NULL;
 	{
 	//Load the resource as a byte array and get its size, etc.
-	res = FindResource(hInst, MAKEINTRESOURCE(WZ_MODEL), _T("Model"));
+	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_MODEL), _T("Model"));
 	if (!res)
-		throw std::exception("Couldn't find WZ_MODEL");
+		throw std::exception("Couldn't find IDR_WAITZAR_MODEL");
 	res_handle = LoadResource(NULL, res);
 	if (!res_handle)
-		throw std::exception("Couldn't get a handle on WZ_MODEL");
+		throw std::exception("Couldn't get a handle on IDR_WAITZAR_MODEL");
 	res_data = (char*)LockResource(res_handle);
 	res_size = SizeofResource(NULL, res);
 
@@ -206,12 +206,12 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 	{
 	//We also need to load our easy pat-sint combinations
 	//Load the resource as a byte array and get its size, etc.
-	res = FindResource(hInst, MAKEINTRESOURCE(WZ_EASYPS), _T("Model"));
+	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_EASYPS), _T("Model"));
 	if (!res)
-		throw std::exception("Couldn't find WZ_EASYPS");
+		throw std::exception("Couldn't find IDR_WAITZAR_EASYPS");
 	res_handle = LoadResource(NULL, res);
 	if (!res_handle)
-		throw std::exception("Couldn't get a handle on WZ_EASYPS");
+		throw std::exception("Couldn't get a handle on IDR_WAITZAR_EASYPS");
 	res_data = (char*)LockResource(res_handle);
 	res_size = SizeofResource(NULL, res);
 
@@ -556,12 +556,12 @@ DisplayMethod* WZFactory<ModelType>::getZawgyiPngDisplay(std::wstring langID, st
 		//Load our internal font
 		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(dispResourceID), _T("COREFONT"));
 		if (!fontRes)
-			throw std::exception("Couldn't find WZ_FONT");
+			throw std::exception("Couldn't find IDR_(MAIN|SMALL)_FONT");
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(hInst, fontRes);
 		if (!res_handle)
-			throw std::exception("Couldn't get a handle on WZ_(SMALL?)_FONT");
+			throw std::exception("Couldn't get a handle on IDR_(MAIN|SMALL)_FONT");
 
 		//Create, init
 		WZFactory<ModelType>::cachedDisplayMethods[fullID] = new PulpCoreFont();
@@ -586,12 +586,12 @@ DisplayMethod* WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(std::wstring lang
 		res->pointSize = 10;
 
 		//Get the Padauk embedded resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_PADAUK_ZG), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), _T("MODEL"));
 		if (!fontRes)
-			throw std::exception("Couldn't find WZ_PADAUK_ZG");
+			throw std::exception("Couldn't find IDR_PADAUK_ZG");
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle)
-			throw std::exception("Couldn't get a handle on WZ_PADAUK_ZG");
+			throw std::exception("Couldn't get a handle on IDR_PADAUK_ZG");
 
 		//Save, init
 		WZFactory<ModelType>::cachedDisplayMethods[fullID] = res;
@@ -814,9 +814,9 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
 		if (id==L"zawgyibmp")
-			res = WZFactory<ModelType>::getZawgyiPngDisplay(language.id, id, WZ_FONT);
+			res = WZFactory<ModelType>::getZawgyiPngDisplay(language.id, id, IDR_MAIN_FONT);
 		else if (id==L"zawgyibmpsmall")
-			res = WZFactory<ModelType>::getZawgyiPngDisplay(language.id, id, WZ_SMALL_FONT);
+			res = WZFactory<ModelType>::getZawgyiPngDisplay(language.id, id, IDR_SMALL_FONT);
 		else if (id==L"pdkzgwz")
 			res = WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(language.id, id);
 		else

@@ -638,16 +638,18 @@ void makeFont()
 	//Load our help window font: Keys
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_KEY_FONT), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_KEY_FONT), _T("COREFONT"));
 		if (!fontRes) {
-			MessageBox(NULL, _T("Couldn't find WZ_HELP_KEY_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			std::wstringstream msg;
+			msg <<L"Couldn't find IDR_HELP_KEY_FONT: " <<IDR_HELP_KEY_FONT << " -> " <<GetLastError();
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_KEY_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_KEY_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -668,16 +670,16 @@ void makeFont()
 	//Load our help window font: Foreground
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_FORE_FONT), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_FORE_FONT), _T("COREFONT"));
 		if (!fontRes) {
-			MessageBox(NULL, _T("Couldn't find WZ_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("Couldn't find IDR_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -698,16 +700,16 @@ void makeFont()
 	//Load our help window font: Background
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_BACK_FONT), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_BACK_FONT), _T("COREFONT"));
 		if (!fontRes) {
-			MessageBox(NULL, _T("Couldn't find WZ_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("Couldn't find IDR_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -732,16 +734,16 @@ void makeFont()
 	//Load our help menu's corner image (used for keyboard keys)
 	{
 		//First the resource
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(WZ_HELP_CORNER), _T("COREFONT"));
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CORNER_IMG), _T("COREFONT"));
 		if (!imgRes) {
-			MessageBox(NULL, _T("Couldn't find WZ_HELP_CORNER"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("Couldn't find IDR_HELP_CORNER_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, imgRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on WZ_HELP_CORNER"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_CORNER_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -762,7 +764,7 @@ void makeFont()
 	//Load our page down/up images
 	for (int i=0; i<4; i++) {
 		//First the resource
-		int PG_RES_ID = i==0?WZ_PGDOWN_COLOR:i==1?WZ_PGUP_COLOR:i==2?WZ_PGDOWN_SEPIA:WZ_PGUP_SEPIA;
+		int PG_RES_ID = i==0?IDR_PGDOWN_COLOR:i==1?IDR_PGUP_COLOR:i==2?IDR_PGDOWN_SEPIA:IDR_PGUP_SEPIA;
 		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(PG_RES_ID), _T("COREFONT"));
 		if (!imgRes) {
 			MessageBox(NULL, _T("Couldn't find PG_RES_ID"), _T("Error"), MB_ICONERROR | MB_OK);
@@ -1172,7 +1174,7 @@ void showSettingsMenu(HWND hwnd)
 	if (!showingSettingsPopup) {
 		showingSettingsPopup = true;
 
-		DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_SETTINGS), hwnd, SettingsDlgProc);
+		DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_SETTINGS), hwnd, SettingsDlgProc);
 		//MessageBox(NULL, L"Settings", L"Settings", MB_ICONINFORMATION|MB_OK);
 
 		showingSettingsPopup = false;
@@ -1327,8 +1329,8 @@ void initCalculateHelp()
 
 	//Copy this font for use in the memory box
 	//TODO: Something else.
-	helpFntMemory = (PulpCoreFont*)WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", WZ_SMALL_FONT);
-	DisplayMethod* zgSmall = WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", WZ_SMALL_FONT);
+	helpFntMemory = (PulpCoreFont*)WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
+	DisplayMethod* zgSmall = WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
 	//= (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 
 	//Make
@@ -1679,169 +1681,138 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			//Resize the help dialog; keep it at the same position.
 			//helpWindow->resizeWindow(473, 262);  //NOOO!
-			RECT r;
-			GetWindowRect(hwnd, &r);
-			MoveWindow(hwnd, r.left, r.top, 473, 262, TRUE);
+			RECT wndR;
+			size_t wndWidth = 473;
+			size_t wndHeight = 262;
+			GetWindowRect(hwnd, &wndR);
+			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
 
-			//Change the text of our dialog box
-			wstringstream txt;
-			txt << "WaitZar version " <<WAIT_ZAR_VERSION <<" - for the latest news, visit ";
-			SetWindowText(GetDlgItem(hwnd, ID_HELP_L1), txt.str().c_str());
-
-			txt.str(L"");
-			txt <<langHotkeyString <<" - Switch between Myanmar and English";
-			SetWindowText(GetDlgItem(hwnd, ID_HELP_L2), txt.str().c_str());
-
-			//Convert hyperlinks
-			ConvertStaticToHyperlink(hwnd, ID_HELP_H1);
-			ConvertStaticToHyperlink(hwnd, ID_HELP_H5);
-			ConvertStaticToHyperlink(hwnd, ID_HELP_H6);
-
-			//Get font size...
-			HFONT hFont = GetWindowFont(hwnd);
+			//Get our dialog's default font, since the DS_SETFONT style doesn't apply outside the 
+			//  resource editor. Load it into the DC, so that we can measure text.
+			//HFONT hFont = GetWindowFont(hwnd);
+			HFONT dlgFont = (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0);
 			HDC currDC = GetDC(hwnd);
-			SelectObject(currDC, hFont);
-			int fHeight = HIWORD(GetTabbedTextExtent(currDC, L"[Wp]", 4, 0, NULL));
-			int buff = 3;
+			SelectObject(currDC, dlgFont);
 
-			//Move our Ok Button
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_OK);
-			GetClientRect(hw, &r);
-			MoveWindow(hw, 430-r.right, 224-r.bottom, r.right, r.bottom, TRUE);
-			}
+			//General incremental values
+			const size_t fHeight = HIWORD(GetTabbedTextExtent(currDC, L"[Wp]", 4, 0, NULL));
+			const size_t buff = 3;
 
-			//Move our background label into position, and resize it
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_BKGRD);
-			int newH = r.bottom+(fHeight-1)*2;
-			MoveWindow(hw, 0, 236-newH, 467, newH, TRUE);
-			}
 
-			//Move our icon into position
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_IC);
-			GetClientRect(hw, &r);
-			MoveWindow(hw, fHeight*2, fHeight*2, r.right, r.bottom, TRUE);
-			}
+			////////////////////////////////////////////////
+			// Step 1: Popuplate a vector of structs
+			//         with window IDs, positioning, labels.
+			////////////////////////////////////////////////
+			vector<WControl> pendingItems;
 
-			//Determine our new client area
+			//Ok button, background label, icon
+			size_t bkgrdH = (192+14+(fHeight-1)*2);
+			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", 206, 192, 50, 14, false));
+			pendingItems.push_back(WControl(IDC_HELP_BKGRD, L"", L"STATIC", 0, 236-bkgrdH, 467, bkgrdH, false));
+			pendingItems.push_back(WControl(IDC_HELP_ICON, L"wz.ico", L"ICON", fHeight*2, fHeight*2, 20, 20, false));
+
+			//Determine our new client area, set our starting Y co-ordinate.
 			RECT txtR;
-			txtR.left = fHeight*2 + r.right + fHeight/2;
+			txtR.left = fHeight*2 + fHeight*2+20 + fHeight/2;
 			txtR.top = fHeight*2 + buff;
-			GetClientRect(hwnd, &r);
-			txtR.right = r.right-txtR.left - fHeight*2 - fHeight/2;
-			txtR.bottom = r.bottom-txtR.top - fHeight;
-			GetClientRect(GetDlgItem(hwnd, ID_HELP_BKGRD), &r);
-			txtR.bottom -= r.bottom;
-			int accY = txtR.top;
+			GetClientRect(hwnd, &wndR);
+			txtR.right = wndR.right-txtR.left - fHeight*2 - fHeight/2;
+			txtR.bottom = wndR.bottom-txtR.top - fHeight - bkgrdH;
+			size_t accY = txtR.top;
 
-			//Move the first line
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_L1);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
-			GetClientRect(hw, &r);
-			}
+			//Prepare some variables
+			wstringstream txtS;
+			wstring txt;
+			size_t width;
+			size_t accX;
 
-			//Move the first line's link.
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_H1);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
-			accY += fHeight + fHeight;
-			}
+			//Label 1
+			txtS.str(L"");
+			txtS << "WaitZar version " <<WAIT_ZAR_VERSION <<" - for the latest news, visit ";
+			txt = txtS.str();
+			accX = width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L1, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
 
-			//Move the second line's text
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_L2);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
+			//Label 1 - Link
+			txt = L"WaitZar.com";
+			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_H1, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, true));
+			accY += fHeight*2;
+
+			//Label 2
+			txtS.str(L"");
+			txtS <<langHotkeyString <<" - Switch between Myanmar and English";
+			txt = txtS.str();
+			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L2, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
 			accY += fHeight;
-			}
 
-			//Move the third line's text
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_L3);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
+			//Label 3
+			txt = L"Type Burmese words like they sound, and press \"space\".";
+			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L3, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
 			accY += fHeight*2;
-			}
 
-			//Move the fourth line's text
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_L4);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left, accY, width, fHeight*2, TRUE);
-			GetClientRect(hw, &r);
-			accY += r.bottom;
-			}
-
-			//Move the fifth line's text, part 1
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_L5A);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
-			GetClientRect(hw, &r);
-			}
-
-			//Move the fifth line's link.
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_H5);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
-			int oldW = r.right;
-			GetClientRect(hw, &r);
-			r.right += oldW;
-			}
-
-			//Move the fifth line's text, part 2
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_L5B);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
-			GetClientRect(hw, &r);
+			//Label 4
+			txt = L"WaitZar users should have the relevant fonts installed, if they want to see \nwhat they type after it's chosen.";
+			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L4, txt, L"STATIC", txtR.left, accY, width, fHeight*2, false));
 			accY += fHeight*2;
+
+			//Label 5 - LHS
+			txt = L"Feel free to ";
+			accX = width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L5A, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
+
+			//Label 5 - Middle Link
+			txt = L"contact us";
+			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			accX += width;
+			pendingItems.push_back(WControl(IDC_HELP_H5, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, true));
+
+			//Label 5 - RHS
+			txt = L" if you have any questions.";
+			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L5B, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, false));
+			accY += fHeight*2;
+
+			//Label 6
+			txt = L"For more information, please read the ";
+			accX = width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L6, txt, L"STATIC", txtR.left, accY, width, fHeight, false));
+
+			//Label 6 - Link
+			txt = L"WaitZar User's Guide";
+			width = LOWORD(GetTabbedTextExtent(currDC, txt.c_str(), txt.length(), 0, NULL));
+			pendingItems.push_back(WControl(IDC_HELP_L6, txt, L"STATIC", txtR.left+accX, accY, width, fHeight, true));
+
+			//DC's no longer needed.
+			ReleaseDC(hwnd, currDC);
+
+
+			//Start adding controls automatically.
+			unsigned int flags = 0;
+			for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
+				//Set flags
+				if (it->type==L"STATIC")
+					flags = WS_CHILD | WS_VISIBLE;
+				else if (it->type==L"ICON")
+					flags = WS_CHILD | WS_VISIBLE;
+				else if (it->type==L"BUTTON")
+					flags = WS_CHILD | WS_VISIBLE | WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
+				else
+					throw std::exception(waitzar::glue(L"Unknown control type: ", it->type).c_str());
+
+				//Create the control, set the font
+				HWND ctl = CreateWindow(it->type.c_str(), it->text.c_str(), flags, 
+						 it->x, it->y, it->w, it->h,
+                         hwnd, NULL, hInst, NULL );
+				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+
+				//Turn it into a hyperlink?
+				if (it->convertToHyperlink && it->type==L"STATIC")
+					ConvertStaticToHyperlink(hwnd, it->id);
 			}
-
-			//Move the sixth line's text
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_L6);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left, accY, width, fHeight, TRUE);
-			GetClientRect(hw, &r);
-			}
-
-			//Move the sixth line's link.
-			{
-			HWND hw = GetDlgItem(hwnd, ID_HELP_H6);
-			TCHAR temp[200];
-			GetWindowText(hw, temp, 200);
-			int width = LOWORD(GetTabbedTextExtent(currDC, temp, wcslen(temp), 0, NULL));
-			MoveWindow(hw, txtR.left+r.right, accY, width, fHeight, TRUE);
-			//accY += fHeight + fHeight;
-			}
-
-
-
 
 			return TRUE;
 		}
@@ -1849,11 +1820,11 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			return (BOOL)g_DlgHelpBkgrd;
 		case WM_CTLCOLORSTATIC:
 		{
-			if (GetDlgCtrlID((HWND)lParam)==ID_HELP_BKGRD) {
+			if (GetDlgCtrlID((HWND)lParam)==IDC_HELP_BKGRD) {
 				//Set the background color of our static item
 				return (BOOL)g_DlgHelpSlash;
 			}
-			if (GetDlgCtrlID((HWND)lParam)==ID_HELP_H1) {
+			if (GetDlgCtrlID((HWND)lParam)==IDC_HELP_H1) {
 				//Make it blue
 				SetTextColor((HDC)wParam, RGB(255, 0, 0));
 			}
@@ -1866,20 +1837,20 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		case WM_COMMAND:
 			switch(LOWORD(wParam))
 			{
-				case ID_HELP_OK:
+				case IDOK:
 					EndDialog(hwnd, IDOK);
 					break;
-				case ID_HELP_H1:
+				case IDC_HELP_H1:
 					//Load the WaitZar web site.
 					ShellExecute(hwnd, L"open", L"http://www.waitzar.com", NULL, NULL, SW_SHOWNORMAL);
 					EndDialog(hwnd, IDOK);
 					break;
-				case ID_HELP_H5:
+				case IDC_HELP_H5:
 					//Load the feedback form
 					ShellExecute(hwnd, L"open", L"http://www.waitzar.com/contactus.py", NULL, NULL, SW_SHOWNORMAL);
 					EndDialog(hwnd, IDOK);
 					break;
-				case ID_HELP_H6:
+				case IDC_HELP_H6:
 					//Slightly more complex: try to load the User's Guide locally if it exists; if not,
 					// then simply open the user's browser to the latest guide.
 					int retVal = (int)ShellExecute(hwnd, L"open", L"WaitZar User's Guide.doc", NULL, NULL, SW_SHOWNORMAL);
@@ -1912,7 +1883,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			wstring defaultLangID = config.activeLanguage.defaultInputMethod;
 
 			//Add all combo menu items
-			HWND hwComboBox = GetDlgItem(hwnd, ID_SETTINGS_CB1);
+			HWND hwComboBox = GetDlgItem(hwnd, IDC_SETTINGS_CB1);
 			SendMessage(hwComboBox, CB_RESETCONTENT, 0, 0);
 			for (std::set<InputMethod*>::const_iterator it=config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
 				LRESULT res = SendMessage(hwComboBox, CB_ADDSTRING, 0, (LPARAM)(*it)->displayName.c_str());
@@ -1929,10 +1900,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_COMMAND:
 			switch(LOWORD(wParam))
 			{
-				case ID_SETTINGS_OK:
+				case IDOK:
 					EndDialog(hwnd, IDOK);
 					break;
-				case ID_SETTINGS_CNCL:
+				case IDCANCEL:
 					EndDialog(hwnd, IDCANCEL);
 					break;
 			}
@@ -2409,7 +2380,7 @@ void createMyanmarMenuFont()
 void createContextMenu()
 {
 	//Load the context menu into memory from the resource file.
-	contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(WZ_MENU));
+	contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDM_CONTEXT_MENU));
 	contextMenuPopup = GetSubMenu(contextMenu, 0);
 
 	//Get some useful statistics about our menu items
@@ -2421,7 +2392,7 @@ void createContextMenu()
 		MENUITEMINFO miinfo;
 		miinfo.cbSize = sizeof(MENUITEMINFO);
 		miinfo.fMask = MIIM_ID; //Retrieve the submenu
-		if (GetMenuItemInfo(contextMenu, ID_DELETE_ME, FALSE, &miinfo)==TRUE)
+		if (GetMenuItemInfo(contextMenu, IDM_DELETE_ME, FALSE, &miinfo)==TRUE)
 			cmpID = miinfo.wID;
 		else
 			throw std::exception("Could not find context menu's ID_DELETE_ME item.");
@@ -2448,7 +2419,7 @@ void createContextMenu()
 	//typingMenu = GetSubMenu(contextMenuPopup, 7); //TODO: Change to 6.... remove "Encoding" menu
 
 	//Build our complex submenu for Language, Input Method, and Output Encoding	
-	RemoveMenu(typingMenu, ID_DELETE_ME, MF_BYCOMMAND);
+	RemoveMenu(typingMenu, IDM_DELETE_ME, MF_BYCOMMAND);
 
 	//Build each sub-menu if none have been created yet. (In case we ever recycle this menu).
 	if (totalMenuItems == 0) {
@@ -2861,14 +2832,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//MessageBox(hwnd, temp, _T("About"), MB_ICONINFORMATION | MB_OK);
 					if (!showingHelpPopup) {
 						showingHelpPopup = true;
-						DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WZ_HELP), hwnd, HelpDlgProc);
+						DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_BLANK), hwnd, HelpDlgProc);
 						showingHelpPopup = false;
 					}
 
 					//Hotkeys again
 					if  (refreshControl)
 						turnOnControlkeys(true);
-				} else if (retVal == IDM_SETTINGS_DLG) {
+				} else if (retVal == IDM_SETTINGS) {
 					showSettingsMenu(hwnd);
 				} else if (retVal == IDM_ENGLISH) {
 					switchToLanguage(false);
@@ -3126,7 +3097,7 @@ bool findAndLoadAllConfigFiles()
 		//Try one more time, this time with the default config file.
 		try {
 			//Load the resource as a byte array and get its size, etc.
-			HRSRC res = FindResource(hInst, MAKEINTRESOURCE(WZ_DEFAULT_CFG), _T("Model"));
+			HRSRC res = FindResource(hInst, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), _T("Model"));
 			if (!res)
 				throw std::exception("Couldn't find resource WZ_DEFAULT_CFG.");
 			HGLOBAL res_handle = LoadResource(NULL, res);

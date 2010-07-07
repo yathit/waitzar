@@ -23,28 +23,50 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 
 //The application Icon
-IDI_WAITZAR             ICON                    "wz.ico"
+IDI_WAITZAR             ICON           "wz.ico"
 
 //Other Icons
-IDI_ENGLISH             ICON                    "wz_eng.ico"
-IDI_MYANMAR             ICON                    "wz_mm.ico"
-IDI_LOADING             ICON                    "loading.ico"
+IDI_ENGLISH             ICON           "wz_eng.ico"
+IDI_MYANMAR             ICON           "wz_mm.ico"
+IDI_LOADING             ICON           "loading.ico"
+
+//Embedded Data Files
+IDR_WAITZAR_MODEL       MODEL          "Myanmar.model"
+IDR_WAITZAR_EASYPS      MODEL          "easypatsint.txt"
+IDR_DEFAULT_CONFIG      MODEL          "default-config.json.txt"
+IDR_PADAUK_ZG           MODEL          "pdkzg.ttf"
+
+//Pulp Core Fonts -- Essential
+IDR_MAIN_FONT           COREFONT       "waitzar.font.png"
+IDR_SMALL_FONT          COREFONT       "waitzar_small.font.png"
+
+//Pulp Core Fonts -- Help Keyboard (hope to eliminate some day)
+IDR_HELP_KEY_FONT       COREFONT       "help_ar_letters.font.png"
+IDR_HELP_FORE_FONT      COREFONT       "help_zg_main.font.png"
+IDR_HELP_BACK_FONT      COREFONT       "help_zg_sub.font.png"
+IDR_HELP_CORNER_IMG     COREFONT       "keybd_corner.png"
+
+//Pulp Core Images -- Pagination (should reduce to just 1 & some post-processing)
+IDR_PGDOWN_COLOR        COREFONT       "pg_down_color.png"
+IDR_PGUP_COLOR          COREFONT       "pg_up_color.png"
+IDR_PGDOWN_SEPIA        COREFONT       "pg_down_sepia.png"
+IDR_PGUP_SEPIA          COREFONT       "pg_up_sepia.png"
 
 
 
 
+//////////////////////////////////
+// Dialogs, Controls, Menu Items
+//////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
 
-WZ_MENU MENU
+//Menu
+IDM_CONTEXT_MENU MENU
 BEGIN
     POPUP "Main"
     BEGIN
         MENUITEM "&Help/About",                 IDM_HELP
-        MENUITEM "&Settings",                   IDM_SETTINGS_DLG
+        MENUITEM "&Settings",                   IDM_SETTINGS
         MENUITEM "E&xit",                       IDM_EXIT
         MENUITEM SEPARATOR
         MENUITEM "&English (Alt+Shift)",        IDM_ENGLISH, CHECKED
@@ -52,85 +74,56 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Typing"
         BEGIN
-            MENUITEM "(To Delete)",             ID_DELETE_ME
+            MENUITEM "(To Delete)",             IDM_DELETE_ME
         END
         MENUITEM "&Look Up Word (F1)",          IDM_LOOKUP
     END
 END
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog  -- About/Help
-//
+//Blank (template) dialog
+IDD_BLANK DIALOGEX 0, 0, 100, 100
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif", 400, 0, 0x0
+BEGIN
+END
 
-IDD_WZ_HELP DIALOGEX 0, 0, 239, 66
+
+//"Help/About" Dialog
+/*IDD_HELP_ABOUT DIALOGEX 0, 0, 239, 66
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
 FONT 8, "MS Sans Serif", 400, 0, 0x0
 BEGIN
-    LTEXT           "wz_ver",ID_HELP_L1,16,18,81,33
-    LTEXT           "WaitZar.com",ID_HELP_H1,16,18,30,33
-    LTEXT           "wz_switch",ID_HELP_L2,16,18,81,33
-    LTEXT           "Type Burmese words like they sound, and press \x22space\x22.", ID_HELP_L3, 16, 18, 81, 33
-	LTEXT           "WaitZar users should have the relevant fonts installed, if they want to see \nwhat they type after it's chosen.", ID_HELP_L4, 16, 58, 81, 33
-	LTEXT           "Feel free to ", ID_HELP_L5A, 16, 18, 81, 33
-	LTEXT           " if you have any questions.", ID_HELP_L5B, 16, 18, 81, 33
-	LTEXT           "contact us", ID_HELP_H5, 16, 18, 81, 33
-	LTEXT           "For more information, please read the ", ID_HELP_L6, 16, 18, 81, 33
-	LTEXT           "WaitZar User's Guide", ID_HELP_H6, 16, 18, 81, 33
-    LTEXT           "",ID_HELP_BKGRD,0,31,108,30
-    DEFPUSHBUTTON   "&Ok",ID_HELP_OK,174,18,50,14
-    ICON            IDI_WAITZAR,ID_HELP_IC,117,33,20,20
-END
+    LTEXT           "wz_ver",IDC_HELP_L1,16,18,81,33
+    LTEXT           "WaitZar.com",IDC_HELP_H1,16,18,30,33
+    LTEXT           "wz_switch",IDC_HELP_L2,16,18,81,33
+    LTEXT           "Type Burmese words like they sound, and press \x22space\x22.", IDC_HELP_L3, 16, 18, 81, 33
+	LTEXT           "WaitZar users should have the relevant fonts installed, if they want to see \nwhat they type after it's chosen.", IDC_HELP_L4, 16, 58, 81, 33
+	LTEXT           "Feel free to ", IDC_HELP_L5A, 16, 18, 81, 33
+	LTEXT           " if you have any questions.", IDC_HELP_L5B, 16, 18, 81, 33
+	LTEXT           "contact us", IDC_HELP_H5, 16, 18, 81, 33
+	LTEXT           "For more information, please read the ", IDC_HELP_L6, 16, 18, 81, 33
+	LTEXT           "WaitZar User's Guide", IDC_HELP_H6, 16, 18, 81, 33
+    LTEXT           "",IDC_HELP_BKGRD,0,31,108,30
+    DEFPUSHBUTTON   "&Ok",IDOK,174,18,50,14
+    ICON            IDI_WAITZAR,IDC_HELP_ICON,117,33,20,20
+END*/
 
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog  -- Settings
-//
-IDD_WZ_SETTINGS DIALOGEX 0, 0, 200, 150
+//"Settings" Dialog
+IDD_SETTINGS DIALOGEX 0, 0, 200, 150
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "WaitZar's Settings"
 FONT 8, "MS Sans Serif", 400, 0, 0x0
 BEGIN
-    LTEXT           "Default Input Method",ID_SETTINGS_L1,16,18,70,33
-    COMBOBOX        ID_SETTINGS_CB1,76,18,100,100, WS_TABSTOP | CBS_DROPDOWNLIST
-    DEFPUSHBUTTON   "&Ok",ID_SETTINGS_OK,120,120,50,14
-    PUSHBUTTON      "&Cancel",ID_SETTINGS_CNCL,174,120,50,14
+    LTEXT           "Default Input Method",IDC_SETTINGS_L1,16,18,70,33
+    COMBOBOX        IDC_SETTINGS_CB1,76,18,100,100, WS_TABSTOP | CBS_DROPDOWNLIST
+    DEFPUSHBUTTON   "&Ok",IDOK,120,120,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,174,120,50,14
 END
 
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// MODEL
-//
 
-WZ_MODEL                MODEL                   "Myanmar.model"
-WZ_EASYPS               MODEL                   "easypatsint.txt"
-WZ_DEFAULT_CFG          MODEL                   "default-config.json.txt"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// COREFONT
-//
-
-WZ_FONT                 COREFONT                "waitzar.font.png"
-WZ_SMALL_FONT           COREFONT                "waitzar_small.font.png"
-WZ_HELP_KEY_FONT        COREFONT                "help_ar_letters.font.png"
-WZ_HELP_FORE_FONT       COREFONT                "help_zg_main.font.png"
-WZ_HELP_BACK_FONT       COREFONT                "help_zg_sub.font.png"
-WZ_HELP_CORNER          COREFONT                "keybd_corner.png"
-WZ_PGDOWN_COLOR         COREFONT                "pg_down_color.png"
-WZ_PGUP_COLOR           COREFONT                "pg_up_color.png"
-WZ_PGDOWN_SEPIA         COREFONT                "pg_down_sepia.png"
-WZ_PGUP_SEPIA           COREFONT                "pg_up_sepia.png"
-WZ_PADAUK_ZG            COREFONT                "pdkzg.ttf"
-
-
-
-//////////////////////////////////
-// Dialogs, Controls, Menu Items
-//////////////////////////////////
