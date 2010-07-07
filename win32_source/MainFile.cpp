@@ -1819,7 +1819,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				//Set the background color of our static item
 				return (BOOL)g_DlgHelpSlash;
 			}
-			if (ctlID==IDC_HELP_H1) {
+			if (ctlID==IDC_HELP_H1 || ctlID==IDC_HELP_H5 || ctlID==IDC_HELP_H6) {
 				//Make it blue
 				SetTextColor((HDC)wParam, RGB(255, 0, 0));
 			}

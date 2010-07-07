@@ -84,6 +84,9 @@
 #define IDM_DELETE_ME          40007
 #define IDM_LOOKUP             40008
 
+//Our dummy "blank" dialog, to be filled in programmatically
+#define IDD_BLANK              41000
+
 //"Help/About" Dialog
 enum {
 	IDC_HELP_L1              = 41001,
@@ -103,9 +106,6 @@ enum {
 #define IDD_SETTINGS           42000
 #define IDC_SETTINGS_L1        42001
 #define IDC_SETTINGS_CB1       42002
-
-//Our dummy "blank" dialog, to be filled in programmatically
-#define IDD_BLANK              43000
 
 
 
