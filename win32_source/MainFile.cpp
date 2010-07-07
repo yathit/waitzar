@@ -55,7 +55,7 @@
 #define NOSOUND             //- Sound driver routines
 //#define NOTEXTMETRIC        //- typedef TEXTMETRIC and associated routines
 #define NOWH                //- SetWindowsHook and WH_*
-#define NOWINOFFSETS        //- GWL_*, GCL_*, associated routines
+//#define NOWINOFFSETS        //- GWL_*, GCL_*, associated routines
 #define NOCOMM              //- COMM driver routines
 #define NOKANJI             //- Kanji support stuff.
 #define NOHELP              //- Help engine interface.
@@ -1711,7 +1711,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			RECT txtR;
 			txtR.left = fHeight*3 + 20 + fHeight/2 - fHeight%2; //The icon is roughly 20px
 			txtR.top = fHeight*2 + buff;
-			size_t bkgrdH = (192+14+(fHeight-1)*2);
+			size_t bkgrdH = 21 + (fHeight-1)*2;
 			GetClientRect(hwnd, &wndR);
 			txtR.right = wndR.right-txtR.left - fHeight*2 - fHeight/2;
 			txtR.bottom = wndR.bottom-txtR.top - fHeight - bkgrdH;
@@ -1745,7 +1745,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 				//Line 5
 				pendingItems.push_back(WControl(IDC_HELP_L6, L"For more information, please read the ", L"STATIC", false, txtR.left));
-				pendingItems.push_back(WControl(IDC_HELP_L6, L"WaitZar User's Guide", L"STATIC"));
+				pendingItems.push_back(WControl(IDC_HELP_H6, L"WaitZar User's Guide", L"STATIC", true));
 			}
 
 			//Now adjust
@@ -1767,10 +1767,12 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			//A few more controls that don't fit this pattern.
 			//Ok button, background label, icon
-			//pendingItems.push_back(WControl(IDC_HELP_BKGRD, L"", L"STATIC", false, 0, 236-bkgrdH, 467, bkgrdH));
+			pendingItems.push_back(WControl(IDC_HELP_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth, bkgrdH));
 			pendingItems.push_back(WControl(IDC_HELP_ICON, L"", L"STATIC", false, fHeight*2, fHeight*2));
 			pendingItems[pendingItems.size()-1].iconID = IDI_WAITZAR;
-			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, 206, 192, 50, 14));
+			accX = 75;
+			accY = 23;
+			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-accX, wndR.bottom+1-bkgrdH+accY/2, accX, accY));
 
 
 			//DC's no longer needed.
@@ -1793,6 +1795,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						 it->x, it->y, it->w, it->h,
                          hwnd, NULL, hInst, NULL );
 				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+				SetWindowLongPtr(ctl, GWL_ID, it->id);
 				if (it->iconID!=0) {
 					//Send an update_icon method. I tried SS_ICON before, but it didn't work.
 					HICON hicon = LoadIcon(hInst, MAKEINTRESOURCE(it->iconID));
@@ -1811,11 +1814,12 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			return (BOOL)g_DlgHelpBkgrd;
 		case WM_CTLCOLORSTATIC:
 		{
-			if (GetDlgCtrlID((HWND)lParam)==IDC_HELP_BKGRD) {
+			int ctlID = GetDlgCtrlID((HWND)lParam);
+			if (ctlID==IDC_HELP_BKGRD) {
 				//Set the background color of our static item
 				return (BOOL)g_DlgHelpSlash;
 			}
-			if (GetDlgCtrlID((HWND)lParam)==IDC_HELP_H1) {
+			if (ctlID==IDC_HELP_H1) {
 				//Make it blue
 				SetTextColor((HDC)wParam, RGB(255, 0, 0));
 			}
