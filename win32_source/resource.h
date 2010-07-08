@@ -37,9 +37,7 @@
 
 //Pulp Core Font Files (pagination images)
 #define IDR_PGDOWN_COLOR       307
-#define IDR_PGUP_COLOR         308
-#define IDR_PGDOWN_SEPIA       309
-#define IDR_PGUP_SEPIA         310
+
 
 
 

@@ -81,6 +81,8 @@ public:
 
 	//Somewhat hackish
 	void fillRectangle(int startX, int startY, int width, int height, int ARGB);
+	void flipSelfVertical();
+	void sepiaizeSelf();
 	void rotateSelf90DegreesClockwise();
 
 	//Basic drawing functionality
@@ -133,6 +135,8 @@ protected:
 	void decodeFilter(char* curr, int curr_len, char* prev, int filter, int bpp);
 	int paethPredictor(int a, int b, int c);
 	int premultiply(UINT arbg);
+	int premultiply(int a, int r, int g, int b);
+	void unpremultiply(UINT arbg, int& a, int& r, int& g, int& b);
 	void premultiply(UINT* arbg, int argb_len);
 	void inflateFully(Inflater* inflater, char* result, int res_length);
 
