@@ -43,8 +43,19 @@
 // for each main dialog; this makes debugging
 // a bit easier.
 enum {
+	//Context menu
+    IDM_HELP                 = 40001,
+    IDM_SETTINGS,
+    IDM_EXIT,
+    IDM_ENGLISH,
+    IDM_MYANMAR,
+    IDM_LOOKUP,
+
+	//Where to add "typing" sub-menu items.
+	IDM_TYPING_SUBMENU_START = 41001,
+
 	//"Help/About" Dialog
-	IDC_HELP_L1              = 41001,
+	IDC_HELP_L1              = 42001,
     IDC_HELP_H1,
     IDC_HELP_L2,
     IDC_HELP_L4,
@@ -57,7 +68,7 @@ enum {
     IDC_HELP_ICON,
 
 	//"Settings" Dialog
-	IDC_SETTINGS_L1          = 42000,
+	IDC_SETTINGS_L1          = 43001,
 	IDC_SETTINGS_CB1,
 	IDC_SETTINGS_BKGRD,
 };

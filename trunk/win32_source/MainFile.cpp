@@ -139,7 +139,6 @@ const unsigned int UWM_SYSTRAY = WM_USER+1;
 const unsigned int UWM_HOTKEY_UP = WM_USER+2;
 
 //Window IDs for the "Language" sub-menu
-const unsigned int DYNAMIC_CMD_START = 50000;
 const wstring WND_TITLE_LANGUAGE = L"\u1018\u102C\u101E\u102C\u1005\u1000\u102C\u1038";
 const wstring WND_TITLE_INPUT = L"Input Method";
 const wstring WND_TITLE_OUTPUT = L"Encoding";
@@ -2450,51 +2449,29 @@ void createMyanmarMenuFont()
 void createContextMenu()
 {
 	//Load the context menu into memory from the resource file.
-	contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDM_CONTEXT_MENU));
-	contextMenuPopup = GetSubMenu(contextMenu, 0);
+	//contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDM_CONTEXT_MENU));
+	//contextMenuPopup = GetSubMenu(contextMenu, 0);
+	contextMenu = CreateMenu();
+	contextMenuPopup = CreateMenu();
+	AppendMenu(contextMenu, MF_POPUP|MF_STRING, (UINT_PTR)contextMenuPopup, L"Main");
 
-	//Get some useful statistics about our menu items
-	int maxMenuItems = GetMenuItemCount(contextMenuPopup);
-	if (maxMenuItems==-1)
-		throw std::exception("Could not find context menu submenus.");
-	UINT cmpID = 0;
-	{
-		MENUITEMINFO miinfo;
-		miinfo.cbSize = sizeof(MENUITEMINFO);
-		miinfo.fMask = MIIM_ID; //Retrieve the submenu
-		if (GetMenuItemInfo(contextMenu, IDM_DELETE_ME, FALSE, &miinfo)==TRUE)
-			cmpID = miinfo.wID;
-		else
-			throw std::exception("Could not find context menu's ID_DELETE_ME item.");
-	}
+	//Add normal entries, including "Typing", but no sub-entries.
+	typingMenu = CreateMenu();
+	AppendMenu(contextMenuPopup, MF_STRING, IDM_HELP, L"&Help/About");
+	AppendMenu(contextMenuPopup, MF_STRING, IDM_SETTINGS, L"&Settings");
+	AppendMenu(contextMenuPopup, MF_STRING, IDM_EXIT, L"E&xit");
+	AppendMenu(contextMenuPopup, MF_SEPARATOR, NULL, NULL);
+	AppendMenu(contextMenuPopup, MF_STRING|MF_CHECKED, IDM_ENGLISH, L"&English (Alt+Shift)");
+	AppendMenu(contextMenuPopup, MF_STRING, IDM_MYANMAR, L"&Myanmar (Alt+Shift)");
+	AppendMenu(contextMenuPopup, MF_SEPARATOR, NULL, NULL);
+	AppendMenu(contextMenuPopup, MF_POPUP|MF_STRING, (UINT_PTR)typingMenu, L"&Typing");
+	AppendMenu(contextMenuPopup, MF_STRING, IDM_LOOKUP, L"&Look Up Word (F1)");
 
-	//Find the ID of our "Typing" popup menuitem
-	typingMenu = NULL;
-	for (size_t i=0; i<(size_t)maxMenuItems; i++) {
-		//Does this ID represent a submenu?
-		typingMenu = GetSubMenu(contextMenuPopup, i);
-		if (typingMenu!=NULL) {
-			//Confirm that the first sub-menu-item is the same as our DELETE_ME item.
-			UINT itID1 = GetMenuItemID(typingMenu, 0);
-			if(itID1==cmpID)
-				break;
-			else
-				typingMenu = NULL; //Reset
-		}
-	}
-
-	//Found it?
-	if (typingMenu==NULL)
-		throw std::exception("Could not retrieve context menu submenu");
-	//typingMenu = GetSubMenu(contextMenuPopup, 7); //TODO: Change to 6.... remove "Encoding" menu
-
-	//Build our complex submenu for Language, Input Method, and Output Encoding	
-	RemoveMenu(typingMenu, IDM_DELETE_ME, MF_BYCOMMAND);
 
 	//Build each sub-menu if none have been created yet. (In case we ever recycle this menu).
 	if (totalMenuItems == 0) {
 		//Give each menu item a unique ID
-		unsigned int currDynamicCmd = DYNAMIC_CMD_START;
+		unsigned int currDynamicCmd = IDM_TYPING_SUBMENU_START;
 
 		//Init the cache; store in a vector for now.
 		WZMenuItem sep = WZMenuItem(0, WZMI_SEP, L"", L"");
@@ -2538,6 +2515,7 @@ void createContextMenu()
 			totalMenuItems++;
 		}
 	}
+
 
 	//Add each menu in our cache
 	for (size_t i=0; i<totalMenuItems; i++) {
@@ -2594,7 +2572,7 @@ void updateContextMenuState()
 
 		//Check/uncheck manually
 		unsigned int checkFlag = (customMenuItems[i].id==idToCheck) ? MF_CHECKED : MF_UNCHECKED;
-		CheckMenuItem(typingMenu, DYNAMIC_CMD_START+i, MF_BYCOMMAND|checkFlag);
+		CheckMenuItem(typingMenu, IDM_TYPING_SUBMENU_START+i, MF_BYCOMMAND|checkFlag);
 	}
 }
 
@@ -2932,7 +2910,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else if (retVal == IDM_EXIT) {
 					//Will generate a WM_DESTROY message
 					delete mainWindow;
-				} else if (retVal >= DYNAMIC_CMD_START) {
+				} else if (retVal >= IDM_TYPING_SUBMENU_START) {
 					//Switch the language, input manager, or output manager.
 					if (customMenuItemsLookup.count(retVal)==0)
 						throw std::exception("Bad menu item");

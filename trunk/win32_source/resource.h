@@ -47,15 +47,6 @@
 // Dialogs, Controls, Menu Items
 //////////////////////////////////
 
-//Main Context Menu & its Menu Items
-#define IDM_CONTEXT_MENU       40001
-#define IDM_HELP               40002
-#define IDM_SETTINGS           40003
-#define IDM_EXIT               40004
-#define IDM_ENGLISH            40005
-#define IDM_MYANMAR            40006
-#define IDM_DELETE_ME          40007
-#define IDM_LOOKUP             40008
 
 //Our dummy "blank" dialog, to be filled in programmatically
 #define IDD_BLANK              41000
