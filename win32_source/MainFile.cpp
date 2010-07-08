@@ -1174,7 +1174,7 @@ void showSettingsMenu(HWND hwnd)
 	if (!showingSettingsPopup) {
 		showingSettingsPopup = true;
 
-		DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_SETTINGS), hwnd, SettingsDlgProc);
+		DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_BLANK), hwnd, SettingsDlgProc);
 		//MessageBox(NULL, L"Settings", L"Settings", MB_ICONINFORMATION|MB_OK);
 
 		showingSettingsPopup = false;
@@ -1874,17 +1874,79 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_INITDIALOG:
 		{
-			//Deafult input method?
-			wstring defaultLangID = config.activeLanguage.defaultInputMethod;
+			//Resize the settings dialog; keep it at the same position.
+			//Also, set its caption.
+			const size_t wndWidth = 350;
+			const size_t wndHeight = 250;
+			RECT wndR;
+			GetWindowRect(hwnd, &wndR);
+			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
+			SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)L"WaitZar's Settings");
+			GetClientRect(hwnd, &wndR);
 
-			//Add all combo menu items
-			HWND hwComboBox = GetDlgItem(hwnd, IDC_SETTINGS_CB1);
-			SendMessage(hwComboBox, CB_RESETCONTENT, 0, 0);
-			for (std::set<InputMethod*>::const_iterator it=config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
-				LRESULT res = SendMessage(hwComboBox, CB_ADDSTRING, 0, (LPARAM)(*it)->displayName.c_str());
-				if (res!=CB_ERR && (*it)->id==defaultLangID) {
-					//Select it.
-					SendMessage(hwComboBox, CB_SETCURSEL, (WPARAM)res, 0);
+			//Get dialog font
+			HFONT dlgFont = (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0);
+
+			//Get font stats
+			HDC currDC = GetDC(hwnd);
+			SelectObject(currDC, dlgFont);
+			const size_t fHeight = HIWORD(GetTabbedTextExtent(currDC, L"[Wp]", 4, 0, NULL));
+			const size_t bkgrdH = 21 + (fHeight-1)*2;
+			ReleaseDC(hwnd, currDC);
+
+			//Create element - Static bkgrd
+			{
+				HWND ctl = CreateWindow(L"STATIC", L"", WS_CHILD|WS_VISIBLE, 
+						 0, wndR.bottom-bkgrdH, wndWidth, bkgrdH, hwnd, NULL, hInst, NULL );
+				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+				SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_BKGRD);
+			}
+
+			//Create element - Ok button
+			{
+				size_t w = 75;
+				size_t h = 23;
+				HWND ctl = CreateWindow(L"BUTTON", L"&Ok", WS_CHILD|WS_VISIBLE|BS_DEFPUSHBUTTON, 
+						 wndR.right-fHeight*2-11-w - fHeight/2 - w, wndR.bottom+1-bkgrdH+h/2, w, h, hwnd, NULL, hInst, NULL );
+				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+				SetWindowLongPtr(ctl, GWL_ID, IDOK);
+			}
+
+			//Create element - Cancel button
+			{
+				size_t w = 75;
+				size_t h = 23;
+				HWND ctl = CreateWindow(L"BUTTON", L"&Cancel", WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, 
+						 wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h, hwnd, NULL, hInst, NULL );
+				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+				SetWindowLongPtr(ctl, GWL_ID, IDCANCEL);
+			}
+
+			//Create element - Static Label
+			{
+				HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
+						 20, 20, 120, fHeight, hwnd, NULL, hInst, NULL );
+				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+				SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_L1);
+			}
+
+			//Create element - Combo Box
+			{
+				HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
+						 140, 20, 100, 100, hwnd, NULL, hInst, NULL );
+				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+				SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_CB1);
+
+				//Deafult input method?
+				wstring defaultLangID = config.activeLanguage.defaultInputMethod;
+
+				//Add all combo menu items
+				for (std::set<InputMethod*>::const_iterator it=config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
+					LRESULT res = SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)(*it)->displayName.c_str());
+					if (res!=CB_ERR && (*it)->id==defaultLangID) {
+						//Select it.
+						SendMessage(ctl, CB_SETCURSEL, (WPARAM)res, 0);
+					}
 				}
 			}
 
@@ -1892,6 +1954,19 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_CTLCOLORDLG:
 			return (BOOL)g_DlgHelpBkgrd;
+		case WM_CTLCOLORSTATIC:
+		{
+			int ctlID = GetDlgCtrlID((HWND)lParam);
+			if (ctlID==IDC_SETTINGS_BKGRD) {
+				//Set the background color of our static item
+				return (BOOL)g_DlgHelpSlash;
+			}
+
+			//Transparent? Ugh.
+			SetBkColor((HDC)wParam, RGB(0xEE, 0xFF, 0xEE));
+			return (BOOL)g_DlgHelpBkgrd;
+			break;
+		}
 		case WM_COMMAND:
 			switch(LOWORD(wParam))
 			{

@@ -60,8 +60,4 @@
 //Our dummy "blank" dialog, to be filled in programmatically
 #define IDD_BLANK              41000
 
-//"Settings" Dialog
-#define IDD_SETTINGS           42000
-#define IDC_SETTINGS_L1        42001
-#define IDC_SETTINGS_CB1       42002
 
