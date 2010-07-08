@@ -207,8 +207,12 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 		if (prefixStr[onsID]!=L'|' && onsID<prefixStr.size()-1)
 			continue;
 
+		//Never do anything if the onset is empty
+		if (onset.str().empty())
+			continue;
+
 		//Replace the current prefix with a pat-sint equivalent if the first letter is capital
-		if (firstLetterUppercase && !onset.str().empty()) {
+		if (firstLetterUppercase) {
 			//Stacking only occurs with single-letter onsets (exception: the ya medials)
 			wstring oldPrefix = onset.str();
 			wchar_t c = oldPrefix[0];
@@ -239,6 +243,10 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 				rhyme <<suffixStr[rhymeID];
 			//Skip?
 			if (suffixStr[rhymeID]!=L'|' && rhymeID<suffixStr.size()-1)
+				continue;
+
+			//Again, skip empty strings
+			if (rhyme.str().empty())
 				continue;
 
 			//We've built our onset + rhyme into rhyme directly. 
