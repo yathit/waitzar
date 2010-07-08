@@ -99,7 +99,7 @@
 #include "Transform/Self2Self.h"
 
 //VS Includes
-#include "resource.h"
+#include "resource_ex.h"
 
 
 using namespace waitzar;
