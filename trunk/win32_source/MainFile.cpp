@@ -760,8 +760,56 @@ void makeFont()
 		//UnlockResource(res_handle);
 	}
 
+
+	//Load our page down (color) image, generate the rest.
+	{
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PGDOWN_COLOR), _T("COREFONT"));
+		if (!imgRes) {
+			MessageBox(NULL, _T("Couldn't find IDR_PGDOWN_COLOR"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, imgRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on IDR_PGDOWN_COLOR"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		pageImages[0] = new PulpCoreImage();
+		try {
+			mainWindow->initPulpCoreImage(pageImages[0], imgRes, res_handle);
+		} catch (std::exception ex) {
+			wstringstream msg;
+			msg <<"IDR_PGDOWN_COLOR image didn't load correctly: " <<ex.what();
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			throw ex;
+		}
+	}
+
+	//Initialize the other 3.
+	for (size_t i=1; i<=3; i++)
+		pageImages[i] = new PulpCoreImage();
+	
+
+	//Copy image[1], PGUP_COLOR, and flip image[0] to create it
+	mainWindow->initPulpCoreImage(pageImages[1], pageImages[0]);
+	pageImages[1]->flipSelfVertical();
+
+	//Copy image[2], IDR_PGDOWN_SEPIA, and sepia-ize image[0] to create it.
+	mainWindow->initPulpCoreImage(pageImages[2], pageImages[0]);
+	pageImages[2]->sepiaizeSelf();
+
+	//Copy image[3], IDR_PGUP_SEPIA, and sepia-ize image[1] to create it.
+	mainWindow->initPulpCoreImage(pageImages[3], pageImages[1]);
+	pageImages[3]->sepiaizeSelf();
+
+
+
+
+
 	//Load our page down/up images
-	for (int i=0; i<4; i++) {
+	/*for (int i=0; i<4; i++) {
 		//First the resource
 		int PG_RES_ID = i==0?IDR_PGDOWN_COLOR:i==1?IDR_PGUP_COLOR:i==2?IDR_PGDOWN_SEPIA:IDR_PGUP_SEPIA;
 		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(PG_RES_ID), _T("COREFONT"));
@@ -789,7 +837,7 @@ void makeFont()
 
 		//Unlock this resource for later use.
 		//UnlockResource(res_handle);
-	}
+	}*/
 }
 
 

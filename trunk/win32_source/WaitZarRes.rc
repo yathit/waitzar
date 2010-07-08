@@ -48,11 +48,6 @@ IDR_HELP_CORNER_IMG     COREFONT       "keybd_corner.png"
 
 //Pulp Core Images -- Pagination (should reduce to just 1 & some post-processing)
 IDR_PGDOWN_COLOR        COREFONT       "pg_down_color.png"
-IDR_PGUP_COLOR          COREFONT       "pg_up_color.png"
-IDR_PGDOWN_SEPIA        COREFONT       "pg_down_sepia.png"
-IDR_PGUP_SEPIA          COREFONT       "pg_up_sepia.png"
-
-
 
 
 //////////////////////////////////

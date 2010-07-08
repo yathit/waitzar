@@ -180,6 +180,51 @@ void PulpCoreImage::fillRectangle(int startX, int startY, int width, int height,
 }
 
 
+//Hackish, but obvious
+void PulpCoreImage::flipSelfVertical()
+{
+	int yMax = this->getHeight()/2 + this->getHeight()%2;
+	for (int y=0; y<yMax; y++) {
+		for (int x=0; x<this->getWidth(); x++) {
+			int src  = y*this->getWidth()+x;
+			int dest = (this->getHeight()-1-y)*this->getWidth()+x;
+
+			//Swap
+			UINT temp = directPixels[src];
+			directPixels[src] = directPixels[dest];
+			directPixels[dest] = temp;
+		}
+	}
+}
+
+
+//Same, same
+void PulpCoreImage::sepiaizeSelf()
+{
+	for (int y=0; y<this->getHeight(); y++) {
+		for (int x=0; x<this->getWidth(); x++) {
+			int id  = y*this->getWidth()+x;
+
+			//Get RGB, alpha.
+			int a, r, g, b;
+			unpremultiply(directPixels[id], a, r, g, b);
+
+			//Compute "luminosity" (more accurate grayscale version). Apply to each pixel, bound.
+			// Also, compute the "depth" based on luminosity; greater depth adds more sepia.
+			unsigned int lum = (2126*r + 7152*g + 722*b)/10000;
+			unsigned int depth = (lum * 20)/255 + 10;
+			r = std::min<unsigned int>(255, lum+(depth*2));
+			g = std::min<unsigned int>(255, lum+depth);
+			b = lum;
+
+			//Save final result
+			directPixels[id] = premultiply(a, r, g, b);
+		}
+	}
+}
+
+
+
 /**
  * Also slightly hackish. Used to rotate an image by 90 degrees. This is used in the "corner" image file,
  *  to save a tiny amount of space and (more importantly) for consistency.
@@ -645,11 +690,33 @@ int PulpCoreImage::premultiply(UINT arbg)
 	int g = doubleRightShift(arbg, 8) & 0xFF;
     int b = arbg & 0xFF;
 
+	return premultiply(a, r, g, b);
+}
+
+
+int PulpCoreImage::premultiply(int a, int r, int g, int b)
+{
 	r = (a * r + 127) / 255;
     g = (a * g + 127) / 255;
     b = (a * b + 127) / 255;
 
     return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+
+void PulpCoreImage::unpremultiply(UINT arbg, int& a, int& r, int& g, int& b)
+{
+	a = doubleRightShift(arbg, 24) & 0xFF;
+	r = doubleRightShift(arbg, 16) & 0xFF;
+	g = doubleRightShift(arbg, 8) & 0xFF;
+    b = arbg & 0xFF;
+
+	//Undo~
+	if (a!=0) {
+		r = (255*r - 127) / a;
+		g = (255*g - 127) / a;
+		b = (255*b - 127) / a;
+	}
 }
 
 
