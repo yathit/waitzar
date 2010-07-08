@@ -296,8 +296,8 @@ ConfigManager config(getMD5Hash);
 //BOOL customDictWarning = FALSE;
 
 //These two will take some serious fixing later.
-TCHAR langHotkeyString[100];
-char langHotkeyRaw[100];
+wstring hkString;
+string hkRaw;
 
 //More old-style settings; have to remove somehow.
 bool highlightKeys = true;
@@ -845,8 +845,8 @@ BOOL waitzarAlreadyStarted()
 void loadConfigOptions()
 {
 	//Default keys
-	lstrcpy(langHotkeyString, _T("Ctrl+Shift"));
-	strcpy(langHotkeyRaw, "^+");
+	hkString  = L"Ctrl+Shift";
+	hkRaw = "^+";
 
 	//Default encoding
 	//setEncoding(ENCODING_UNICODE);
@@ -898,7 +898,7 @@ void loadConfigOptions()
 		} else if (strcmp(name, "defaultencoding")==0) {
 		} else if (strcmp(name, "hotkey")==0) {
 			//Set it later
-			strcpy(langHotkeyRaw, value);
+			hkRaw = string(value);
 			numConfigOptions++;
 		} else if (strcmp(name, "fontfileregular")==0) {
 			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
@@ -928,52 +928,48 @@ bool registerInitialHotkey()
 {
 	UINT modifier = 0;
 	UINT keycode = 0;
-	size_t str_len = strlen(langHotkeyRaw);
 
 	//Now, set the keycode
 	//Additional rule: all keystroke modifiers must also themselves be modifiers
-	keycode = langHotkeyRaw[str_len-1];
+	keycode = hkRaw[hkRaw.length()-1];
 	switch(keycode) {
 		case '!':
-			lstrcpy(langHotkeyString, _T("Alt"));
+			hkString = L"Alt";
 			keycode = VK_MENU; //VK_MENU == VK_ALT
 			modifier |= MOD_ALT;
 			break;
 		case '^':
-			lstrcpy(langHotkeyString, _T("Ctrl"));
+			hkString = L"Ctrl";
 			keycode = VK_CONTROL;
 			modifier |= MOD_CONTROL;
 			break;
 		case '+':
-			lstrcpy(langHotkeyString, _T("Shift"));
+			hkString = L"Shift";
 			keycode = VK_SHIFT;
 			modifier |= MOD_SHIFT;
 			break;
 		case '_':
-			lstrcpy(langHotkeyString, _T("Space"));
+			hkString = L"Space";
 			keycode = VK_SPACE;
 			break;
 		default:
-			swprintf(langHotkeyString, _T("%C"), keycode);
+			hkString = L"*";
+			hkString[0] = (wchar_t)keycode;
 	}
 
 	//Now, set the modifiers
-	TCHAR* temp = new TCHAR[100];
-	for (size_t pos=0; pos<str_len-1; pos++) {
-		switch(langHotkeyRaw[pos]) {
+	for (size_t pos=0; pos<hkRaw.length()-1; pos++) {
+		switch(hkRaw[pos]) {
 			case '!':
-				swprintf(temp, _T("Alt+%s"), langHotkeyString);
-				lstrcpy(langHotkeyString, temp);
+				hkString = L"Alt+" + hkString;
 				modifier |= MOD_ALT;
 				break;
 			case '^':
-				swprintf(temp, _T("Ctrl+%s"), langHotkeyString);
-				lstrcpy(langHotkeyString, temp);
+				hkString = L"Ctrl+" + hkString;
 				modifier |= MOD_CONTROL;
 				break;
 			case '+':
-				swprintf(temp, _T("Shift+%s"), langHotkeyString);
-				lstrcpy(langHotkeyString, temp);
+				hkString = L"Shift+" + hkString;
 				modifier |= MOD_SHIFT;
 				break;
 		}
@@ -981,8 +977,7 @@ bool registerInitialHotkey()
 
 	//Additional rule: Capital letters require a shift modifier
 	if (keycode>='A' && keycode<='Z') {
-		swprintf(temp, _T("Shift+%s"), langHotkeyString);
-		lstrcpy(langHotkeyString, temp);
+		hkString = L"Shift+" + hkString;
 		modifier |= MOD_SHIFT;
 	}
 
@@ -990,9 +985,6 @@ bool registerInitialHotkey()
 	if (keycode>='a' && keycode<='z') {
 		keycode -= 'a'-'A';
 	}
-
-	//Reclaim memory
-	delete [] temp;
 
 	return mainWindow->registerHotKey(LANG_HOTKEY, modifier, keycode);
 }
@@ -1728,7 +1720,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 				//Line 2
 				txtS.str(L"");
-				txtS <<langHotkeyString <<" - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".";
+				txtS <<hkString <<" - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".";
 				pendingItems.push_back(WControl(IDC_HELP_L2, txtS.str(), L"STATIC", false, txtR.left));
 				pendingItems[pendingItems.size()-1].h = fHeight*3;
 
@@ -2545,10 +2537,10 @@ void updateContextMenuState()
 {
 	//Hotkey string, check mark for the current language.
 	std::wstringstream txt;
-	txt <<L"English (" <<langHotkeyString <<")";
+	txt <<L"English (" <<hkString <<")";
 	ModifyMenu(contextMenu, IDM_ENGLISH, MF_BYCOMMAND|(mmOn?0:MF_CHECKED), IDM_ENGLISH, txt.str().c_str());
 	txt.str(L"");
-	txt <<L"Myanmar (" <<langHotkeyString <<")";
+	txt <<L"Myanmar (" <<hkString <<")";
 	ModifyMenu(contextMenu, IDM_MYANMAR, MF_BYCOMMAND|(mmOn?MF_CHECKED:0), IDM_MYANMAR, txt.str().c_str());	
 
 	//Set a check for the "Look Up Word" function
@@ -2717,18 +2709,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
-
-
-		/*case WM_INPUTLANGCHANGE:
-		{
-			//This doens't work (because the language doesn't change for WaitZar, but rather for the focus window.
-			//    ....we're going to have to use attachthreadinput, aren't we....
-			//But that's not right, because we want the ACTUAL keyboard for this thread. Hmm....
-			WORD id = (WORD)lParam;
-			break;
-		}*/
-
-
 
 		case WM_MEASUREITEM:  //Measure our custom menus.
 		{
@@ -3592,7 +3572,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
 		if (testFileName.empty())
-			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), langHotkeyString);
+			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), hkString);
 		else
 			swprintf(nid.szInfo, _T("WaitZar is running regression tests. \n\nPlease wait for these to finish."));
 		nid.uTimeout = 20;
