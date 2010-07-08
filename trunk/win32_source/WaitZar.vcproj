@@ -527,6 +527,10 @@
 					RelativePath=".\resource.h"
 					>
 				</File>
+				<File
+					RelativePath=".\resource_ex.h"
+					>
+				</File>
 				<Filter
 					Name="Engine"
 					>
