@@ -1925,6 +1925,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Get dialog font
 			HFONT dlgFont = (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0);
+			HFONT mmdlgFont = menuFont->getInternalHFont();
 
 			//Get font stats
 			HDC currDC = GetDC(hwnd);
@@ -1961,16 +1962,74 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				SetWindowLongPtr(ctl, GWL_ID, IDCANCEL);
 			}
 
-			//Create element - Static Label
+
+			//Create element - Tab control
 			{
+				//Main control
+				HWND hwTabMain = CreateWindow(L"SysTabControl32", L"", WS_CHILD|WS_VISIBLE,
+						20, 20, wndR.right-40, wndR.bottom-bkgrdH-40, hwnd, NULL, hInst, NULL);
+				SendMessage(hwTabMain, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
+				SetWindowLongPtr(hwTabMain, GWL_ID, IDC_SETTINGS_MAINTAB);
+				RECT tabR;
+				GetWindowRect(hwTabMain, &tabR);
+				
+
+				//For each language, add a panel
+				TCITEM tci;
+				tci.mask = TCIF_TEXT;
+				size_t defTabID = 0;
+				for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
+					wchar_t name[512];
+					wcscpy(name, it->displayName.c_str());
+					tci.pszText = name;
+					int tabPageID = TabCtrl_InsertItem(hwTabMain, TabCtrl_GetItemCount(hwTabMain), &tci);
+					if (it->id == config.activeLanguage.id)
+						defTabID = tabPageID;
+
+					//For each panel, add some controls~
+					{
+						HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
+							 tabR.left+20, tabR.top+20, 120, fHeight, hwTabMain, NULL, hInst, NULL );
+						SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+						//SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_L1); //Fix this later...
+					}
+					{
+						HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
+								 tabR.left+140, tabR.top+20, 100, 100, hwTabMain, NULL, hInst, NULL );
+						SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+						//SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_CB1);
+
+						//Deafult input method?
+						wstring defaultLangID = it->defaultInputMethod;
+
+						//Add all combo menu items
+						for (std::set<InputMethod*>::const_iterator it2=it->inputMethods.begin(); it2!=it->inputMethods.end(); it2++) {
+							LRESULT res = SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
+							if (res!=CB_ERR && (*it2)->id==defaultLangID) {
+								//Select it.
+								SendMessage(ctl, CB_SETCURSEL, (WPARAM)res, 0);
+							}
+						}
+					}
+				}
+
+				//Set the main visible tab to the default language.
+				TabCtrl_SetCurSel(hwTabMain,defTabID);
+			}
+
+
+
+
+			//Create element - Static Label
+		/*	{
 				HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
 						 20, 20, 120, fHeight, hwnd, NULL, hInst, NULL );
 				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
 				SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_L1);
-			}
+			}*/
 
 			//Create element - Combo Box
-			{
+			/*{
 				HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
 						 140, 20, 100, 100, hwnd, NULL, hInst, NULL );
 				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
@@ -1987,7 +2046,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						SendMessage(ctl, CB_SETCURSEL, (WPARAM)res, 0);
 					}
 				}
-			}
+			}*/
 
 			break;
 		}
@@ -3537,39 +3596,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 
-	///////TEMP: Test data
-	//NOTE: MapVirtualKey(letters[i], MAPVK_VK_TO_VSC) is what we want. And we can use it in reverse too!
-	/*char letters[] = {'Q', 'W', 'E', 'R', 'T', 'Y'};
-	char letters2[] = {'A', 'Z', 'E', 'R', 'T', 'Y'};
-	size_t lettersSz = 6;
-	wstringstream msg; 
-	msg <<L"Results:" <<std::endl;
-	for (size_t i=0; i<lettersSz; i++) {
-		SHORT key1 = LOBYTE(VkKeyScan(letters[i]));
-		UINT key2 = MapVirtualKey(letters[i], MAPVK_VK_TO_VSC);
-		msg <<letters[i] <<L" : " <<key1 <<L"," <<key2 <<std::endl;
-	}
-	MessageBox(NULL, msg.str().c_str(), L"Test Keys", MB_ICONHAND | MB_OK);
-	msg.str(L"");
-	msg <<L"Results:" <<std::endl;
-	for (size_t i=0; i<lettersSz; i++) {
-		SHORT key1 = LOBYTE(VkKeyScan(letters2[i]));
-		UINT key2 = MapVirtualKey(letters2[i], MAPVK_VK_TO_VSC);
-		msg <<letters2[i] <<L" : " <<key1 <<L"," <<key2 <<std::endl;
-	}
-	MessageBox(NULL, msg.str().c_str(), L"Test Keys2", MB_ICONHAND | MB_OK);
-	return 0;*/
-	/*MessageBox(NULL, L"Change keyboard now...", L"Test Keys2", MB_ICONHAND | MB_OK);
-	WORD currKeyboard = LOWORD(GetKeyboardLayout(0)); //Get the current thread's keyboard layout
-	WORD enUS = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-	wstringstream msg;
-	msg <<"Current keyboard: " <<std::hex <<currKeyboard <<std::dec <<std::endl;
-	msg <<"en_US   keyboard: " <<std::hex <<enUS         <<std::dec <<std::endl;
-	MessageBox(NULL, msg.str().c_str(), L"Test Keys2", MB_ICONHAND | MB_OK);
-	return 0;	*/
-	///////END TEMP
-
-
 
 	//Create our context menu
 	try {
@@ -3620,7 +3646,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
 		if (testFileName.empty())
-			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), hkString);
+			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), hkString.c_str());
 		else
 			swprintf(nid.szInfo, _T("WaitZar is running regression tests. \n\nPlease wait for these to finish."));
 		nid.uTimeout = 20;
