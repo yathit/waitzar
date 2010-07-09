@@ -1906,6 +1906,33 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 
 
+//Also used for the settings dialog
+vector<wstring> settingsLangIDs;
+void UpdateSettingsTab(HWND dlgHwnd, int tabID) 
+{
+	//Remove all entries.
+	HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_CB1);
+	SendMessage(ctl, CB_RESETCONTENT, 0, 0);
+
+	//Invalid language?
+	if (tabID==-1)
+		return;
+
+	//Get the language for this panel.
+	const wstring langID = settingsLangIDs[tabID];
+	const Language& lng = *FindKeyInSet(config.getLanguages(), langID);
+
+	//Add all combo item entries.
+	SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"N/A");
+	SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(Auto)");
+	for (std::set<InputMethod*>::const_iterator it2=lng.inputMethods.begin(); it2!=lng.inputMethods.end(); it2++) {
+		SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
+	}
+	SendMessage(ctl, CB_SETCURSEL, 0, 0); //Choose the first item, for now.
+}
+
+
+
 //Message handling for our settings dialog box
 BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -1921,6 +1948,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			GetWindowRect(hwnd, &wndR);
 			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
 			SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)L"WaitZar's Settings");
+			//EnableThemeDialogTexture(hwnd, ETDT_ENABLE);
 			GetClientRect(hwnd, &wndR);
 
 			//Get dialog font
@@ -1966,18 +1994,33 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Create element - Tab control
 			{
 				//Main control
+				POINT tabR = {20, 20};
 				HWND hwTabMain = CreateWindow(L"SysTabControl32", L"", WS_CHILD|WS_VISIBLE,
-						20, 20, wndR.right-40, wndR.bottom-bkgrdH-40, hwnd, NULL, hInst, NULL);
+						tabR.x, tabR.y, wndR.right-40, wndR.bottom-bkgrdH-40, hwnd, NULL, hInst, NULL);
 				SendMessage(hwTabMain, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
 				SetWindowLongPtr(hwTabMain, GWL_ID, IDC_SETTINGS_MAINTAB);
-				RECT tabR;
-				GetWindowRect(hwTabMain, &tabR);
-				
+
+				//Static label: shared between ALL panels
+				{
+					HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
+						 tabR.x+20, tabR.y+20, 120, fHeight, hwTabMain, NULL, hInst, NULL );
+					SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_L1);
+				}
+
+				//Combo box: shared between ALL panels.
+				{
+					HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
+							 tabR.x+140, tabR.y+20, 100, 100, hwTabMain, NULL, hInst, NULL );
+					SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_CB1);
+				}
 
 				//For each language, add a panel
 				TCITEM tci;
 				tci.mask = TCIF_TEXT;
 				size_t defTabID = 0;
+				settingsLangIDs.clear();
 				for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
 					wchar_t name[512];
 					wcscpy(name, it->displayName.c_str());
@@ -1986,72 +2029,46 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (it->id == config.activeLanguage.id)
 						defTabID = tabPageID;
 
-					//For each panel, add some controls~
-					{
-						HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
-							 tabR.left+20, tabR.top+20, 120, fHeight, hwTabMain, NULL, hInst, NULL );
-						SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-						//SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_L1); //Fix this later...
-					}
-					{
-						HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
-								 tabR.left+140, tabR.top+20, 100, 100, hwTabMain, NULL, hInst, NULL );
-						SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-						//SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_CB1);
-
-						//Deafult input method?
-						wstring defaultLangID = it->defaultInputMethod;
-
-						//Add all combo menu items
-						for (std::set<InputMethod*>::const_iterator it2=it->inputMethods.begin(); it2!=it->inputMethods.end(); it2++) {
-							LRESULT res = SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
-							if (res!=CB_ERR && (*it2)->id==defaultLangID) {
-								//Select it.
-								SendMessage(ctl, CB_SETCURSEL, (WPARAM)res, 0);
-							}
-						}
-					}
+					//Save its id, in case the Set somehow re-orders them.
+					settingsLangIDs.push_back(it->id);
 				}
+
+				//Update the default tab's entries.
+				UpdateSettingsTab(hwTabMain, defTabID);
 
 				//Set the main visible tab to the default language.
-				TabCtrl_SetCurSel(hwTabMain,defTabID);
+				// (Does not fire a TCN_SELCHANGE message)
+				TabCtrl_SetCurSel(hwTabMain, defTabID);
 			}
 
+			break;
+		}
+		case WM_NOTIFY:
+		{
+			LPNMHDR info = (LPNMHDR)lParam;
+			if (info->idFrom==IDC_SETTINGS_MAINTAB) {
+				if (info->code==TCN_SELCHANGE) {
+					//Get the ID of the current tab:
+					int id = TabCtrl_GetCurSel(info->hwndFrom);
 
-
-
-			//Create element - Static Label
-		/*	{
-				HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
-						 20, 20, 120, fHeight, hwnd, NULL, hInst, NULL );
-				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-				SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_L1);
-			}*/
-
-			//Create element - Combo Box
-			/*{
-				HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
-						 140, 20, 100, 100, hwnd, NULL, hInst, NULL );
-				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-				SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_CB1);
-
-				//Deafult input method?
-				wstring defaultLangID = config.activeLanguage.defaultInputMethod;
-
-				//Add all combo menu items
-				for (std::set<InputMethod*>::const_iterator it=config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) {
-					LRESULT res = SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)(*it)->displayName.c_str());
-					if (res!=CB_ERR && (*it)->id==defaultLangID) {
-						//Select it.
-						SendMessage(ctl, CB_SETCURSEL, (WPARAM)res, 0);
-					}
+					//Update all
+					UpdateSettingsTab(info->hwndFrom, id);
 				}
-			}*/
-
+			}
 			break;
 		}
 		case WM_CTLCOLORDLG:
 			return (BOOL)g_DlgHelpBkgrd;
+		/*case WM_CTLCOLOR:
+		{
+			int ctlID = GetDlgCtrlID((HWND)lParam);
+			if (ctlID==IDC_SETTINGS_MAINTAB) {
+				//Set the background color of our static item
+				return (BOOL)g_DlgHelpSlash;
+			}
+
+			break;
+		}*/
 		case WM_CTLCOLORSTATIC:
 		{
 			int ctlID = GetDlgCtrlID((HWND)lParam);
