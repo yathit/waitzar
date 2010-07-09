@@ -100,6 +100,11 @@ void TtfDisplay::initLogicalFont(int devLogPixelsY)
 }
 
 
+HFONT TtfDisplay::getInternalHFont()
+{
+	return font;
+}
+
 
 
 void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos)

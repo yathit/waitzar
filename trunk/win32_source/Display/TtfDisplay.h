@@ -42,6 +42,9 @@ public:
 	int getStringWidth(const std::wstring &str, HDC currDC);
 	int getHeight(HDC currDC);
 
+	//Hackish, but needed in one place...
+	HFONT getInternalHFont();
+
 private:
 	HFONT font;
 	HANDLE fontHandle;
