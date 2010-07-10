@@ -1487,6 +1487,29 @@ std::string escape_wstr(const std::wstring& str, bool errOnUnicode)
 }
 
 
+std::string wcs2mbs(const std::wstring& str)
+{
+	std::stringstream res;
+	for (wstring::const_iterator c=str.begin(); c!=str.end(); c++) {
+		if (*c >= 0x0000 && *c <= 0x007F)
+			res << static_cast<char>(*c);
+		else if (*c >= 0x0080 && *c <= 0x07FF) {
+			char c1 = (((*c)>>6)&0x1F) | 0xC0;
+			char c2 = ((*c)&0x3F) | 0x80;
+			res <<c1 <<c2;
+		} else if (*c >= 0x0800 && *c <= 0xFFFF) {
+			char c1 = (((*c)>>12)&0xF) | 0xE0;
+			char c2 = (((*c)>>6)&0x3F) | 0x80;
+			char c3 = ((*c)&0x3F) | 0x80;
+		} else 
+			throw std::exception("Unicode value out of range.");
+
+	}
+	return res.str();
+}
+
+
+
 
 //Remove: 
 //  space_p, comment_p('#'), U+FEFF (BOM)

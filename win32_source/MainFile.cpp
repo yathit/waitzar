@@ -181,6 +181,21 @@ HICON mmIcon;
 HICON engIcon;
 //WordBuilder *model;
 
+
+//Useful file shorthands
+const string cfgDir = "config";
+const string fs = "\\";
+const string cfgFile = "config.json.txt";
+
+//Saved file names
+string pathMainConfig;       //Path to the main config file.
+string pathLocalFolder;      //Path to WZ's "local" folder in the AppData directory.
+string pathLocalTinySave;    //Path to the "tiny" save file we use for quickly remembering last-used input methods, etc.
+string pathLocalConfig;      //Path to WZ's "local" config.json.txt file in the AppData folder.
+string pathUserConfig;       //Path to the user's config.json.txt file in his "My Documents" directory.
+
+
+
 void createContextMenu();
 
 //More globals  --  full program customization happens here
@@ -530,51 +545,100 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 }
 
 
+bool FileExists(const wstring& fileName) 
+{
+	WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+	return (GetFileAttributesEx(fileName.c_str(), GetFileExInfoStandard, &InfoFile)==TRUE);
+}
+
+
+
 
 //DirToCheck should be of searchable form:
 //   c:\x...x
 //   The \* will be appended
-vector<wstring> GetConfigSubDirs(std::string dirToCheck, std::string configFileName)
+vector<string> GetConfigSubDirs(std::string dirToCheck, std::string configFileName)
 {
 	//Convert to wstring
 	std::wstringstream dir;
 	dir << dirToCheck.c_str();
 	dir << "\\*";
 
-	//First, just get all sub-directories
-	vector<wstring> allDir;
+	//First, just get all sub-directories with non-Unicode names.
+	vector<string> allDir;
 	WIN32_FIND_DATA FindFileData;
-	HANDLE hFind = INVALID_HANDLE_VALUE;
-	hFind = FindFirstFile(dir.str().c_str(), &FindFileData);
-	if(hFind != INVALID_HANDLE_VALUE) {
-		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			allDir.push_back(FindFileData.cFileName);
-		while(FindNextFile(hFind, &FindFileData)) {
-			if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-				allDir.push_back(FindFileData.cFileName);
+	HANDLE hFind = FindFirstFile(dir.str().c_str(), &FindFileData);
+	BOOL hFindRes = (hFind!=INVALID_HANDLE_VALUE);
+	for (;hFindRes; hFindRes=FindNextFile(hFind, &FindFileData)) {
+		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			try {
+				allDir.push_back(waitzar::escape_wstr(wstring(FindFileData.cFileName), true));
+			} catch (std::exception()) {}
 		}
 	}
 
 	//Next, add only the directories (excluding . and ..) that contain configuration files.
-	vector<wstring> resDir;
+	vector<string> resDir;
 	for (size_t i=0; i<allDir.size(); i++) {
 		//Easy
-		wstring path = allDir[i];
-		if (path == L"." || path == L"..")
+		string path = allDir[i];
+		if (path == "." || path == "..")
 			continue;
 
 		//Harder
 		std::wstringstream newpath;
-		newpath << dirToCheck.c_str();
-		newpath << "/" << path;
-		newpath << "/" << configFileName.c_str();
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
-		if (GetFileAttributesEx(newpath.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+		newpath <<dirToCheck.c_str();
+		newpath <<"/" <<path.c_str();
+		newpath <<"/" <<configFileName.c_str();
+		if (!FileExists(newpath.str()))
 			continue;
 
 		resDir.push_back(allDir[i]);
 	}
 	return resDir;
+}
+
+
+
+//Quickly save the current input method, etc. for all languages.
+void FlashSaveState()
+{
+	//Try to open it.
+	if (pathLocalTinySave.empty())
+		return;
+	ofstream outFile(pathLocalTinySave.c_str());
+	if (outFile.fail())
+		return;
+
+	
+	//Write a BOM (why, Microsoft, why!)
+	wstringstream outStr;	
+	outFile <<L'\uFEFF';
+
+	//Silently fail on any error.
+	try {
+		//Write a version number
+		outStr <<L"1\n";
+		for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
+			if (it->id==config.activeLanguage.id) {
+				outStr <<config.activeLanguage.id <<L":" <<config.activeInputMethod->id <<L":";
+				outStr <<config.activeOutputEncoding.id <<L":" <<config.activeDisplayMethods[0]->id <<L":";
+				outStr <<config.activeDisplayMethods[1]->id <<L"\n";
+			} else {
+				outStr <<it->id <<L":" <<it->defaultInputMethod <<L":" <<it->defaultOutputEncoding.id;
+				outStr <<it->defaultDisplayMethodReg <<L":" <<it->defaultDisplayMethodSmall <<L"\n";
+			}
+		}
+
+		//TODO
+		outFile <<waitzar::wcs2mbs(outStr.str());
+		//Convert to UTF-8 and write it.
+		//outFile...
+
+	} catch (std::exception ex) {}
+
+	//Done
+	outFile.close();
 }
 
 
@@ -3082,60 +3146,82 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
+void buildFilePathNames()
+{
+	//Compounded
+	pathMainConfig = cfgDir + fs + cfgFile;
+	//TODO: Find a nice way to move more of the next function up here.
+
+	//Find the local config path & folder; even if the folder might not exist yet.
+	wchar_t localAppPath[MAX_PATH];
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
+		//Try to create the folder if it doesn't exist
+		try {
+			pathLocalFolder = waitzar::escape_wstr(wstring(localAppPath), true) + fs + "WaitZar";
+			pathLocalConfig = pathLocalFolder + fs + "config.override.json.txt";
+			pathLocalTinySave = pathLocalFolder + fs + "tinysave.txt";
+		} catch (std::exception ex) {}
+	}
+
+	//Find the user config path
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
+		//Create the path
+		try {
+			pathUserConfig = waitzar::escape_wstr(localAppPath, true) + fs + "waitzar.config.json.txt";
+		} catch (std::exception ex) {}
+	}
+}
+
+
 
 bool findAndLoadAllConfigFiles()
 {
 	//Find all config files
+	bool suppressThisException = false;
 	try {
-		//Useful shorthands
-		string cfgDir = "config";
-		string fs = "\\";
-		string cfgFile = "config.json.txt";
+		//Build up known path names, save globally for future use.
+		buildFilePathNames();
 
 		//Set the main config file
-		config.initMainConfig(cfgDir + fs + cfgFile);
+		config.initMainConfig(pathMainConfig);
 
 		//Browse for all language directories, add them
-		vector<wstring> langFolders = GetConfigSubDirs(cfgDir, cfgFile);
-		for (vector<wstring>::iterator fold = langFolders.begin(); fold!=langFolders.end(); fold++) {
+		vector<string> langFolderNames = GetConfigSubDirs(cfgDir, cfgFile);
+		for (vector<string>::iterator fold = langFolderNames.begin(); fold!=langFolderNames.end(); fold++) {
 			//Get the main language config file
 			string langCfgDir;
 			string langCfgFile;
 			vector<string> langModuleCfgFiles;
 			std::stringstream errorMsg;
-			bool inError = false;
 			try {
-				langCfgDir = cfgDir;
-				langCfgDir += fs + waitzar::escape_wstr(*fold, true);
+				langCfgDir = cfgDir + fs + *fold;
 				langCfgFile = langCfgDir + fs + cfgFile;
 			} catch (std::exception ex) {
-				errorMsg << "Error loading config file for language: " <<waitzar::escape_wstr(*fold, false);
+				//NOTE: This catch statement won't catch non-unicode names anymore; we just silently ignore them.
+				//      We should find a nicer way of re-enabling this.
+				errorMsg << "Error loading config file for language: " <<*fold;
 				errorMsg << std::endl << "Details: " << std::endl << ex.what();
-				inError = true;
 			}
 
 			//Now, get the sub-config files
-			if (!inError) {
-				vector<wstring> modFolders = GetConfigSubDirs(langCfgDir, cfgFile);
-				for (vector<wstring>::iterator mod = modFolders.begin(); mod!=modFolders.end(); mod++) {
-					try {
-						string modCfgFile = langCfgDir;
-						modCfgFile += fs + waitzar::escape_wstr(*mod, true);
-						modCfgFile += fs + cfgFile;
-						langModuleCfgFiles.push_back(modCfgFile);
-					} catch (std::exception ex) {
-						errorMsg << "Error loading config file for language: " <<waitzar::escape_wstr(*fold, false);
-						errorMsg << std::endl << "and module: " <<waitzar::escape_wstr(*mod, false);
-						errorMsg << std::endl << "Details: " << std::endl << ex.what();
-						inError = true;
-						break;
-					}
+			vector<string> modFolders = GetConfigSubDirs(langCfgDir, cfgFile);
+			for (vector<string>::iterator mod = modFolders.begin(); mod!=modFolders.end(); mod++) {
+				try {
+					string modCfgFile = langCfgDir + fs + *mod + fs + cfgFile;
+					langModuleCfgFiles.push_back(modCfgFile);
+				} catch (std::exception ex) {
+					//NOTE: This statement also won't catch...
+					errorMsg << "Error loading config file for language: " <<*fold;
+					errorMsg << std::endl << "and module: " <<*mod;
+					errorMsg << std::endl << "Details: " << std::endl << ex.what();
+					break;
 				}
 			}
 
 			//Handle errors:
-			if (inError)
-				throw std::exception(errorMsg.str().c_str());
+			//TODO: Better. (Check, e.g., Unicode directory names.)
+			//if (inError)
+			//	throw std::exception(errorMsg.str().c_str());
 
 			config.initAddLanguage(langCfgFile, langModuleCfgFiles);
 		}
@@ -3147,25 +3233,18 @@ bool findAndLoadAllConfigFiles()
 
 
 		//Now, load the local config file
-		wchar_t localAppPath[MAX_PATH];
-		string localConfigFile;
-		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
+		if (!pathLocalFolder.empty() && !pathLocalConfig.empty()) {
 			//Try to create the folder if it doesn't exist
-			string localConfigDir = waitzar::escape_wstr(localAppPath, true) + fs + "WaitZar";
-			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 			std::wstringstream temp;
-			temp << localConfigDir.c_str();
-			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			temp << pathLocalFolder.c_str();
+			if (!FileExists(temp.str()))
 				CreateDirectory(temp.str().c_str(), NULL);
 
-			//Build the path
-			localConfigFile = localConfigDir + fs + "config.override.json.txt";
-
-			//Does it exist?
+			//Does the config FILE exist?
 			temp.str(L"");
-			temp << localConfigFile.c_str();
-			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
-				config.initLocalConfig(localConfigFile);
+			temp << pathLocalConfig.c_str();
+			if (FileExists(temp.str()))
+				config.initLocalConfig(pathLocalConfig);
 			else {
 				//Create the file
 				std::ofstream emptyConfig;
@@ -3188,17 +3267,12 @@ bool findAndLoadAllConfigFiles()
 
 
 		//And finally, the user config file.
-		string userConfigFile;
-		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, localAppPath))) {
-			//Create the path
-			userConfigFile = waitzar::escape_wstr(localAppPath, true) + fs + "waitzar.config.json.txt";
-
+		if (!pathUserConfig.empty()) {
 			//Does it exist?
-			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 			std::wstringstream temp;
-			temp << userConfigFile.c_str();
-			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
-				config.initUserConfig(userConfigFile);
+			temp << pathUserConfig.c_str();
+			if (FileExists(temp.str()))
+				config.initUserConfig(pathUserConfig);
 			else {
 				//Create the file
 				std::ofstream emptyConfig;
@@ -3225,11 +3299,12 @@ bool findAndLoadAllConfigFiles()
 
 		//First test: does "config" not exist at all? If so, throw a special exception,
 		//  and avoid the warning message box.
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 		std::wstringstream temp;
 		temp << cfgDir.c_str();
-		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+		if (!FileExists(temp.str())) {
+			suppressThisException = true;
 			throw std::exception("No config directory");
+		}
 
 		//Final test: make sure all config files work
 		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
@@ -3238,7 +3313,7 @@ bool findAndLoadAllConfigFiles()
 		config = ConfigManager(getMD5Hash);
 
 		//Inform the user, UNLESS they set the magic number...
-		if (strcmp(ex.what(), "No config directory")!=0) {
+		if (!suppressThisException) {
 			std::wstringstream msg;
 			msg << "Error loading one of your config files.\nWaitZar will use the default configuration.\n\nDetails:\n";
 			msg << ex.what();
