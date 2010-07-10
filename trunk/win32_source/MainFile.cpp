@@ -611,11 +611,8 @@ void FlashSaveState()
 		return;
 
 	
-	//Write a BOM (why, Microsoft, why!)
-	wstringstream outStr;	
-	outFile <<L'\uFEFF';
-
 	//Silently fail on any error.
+	wstringstream outStr;	
 	try {
 		//Write a version number
 		outStr <<L"1\n";
@@ -625,10 +622,13 @@ void FlashSaveState()
 				outStr <<config.activeOutputEncoding.id <<L":" <<config.activeDisplayMethods[0]->id <<L":";
 				outStr <<config.activeDisplayMethods[1]->id <<L"\n";
 			} else {
-				outStr <<it->id <<L":" <<it->defaultInputMethod <<L":" <<it->defaultOutputEncoding.id;
+				outStr <<it->id <<L":" <<it->defaultInputMethod <<L":" <<it->defaultOutputEncoding.id <<L":";
 				outStr <<it->defaultDisplayMethodReg <<L":" <<it->defaultDisplayMethodSmall <<L"\n";
 			}
 		}
+
+		//Write a BOM (why, Microsoft, why!)
+		//outFile <<((char)0xFE) <<((char)0xFF);
 
 		//Convert to UTF-8 and write it.
 		outFile <<waitzar::wcs2mbs(outStr.str());
@@ -2475,6 +2475,9 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 
 	//Just to be safe
 	recalculate();
+
+	//Finally, save data
+	FlashSaveState();
 }
 
 
