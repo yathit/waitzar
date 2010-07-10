@@ -606,7 +606,7 @@ void FlashSaveState()
 	//Try to open it.
 	if (pathLocalTinySave.empty())
 		return;
-	ofstream outFile(pathLocalTinySave.c_str());
+	ofstream outFile(pathLocalTinySave.c_str(), std::ios::out|std::ios::binary); //binary needed for utf-8
 	if (outFile.fail())
 		return;
 
@@ -630,10 +630,8 @@ void FlashSaveState()
 			}
 		}
 
-		//TODO
-		outFile <<waitzar::wcs2mbs(outStr.str());
 		//Convert to UTF-8 and write it.
-		//outFile...
+		outFile <<waitzar::wcs2mbs(outStr.str());
 
 	} catch (std::exception ex) {}
 
@@ -3392,6 +3390,7 @@ void createPaintResources()
 
 
 //Temp code; borrowed for now:
+//TODO: Test & replace with waitzar::wcs2mbs() 
 std::string to_utf8(const wchar_t* buffer, int len) {
   int nChars = ::WideCharToMultiByte(CP_UTF8, 0, buffer, len, NULL, 0, NULL, NULL);
   if (nChars == 0) return "";
