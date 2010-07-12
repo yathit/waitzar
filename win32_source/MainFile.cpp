@@ -1869,9 +1869,11 @@ void LayoutDialogControls(vector<WControl>& pendingItems, HDC currDC, size_t sta
 		accX = it->x = (it->x==0 ? accX : it->x);
 		accY = it->y = (it->y==0 ? accY : it->y);
 		accY += it->hPlus;
+		it->y += it->yPlus; //yPlus doesn't affect the Y iterator.
 
 		//Set w/h, update accX/accY (natural)
-		if (it->type!=L"COMBOBOX" && it->type!=L"SysTabControl32") {
+		// Don't update for empty controls.
+		if (it->type!=L"COMBOBOX" && it->type!=L"SysTabControl32" && !it->text.empty()) {
 			it->w = LOWORD(GetTabbedTextExtent(currDC, it->text.c_str(), it->text.length(), 0, NULL));
 			it->h = (waitzar::count_letter(it->text, L'\n')+1)*fHeight;
 			accX += it->w;
@@ -1886,7 +1888,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 	for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
 		//Set flags
 		if (it->type==L"STATIC") {//Optionally SS_ICON to auto-resize.
-			unsigned int flags3 = (it->iconID==IDI_HELPICON_COLOR?SS_BITMAP:SS_ICON); //TODO: Fix hack.
+			unsigned int flags3 = (it->iconID==IDC_SETTINGS_FAKEICONID?SS_BITMAP|SS_NOTIFY:SS_ICON); //TODO: Fix hack. x2
 			flags = WS_CHILD | WS_VISIBLE | (it->iconID!=0 ? flags3 : 0);
 		} else if (it->type==L"BUTTON")
 			flags = WS_CHILD | WS_VISIBLE | WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
@@ -1903,7 +1905,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
                  hwnd, NULL, hInst, NULL );
 		SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
 		SetWindowLongPtr(ctl, GWL_ID, it->id);
-		if (it->iconID!=0) {
+		if (it->iconID!=0 && it->iconID!=IDC_SETTINGS_FAKEICONID) {
 			//Send an update_icon method. I tried SS_ICON before, but it didn't work.
 			bool isSysIcon = it->iconID==OIC_QUES;  //TODO: Add more later.
 			//LPCTSTR iconName = it->iconID==OIC_QUES ? IDI_QUESTION : MAKEINTRESOURCE(it->iconID);
@@ -2083,6 +2085,12 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 }
 
 
+//Cached
+HBITMAP helpIconColor = NULL;
+HBITMAP helpIconGray = NULL;
+vector<unsigned int> helpIconDlgIDs;
+unsigned int lastHelpDlgID = 0;
+
 
 //Also used for the settings dialog
 vector<wstring> settingsLangIDs;
@@ -2118,6 +2126,15 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_INITDIALOG:
 		{
+			//Init cached help icons
+			const size_t iconSz = 16;
+			if (helpIconColor==NULL)
+				helpIconColor = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDI_HELPICON_COLOR), IMAGE_BITMAP, iconSz, iconSz, LR_DEFAULTCOLOR);
+			if (helpIconGray==NULL)
+				helpIconGray = CreateGrayscaleBitmap(helpIconColor);
+			if (helpIconColor==NULL || helpIconGray==NULL)
+				throw std::exception("Couldn't load color/grayscale help icon from memory");
+
 			//Resize the settings dialog; keep it at the same position.
 			//Also, set its caption.
 			const size_t wndWidth = 500;
@@ -2138,7 +2155,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HDC currDC = GetDC(hwnd);
 			SelectObject(currDC, dlgFont);
 			const size_t fHeight = HIWORD(GetTabbedTextExtent(currDC, L"[Wp]", 4, 0, NULL));
-			const size_t fHeight2 = fHeight + 2;
+			const size_t fHeight2 = fHeight + 5;
 			const size_t bkgrdH = 21 + (fHeight-1)*2;
 
 			//Make a bold/underlined version of the dialog font.
@@ -2165,20 +2182,20 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			size_t lbl1VecID = pendingItems.size();
 			pendingItems.push_back(WControl(IDC_SETTINGS_SETOPTLBL, L"Settings:", L"STATIC", false, 15, 15));
 			pendingItems[pendingItems.size()-1].hPlus = fHeight2;
-			size_t lblIcon1 = pendingItems.size();
-			pendingItems.push_back(WControl(IDC_SETTINGS_HKHELP, L"", L"STATIC", false, 15));
-			pendingItems[pendingItems.size()-1].iconID = IDI_HELPICON_COLOR;//OIC_QUES;
-			size_t lblSet1VecID = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKHELP, L"", L"STATIC", false, 15, 0, iconSz, iconSz));
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
+			pendingItems[pendingItems.size()-1].blWh = true;
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKLBL, L"Language Hotkey", L"STATIC", false, 37));
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus-fHeight) - 5;
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO1, L"", L"COMBOBOX", false, lblWidth, 0, comboShortWidth, comboHeight));
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO2, L"", L"COMBOBOX", false, lblWidth+comboShortWidth, 0, comboShortWidth, comboHeight));
 			pendingItems[pendingItems.size()-1].hPlus = cHPlus;
-			size_t lblIcon2 = pendingItems.size();
-			pendingItems.push_back(WControl(IDC_SETTINGS_LANGHELP, L"", L"STATIC", false, 15));
-			pendingItems[pendingItems.size()-1].iconID = IDI_HELPICON_COLOR;//OIC_QUES;
-			pendingItems[pendingItems.size()-1].blWh = true;
-			size_t lblSet2VecID = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_LANGHELP, L"", L"STATIC", false, 15, 0, iconSz, iconSz));
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
 			pendingItems.push_back(WControl(IDC_SETTINGS_LANGLBL, L"Default Language", L"STATIC", false, 37));
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus-fHeight) - 5;
 			pendingItems.push_back(WControl(IDC_SETTINGS_LANGCOMBO, L"", L"COMBOBOX", false, lblWidth, 0, comboWidth, comboHeight));
 			pendingItems[pendingItems.size()-1].hPlus = cHPlus + fHeight*2;
 
@@ -2190,63 +2207,27 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			size_t tabCtlVecID = pendingItems.size();
 			pendingItems.push_back(WControl(IDC_SETTINGS_MAINTAB, L"", L"SysTabControl32", false, 15)); //We'll have to fix w/h later.
 			pendingItems[pendingItems.size()-1].hPlus = fHeight2*2;
-			pendingItems.push_back(WControl(IDC_SETTINGS_IMLBL, L"Default Input Method", L"STATIC", false, 15));
-			pendingItems.push_back(WControl(IDC_SETTINGS_IMCOMBO, L"", L"COMBOBOX", false, lblWidth, 0, comboWidth, comboHeight));
+			pendingItems.push_back(WControl(IDC_SETTINGS_IMHELP, L"", L"STATIC", false, 15+6, 0, iconSz, iconSz));
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
+			pendingItems[pendingItems.size()-1].blWh = true;
+			pendingItems.push_back(WControl(IDC_SETTINGS_IMLBL, L"Default Input Method", L"STATIC", false, 37+6));
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus-fHeight) - 5;
+			pendingItems.push_back(WControl(IDC_SETTINGS_IMCOMBO, L"", L"COMBOBOX", false, lblWidth+6+20, 0, comboWidth, comboHeight));
 			pendingItems[pendingItems.size()-1].hPlus = cHPlus;
-			pendingItems.push_back(WControl(IDC_SETTINGS_OUTLBL, L"Default Output Encoding", L"STATIC", false, 15));
-			pendingItems.push_back(WControl(IDC_SETTINGS_OUTCOMBO, L"", L"COMBOBOX", false, lblWidth, 0, comboWidth, comboHeight));
+			pendingItems.push_back(WControl(IDC_SETTINGS_OUTENCHELP, L"", L"STATIC", false, 15+6, 0, iconSz, iconSz));
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
+			pendingItems[pendingItems.size()-1].blWh = true;
+			pendingItems.push_back(WControl(IDC_SETTINGS_OUTLBL, L"Default Output Encoding", L"STATIC", false, 37+6));
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus-fHeight) - 5;
+			pendingItems.push_back(WControl(IDC_SETTINGS_OUTCOMBO, L"", L"COMBOBOX", false, lblWidth+6+20, 0, comboWidth, comboHeight));
 
-
-			//Create element - Tab control
-			/*{
-				//Main control
-				POINT tabR = {20, 20};
-				HWND hwTabMain = CreateWindow(L"SysTabControl32", L"", WS_CHILD|WS_VISIBLE,
-						tabR.x, tabR.y, wndR.right-40, wndR.bottom-bkgrdH-40, hwnd, NULL, hInst, NULL);
-				SendMessage(hwTabMain, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
-				SetWindowLongPtr(hwTabMain, GWL_ID, IDC_SETTINGS_MAINTAB);
-
-				//Static label: shared between ALL panels
-				{
-					HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
-						 tabR.x+20, tabR.y+20, 120, fHeight, hwTabMain, NULL, hInst, NULL );
-					SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_IMLBL);
-				}
-
-				//Combo box: shared between ALL panels.
-				{
-					HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
-							 tabR.x+140, tabR.y+20, 100, 100, hwTabMain, NULL, hInst, NULL );
-					SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_IMCOMBO);
-				}
-
-				//For each language, add a panel
-				TCITEM tci;
-				tci.mask = TCIF_TEXT;
-				size_t defTabID = 0;
-				settingsLangIDs.clear();
-				for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
-					wchar_t name[512];
-					wcscpy(name, it->displayName.c_str());
-					tci.pszText = name;
-					int tabPageID = TabCtrl_InsertItem(hwTabMain, TabCtrl_GetItemCount(hwTabMain), &tci);
-					if (it->id == config.activeLanguage.id)
-						defTabID = tabPageID;
-
-					//Save its id, in case the Set somehow re-orders them.
-					settingsLangIDs.push_back(it->id);
-				}
-
-				//Update the default tab's entries.
-				UpdateSettingsTab(hwTabMain, defTabID);
-
-				//Set the main visible tab to the default language.
-				// (Does not fire a TCN_SELCHANGE message)
-				TabCtrl_SetCurSel(hwTabMain, defTabID);
-			}*/
-
+			//Save a few ID values
+			helpIconDlgIDs.push_back(IDC_SETTINGS_HKHELP);
+			helpIconDlgIDs.push_back(IDC_SETTINGS_LANGHELP);
+			helpIconDlgIDs.push_back(IDC_SETTINGS_IMHELP);
+			helpIconDlgIDs.push_back(IDC_SETTINGS_OUTENCHELP);
 
 			//Layout
 			LayoutDialogControls(pendingItems, currDC, 15, 15, fHeight);
@@ -2258,18 +2239,18 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SelectObject(currDC, dlgFont);
 
 			//Fix icon width/heights
-			pendingItems[lblIcon1].w = pendingItems[lblIcon1].h = 16;
-			pendingItems[lblIcon2].w = pendingItems[lblIcon2].h = 16;
+			//pendingItems[lblIcon1].w = pendingItems[lblIcon1].h = 16;
+			//pendingItems[lblIcon2].w = pendingItems[lblIcon2].h = 16;
 
 			//Re-size the tab control based on tabCtlVecID
 			pendingItems[tabCtlVecID].w = wndWidth - wndRhsWidth - 40;
 			pendingItems[tabCtlVecID].h = wndHeight - pendingItems[tabCtlVecID].y - bkgrdH - 40;
 
 			//More x/y
-			pendingItems[lblIcon1].y += (cHPlus-pendingItems[lblIcon1].h)/2 - 1;
-			pendingItems[lblIcon2].y += (cHPlus-pendingItems[lblIcon2].h)/2 - 1;
-			pendingItems[lblSet1VecID].y += (cHPlus-fHeight) - 5;
-			pendingItems[lblSet2VecID].y += (cHPlus-fHeight) - 5;
+			//pendingItems[lblIcon1].y += (cHPlus-pendingItems[lblIcon1].h)/2 - 1;
+			//pendingItems[lblIcon2].y += (cHPlus-pendingItems[lblIcon2].h)/2 - 1;
+			//pendingItems[lblSet1VecID].y += (cHPlus-fHeight) - 5;
+			//pendingItems[lblSet2VecID].y += (cHPlus-fHeight) - 5;
 
 			//Some elements that don't fit so easily into our metric:
 			//  Static background, ok button, cancel button
@@ -2311,7 +2292,13 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				settingsLangIDs.push_back(it->id);
 			}
 
-			//Add a few..
+			//Set color/grayscale Help icons
+			for (vector<unsigned int>::iterator it=helpIconDlgIDs.begin(); it!=helpIconDlgIDs.end(); it++) {
+				HWND ctl = GetDlgItem(hwnd, *it);
+				SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)helpIconGray);
+			}
+
+			//Add a few...
 			HWND ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO1);
 			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(None)");
 			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl");
@@ -2368,7 +2355,9 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_COMMAND:
-			switch(LOWORD(wParam))
+		{
+			unsigned int ctlID = LOWORD(wParam);
+			switch(ctlID)
 			{
 				case IDOK:
 					EndDialog(hwnd, IDOK);
@@ -2376,8 +2365,25 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case IDCANCEL:
 					EndDialog(hwnd, IDCANCEL);
 					break;
+
+				case IDC_SETTINGS_HKHELP:
+				case IDC_SETTINGS_LANGHELP:
+				case IDC_SETTINGS_IMHELP:
+				case IDC_SETTINGS_OUTENCHELP:
+					if (HIWORD(wParam)==STN_CLICKED && ctlID!=lastHelpDlgID) {
+						lastHelpDlgID = ctlID;
+
+						//Change the images of all items
+						for (vector<unsigned int>::iterator it=helpIconDlgIDs.begin(); it!=helpIconDlgIDs.end(); it++) {
+							HWND ctl = GetDlgItem(hwnd, *it);
+							SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM) (*it==ctlID?helpIconColor:helpIconGray));
+						}
+					}
+
+					break;
 			}
 			break;
+		}
 		case WM_CLOSE:
 			EndDialog(hwnd, IDCANCEL);
 			break;
