@@ -2118,10 +2118,65 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 }
 
 
+vector< pair<unsigned int, POINT> > controlsToMove; //"ID", "initialX", where initialX of 0 means "show/hide"
+bool helpBoxIsVisible = false;
+void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<size_t, size_t> wndWidthMinPlus) 
+{
+	//Always update the help icons' colors
+	for (vector<unsigned int>::iterator it=helpIconDlgIDs.begin(); it!=helpIconDlgIDs.end(); it++) {
+		HWND ctl = GetDlgItem(dlgHwnd, *it);
+		SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM) ((*it==helpIconID&&show)?helpIconColor:helpIconGray));
+	}
+
+	//TODO: Update help icon text, too.
+	if (show) {
+		//TODO
+	}
+
+	//Don't do anything else if we're not performing a full change.
+	if (show==helpBoxIsVisible)
+		return;
+
+	//Resize our dialog box.
+	RECT wndR;
+	GetWindowRect(dlgHwnd, &wndR);
+	int wndOffset = show?wndWidthMinPlus.second:0;
+	int wndNewX = wndR.left + (show?-1:1)*wndWidthMinPlus.second;
+	int wndNewWidth = wndWidthMinPlus.first + wndOffset;
+	MoveWindow(dlgHwnd, wndNewX, wndR.top, wndNewWidth, wndR.bottom-wndR.top, TRUE);
+
+	//Move our components
+	for (size_t i=0; i<controlsToMove.size(); i++) {
+		HWND ctl = GetDlgItem(dlgHwnd, controlsToMove[i].first);
+		long initialX = controlsToMove[i].second.x;
+		long initialY = controlsToMove[i].second.y;
+		if (initialX==0 && initialY==0) {
+			ShowWindow(ctl, show?SW_SHOW:SW_HIDE);
+		} else {
+			SetWindowPos(ctl, NULL, initialX+wndOffset, initialY, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+		}
+	}
+
+
+
+
+
+
+
+
+	//Done
+	helpBoxIsVisible = show;
+}
+
 
 //Message handling for our settings dialog box
 BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	//Useful window size constants
+	const size_t wndWidth = 320;
+	const size_t wndHeight = 320;
+	const size_t wndHelpAreaWidth = 180;
+
 	switch(msg)
 	{
 		case WM_INITDIALOG:
@@ -2134,12 +2189,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				helpIconGray = CreateGrayscaleBitmap(helpIconColor);
 			if (helpIconColor==NULL || helpIconGray==NULL)
 				throw std::exception("Couldn't load color/grayscale help icon from memory");
+			helpBoxIsVisible = false;
 
 			//Resize the settings dialog; keep it at the same position.
 			//Also, set its caption.
-			const size_t wndWidth = 500;
-			const size_t wndHeight = 320;
-			const size_t wndRhsWidth = 180;
 			RECT wndR;
 			GetWindowRect(hwnd, &wndR);
 			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
@@ -2243,7 +2296,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//pendingItems[lblIcon2].w = pendingItems[lblIcon2].h = 16;
 
 			//Re-size the tab control based on tabCtlVecID
-			pendingItems[tabCtlVecID].w = wndWidth - wndRhsWidth - 40;
+			pendingItems[tabCtlVecID].w = wndWidth - 40;
 			pendingItems[tabCtlVecID].h = wndHeight - pendingItems[tabCtlVecID].y - bkgrdH - 40;
 
 			//More x/y
@@ -2256,12 +2309,21 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//  Static background, ok button, cancel button
 			size_t w = 75;
 			size_t h = 23;
-			pendingItems.push_back(WControl(IDC_SETTINGS_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth, bkgrdH));
+			pendingItems.push_back(WControl(IDC_SETTINGS_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth+wndHelpAreaWidth, bkgrdH));
 			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-w - fHeight/2 - w, wndR.bottom+1-bkgrdH+h/2, w, h));
 			pendingItems.push_back(WControl(IDCANCEL, L"&Cancel", L"BUTTON", false, wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h));
 
 			//DC's no longer needed
 			ReleaseDC(hwnd, currDC);
+
+			//Save items and their starting locations
+			for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
+				if (it->id==IDC_SETTINGS_BKGRD)
+					continue;
+
+				POINT pt = {it->x, it->y};
+				controlsToMove.push_back(pair<unsigned int, POINT>(it->id, pt));
+			}
 
 			//Create items
 			CreateDialogControls(pendingItems, hwnd, dlgFont);
@@ -2370,14 +2432,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case IDC_SETTINGS_LANGHELP:
 				case IDC_SETTINGS_IMHELP:
 				case IDC_SETTINGS_OUTENCHELP:
-					if (HIWORD(wParam)==STN_CLICKED && ctlID!=lastHelpDlgID) {
-						lastHelpDlgID = ctlID;
-
-						//Change the images of all items
-						for (vector<unsigned int>::iterator it=helpIconDlgIDs.begin(); it!=helpIconDlgIDs.end(); it++) {
-							HWND ctl = GetDlgItem(hwnd, *it);
-							SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM) (*it==ctlID?helpIconColor:helpIconGray));
-						}
+					if (HIWORD(wParam)==STN_CLICKED) {
+						bool show = ctlID!=lastHelpDlgID;
+						MakeHelpBoxVisible(hwnd, show, ctlID, pair<size_t, size_t>(wndWidth, wndHelpAreaWidth));
+						lastHelpDlgID = show ? ctlID : 0;
 					}
 
 					break;
