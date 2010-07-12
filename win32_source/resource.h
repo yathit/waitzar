@@ -18,6 +18,7 @@
 #define IDI_ENGLISH            102
 #define IDI_MYANMAR            103
 #define IDI_LOADING            104
+#define IDI_HELPICON_COLOR     105
 
 //Embedded Data Files
 #define IDR_WAITZAR_MODEL      201
@@ -37,6 +38,8 @@
 
 //Pulp Core Font Files (pagination images)
 #define IDR_PGDOWN_COLOR       307
+
+
 
 
 

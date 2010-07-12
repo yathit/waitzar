@@ -545,6 +545,91 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 }
 
 
+//Borrowed from the code project, modified
+//http://www.codeproject.com/KB/graphics/creategrayscaleicon.aspx?msg=163218#xx163218xx
+//TODO: Speed this up using array access, removing floatin point.
+//TODO: We might consider caching grayscale bitmaps instead.
+HBITMAP CreateGrayscaleBitmap(HBITMAP hBmp)
+{
+    HBITMAP     hGrayBmp = NULL;
+    HDC         hMainDC = NULL, hMemDC1 = NULL, hMemDC2 = NULL;
+    BITMAP      bmp;
+    HBITMAP     hOldBmp1 = NULL, hOldBmp2 = NULL;
+    //ICONINFO    csII, csGrayII;
+    //BOOL        bRetValue = FALSE;
+
+    //bRetValue = ::GetIconInfo(hIcon, &csII);
+    //if (bRetValue == FALSE) return NULL;
+
+    hMainDC = ::GetDC(NULL);
+    hMemDC1 = ::CreateCompatibleDC(hMainDC);
+    hMemDC2 = ::CreateCompatibleDC(hMainDC);
+    if (hMainDC == NULL || hMemDC1 == NULL || hMemDC2 == NULL) return NULL;
+  
+    if (GetObject(hBmp, sizeof(BITMAP), &bmp))
+    {
+        //DWORD   dwWidth = bmp. csII.xHotspot*2;
+        //DWORD   dwHeight = csII.yHotspot*2;
+
+		hGrayBmp = ::CreateBitmap(bmp.bmWidth, bmp.bmHeight, bmp.bmPlanes, bmp.bmBitsPixel, NULL);
+        if (true /*csGrayII.hbmColor*/)
+        {
+            hOldBmp1 = (HBITMAP)::SelectObject(hMemDC1, hBmp/*csII.hbmColor*/);
+            hOldBmp2 = (HBITMAP)::SelectObject(hMemDC2, hGrayBmp/*csGrayII.hbmColor*/);
+
+            //::BitBlt(hMemDC2, 0, 0, dwWidth, dwHeight, hMemDC1, 0, 0, 
+
+            //         SRCCOPY);
+
+
+            LONG    dwLoopY = 0, dwLoopX = 0;
+            COLORREF crPixel = 0;
+            BYTE     byNewPixel = 0;
+
+            for (dwLoopY = 0; dwLoopY < bmp.bmHeight; dwLoopY++)
+            {
+                for (dwLoopX = 0; dwLoopX < bmp.bmWidth; dwLoopX++)
+                {
+                    crPixel = ::GetPixel(hMemDC1, dwLoopX, dwLoopY);
+
+                    byNewPixel = (BYTE)((GetRValue(crPixel) * 0.299) + 
+                                        (GetGValue(crPixel) * 0.587) + 
+                                        (GetBValue(crPixel) * 0.114));
+                    if (crPixel) ::SetPixel(hMemDC2, dwLoopX, dwLoopY, 
+                                            RGB(byNewPixel, byNewPixel, 
+                                            byNewPixel));
+                } // for
+
+            } // for
+
+
+            ::SelectObject(hMemDC1, hOldBmp1);
+            ::SelectObject(hMemDC2, hOldBmp2);
+
+            //csGrayII.hbmMask = csII.hbmMask;
+
+            //csGrayII.fIcon = TRUE;
+            //hGrayIcon = ::CreateIconIndirect(&csGrayII);
+        } // if
+
+
+        //::DeleteObject(csGrayII.hbmColor);
+        //::DeleteObject(csGrayII.hbmMask);
+
+    } // if
+
+
+    //::DeleteObject(csII.hbmColor);
+    //::DeleteObject(csII.hbmMask);
+    ::DeleteDC(hMemDC1);
+    ::DeleteDC(hMemDC2);
+    ::ReleaseDC(NULL, hMainDC);
+
+    return hGrayBmp;
+} // End of CreateGrayscaleIcon
+
+
+
 bool FileExists(const wstring& fileName) 
 {
 	WIN32_FILE_ATTRIBUTE_DATA InfoFile;
@@ -1773,6 +1858,76 @@ void typeCurrentPhrase(const wstring& stringToType)
 
 
 
+//Compute x and y co-ordinates based on some criteria.
+//Note: hPlus is the amount to increase height by
+void LayoutDialogControls(vector<WControl>& pendingItems, HDC currDC, size_t startX, size_t startY, size_t fHeight) 
+{
+	size_t accX = startX;
+	size_t accY = startY;
+	for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
+		//Set x/y, update accX/accY (artificial)
+		accX = it->x = (it->x==0 ? accX : it->x);
+		accY = it->y = (it->y==0 ? accY : it->y);
+		accY += it->hPlus;
+
+		//Set w/h, update accX/accY (natural)
+		if (it->type!=L"COMBOBOX" && it->type!=L"SysTabControl32") {
+			it->w = LOWORD(GetTabbedTextExtent(currDC, it->text.c_str(), it->text.length(), 0, NULL));
+			it->h = (waitzar::count_letter(it->text, L'\n')+1)*fHeight;
+			accX += it->w;
+		}
+		//accY += it->h;
+	}
+}
+
+void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFont) 
+{
+	unsigned int flags = 0;
+	for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
+		//Set flags
+		if (it->type==L"STATIC") {//Optionally SS_ICON to auto-resize.
+			unsigned int flags3 = (it->iconID==IDI_HELPICON_COLOR?SS_BITMAP:SS_ICON); //TODO: Fix hack.
+			flags = WS_CHILD | WS_VISIBLE | (it->iconID!=0 ? flags3 : 0);
+		} else if (it->type==L"BUTTON")
+			flags = WS_CHILD | WS_VISIBLE | WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
+		else if (it->type==L"COMBOBOX")
+			flags = WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST;
+		else if (it->type==L"SysTabControl32")
+			flags = WS_CHILD | WS_VISIBLE;
+		else
+			throw std::exception(waitzar::glue(L"Unknown control type: ", it->type).c_str());
+
+		//Create the control, set the font
+		HWND ctl = CreateWindow(it->type.c_str(), it->text.c_str(), flags, 
+				 it->x, it->y, it->w, it->h,
+                 hwnd, NULL, hInst, NULL );
+		SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
+		SetWindowLongPtr(ctl, GWL_ID, it->id);
+		if (it->iconID!=0) {
+			//Send an update_icon method. I tried SS_ICON before, but it didn't work.
+			bool isSysIcon = it->iconID==OIC_QUES;  //TODO: Add more later.
+			//LPCTSTR iconName = it->iconID==OIC_QUES ? IDI_QUESTION : MAKEINTRESOURCE(it->iconID);
+			unsigned int loadFlags = (/*it->blWh ? LR_MONOCHROME :*/ LR_DEFAULTCOLOR) | (isSysIcon ? LR_SHARED : 0);
+			unsigned int flags2 = (it->iconID==IDI_HELPICON_COLOR?IMAGE_BITMAP:IMAGE_ICON); //TODO: Fix hack.
+			HANDLE hicon = (HANDLE)LoadImage((isSysIcon?NULL:hInst), MAKEINTRESOURCE(it->iconID), flags2, it->w, it->h, loadFlags);
+			if (it->blWh) {
+				HANDLE hiconOld = hicon;
+				hicon = CreateGrayscaleBitmap((HBITMAP)hiconOld);
+				DeleteObject(hiconOld);
+			}
+			unsigned int errCode = GetLastError();
+			SendMessage(ctl, STM_SETIMAGE, (WPARAM)flags2, (LPARAM)hicon);
+			
+		}
+
+		//Turn it into a hyperlink?
+		if (it->convertToHyperlink && it->type==L"STATIC")
+			ConvertStaticToHyperlink(hwnd, it->id);
+		UpdateWindow(ctl); //Might not be needed, but keep here for now.
+	}
+}
+
+
 //Message handling for our about/help dialog box
 BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -1826,23 +1981,23 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				txtS << "WaitZar version " <<WAIT_ZAR_VERSION <<" - for the latest news, visit ";
 				pendingItems.push_back(WControl(IDC_HELP_L1, txtS.str(), L"STATIC", false, txtR.left));
 				pendingItems.push_back(WControl(IDC_HELP_H1, L"WaitZar.com", L"STATIC", true));
-				pendingItems[pendingItems.size()-1].h = fHeight*2;
+				pendingItems[pendingItems.size()-1].hPlus = fHeight*2;
 
 				//Line 2
 				txtS.str(L"");
 				txtS <<hkString <<" - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".";
 				pendingItems.push_back(WControl(IDC_HELP_L2, txtS.str(), L"STATIC", false, txtR.left));
-				pendingItems[pendingItems.size()-1].h = fHeight*3;
+				pendingItems[pendingItems.size()-1].hPlus = fHeight*3;
 
 				//Line 3
 				pendingItems.push_back(WControl(IDC_HELP_L4, L"WaitZar users should have the relevant fonts installed, if they want to see \nwhat they type after it's chosen.", L"STATIC", false, txtR.left));
-				pendingItems[pendingItems.size()-1].h = fHeight*2;
+				pendingItems[pendingItems.size()-1].hPlus = fHeight*2;
 
 				//Line 4
 				pendingItems.push_back(WControl(IDC_HELP_L5A, L"Feel free to ", L"STATIC", false, txtR.left));
 				pendingItems.push_back(WControl(IDC_HELP_H5, L"contact us", L"STATIC", true));
 				pendingItems.push_back(WControl(IDC_HELP_L5B, L" if you have any questions.", L"STATIC"));
-				pendingItems[pendingItems.size()-1].h = fHeight*2;
+				pendingItems[pendingItems.size()-1].hPlus = fHeight*2;
 
 				//Line 5
 				pendingItems.push_back(WControl(IDC_HELP_L6, L"For more information, please read the ", L"STATIC", false, txtR.left));
@@ -1850,20 +2005,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			}
 
 			//Now adjust
-			size_t accX = txtR.left;
-			size_t accY = txtR.top;
-			for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
-				//Set x/y, update accX/accY (artificial)
-				accX = it->x = (it->x==0 ? accX : it->x);
-				it->y = (it->y==0 ? accY : it->y);
-				accY += it->h;
-
-				//Set w/h, update accX/accY (natural)
-				it->w = LOWORD(GetTabbedTextExtent(currDC, it->text.c_str(), it->text.length(), 0, NULL));
-				it->h = (waitzar::count_letter(it->text, L'\n')+1)*fHeight;
-				accX += it->w;
-				//accY += it->h;
-			}
+			LayoutDialogControls(pendingItems, currDC, txtR.left, txtR.top, fHeight);
 
 
 			//A few more controls that don't fit this pattern.
@@ -1871,9 +2013,9 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_HELP_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth, bkgrdH));
 			pendingItems.push_back(WControl(IDC_HELP_ICON, L"", L"STATIC", false, fHeight*2, fHeight*2));
 			pendingItems[pendingItems.size()-1].iconID = IDI_WAITZAR;
-			accX = 75;
-			accY = 23;
-			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-accX, wndR.bottom+1-bkgrdH+accY/2, accX, accY));
+			size_t w = 75;
+			size_t h = 23;
+			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h));
 
 
 			//DC's no longer needed.
@@ -1881,33 +2023,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 
 			//Start adding controls automatically.
-			unsigned int flags = 0;
-			for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
-				//Set flags
-				if (it->type==L"STATIC") //Optionally SS_ICON to auto-resize.
-					flags = WS_CHILD | WS_VISIBLE | (it->iconID!=0 ? SS_ICON : 0);
-				else if (it->type==L"BUTTON")
-					flags = WS_CHILD | WS_VISIBLE | WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
-				else
-					throw std::exception(waitzar::glue(L"Unknown control type: ", it->type).c_str());
-
-				//Create the control, set the font
-				HWND ctl = CreateWindow(it->type.c_str(), it->text.c_str(), flags, 
-						 it->x, it->y, it->w, it->h,
-                         hwnd, NULL, hInst, NULL );
-				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-				SetWindowLongPtr(ctl, GWL_ID, it->id);
-				if (it->iconID!=0) {
-					//Send an update_icon method. I tried SS_ICON before, but it didn't work.
-					HICON hicon = LoadIcon(hInst, MAKEINTRESOURCE(it->iconID));
-					SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hicon);
-				}
-
-				//Turn it into a hyperlink?
-				if (it->convertToHyperlink && it->type==L"STATIC")
-					ConvertStaticToHyperlink(hwnd, it->id);
-				UpdateWindow(ctl); //Might not be needed, but keep here for now.
-			}
+			CreateDialogControls(pendingItems, hwnd, dlgFont);
 
 			return TRUE;
 		}
@@ -1973,7 +2089,7 @@ vector<wstring> settingsLangIDs;
 void UpdateSettingsTab(HWND dlgHwnd, int tabID) 
 {
 	//Remove all entries.
-	HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_CB1);
+	HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_IMCOMBO);
 	SendMessage(ctl, CB_RESETCONTENT, 0, 0);
 
 	//Invalid language?
@@ -2004,8 +2120,9 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			//Resize the settings dialog; keep it at the same position.
 			//Also, set its caption.
-			const size_t wndWidth = 350;
-			const size_t wndHeight = 250;
+			const size_t wndWidth = 500;
+			const size_t wndHeight = 320;
+			const size_t wndRhsWidth = 180;
 			RECT wndR;
 			GetWindowRect(hwnd, &wndR);
 			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
@@ -2013,7 +2130,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//EnableThemeDialogTexture(hwnd, ETDT_ENABLE);
 			GetClientRect(hwnd, &wndR);
 
-			//Get dialog font
+			//Get dialog font, the myanmar dialog font
 			HFONT dlgFont = (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0);
 			HFONT mmdlgFont = menuFont->getInternalHFont();
 
@@ -2021,40 +2138,67 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HDC currDC = GetDC(hwnd);
 			SelectObject(currDC, dlgFont);
 			const size_t fHeight = HIWORD(GetTabbedTextExtent(currDC, L"[Wp]", 4, 0, NULL));
+			const size_t fHeight2 = fHeight + 2;
 			const size_t bkgrdH = 21 + (fHeight-1)*2;
-			ReleaseDC(hwnd, currDC);
 
-			//Create element - Static bkgrd
-			{
-				HWND ctl = CreateWindow(L"STATIC", L"", WS_CHILD|WS_VISIBLE, 
-						 0, wndR.bottom-bkgrdH, wndWidth, bkgrdH, hwnd, NULL, hInst, NULL );
-				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-				SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_BKGRD);
-			}
+			//Make a bold/underlined version of the dialog font.
+			LOGFONT lf;
+			if (GetObject(dlgFont, sizeof(lf), &lf)==0)
+				throw std::exception("Could not retrieve handle to dialog font.");
+			lf.lfWeight = FW_BOLD;
+			lf.lfUnderline = TRUE;
+			HFONT dlgFontBold = CreateFontIndirect(&lf);
 
-			//Create element - Ok button
-			{
-				size_t w = 75;
-				size_t h = 23;
-				HWND ctl = CreateWindow(L"BUTTON", L"&Ok", WS_CHILD|WS_VISIBLE|BS_DEFPUSHBUTTON, 
-						 wndR.right-fHeight*2-11-w - fHeight/2 - w, wndR.bottom+1-bkgrdH+h/2, w, h, hwnd, NULL, hInst, NULL );
-				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-				SetWindowLongPtr(ctl, GWL_ID, IDOK);
-			}
 
-			//Create element - Cancel button
-			{
-				size_t w = 75;
-				size_t h = 23;
-				HWND ctl = CreateWindow(L"BUTTON", L"&Cancel", WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, 
-						 wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h, hwnd, NULL, hInst, NULL );
-				SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-				SetWindowLongPtr(ctl, GWL_ID, IDCANCEL);
-			}
+			//Create elements and store in a vector.
+			// We won't use any of the auto-layout features of LayoutDialogControls. (Maybe...)
+			// However, we will probably use auto-sizing of static elements.
+			vector<WControl> pendingItems;
+			const size_t lblWidth = 140;
+			const size_t comboWidth = 110;
+			const size_t comboShortWidth = 80;
+			const size_t comboHeight = 150;
+			const size_t cHPlus = 22;
+
+
+			//"Settings" and the language hotkey controls
+			size_t lbl1VecID = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_SETOPTLBL, L"Settings:", L"STATIC", false, 15, 15));
+			pendingItems[pendingItems.size()-1].hPlus = fHeight2;
+			size_t lblIcon1 = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKHELP, L"", L"STATIC", false, 15));
+			pendingItems[pendingItems.size()-1].iconID = IDI_HELPICON_COLOR;//OIC_QUES;
+			size_t lblSet1VecID = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKLBL, L"Language Hotkey", L"STATIC", false, 37));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO1, L"", L"COMBOBOX", false, lblWidth, 0, comboShortWidth, comboHeight));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO2, L"", L"COMBOBOX", false, lblWidth+comboShortWidth, 0, comboShortWidth, comboHeight));
+			pendingItems[pendingItems.size()-1].hPlus = cHPlus;
+			size_t lblIcon2 = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_LANGHELP, L"", L"STATIC", false, 15));
+			pendingItems[pendingItems.size()-1].iconID = IDI_HELPICON_COLOR;//OIC_QUES;
+			pendingItems[pendingItems.size()-1].blWh = true;
+			size_t lblSet2VecID = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_LANGLBL, L"Default Language", L"STATIC", false, 37));
+			pendingItems.push_back(WControl(IDC_SETTINGS_LANGCOMBO, L"", L"COMBOBOX", false, lblWidth, 0, comboWidth, comboHeight));
+			pendingItems[pendingItems.size()-1].hPlus = cHPlus + fHeight*2;
+
+
+			//"Language Options" and the various tabbed items
+			size_t lbl2VecID = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_LANGOPTLBL, L"Language Options:", L"STATIC", false, 15));
+			pendingItems[pendingItems.size()-1].hPlus = fHeight2;
+			size_t tabCtlVecID = pendingItems.size();
+			pendingItems.push_back(WControl(IDC_SETTINGS_MAINTAB, L"", L"SysTabControl32", false, 15)); //We'll have to fix w/h later.
+			pendingItems[pendingItems.size()-1].hPlus = fHeight2*2;
+			pendingItems.push_back(WControl(IDC_SETTINGS_IMLBL, L"Default Input Method", L"STATIC", false, 15));
+			pendingItems.push_back(WControl(IDC_SETTINGS_IMCOMBO, L"", L"COMBOBOX", false, lblWidth, 0, comboWidth, comboHeight));
+			pendingItems[pendingItems.size()-1].hPlus = cHPlus;
+			pendingItems.push_back(WControl(IDC_SETTINGS_OUTLBL, L"Default Output Encoding", L"STATIC", false, 15));
+			pendingItems.push_back(WControl(IDC_SETTINGS_OUTCOMBO, L"", L"COMBOBOX", false, lblWidth, 0, comboWidth, comboHeight));
 
 
 			//Create element - Tab control
-			{
+			/*{
 				//Main control
 				POINT tabR = {20, 20};
 				HWND hwTabMain = CreateWindow(L"SysTabControl32", L"", WS_CHILD|WS_VISIBLE,
@@ -2067,7 +2211,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					HWND ctl = CreateWindow(L"STATIC", L"Default Input Method", WS_CHILD|WS_VISIBLE, 
 						 tabR.x+20, tabR.y+20, 120, fHeight, hwTabMain, NULL, hInst, NULL );
 					SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_L1);
+					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_IMLBL);
 				}
 
 				//Combo box: shared between ALL panels.
@@ -2075,7 +2219,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					HWND ctl = CreateWindow(L"COMBOBOX", L"", WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST, 
 							 tabR.x+140, tabR.y+20, 100, 100, hwTabMain, NULL, hInst, NULL );
 					SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
-					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_CB1);
+					SetWindowLongPtr(ctl, GWL_ID, IDC_SETTINGS_IMCOMBO);
 				}
 
 				//For each language, add a panel
@@ -2101,7 +2245,86 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Set the main visible tab to the default language.
 				// (Does not fire a TCN_SELCHANGE message)
 				TabCtrl_SetCurSel(hwTabMain, defTabID);
+			}*/
+
+
+			//Layout
+			LayoutDialogControls(pendingItems, currDC, 15, 15, fHeight);
+
+			//Fix the widths of the bold/underline labels
+			SelectObject(currDC, dlgFontBold);
+			pendingItems[lbl1VecID].w = LOWORD(GetTabbedTextExtent(currDC, pendingItems[lbl1VecID].text.c_str(), pendingItems[lbl1VecID].text.length(), 0, NULL)) + 1;
+			pendingItems[lbl2VecID].w = LOWORD(GetTabbedTextExtent(currDC, pendingItems[lbl2VecID].text.c_str(), pendingItems[lbl2VecID].text.length(), 0, NULL)) + 1;
+			SelectObject(currDC, dlgFont);
+
+			//Fix icon width/heights
+			pendingItems[lblIcon1].w = pendingItems[lblIcon1].h = 16;
+			pendingItems[lblIcon2].w = pendingItems[lblIcon2].h = 16;
+
+			//Re-size the tab control based on tabCtlVecID
+			pendingItems[tabCtlVecID].w = wndWidth - wndRhsWidth - 40;
+			pendingItems[tabCtlVecID].h = wndHeight - pendingItems[tabCtlVecID].y - bkgrdH - 40;
+
+			//More x/y
+			pendingItems[lblIcon1].y += (cHPlus-pendingItems[lblIcon1].h)/2 - 1;
+			pendingItems[lblIcon2].y += (cHPlus-pendingItems[lblIcon2].h)/2 - 1;
+			pendingItems[lblSet1VecID].y += (cHPlus-fHeight) - 5;
+			pendingItems[lblSet2VecID].y += (cHPlus-fHeight) - 5;
+
+			//Some elements that don't fit so easily into our metric:
+			//  Static background, ok button, cancel button
+			size_t w = 75;
+			size_t h = 23;
+			pendingItems.push_back(WControl(IDC_SETTINGS_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth, bkgrdH));
+			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-w - fHeight/2 - w, wndR.bottom+1-bkgrdH+h/2, w, h));
+			pendingItems.push_back(WControl(IDCANCEL, L"&Cancel", L"BUTTON", false, wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h));
+
+			//DC's no longer needed
+			ReleaseDC(hwnd, currDC);
+
+			//Create items
+			CreateDialogControls(pendingItems, hwnd, dlgFont);
+
+			//Set fonts for the main labels & tab dialog
+			HWND hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_SETOPTLBL);
+			SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontBold, MAKELPARAM(FALSE, 0));
+			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_LANGOPTLBL);
+			SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontBold, MAKELPARAM(FALSE, 0));
+			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_MAINTAB);
+			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
+
+			//For each language, add a panel in the tab control
+			TCITEM tci;
+			tci.mask = TCIF_TEXT;
+			size_t defTabID = 0;
+			settingsLangIDs.clear();
+			HWND hwTabMain = GetDlgItem(hwnd, IDC_SETTINGS_MAINTAB);
+			for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
+				wchar_t name[512];
+				wcscpy(name, it->displayName.c_str());
+				tci.pszText = name;
+				int tabPageID = TabCtrl_InsertItem(hwTabMain, TabCtrl_GetItemCount(hwTabMain), &tci);
+				if (it->id == config.activeLanguage.id)
+					defTabID = tabPageID;
+
+				//Save its id, in case the Set somehow re-orders them.
+				settingsLangIDs.push_back(it->id);
 			}
+
+			//Add a few..
+			HWND ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO1);
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(None)");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Alt");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Shift");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Shift");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Alt");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Alt+Shift");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Alt+Shift");
+
+			//Set the main visible tab to the default language.
+			// (Does not fire a TCN_SELCHANGE message)
+			TabCtrl_SetCurSel(hwTabMain, defTabID);
 
 			break;
 		}
