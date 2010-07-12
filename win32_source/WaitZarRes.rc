@@ -29,6 +29,7 @@ IDI_WAITZAR             ICON           "wz.ico"
 IDI_ENGLISH             ICON           "wz_eng.ico"
 IDI_MYANMAR             ICON           "wz_mm.ico"
 IDI_LOADING             ICON           "loading.ico"
+IDI_HELPICON_COLOR      BITMAP         "help_icon.bmp"
 
 //Embedded Data Files
 IDR_WAITZAR_MODEL       MODEL          "Myanmar.model"
@@ -48,6 +49,7 @@ IDR_HELP_CORNER_IMG     COREFONT       "keybd_corner.png"
 
 //Pulp Core Images -- Pagination (should reduce to just 1 & some post-processing)
 IDR_PGDOWN_COLOR        COREFONT       "pg_down_color.png"
+
 
 
 //////////////////////////////////
