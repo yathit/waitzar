@@ -68,10 +68,22 @@ enum {
     IDC_HELP_ICON,
 
 	//"Settings" Dialog
-	IDC_SETTINGS_L1          = 43001,
-	IDC_SETTINGS_CB1,
+	IDC_SETTINGS_IMLBL       = 43001,
+	IDC_SETTINGS_IMCOMBO,
 	IDC_SETTINGS_BKGRD,
     IDC_SETTINGS_MAINTAB,
+	IDC_SETTINGS_SETOPTLBL,
+	IDC_SETTINGS_HKLBL,
+	IDC_SETTINGS_HKCOMBO1,
+	IDC_SETTINGS_HKCOMBO2,
+	IDC_SETTINGS_LANGLBL,
+	IDC_SETTINGS_LANGCOMBO,
+	IDC_SETTINGS_LANGOPTLBL,
+	IDC_SETTINGS_OUTLBL,
+	IDC_SETTINGS_OUTCOMBO,
+	IDC_SETTINGS_HKHELP,
+	IDC_SETTINGS_LANGHELP,
+	//IDC_QUESTIONICON,        //Helper for loading the "question" system icon.
 };
 
 
@@ -87,9 +99,11 @@ public:
 	size_t y;
 	size_t w;
 	size_t h;
+	size_t hPlus;
 	unsigned int iconID;
+	bool blWh; //Convert to black-and-white?
 
-	WControl(unsigned int id, std::wstring text, std::wstring type, bool convertToHyperlink=false, size_t x=0, size_t y=0, size_t w=0, size_t h=0) 
-		: id(id), text(text), type(type), convertToHyperlink(convertToHyperlink), x(x), y(y), w(w), h(h), iconID(0)
+	WControl(unsigned int id, std::wstring text, std::wstring type, bool convertToHyperlink=false, size_t x=0, size_t y=0, size_t w=0, size_t h=0, size_t hPlus=0) 
+		: id(id), text(text), type(type), convertToHyperlink(convertToHyperlink), x(x), y(y), w(w), h(h), hPlus(hPlus), iconID(0), blWh(false)
 	{}
 };
