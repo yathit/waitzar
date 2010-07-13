@@ -153,6 +153,7 @@ HBRUSH g_DarkGrayBkgrd;
 HBRUSH g_BlackBkgrd;
 HBRUSH g_YellowBkgrd;
 HBRUSH g_GreenBkgrd;
+HBRUSH g_RedBkgrd;
 HBRUSH g_DlgHelpBkgrd;
 HBRUSH g_DlgHelpSlash;
 HBRUSH g_MenuItemBkgrd;
@@ -162,6 +163,7 @@ HBRUSH g_DotHiliteBkgrd;
 HPEN g_GreenPen;
 HPEN g_BlackPen;
 HPEN g_MediumGrayPen;
+HPEN g_WhiteThickPen;
 HPEN g_EmptyPen;
 HPEN g_DotHilitePen;
 
@@ -1887,15 +1889,20 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 	unsigned int flags = 0;
 	for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
 		//Set flags
+		unsigned int visFlag = !it->hidden ? WS_VISIBLE : 0;
 		if (it->type==L"STATIC") {//Optionally SS_ICON to auto-resize.
 			unsigned int flags3 = (it->iconID==IDC_SETTINGS_FAKEICONID?SS_BITMAP|SS_NOTIFY:SS_ICON); //TODO: Fix hack. x2
-			flags = WS_CHILD | WS_VISIBLE | (it->iconID!=0 ? flags3 : 0);
-		} else if (it->type==L"BUTTON")
-			flags = WS_CHILD | WS_VISIBLE | WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
-		else if (it->type==L"COMBOBOX")
-			flags = WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST;
+			flags = WS_CHILD | visFlag | (it->iconID!=0 ? flags3 : 0) | (it->id==IDC_SETTINGS_HELPPNL?SS_BLACKFRAME:0); //TODO: Fix hacks here too...
+		} else if (it->type==L"BUTTON") {
+			flags = WS_CHILD | visFlag;
+			if (it->ownerDrawnBtn)
+				flags |= BS_OWNERDRAW;
+			else
+				flags |= WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
+		} else if (it->type==L"COMBOBOX")
+			flags = WS_CHILD|visFlag|WS_TABSTOP|CBS_DROPDOWNLIST;
 		else if (it->type==L"SysTabControl32")
-			flags = WS_CHILD | WS_VISIBLE;
+			flags = WS_CHILD | visFlag;
 		else
 			throw std::exception(waitzar::glue(L"Unknown control type: ", it->type).c_str());
 
@@ -2130,7 +2137,8 @@ void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<s
 
 	//TODO: Update help icon text, too.
 	if (show) {
-		//TODO
+		HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPPNL);
+		SetWindowText(ctl, L"Test: here's some help text.\nTest: here's some help text.\nTest: here's some help text.\nTest: here's some help text.");
 	}
 
 	//Don't do anything else if we're not performing a full change.
@@ -2143,7 +2151,8 @@ void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<s
 	int wndOffset = show?wndWidthMinPlus.second:0;
 	int wndNewX = wndR.left + (show?-1:1)*wndWidthMinPlus.second;
 	int wndNewWidth = wndWidthMinPlus.first + wndOffset;
-	MoveWindow(dlgHwnd, wndNewX, wndR.top, wndNewWidth, wndR.bottom-wndR.top, TRUE);
+	if (show)
+		MoveWindow(dlgHwnd, wndNewX, wndR.top, wndNewWidth, wndR.bottom-wndR.top, TRUE);
 
 	//Move our components
 	for (size_t i=0; i<controlsToMove.size(); i++) {
@@ -2151,18 +2160,16 @@ void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<s
 		long initialX = controlsToMove[i].second.x;
 		long initialY = controlsToMove[i].second.y;
 		if (initialX==0 && initialY==0) {
+			//if (show)
+			//	UpdateWindow(ctl);
 			ShowWindow(ctl, show?SW_SHOW:SW_HIDE);
 		} else {
 			SetWindowPos(ctl, NULL, initialX+wndOffset, initialY, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
 		}
 	}
 
-
-
-
-
-
-
+	if (!show)
+		MoveWindow(dlgHwnd, wndNewX, wndR.top, wndNewWidth, wndR.bottom-wndR.top, TRUE);
 
 	//Done
 	helpBoxIsVisible = show;
@@ -2312,6 +2319,11 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth+wndHelpAreaWidth, bkgrdH));
 			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-w - fHeight/2 - w, wndR.bottom+1-bkgrdH+h/2, w, h));
 			pendingItems.push_back(WControl(IDCANCEL, L"&Cancel", L"BUTTON", false, wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HELPPNL, L"Test text", L"STATIC", false, 15, 15, wndHelpAreaWidth-15, wndR.bottom-wndR.top-bkgrdH-30+3));
+			pendingItems[pendingItems.size()-1].hidden = true;
+			pendingItems.push_back(WControl(IDC_SETTINGS_HELPCLOSEBTN, L"X", L"BUTTON", false, wndHelpAreaWidth-24, 15, 24, 24));
+			pendingItems[pendingItems.size()-1].hidden = true;
+			pendingItems[pendingItems.size()-1].ownerDrawnBtn = true;
 
 			//DC's no longer needed
 			ReleaseDC(hwnd, currDC);
@@ -2322,6 +2334,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					continue;
 
 				POINT pt = {it->x, it->y};
+				if (it->id==IDC_SETTINGS_HELPPNL || it->id==IDC_SETTINGS_HELPCLOSEBTN)
+					pt.x = pt.y = 0;
 				controlsToMove.push_back(pair<unsigned int, POINT>(it->id, pt));
 			}
 
@@ -2335,6 +2349,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontBold, MAKELPARAM(FALSE, 0));
 			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_MAINTAB);
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
+
+			//Set "bold" font for close label
+			//hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPCLOSEBTN);
+			//SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontBold, MAKELPARAM(FALSE, 0));
 
 			//For each language, add a panel in the tab control
 			TCITEM tci;
@@ -2377,6 +2395,33 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
+		case WM_DRAWITEM:
+		{
+			//Draw our owner-drawn button?
+			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam; 
+			if (wParam!=IDC_SETTINGS_HELPCLOSEBTN)
+				break;
+
+			//Retrieve the DC
+			HDC& currDC = drawInfo->hDC; //We need the direct DC to draw properly
+			RECT bounds = drawInfo->rcItem; //Draw within these bounds
+
+			//Should draw the button with three different states: highlighted, 
+			//  depressed, neither. But for now, it's not important.
+
+			//Draw the border
+			size_t mg = (bounds.right-bounds.left)/4;
+			SelectObject(currDC, g_BlackPen);
+			SelectObject(currDC, g_RedBkgrd);
+			Rectangle(currDC, bounds.left, bounds.top, bounds.right, bounds.bottom);
+			SelectObject(currDC, g_WhiteThickPen);
+			MoveToEx(currDC, bounds.left+mg, bounds.top+mg, NULL);
+			LineTo(currDC, bounds.right-mg-1, bounds.bottom-mg-1);
+			MoveToEx(currDC, bounds.left+mg, bounds.bottom-mg-1, NULL);
+			LineTo(currDC, bounds.right-mg-1, bounds.top+mg);
+
+			break;
+		}
 		case WM_NOTIFY:
 		{
 			LPNMHDR info = (LPNMHDR)lParam;
@@ -2393,12 +2438,14 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_CTLCOLORDLG:
 			return (BOOL)g_DlgHelpBkgrd;
-		/*case WM_CTLCOLOR:
+		/*case WM_CTLCOLORBTN: //Useless message for non-owner-drawn buttons!
 		{
 			int ctlID = GetDlgCtrlID((HWND)lParam);
-			if (ctlID==IDC_SETTINGS_MAINTAB) {
+			if (ctlID==IDC_SETTINGS_HELPCLOSEBTN) {
 				//Set the background color of our static item
-				return (BOOL)g_DlgHelpSlash;
+				SetTextColor((HDC)wParam, RGB(255, 255, 255)); //Set white text.
+				SetBkColor((HDC)wParam, RGB(128, 0, 0));
+				return (BOOL)g_RedBkgrd;
 			}
 
 			break;
@@ -2438,6 +2485,14 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						lastHelpDlgID = show ? ctlID : 0;
 					}
 
+					break;
+
+				case IDC_SETTINGS_HELPCLOSEBTN:
+					if (HIWORD(wParam)==BN_CLICKED) {
+						//Close the window
+						MakeHelpBoxVisible(hwnd, FALSE, 0, pair<size_t, size_t>(wndWidth, wndHelpAreaWidth));
+						lastHelpDlgID = 0;
+					}
 					break;
 			}
 			break;
@@ -3665,6 +3720,7 @@ void createPaintResources()
 	g_BlackBkgrd = CreateSolidBrush(RGB(0, 0, 0));
 	g_YellowBkgrd = CreateSolidBrush(RGB(255, 255, 0));
 	g_GreenBkgrd = CreateSolidBrush(RGB(0, 128, 0));
+	g_RedBkgrd = CreateSolidBrush(RGB(128, 0, 0));
 	g_DlgHelpBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
 	g_MenuItemBkgrd = CreateSolidBrush(cr_MenuItemBkgrd);
 	g_MenuDefaultBkgrd = CreateSolidBrush(cr_MenuDefaultBkgrd);
@@ -3674,6 +3730,7 @@ void createPaintResources()
 	g_GreenPen = CreatePen(PS_SOLID, 1, RGB(0, 128, 0));
 	g_BlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	g_MediumGrayPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
+	g_WhiteThickPen = CreatePen(PS_SOLID, 2, RGB(255, 255, 255));
 	g_DotHilitePen = CreatePen(PS_SOLID, 1, RGB(0x42, 0x5D, 0xBC));
 	g_EmptyPen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
 }

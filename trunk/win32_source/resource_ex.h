@@ -85,6 +85,8 @@ enum {
 	IDC_SETTINGS_LANGHELP,
 	IDC_SETTINGS_IMHELP,
 	IDC_SETTINGS_OUTENCHELP,
+	IDC_SETTINGS_HELPPNL,
+	IDC_SETTINGS_HELPCLOSEBTN,
 	IDC_SETTINGS_FAKEICONID,
 };
 
@@ -105,8 +107,10 @@ public:
 	size_t yPlus;
 	unsigned int iconID;
 	bool blWh; //Convert to black-and-white?
+	bool hidden; //Start hidden?
+	bool ownerDrawnBtn; //Is this an owner-drawn button?
 
 	WControl(unsigned int id, std::wstring text, std::wstring type, bool convertToHyperlink=false, size_t x=0, size_t y=0, size_t w=0, size_t h=0, size_t hPlus=0) 
-		: id(id), text(text), type(type), convertToHyperlink(convertToHyperlink), x(x), y(y), w(w), h(h), hPlus(hPlus), iconID(0), blWh(false), yPlus(0)
+		: id(id), text(text), type(type), convertToHyperlink(convertToHyperlink), x(x), y(y), w(w), h(h), hPlus(hPlus), iconID(0), blWh(false), yPlus(0), hidden(false), ownerDrawnBtn(false)
 	{}
 };
