@@ -2126,23 +2126,27 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 
 
 vector< pair<unsigned int, POINT> > controlsToMove; //"ID", "initialX", where initialX of 0 means "show/hide"
+vector< pair<wstring, wstring> > helpIconDlgTextStrings;
 bool helpBoxIsVisible = false;
 void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<size_t, size_t> wndWidthMinPlus) 
 {
 	//Always update the help icons' colors
-	for (vector<unsigned int>::iterator it=helpIconDlgIDs.begin(); it!=helpIconDlgIDs.end(); it++) {
-		HWND ctl = GetDlgItem(dlgHwnd, *it);
-		SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM) ((*it==helpIconID&&show)?helpIconColor:helpIconGray));
+	pair<wstring, wstring> panelText;
+	for (size_t i=0; i<helpIconDlgIDs.size(); i++) {
+		unsigned int ctlID = helpIconDlgIDs[i];
+		bool matchCtl = (ctlID==helpIconID);
+		HWND ctl = GetDlgItem(dlgHwnd, ctlID);
+		SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM) ((matchCtl&&show)?helpIconColor:helpIconGray));
+		if (matchCtl && show) {
+			panelText = helpIconDlgTextStrings[i];
+		}
 	}
-
-	//TODO: Update help icon text, too.
+	//Update the help icon text (& title)
 	if (show) {
-		HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPPNL);
-		//RECT r;
-		SetWindowText(ctl, L"Test: here's some help text.\nTest: here's some much longer longer longer longer longer longer help text.\nTest: here's some help text.\nTest: here's some help text.");
-		//GetClientRect(ctl, &r);
-		//InvalidateRect(ctl, &r, TRUE); //Make sure text shows.
-		//UpdateWindow(ctl);
+		HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPTPNLTITLETXT);
+		SetWindowText(ctl, panelText.first.c_str());
+		ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPPNL);
+		SetWindowText(ctl, panelText.second.c_str());
 	}
 
 	//Don't do anything else if we're not performing a full change.
@@ -2201,6 +2205,14 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (helpIconColor==NULL || helpIconGray==NULL)
 				throw std::exception("Couldn't load color/grayscale help icon from memory");
 			helpBoxIsVisible = false;
+
+			//Save strings
+			if (helpIconDlgTextStrings.empty()) {
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Language Hotkey", L"\n\n(lang. hk)"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Default Language", L"\n\nThe default language is the language that WaitZar starts in when the program is first launched."));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Input Method", L"\n\n(def. im)"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Output Encoding", L"\n\n(def. out)"));
+			}
 
 			//Resize the settings dialog; keep it at the same position.
 			//Also, set its caption.
@@ -2323,7 +2335,9 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth+wndHelpAreaWidth, bkgrdH));
 			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-w - fHeight/2 - w, wndR.bottom+1-bkgrdH+h/2, w, h));
 			pendingItems.push_back(WControl(IDCANCEL, L"&Cancel", L"BUTTON", false, wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h));
-			pendingItems.push_back(WControl(IDC_SETTINGS_HELPPNL, L"Test text", L"STATIC", false, 15, 15, wndHelpAreaWidth-15, wndR.bottom-wndR.top-bkgrdH-30+3));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HELPPNL, L"Body text", L"STATIC", false, 15, 15, wndHelpAreaWidth-15, wndR.bottom-wndR.top-bkgrdH-30+3));
+			pendingItems[pendingItems.size()-1].hidden = true;
+			pendingItems.push_back(WControl(IDC_SETTINGS_HELPTPNLTITLETXT, L"Title Text", L"STATIC", false, 15+fHeight/2, 15+fHeight/2-2, wndHelpAreaWidth-15-2, fHeight+4));
 			pendingItems[pendingItems.size()-1].hidden = true;
 			pendingItems.push_back(WControl(IDC_SETTINGS_HELPCLOSEBTN, L"X", L"BUTTON", false, wndHelpAreaWidth-24, 15, 24, 24));
 			pendingItems[pendingItems.size()-1].hidden = true;
@@ -2338,7 +2352,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					continue;
 
 				POINT pt = {it->x, it->y};
-				if (it->id==IDC_SETTINGS_HELPPNL || it->id==IDC_SETTINGS_HELPCLOSEBTN)
+				if (it->id==IDC_SETTINGS_HELPPNL || it->id==IDC_SETTINGS_HELPCLOSEBTN || it->id==IDC_SETTINGS_HELPTPNLTITLETXT)
 					pt.x = pt.y = 0;
 				controlsToMove.push_back(pair<unsigned int, POINT>(it->id, pt));
 			}
@@ -2353,6 +2367,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontBold, MAKELPARAM(FALSE, 0));
 			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_MAINTAB);
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
+			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPTPNLTITLETXT);
+			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0)); //Looks nice.
 
 			//Set "bold" font for close label
 			//hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPPNL);
