@@ -1891,8 +1891,8 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 		//Set flags
 		unsigned int visFlag = !it->hidden ? WS_VISIBLE : 0;
 		if (it->type==L"STATIC") {//Optionally SS_ICON to auto-resize.
-			unsigned int flags3 = (it->iconID==IDC_SETTINGS_FAKEICONID?SS_BITMAP|SS_NOTIFY:SS_ICON); //TODO: Fix hack. x2
-			flags = WS_CHILD | visFlag | (it->iconID!=0 ? flags3 : 0) | (it->id==IDC_SETTINGS_HELPPNL?SS_BLACKFRAME:0); //TODO: Fix hacks here too...
+			unsigned int flags3 = (it->iconID==IDC_SETTINGS_FAKEICONID?(SS_BITMAP|SS_NOTIFY):SS_ICON); //TODO: Fix hack. x2
+			flags = WS_CHILD | visFlag | (it->iconID!=0 ? flags3 : 0) | (it->id==IDC_SETTINGS_HELPPNL?WS_BORDER:0); //TODO: Fix hacks here too...
 		} else if (it->type==L"BUTTON") {
 			flags = WS_CHILD | visFlag;
 			if (it->ownerDrawnBtn)
@@ -1932,7 +1932,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 		//Turn it into a hyperlink?
 		if (it->convertToHyperlink && it->type==L"STATIC")
 			ConvertStaticToHyperlink(hwnd, it->id);
-		UpdateWindow(ctl); //Might not be needed, but keep here for now.
+		//UpdateWindow(ctl); //Might not be needed, but keep here for now.
 	}
 }
 
@@ -2138,7 +2138,11 @@ void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<s
 	//TODO: Update help icon text, too.
 	if (show) {
 		HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPPNL);
-		SetWindowText(ctl, L"Test: here's some help text.\nTest: here's some help text.\nTest: here's some help text.\nTest: here's some help text.");
+		//RECT r;
+		SetWindowText(ctl, L"Test: here's some help text.\nTest: here's some much longer longer longer longer longer longer help text.\nTest: here's some help text.\nTest: here's some help text.");
+		//GetClientRect(ctl, &r);
+		//InvalidateRect(ctl, &r, TRUE); //Make sure text shows.
+		//UpdateWindow(ctl);
 	}
 
 	//Don't do anything else if we're not performing a full change.
@@ -2351,7 +2355,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
 
 			//Set "bold" font for close label
-			//hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPCLOSEBTN);
+			//hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPPNL);
 			//SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontBold, MAKELPARAM(FALSE, 0));
 
 			//For each language, add a panel in the tab control
@@ -2411,14 +2415,18 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Draw the border
 			size_t mg = (bounds.right-bounds.left)/4;
-			SelectObject(currDC, g_BlackPen);
-			SelectObject(currDC, g_RedBkgrd);
+			HPEN oldPen = (HPEN)SelectObject(currDC, g_BlackPen);
+			HBRUSH oldBrush = (HBRUSH)SelectObject(currDC, g_RedBkgrd);
 			Rectangle(currDC, bounds.left, bounds.top, bounds.right, bounds.bottom);
 			SelectObject(currDC, g_WhiteThickPen);
 			MoveToEx(currDC, bounds.left+mg, bounds.top+mg, NULL);
 			LineTo(currDC, bounds.right-mg-1, bounds.bottom-mg-1);
 			MoveToEx(currDC, bounds.left+mg, bounds.bottom-mg-1, NULL);
 			LineTo(currDC, bounds.right-mg-1, bounds.top+mg);
+
+			//Revert (?)
+			SelectObject(currDC, oldPen);
+			SelectObject(currDC, oldBrush);
 
 			break;
 		}
@@ -2457,6 +2465,11 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Set the background color of our static item
 				return (BOOL)g_DlgHelpSlash;
 			}
+			/*if (ctlID==IDC_SETTINGS_HELPPNL) {
+				SetTextColor((HDC)wParam, RGB(0x00, 0x00, 0x00));
+				SetBkColor((HDC)wParam, RGB(128, 0, 0));
+				return (BOOL)g_GreenBkgrd;
+			}*/
 
 			//Transparent? Ugh.
 			SetBkColor((HDC)wParam, RGB(0xEE, 0xFF, 0xEE));
