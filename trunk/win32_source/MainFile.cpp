@@ -2211,10 +2211,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Save strings
 			if (helpIconDlgTextStrings.empty()) {
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Language Hotkey", L"(lang. hk)"));
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Default Language", L"The default language is the language that WaitZar starts in when the program is first launched."));
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Input Method", L"(def. im)"));
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Output Encoding", L"(def. out)"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Language Hotkey", L"The key combination that switches between English and Burmese typing.\n\nWhen in English mode, this is the only hotkey registered with Windows, so you should generally choose an uncomon key sequence to avoid accidentally activating WaitZar.\n\nDefaults to: Ctrl+Shift"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Default Language", L"The language which WaitZar starts in.\n\nDefaults to: Myanmar"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Input Method", L"The input method WaitZar activates initially.\n\nYou should set this to your favorite Roman (WaitZar, Burglish) or Keyboard (Zawgyi-One, myWin) input method.\n\nDefault values:\n  Myanmar: WaitZar\n  Shan: Test Keyboard"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Output Encoding", L"The output encoding that WaitZar activates by default. (Encodings are called \"fonts\" on some web sites.)\n\nIt is recommended to keep this at its default value.\n\nDefaults to: Unicode"));
 			}
 
 			//Resize the settings dialog; keep it at the same position.
