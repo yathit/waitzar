@@ -1892,7 +1892,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 		unsigned int visFlag = !it->hidden ? WS_VISIBLE : 0;
 		if (it->type==L"STATIC") {//Optionally SS_ICON to auto-resize.
 			unsigned int flags3 = (it->iconID==IDC_SETTINGS_FAKEICONID?(SS_BITMAP|SS_NOTIFY):SS_ICON); //TODO: Fix hack. x2
-			flags = WS_CHILD | visFlag | (it->iconID!=0 ? flags3 : 0) | (it->id==IDC_SETTINGS_HELPPNL?WS_BORDER:0); //TODO: Fix hacks here too...
+			flags = WS_CHILD | visFlag | (it->iconID!=0 ? flags3 : 0) | (it->id==IDC_SETTINGS_HELPPNLBORDER?WS_BORDER:0); //TODO: Fix hacks here too...
 		} else if (it->type==L"BUTTON") {
 			flags = WS_CHILD | visFlag;
 			if (it->ownerDrawnBtn)
@@ -2143,10 +2143,13 @@ void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<s
 	}
 	//Update the help icon text (& title)
 	if (show) {
-		HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPTPNLTITLETXT);
-		SetWindowText(ctl, panelText.first.c_str());
-		ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPPNL);
+		//NOTE: We need to update all windows in z-order, lest they occlude the others.
+		HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPPNLTXT);
 		SetWindowText(ctl, panelText.second.c_str());
+		ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPTPNLTITLETXT);
+		SetWindowText(ctl, panelText.first.c_str());
+		//ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPCLOSEBTN);
+		//SetWindowText(ctl, L"X"); //We need to set this, or it will be overshadowed by the 
 	}
 
 	//Don't do anything else if we're not performing a full change.
@@ -2208,10 +2211,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Save strings
 			if (helpIconDlgTextStrings.empty()) {
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Language Hotkey", L"\n\n(lang. hk)"));
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Default Language", L"\n\nThe default language is the language that WaitZar starts in when the program is first launched."));
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Input Method", L"\n\n(def. im)"));
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Output Encoding", L"\n\n(def. out)"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Language Hotkey", L"(lang. hk)"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Default Language", L"The default language is the language that WaitZar starts in when the program is first launched."));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Input Method", L"(def. im)"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Output Encoding", L"(def. out)"));
 			}
 
 			//Resize the settings dialog; keep it at the same position.
@@ -2335,9 +2338,11 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_BKGRD, L"", L"STATIC", false, 0, wndR.bottom-bkgrdH, wndWidth+wndHelpAreaWidth, bkgrdH));
 			pendingItems.push_back(WControl(IDOK, L"&Ok", L"BUTTON", false, wndR.right-fHeight*2-11-w - fHeight/2 - w, wndR.bottom+1-bkgrdH+h/2, w, h));
 			pendingItems.push_back(WControl(IDCANCEL, L"&Cancel", L"BUTTON", false, wndR.right-fHeight*2-11-w, wndR.bottom+1-bkgrdH+h/2, w, h));
-			pendingItems.push_back(WControl(IDC_SETTINGS_HELPPNL, L"Body text", L"STATIC", false, 15, 15, wndHelpAreaWidth-15, wndR.bottom-wndR.top-bkgrdH-30+3));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HELPPNLBORDER, L"", L"STATIC", false, 15, 15, wndHelpAreaWidth-15, wndR.bottom-wndR.top-bkgrdH-30+3));
 			pendingItems[pendingItems.size()-1].hidden = true;
-			pendingItems.push_back(WControl(IDC_SETTINGS_HELPTPNLTITLETXT, L"Title Text", L"STATIC", false, 15+fHeight/2, 15+fHeight/2-2, wndHelpAreaWidth-15-2, fHeight+4));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HELPPNLTXT, L"Body Txt", L"STATIC", false, 15+5, 15+24+5, wndHelpAreaWidth-15-10, wndR.bottom-wndR.top-bkgrdH-30+3-10-24));
+			pendingItems[pendingItems.size()-1].hidden = true;
+			pendingItems.push_back(WControl(IDC_SETTINGS_HELPTPNLTITLETXT, L"Title Text", L"STATIC", false, 15+fHeight/2, 15+fHeight/2-2, wndHelpAreaWidth-24-15-2-6, fHeight+4));
 			pendingItems[pendingItems.size()-1].hidden = true;
 			pendingItems.push_back(WControl(IDC_SETTINGS_HELPCLOSEBTN, L"X", L"BUTTON", false, wndHelpAreaWidth-24, 15, 24, 24));
 			pendingItems[pendingItems.size()-1].hidden = true;
@@ -2352,7 +2357,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					continue;
 
 				POINT pt = {it->x, it->y};
-				if (it->id==IDC_SETTINGS_HELPPNL || it->id==IDC_SETTINGS_HELPCLOSEBTN || it->id==IDC_SETTINGS_HELPTPNLTITLETXT)
+				if (it->id==IDC_SETTINGS_HELPPNLBORDER || it->id==IDC_SETTINGS_HELPPNLTXT || it->id==IDC_SETTINGS_HELPCLOSEBTN || it->id==IDC_SETTINGS_HELPTPNLTITLETXT)
 					pt.x = pt.y = 0;
 				controlsToMove.push_back(pair<unsigned int, POINT>(it->id, pt));
 			}
