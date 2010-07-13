@@ -2221,7 +2221,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Also, set its caption.
 			RECT wndR;
 			GetWindowRect(hwnd, &wndR);
-			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
+			MoveWindow(hwnd, std::max<long>(wndR.left, wndHelpAreaWidth), wndR.top, wndWidth, wndHeight, TRUE);
 			SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)L"WaitZar's Settings");
 			//EnableThemeDialogTexture(hwnd, ETDT_ENABLE);
 			GetClientRect(hwnd, &wndR);
