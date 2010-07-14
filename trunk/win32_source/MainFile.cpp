@@ -2104,8 +2104,10 @@ vector<wstring> settingsLangIDs;
 void UpdateSettingsTab(HWND dlgHwnd, int tabID) 
 {
 	//Remove all entries.
-	HWND ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_IMCOMBO);
-	SendMessage(ctl, CB_RESETCONTENT, 0, 0);
+	HWND ctlA = GetDlgItem(dlgHwnd, IDC_SETTINGS_IMCOMBO);
+	HWND ctlB = GetDlgItem(dlgHwnd, IDC_SETTINGS_OUTCOMBO);
+	SendMessage(ctlA, CB_RESETCONTENT, 0, 0);
+	SendMessage(ctlB, CB_RESETCONTENT, 0, 0);
 
 	//Invalid language?
 	if (tabID==-1)
@@ -2116,12 +2118,19 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	const Language& lng = *FindKeyInSet(config.getLanguages(), langID);
 
 	//Add all combo item entries.
-	SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"N/A");
-	SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(Auto)");
+	SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)L"N/A");
+	SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)L"N/A");
+	SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)L"(Auto)");
+	SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)L"(Auto)");
 	for (std::set<InputMethod*>::const_iterator it2=lng.inputMethods.begin(); it2!=lng.inputMethods.end(); it2++) {
-		SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
+		SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
 	}
-	SendMessage(ctl, CB_SETCURSEL, 0, 0); //Choose the first item, for now.
+	for (std::set<Encoding>::const_iterator it2=lng.encodings.begin(); it2!=lng.encodings.end(); it2++) {
+		if (it2->canUseAsOutput)
+			SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)it2->displayName.c_str());
+	}
+	SendMessage(ctlA, CB_SETCURSEL, 0, 0); //Choose the first item, for now.
+	SendMessage(ctlB, CB_SETCURSEL, 0, 0); //Choose the first item, for now.
 }
 
 
@@ -2212,7 +2221,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Save strings
 			if (helpIconDlgTextStrings.empty()) {
 				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Language Hotkey", L"The key combination that switches between English and Burmese typing.\n\nWhen in English mode, this is the only hotkey registered with Windows, so you should generally choose an uncomon key sequence to avoid accidentally activating WaitZar.\n\nDefaults to: Ctrl+Shift"));
-				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Default Language", L"The language which WaitZar starts in.\n\nDefaults to: Myanmar"));
+				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Default Language", L"The language which WaitZar starts in.\n\nSet to \"N/A\" for the default. Set to \"Auto\" to start in the language you last typed in.\n\nDefaults to: Myanmar"));
 				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Input Method", L"The input method WaitZar activates initially.\n\nYou should set this to your favorite Roman (WaitZar, Burglish) or Keyboard (Zawgyi-One, myWin) input method.\n\nDefault values:\n  Myanmar: WaitZar\n  Shan: Test Keyboard"));
 				helpIconDlgTextStrings.push_back(pair<wstring, wstring>(L"Output Encoding", L"The output encoding that WaitZar activates by default. (Encodings are called \"fonts\" on some web sites.)\n\nIt is recommended to keep this at its default value.\n\nDefaults to: Unicode"));
 			}
@@ -2253,6 +2262,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			const size_t lblWidth = 140;
 			const size_t comboWidth = 110;
 			const size_t comboShortWidth = 80;
+			const size_t comboShortWidth2 = 60;
 			const size_t comboHeight = 150;
 			const size_t cHPlus = 22;
 
@@ -2268,7 +2278,9 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKLBL, L"Language Hotkey", L"STATIC", false, 37));
 			pendingItems[pendingItems.size()-1].yPlus = (cHPlus-fHeight) - 5;
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO1, L"", L"COMBOBOX", false, lblWidth, 0, comboShortWidth, comboHeight));
-			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO2, L"", L"COMBOBOX", false, lblWidth+comboShortWidth, 0, comboShortWidth, comboHeight));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKPLUSLBL, L" + ", L"STATIC", false, lblWidth+comboShortWidth));
+			pendingItems[pendingItems.size()-1].yPlus = (cHPlus-fHeight) - 5;
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO2, L"", L"COMBOBOX", false, 0, 0, comboShortWidth2, comboHeight));
 			pendingItems[pendingItems.size()-1].hPlus = cHPlus;
 			pendingItems.push_back(WControl(IDC_SETTINGS_LANGHELP, L"", L"STATIC", false, 15, 0, iconSz, iconSz));
 			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
@@ -2374,6 +2386,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0));
 			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPTPNLTITLETXT);
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0)); //Looks nice.
+			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_LANGCOMBO);
+			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0)); //Needed for names.
 
 			//Set "bold" font for close label
 			//hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPPNL);
@@ -2413,10 +2427,30 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Alt");
 			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Alt+Shift");
 			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Alt+Shift");
+			SendMessage(ctl, CB_SETCURSEL, 1, 0); //Just pick one for now
+
+			//Some more...
+			ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO2);
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(None)");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Shift");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"A");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"B");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"C");
+			SendMessage(ctl, CB_SETCURSEL, 1, 0); //Just pick one for now
+
+			//And a few more...
+			ctl = GetDlgItem(hwnd, IDC_SETTINGS_LANGCOMBO);
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"N/A");
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(Auto)");
+			for (std::set<Language>::const_iterator it2=config.getLanguages().begin(); it2!=config.getLanguages().end(); it2++) {
+				SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)it2->displayName.c_str());
+			}
+			SendMessage(ctl, CB_SETCURSEL, 0, 0); //Choose the first item, for now.
 
 			//Set the main visible tab to the default language.
 			// (Does not fire a TCN_SELCHANGE message)
 			TabCtrl_SetCurSel(hwTabMain, defTabID);
+			UpdateSettingsTab(hwnd, defTabID);
 
 			break;
 		}
@@ -2460,7 +2494,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					int id = TabCtrl_GetCurSel(info->hwndFrom);
 
 					//Update all
-					UpdateSettingsTab(info->hwndFrom, id);
+					UpdateSettingsTab(GetParent(info->hwndFrom), id);
 				}
 			}
 			break;
