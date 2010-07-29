@@ -2043,7 +2043,8 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			int ctlID = GetDlgCtrlID((HWND)lParam);
 			if (ctlID==IDC_HELP_BKGRD) {
 				//Set the background color of our static item
-				return (BOOL)g_DlgHelpSlash;
+				return (INT_PTR)CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
+				//return (BOOL)g_DlgHelpSlash; //The system deletes the brush automatically.
 			}
 			if (ctlID==IDC_HELP_H1 || ctlID==IDC_HELP_H5 || ctlID==IDC_HELP_H6) {
 				//Make it blue
@@ -2052,7 +2053,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			//Transparent? Ugh.
 			SetBkColor((HDC)wParam, RGB(0xEE, 0xFF, 0xEE));
-			return (BOOL)g_DlgHelpBkgrd;
+			return (INT_PTR)CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
 			break;
 		}
 		case WM_COMMAND:
@@ -2518,7 +2519,12 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			int ctlID = GetDlgCtrlID((HWND)lParam);
 			if (ctlID==IDC_SETTINGS_BKGRD) {
 				//Set the background color of our static item
-				return (BOOL)g_DlgHelpSlash;
+				//return (INT_PTR)CreateSolidBrush(RGB(0,0,0));
+				return (INT_PTR)CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
+
+				//return (BOOL)g_DlgHelpSlash;
+			} else if (ctlID==IDC_SETTINGS_IMLBL || ctlID==IDC_SETTINGS_OUTLBL) {
+				return FALSE; //Let the system set itself
 			}
 			/*if (ctlID==IDC_SETTINGS_HELPPNL) {
 				SetTextColor((HDC)wParam, RGB(0x00, 0x00, 0x00));
@@ -2528,7 +2534,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Transparent? Ugh.
 			SetBkColor((HDC)wParam, RGB(0xEE, 0xFF, 0xEE));
-			return (BOOL)g_DlgHelpBkgrd;
+			return (INT_PTR)CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
+			//return (BOOL)g_DlgHelpBkgrd;
 			break;
 		}
 		case WM_COMMAND:
