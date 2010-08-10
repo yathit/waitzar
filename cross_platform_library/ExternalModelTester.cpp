@@ -208,14 +208,15 @@ int main(int argc, const char* argv[])
 		//Check error
 		if (convertZawgyi != origZawgyi) {
 			//Print to file
+			//TODO: Make this part of the Logger interface
 			if (errorFile==NULL) {
 				errorFile = fopen("wz_convert_errors.txt", "w, ccs=UTF-8");
 				logFile = fopen("wz_convert_log.txt", "w");
 				if (errorFile==NULL || logFile==NULL) {
 					wprintf(L"Cannot open error file for logging!\n", x);
 					break;
-				} else
-					waitzar::setLogFile(logFile);
+				} /*else 
+					waitzar::setLogFile(logFile);*/
 			}
 
 			if (

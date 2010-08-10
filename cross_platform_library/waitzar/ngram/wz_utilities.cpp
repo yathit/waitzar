@@ -184,7 +184,7 @@ namespace
 
 
 	//Useful global vars
-	FILE *wzUtilLogFile = NULL;
+	//FILE *wzUtilLogFile = NULL;
 
 	//A fun struct
     #define RULE_MODIFY   1
@@ -209,12 +209,6 @@ namespace
 	};
 	std::vector<Rule*> matchRules;
 	std::vector<wchar_t*> reorderPairs;
-	
-
-	bool isLogging()
-	{
-		return wzUtilLogFile != NULL;
-	}
 
 
 	bool isMyanmar(wchar_t letter)
@@ -856,11 +850,6 @@ std::wstring sortMyanmarString(const std::wstring &uniString)
 }
 
 
-void setLogFile(FILE *logFile)
-{
-	wzUtilLogFile = logFile;
-}
-
 
 //TODO: We should remove the BOM here; it's just a nuisance elsewhere.
 wstring readUTF8File(const string& path) 
@@ -1239,7 +1228,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 
 
 					//Double-check for missing rules
-					if (checkMissingRules && isLogging()) {
+					if (checkMissingRules && /*TEMP*/false/*ENDTEMP*/  /*Logger::isLogging('L')*/) {
 						for (size_t prevRule=2; prevRule < ruleID; prevRule++) {
 							Rule *r = matchRules[prevRule];
 							if (r->at_letter==zawgyiStr[x] && ((r->match_flags&currMatchFlags)!=0) && !r->blacklisted) {
@@ -1253,7 +1242,10 @@ wstring renderAsZawgyi(const wstring &uniString)
 								if (matchRules[ruleID]->at_letter==ZG_DOT_BELOW_SHIFT_1 || matchRules[ruleID]->at_letter==ZG_DOT_BELOW_SHIFT_2)
 									continue;
 
-								fprintf(wzUtilLogFile, "WARNING: Rule %i was skipped after matching rule %i\n", prevRule, ruleID);
+								/*TODO: Re-enable logging
+								wstringstream line;
+								line <<L"WARNING: Rule " <<prevRule <<L" was skipped after matching rule "  <<ruleID;
+								Logger::writeLogLine('L', line.str());*/
 							}
 						}
 					}
