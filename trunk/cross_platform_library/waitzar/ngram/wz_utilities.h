@@ -21,6 +21,7 @@
 
 //Should probably move 'mymb' function here..
 #include "WordBuilder.h"
+//#include "Logger.h" //Will eventually need to become part of "contrib"
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -51,8 +52,6 @@ namespace waitzar
 
 
 	std::wstring renderAsZawgyi(const std::wstring &uniString);
-
-	void setLogFile(FILE *logFile);
 
 	std::wstring readUTF8File(const std::string& path);
 

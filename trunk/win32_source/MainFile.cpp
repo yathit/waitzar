@@ -97,6 +97,7 @@
 #include "Display/TtfDisplay.h"
 #include "Input/RomanInputMethod.h"
 #include "Transform/Self2Self.h"
+#include "Logger.h"
 
 //VS Includes
 #include "resource_ex.h"
@@ -362,12 +363,13 @@ int spaceWidth;
 
 
 //Log file, since the debugger doesn't like multi-process threads
-bool isLogging = false;
-FILE *logFile;
+// --Put into its own class
+//bool isLogging = false;
+//FILE *logFile;
 
 //For testing
-FILETIME startTime;
-FILETIME endTime;
+//FILETIME startTime;
+//FILETIME endTime;
 enum test_type {
 	none,
 	start_up,
@@ -406,12 +408,12 @@ const Transformation* ConfigGetTransformation(const Encoding& fromEnc, const Enc
 }
 
 
-unsigned long getTimeDifferenceMS(const FILETIME &st, const FILETIME &end)
+/*unsigned long getTimeDifferenceMS(const FILETIME &st, const FILETIME &end)
 {
 	if (st.dwHighDateTime != end.dwHighDateTime)
 		return std::numeric_limits<DWORD>::max();
 	return (end.dwLowDateTime - st.dwLowDateTime)/10000L;
-}
+}*/
 
 
 
@@ -1891,7 +1893,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 		//Set flags
 		unsigned int visFlag = !it->hidden ? WS_VISIBLE : 0;
 		if (it->type==L"STATIC") {//Optionally SS_ICON to auto-resize.
-			unsigned int flags3 = (it->iconID==IDC_SETTINGS_FAKEICONID?(SS_BITMAP|SS_NOTIFY):SS_ICON); //TODO: Fix hack. x2
+			unsigned int flags3 = (it->iconID==IDC_SETTINGS_FAKEICONID?(SS_BITMAP|SS_NOTIFY):it->iconID==OBM_RGARROW?SS_BITMAP:SS_ICON); //TODO: Fix hack. x2
 			flags = WS_CHILD | visFlag | (it->iconID!=0 ? flags3 : 0) | (it->id==IDC_SETTINGS_HELPPNLBORDER?WS_BORDER:0); //TODO: Fix hacks here too...
 		} else if (it->type==L"BUTTON") {
 			flags = WS_CHILD | visFlag;
@@ -1914,10 +1916,17 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 		SetWindowLongPtr(ctl, GWL_ID, it->id);
 		if (it->iconID!=0 && it->iconID!=IDC_SETTINGS_FAKEICONID) {
 			//Send an update_icon method. I tried SS_ICON before, but it didn't work.
-			bool isSysIcon = it->iconID==OIC_QUES;  //TODO: Add more later.
+			bool isSysIcon = it->iconID==OIC_QUES||it->iconID==OBM_RGARROW;  //TODO: Add more later.
 			//LPCTSTR iconName = it->iconID==OIC_QUES ? IDI_QUESTION : MAKEINTRESOURCE(it->iconID);
 			unsigned int loadFlags = (/*it->blWh ? LR_MONOCHROME :*/ LR_DEFAULTCOLOR) | (isSysIcon ? LR_SHARED : 0);
-			unsigned int flags2 = (it->iconID==IDI_HELPICON_COLOR?IMAGE_BITMAP:IMAGE_ICON); //TODO: Fix hack.
+			unsigned int flags2 = (it->iconID==IDI_HELPICON_COLOR||it->iconID==OBM_RGARROW?IMAGE_BITMAP:IMAGE_ICON); //TODO: Fix hack.
+
+			//TEMP
+			if (it->iconID==OBM_RGARROW)
+				it->iconID=OBM_ZOOM;
+			//END TEMP
+
+
 			HANDLE hicon = (HANDLE)LoadImage((isSysIcon?NULL:hInst), MAKEINTRESOURCE(it->iconID), flags2, it->w, it->h, loadFlags);
 			if (it->blWh) {
 				HANDLE hiconOld = hicon;
@@ -2360,6 +2369,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_HELPCLOSEBTN, L"X", L"BUTTON", false, wndHelpAreaWidth-24, 15, 24, 24));
 			pendingItems[pendingItems.size()-1].hidden = true;
 			pendingItems[pendingItems.size()-1].ownerDrawnBtn = true;
+			//pendingItems.push_back(WControl(IDC_SETTINGS_GENERICARROW, L"", L"STATIC", false, 30, 30, 16, 16));
+			//pendingItems[pendingItems.size()-1].iconID = OBM_RGARROW;
 
 			//DC's no longer needed
 			ReleaseDC(hwnd, currDC);
@@ -3133,9 +3144,11 @@ void initContextMenu()
 {
 	//Make the font
 	createMyanmarMenuFont();
+	Logger::markLogTime('L', L"Myanmar font created");
 
 	//Make the menu
 	createContextMenu();
+	Logger::markLogTime('L', L"Context menu created");
 }
 
 
@@ -3546,12 +3559,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//This should already be closed; closing it twice is an error.
 				//CloseHandle(caretTrackThread);  //Leave commented...
-			}
-
-			//Log?
-			if (isLogging) {
-				fprintf(logFile, "WaitZar closed\n");
-				fclose(logFile);
 			}
 
 			break;
@@ -3980,9 +3987,9 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
  */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	//Logging time to start?
-	if (currTest == start_up)
-		GetSystemTimeAsFileTime(&startTime);
+	//Init log:
+	Logger::resetLogFile('L');
+	Logger::startLogTimer('L', L"Starting WaitZar");
 
 	//First and foremost
 	helpIsCached = false;
@@ -4025,26 +4032,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 
+	Logger::markLogTime('L', L"Command Line Parsed");
+
 ////////////////
 //DEBUG
 ////////////////
 //testFileName = L"../test_cases/ayar_tests.txt";
 ////////////////
 ////////////////
-
-
-	//Log?
-	if (isLogging) {
-		logFile = fopen("wz_log.txt", "w");
-		if (logFile==NULL) {
-			MessageBox(NULL, _T("Unable to open Log file"), _T("Warning"), MB_ICONWARNING | MB_OK);
-			isLogging = false;
-		} else {
-			fprintf(logFile, "WaitZar was opened\n");
-		}
-	} else
-		logFile = NULL;
-	waitzar::setLogFile(logFile);
 
 
 	//Create our brushes and pens
@@ -4083,10 +4078,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
+	Logger::markLogTime('L', L"Windows Initialized");
 
 	//Find all config files, load.
 	if (!findAndLoadAllConfigFiles())
 		return 0;
+
+	Logger::markLogTime('L', L"Config files located");
 
 
 	//Link windows if necessary.
@@ -4106,19 +4104,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//Return either way; the current thread must exit.
 			return 0;
 		}
+
+		Logger::markLogTime('L', L"UAC managed");
 	}
 
 
 
 	//Create our context menu
 	try {
+		Logger::startLogTimer('L', L"Generating context menu");
 		initContextMenu();
+		Logger::endLogTimer('L');
 	} catch (std::exception ex) {
 		wstringstream msg;
 		msg <<ex.what();
 		mainWindow->showMessageBox(msg.str(), L"Context Menu Error", MB_ICONERROR|MB_OK);
 		return 0;
 	}
+
+	Logger::markLogTime('L', L"Context menu created");
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_MYANMAR), IMAGE_ICON,
@@ -4143,6 +4147,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (mmIcon == NULL || engIcon==NULL)
 		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
 
+	Logger::markLogTime('L', L"Icon resources loaded");
+
 	//Set our hotkey
 	if(!registerInitialHotkey()) {
 		//Check if we're running Wait Zar already
@@ -4153,6 +4159,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
 	}
 	mmOn = false;
+
+	Logger::markLogTime('L', L"Initial hotkey registered");
 
 	//Support for balloon tooltips
 	if (config.getSettings().balloonStart) {
@@ -4168,6 +4176,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Add our icon to the tray
 	Shell_NotifyIcon(NIM_ADD, &nid);
+
+	Logger::markLogTime('L', L"Tray icon added");
 
 	//Initialize our keyboard input structures
 	for (int i=0; i<1000; i++) {
@@ -4185,6 +4195,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		keyInputPrototype.dwExtraInfo=0;
 	}
 
+	Logger::markLogTime('L', L"Keyboard input struct initialized (is this needed?)");
+
 	//Success?
 	if(mainWindow->isInvalid() || sentenceWindow->isInvalid() || helpWindow->isInvalid() || memoryWindow->isInvalid()) {
 		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
@@ -4194,6 +4206,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Now that everything has been loaded, run any user-driven tests
 	if (checkUserSpecifiedRegressionTests(testFileName)) {
 		//Cleanly exit. (Sort of... this might be bad since no messages are being pumped).
+		Logger::markLogTime('L', L"User regression tests run.");
 		delete mainWindow;
 	}
 
@@ -4204,16 +4217,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Set defaults
 	ChangeLangInputOutput(config.activeLanguage.id, config.activeInputMethod->id, config.activeOutputEncoding.id);
 
+	Logger::markLogTime('L', L"Default language set");
+
 
 	//Testing mywords?
-	if (currTest == mywords)
-		GetSystemTimeAsFileTime(&startTime);
+	/*if (currTest == mywords)
+		GetSystemTimeAsFileTime(&startTime);*/
 
 
 	//Logging mywords?
 	if (currTest == mywords) {
-		GetSystemTimeAsFileTime(&endTime);
-		DWORD timeMS = getTimeDifferenceMS(startTime, endTime);
+		/*GetSystemTimeAsFileTime(&endTime);*/
+		DWORD timeMS = 0; /*getTimeDifferenceMS(startTime, endTime);*/
+
 
 		wchar_t msg[500];
 		swprintf(msg, L"Mywords total time:   %dms", timeMS);
@@ -4241,16 +4257,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that WaitZar will not be able to highlight keys as you press them, which is a useful benefit for beginners."), _T("Warning"), MB_ICONWARNING | MB_OK);
 			highlightKeys = false;
 		}
+
+		Logger::markLogTime('L', L"Key highlight thread created");
 	}
 
 
 	//Potential debug loop (useful)
 	if (currTest == model_print) {
-		if (isLogging) {
-			fclose(logFile);
-			isLogging = false;
-		}
-		logFile = fopen("wz_log.txt", "w");
+		//logFile = fopen("wz_log.txt", "w");
 
 		//model->debugOut(logFile);
 
@@ -4272,11 +4286,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
 	}
 
+	Logger::markLogTime('L', L"System tray icon set to \"ready\"");
+
 
 	//Logging time to start?
 	if (currTest == start_up) {
-		GetSystemTimeAsFileTime(&endTime);
-		DWORD timeMS = getTimeDifferenceMS(startTime, endTime);
+		//GetSystemTimeAsFileTime(&endTime);
+		DWORD timeMS = 0; /*getTimeDifferenceMS(startTime, endTime);*/
 
 		wchar_t msg[500];
 		swprintf(msg, L"Time to start up:   %dms", timeMS);
@@ -4292,6 +4308,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, L"Error running type_all check: currently disabled!", L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 		return 0;
 	}
+
+	//Done
+	Logger::endLogTimer('L', L"WaitZar is now running");
 
 
 	//Main message handling loop

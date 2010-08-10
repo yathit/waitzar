@@ -12,6 +12,7 @@
 #include "MyWin32Window.h"
 #include "Input/LetterInputMethod.h"
 #include "Input/keymagic_vkeys.h"
+#include "Logger.h"
 
 
 //NOTE TO SELF: KMRT_STRING values which appear in sequence COMBINE to form one string
@@ -245,10 +246,11 @@ public:
 
 private:
 	//Trace?
-	static bool LOG_KEYMAGIC_TRACE;
-	static std::string keyMagicLogFileName;
-	static void clearLogFile(const std::string& fileName);
-	static void writeLogLine(const std::string& fileName, const std::wstring& logLine); //We'll escape MM outselves
+	//static bool LOG_KEYMAGIC_TRACE;
+	//static std::string keyMagicLogFileName;
+	static void clearLogFile();
+	static void writeLogLine();
+	static void writeLogLine(const std::wstring& logLine); //We'll escape MM outselves
 	static void writeInt(std::vector<unsigned char>& stream, int intVal);
 	static int readInt(unsigned char* buffer, size_t& currPos, size_t bufferSize);
 	

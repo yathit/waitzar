@@ -17,39 +17,22 @@ using std::ios;
 
 
 //"True" provides a full trace of all KeyMagic rule matches.
-bool KeyMagicInputMethod::LOG_KEYMAGIC_TRACE = false;
-string KeyMagicInputMethod::keyMagicLogFileName = "wz_log_keymagic.txt";
+//bool KeyMagicInputMethod::LOG_KEYMAGIC_TRACE = false;
+//string KeyMagicInputMethod::keyMagicLogFileName = "wz_log_keymagic.txt";
 
 
-//Logging
-void KeyMagicInputMethod::clearLogFile(const string& fileName)
+//Logging -- Just shuffle off onto our logger for now.
+void KeyMagicInputMethod::clearLogFile()
 {
-	if (!LOG_KEYMAGIC_TRACE)
-		return;
-	FILE* log;
-	log = fopen (fileName.c_str(), "w");
-	if (log != NULL)
-		fclose (log);
+	Logger::resetLogFile('K');
 }
-
-void KeyMagicInputMethod::writeLogLine(const string& fileName, const wstring& logLine)
+void KeyMagicInputMethod::writeLogLine()
 {
-	if (!LOG_KEYMAGIC_TRACE)
-		return;
-	FILE* log;
-	log = fopen (fileName.c_str(), "a");
-	if (log != NULL) {
-		std::stringstream msg;
-		for (size_t i=0; i<logLine.length(); i++) {
-			if (logLine[i]<=0xFF)
-				msg <<(char)logLine[i];
-			else
-				msg <<'(' <<std::hex <<logLine[i] <<std::dec <<')';
-		}
-		msg <<std::endl;
-		fprintf(log, msg.str().c_str());
-		fclose (log);
-	}
+	Logger::writeLogLine('K');
+}
+void KeyMagicInputMethod::writeLogLine(const wstring& logLine)
+{
+	Logger::writeLogLine('K', logLine);
 }
 
 
@@ -57,8 +40,7 @@ void KeyMagicInputMethod::writeLogLine(const string& fileName, const wstring& lo
 
 KeyMagicInputMethod::KeyMagicInputMethod()
 {
-	if (LOG_KEYMAGIC_TRACE)
-		KeyMagicInputMethod::clearLogFile(keyMagicLogFileName);
+	KeyMagicInputMethod::clearLogFile();
 }
 
 KeyMagicInputMethod::~KeyMagicInputMethod()
@@ -1462,8 +1444,7 @@ pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevSt
 
 wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int vkeyCode)
 {
-	if (LOG_KEYMAGIC_TRACE)
-		KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"User typed:  " + origInput);
+	KeyMagicInputMethod::writeLogLine(L"User typed:  " + origInput);
 
 	//Volatile version of our input
 	wstring input = origInput;
@@ -1491,10 +1472,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 		//Did we match anything?
 		if (result.second) {
 			//Log match rule
-			if (LOG_KEYMAGIC_TRACE) {
-				wstring ruleTxt = !replacements[rpmID].debugRuleText.empty() ? replacements[rpmID].debugRuleText : L"<Empty Rule Text>";
-				KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"   " + ruleTxt);
-			}
+			KeyMagicInputMethod::writeLogLine(L"   " + (!replacements[rpmID].debugRuleText.empty() ? replacements[rpmID].debugRuleText : L"<Empty Rule Text>"));
 
 			//Before we apply the rule, check if we've looped "forever"
 			if (++totalMatchesOverall >= std::max<size_t>(50, replacements.size())) {
@@ -1507,15 +1485,13 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			wstring part2 = applyMatch(result.first, resetLoop, breakLoop);
 			wstring part3 = input.substr(result.first.dotEndID, input.size());
 			input = part1 + part2 + part3;
-			if (LOG_KEYMAGIC_TRACE)
-				KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"      ==>" + input);
+			KeyMagicInputMethod::writeLogLine(L"      ==>" + input);
 
 			if (breakLoop)
 				break;
 		}
 	}
-	if (LOG_KEYMAGIC_TRACE)
-		KeyMagicInputMethod::writeLogLine(keyMagicLogFileName, L"");
+	KeyMagicInputMethod::writeLogLine();
 
 	return input;
 }
