@@ -2831,6 +2831,7 @@ void checkAllHotkeysAndWindows()
 
 
 //Change our model; reset as necessary depending on what changed
+bool logLangChange = false; //Only set once.
 void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid) 
 {
 	//Step 1: Set
@@ -2847,6 +2848,8 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), inputid));
 	if (!outputid.empty())
 		config.activeOutputEncoding = *(FindKeyInSet(config.getEncodings(), outputid));
+	if (logLangChange)
+		Logger::markLogTime('L', L"LangInOut is set");
 
 	//Step 2: Read
 	currInput = config.activeInputMethod;
@@ -2857,6 +2860,8 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	input2Uni = config.getTransformation(config.activeLanguage, config.activeInputMethod->encoding, config.unicodeEncoding);
 	uni2Output = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeOutputEncoding);
 	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethods[0]->encoding);
+	if (logLangChange)
+		Logger::markLogTime('L', L"Cached entries saved");
 	
 
 	//TEMP: Enable myWin2.2 for Roman Input Methods
@@ -2871,6 +2876,8 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	if (isRoman /*&& isPulpFontDisplay*/) {
 		currHelpInput = *(FindKeyInSet(config.getInputMethods(), ConfigManager::sanitize_id(L"mywin")));
 	}
+	if (logLangChange)
+		Logger::markLogTime('L', L"Help keyboard hack enabled.");
 	//END TEMP HACKERY... ugh.
 
 
@@ -2883,6 +2890,9 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 
 		//And repaint, just in case
 		checkAllHotkeysAndWindows();
+
+		if (logLangChange)
+			Logger::markLogTime('L', L"Input reset");
 	}
 	if (!langid.empty()) {
 		//Rebuild the menus?
@@ -2896,16 +2906,26 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 			//Reubild
 			createContextMenu();
 		}
+		if (logLangChange)
+			Logger::markLogTime('L', L"Context menus rebuilt");
 
 		//We'll have to re-size the windows, in case a different font is used
 		initCalculate();
+
+		if (logLangChange)
+			Logger::markLogTime('L', L"Windows resized");
 	}
 
 	//Just to be safe
 	recalculate();
 
+	if (logLangChange)
+		Logger::markLogTime('L', L"Windows re-rasterized");
+
 	//Finally, save data
 	FlashSaveState();
+	if (logLangChange)
+		Logger::markLogTime('L', L"Current LangInOut flashed to disk");
 }
 
 
@@ -3989,7 +4009,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	//Init log:
 	Logger::resetLogFile('L');
-	Logger::startLogTimer('L', L"Starting WaitZar");
+	Logger::startLogTimer('L', L"Starting WaitZar {");
+	Logger::startLogTimer('L', L"Trace");
 
 	//First and foremost
 	helpIsCached = false;
@@ -4215,8 +4236,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//TODO: Check IsCurrLocaleInsufficient() and show a balloon (or something) if this is the case.
 
 	//Set defaults
+	Logger::startLogTimer('L', L"Starting default language");
+	logLangChange = true;
 	ChangeLangInputOutput(config.activeLanguage.id, config.activeInputMethod->id, config.activeOutputEncoding.id);
-
+	logLangChange = false;
+	Logger::endLogTimer('L');
 	Logger::markLogTime('L', L"Default language set");
 
 
@@ -4310,7 +4334,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//Done
-	Logger::endLogTimer('L', L"WaitZar is now running");
+	Logger::endLogTimer('L');
+	Logger::markLogTime('L', L"WaitZar is now running");
+	Logger::endLogTimer('L', L"}");
 
 
 	//Main message handling loop
