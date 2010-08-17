@@ -25,7 +25,7 @@ private:
 	const static unsigned int logTabDepth = 2;
 
 	//Main log file: constants
-	const static bool WZ_LOG_MAIN = true;
+	const static bool WZ_LOG_MAIN = false;
 	const static char waitzarLogchar = 'L';
 	const static std::string mainLogFileName;
 

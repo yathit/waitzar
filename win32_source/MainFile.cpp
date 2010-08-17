@@ -3787,7 +3787,9 @@ bool findAndLoadAllConfigFiles()
 		}
 
 		//Final test: make sure all config files work
+		Logger::startLogTimer('L', L"Reading & validating config files");
 		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
 	} catch (std::exception ex) {
 		//In case of errors, just reset & use the embedded file
