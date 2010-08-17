@@ -2894,18 +2894,23 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		if (logLangChange)
 			Logger::markLogTime('L', L"Input reset");
 	}
-	if (!langid.empty()) {
-		//Rebuild the menus?
+	if (!langid.empty()) { //Rebuild the menus, or build for the first time
+		
+		//Reclaim, reset
 		if (contextMenu!=NULL) {
-			//Reclaim
 			DestroyMenu(contextMenu);
-			totalMenuItems = 0;
 			customMenuItemsLookup.clear();
-			delete [] customMenuItems;
-
-			//Reubild
-			createContextMenu();
+			if (customMenuItems!=NULL) {
+				delete [] customMenuItems;
+				customMenuItems = NULL;
+			}
+			totalMenuItems = 0;
 		}
+
+		//Reubild
+		createContextMenu();
+
+		//Record (kidding... "log")
 		if (logLangChange)
 			Logger::markLogTime('L', L"Context menus rebuilt");
 
@@ -3167,8 +3172,15 @@ void initContextMenu()
 	Logger::markLogTime('L', L"Myanmar font created");
 
 	//Make the menu
-	createContextMenu();
-	Logger::markLogTime('L', L"Context menu created");
+	//createContextMenu();
+	//Logger::markLogTime('L', L"Context menu created");
+
+	//NOTE: This is a bit of a hack; it forces the context menu
+	//      to be rebuilt when the language changes. 
+	//      Later, we can just make it happen all the time.
+	//contextMenu = CreateMenu();
+	//customMenuItems = new WZMenuItem[1];
+	//Logger::markLogTime('L', L"Created dummy context menu");
 }
 
 
@@ -4017,6 +4029,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	isDragging = false;
 	helpKeyboard = NULL;
 	contextMenu = NULL;
+	customMenuItems = NULL;
 	menuFont = NULL;
 	sysFont = NULL;
 
@@ -4133,7 +4146,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create our context menu
 	try {
-		Logger::startLogTimer('L', L"Generating context menu");
+		Logger::startLogTimer('L', L"Generating context menu font");
 		initContextMenu();
 		Logger::endLogTimer('L');
 	} catch (std::exception ex) {
@@ -4143,7 +4156,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	Logger::markLogTime('L', L"Context menu created");
+	Logger::markLogTime('L', L"Context menu font created");
 
 	//Load some icons...
 	mmIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_MYANMAR), IMAGE_ICON,
