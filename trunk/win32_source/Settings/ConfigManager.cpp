@@ -161,18 +161,23 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	//Step 1: Read
 	getSettings();
 	getLanguages();
-	//getEncodings();
-	//getInputManagers();
+	getEncodings();
+	getInputMethods();
+	getDisplayMethods();
+	Logger::markLogTime('L', L"Read physical files, parsed JSON");
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
 	WZFactory<waitzar::WordBuilder>::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 	waitzar::BurglishBuilder::InitStatic();
+	Logger::markLogTime('L', L"Initialized static classes with relevant information.");
 
 	//Step 2: Un-cache
 	resolvePartialSettings();
+	Logger::markLogTime('L', L"Resolved partial settings.");
 
 	//Step 3: Make it useful
 	generateInputsDisplaysOutputs();
+	Logger::markLogTime('L', L"Generated list of input/output/display/encodings.");
 
 	//Step 4: Set our current language, input method, etc.
 	activeLanguage = *FindKeyInSet(options.languages, options.settings.defaultLanguage);
@@ -183,6 +188,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodSmall));
 	if (activeDisplayMethods[0]->encoding != activeDisplayMethods[1]->encoding)
 		throw std::exception("Error: \"small\" and \"regular\" sized display methods have different encodings");
+	Logger::markLogTime('L', L"Set \"active\" input/output/display/encodings.");
 }
 
 
@@ -410,7 +416,7 @@ void ConfigManager::loadLanguageSubFiles()
 	}
 
 	//Done
-	loadedLanguageMainFiles = true;
+	loadedLanguageSubFiles = true;
 }
 
 
