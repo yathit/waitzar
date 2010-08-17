@@ -2908,7 +2908,11 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		}
 
 		//Reubild
+		if (logLangChange)
+			Logger::startLogTimer('L', L"Creating the context menu");
 		createContextMenu();
+		if (logLangChange)
+			Logger::endLogTimer('L');
 
 		//Record (kidding... "log")
 		if (logLangChange)
@@ -3082,12 +3086,12 @@ void createMyanmarMenuFont()
 //Rebuild the context menu --any time
 void createContextMenu()
 {
-	//Load the context menu into memory from the resource file.
-	//contextMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDM_CONTEXT_MENU));
-	//contextMenuPopup = GetSubMenu(contextMenu, 0);
+	//Generate an empty menu
 	contextMenu = CreateMenu();
 	contextMenuPopup = CreateMenu();
 	AppendMenu(contextMenu, MF_POPUP|MF_STRING, (UINT_PTR)contextMenuPopup, L"Main");
+	if (logLangChange)
+		Logger::markLogTime('L', L"Created top-level menu");
 
 	//Add normal entries, including "Typing", but no sub-entries.
 	typingMenu = CreateMenu();
@@ -3100,6 +3104,8 @@ void createContextMenu()
 	AppendMenu(contextMenuPopup, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(contextMenuPopup, MF_POPUP|MF_STRING, (UINT_PTR)typingMenu, L"&Typing");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_LOOKUP, L"&Look Up Word (F1)");
+	if (logLangChange)
+		Logger::markLogTime('L', L"Appended top-level menu items");
 
 
 	//Build each sub-menu if none have been created yet. (In case we ever recycle this menu).
@@ -3120,6 +3126,9 @@ void createContextMenu()
 		for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) 
 			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
 
+		if (logLangChange)
+			Logger::markLogTime('L', L"Re-built sub-menu: languages");
+
 		//Add the "Input Methods" section
 		myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_INPUT));
 		myMenuItems.push_back(sep);
@@ -3129,17 +3138,23 @@ void createContextMenu()
 		for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) 
 			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_INPUT, (*it)->id, (*it)->displayName));
 
+		if (logLangChange)
+			Logger::markLogTime('L', L"Re-built sub-menu: input methods");
+
 		//Add the "Output Encodings" section
 		myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_OUTPUT));
 		myMenuItems.push_back(sep);
 		currDynamicCmd++; //Maintain easy access
 
-		//Add each input method as an MI
+		//Add each encoding as an MI
 		for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
 			if (!it->canUseAsOutput)
 				continue;
 			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_OUTPUT, it->id, it->displayName));
 		}
+
+		if (logLangChange)
+			Logger::markLogTime('L', L"Re-built sub-menu: encodings");
 
 		//Copy over to allocated memory --we need a constant pointer to each menu item, and vectors are too risky for this.
 		customMenuItems = new WZMenuItem[myMenuItems.size()];
@@ -3148,6 +3163,9 @@ void createContextMenu()
 			customMenuItemsLookup[customMenuItems[totalMenuItems].menuID] = &customMenuItems[totalMenuItems];
 			totalMenuItems++;
 		}
+
+		if (logLangChange)
+			Logger::markLogTime('L', L"Copied built sub-menus to pointer-controlled memory");
 	}
 
 
@@ -3160,6 +3178,9 @@ void createContextMenu()
 			AppendMenu(typingMenu, MF_OWNERDRAW|flag, customMenuItems[i].menuID, (LPTSTR)&(customMenuItems[i]));
 		}
 	}
+
+	if (logLangChange)
+		Logger::markLogTime('L', L"Added each cached sub-menu.");
 }
 
 
@@ -3754,6 +3775,8 @@ bool findAndLoadAllConfigFiles()
 			}
 		}
 
+		Logger::markLogTime('L', L"Config files loaded");
+
 		//First test: does "config" not exist at all? If so, throw a special exception,
 		//  and avoid the warning message box.
 		std::wstringstream temp;
@@ -3765,6 +3788,7 @@ bool findAndLoadAllConfigFiles()
 
 		//Final test: make sure all config files work
 		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+		Logger::markLogTime('L', L"Config files validated");
 	} catch (std::exception ex) {
 		//In case of errors, just reset & use the embedded file
 		config = ConfigManager(getMD5Hash);
@@ -3802,9 +3826,11 @@ bool findAndLoadAllConfigFiles()
 			//delete [] res_data;
 			delete [] uniData;
 			//UnlockResource(res_handle);
+			Logger::markLogTime('L', L"Config files loaded: DEFAULT is taking over");
 
 			//One more test.
 			config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+			Logger::markLogTime('L', L"Config files validated: DEFAULT is taking over");
 		} catch (std::exception ex2) {
 			std::wstringstream msg2;
 			msg2 << "Error loading default config file.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
@@ -4115,10 +4141,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Logger::markLogTime('L', L"Windows Initialized");
 
 	//Find all config files, load.
+	Logger::startLogTimer('L', L"Detecting & loading config files");
 	if (!findAndLoadAllConfigFiles())
 		return 0;
+	Logger::endLogTimer('L');
 
-	Logger::markLogTime('L', L"Config files located");
+	Logger::markLogTime('L', L"Config files located, loaded, and validated.");
 
 
 	//Link windows if necessary.
