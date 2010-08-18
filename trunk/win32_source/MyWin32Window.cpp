@@ -164,13 +164,21 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		}
 		case WM_LBUTTONDOWN:
 		{
-			//Thanks to dr. Carbon for suggesting this method.
-			if (SetCapture(window)!=NULL)
-				break;
+			//Only drag if we're not over a button. Else, activate that button
+			int currHndl = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (currHndl != -1) {
+				//Pass the handle to the function too.
+				regionHandles[currHndl].second(currHndl);
+				SetCursor(ArrowCursor);
+			} else {
+				//Thanks to dr. Carbon for suggesting this method.
+				if (SetCapture(window)!=NULL)
+					break;
 
-			//Drag the mosue
-			isDragging = true;
-			GetCursorPos(&dragFrom);
+				//Drag the mosue
+				isDragging = true;
+				GetCursorPos(&dragFrom);
+			}
 			break;
 		}
 		case WM_MOUSEMOVE:
@@ -201,6 +209,12 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			if (isDragging) {
 				isDragging = false;
 				ReleaseCapture();
+			} else {
+				//We might have to reset the cursor once the mouse is released. 
+				// (Tested: it's necessary, unless we choose to remove the class cursor entirely)
+				int currHndl = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+				if (currHndl != -1)
+					SetCursor(ArrowCursor);
 			}
 			break;
 		}
