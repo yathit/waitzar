@@ -20,6 +20,8 @@ std::map< std::wstring, MyWin32Window* > MyWin32Window::WndMap;
 	return *res;
 }*/
 
+HCURSOR MyWin32Window::ArrowCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
+
 
 MyWin32Window::MyWin32Window(LPCWSTR windowClassName)
 {
@@ -30,6 +32,7 @@ MyWin32Window::MyWin32Window(LPCWSTR windowClassName)
 
 	//Avoid errors
 	this->window = NULL;
+	this->skipRegionIndexUpdate = false;
 
 	//Prepare for updating our "linked" windows
 	skipNextUpdate = 0;
@@ -172,8 +175,8 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		}
 		case WM_MOUSEMOVE:
 		{ 
-			//Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
 			if (isDragging) {
+				//Allow dragging of the mouse by its client area. Reportedly more accurate than NCHIT_TEST
 				RECT rect;
 				POINT dragTo;
 				GetWindowRect(window, &rect);
@@ -185,6 +188,11 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 					rect.right - rect.left, rect.bottom - rect.top, FALSE);
 
 				dragFrom = dragTo;
+			} else {
+				//Handle any subscriptions; change the cursor if the mouse is over them.
+				int currHndl = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+				if (currHndl != -1)
+					SetCursor(ArrowCursor);
 			}
 			break;
 		}
@@ -706,6 +714,79 @@ void MyWin32Window::linkToWindow(MyWin32Window* other, ATTACH_DIRECTION linkAt)
 void MyWin32Window::skipMoveUpdates()
 {
 	this->skipNextUpdate++;
+}
+
+
+/////////////////////////////////////////////////
+// Region-based code, to simulate button presses
+/////////////////////////////////////////////////
+
+//Used to test if we're indexing our region.
+bool MyWin32Window::requireRegionIndex()
+{
+	return regionHandles.size() >= regionIndexThreshhold;
+}
+
+//Used to build a lookup table for the regions, to handle an excessively large number of region subscriptions.
+// In WZ, this only happens for the Help Keyboard.
+void MyWin32Window::recalcRegionIndex()
+{
+	//Only for large subscriptions
+	if (!requireRegionIndex())
+		return;
+
+	throw std::exception("Not yet implemented: >X regions");
+}
+
+//Return the region at a given client location.
+int MyWin32Window::getRegionAtPoint(size_t clientX, size_t clientY)
+{
+	if (!requireRegionIndex()) {
+		//Just do a simple iterative search.
+		for (size_t i=0; i<regionHandles.size(); i++) {
+			if (   (int)clientX>=regionHandles[i].first.left && (int)clientX<=regionHandles[i].first.right
+				&& (int)clientY>=regionHandles[i].first.top && (int)clientY<=regionHandles[i].first.bottom)
+				return i;
+		}
+		return -1;
+	} else {
+		throw std::exception("Not yet implemented: >X regions");
+	}
+}
+
+//Suppress updates
+void MyWin32Window::beginMassSubscription()
+{
+	skipRegionIndexUpdate = true;
+}
+
+//Stop suppressing updates.
+void MyWin32Window::endMassSubscription()
+{
+	skipRegionIndexUpdate = false;
+
+	//Rebuild the index. Not necessary in all cases, but we'll do it anyway
+	recalcRegionIndex();
+}
+
+//Add a rectangle to the list of subscriptions. Update the index.
+unsigned int MyWin32Window::subscribeRect(const RECT& area, void(*onclick)(unsigned int))
+{
+	regionHandles.push_back(std::pair<RECT, void(*)(unsigned int)>(area, onclick));
+	if (!skipRegionIndexUpdate)
+		recalcRegionIndex();
+	return regionHandles.size()-1;
+}
+
+//Update a rectangle's subscription area. Re-compute the index
+void MyWin32Window::updateRect(unsigned int handle, const RECT& area)
+{
+	if (handle<regionHandles.size())
+	{
+		regionHandles[handle].first = area;
+		if (!skipRegionIndexUpdate)
+			recalcRegionIndex();
+	}
 }
 
 

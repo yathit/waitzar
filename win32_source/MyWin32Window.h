@@ -17,6 +17,7 @@
 
 
 #include <windows.h>
+#include <windowsx.h> //For GET_X_LPARAM
 #include <string>
 #include <sstream>
 #include <map>
@@ -62,6 +63,12 @@ public:
 	//Process some messages ourselves
 	WNDPROC userWndProc;
 	LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	//Special "region-based" functionality
+	unsigned int subscribeRect(const RECT& area, void(*onclick)(unsigned int));
+	void updateRect(unsigned int handle, const RECT& area);
+	void beginMassSubscription();
+	void endMassSubscription();
 
 	//Functionality forwarding to Win32
 	bool getTextMetrics(LPTEXTMETRICW res);
@@ -138,6 +145,18 @@ private:
 
 	//Sets the "skip updates" flag
 	void skipMoveUpdates();
+
+	//Related to "region-based functionality"
+	void recalcRegionIndex();
+	int getRegionAtPoint(size_t clientX, size_t clientY); //Note: will return the FIRST valid region handle, or -1
+	bool requireRegionIndex();
+
+	//Region-based data:
+	static HCURSOR ArrowCursor;
+	bool skipRegionIndexUpdate;
+	const static size_t regionIndexThreshhold = 5; //After this, build an index.
+	std::vector< std::pair<RECT, void(*)(unsigned int)> > regionHandles;
+	//Add some kind of index here.
 
 	//More bookkeeping
 	LPCWSTR windowClassName;

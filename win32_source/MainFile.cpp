@@ -39,7 +39,7 @@
 //Anyway, if you add a new function and get an "undefined" error, comment
 //  the relevant #define out.
 #define NOGDICAPMASKS       //- CC_*, LC_*, PC_*, CP_*, TC_*, RC_
-#define NOKEYSTATES         //- MK_*
+//#define NOKEYSTATES         //- MK_* //Needed for mouse cursors
 #define NOSYSCOMMANDS       //- SC_*
 #define OEMRESOURCE         //- OEM Resource values
 #define NOATOM              //- Atom Manager routines
@@ -332,6 +332,9 @@ MyWin32Window* memoryWindow = NULL;
 //Avoid cyclical messaging:
 bool mainWindowSkipMove = false;
 bool senWindowSkipMove = false;
+
+//Helpful!
+size_t changeEncRegionHandle = 0;
 
 
 //Record-keeping
@@ -1670,12 +1673,20 @@ void recalculate()
 	sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
 	sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
-	//Draw the current encoding
+	//Update the sentence window's clickable region for the current encoding rectangle
 	wstring currEncStr = config.activeOutputEncoding.initial;
 	int encStrWidth = mainWindow->getStringWidth(mmFontSmall, currEncStr);
+	RECT rNew;
+	rNew.left = sentenceWindow->getClientWidth()-encStrWidth-3;
+	rNew.top = 0;
+	rNew.right = sentenceWindow->getClientWidth();
+	rNew.bottom = sentenceWindow->getClientHeight();
+	sentenceWindow->updateRect(changeEncRegionHandle, rNew);
+
+	//Draw the current encoding
 	sentenceWindow->selectObject(g_BlackPen);
 	sentenceWindow->selectObject(g_GreenBkgrd);
-	sentenceWindow->drawRectangle(sentenceWindow->getClientWidth()-encStrWidth-3, 0, sentenceWindow->getClientWidth(), sentenceWindow->getClientHeight());
+	sentenceWindow->drawRectangle(rNew.left, rNew.top, rNew.right, rNew.bottom);
 	sentenceWindow->drawString(mmFontSmall, currEncStr, sentenceWindow->getClientWidth()-encStrWidth-2, sentenceWindow->getClientHeight()/2-mmFontSmall->getHeight(NULL)/2);
 
 	//White overlays
@@ -3274,6 +3285,15 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 
 
 
+//Change the encoding by clicking on the SentenceWindow icon
+void OnEncodingChangeClick(unsigned int regionID) 
+{
+	//Something like this:
+	//Encoding nextItem = encodings[activeEncodingID++]
+	//ChangeLangInputOutput(L"", L"", nextItem->id);
+}
+
+
 
 
 /**
@@ -3381,6 +3401,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
+
+
+		///////TEMP   --- we should manage this in MyWin32Window
+		/*case WM_MOUSEMOVE: //Change the cursor
+		{
+			//Only react if no control keys are pressed
+			if ((wParam&(MK_LBUTTON|MK_MBUTTON|MK_RBUTTON))==0) {
+				size_t clientX = GET_X_LPARAM(lParam);
+				size_t clientY = GET_Y_LPARAM(lParam);
+
+				//This seems to work. It flickers a tiny bit, but is easier
+				// than manually setting the class cursor, for now.
+				if (clientX<20 && clientY<20)
+					SetCursor(LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW)));
+			}
+
+			break;
+		}*/
+		/////////END TEMP
+
+
 
 		case WM_MEASUREITEM:  //Measure our custom menus.
 		{
@@ -4139,6 +4180,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(NULL, msg.str().c_str(), L"CreateWindow() Error", MB_ICONERROR | MB_OK);
 		return 0;
 	}
+
+	//"And another thing!"
+	RECT r;
+	changeEncRegionHandle = sentenceWindow->subscribeRect(r, OnEncodingChangeClick);
 
 	Logger::markLogTime('L', L"Windows Initialized");
 
