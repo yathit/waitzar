@@ -165,6 +165,10 @@ private:
 	//PulpCoreFont *shiftFontBlue;
 	PulpCoreImage *cornerImg[4];
 
+	//Constants
+	const static unsigned int title_btn_size = 20;
+	const static unsigned int title_btn_margin = 2;
+
 	//Buttons
 	key keys[keys_total];
 

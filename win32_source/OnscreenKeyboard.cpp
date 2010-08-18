@@ -137,7 +137,7 @@ void OnscreenKeyboard::initHelp()
 	}
 
 	//Make our header/body buttons, to be drawn once, and draw them
-	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	helpWindow->drawImage(headerButton, 0, 0);
 	helpWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
@@ -157,8 +157,25 @@ void OnscreenKeyboard::initHelp()
 
 	//Now draw the string
 	this->titleFont->setColor(0x00, 0x00, 0x00);
-	helpWindow->drawString(titleFont, HELPWND_TITLE, this->cornerSize, this->cornerSize);
+	helpWindow->drawString(titleFont, HELPWND_TITLE, this->cornerSize + title_btn_size*2 + title_btn_margin*3, this->cornerSize);
 	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
+
+	//Draw our title buttons (and register them)
+	RECT r1;
+	r1.left = r1.top = this->cornerSize;
+	r1.right = r1.bottom = r1.left + title_btn_size;
+	RECT r2;
+	r2.left = r1.right + title_btn_margin;
+	r2.top = r1.top;
+	r2.right = r2.left + title_btn_size;
+	r2.bottom = r2.top + title_btn_size;
+	helpWindow->selectObject(black2PxPen); //TODO - init
+	helpWindow->selectObject(blueBkgrdBrush); //TODO - init
+	helpWindow->drawRectangle(r1.left, r1.top, r1.right, r1.bottom);
+	helpWindow->drawRectangle(r2.left, r2.top, r2.right, r2.bottom);
+
+	//TO-DO: Register with a callback function, and a "highlight" function if possible.
+	///
 
 	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
 	for (int i=0; i<keys_total; i++) {
