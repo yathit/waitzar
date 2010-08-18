@@ -3288,9 +3288,21 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 //Change the encoding by clicking on the SentenceWindow icon
 void OnEncodingChangeClick(unsigned int regionID) 
 {
-	//Something like this:
-	//Encoding nextItem = encodings[activeEncodingID++]
-	//ChangeLangInputOutput(L"", L"", nextItem->id);
+	//Retrieve the current language, increment by one
+	size_t customMenuStartID = 2 + config.getLanguages().size() + 2 + config.getInputMethods().size() + 2;
+	for (size_t i=customMenuStartID; i<totalMenuItems; i++) {
+		WZMenuItem currItem = customMenuItems[i];
+		if (currItem.id == config.activeOutputEncoding.id) {
+			//Increment
+			size_t newID = i+1;
+			if (newID >= totalMenuItems)
+				newID = customMenuStartID;
+
+			//Set
+			ChangeLangInputOutput(L"", L"", customMenuItems[newID].id);
+			break;
+		}
+	}
 }
 
 
