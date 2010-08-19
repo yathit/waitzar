@@ -275,6 +275,7 @@ PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
 PulpCoreFont *helpFntMemory;
 PulpCoreImage *helpCornerImg;
+PulpCoreImage *helpCloseImg;
 OnscreenKeyboard* helpKeyboard;
 
 //Page down/up images
@@ -330,8 +331,8 @@ MyWin32Window* helpWindow = NULL;
 MyWin32Window* memoryWindow = NULL;
 
 //Avoid cyclical messaging:
-bool mainWindowSkipMove = false;
-bool senWindowSkipMove = false;
+//bool mainWindowSkipMove = false;
+//bool senWindowSkipMove = false;
 
 //Helpful!
 size_t changeEncRegionHandle = 0;
@@ -906,6 +907,37 @@ void makeFont()
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Corner Image File didn't load correctly: " <<ex.what();
+			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			throw ex;
+		}
+
+		//Unlock this resource for later use.
+		//UnlockResource(res_handle);
+	}
+
+
+	//Load our help menu's "close" image (used because I can't find an anti-aliasing algorithm I like)
+	{
+		//First the resource
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CLOSE_IMG), _T("COREFONT"));
+		if (!imgRes) {
+			MessageBox(NULL, _T("Couldn't find IDR_HELP_CLOSE_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		//Get a handle from this resource.
+		HGLOBAL res_handle = LoadResource(NULL, imgRes);
+		if (!res_handle) {
+			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_CLOSE_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		helpCloseImg = new PulpCoreImage();
+		try {
+			helpWindow->initPulpCoreImage(helpCloseImg, imgRes, res_handle);
+		} catch (std::exception ex) {
+			wstringstream msg;
+			msg <<"WZ Close Image File didn't load correctly: " <<ex.what();
 			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
 			throw ex;
 		}
@@ -1527,7 +1559,7 @@ void initCalculateHelp()
 	//= (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 
 	//Make
-	helpKeyboard = new OnscreenKeyboard(zgSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg);
+	helpKeyboard = new OnscreenKeyboard(zgSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg, helpCloseImg);
 	
 }
 
@@ -2682,6 +2714,27 @@ void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 }
 
 
+
+//Help functions & pointers
+void OnHelpTitleBtnClick(unsigned int btnID)
+{
+	//TEMP
+	helpWindow->showWindow(false);
+}
+
+
+void OnHelpTitleBtnOver(unsigned int btnID)
+{
+	helpKeyboard->highlightTitleBtn(btnID, true);
+}
+
+void OnHelpTitleBtnOut(unsigned int btnID)
+{
+	helpKeyboard->highlightTitleBtn(btnID, false);
+}
+
+
+
 void checkAndInitHelpWindow()
 {
 	//Has initialization been performed?
@@ -2707,7 +2760,7 @@ void checkAndInitHelpWindow()
 	//model->reverseLookupWord(0);
 
 	//...and now we can properly initialize its drawing surface
-	helpKeyboard->init(helpWindow, memoryWindow);
+	helpKeyboard->init(helpWindow, memoryWindow, OnHelpTitleBtnClick, OnHelpTitleBtnOver, OnHelpTitleBtnOut);
 
 	//WORKAROUND - Fixes an issue where WZ won't highlight the first key press (unless it's Shift)
 	//CRITICAL SECTION

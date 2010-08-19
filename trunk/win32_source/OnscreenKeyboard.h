@@ -123,9 +123,9 @@ const int keyboard_vk_codes[] = {
 class OnscreenKeyboard
 {
 public:
-	OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg);
-	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow);
-	void initHelp();
+	OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg);
+	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
+	void initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
 	void initMemory();
 
 	bool highlightKey(unsigned int vkCode, char alphanum, bool modShift, bool highlightON);
@@ -138,6 +138,8 @@ public:
 
 	void addMemoryEntry(const std::wstring &my, const std::string &rom);
 	size_t getMaxMemoryEntries() const;
+
+	void highlightTitleBtn(unsigned int btnID, bool isHighlighted);
 
 	int getWidth() const;
 	int getHeight() const;
@@ -165,6 +167,7 @@ private:
 	PulpCoreFont *shiftFont;
 	PulpCoreFont *memoryFont;
 	PulpCoreImage *cornerImg[4];
+	PulpCoreImage *closeImg;
 
 	//Constants
 	const static unsigned int title_btn_size = 18;
@@ -175,6 +178,8 @@ private:
 	RECT minmaxBtnRect;
 	unsigned int closeBtnID;
 	unsigned int minmaxBtnID;
+	bool closeBtnHighlight;
+	bool minmaxBtnHighlight;
 
 	//Buttons
 	key keys[keys_total];

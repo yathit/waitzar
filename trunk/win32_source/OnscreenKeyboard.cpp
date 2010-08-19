@@ -13,7 +13,7 @@ using std::pair;
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg)
+OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg)
 {
 	//Save for later
 	this->titleFont = titleFont;
@@ -29,12 +29,16 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	this->memoryFont = memoryFont;
 	this->memoryFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
 	//this->memoryFont->tintSelf(COLOR_LETTERS_REGULAR);
+	this->closeImg = closeImg;
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
 	for (int i=0; i<61; i++) 
 		shiftedKeys[i] = false;
 
 	this->setMode(MODE_HELP);
+
+	this->closeBtnHighlight = false;
+	this->minmaxBtnHighlight = false;
 
 	//Create resources
 	//blueBkgrdBrush = CreateSolidBrush(RGB(((COLOR_KEY_BKGRD&0xFF0000)>>16), ((COLOR_KEY_BKGRD&0xFF00)>>8), (COLOR_KEY_BKGRD&0xFF)));
@@ -85,18 +89,18 @@ void OnscreenKeyboard::setMode(int newMode)
 
 //hdc must already be properly sized
 //we'll init a pulp core image with the right size
-void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow)
+void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
 {
 	//Save our windows
 	this->helpWindow = helpWindow;
 	this->memoryWindow = memoryWindow;
 
 	//Perform sub-init methods
-	this->initHelp();
+	this->initHelp(OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
 	this->initMemory();
 }
 
-void OnscreenKeyboard::initHelp()
+void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
 {
 	//Create a new device context
 	bkgrdImg = new PulpCoreImage();
@@ -172,15 +176,12 @@ void OnscreenKeyboard::initHelp()
 	minmaxBtnRect.right = minmaxBtnRect.left + title_btn_size;
 	minmaxBtnRect.bottom = minmaxBtnRect.top + title_btn_size;
 
-	//TODO:
-	//closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
-	//minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+	//Register with callbacks for click/over/out
+	closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+	minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
 
 	//Draw our title bar buttons
 	drawTitleButtons();
-
-	//TO-DO: Register with a callback function, and a "highlight" function if possible.
-	///
 
 	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
 	for (int i=0; i<keys_total; i++) {
@@ -189,24 +190,40 @@ void OnscreenKeyboard::initHelp()
 }
 
 
+void OnscreenKeyboard::highlightTitleBtn(unsigned int btnID, bool isHighlighted)
+{
+	if (btnID == closeBtnID)
+		closeBtnHighlight = isHighlighted;
+	if (btnID == minmaxBtnID)
+		minmaxBtnHighlight = isHighlighted;
+
+	drawTitleButtons();
+	helpWindow->repaintWindow();
+}
+
+
 void OnscreenKeyboard::drawTitleButtons()
 {
 	//We need to detect the state of each button; should it be highlighted, and are we minimized or maximized.
 	//TODO: Detect
-	unsigned int highlight = 0; //1 = close, 2 = minmax
 	bool kbdIsMinimized = false; 
 
 	//Fill the two buttons
 	bkgrdImg->fillRectangle(closeBtnRect.left, closeBtnRect.top, closeBtnRect.right-closeBtnRect.left, closeBtnRect.bottom-closeBtnRect.top, 0xFF000000);
-	bkgrdImg->fillRectangle(closeBtnRect.left+2, closeBtnRect.top+2, closeBtnRect.right-closeBtnRect.left-4, closeBtnRect.bottom-closeBtnRect.top-4, (highlight==1)?COLOR_CLOSEBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
+	bkgrdImg->fillRectangle(closeBtnRect.left+2, closeBtnRect.top+2, closeBtnRect.right-closeBtnRect.left-4, closeBtnRect.bottom-closeBtnRect.top-4, closeBtnHighlight?COLOR_CLOSEBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
 	bkgrdImg->fillRectangle(minmaxBtnRect.left, minmaxBtnRect.top, minmaxBtnRect.right-minmaxBtnRect.left, minmaxBtnRect.bottom-minmaxBtnRect.top, 0xFF000000);
-	bkgrdImg->fillRectangle(minmaxBtnRect.left+2, minmaxBtnRect.top+2, minmaxBtnRect.right-minmaxBtnRect.left-4, minmaxBtnRect.bottom-minmaxBtnRect.top-4, (highlight==2)?COLOR_MINMAXBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
+	bkgrdImg->fillRectangle(minmaxBtnRect.left+2, minmaxBtnRect.top+2, minmaxBtnRect.right-minmaxBtnRect.left-4, minmaxBtnRect.bottom-minmaxBtnRect.top-4, minmaxBtnHighlight?COLOR_MINMAXBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
 
 	//Draw the close button
-	//TODO
+	helpWindow->drawImage(closeImg, closeBtnRect.left+2, closeBtnRect.top+2);
 
 	//Draw the min/max button
-	//TODO
+	if (kbdIsMinimized) {
+		bkgrdImg->fillRectangle(minmaxBtnRect.left+4, minmaxBtnRect.top+5, closeBtnRect.right-closeBtnRect.left-8, closeBtnRect.bottom-closeBtnRect.top-10, 0xFF000000);
+		bkgrdImg->fillRectangle(minmaxBtnRect.left+5, minmaxBtnRect.top+5+2, closeBtnRect.right-closeBtnRect.left-10, closeBtnRect.bottom-closeBtnRect.top-10-3, minmaxBtnHighlight?0xFFFFFFFF:COLOR_KEY_BKGRD);
+	} else {
+		bkgrdImg->fillRectangle(minmaxBtnRect.left+4, minmaxBtnRect.bottom-6, closeBtnRect.right-closeBtnRect.left-8, 2, 0xFF000000);
+	}
 }
 
 

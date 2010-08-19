@@ -46,6 +46,7 @@ IDR_HELP_KEY_FONT       COREFONT       "help_ar_letters.font.png"
 IDR_HELP_FORE_FONT      COREFONT       "help_zg_main.font.png"
 IDR_HELP_BACK_FONT      COREFONT       "help_zg_sub.font.png"
 IDR_HELP_CORNER_IMG     COREFONT       "keybd_corner.png"
+IDR_HELP_CLOSE_IMG      COREFONT       "close_x.png"
 
 //Pulp Core Images -- Pagination (should reduce to just 1 & some post-processing)
 IDR_PGDOWN_COLOR        COREFONT       "pg_down_color.png"
