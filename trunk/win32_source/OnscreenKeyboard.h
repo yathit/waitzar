@@ -44,7 +44,7 @@ const int BTN_WIDTHS[] = {33, 67, 50, 75, 76, 92, 152, 59};
 const int h_gap = 1;
 const int v_gap = 2;
 
-//Useful defines
+//Useful defines  --todo: move internal, make static.
 const unsigned int COLOR_KEY_BKGRD =          0xFF9AA4E2;
 const unsigned int COLOR_KEY_BORDER_REG =     0xFF606060;
 const unsigned int COLOR_KEY_BORDER_SHIFT =   0xFF440066;
@@ -58,6 +58,9 @@ const unsigned int COLOR_KEYBOARD_BORDER =    0xFF000000;
 const unsigned int COLOR_LETTERS_LABEL =      0xFF606060;
 const unsigned int COLOR_LETTERS_REGULAR =    0xFF000000;
 const unsigned int COLOR_LETTERS_SHIFTED =    0xFF0019FF;
+
+const unsigned int COLOR_CLOSEBTN_HIGHLIGHT =  0xFFDD0020;
+const unsigned int COLOR_MINMAXBTN_HIGHLIGHT = 0xFF33FF77;
 
 //Modes
 enum {
@@ -161,13 +164,17 @@ private:
 	PulpCoreFont *foreFont;
 	PulpCoreFont *shiftFont;
 	PulpCoreFont *memoryFont;
-	//PulpCoreFont *foreFontBlue;
-	//PulpCoreFont *shiftFontBlue;
 	PulpCoreImage *cornerImg[4];
 
 	//Constants
-	const static unsigned int title_btn_size = 20;
+	const static unsigned int title_btn_size = 18;
 	const static unsigned int title_btn_margin = 2;
+
+	//Saved button IDs, etc.
+	RECT closeBtnRect;
+	RECT minmaxBtnRect;
+	unsigned int closeBtnID;
+	unsigned int minmaxBtnID;
 
 	//Buttons
 	key keys[keys_total];
@@ -200,6 +207,7 @@ private:
 
 	//Helper
 	int getKeyID(unsigned int vkCode, char alphanum, bool modShift) const;
+	void drawTitleButtons();
 
 
 };

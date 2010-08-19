@@ -36,6 +36,10 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 
 	this->setMode(MODE_HELP);
 
+	//Create resources
+	//blueBkgrdBrush = CreateSolidBrush(RGB(((COLOR_KEY_BKGRD&0xFF0000)>>16), ((COLOR_KEY_BKGRD&0xFF00)>>8), (COLOR_KEY_BKGRD&0xFF)));
+	//black2PxPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+
 	//Determine the necessary size of our background image
 	//TODO: Again, fix the NULLs
 	this->width = (BTN_WIDTHS[BUTTON_KEY]+h_gap)*13 + BTN_WIDTHS[BUTTON_BACKSPACE] + this->cornerSize*2;
@@ -160,19 +164,20 @@ void OnscreenKeyboard::initHelp()
 	helpWindow->drawString(titleFont, HELPWND_TITLE, this->cornerSize + title_btn_size*2 + title_btn_margin*3, this->cornerSize);
 	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
 
-	//Draw our title buttons (and register them)
-	RECT r1;
-	r1.left = r1.top = this->cornerSize;
-	r1.right = r1.bottom = r1.left + title_btn_size;
-	RECT r2;
-	r2.left = r1.right + title_btn_margin;
-	r2.top = r1.top;
-	r2.right = r2.left + title_btn_size;
-	r2.bottom = r2.top + title_btn_size;
-	helpWindow->selectObject(black2PxPen); //TODO - init
-	helpWindow->selectObject(blueBkgrdBrush); //TODO - init
-	helpWindow->drawRectangle(r1.left, r1.top, r1.right, r1.bottom);
-	helpWindow->drawRectangle(r2.left, r2.top, r2.right, r2.bottom);
+	//Layout and register our title bar buttons.
+	closeBtnRect.left = closeBtnRect.top = this->cornerSize;
+	closeBtnRect.right = closeBtnRect.bottom = closeBtnRect.left + title_btn_size;
+	minmaxBtnRect.left = closeBtnRect.right + title_btn_margin;
+	minmaxBtnRect.top = closeBtnRect.top;
+	minmaxBtnRect.right = minmaxBtnRect.left + title_btn_size;
+	minmaxBtnRect.bottom = minmaxBtnRect.top + title_btn_size;
+
+	//TODO:
+	//closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+	//minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+
+	//Draw our title bar buttons
+	drawTitleButtons();
 
 	//TO-DO: Register with a callback function, and a "highlight" function if possible.
 	///
@@ -183,6 +188,26 @@ void OnscreenKeyboard::initHelp()
 	}
 }
 
+
+void OnscreenKeyboard::drawTitleButtons()
+{
+	//We need to detect the state of each button; should it be highlighted, and are we minimized or maximized.
+	//TODO: Detect
+	unsigned int highlight = 0; //1 = close, 2 = minmax
+	bool kbdIsMinimized = false; 
+
+	//Fill the two buttons
+	bkgrdImg->fillRectangle(closeBtnRect.left, closeBtnRect.top, closeBtnRect.right-closeBtnRect.left, closeBtnRect.bottom-closeBtnRect.top, 0xFF000000);
+	bkgrdImg->fillRectangle(closeBtnRect.left+2, closeBtnRect.top+2, closeBtnRect.right-closeBtnRect.left-4, closeBtnRect.bottom-closeBtnRect.top-4, (highlight==1)?COLOR_CLOSEBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
+	bkgrdImg->fillRectangle(minmaxBtnRect.left, minmaxBtnRect.top, minmaxBtnRect.right-minmaxBtnRect.left, minmaxBtnRect.bottom-minmaxBtnRect.top, 0xFF000000);
+	bkgrdImg->fillRectangle(minmaxBtnRect.left+2, minmaxBtnRect.top+2, minmaxBtnRect.right-minmaxBtnRect.left-4, minmaxBtnRect.bottom-minmaxBtnRect.top-4, (highlight==2)?COLOR_MINMAXBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
+
+	//Draw the close button
+	//TODO
+
+	//Draw the min/max button
+	//TODO
+}
 
 
 void OnscreenKeyboard::initMemory()
