@@ -33,6 +33,7 @@ MyWin32Window::MyWin32Window(LPCWSTR windowClassName)
 	//Avoid errors
 	this->window = NULL;
 	this->skipRegionIndexUpdate = false;
+	this->lastActiveRegionID = -1;
 
 	//Prepare for updating our "linked" windows
 	skipNextUpdate = 0;
@@ -168,8 +169,8 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			int currHndl = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			if (currHndl != -1) {
 				//Pass the handle to the function too.
-				regionHandles[currHndl].second(currHndl);
-				SetCursor(ArrowCursor);
+				regionHandles[currHndl].second.OnClick(currHndl);
+				checkRegionTriggersAndCursor(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			} else {
 				//Thanks to dr. Carbon for suggesting this method.
 				if (SetCapture(window)!=NULL)
@@ -198,9 +199,7 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 				dragFrom = dragTo;
 			} else {
 				//Handle any subscriptions; change the cursor if the mouse is over them.
-				int currHndl = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-				if (currHndl != -1)
-					SetCursor(ArrowCursor);
+				checkRegionTriggersAndCursor(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			}
 			break;
 		}
@@ -212,9 +211,7 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			} else {
 				//We might have to reset the cursor once the mouse is released. 
 				// (Tested: it's necessary, unless we choose to remove the class cursor entirely)
-				int currHndl = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-				if (currHndl != -1)
-					SetCursor(ArrowCursor);
+				checkRegionTriggersAndCursor(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			}
 			break;
 		}
@@ -784,12 +781,17 @@ void MyWin32Window::endMassSubscription()
 }
 
 //Add a rectangle to the list of subscriptions. Update the index.
-unsigned int MyWin32Window::subscribeRect(const RECT& area, void(*onclick)(unsigned int))
+unsigned int MyWin32Window::subscribeRect(const RECT& area, void(*onclick)(unsigned int), void(*onover)(unsigned int), void(*onout)(unsigned int))
 {
-	regionHandles.push_back(std::pair<RECT, void(*)(unsigned int)>(area, onclick));
+	RegionActions reg = {onclick, onover, onout};
+	regionHandles.push_back(std::pair<RECT, RegionActions>(area, reg));
 	if (!skipRegionIndexUpdate)
 		recalcRegionIndex();
 	return regionHandles.size()-1;
+}
+unsigned int MyWin32Window::subscribeRect(const RECT& area, void(*onclick)(unsigned int))
+{
+	return subscribeRect(area, onclick, NULL, NULL);
 }
 
 //Update a rectangle's subscription area. Re-compute the index
@@ -803,6 +805,23 @@ void MyWin32Window::updateRect(unsigned int handle, const RECT& area)
 	}
 }
 
+
+void MyWin32Window::checkRegionTriggersAndCursor(int mouseX, int mouseY)
+{
+	//See if the current region has changed; if so, fire some triggers
+	int currHndl = getRegionAtPoint(mouseX, mouseY);
+	if (currHndl != lastActiveRegionID) {
+		if (lastActiveRegionID!=-1 && regionHandles[lastActiveRegionID].second.OnOut!=NULL)
+			regionHandles[lastActiveRegionID].second.OnOut(lastActiveRegionID);
+		if (currHndl!=-1 && regionHandles[currHndl].second.OnOver!=NULL)
+			regionHandles[currHndl].second.OnOver(currHndl);
+		lastActiveRegionID = currHndl;
+	}
+
+	//Set the cursor to an arrow.
+	if (currHndl != -1)
+		SetCursor(ArrowCursor);
+}
 
 
 

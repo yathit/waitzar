@@ -35,9 +35,10 @@
 #define IDR_HELP_FORE_FONT     304
 #define IDR_HELP_BACK_FONT     305
 #define IDR_HELP_CORNER_IMG    306
+#define IDR_HELP_CLOSE_IMG     307
 
 //Pulp Core Font Files (pagination images)
-#define IDR_PGDOWN_COLOR       307
+#define IDR_PGDOWN_COLOR       308
 
 
 

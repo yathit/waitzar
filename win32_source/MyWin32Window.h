@@ -32,6 +32,12 @@ enum ATTACH_DIRECTION {
 	WEST
 };
 
+struct RegionActions {
+	void(*OnClick)(unsigned int);
+	void(*OnOver)(unsigned int);
+	void(*OnOut)(unsigned int);
+};
+
 
 /**
  * Win32 top-level windows are notoriously difficult to manage in a distributed
@@ -66,6 +72,7 @@ public:
 
 	//Special "region-based" functionality
 	unsigned int subscribeRect(const RECT& area, void(*onclick)(unsigned int));
+	unsigned int subscribeRect(const RECT& area, void(*onclick)(unsigned int), void(*onover)(unsigned int), void(*onout)(unsigned int));
 	void updateRect(unsigned int handle, const RECT& area);
 	void beginMassSubscription();
 	void endMassSubscription();
@@ -150,13 +157,15 @@ private:
 	void recalcRegionIndex();
 	int getRegionAtPoint(size_t clientX, size_t clientY); //Note: will return the FIRST valid region handle, or -1
 	bool requireRegionIndex();
+	void checkRegionTriggersAndCursor(int mouseX, int mouseY);
 
 	//Region-based data:
 	static HCURSOR ArrowCursor;
 	bool skipRegionIndexUpdate;
 	const static size_t regionIndexThreshhold = 5; //After this, build an index.
-	std::vector< std::pair<RECT, void(*)(unsigned int)> > regionHandles;
+	std::vector< std::pair<RECT, RegionActions> > regionHandles;
 	//Add some kind of index here.
+	int lastActiveRegionID;
 
 	//More bookkeeping
 	LPCWSTR windowClassName;

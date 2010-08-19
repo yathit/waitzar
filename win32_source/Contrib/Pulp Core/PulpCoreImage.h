@@ -80,6 +80,12 @@ public:
 	virtual void tintSelf(UINT rgbColor, int sX, int sY, int w, int h);
 
 	//Somewhat hackish
+	/*float absFp(float val);
+	float fractPart(float val);
+	float revfractPart(float val);
+	int roundPt5(float val);
+	void drawAAPixel(int x, int y, unsigned int A, unsigned int RGB, float brightness);
+	void drawAALine(float startX, float startY, float endX, float endY, int ARGB);*/
 	void fillRectangle(int startX, int startY, int width, int height, int ARGB);
 	void flipSelfVertical();
 	void sepiaizeSelf();

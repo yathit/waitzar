@@ -149,6 +149,136 @@ void PulpCoreImage::tintSelf(UINT rgbColor, int sX, int sY, int w, int h)
 }
 
 
+
+//Draw a translucent pixel (from an anti-aliased line) on 
+//  top of the image, blending it with the one underneath
+/*void PulpCoreImage::drawAAPixel(int x, int y, unsigned int A, unsigned int RGB, float brightness)
+{
+	//Mirror vertical 
+	int offset = (this->getHeight()-1-y)*this->getWidth() + x;
+
+	//Some alpha stuff
+	float newAlpha = (A/255.0F) * brightness;
+	A =  (((int)(newAlpha*0xFF))&0xFF) << 24;
+	int premultColor = premultiply(A|RGB);
+
+	//Avoid memory errors (again~)
+	if (offset>=0 && offset<this->getWidth()*this->getHeight())  {
+		unsigned int oldARGB = directPixels[offset];
+		//float oldAlpha = ((oldARGB>>24)&0xFF)/255.0F;
+		unsigned int newRGB = RGB + (int)((1.0F - newAlpha)*(oldARGB&0xFFFFFF));
+		//unsigned int newA = ((int)((newAlpha + oldAlpha * (1.0F - newAlpha))*0xFF))&0xFF;
+		directPixels[offset] = 0xFF000000|newRGB; //Can only draw on opaque pixels, for now.
+	}
+}
+
+
+int PulpCoreImage::roundPt5(float val)
+{
+	return (int)(val+0.5);
+}
+
+float PulpCoreImage::fractPart(float val)
+{
+	return val - ((int)val);
+}
+
+float PulpCoreImage::revfractPart(float val)
+{
+	return 1.0F - fractPart(val);
+}
+
+
+float PulpCoreImage::absFp(float val)
+{
+	return val>=0 ? val : -val;
+}
+
+
+//Draw an anti-aliased line
+//Based on the Wikipedia article about Xiaolin Wu's algorithm
+void PulpCoreImage::drawAALine(float startX, float startY, float endX, float endY, int ARGB)
+{
+	//Avoid corrupting memory
+	if (startX < 0)
+		startX = 0;
+	if (startY < 0)
+		startY = 0;
+	if (endX >= this->getWidth())
+		endX = (float)this->getWidth() - 1;
+	if (endY >= this->getHeight())
+		endY = (float)this->getHeight() - 1;
+
+	//Separate components
+	unsigned int A = ((ARGB>>24)&0xFF);
+	unsigned int RGB = (ARGB&0xFFFFFF);
+
+	//Compute deltas
+	float deltaX = endX - startX;
+	float deltaY = endY - startY;
+
+	//Swap values so that this line extends horizontally
+	if (absFp(deltaX) < absFp(deltaY)) {
+		float temp = startX;
+		startX = startY;
+		startY = temp;
+		temp = endX;
+		endX = endY;
+		endY = temp;
+		temp = deltaX;
+		deltaX = deltaY;
+		deltaY = temp;
+	}
+
+	//Swap values if line extends leftwards
+	if (endX < startX) {
+		float temp = startX;
+		startX = endX;
+		endX = temp;
+		temp = startY;
+		startY = endY;
+		endY = temp;
+	}
+
+	//Compute the gradient component
+	float gradient = ((float)deltaY)/deltaX;
+
+	//Paint the first endpoint
+	int xpxl1 = 0;
+	float intery = 0.0;
+	{
+		int xEnd = roundPt5(startX);
+		float yEnd = startY + gradient * (xEnd - startX);
+		float xGap = revfractPart(startX + 0.5F);
+		xpxl1 = xEnd;
+		int ypxl1 = (int)yEnd;
+		drawAAPixel(xpxl1, ypxl1, A, RGB, revfractPart(yEnd)*xGap);
+		drawAAPixel(xpxl1, ypxl1+1, A, RGB, fractPart(yEnd)*xGap);
+		intery = yEnd + gradient;
+	}
+
+	//Paint the second end point
+	int xpxl2 = 0;
+	{
+		int xEnd = roundPt5(endX);
+		float yEnd = endY + gradient * (xEnd - endX);
+		float xGap = fractPart(endX + 0.5F);
+		xpxl2 = xEnd;
+		int ypxl2 = (int)yEnd;
+		drawAAPixel(xpxl2, ypxl2, A, RGB, revfractPart(yEnd)*xGap);
+		drawAAPixel(xpxl2, ypxl2+1, A, RGB, fractPart(yEnd)*xGap);
+	}
+
+	//Paint all the points in the middle
+	for (int x=xpxl1+1; x<xpxl2; x++) {
+		drawAAPixel(x, (int)intery, A, RGB, revfractPart(intery));
+		drawAAPixel(x, ((int)intery)+1, A, RGB, fractPart(intery));
+		intery = intery + gradient;
+	}
+}*/
+
+
+
 /**
  * This function is a bit of a hack, since it accesses the image's pixels directly.
  * However, we have no choice, since layered windows require premultiplied alphas.
