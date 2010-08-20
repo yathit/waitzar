@@ -124,10 +124,11 @@ class OnscreenKeyboard
 {
 public:
 	OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg);
-	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
+	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnHelpTitleBtnClick)(unsigned int), void(*OnHelpTitleBtnOver)(unsigned int), void(*OnHelpTitleBtnOut)(unsigned int), void(*OnMemTitleBtnClick)(unsigned int), void(*OnMemTitleBtnOver)(unsigned int), void(*OnMemTitleBtnOut)(unsigned int));
 	void initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
 	void initHelpSmall();
-	void initMemory();
+	void initMemory(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
+	void initMemorySmall();
 	void initImagesEtc();
 
 	bool highlightKey(unsigned int vkCode, char alphanum, bool modShift, bool highlightON);
@@ -145,12 +146,15 @@ public:
 	void addMemoryEntry(const std::wstring &my, const std::string &rom);
 	size_t getMaxMemoryEntries() const;
 
-	void highlightTitleBtn(unsigned int btnID, bool isHighlighted);
+	void highlightHelpTitleBtn(unsigned int btnID, bool isHighlighted);
+	void highlightMemoryTitleBtn(unsigned int btnID, bool isHighlighted);
 	bool closeHelpWindow(unsigned int btnID);
 	void minmaxHelpWindow(unsigned int btnID);
+	bool closeMemoryWindow(unsigned int btnID);
+	void minmaxMemoryWindow(unsigned int btnID);
 
 	//NOTE: We need to call THIS instead of calling "helpWindow->show"
-	void turnOnHelpMode(bool on, bool skipHelpWin);
+	void turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin);
 	bool isHelpEnabled();
 
 	int getWidth() const;
@@ -193,6 +197,14 @@ private:
 	bool closeBtnHighlight;
 	bool minmaxBtnHighlight;
 
+	//Copied a bit from the helpTitleBtns
+	RECT closeMemBtnRect;
+	RECT minmaxMemBtnRect;
+	unsigned int closeMemBtnID;
+	unsigned int minmaxMemBtnID;
+	bool closeMemBtnHighlight;
+	bool minmaxMemBtnHighlight;
+
 	//Buttons
 	key keys[keys_total];
 
@@ -207,6 +219,7 @@ private:
 	int smallHeight;
 	int memWidth;
 	int memHeight;
+	int smallMemHeight;
 	int memEntriesStartY;
 	int memEntriesYPlus;
 	int memEntriesMax;
@@ -214,6 +227,7 @@ private:
 
 	bool helpIsOn;
 	bool helpWinMinimized;
+	bool memWinMinimized;
 
 	//Are we in a shifted state?
 	bool isShifted();
@@ -229,6 +243,7 @@ private:
 	//Helper
 	int getKeyID(unsigned int vkCode, char alphanum, bool modShift) const;
 	void drawTitleButtons();
+	void drawMemTitleButtons();
 
 
 };

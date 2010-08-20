@@ -38,8 +38,11 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	this->setMode(MODE_HELP);
 
 	this->helpWinMinimized = false;
+	this->memWinMinimized = false;
 	this->closeBtnHighlight = false;
+	this->closeMemBtnHighlight = false;
 	this->minmaxBtnHighlight = false;
+	this->minmaxMemBtnHighlight = false;
 	this->helpIsOn = false;
 	this->bkgrdImg = NULL;
 
@@ -56,6 +59,7 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	//Determine the necessary size of our memory image
 	this->memWidth = this->foreFont->getStringWidth(L"\u1005\u1000\u1064\u102C\u1015\u1030", NULL) + this->keysFont->getStringWidth(L"singapore", NULL) + cornerImg->getWidth()*2 + 5;
 	this->memHeight = this->height;
+	this->smallMemHeight = this->smallHeight;
 
 	//Init our keys
 	int currY = 0;
@@ -94,7 +98,7 @@ void OnscreenKeyboard::setMode(int newMode)
 
 //hdc must already be properly sized
 //we'll init a pulp core image with the right size
-void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
+void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnHelpTitleBtnClick)(unsigned int), void(*OnHelpTitleBtnOver)(unsigned int), void(*OnHelpTitleBtnOut)(unsigned int), void(*OnMemTitleBtnClick)(unsigned int), void(*OnMemTitleBtnOver)(unsigned int), void(*OnMemTitleBtnOut)(unsigned int))
 {
 	//Save our windows
 	this->helpWindow = helpWindow;
@@ -102,8 +106,8 @@ void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWind
 
 	//Perform sub-init methods
 	this->initImagesEtc();
-	this->initHelp(OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
-	this->initMemory();
+	this->initHelp(OnHelpTitleBtnClick, OnHelpTitleBtnOver, OnHelpTitleBtnOut);
+	this->initMemory(OnMemTitleBtnClick, OnMemTitleBtnOver, OnMemTitleBtnOut);
 }
 
 
@@ -208,21 +212,31 @@ void OnscreenKeyboard::initHelpSmall()
 	//NOTE: If we ever *do* decide to re-generate the DIB when resizing, we'll
 	//      have to double-check the math here to make sure we don't overrun the array bounds somewhere.
 	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
-
-	//Calc
-	int bHeight = this->smallHeight-headerButton->getHeight();
-	bHeight = bHeight>=6 ? bHeight : 6;
-	
-	//Body
-	PulpCoreImage *bodyButton = makeButton(this->width, bHeight, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	PulpCoreImage *bodyButton = makeButton(this->width, 6, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	helpWindow->drawImage(headerButton, 0, 0);
-	helpWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
+	helpWindow->drawImage(bodyButton, 0, this->smallHeight-bodyButton->getHeight());
 
-	//Fix their messy intersection
+	//Fix their messy intersection; it's particularly bad this time.
 	bkgrdImg->fillRectangle(2, headerButton->getHeight()-this->cornerSize, headerButton->getWidth()-4, this->cornerSize, COLOR_KEYBOARD_FOREGRD);
 	bkgrdImg->fillRectangle(0, headerButton->getHeight()-this->cornerSize, 2, this->cornerSize, COLOR_KEYBOARD_BORDER);
 	bkgrdImg->fillRectangle(headerButton->getWidth()-2, headerButton->getHeight()-this->cornerSize, 2, 2, COLOR_KEYBOARD_BORDER);
 	bkgrdImg->fillRectangle(this->cornerSize, this->smallHeight-2, this->width-2*this->cornerSize, 2, COLOR_KEYBOARD_BORDER);
+
+	//Fix the lower-left corner
+	int sY = this->smallHeight-this->cornerSize;
+	bkgrdImg->fillRectangle(0, sY, this->cornerSize, this->cornerSize, 0x00000000);
+	bkgrdImg->fillRectangle(1, sY, this->cornerSize-1, 3, COLOR_KEYBOARD_FOREGRD);
+	bkgrdImg->fillRectangle(3, sY+3, this->cornerSize-3, 2, COLOR_KEYBOARD_FOREGRD);
+	helpWindow->drawImage(cornerImg[3], 0, sY);
+
+	//Fix the lower-right corner: stack cornerImg[1] on top of cornerImg[2]
+	//We need to take 3 pixels off the top/bottom of the overlapping images. This will fix aliasing problems
+	int sX = this->width-this->cornerSize-1;
+	sY = this->smallHeight-bodyButton->getHeight();
+	bkgrdImg->fillRectangle(sX, sY, this->cornerSize, bodyButton->getHeight(), 0x00000000);
+	bkgrdImg->fillRectangle(sX, sY+2, 2, 2, COLOR_KEYBOARD_FOREGRD);
+	helpWindow->drawImage(cornerImg[1], sX, sY, 0, 0, 0, 3);
+	helpWindow->drawImage(cornerImg[2], sX, sY+this->cornerSize-3-2, 0, 0, 3, 0);
 
 	//Delete their un-necessary resources
 	delete headerButton;
@@ -239,7 +253,57 @@ void OnscreenKeyboard::initHelpSmall()
 
 
 
-void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin)
+void OnscreenKeyboard::initMemorySmall()
+{
+	//First, clear it.
+	memoryImg->fillRectangle(0, 0, this->memWidth, this->smallMemHeight, 0x00000000);
+
+	//Make our header/body buttons, to be drawn once, and draw them
+	//NOTE: If we ever *do* decide to re-generate the DIB when resizing, we'll
+	//      have to double-check the math here to make sure we don't overrun the array bounds somewhere.
+	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(MEMLIST_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	PulpCoreImage *bodyButton = makeButton(this->memWidth, 6, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	memoryWindow->drawImage(headerButton, 0, 0);
+	memoryWindow->drawImage(bodyButton, 0, this->smallMemHeight-bodyButton->getHeight());
+
+	//Fix their messy intersection; it's particularly bad this time.
+	memoryImg->fillRectangle(2, headerButton->getHeight()-this->cornerSize, headerButton->getWidth()-4, this->cornerSize, COLOR_KEYBOARD_FOREGRD);
+	memoryImg->fillRectangle(0, headerButton->getHeight()-this->cornerSize, 2, this->cornerSize, COLOR_KEYBOARD_BORDER);
+	memoryImg->fillRectangle(headerButton->getWidth()-2, headerButton->getHeight()-this->cornerSize, 2, 2, COLOR_KEYBOARD_BORDER);
+	memoryImg->fillRectangle(this->cornerSize, this->smallMemHeight-2, this->memWidth-2*this->cornerSize, 2, COLOR_KEYBOARD_BORDER);
+
+	//Fix the lower-left corner
+	int sY = this->smallMemHeight-this->cornerSize;
+	memoryImg->fillRectangle(0, sY, this->cornerSize, this->cornerSize, 0x00000000);
+	memoryImg->fillRectangle(1, sY, this->cornerSize-1, 3, COLOR_KEYBOARD_FOREGRD);
+	memoryImg->fillRectangle(3, sY+3, this->cornerSize-3, 2, COLOR_KEYBOARD_FOREGRD);
+	memoryWindow->drawImage(cornerImg[3], 0, sY);
+
+	//Fix the lower-right corner: stack cornerImg[1] on top of cornerImg[2]
+	//We need to take 3 pixels off the top/bottom of the overlapping images. This will fix aliasing problems
+	int sX = this->memWidth-this->cornerSize-1;
+	sY = this->smallMemHeight-bodyButton->getHeight();
+	memoryImg->fillRectangle(sX, sY, this->cornerSize, bodyButton->getHeight(), 0x00000000);
+	memoryImg->fillRectangle(sX, sY+2, 2, 2, COLOR_KEYBOARD_FOREGRD);
+	memoryWindow->drawImage(cornerImg[1], sX, sY, 0, 0, 0, 3);
+	memoryWindow->drawImage(cornerImg[2], sX, sY+this->cornerSize-3-2, 0, 0, 3, 0);
+
+	//Delete their un-necessary resources
+	delete headerButton;
+	delete bodyButton;
+
+	//Now draw the string
+	this->titleFont->setColor(0x00, 0x00, 0x00);
+	memoryWindow->drawString(titleFont, MEMLIST_TITLE, this->cornerSize + title_btn_size*2 + title_btn_margin*3, this->cornerSize);
+	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
+
+	//Finally, re-draw the title buttons
+	drawMemTitleButtons();
+}
+
+
+
+void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin)
 {
 	//Avoid duplicate commands
 	if (on == helpIsOn)
@@ -251,7 +315,7 @@ void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin)
 	//Show the child windows
 	if (!skipHelpWin)
 		helpWindow->showWindow(on);
-	if (true)
+	if (!skipMemWin)
 		memoryWindow->showWindow(on);
 }
 
@@ -301,20 +365,73 @@ void OnscreenKeyboard::minmaxHelpWindow(unsigned int btnID)
 }
 
 
-void OnscreenKeyboard::highlightTitleBtn(unsigned int btnID, bool isHighlighted)
+bool OnscreenKeyboard::closeMemoryWindow(unsigned int btnID)
+{
+	//Only respond to the correct button.
+	if (btnID!=closeMemBtnID)
+		return false;
+
+	memoryWindow->showWindow(false);
+	return true;
+}
+
+
+void OnscreenKeyboard::minmaxMemoryWindow(unsigned int btnID)
+{
+	//Only respond to the correct button
+	if (btnID!=minmaxMemBtnID)
+		return;
+
+	//Reset button flags
+	closeMemBtnHighlight = false;
+	minmaxMemBtnHighlight = false;
+
+	//Resize and re-draw the help window.
+	memWinMinimized = !memWinMinimized;
+	if (!memWinMinimized) {
+		memoryWindow->resizeWindow(this->memWidth, this->memHeight, false);
+		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
+		initMemory(NULL, NULL, NULL);
+		memoryWindow->repaintWindow();
+		memoryWindow->moveWindow(memoryWindow->getXPos(), memoryWindow->getYPos() - (this->memHeight-this->smallMemHeight));
+	} else {
+		memoryWindow->resizeWindow(this->memWidth, this->smallMemHeight, false);
+		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
+		initMemorySmall();
+		memoryWindow->repaintWindow();
+		memoryWindow->moveWindow(memoryWindow->getXPos(), memoryWindow->getYPos() + (this->memHeight-this->smallMemHeight));
+	}
+}
+
+
+
+void OnscreenKeyboard::highlightHelpTitleBtn(unsigned int btnID, bool isHighlighted)
 {
 	if (btnID == closeBtnID)
 		closeBtnHighlight = isHighlighted;
 	if (btnID == minmaxBtnID)
 		minmaxBtnHighlight = isHighlighted;
 
-	//No need to re-draw if the window is hidden
-	if (!helpWindow->isVisible())
-		return;
-
-	drawTitleButtons();
-	helpWindow->repaintWindow();
+	if ((btnID==closeBtnID || btnID==minmaxBtnID) && helpWindow->isVisible()) {
+		drawTitleButtons();
+		helpWindow->repaintWindow();
+	}
 }
+
+
+void OnscreenKeyboard::highlightMemoryTitleBtn(unsigned int btnID, bool isHighlighted)
+{
+	if (btnID == closeMemBtnID)
+		closeMemBtnHighlight = isHighlighted;
+	if (btnID == minmaxMemBtnID)
+		minmaxMemBtnHighlight = isHighlighted;
+
+	if ((btnID==closeMemBtnID || btnID==minmaxMemBtnID) && memoryWindow->isVisible()) {
+		drawMemTitleButtons();
+		memoryWindow->repaintWindow();
+	}
+}
+
 
 
 void OnscreenKeyboard::drawTitleButtons()
@@ -342,14 +459,40 @@ void OnscreenKeyboard::drawTitleButtons()
 }
 
 
-void OnscreenKeyboard::initMemory()
+
+//Copied from the "help" functions
+void OnscreenKeyboard::drawMemTitleButtons()
+{
+	//Fill the two buttons
+	memoryImg->fillRectangle(closeMemBtnRect.left, closeMemBtnRect.top, closeMemBtnRect.right-closeMemBtnRect.left, closeMemBtnRect.bottom-closeMemBtnRect.top, 0xFF000000);
+	memoryImg->fillRectangle(closeMemBtnRect.left+2, closeMemBtnRect.top+2, closeMemBtnRect.right-closeMemBtnRect.left-4, closeMemBtnRect.bottom-closeMemBtnRect.top-4, closeMemBtnHighlight?COLOR_CLOSEBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
+	memoryImg->fillRectangle(minmaxMemBtnRect.left, minmaxMemBtnRect.top, minmaxMemBtnRect.right-minmaxMemBtnRect.left, minmaxMemBtnRect.bottom-minmaxMemBtnRect.top, 0xFF000000);
+	memoryImg->fillRectangle(minmaxMemBtnRect.left+2, minmaxMemBtnRect.top+2, minmaxMemBtnRect.right-minmaxMemBtnRect.left-4, minmaxMemBtnRect.bottom-minmaxMemBtnRect.top-4, minmaxMemBtnHighlight?COLOR_MINMAXBTN_HIGHLIGHT:COLOR_KEY_BKGRD);
+
+	//Draw the close button
+	memoryWindow->drawImage(closeImg, closeMemBtnRect.left+2, closeMemBtnRect.top+2);
+
+	//Draw the min/max button
+	//NOTE: Shouldn't we be using "minmaxMemBtnRect" instead of "closeMemBtnRect" for width/height....
+	//      Perhaps we'll refactor this into a "button" class anyway later
+	if (memWinMinimized) {
+		memoryImg->fillRectangle(minmaxMemBtnRect.left+4, minmaxMemBtnRect.top+5, closeMemBtnRect.right-closeMemBtnRect.left-8, closeMemBtnRect.bottom-closeMemBtnRect.top-10, 0xFF000000);
+		memoryImg->fillRectangle(minmaxMemBtnRect.left+5, minmaxMemBtnRect.top+5+2, closeMemBtnRect.right-closeMemBtnRect.left-10, closeMemBtnRect.bottom-closeMemBtnRect.top-10-3, minmaxMemBtnHighlight?0xFFFFFFFF:COLOR_KEY_BKGRD);
+	} else {
+		memoryImg->fillRectangle(minmaxMemBtnRect.left+4, minmaxMemBtnRect.bottom-6, closeMemBtnRect.right-closeMemBtnRect.left-8, 2, 0xFF000000);
+	}
+}
+
+
+
+void OnscreenKeyboard::initMemory(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
 {
 	//Create a new device context
 	memoryImg = new PulpCoreImage();
 	memoryWindow->initPulpCoreImage(memoryImg, this->memWidth, this->memHeight, 0x00000000);
 
 	//Make our header/body buttons, to be drawn once, and draw them
-	PulpCoreImage *headerButton = makeButton(titleFont->getStringWidth(MEMLIST_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(MEMLIST_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->memWidth, this->memHeight-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	memoryWindow->drawImage(headerButton, 0, 0);
 	memoryWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
@@ -363,9 +506,31 @@ void OnscreenKeyboard::initMemory()
 	delete headerButton;
 	delete bodyButton;
 
-	//Draw the title string
+	//Now draw the string
 	this->titleFont->setColor(0x00, 0x00, 0x00);
-	memoryWindow->drawString(titleFont, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
+	memoryWindow->drawString(titleFont, MEMLIST_TITLE, this->cornerSize + title_btn_size*2 + title_btn_margin*3, this->cornerSize);
+	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
+
+	//Layout and register our title bar buttons.
+	closeMemBtnRect.left = closeMemBtnRect.top = this->cornerSize;
+	closeMemBtnRect.right = closeMemBtnRect.bottom = closeMemBtnRect.left + title_btn_size;
+	minmaxMemBtnRect.left = closeMemBtnRect.right + title_btn_margin;
+	minmaxMemBtnRect.top = closeMemBtnRect.top;
+	minmaxMemBtnRect.right = minmaxMemBtnRect.left + title_btn_size;
+	minmaxMemBtnRect.bottom = minmaxMemBtnRect.top + title_btn_size;
+
+	//Register with callbacks for click/over/out
+	if (OnTitleBtnClick!=NULL && OnTitleBtnOver!=NULL && OnTitleBtnOut!=NULL) {
+		closeMemBtnID = memoryWindow->subscribeRect(closeMemBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+		minmaxMemBtnID = memoryWindow->subscribeRect(minmaxMemBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+	}
+
+	//Draw our title bar buttons
+	drawMemTitleButtons();
+
+	//Draw the title string
+	//this->titleFont->setColor(0x00, 0x00, 0x00);
+	//memoryWindow->drawString(titleFont, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
 
 	//Draw some heading strings
 	memoryWindow->drawString(titleFont, L"Myanmar", this->cornerSize, keyboardOrigin.y+1);

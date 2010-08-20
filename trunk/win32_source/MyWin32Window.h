@@ -109,6 +109,7 @@ public:
 	bool drawRectangle(int left, int top, int right, int bottom);
 	bool drawPolygon(const POINT *points, int numPoints);
 	bool drawImage(PulpCoreImage* img, int x, int y);
+	bool drawImage(PulpCoreImage* img, int x, int y, unsigned int cropLeft, unsigned int cropRight, unsigned int cropTop, unsigned int cropBottom);
 	unsigned int getStringWidth(DisplayMethod* font, const std::wstring& str);
 	bool drawString(DisplayMethod* font, const std::string& str, int x, int y);
 	bool drawString(DisplayMethod* font, const std::wstring& str, int x, int y);

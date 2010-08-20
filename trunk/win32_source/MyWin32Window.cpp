@@ -672,6 +672,13 @@ bool MyWin32Window::drawImage(PulpCoreImage* img, int x, int y)
 	return true;
 }
 
+
+bool MyWin32Window::drawImage(PulpCoreImage* img, int x, int y, unsigned int cropLeft, unsigned int cropRight, unsigned int cropTop, unsigned int cropBottom)
+{
+	img->draw(underDC, x, y, cropLeft, cropRight, cropTop, cropBottom);
+	return true;
+}
+
 unsigned int MyWin32Window::getStringWidth(DisplayMethod* font, const std::wstring& str)
 {
 	return font->getStringWidth(str, underDC);

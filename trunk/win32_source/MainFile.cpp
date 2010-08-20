@@ -323,6 +323,7 @@ string hkRaw;
 //To-do: make this settable via the config file; that way,
 //   we can simply set it and disable the help window for good.
 bool suppressHelpWindow = false;
+bool suppressMemoryWindow = false;
 
 //More old-style settings; have to remove somehow.
 bool highlightKeys = true;
@@ -1481,7 +1482,7 @@ void switchToLanguage(bool toMM) {
 	if (!mmOn) {
 		mainWindow->showWindow(false);
 		sentenceWindow->showWindow(false);
-		helpKeyboard->turnOnHelpMode(false, suppressHelpWindow);
+		helpKeyboard->turnOnHelpMode(false, suppressHelpWindow, suppressMemoryWindow);
 	}
 }
 
@@ -2730,21 +2731,36 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 
 	//Alternatively, minimize it
 	helpKeyboard->minmaxHelpWindow(btnID);
-
-	//TO-DO: Handle the "memory" close button too.
 }
-
-
 void OnHelpTitleBtnOver(unsigned int btnID)
 {
-	helpKeyboard->highlightTitleBtn(btnID, true);
+	helpKeyboard->highlightHelpTitleBtn(btnID, true);
 }
-
 void OnHelpTitleBtnOut(unsigned int btnID)
 {
-	helpKeyboard->highlightTitleBtn(btnID, false);
+	helpKeyboard->highlightHelpTitleBtn(btnID, false);
 }
 
+
+//Memory functions and pointers (copied)
+void OnMemoryTitleBtnClick(unsigned int btnID)
+{
+	//Catch this key press; disable the window for the remainder of the session.
+	if (helpKeyboard->closeMemoryWindow(btnID)) {
+		suppressMemoryWindow = true;
+	}
+
+	//Alternatively, minimize it
+	helpKeyboard->minmaxMemoryWindow(btnID);
+}
+void OnMemoryTitleBtnOver(unsigned int btnID)
+{
+	helpKeyboard->highlightMemoryTitleBtn(btnID, true);
+}
+void OnMemoryTitleBtnOut(unsigned int btnID)
+{
+	helpKeyboard->highlightMemoryTitleBtn(btnID, false);
+}
 
 
 void checkAndInitHelpWindow()
@@ -2772,7 +2788,7 @@ void checkAndInitHelpWindow()
 	//model->reverseLookupWord(0);
 
 	//...and now we can properly initialize its drawing surface
-	helpKeyboard->init(helpWindow, memoryWindow, OnHelpTitleBtnClick, OnHelpTitleBtnOver, OnHelpTitleBtnOut);
+	helpKeyboard->init(helpWindow, memoryWindow, OnHelpTitleBtnClick, OnHelpTitleBtnOver, OnHelpTitleBtnOut, OnMemoryTitleBtnClick, OnMemoryTitleBtnOver, OnMemoryTitleBtnOut);
 
 	//WORKAROUND - Fixes an issue where WZ won't highlight the first key press (unless it's Shift)
 	//CRITICAL SECTION
@@ -2834,7 +2850,7 @@ void toggleHelpMode(bool toggleTo)
 		currHelpInput->reset(true, true, true, true); 
 
 		//Show the help window
-		helpKeyboard->turnOnHelpMode(true, suppressHelpWindow);
+		helpKeyboard->turnOnHelpMode(true, suppressHelpWindow, suppressMemoryWindow);
 
 		//TODO: Automate repainting the help window...
 		reBlitHelp();
@@ -2864,7 +2880,7 @@ void toggleHelpMode(bool toggleTo)
 			sentenceWindow->showWindow(false);
 
 		//Hide windows
-		helpKeyboard->turnOnHelpMode(false, suppressHelpWindow);
+		helpKeyboard->turnOnHelpMode(false, suppressHelpWindow, suppressMemoryWindow);
 	}
 
 
