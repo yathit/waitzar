@@ -39,6 +39,8 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 
 	this->closeBtnHighlight = false;
 	this->minmaxBtnHighlight = false;
+	this->helpIsOn = false;
+	this->bkgrdImg = NULL;
 
 	//Create resources
 	//blueBkgrdBrush = CreateSolidBrush(RGB(((COLOR_KEY_BKGRD&0xFF0000)>>16), ((COLOR_KEY_BKGRD&0xFF00)>>8), (COLOR_KEY_BKGRD&0xFF)));
@@ -87,6 +89,7 @@ void OnscreenKeyboard::setMode(int newMode)
 
 
 
+
 //hdc must already be properly sized
 //we'll init a pulp core image with the right size
 void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
@@ -96,31 +99,22 @@ void OnscreenKeyboard::init(MyWin32Window *helpWindow, MyWin32Window *memoryWind
 	this->memoryWindow = memoryWindow;
 
 	//Perform sub-init methods
+	this->initImagesEtc();
 	this->initHelp(OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
 	this->initMemory();
 }
 
-void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
+
+void OnscreenKeyboard::initImagesEtc()
 {
 	//Create a new device context
 	bkgrdImg = new PulpCoreImage();
 	helpWindow->initPulpCoreImage(bkgrdImg, this->width, this->height, 0x00000000);
 
-	//Color some fonts
-	//this->foreFontBlue = new PulpCoreFont();
-	//helpWindow->initPulpCoreImage(foreFontBlue, foreFont, COLOR_LETTERS_SHIFTED);
-	//this->foreFontBlue->init(foreFont, helpMainDC);
-	//this->foreFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
-	//this->shiftFontBlue = new PulpCoreFont();
-	//helpWindow->initPulpCoreImage(shiftFontBlue, shiftFont, COLOR_LETTERS_SHIFTED);
-	//this->shiftFontBlue->init(shiftFont, helpMainDC);
-	//this->shiftFontBlue->tintSelf(COLOR_LETTERS_SHIFTED);
-
 	//Create rotated copies of our one corner image
 	for (int i=1; i<4; i++) {
 		this->cornerImg[i] = new PulpCoreImage();
 		helpWindow->initPulpCoreImage(cornerImg[i], cornerImg[i-1]);
-		//this->cornerImg[i]->init(this->cornerImg[i-1], underDC);
 		this->cornerImg[i]->rotateSelf90DegreesClockwise();
 	}
 
@@ -143,7 +137,15 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 				this->buttonsShifted[id] = btn;
 		}
 	}
+}
 
+
+
+//NOTE: If we call this with "NULL" function pointers, it won't add their regions. This 
+//      will allow us to call this function again after "minimizing" the window, so we 
+//      can safely overwrite the window when minimized.
+void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
+{
 	//Make our header/body buttons, to be drawn once, and draw them
 	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
@@ -177,8 +179,10 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 	minmaxBtnRect.bottom = minmaxBtnRect.top + title_btn_size;
 
 	//Register with callbacks for click/over/out
-	closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
-	minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+	if (OnTitleBtnClick!=NULL && OnTitleBtnOver!=NULL && OnTitleBtnOut!=NULL) {
+		closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+		minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+	}
 
 	//Draw our title bar buttons
 	drawTitleButtons();
@@ -190,12 +194,52 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 }
 
 
+
+void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin)
+{
+	//Avoid duplicate commands
+	if (on == helpIsOn)
+		return;
+
+	//Set flag
+	helpIsOn = on;
+
+	//Show the child windows
+	if (!skipHelpWin)
+		helpWindow->showWindow(on);
+	if (true)
+		memoryWindow->showWindow(on);
+}
+
+
+bool OnscreenKeyboard::isHelpEnabled()
+{
+	return helpIsOn;
+}
+
+
+bool OnscreenKeyboard::closeHelpWindow(unsigned int btnID)
+{
+	//Only respond to the correct button.
+	if (btnID!=closeBtnID)
+		return false;
+
+	helpWindow->showWindow(false);
+	return true;
+}
+
+
+
 void OnscreenKeyboard::highlightTitleBtn(unsigned int btnID, bool isHighlighted)
 {
 	if (btnID == closeBtnID)
 		closeBtnHighlight = isHighlighted;
 	if (btnID == minmaxBtnID)
 		minmaxBtnHighlight = isHighlighted;
+
+	//No need to re-draw if the window is hidden
+	if (!helpWindow->isVisible())
+		return;
 
 	drawTitleButtons();
 	helpWindow->repaintWindow();
@@ -348,6 +392,10 @@ bool OnscreenKeyboard::highlightKey(unsigned int vkCode, char alphanum, bool mod
 		id -= 61;
 	if (id==-1)
 		return false;
+
+	//Don't draw if hidden; track anyway.
+	if (!helpWindow->isVisible())
+		return true;
 	
 	//Mark as "highlighted"
 	bool wasShifted = this->isShifted();

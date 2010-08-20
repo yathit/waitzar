@@ -303,9 +303,11 @@ DWORD caretTrackThreadID;
 POINT caretLatestPosition;
 
 //Help window colors
-#define COLOR_HELPFNT_KEYS        0x606060
-#define COLOR_HELPFNT_FORE        0x000000
-#define COLOR_HELPFNT_BACK        0x0019FF
+enum {
+	COLOR_HELPFNT_KEYS =        0x606060,
+    COLOR_HELPFNT_FORE =        0x000000,
+    COLOR_HELPFNT_BACK =        0x0019FF,
+};
 
 //Our configuration
 string getMD5Hash(const std::string& fileName);
@@ -317,6 +319,10 @@ ConfigManager config(getMD5Hash);
 //These two will take some serious fixing later.
 wstring hkString;
 string hkRaw;
+
+//To-do: make this settable via the config file; that way,
+//   we can simply set it and disable the help window for good.
+bool suppressHelpWindow = false;
 
 //More old-style settings; have to remove somehow.
 bool highlightKeys = true;
@@ -1475,8 +1481,7 @@ void switchToLanguage(bool toMM) {
 	if (!mmOn) {
 		mainWindow->showWindow(false);
 		sentenceWindow->showWindow(false);
-		helpWindow->showWindow(false);
-		memoryWindow->showWindow(false);
+		helpKeyboard->turnOnHelpMode(false, suppressHelpWindow);
 	}
 }
 
@@ -2718,8 +2723,12 @@ void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 //Help functions & pointers
 void OnHelpTitleBtnClick(unsigned int btnID)
 {
-	//TEMP
-	helpWindow->showWindow(false);
+	//Catch this key press; disable the window for the remainder of the session.
+	if (helpKeyboard->closeHelpWindow(btnID)) {
+		suppressHelpWindow = true;
+	}
+
+	//TO-DO: Handle the "memory" close button too.
 }
 
 
@@ -2791,7 +2800,7 @@ void checkAndInitHelpWindow()
 void toggleHelpMode(bool toggleTo)
 {
 	//Do nothing if called in error.
-	if (toggleTo == helpWindow->isVisible())
+	if (toggleTo == helpKeyboard->isHelpEnabled())
 		return;
 
 	//Are we turning the window "on" or "off"
@@ -2822,8 +2831,7 @@ void toggleHelpMode(bool toggleTo)
 		currHelpInput->reset(true, true, true, true); 
 
 		//Show the help window
-		helpWindow->showWindow(true);
-		memoryWindow->showWindow(true);
+		helpKeyboard->turnOnHelpMode(true, suppressHelpWindow);
 
 		//TODO: Automate repainting the help window...
 		reBlitHelp();
@@ -2853,8 +2861,7 @@ void toggleHelpMode(bool toggleTo)
 			sentenceWindow->showWindow(false);
 
 		//Hide windows
-		helpWindow->showWindow(false);
-		memoryWindow->showWindow(false);
+		helpKeyboard->turnOnHelpMode(false, suppressHelpWindow);
 	}
 
 
@@ -3015,13 +3022,13 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 		case HOTKEY_HELP:
 			//What to do if our user hits "F1".
 			if (/*!allowNonBurmeseLetters &&*/ currHelpInput!=NULL) {
-				toggleHelpMode(!helpWindow->isVisible());
+				toggleHelpMode(!helpKeyboard->isHelpEnabled());
 				checkAllHotkeysAndWindows();
 			}
 			return true;
 
 		default:
-			if (helpWindow->isVisible() && highlightKeys) {
+			if (helpKeyboard->isHelpEnabled() && highlightKeys) {
 				//Convert:
 				VirtKey vk2(vkey);
 				vk2.stripLocale();
@@ -3281,7 +3288,7 @@ void updateContextMenuState()
 
 	//Set a check for the "Look Up Word" function
 	//  Also remove the "F1" if not applicable.
-	UINT flagL = helpWindow->isVisible() ? MF_CHECKED : 0;
+	UINT flagL = helpKeyboard->isHelpEnabled() ? MF_CHECKED : 0;
 	const wstring& POPUP_LOOKUP = mmOn ? POPUP_LOOKUP_MM : POPUP_LOOKUP_EN;
 	ModifyMenu(contextMenu, IDM_LOOKUP, MF_BYCOMMAND|flagL, IDM_LOOKUP, POPUP_LOOKUP.c_str());
 
