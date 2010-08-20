@@ -2728,6 +2728,9 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 		suppressHelpWindow = true;
 	}
 
+	//Alternatively, minimize it
+	helpKeyboard->minmaxHelpWindow(btnID);
+
 	//TO-DO: Handle the "memory" close button too.
 }
 

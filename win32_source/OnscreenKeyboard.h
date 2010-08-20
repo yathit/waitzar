@@ -126,6 +126,7 @@ public:
 	OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg);
 	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
 	void initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
+	void initHelpSmall();
 	void initMemory();
 	void initImagesEtc();
 
@@ -146,6 +147,7 @@ public:
 
 	void highlightTitleBtn(unsigned int btnID, bool isHighlighted);
 	bool closeHelpWindow(unsigned int btnID);
+	void minmaxHelpWindow(unsigned int btnID);
 
 	//NOTE: We need to call THIS instead of calling "helpWindow->show"
 	void turnOnHelpMode(bool on, bool skipHelpWin);
@@ -202,6 +204,7 @@ private:
 	int cornerSize;
 	int width;
 	int height;
+	int smallHeight;
 	int memWidth;
 	int memHeight;
 	int memEntriesStartY;
@@ -210,6 +213,7 @@ private:
 	int mode;
 
 	bool helpIsOn;
+	bool helpWinMinimized;
 
 	//Are we in a shifted state?
 	bool isShifted();
