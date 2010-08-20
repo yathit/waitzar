@@ -215,6 +215,11 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			}
 			break;
 		}
+		/*case WM_MOUSELEAVE: //Only works if the mouse is Captured, which I don't think we need.
+		{
+			checkRegionTriggersAndCursor(-1, -1);
+			break;
+		}*/
 		case WM_MOVE:
 		{
 			//Move any linked windows
@@ -816,7 +821,7 @@ void MyWin32Window::updateRect(unsigned int handle, const RECT& area)
 void MyWin32Window::checkRegionTriggersAndCursor(int mouseX, int mouseY)
 {
 	//See if the current region has changed; if so, fire some triggers
-	int currHndl = getRegionAtPoint(mouseX, mouseY);
+	int currHndl = (mouseX==-1||mouseY==-1)?-1:getRegionAtPoint(mouseX, mouseY);
 	if (currHndl != lastActiveRegionID) {
 		if (lastActiveRegionID!=-1 && regionHandles[lastActiveRegionID].second.OnOut!=NULL)
 			regionHandles[lastActiveRegionID].second.OnOut(lastActiveRegionID);
