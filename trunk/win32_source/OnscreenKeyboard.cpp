@@ -37,6 +37,7 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 
 	this->setMode(MODE_HELP);
 
+	this->helpWinMinimized = false;
 	this->closeBtnHighlight = false;
 	this->minmaxBtnHighlight = false;
 	this->helpIsOn = false;
@@ -50,6 +51,7 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	//TODO: Again, fix the NULLs
 	this->width = (BTN_WIDTHS[BUTTON_KEY]+h_gap)*13 + BTN_WIDTHS[BUTTON_BACKSPACE] + this->cornerSize*2;
 	this->height = BTN_HEIGHT*5 + v_gap*4 + titleFont->getHeight(NULL)-2+2*this->cornerSize-2 + this->cornerSize;
+	this->smallHeight = titleFont->getHeight(NULL) + 2*this->cornerSize-2; 
 
 	//Determine the necessary size of our memory image
 	this->memWidth = this->foreFont->getStringWidth(L"\u1005\u1000\u1064\u102C\u1015\u1030", NULL) + this->keysFont->getStringWidth(L"singapore", NULL) + cornerImg->getWidth()*2 + 5;
@@ -146,6 +148,9 @@ void OnscreenKeyboard::initImagesEtc()
 //      can safely overwrite the window when minimized.
 void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int))
 {
+	//Fill with "clear"
+	bkgrdImg->fillRectangle(0, 0, this->width, this->height, 0x00000000);
+
 	//Make our header/body buttons, to be drawn once, and draw them
 	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
@@ -194,6 +199,45 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 }
 
 
+void OnscreenKeyboard::initHelpSmall()
+{
+	//First, clear it.
+	bkgrdImg->fillRectangle(0, 0, this->width, this->smallHeight, 0x00000000);
+
+	//Make our header/body buttons, to be drawn once, and draw them
+	//NOTE: If we ever *do* decide to re-generate the DIB when resizing, we'll
+	//      have to double-check the math here to make sure we don't overrun the array bounds somewhere.
+	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+
+	//Calc
+	int bHeight = this->smallHeight-headerButton->getHeight();
+	bHeight = bHeight>=6 ? bHeight : 6;
+	
+	//Body
+	PulpCoreImage *bodyButton = makeButton(this->width, bHeight, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	helpWindow->drawImage(headerButton, 0, 0);
+	helpWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
+
+	//Fix their messy intersection
+	bkgrdImg->fillRectangle(2, headerButton->getHeight()-this->cornerSize, headerButton->getWidth()-4, this->cornerSize, COLOR_KEYBOARD_FOREGRD);
+	bkgrdImg->fillRectangle(0, headerButton->getHeight()-this->cornerSize, 2, this->cornerSize, COLOR_KEYBOARD_BORDER);
+	bkgrdImg->fillRectangle(headerButton->getWidth()-2, headerButton->getHeight()-this->cornerSize, 2, 2, COLOR_KEYBOARD_BORDER);
+	bkgrdImg->fillRectangle(this->cornerSize, this->smallHeight-2, this->width-2*this->cornerSize, 2, COLOR_KEYBOARD_BORDER);
+
+	//Delete their un-necessary resources
+	delete headerButton;
+	delete bodyButton;
+
+	//Now draw the string
+	this->titleFont->setColor(0x00, 0x00, 0x00);
+	helpWindow->drawString(titleFont, HELPWND_TITLE, this->cornerSize + title_btn_size*2 + title_btn_margin*3, this->cornerSize);
+	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
+
+	//Finally, re-draw the title buttons
+	drawTitleButtons();
+}
+
+
 
 void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin)
 {
@@ -229,6 +273,33 @@ bool OnscreenKeyboard::closeHelpWindow(unsigned int btnID)
 }
 
 
+void OnscreenKeyboard::minmaxHelpWindow(unsigned int btnID)
+{
+	//Only respond to the correct button
+	if (btnID!=minmaxBtnID)
+		return;
+
+	//Reset button flags
+	closeBtnHighlight = false;
+	minmaxBtnHighlight = false;
+
+	//Resize and re-draw the help window.
+	helpWinMinimized = !helpWinMinimized;
+	if (!helpWinMinimized) {
+		helpWindow->resizeWindow(this->width, this->height, false);
+		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
+		initHelp(NULL, NULL, NULL);
+		helpWindow->repaintWindow();
+		helpWindow->moveWindow(helpWindow->getXPos(), helpWindow->getYPos() - (this->height-this->smallHeight));
+	} else {
+		helpWindow->resizeWindow(this->width, this->smallHeight, false);
+		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
+		initHelpSmall();
+		helpWindow->repaintWindow();
+		helpWindow->moveWindow(helpWindow->getXPos(), helpWindow->getYPos() + (this->height-this->smallHeight));
+	}
+}
+
 
 void OnscreenKeyboard::highlightTitleBtn(unsigned int btnID, bool isHighlighted)
 {
@@ -250,7 +321,7 @@ void OnscreenKeyboard::drawTitleButtons()
 {
 	//We need to detect the state of each button; should it be highlighted, and are we minimized or maximized.
 	//TODO: Detect
-	bool kbdIsMinimized = false; 
+	//bool kbdIsMinimized = false; 
 
 	//Fill the two buttons
 	bkgrdImg->fillRectangle(closeBtnRect.left, closeBtnRect.top, closeBtnRect.right-closeBtnRect.left, closeBtnRect.bottom-closeBtnRect.top, 0xFF000000);
@@ -262,7 +333,7 @@ void OnscreenKeyboard::drawTitleButtons()
 	helpWindow->drawImage(closeImg, closeBtnRect.left+2, closeBtnRect.top+2);
 
 	//Draw the min/max button
-	if (kbdIsMinimized) {
+	if (helpWinMinimized) {
 		bkgrdImg->fillRectangle(minmaxBtnRect.left+4, minmaxBtnRect.top+5, closeBtnRect.right-closeBtnRect.left-8, closeBtnRect.bottom-closeBtnRect.top-10, 0xFF000000);
 		bkgrdImg->fillRectangle(minmaxBtnRect.left+5, minmaxBtnRect.top+5+2, closeBtnRect.right-closeBtnRect.left-10, closeBtnRect.bottom-closeBtnRect.top-10-3, minmaxBtnHighlight?0xFFFFFFFF:COLOR_KEY_BKGRD);
 	} else {
@@ -393,8 +464,8 @@ bool OnscreenKeyboard::highlightKey(unsigned int vkCode, char alphanum, bool mod
 	if (id==-1)
 		return false;
 
-	//Don't draw if hidden; track anyway.
-	if (!helpWindow->isVisible())
+	//Don't draw if hidden or minimized; track anyway.
+	if (!helpWindow->isVisible() || helpWinMinimized)
 		return true;
 	
 	//Mark as "highlighted"
