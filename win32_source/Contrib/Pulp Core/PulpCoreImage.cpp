@@ -509,6 +509,18 @@ void PulpCoreImage::draw(HDC bufferDC, int xPos, int yPos)
 }
 
 
+//NOTE: We won't merge this with draw() yet, since too much stuff relies on the standard draw.
+//      TODO: 1.9, just have draw() call this function with 0,0,0,0
+void PulpCoreImage::draw(HDC bufferDC, int xPos, int yPos, unsigned int cropLeft, unsigned int cropRight, unsigned int cropTop, unsigned int cropBottom) 
+{
+	int newW = getWidth()-cropRight-cropLeft;
+	int newH = getHeight()-cropBottom-cropTop;
+	AlphaBlend(
+		bufferDC, xPos, yPos, newW, newH,   //Destination
+		directDC, cropLeft, cropTop, newW, newH,    //Source
+		blendFunc				   //Method
+	);
+}
 
 void PulpCoreImage::readHeader(HDC currDC)
 {

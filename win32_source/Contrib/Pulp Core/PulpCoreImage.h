@@ -93,6 +93,7 @@ public:
 
 	//Basic drawing functionality
 	void draw(HDC bufferDC, int xPos, int yPos);
+	void draw(HDC bufferDC, int xPos, int yPos, unsigned int cropLeft, unsigned int cropRight, unsigned int cropTop, unsigned int cropBottom);
 
 	//We report errors, though they're unlikely.
 	//BOOL isInError();
