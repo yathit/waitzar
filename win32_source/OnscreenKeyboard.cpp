@@ -313,8 +313,15 @@ void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin
 	helpIsOn = on;
 
 	//Show the child windows
-	if (!skipHelpWin)
+	if (!skipHelpWin) {
+		//Re-paint all keys?
+		if (on) {
+			for (int i=0; i<keys_total; i++) {
+				drawKey(keys[i], i, shiftedKeys[i]);
+			}
+		}
 		helpWindow->showWindow(on);
+	}
 	if (!skipMemWin)
 		memoryWindow->showWindow(on);
 }
@@ -392,6 +399,7 @@ void OnscreenKeyboard::minmaxMemoryWindow(unsigned int btnID)
 		memoryWindow->resizeWindow(this->memWidth, this->memHeight, false);
 		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
 		initMemory(NULL, NULL, NULL);
+		refreshMemoryList(); //Re-flash all memory entries
 		memoryWindow->repaintWindow();
 		memoryWindow->moveWindow(memoryWindow->getXPos(), memoryWindow->getYPos() - (this->memHeight-this->smallMemHeight));
 	} else {
@@ -628,14 +636,16 @@ bool OnscreenKeyboard::highlightKey(unsigned int vkCode, char alphanum, bool mod
 		id -= 61;
 	if (id==-1)
 		return false;
-
-	//Don't draw if hidden or minimized; track anyway.
-	if (!helpWindow->isVisible() || helpWinMinimized)
-		return true;
 	
 	//Mark as "highlighted"
 	bool wasShifted = this->isShifted();
 	shiftedKeys[id] = highlightON;
+
+	//Don't draw if hidden or minimized; track anyway.
+	if (!helpWindow->isVisible() || helpWinMinimized)
+		return true;
+
+	//Draw
 	if (wasShifted != this->isShifted()) {
 		//We need to re-print the entire keyboard
 		for (int i=0; i<61; i++) {
@@ -1029,7 +1039,17 @@ void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string 
 	if (memoryList.size()>getMaxMemoryEntries())
 		memoryList.pop_front();
 
+	//Hidden/minimized?
+	if (!memoryWindow->isVisible() || memWinMinimized)
+		return;
+
 	//Either way, we need to re-draw the word list
+	refreshMemoryList();
+}
+
+
+void OnscreenKeyboard::refreshMemoryList()
+{
 	memoryImg->fillRectangle(this->cornerSize, memEntriesStartY, this->getMemoryWidth()-this->cornerSize*2, this->getMemoryHeight()-memEntriesStartY-this->cornerSize, COLOR_KEYBOARD_FOREGRD);
 	int currY = memEntriesStartY;
 	for (list< pair<wstring,string> >::iterator keyItr = memoryList.begin(); keyItr != memoryList.end();keyItr++) {
