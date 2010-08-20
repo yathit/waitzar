@@ -127,6 +127,7 @@ public:
 	void init(MyWin32Window *helpWindow, MyWin32Window *memoryWindow, void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
 	void initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTitleBtnOver)(unsigned int), void(*OnTitleBtnOut)(unsigned int));
 	void initMemory();
+	void initImagesEtc();
 
 	bool highlightKey(unsigned int vkCode, char alphanum, bool modShift, bool highlightON);
 
@@ -134,12 +135,21 @@ public:
 
 	int getVirtualKeyID(unsigned int vkCode, char alphanum, bool modShift) const;
 
+	//
+	//NOTE: This will eventually become part of the myWin2.2 model; in fact, it might 
+	//  be a good idea to start refactoring here.
+	//
 	std::wstring typeLetter(unsigned int vkCode, char alphanum, bool modShift);
 
 	void addMemoryEntry(const std::wstring &my, const std::string &rom);
 	size_t getMaxMemoryEntries() const;
 
 	void highlightTitleBtn(unsigned int btnID, bool isHighlighted);
+	bool closeHelpWindow(unsigned int btnID);
+
+	//NOTE: We need to call THIS instead of calling "helpWindow->show"
+	void turnOnHelpMode(bool on, bool skipHelpWin);
+	bool isHelpEnabled();
 
 	int getWidth() const;
 	int getHeight() const;
@@ -198,6 +208,8 @@ private:
 	int memEntriesYPlus;
 	int memEntriesMax;
 	int mode;
+
+	bool helpIsOn;
 
 	//Are we in a shifted state?
 	bool isShifted();
