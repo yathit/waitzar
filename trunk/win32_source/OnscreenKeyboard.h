@@ -145,6 +145,7 @@ public:
 
 	void addMemoryEntry(const std::wstring &my, const std::string &rom);
 	size_t getMaxMemoryEntries() const;
+	void refreshMemoryList();
 
 	void highlightHelpTitleBtn(unsigned int btnID, bool isHighlighted);
 	void highlightMemoryTitleBtn(unsigned int btnID, bool isHighlighted);
