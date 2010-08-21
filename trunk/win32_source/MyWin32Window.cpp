@@ -6,6 +6,9 @@
 
 #include ".\MyWin32Window.h"
 
+using std::vector;
+using std::pair;
+
 
 //Useful constants
 namespace {
@@ -33,7 +36,7 @@ MyWin32Window::MyWin32Window(LPCWSTR windowClassName)
 	//Avoid errors
 	this->window = NULL;
 	this->skipRegionIndexUpdate = false;
-	this->lastActiveRegionID = -1;
+	//this->lastActiveRegionID = -1;
 
 	//Prepare for updating our "linked" windows
 	skipNextUpdate = 0;
@@ -166,11 +169,13 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		case WM_LBUTTONDOWN:
 		{
 			//Only drag if we're not over a button. Else, activate that button
-			int currHndl = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-			if (currHndl != -1) {
+			vector<unsigned int> matchedHndls = getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (!matchedHndls.empty()) {
 				//Pass the handle to the function too.
-				regionHandles[currHndl].second.OnClick(currHndl);
-				checkRegionTriggersAndCursor(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+				for (size_t i=0; i<matchedHndls.size(); i++) {
+					regionHandles[matchedHndls[i]].second.OnClick(matchedHndls[i]);
+				}
+				checkRegionTriggersAndCursor(matchedHndls);
 			} else {
 				//Thanks to dr. Carbon for suggesting this method.
 				if (SetCapture(window)!=NULL)
@@ -199,7 +204,7 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 				dragFrom = dragTo;
 			} else {
 				//Handle any subscriptions; change the cursor if the mouse is over them.
-				checkRegionTriggersAndCursor(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+				checkRegionTriggersAndCursor(getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)));
 			}
 			break;
 		}
@@ -211,7 +216,7 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			} else {
 				//We might have to reset the cursor once the mouse is released. 
 				// (Tested: it's necessary, unless we choose to remove the class cursor entirely)
-				checkRegionTriggersAndCursor(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+				checkRegionTriggersAndCursor(getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)));
 			}
 			break;
 		}
@@ -750,6 +755,30 @@ bool MyWin32Window::requireRegionIndex()
 	return regionHandles.size() >= regionIndexThreshhold;
 }
 
+//Index consists of a vector of positions, with each position containing the "start" or "end" of a region (by ID)
+void MyWin32Window::insertIndexValue(std::vector<IndexEntry> &vec, unsigned int id, unsigned int val, bool valIsStart)
+{
+	//First, find the place to insert this value
+	std::vector<IndexEntry>::iterator it = vec.begin();
+	for (;it!=vec.end(); it++) {
+		if (it->currVal >= val)
+			break;
+	}
+
+	//Insert if the value is greater (or if we're at the end)
+	if (it==vec.end() || it->currVal!=val) {
+		IndexEntry newEntry;
+		newEntry.currVal = val;
+		it = vec.insert(it, newEntry);
+	}
+
+	//Now, add to it
+	if (valIsStart)
+		it->startRect.push_back(id);
+	else
+		it->endRect.push_back(id);
+}
+
 //Used to build a lookup table for the regions, to handle an excessively large number of region subscriptions.
 // In WZ, this only happens for the Help Keyboard.
 void MyWin32Window::recalcRegionIndex()
@@ -758,23 +787,92 @@ void MyWin32Window::recalcRegionIndex()
 	if (!requireRegionIndex())
 		return;
 
-	throw std::exception("Not yet implemented: >X regions");
+	//Update the index
+	//TO-DO: This only works well if there's not a lot of inserts/deletes.
+	//       For our virtual keyboard, that's fine, since many keys share the 
+	//       same X/Y positions. But we should really re-build this with a linnked 
+	//       list for the general case.
+	sortedXIndex.clear();
+	sortedYIndex.clear();
+	maxWidth = 0;
+	maxHeight = 0;
+	for (size_t i=0; i<regionHandles.size(); i++) {
+		//Update index
+		insertIndexValue(sortedXIndex, i, regionHandles[i].first.left, true);
+		insertIndexValue(sortedXIndex, i, regionHandles[i].first.right, false);
+		insertIndexValue(sortedYIndex, i, regionHandles[i].first.top, true);
+		insertIndexValue(sortedYIndex, i, regionHandles[i].first.bottom, false);
+
+		//Update max width/height
+		size_t width = regionHandles[i].first.right - regionHandles[i].first.left + 1;
+		maxWidth = (width>maxWidth) ? width : maxWidth;
+		size_t height = regionHandles[i].first.bottom - regionHandles[i].first.top + 1;
+		maxHeight = (height>maxHeight) ? height : maxHeight;
+	}
 }
 
-//Return the region at a given client location.
-int MyWin32Window::getRegionAtPoint(size_t clientX, size_t clientY)
+
+
+void MyWin32Window::searchRegIndexAxis(vector<int>& resByID, const vector<IndexEntry>& sortIndex, size_t searchVal, unsigned int maxSearchW)
 {
+	//Find the nearest <= value
+	//TO-DO: Use a binary search (later). For now linear is fast enough
+	size_t currIndexID = 0;
+	for (size_t nextIndexID=0;nextIndexID<sortIndex.size(); nextIndexID++) {
+		if (sortIndex[nextIndexID].currVal > searchVal)
+			break;
+		currIndexID = nextIndexID;
+	}
+
+	//Now, search backwards; adding and removing as needed.
+	for (;;) {
+		//Update
+		for (vector<unsigned int>::const_iterator it=sortIndex[currIndexID].startRect.begin(); it!=sortIndex[currIndexID].startRect.end(); it++)
+			resByID[*it]++;
+		if (sortIndex[currIndexID].currVal != searchVal) {
+			for (vector<unsigned int>::const_iterator it=sortIndex[currIndexID].endRect.begin(); it!=sortIndex[currIndexID].endRect.end(); it++)
+				resByID[*it]--;
+		}
+
+		//Break? Increment. Break?
+		if (currIndexID==0)
+			break;
+		currIndexID--;
+		if (searchVal-sortIndex[currIndexID].currVal > maxSearchW)
+			break;
+	}
+}
+
+
+//Return the region at a given client location.
+std::vector<unsigned int> MyWin32Window::getRegionAtPoint(size_t clientX, size_t clientY)
+{
+	std::vector<unsigned int> res;
+
 	if (!requireRegionIndex()) {
 		//Just do a simple iterative search.
 		for (size_t i=0; i<regionHandles.size(); i++) {
 			if (   (int)clientX>=regionHandles[i].first.left && (int)clientX<=regionHandles[i].first.right
 				&& (int)clientY>=regionHandles[i].first.top && (int)clientY<=regionHandles[i].first.bottom)
-				return i;
+				res.push_back(i);
 		}
-		return -1;
 	} else {
-		throw std::exception("Not yet implemented: >X regions");
+		//The way this works is simple. First, do a binary search for the index <= the current value.
+		//   Then, go back MAX_WIDTH/HEIGHT (or to 0), adding 1 for each "start" value found and -1 for each "end" value
+		//   Do this for each axis; any IDs that accumulate a value of 2 have been "matched".
+		//NOTE: We ignore end-points on the first point if it matches the value exactly.
+		vector<int> results(regionHandles.size(), 0); //CHECK: Is this how to init properly?
+		searchRegIndexAxis(results, sortedXIndex, clientX, maxWidth);
+		searchRegIndexAxis(results, sortedYIndex, clientY, maxHeight);
+
+		//Covnert our arrays of [-2..2] to an array containing only "passed" values.
+		for (size_t i=0; i<results.size(); i++) {
+			if (results[i]==2)
+				res.push_back(i);
+		}
 	}
+
+	return res;
 }
 
 //Suppress updates
@@ -795,6 +893,9 @@ void MyWin32Window::endMassSubscription()
 //Add a rectangle to the list of subscriptions. Update the index.
 unsigned int MyWin32Window::subscribeRect(const RECT& area, void(*onclick)(unsigned int), void(*onover)(unsigned int), void(*onout)(unsigned int))
 {
+	if (area.right<=area.left || area.bottom<=area.top)
+		throw std::exception("Error: invalid rectangle in subscribeRect().");
+
 	RegionActions reg = {onclick, onover, onout};
 	regionHandles.push_back(std::pair<RECT, RegionActions>(area, reg));
 	if (!skipRegionIndexUpdate)
@@ -818,20 +919,34 @@ void MyWin32Window::updateRect(unsigned int handle, const RECT& area)
 }
 
 
-void MyWin32Window::checkRegionTriggersAndCursor(int mouseX, int mouseY)
+void MyWin32Window::checkRegionTriggersAndCursor(const vector<unsigned int>& matchedRegions)
 {
-	//See if the current region has changed; if so, fire some triggers
-	int currHndl = (mouseX==-1||mouseY==-1)?-1:getRegionAtPoint(mouseX, mouseY);
-	if (currHndl != lastActiveRegionID) {
-		if (lastActiveRegionID!=-1 && regionHandles[lastActiveRegionID].second.OnOut!=NULL)
-			regionHandles[lastActiveRegionID].second.OnOut(lastActiveRegionID);
-		if (currHndl!=-1 && regionHandles[currHndl].second.OnOver!=NULL)
-			regionHandles[currHndl].second.OnOver(currHndl);
-		lastActiveRegionID = currHndl;
+	//For each region that has been removed, fire an "OnOut" message.
+	for (vector<unsigned int>::const_iterator it=prevActiveRegIDs.begin(); it!=prevActiveRegIDs.end(); it++) {
+		vector<unsigned int>::const_iterator it2=matchedRegions.begin();
+		for (; it2!=matchedRegions.end() && (*it2)!=(*it); it2++);
+
+		//Not found?
+		if (it2==matchedRegions.end() && regionHandles[*it].second.OnOut!=NULL)
+			regionHandles[*it].second.OnOut(*it);
 	}
 
-	//Set the cursor to an arrow.
-	if (currHndl != -1)
+
+	//For each region that has been added, fire a "OnOver" message.
+	for (vector<unsigned int>::const_iterator it=matchedRegions.begin(); it!=matchedRegions.end(); it++) {
+		vector<unsigned int>::const_iterator it2=prevActiveRegIDs.begin();
+		for (; it2!=prevActiveRegIDs.end() && (*it2)!=(*it); it2++);
+
+		//Not found?
+		if (it2==prevActiveRegIDs.end() && regionHandles[*it].second.OnOver!=NULL)
+			regionHandles[*it].second.OnOver(*it);
+	}	
+
+	//Save
+	prevActiveRegIDs = matchedRegions;
+
+	//Set the cursor to an arrow if we're at least over ONE thing.
+	if (!matchedRegions.empty())
 		SetCursor(ArrowCursor);
 }
 

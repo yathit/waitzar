@@ -38,6 +38,12 @@ struct RegionActions {
 	void(*OnOut)(unsigned int);
 };
 
+struct IndexEntry {
+	unsigned int currVal;
+	std::vector<unsigned int> startRect;
+	std::vector<unsigned int> endRect;
+};
+
 
 /**
  * Win32 top-level windows are notoriously difficult to manage in a distributed
@@ -156,17 +162,24 @@ private:
 
 	//Related to "region-based functionality"
 	void recalcRegionIndex();
-	int getRegionAtPoint(size_t clientX, size_t clientY); //Note: will return the FIRST valid region handle, or -1
+	void insertIndexValue(std::vector<IndexEntry> &vec, unsigned int id, unsigned int val, bool valIsStart);
+	std::vector<unsigned int> getRegionAtPoint(size_t clientX, size_t clientY); //Note: will return the FIRST valid region handle, or -1
 	bool requireRegionIndex();
-	void checkRegionTriggersAndCursor(int mouseX, int mouseY);
+	void checkRegionTriggersAndCursor(const std::vector<unsigned int>& matchedRegions);
+	void searchRegIndexAxis(std::vector<int>& resByID, const std::vector<IndexEntry>& sortIndex, size_t searchVal, unsigned int maxSearchW);
 
 	//Region-based data:
 	static HCURSOR ArrowCursor;
 	bool skipRegionIndexUpdate;
 	const static size_t regionIndexThreshhold = 5; //After this, build an index.
 	std::vector< std::pair<RECT, RegionActions> > regionHandles;
-	//Add some kind of index here.
-	int lastActiveRegionID;
+	std::vector<unsigned int> prevActiveRegIDs;
+
+	//Region-based index
+	std::vector<IndexEntry> sortedXIndex;
+	std::vector<IndexEntry> sortedYIndex;
+	unsigned int maxWidth;
+	unsigned int maxHeight;
 
 	//More bookkeeping
 	LPCWSTR windowClassName;
