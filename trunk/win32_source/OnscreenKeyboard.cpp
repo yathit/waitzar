@@ -187,18 +187,37 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 	minmaxBtnRect.right = minmaxBtnRect.left + title_btn_size;
 	minmaxBtnRect.bottom = minmaxBtnRect.top + title_btn_size;
 
-	//Register with callbacks for click/over/out
-	if (OnTitleBtnClick!=NULL && OnTitleBtnOver!=NULL && OnTitleBtnOut!=NULL) {
-		closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
-		minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
-	}
-
 	//Draw our title bar buttons
 	drawTitleButtons();
 
 	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
 	for (int i=0; i<keys_total; i++) {
 		drawKey(keys[i], i, false);
+	}
+
+	//Subscribe a rectangle for all our keys
+	if (OnTitleBtnClick!=NULL && OnTitleBtnOver!=NULL && OnTitleBtnOut!=NULL) {
+		RECT r;
+		for (int i=0; i<keys_total; i++) {
+			//Scratch variables.
+			POINT pos = keys[i].location;
+			PulpCoreImage* img = buttonsRegular[keys[i].letterPalette];
+
+			//Update our rectangle
+			r.left = keyboardOrigin.x + pos.x;
+			r.top = keyboardOrigin.y + pos.y;
+			r.right = r.left + img->getWidth() - 1; 
+			r.bottom = r.top + img->getHeight() - 1;
+
+			//Subscribe
+			helpWindow->subscribeRect(r, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+		}
+	}
+
+	//Register with callbacks for click/over/out
+	if (OnTitleBtnClick!=NULL && OnTitleBtnOver!=NULL && OnTitleBtnOut!=NULL) {
+		closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
+		minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
 	}
 }
 
@@ -424,6 +443,29 @@ void OnscreenKeyboard::highlightHelpTitleBtn(unsigned int btnID, bool isHighligh
 		drawTitleButtons();
 		helpWindow->repaintWindow();
 	}
+}
+
+
+void OnscreenKeyboard::clickButton(unsigned int btnID) 
+{
+	//Only respond to actual virtual keys
+	if (btnID>=keys_total)
+		return;
+
+	//TODO: Functionality
+}
+
+
+void OnscreenKeyboard::highlightVirtKey(unsigned int btnID, bool isHighlighted) 
+{
+	//Only respond to actual virtual keys
+	if (btnID>=keys_total)
+		return;
+
+	//Highlight/unhighlight
+	shiftedKeys[btnID] = isHighlighted;
+	drawKey(keys[btnID], btnID, shiftedKeys[btnID]);
+	helpWindow->repaintWindow();
 }
 
 

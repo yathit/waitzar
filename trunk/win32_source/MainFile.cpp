@@ -2722,6 +2722,8 @@ void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 
 
 //Help functions & pointers
+//NOTE: For "help", this is a bit of a misnomer, as it also handles
+//      the regular help keyboard keys.
 void OnHelpTitleBtnClick(unsigned int btnID)
 {
 	//Catch this key press; disable the window for the remainder of the session.
@@ -2731,14 +2733,25 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 
 	//Alternatively, minimize it
 	helpKeyboard->minmaxHelpWindow(btnID);
+
+	//We might also try "clicking" on a button by ID
+	helpKeyboard->clickButton(btnID);
 }
 void OnHelpTitleBtnOver(unsigned int btnID)
 {
+	//Regular
 	helpKeyboard->highlightHelpTitleBtn(btnID, true);
+
+	//Other
+	helpKeyboard->highlightVirtKey(btnID, true);
 }
 void OnHelpTitleBtnOut(unsigned int btnID)
 {
+	//Regular
 	helpKeyboard->highlightHelpTitleBtn(btnID, false);
+
+	//Other
+	helpKeyboard->highlightVirtKey(btnID, false);
 }
 
 

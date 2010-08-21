@@ -154,6 +154,9 @@ public:
 	bool closeMemoryWindow(unsigned int btnID);
 	void minmaxMemoryWindow(unsigned int btnID);
 
+	void clickButton(unsigned int btnID);
+	void highlightVirtKey(unsigned int btnID, bool isHighlighted);
+
 	//NOTE: We need to call THIS instead of calling "helpWindow->show"
 	void turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin);
 	bool isHelpEnabled();

@@ -817,7 +817,7 @@ void MyWin32Window::searchRegIndexAxis(vector<int>& resByID, const vector<IndexE
 {
 	//Find the nearest <= value
 	//TO-DO: Use a binary search (later). For now linear is fast enough
-	size_t currIndexID = 0;
+	int currIndexID = -1;
 	for (size_t nextIndexID=0;nextIndexID<sortIndex.size(); nextIndexID++) {
 		if (sortIndex[nextIndexID].currVal > searchVal)
 			break;
@@ -825,7 +825,7 @@ void MyWin32Window::searchRegIndexAxis(vector<int>& resByID, const vector<IndexE
 	}
 
 	//Now, search backwards; adding and removing as needed.
-	for (;;) {
+	for (;currIndexID!=-1;) {
 		//Update
 		for (vector<unsigned int>::const_iterator it=sortIndex[currIndexID].startRect.begin(); it!=sortIndex[currIndexID].startRect.end(); it++)
 			resByID[*it]++;
