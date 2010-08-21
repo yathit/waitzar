@@ -452,7 +452,18 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 	if (btnID>=keys_total)
 		return;
 
-	//TODO: Functionality
+	//Set up
+	unsigned int vkCode = keyboard_vk_codes[btnID];
+	char alphanum = (vkCode>='A'&&vkCode<='Z')?((vkCode-'A')+'a'):'\0';
+	bool modShift = this->isShifted();
+
+	//Type
+	//TO-DO: We need to hook this up to the main program loop's typing code. 
+	//       It kind of breaks our encapsulation a bit, but we can still handle it, I think.
+	//       Something like: store the result in a string in OnscreenKeyboard, then have
+	//       the main loop call "requestToType(helpKeyboard->getFragment()" on the current input
+	//       method, then handle all edge cases as they should be.
+	typeLetter(vkCode, alphanum, modShift);
 }
 
 
@@ -487,8 +498,6 @@ void OnscreenKeyboard::highlightMemoryTitleBtn(unsigned int btnID, bool isHighli
 void OnscreenKeyboard::drawTitleButtons()
 {
 	//We need to detect the state of each button; should it be highlighted, and are we minimized or maximized.
-	//TODO: Detect
-	//bool kbdIsMinimized = false; 
 
 	//Fill the two buttons
 	bkgrdImg->fillRectangle(closeBtnRect.left, closeBtnRect.top, closeBtnRect.right-closeBtnRect.left, closeBtnRect.bottom-closeBtnRect.top, 0xFF000000);
