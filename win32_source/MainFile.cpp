@@ -4273,7 +4273,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//"And another thing!"
-	RECT r;
+	RECT r = {1,1,2,2}; //Just an empty rectangle for now; we'll update it as necessary
 	changeEncRegionHandle = sentenceWindow->subscribeRect(r, OnEncodingChangeClick);
 
 	Logger::markLogTime('L', L"Windows Initialized");
