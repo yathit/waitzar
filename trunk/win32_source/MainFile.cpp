@@ -2739,9 +2739,12 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 	helpKeyboard->clickButton(btnID);
 
 	//Feed this virtual key through the current keyboard
-	currInput->handleKeyPress(helpKeyboard->getLastClickedVKey());
-	checkAllHotkeysAndWindows();
-	recalculate();
+	if (helpKeyboard->getLastClickedVKey().alphanum!='\0') {
+		//For now, we skip non-alpha keys
+		currInput->handleKeyPress(helpKeyboard->getLastClickedVKey());
+		checkAllHotkeysAndWindows();
+		recalculate();
+	}
 }
 void OnHelpTitleBtnOver(unsigned int btnID)
 {

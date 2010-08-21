@@ -465,7 +465,7 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 	alphanum = (vkCode>='0'&&vkCode<='9')?vkCode:alphanum;
 	bool modShift = this->isShifted();
 
-	//Save
+	//Save ---but only if we can type it!
 	lastClickedButton = VirtKey(vkCode, alphanum, modShift, false, false);
 
 	//Type
@@ -483,6 +483,10 @@ void OnscreenKeyboard::highlightVirtKey(unsigned int btnID, bool isHighlighted)
 	//Only respond to actual virtual keys
 	if (btnID>=keys_total)
 		return;
+
+	//Don't highlight keys we can't press!
+	unsigned int vkey = keyboard_vk_codes[btnID];
+	if ((vkey>='A'&&vkey<='Z')||(vkey>='0'&&vkey<='9')) {} else {return;}
 
 	//Highlight/unhighlight
 	shiftedKeys[btnID] = isHighlighted;
