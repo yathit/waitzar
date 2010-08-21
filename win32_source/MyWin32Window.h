@@ -181,6 +181,10 @@ private:
 	unsigned int maxWidth;
 	unsigned int maxHeight;
 
+	//Helpful!
+	static MyWin32Window* lastMouseFocus;
+	static void UpdateMouseMove(MyWin32Window* currMouseFocus);
+
 	//More bookkeeping
 	LPCWSTR windowClassName;
 	RECT windowArea;

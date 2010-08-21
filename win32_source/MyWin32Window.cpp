@@ -139,6 +139,21 @@ LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 }
 
 
+//Some helpful stuff
+MyWin32Window* MyWin32Window::lastMouseFocus = NULL;
+void MyWin32Window::UpdateMouseMove(MyWin32Window* currMouseFocus)
+{
+	//Clear all mouse highlights when mouse-moving onto a new window
+	if (currMouseFocus!=lastMouseFocus) {
+		if (lastMouseFocus!=NULL) {
+			vector<unsigned int> emptyList;
+			lastMouseFocus->checkRegionTriggersAndCursor(emptyList);
+		}
+		lastMouseFocus = currMouseFocus;
+	}
+}
+
+
 //Our processing loop for messages
 LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -205,6 +220,9 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			} else {
 				//Handle any subscriptions; change the cursor if the mouse is over them.
 				checkRegionTriggersAndCursor(getRegionAtPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)));
+
+				//Handle subscriptions across multiple windows
+				MyWin32Window::UpdateMouseMove(this);
 			}
 			break;
 		}
