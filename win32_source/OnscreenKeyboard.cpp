@@ -13,7 +13,7 @@ using std::pair;
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg)
+OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg) : lastClickedButton(0, '\0', false, false, false)
 {
 	//Save for later
 	this->titleFont = titleFont;
@@ -446,6 +446,13 @@ void OnscreenKeyboard::highlightHelpTitleBtn(unsigned int btnID, bool isHighligh
 }
 
 
+
+VirtKey OnscreenKeyboard::getLastClickedVKey()
+{
+	return lastClickedButton;
+}
+
+
 void OnscreenKeyboard::clickButton(unsigned int btnID) 
 {
 	//Only respond to actual virtual keys
@@ -455,7 +462,11 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 	//Set up
 	unsigned int vkCode = keyboard_vk_codes[btnID];
 	char alphanum = (vkCode>='A'&&vkCode<='Z')?((vkCode-'A')+'a'):'\0';
+	alphanum = (vkCode>='0'&&vkCode<='9')?vkCode:alphanum;
 	bool modShift = this->isShifted();
+
+	//Save
+	lastClickedButton = VirtKey(vkCode, alphanum, modShift, false, false);
 
 	//Type
 	//TO-DO: We need to hook this up to the main program loop's typing code. 
@@ -463,7 +474,7 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 	//       Something like: store the result in a string in OnscreenKeyboard, then have
 	//       the main loop call "requestToType(helpKeyboard->getFragment()" on the current input
 	//       method, then handle all edge cases as they should be.
-	typeLetter(vkCode, alphanum, modShift);
+	//typeLetter(vkCode, alphanum, modShift);
 }
 
 
