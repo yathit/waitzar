@@ -27,6 +27,7 @@
 #include "Pulp Core/PulpCoreFont.h"
 #include "MyWin32Window.h"
 #include "Hotkeys.h"
+#include "Input/VirtKey.h"
 
 //Useful constants
 const int BUTTON_KEY       = 0; //33 x 43
@@ -161,6 +162,8 @@ public:
 	void turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin);
 	bool isHelpEnabled();
 
+	VirtKey getLastClickedVKey();
+
 	int getWidth() const;
 	int getHeight() const;
 	int getMemoryWidth() const;
@@ -208,6 +211,8 @@ private:
 	unsigned int minmaxMemBtnID;
 	bool closeMemBtnHighlight;
 	bool minmaxMemBtnHighlight;
+
+	VirtKey lastClickedButton;
 
 	//Buttons
 	key keys[keys_total];

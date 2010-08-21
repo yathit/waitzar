@@ -234,6 +234,7 @@ bool helpIsCached;
 
 //Ugh, prototypes...
 BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+void checkAllHotkeysAndWindows();
 
 
 //User-drawn menu data structures
@@ -2736,6 +2737,11 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 
 	//We might also try "clicking" on a button by ID
 	helpKeyboard->clickButton(btnID);
+
+	//Feed this virtual key through the current keyboard
+	currInput->handleKeyPress(helpKeyboard->getLastClickedVKey());
+	checkAllHotkeysAndWindows();
+	recalculate();
 }
 void OnHelpTitleBtnOver(unsigned int btnID)
 {
