@@ -32,8 +32,8 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	this->closeImg = closeImg;
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
-	for (int i=0; i<61; i++) 
-		shiftedKeys[i] = false;
+//	for (int i=0; i<61; i++) 
+//		shiftedKeys[i] = false;
 
 	this->setMode(MODE_HELP);
 
@@ -68,14 +68,18 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	int currRowID = 0;
 	for (int i=0; i<keys_total; i++) {
 		//Get properties
-		keys[i].letterPalette = letter_types[i];
+		int pal = letter_types[i];
 
 		//Lay it out
-		keys[i].location.x = currX;
-		keys[i].location.y = currY;
+		POINT loc;
+		loc.x = currX;
+		loc.y = currY;
+
+		//Save it
+		keys.push_back(KbdKey(loc, pal));
 
 		//Set the next location
-		currX += BTN_WIDTHS[keys[i].letterPalette] + h_gap;
+		currX += BTN_WIDTHS[keys[keys.size()-1].letterPalette] + h_gap;
 		currRowID++;
 		if (currRowID == keys_per_row[currRow]) {
 			//Next row
@@ -336,7 +340,7 @@ void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin
 		//Re-paint all keys?
 		if (on) {
 			for (int i=0; i<keys_total; i++) {
-				drawKey(keys[i], i, shiftedKeys[i]);
+				drawKey(keys[i], i, keys[i].isHighlighted());
 			}
 		}
 		helpWindow->showWindow(on);
@@ -500,9 +504,12 @@ void OnscreenKeyboard::highlightVirtKey(unsigned int btnID, bool isHighlighted)
 		return;
 
 	//Highlight/unhighlight
-	shiftedKeys[btnID] = isHighlighted;
-	drawKey(keys[btnID], btnID, shiftedKeys[btnID]);
-	helpWindow->repaintWindow();
+	bool wasHighlighted = keys[btnID].isHighlighted();
+	keys[btnID].mouseIsOver = isHighlighted;
+	if (wasHighlighted != keys[btnID].isHighlighted()) {
+		drawKey(keys[btnID], btnID, keys[btnID].isHighlighted());
+		helpWindow->repaintWindow();
+	}
 }
 
 
@@ -642,13 +649,13 @@ void OnscreenKeyboard::initMemory(void(*OnTitleBtnClick)(unsigned int), void(*On
  */
 bool OnscreenKeyboard::isShifted()
 {
-	return shiftedKeys[getKeyID(VK_LSHIFT, '\0', true)] || shiftedKeys[getKeyID(VK_RSHIFT, '\0', true)];
+	return keys[getKeyID(VK_LSHIFT, '\0', true)].isHighlighted() || keys[getKeyID(VK_RSHIFT, '\0', true)].isHighlighted();
 }
 
 
 
 //Helper function
-void OnscreenKeyboard::drawKey(key currKey, int keyID, bool isPressed)
+void OnscreenKeyboard::drawKey(const KbdKey& currKey, int keyID, bool isPressed)
 {
 	//Draw the background
 	int pal = currKey.letterPalette;
@@ -716,9 +723,14 @@ bool OnscreenKeyboard::highlightKey(unsigned int vkCode, char alphanum, bool mod
 	
 	//Mark as "highlighted"
 	bool wasShifted = this->isShifted();
-	shiftedKeys[id] = highlightON;
+	bool wasHighlighted = keys[id].isHighlighted();
+	keys[id].kbdIsPressed = highlightON;
 
-	//Don't draw if hidden or minimized; track anyway.
+	//If there's no change, don't bother redrawing.
+	if (wasHighlighted == keys[id].isHighlighted())
+		return true;
+
+	//Also don't draw if hidden or minimized; track anyway.
 	if (!helpWindow->isVisible() || helpWinMinimized)
 		return true;
 
@@ -726,11 +738,11 @@ bool OnscreenKeyboard::highlightKey(unsigned int vkCode, char alphanum, bool mod
 	if (wasShifted != this->isShifted()) {
 		//We need to re-print the entire keyboard
 		for (int i=0; i<61; i++) {
-			drawKey(keys[i], i, shiftedKeys[i]);
+			drawKey(keys[i], i, keys[i].isHighlighted());
 		}
 	} else {
 		//Re-draw only this key
-		drawKey(keys[id], id, highlightON);
+		drawKey(keys[id], id, keys[id].isHighlighted());
 	}
 
 	//Succeeded
