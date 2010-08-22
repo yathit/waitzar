@@ -241,6 +241,9 @@ private:
 	//Are we in a shifted state?
 	bool isShifted();
 
+	//Is this the kind of key we can press manually?
+	bool isPressableButton(size_t btnID);
+
 	//Button palettes
 	PulpCoreImage *buttonsRegular[BUTTONS_IN_TOTAL];
 	PulpCoreImage *buttonsShifted[BUTTONS_IN_TOTAL];

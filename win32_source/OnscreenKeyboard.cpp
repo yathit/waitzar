@@ -352,6 +352,15 @@ bool OnscreenKeyboard::isHelpEnabled()
 }
 
 
+
+bool OnscreenKeyboard::isPressableButton(size_t btnID)
+{
+	unsigned int vkey = keyboard_vk_codes[btnID];
+	return (vkey>='A'&&vkey<='Z')||(vkey>='0'&&vkey<='9')||(vkey==VK_OEM_4||vkey==VK_OEM_5||vkey==VK_OEM_1||vkey==VK_OEM_7||vkey==VK_OEM_COMMA);
+}
+
+
+
 bool OnscreenKeyboard::closeHelpWindow(unsigned int btnID)
 {
 	//Only respond to the correct button.
@@ -460,13 +469,14 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 		return;
 
 	//Set up
-	unsigned int vkCode = keyboard_vk_codes[btnID];
-	char alphanum = (vkCode>='A'&&vkCode<='Z')?((vkCode-'A')+'a'):'\0';
-	alphanum = (vkCode>='0'&&vkCode<='9')?vkCode:alphanum;
-	bool modShift = this->isShifted();
+	lastClickedButton = VirtKey(keyboard_vk_codes[btnID], this->isShifted(), false, false);
+	//char alphanum = (vkCode>='A'&&vkCode<='Z')?((vkCode-'A')+'a'):'\0';
+	//alphanum = (vkCode>='0'&&vkCode<='9')?vkCode:alphanum;
+	//bool modShift = this->isShifted();
 
 	//Save ---but only if we can type it!
-	lastClickedButton = VirtKey(vkCode, alphanum, modShift, false, false);
+	if (!isPressableButton(btnID))
+		lastClickedButton = VirtKey(0, '\0', false, false, false);
 
 	//Type
 	//TO-DO: We need to hook this up to the main program loop's typing code. 
@@ -486,7 +496,8 @@ void OnscreenKeyboard::highlightVirtKey(unsigned int btnID, bool isHighlighted)
 
 	//Don't highlight keys we can't press!
 	unsigned int vkey = keyboard_vk_codes[btnID];
-	if ((vkey>='A'&&vkey<='Z')||(vkey>='0'&&vkey<='9')) {} else {return;}
+	if (!isPressableButton(btnID))
+		return;
 
 	//Highlight/unhighlight
 	shiftedKeys[btnID] = isHighlighted;
