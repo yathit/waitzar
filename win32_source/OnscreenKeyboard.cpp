@@ -199,6 +199,9 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 		drawKey(keys[i], i, false);
 	}
 
+	//Rebuild -- Don't auto-index.
+	helpWindow->beginMassSubscription();
+
 	//Subscribe a rectangle for all our keys
 	if (OnTitleBtnClick!=NULL && OnTitleBtnOver!=NULL && OnTitleBtnOut!=NULL) {
 		RECT r;
@@ -223,6 +226,9 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 		closeBtnID = helpWindow->subscribeRect(closeBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
 		minmaxBtnID = helpWindow->subscribeRect(minmaxBtnRect, OnTitleBtnClick, OnTitleBtnOver, OnTitleBtnOut);
 	}
+
+	//Rebuild the index
+	helpWindow->endMassSubscription();
 }
 
 
