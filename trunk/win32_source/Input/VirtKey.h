@@ -75,6 +75,8 @@ public:
 	//Construct from an lParam (presumably a WM_HOTKEY message)
 	VirtKey(LPARAM wmHotkeyLParam);
 
+	VirtKey(unsigned int vkCode, bool modShift, bool modAlt, bool modCtrl);
+
 	//Constructor: extrapolate "shfit" and vk values from the "alphanum" parameter. 
 	VirtKey(char alphanum);
 

@@ -143,6 +143,12 @@ VirtKey::VirtKey(LPARAM wmHotkeyLParam)
 	constructAlphanumFromVkcodeAndModifiers();
 }
 
+VirtKey::VirtKey(unsigned int vkCode, bool modShift, bool modAlt, bool modCtrl) : vkCode(vkCode), modShift(modShift), modAlt(modAlt), modCtrl(modCtrl)
+{
+	//Make the alphanum
+	constructAlphanumFromVkcodeAndModifiers();
+}
+
 //Helper method for the above-detailed constructor
 void VirtKey::constructAlphanumFromVkcodeAndModifiers()
 {
