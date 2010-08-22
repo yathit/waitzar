@@ -74,10 +74,23 @@ const std::wstring HELPWND_TITLE = L"WaitZar Word Finder";
 const std::wstring MEMLIST_TITLE = L"Memory List";
 
 
-//Useful struct for our keys
-struct key {
+//Useful class for our keys
+class KbdKey {
+public: 
+
+	//Static
 	POINT location;
 	int letterPalette;
+
+	//State
+	bool mouseIsOver;
+	bool kbdIsPressed;
+
+	//Constructors
+	KbdKey(const POINT& location, int letterPalette) : location(location), letterPalette(letterPalette), mouseIsOver(false), kbdIsPressed(false) {}
+
+	//Helper
+	bool isHighlighted() { return mouseIsOver || kbdIsPressed; }
 };
 const int keys_per_row[] = {14, 14, 13, 12, 8};
 const int keys_total = 14 + 14 + 13 + 12 + 8;
@@ -215,10 +228,11 @@ private:
 	VirtKey lastClickedButton;
 
 	//Buttons
-	key keys[keys_total];
+	std::vector<KbdKey> keys;
+	//KbdKey keys[keys_total];
 
 	//Run-time status of buttons
-	bool shiftedKeys[61];
+	//bool shiftedKeys[61];
 
 	//Useful helpers
 	POINT keyboardOrigin;
@@ -250,7 +264,7 @@ private:
 
 	//Make a button
 	PulpCoreImage* makeButton(int width, int height, int bgARGB, int fgARGB, int borderARGB);
-	void drawKey(key currKey, int keyID, bool isPressed);
+	void drawKey(const KbdKey& currKey, int keyID, bool isPressed);
 
 	//Helper
 	int getKeyID(unsigned int vkCode, char alphanum, bool modShift) const;
