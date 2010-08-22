@@ -149,6 +149,13 @@ void MyWin32Window::UpdateMouseMove(MyWin32Window* currMouseFocus)
 			vector<unsigned int> emptyList;
 			lastMouseFocus->checkRegionTriggersAndCursor(emptyList);
 		}
+		if (currMouseFocus!=NULL) {
+			//Register a TrackMouseEvent() message to handle leaving this window
+			TRACKMOUSEEVENT tev;
+			tev.cbSize = sizeof(TRACKMOUSEEVENT);
+			tev.dwFlags = TME_LEAVE;
+			currMouseFocus->trackMouseEvent(tev);
+		}
 		lastMouseFocus = currMouseFocus;
 	}
 }
@@ -238,11 +245,13 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			}
 			break;
 		}
-		/*case WM_MOUSELEAVE: //Only works if the mouse is Captured, which I don't think we need.
+		case WM_MOUSELEAVE: //Only works if we are "tracking mouse events"
 		{
-			checkRegionTriggersAndCursor(-1, -1);
+			vector<unsigned int> emptyVec;
+			checkRegionTriggersAndCursor(emptyVec);
+			MyWin32Window::UpdateMouseMove(NULL); //No longer tracking
 			break;
-		}*/
+		}
 		case WM_MOVE:
 		{
 			//Move any linked windows
@@ -736,6 +745,13 @@ bool MyWin32Window::drawChar(DisplayMethod* font, char letter, int xPos, int yPo
 bool MyWin32Window::isWindowCreated()
 {
 	return this->window != NULL;
+}
+
+
+bool MyWin32Window::trackMouseEvent(TRACKMOUSEEVENT& mev)
+{
+	mev.hwndTrack = this->window;
+	return (TrackMouseEvent(&mev)==TRUE);
 }
 
 

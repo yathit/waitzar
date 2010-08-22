@@ -106,6 +106,7 @@ public:
 	bool repaintWindow(RECT blitArea); //Blit or UpdateLayer depending
 	void showMessageBox(std::wstring msg, std::wstring title, UINT flags); //Use STL strings
 	bool isWindowCreated(); //After WM_CREATE
+	bool trackMouseEvent(TRACKMOUSEEVENT& mev);
 
 	//GDI functionality, always draws to the underDC
 	bool selectObject(HPEN &obj);
