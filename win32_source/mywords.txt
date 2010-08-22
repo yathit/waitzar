@@ -9,6 +9,8 @@
 ဆီမ့္ = seint
 ခြန္႔ = khont
 ခစ္ = khit
+ရြန္ = yon
+ဂဲ = gal
 
 #Words which cannot be added to the model, as they already have a standard romanisation.
 # These will be included perpetually for convenience
