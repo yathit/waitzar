@@ -1192,7 +1192,7 @@ string WordBuilder::reverseLookupWord(unsigned int dictID)
 		buildReverseLookup();
 
 	if (dictID<0 || dictID>=revLookup.size())
-		return string();
+		return "";
 
 	return revLookup[dictID];
 }

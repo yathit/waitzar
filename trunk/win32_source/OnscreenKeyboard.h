@@ -158,6 +158,7 @@ public:
 	std::wstring typeLetter(unsigned int vkCode, char alphanum, bool modShift);
 
 	void addMemoryEntry(const std::wstring &my, const std::string &rom);
+	void clearAllMemoryEntries();
 	size_t getMaxMemoryEntries() const;
 	void refreshMemoryList();
 
