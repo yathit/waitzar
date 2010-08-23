@@ -2664,13 +2664,27 @@ struct pairmatches : public std::binary_function<pair<unsigned int, VirtKey>, un
 //NOTE: We should avoid using hotkeyCode when possible, since it doesn't account for locale-specific information
 void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 {
+	//NOTE: HOTKEY_VIRT_LSHIFT is not being triggered here. 
+	//      It seems that "GetKeyState()" isn't working for some reason.
+	/*if (hotkeyCode==HOTKEY_VIRT_LSHIFT||hotkeyCode==HOTKEY_VIRT_RSHIFT) {
+		Logger::writeLogLine('L');
+	}*/
+
+	//NOTE: This is happening because GetKeyState() returns the state of the keyboard
+	//      at the time the last message was parsed. 
+	// We might try to hack around this with GetKeyAsyncState(), but it is prbably a better
+	//      idea to see how the main loop differs when switching directly from another language.
+	// NOTE: This might be related to the bug of the first key not being pumped correctly!
+
 	//If this is a shifted key, get which key is shifted: left or right
 	if (hotkeyCode==HOTKEY_SHIFT) {
 		//Well, I like posting fake messages. :D
 		// Note that (lParam>>16)&VK_LSHIFT doesn't work here
-		if ((GetKeyState(VK_LSHIFT)&0x8000)!=0)
+		SHORT shiftL = GetKeyState(VK_LSHIFT);
+		SHORT shiftR = GetKeyState(VK_RSHIFT);
+		if ((shiftL&0x8000)!=0)
 			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MAKELPARAM(MOD_SHIFT, VK_LSHIFT));
-		if ((GetKeyState(VK_RSHIFT)&0x8000)!=0)
+		if ((shiftR&0x8000)!=0)
 			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MAKELPARAM(MOD_SHIFT, VK_RSHIFT));
 	} else {
 		//Is this a valid key? If so, highlight it and repaint the help window

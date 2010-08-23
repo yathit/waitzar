@@ -1148,6 +1148,9 @@ void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string 
 
 void OnscreenKeyboard::clearAllMemoryEntries()
 {
+	if (memoryList.empty())
+		return;
+
 	memoryList.clear();
 
 	//Hidden/minimized?
