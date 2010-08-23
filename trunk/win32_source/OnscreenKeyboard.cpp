@@ -348,13 +348,18 @@ void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin
 			for (int i=0; i<keys_total; i++) {
 				drawKey(keys[i], i, keys[i].isHighlighted());
 			}
-
-			refreshMemoryList();
+			helpWindow->repaintWindow();
 		}
 		helpWindow->showWindow(on);
 	}
-	if (!skipMemWin)
+	if (!skipMemWin) {
+		if (on) {
+			refreshMemoryList();
+			memoryWindow->repaintWindow();
+		}
+
 		memoryWindow->showWindow(on);
+	}
 }
 
 
