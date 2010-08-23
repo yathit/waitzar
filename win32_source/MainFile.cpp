@@ -503,7 +503,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 				translated.considerLocale();
 
 				//Get the state of this key
-				SHORT keyState = GetKeyState(helpKeyboard->getVirtualKeyID(translated.vkCode, translated.alphanum, translated.modShift)); //We need to use CAPITAL letters for virtual keys. Gah!
+				SHORT keyState = GetAsyncKeyState(helpKeyboard->getVirtualKeyID(translated.vkCode, translated.alphanum, translated.modShift)); //We need to use CAPITAL letters for virtual keys. Gah!
 
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
@@ -2680,8 +2680,8 @@ void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 	if (hotkeyCode==HOTKEY_SHIFT) {
 		//Well, I like posting fake messages. :D
 		// Note that (lParam>>16)&VK_LSHIFT doesn't work here
-		SHORT shiftL = GetKeyState(VK_LSHIFT);
-		SHORT shiftR = GetKeyState(VK_RSHIFT);
+		SHORT shiftL = GetAsyncKeyState(VK_LSHIFT);
+		SHORT shiftR = GetAsyncKeyState(VK_RSHIFT);
 		if ((shiftL&0x8000)!=0)
 			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_LSHIFT, MAKELPARAM(MOD_SHIFT, VK_LSHIFT));
 		if ((shiftR&0x8000)!=0)
@@ -2816,7 +2816,7 @@ void checkAndInitHelpWindow()
 
 	//WORKAROUND - Fixes an issue where WZ won't highlight the first key press (unless it's Shift)
 	//CRITICAL SECTION
-	{
+	/*{
 		EnterCriticalSection(&threadCriticalSec);
 
 		//NOTE: This is the workaround: just process a dummy event.
@@ -2830,7 +2830,7 @@ void checkAndInitHelpWindow()
 		}
 
 		LeaveCriticalSection(&threadCriticalSec);
-	}
+	}*/
 	//END WORKAROUND
 
 	//Only needs to be performed once.
