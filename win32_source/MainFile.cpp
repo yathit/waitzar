@@ -3705,17 +3705,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Will generate a WM_DESTROY message
 					delete mainWindow;
 				} else if (retVal >= IDM_TYPING_SUBMENU_START) {
-					//First, disable the Help Keyboard if it's showing.
-					if (currHelpInput!=NULL && helpKeyboard->isHelpEnabled()) {
-						toggleHelpMode(false);
-						checkAllHotkeysAndWindows();
-					}
-
 					//Switch the language, input manager, or output manager.
 					if (customMenuItemsLookup.count(retVal)==0)
 						throw std::exception("Bad menu item");
 					WZMenuItem* currItem = customMenuItemsLookup[retVal];
 					if (!currItem->disabled) {
+						//Reset the help keyboard
+						if ((currItem->type==WZMI_LANG) || (currItem->type==WZMI_INPUT))
+							helpKeyboard->clearAllMemoryEntries();
+
+						//First, disable the Help Keyboard if it's showing.
+						if (currHelpInput!=NULL && helpKeyboard->isHelpEnabled()) {
+							toggleHelpMode(false);
+							checkAllHotkeysAndWindows();
+						}
+
 						if (currItem->type==WZMI_LANG)
 							ChangeLangInputOutput(currItem->id, L"", L"");
 						else if (currItem->type==WZMI_INPUT)

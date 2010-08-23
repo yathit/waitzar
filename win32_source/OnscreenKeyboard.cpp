@@ -348,6 +348,8 @@ void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin
 			for (int i=0; i<keys_total; i++) {
 				drawKey(keys[i], i, keys[i].isHighlighted());
 			}
+
+			refreshMemoryList();
 		}
 		helpWindow->showWindow(on);
 	}
@@ -1140,6 +1142,18 @@ void OnscreenKeyboard::addMemoryEntry(const std::wstring &my, const std::string 
 		return;
 
 	//Either way, we need to re-draw the word list
+	refreshMemoryList();
+}
+
+
+void OnscreenKeyboard::clearAllMemoryEntries()
+{
+	memoryList.clear();
+
+	//Hidden/minimized?
+	if (!memoryWindow->isVisible() || memWinMinimized)
+		return;
+
 	refreshMemoryList();
 }
 

@@ -125,9 +125,11 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 		}
 
 		//Get its romanization, if it exists.
+		//NOTE: The "roman" entry is only used for the memory list, so we don't
+		//      have to check if wordData.first==-1 (fixes Burglish).
 		std::pair<int, std::string> wordData = providingHelpFor->lookupWord(myanmar);
 		int currStrDictID = wordData.first;
-		string revWord = (wordData.first!=-1) ? wordData.second : "<no entry>";
+		string revWord = (!wordData.second.empty()) ? wordData.second : "<no entry>";
 
 		//Add it to the memory list, dictionary, and current sentence.
 		providingHelpFor->typeHelpWord(revWord, myanmar, currStrDictID);
