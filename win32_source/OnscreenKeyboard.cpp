@@ -631,6 +631,7 @@ void OnscreenKeyboard::initMemory(void(*OnTitleBtnClick)(unsigned int), void(*On
 	//memoryWindow->drawString(titleFont, MEMLIST_TITLE, this->cornerSize, this->cornerSize);
 
 	//Draw some heading strings
+	this->titleFont->setColor(0x00, 0x00, 0x00);
 	memoryWindow->drawString(titleFont, L"Myanmar", this->cornerSize, keyboardOrigin.y+1);
 	memoryWindow->drawString(titleFont, L"Roman", this->getMemoryWidth()/2+5/2, keyboardOrigin.y+1);
 	this->titleFont->setColor(0xFF, 0xFF, 0xFF);

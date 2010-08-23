@@ -118,9 +118,6 @@ using std::ofstream;
 const wstring WAIT_ZAR_VERSION = L"1.7";
 
 //Menu item texts
-//const wstring POPUP_UNI = L"-----";
-//const wstring POPUP_ZG = L"-----";
-//const wstring POPUP_WIN = L"-----";
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
 const wstring POPUP_LOOKUP_EN = L"&Look Up Word";
 
@@ -144,9 +141,6 @@ const wstring WND_TITLE_LANGUAGE = L"\u1018\u102C\u101E\u102C\u1005\u1000\u102C\
 const wstring WND_TITLE_INPUT = L"Input Method";
 const wstring WND_TITLE_OUTPUT = L"Encoding";
 
-//Font conversion
-//wstring currEncStr;
-//ENCODING mostRecentEncoding = ENCODING_UNICODE;
 
 //Brushes & Pens
 HBRUSH g_WhiteBkgrd;
@@ -182,8 +176,6 @@ COLORREF cr_Black;
 HINSTANCE hInst;
 HICON mmIcon;
 HICON engIcon;
-//WordBuilder *model;
-
 
 //Useful file shorthands
 const string cfgDir = "config";
@@ -210,7 +202,6 @@ DisplayMethod *mmFontSmall;
 const Transformation*    input2Uni;
 const Transformation*    uni2Output;
 const Transformation*    uni2Disp;
-//const Transformation*    uni2ReverseLookup; //Roman
 
 //Cache our popup menu
 HMENU contextMenu;
@@ -270,7 +261,7 @@ unsigned int totalMenuItems = 0;
 
 
 //Help Window resources
-//Leave as pointers for now.
+// NOTE: These need to be pointers, or virtual function calls won't chain properly.
 PulpCoreFont *helpFntKeys;
 PulpCoreFont *helpFntFore;
 PulpCoreFont *helpFntBack;
@@ -288,7 +279,6 @@ enum { PGDOWNCOLOR_ID=0, PGUPCOLOR_ID=1, PGDOWNSEPIA_ID=2, PGUPSEPIA_ID=3 };
 HANDLE keyTrackThread;   //Handle to our thread
 DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
-//list<unsigned int> hotkeysDown; //If a wparam is in this list, it is being tracked (note: map to VirtKey? No... must be in order)
 list< pair<unsigned int, VirtKey> > hotkeysDown; //If a hotkey code (wparam) is in this list, its corresponding VKey is being tracked.
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
 
@@ -314,8 +304,6 @@ enum {
 string getMD5Hash(const std::string& fileName);
 ConfigManager config(getMD5Hash);
 
-//Configuration variables.
-//BOOL customDictWarning = FALSE;
 
 //These two will take some serious fixing later.
 wstring hkString;
@@ -3717,6 +3705,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//Will generate a WM_DESTROY message
 					delete mainWindow;
 				} else if (retVal >= IDM_TYPING_SUBMENU_START) {
+					//First, disable the Help Keyboard if it's showing.
+					if (currHelpInput!=NULL && helpKeyboard->isHelpEnabled()) {
+						toggleHelpMode(false);
+						checkAllHotkeysAndWindows();
+					}
+
 					//Switch the language, input manager, or output manager.
 					if (customMenuItemsLookup.count(retVal)==0)
 						throw std::exception("Bad menu item");
