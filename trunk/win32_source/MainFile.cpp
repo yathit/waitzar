@@ -2744,9 +2744,13 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 	//For now, we skip non-alpha keys
 	VirtKey vk = VirtKey(helpKeyboard->getLastClickedVKey());
 	if (vk.vkCode != 0) {
-		//We need to anticipate that currInput will try to strip the encoding
-		vk.considerLocale();
-		currInput->handleKeyPress(vk);
+		if (vk.vkCode==VK_BACK) {
+			currInput->handleBackspace(vk);
+		} else {
+			//We need to anticipate that currInput will try to strip the encoding
+			vk.considerLocale();
+			currInput->handleKeyPress(vk);
+		}
 		checkAllHotkeysAndWindows();
 		recalculate();
 	}

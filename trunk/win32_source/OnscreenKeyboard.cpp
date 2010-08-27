@@ -362,7 +362,7 @@ bool OnscreenKeyboard::isHelpEnabled()
 bool OnscreenKeyboard::isPressableButton(size_t btnID)
 {
 	unsigned int vkey = keyboard_vk_codes[btnID];
-	return (vkey>='A'&&vkey<='Z')||(vkey>='0'&&vkey<='9')||(vkey==VK_OEM_4||vkey==VK_OEM_5||vkey==VK_OEM_1||vkey==VK_OEM_7||vkey==VK_OEM_COMMA);
+	return (vkey>='A'&&vkey<='Z')||(vkey>='0'&&vkey<='9')||(vkey==VK_OEM_4||vkey==VK_OEM_5||vkey==VK_OEM_1||vkey==VK_OEM_7||vkey==VK_OEM_COMMA||vkey==VK_OEM_3||vkey==VK_BACK);
 }
 
 
