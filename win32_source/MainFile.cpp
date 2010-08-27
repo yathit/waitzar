@@ -2741,9 +2741,12 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 	helpKeyboard->clickButton(btnID);
 
 	//Feed this virtual key through the current keyboard
-	if (helpKeyboard->getLastClickedVKey().vkCode != 0) {
-		//For now, we skip non-alpha keys
-		currInput->handleKeyPress(helpKeyboard->getLastClickedVKey());
+	//For now, we skip non-alpha keys
+	VirtKey vk = VirtKey(helpKeyboard->getLastClickedVKey());
+	if (vk.vkCode != 0) {
+		//We need to anticipate that currInput will try to strip the encoding
+		vk.considerLocale();
+		currInput->handleKeyPress(vk);
 		checkAllHotkeysAndWindows();
 		recalculate();
 	}
