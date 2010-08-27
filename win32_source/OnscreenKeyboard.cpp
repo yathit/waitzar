@@ -330,6 +330,10 @@ void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin
 	//Set flag
 	helpIsOn = on;
 
+	//Un-shift lock?
+	if (on)
+		shiftLock = false;
+
 	//Show the child windows
 	if (!skipHelpWin) {
 		//Re-paint all keys?
@@ -362,7 +366,7 @@ bool OnscreenKeyboard::isHelpEnabled()
 bool OnscreenKeyboard::isPressableButton(size_t btnID)
 {
 	unsigned int vkey = keyboard_vk_codes[btnID];
-	return (vkey>='A'&&vkey<='Z')||(vkey>='0'&&vkey<='9')||(vkey==VK_OEM_4||vkey==VK_OEM_5||vkey==VK_OEM_1||vkey==VK_OEM_7||vkey==VK_OEM_COMMA||vkey==VK_OEM_3||vkey==VK_BACK);
+	return (vkey>='A'&&vkey<='Z')||(vkey>='0'&&vkey<='9')||(vkey==VK_OEM_4||vkey==VK_OEM_5||vkey==VK_OEM_1||vkey==VK_OEM_7||vkey==VK_OEM_COMMA||vkey==VK_OEM_3||vkey==VK_BACK||vkey==VK_LSHIFT||vkey==VK_RSHIFT);
 }
 
 
@@ -476,6 +480,26 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 
 	//Set up
 	lastClickedButton = VirtKey(keyboard_vk_codes[btnID], this->isShifted(), false, false);
+
+	//Special case: handle shift (toggle)
+	if (lastClickedButton.vkCode==VK_LSHIFT || lastClickedButton.vkCode==VK_RSHIFT) {
+		shiftLock = !shiftLock;
+
+		//Repaint
+		for (int i=0; i<keys_total; i++) {
+			drawKey(keys[i], i, keys[i].isHighlighted());
+		}
+		helpWindow->repaintWindow();
+	} else if (shiftLock) {
+		//Any clicked button will un-shift the keyboard
+		shiftLock = false;
+
+		//Repaint
+		for (int i=0; i<keys_total; i++) {
+			drawKey(keys[i], i, keys[i].isHighlighted());
+		}
+		helpWindow->repaintWindow();
+	}
 
 	//Set this button to "null" (roughly translated to "key '\0'") if we shouldn't type this key.
 	//    It kind of breaks our encapsulation a bit, but this is how we do it.
@@ -645,7 +669,8 @@ void OnscreenKeyboard::initMemory(void(*OnTitleBtnClick)(unsigned int), void(*On
  */
 bool OnscreenKeyboard::isShifted()
 {
-	return keys[getKeyID(VK_LSHIFT, '\0', true)].isHighlighted() || keys[getKeyID(VK_RSHIFT, '\0', true)].isHighlighted();
+	//NOTE: We can't consider isHighlighted(); we can ONLY count this as shifted if the key is PRESSED
+	return shiftLock || keys[getKeyID(VK_LSHIFT, '\0', true)].kbdIsPressed || keys[getKeyID(VK_RSHIFT, '\0', true)].kbdIsPressed;
 }
 
 
@@ -656,7 +681,7 @@ void OnscreenKeyboard::drawKey(const KbdKey& currKey, int keyID, bool isPressed)
 	//Draw the background
 	int pal = currKey.letterPalette;
 	PulpCoreImage *keyImg = buttonsRegular[pal];
-	if (isPressed)
+	if (isPressed || (shiftLock && (currKey.letterPalette==BUTTON_SHIFT_L || currKey.letterPalette==BUTTON_SHIFT_R)) )
 		keyImg = buttonsShifted[pal];
 	helpWindow->drawImage(keyImg, keyboardOrigin.x+currKey.location.x, keyboardOrigin.y+currKey.location.y);
 
@@ -703,6 +728,13 @@ void OnscreenKeyboard::drawKey(const KbdKey& currKey, int keyID, bool isPressed)
 
 
 
+bool OnscreenKeyboard::isShiftLocked()
+{
+	return shiftLock;
+}
+
+
+
 /**
  * Returns the vkcode if this is an actual key-code that we track
  *  hotkeyCode must be either a letter, or a hotkey code (hotkeys.h)
@@ -723,8 +755,12 @@ bool OnscreenKeyboard::highlightKey(unsigned int vkCode, char alphanum, bool mod
 	keys[id].kbdIsPressed = highlightON;
 
 	//If there's no change, don't bother redrawing.
-	if (wasHighlighted == keys[id].isHighlighted())
+	if (wasHighlighted == keys[id].isHighlighted() && !shiftLock && keys[id].letterPalette!=BUTTON_SHIFT_L && keys[id].letterPalette!=BUTTON_SHIFT_R)
 		return true;
+
+	//Update the status of our shift lock (all keys just turn it off)
+	if (shiftLock)
+		shiftLock = false;
 
 	//Also don't draw if hidden or minimized; track anyway.
 	if (!helpWindow->isVisible() || helpWinMinimized)
