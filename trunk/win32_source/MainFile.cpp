@@ -2746,7 +2746,7 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 	if (vk.vkCode != 0) {
 		if (vk.vkCode==VK_BACK) {
 			currInput->handleBackspace(vk);
-		} else {
+		} else if (vk.vkCode!=VK_LSHIFT && vk.vkCode!=VK_RSHIFT) { //Skip Shift, but still update the keyboard
 			//We need to anticipate that currInput will try to strip the encoding
 			vk.considerLocale();
 			currInput->handleKeyPress(vk);
@@ -3456,6 +3456,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Turn this hotkey into a virtual key, to make things simpler.
 			VirtKey vk(lParam);
+
+			//NOTE: We have to mangle this a bit (with shift) if the virtual 
+			//      keyboard is showing and Shift has been pressed.
+			if (helpKeyboard->isHelpEnabled() && helpKeyboard->isShiftLocked()) {
+				vk = VirtKey(vk.vkCode, true, vk.modAlt, vk.modCtrl);
+			}
 
 
 			//First, handle all "system" or "meta" level commands, like switching the language,

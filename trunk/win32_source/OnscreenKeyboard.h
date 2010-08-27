@@ -176,6 +176,8 @@ public:
 	void turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin);
 	bool isHelpEnabled();
 
+	bool isShiftLocked();
+
 	VirtKey getLastClickedVKey();
 
 	int getWidth() const;
@@ -252,6 +254,9 @@ private:
 	bool helpIsOn;
 	bool helpWinMinimized;
 	bool memWinMinimized;
+
+	//Virtual keyboard click to lock via Shift. 
+	bool shiftLock;
 
 	//Are we in a shifted state?
 	bool isShifted();
