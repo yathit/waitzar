@@ -71,6 +71,7 @@ enum {
 
 
 const std::wstring HELPWND_TITLE = L"WaitZar Word Finder";
+const std::wstring HELPWND_ENC_TITLE = L"myWin 2.2";
 const std::wstring MEMLIST_TITLE = L"Memory List";
 
 

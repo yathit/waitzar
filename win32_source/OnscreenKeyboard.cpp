@@ -152,6 +152,14 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 	PulpCoreImage *headerButton = makeButton(title_btn_size*2 + title_btn_margin*3 + titleFont->getStringWidth(HELPWND_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	PulpCoreImage *bodyButton = makeButton(this->width, this->height-headerButton->getHeight()+this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
 	helpWindow->drawImage(headerButton, 0, 0);
+
+	//Add another header button for the encoding
+	size_t boxMargin = 4;
+	PulpCoreImage *headerButton2 = makeButton(boxMargin*2 + titleFont->getStringWidth(HELPWND_ENC_TITLE, NULL)+2*this->cornerSize, titleFont->getHeight(NULL)-2+2*this->cornerSize, COLOR_KEYBOARD_BKGRD, COLOR_KEYBOARD_FOREGRD, COLOR_KEYBOARD_BORDER);
+	size_t headerStart = helpWindow->getWidth()-headerButton2->getWidth();
+	helpWindow->drawImage(headerButton2, headerStart, 0);
+
+	//Draw the body
 	helpWindow->drawImage(bodyButton, 0, headerButton->getHeight()-this->cornerSize);
 
 	//Now we know where our keyboard begins
@@ -163,13 +171,26 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 	bkgrdImg->fillRectangle(0, headerButton->getHeight()-this->cornerSize, 2, this->cornerSize, COLOR_KEYBOARD_BORDER);
 	bkgrdImg->fillRectangle(headerButton->getWidth()-2, headerButton->getHeight()-this->cornerSize, 2, 2, COLOR_KEYBOARD_BORDER);
 
+	//Second messy intersection
+	bkgrdImg->fillRectangle(headerStart+2, headerButton2->getHeight()-this->cornerSize, headerButton2->getWidth()-4, this->cornerSize, COLOR_KEYBOARD_FOREGRD);
+	bkgrdImg->fillRectangle(headerStart+headerButton2->getWidth()-2, headerButton2->getHeight()-this->cornerSize, 2, this->cornerSize, COLOR_KEYBOARD_BORDER);
+	bkgrdImg->fillRectangle(headerStart, headerButton2->getHeight()-this->cornerSize, 2, 2, COLOR_KEYBOARD_BORDER);
+
 	//Delete their un-necessary resources
 	delete headerButton;
+	delete headerButton2;
 	delete bodyButton;
+
+	//Draw a rectangle under the string
+	bkgrdImg->fillRectangle(headerStart+this->cornerSize, this->cornerSize+3-boxMargin, titleFont->getStringWidth(HELPWND_ENC_TITLE, NULL)+2*boxMargin, titleFont->getHeight(NULL)-8+2*boxMargin, 0xFF777777);
+	bkgrdImg->fillRectangle(1+headerStart+this->cornerSize, 1+this->cornerSize+3-boxMargin, titleFont->getStringWidth(HELPWND_ENC_TITLE, NULL)+2*boxMargin-2, titleFont->getHeight(NULL)-8+2*boxMargin-2, 0xFFA0A0A0);
 
 	//Now draw the string
 	this->titleFont->setColor(0x00, 0x00, 0x00);
 	helpWindow->drawString(titleFont, HELPWND_TITLE, this->cornerSize + title_btn_size*2 + title_btn_margin*3, this->cornerSize);
+
+	//Second string
+	helpWindow->drawString(titleFont, HELPWND_ENC_TITLE, headerStart+this->cornerSize+boxMargin, this->cornerSize);
 	this->titleFont->setColor(0xFF, 0xFF, 0xFF);
 
 	//Layout and register our title bar buttons.
