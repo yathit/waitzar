@@ -19,22 +19,15 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	this->titleFont = titleFont;
 	this->keysFont = keysFont;
 	this->keysFont->setColor(((COLOR_LETTERS_LABEL&0xFF0000)>>16), ((COLOR_LETTERS_LABEL&0xFF00)>>8), (COLOR_LETTERS_LABEL&0xFF));
-	//this->keysFont->tintSelf(COLOR_LETTERS_LABEL);
 	this->foreFont = foreFont;
 	this->foreFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
-	//this->foreFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->shiftFont = shiftFont;
 	this->shiftFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
-	//this->shiftFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->memoryFont = memoryFont;
 	this->memoryFont->setColor(((COLOR_LETTERS_REGULAR&0xFF0000)>>16), ((COLOR_LETTERS_REGULAR&0xFF00)>>8), (COLOR_LETTERS_REGULAR&0xFF));
-	//this->memoryFont->tintSelf(COLOR_LETTERS_REGULAR);
 	this->closeImg = closeImg;
 	this->cornerImg[0] = cornerImg;
 	this->cornerSize = cornerImg->getWidth();
-//	for (int i=0; i<61; i++) 
-//		shiftedKeys[i] = false;
-
 	this->setMode(MODE_HELP);
 
 	this->helpWinMinimized = false;
@@ -45,10 +38,6 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	this->minmaxMemBtnHighlight = false;
 	this->helpIsOn = false;
 	this->bkgrdImg = NULL;
-
-	//Create resources
-	//blueBkgrdBrush = CreateSolidBrush(RGB(((COLOR_KEY_BKGRD&0xFF0000)>>16), ((COLOR_KEY_BKGRD&0xFF00)>>8), (COLOR_KEY_BKGRD&0xFF)));
-	//black2PxPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
 
 	//Determine the necessary size of our background image
 	//TODO: Again, fix the NULLs
@@ -487,21 +476,14 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 
 	//Set up
 	lastClickedButton = VirtKey(keyboard_vk_codes[btnID], this->isShifted(), false, false);
-	//char alphanum = (vkCode>='A'&&vkCode<='Z')?((vkCode-'A')+'a'):'\0';
-	//alphanum = (vkCode>='0'&&vkCode<='9')?vkCode:alphanum;
-	//bool modShift = this->isShifted();
 
-	//Save ---but only if we can type it!
+	//Set this button to "null" (roughly translated to "key '\0'") if we shouldn't type this key.
+	//    It kind of breaks our encapsulation a bit, but this is how we do it.
+	//       1) Store the result in a string in OnscreenKeyboard
+	//       2) Have the main loop call "requestToType(helpKeyboard->getLastClickedVKey()" on the current input method
+	//       3) Finally, handle all edge cases as they should be.
 	if (!isPressableButton(btnID))
 		lastClickedButton = VirtKey(0, '\0', false, false, false);
-
-	//Type
-	//TO-DO: We need to hook this up to the main program loop's typing code. 
-	//       It kind of breaks our encapsulation a bit, but we can still handle it, I think.
-	//       Something like: store the result in a string in OnscreenKeyboard, then have
-	//       the main loop call "requestToType(helpKeyboard->getFragment()" on the current input
-	//       method, then handle all edge cases as they should be.
-	//typeLetter(vkCode, alphanum, modShift);
 }
 
 
