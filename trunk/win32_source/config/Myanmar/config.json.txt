@@ -6,7 +6,7 @@
   
   # What output encoding, display method, and input method are used by default? 
   "default-output-encoding" : "unicode",
-  "default-input-method" : "waitzar",
+  "default-input-method" : "ayar",
   "default-display-method" : "zawgyibmp",
   "default-display-method-small" : "zawgyibmpsmall",
   

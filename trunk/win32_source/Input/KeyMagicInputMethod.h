@@ -140,6 +140,17 @@ public:
 		dotStartID = dotStartID1;
 	}
 
+	//Copy constructor
+	/*Candidate(const Candidate& c2) : replacementRules(c2.replacementRules) {
+		matches = c2.matches;
+		matchStack = c2.matchStack;
+		switchesToOff = c2.switchesToOff;
+		dotStartID = c2.dotStartID;
+		dotEndID = c2.dotEndID;
+		currRootDot = c2.currRootDot;
+	}*/
+
+
 	//For vector contexts
 	Candidate operator=(const Candidate& c2) {
 		matches = c2.matches;
@@ -270,7 +281,7 @@ private:
 	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, std::vector<unsigned int>& switchesUsed, size_t iStart, size_t iEnd, bool condenseStrings);
 	Rule compressToSingleStringRule(const std::vector<Rule>& rules);
 	std::pair<Candidate, bool> getCandidateMatch(RuleSet& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
-	std::wstring applyMatch(const Candidate& result, bool& resetLoop, bool& breakLoop);
+	std::wstring applyMatch(const Candidate& result, bool& breakLoop);
 
 
 
