@@ -1113,7 +1113,6 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 			vector<Rule> temp;
 			return pair<Candidate, bool>(Candidate(temp), false);
 		}
-
 	}
 
 	//Skip entries that obviously will never match?
@@ -1290,12 +1289,12 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 }
 
 
-//NOTE: resetLoop and breakLoop are changed by this function.
+//NOTE: breakLoop is changed by this function.
 //NOTE: breakLoop takes precedence
-wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop, bool& breakLoop)
+wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop)
 {
 	//Reset flags
-	resetLoop = false;
+//	resetLoop = false;
 	breakLoop = false;
 
 	//Turn "off" all switches that were matched
@@ -1368,7 +1367,7 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& resetLoop
 	wstring newStr = replacementStr.str();
 
 	//Reset for the next rule.
-	resetLoop = true;
+	//resetLoop = true;
 
 	return newStr;
 }
@@ -1449,31 +1448,60 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 	//Volatile version of our input
 	wstring input = origInput;
 
-	//First, turn all switches off ///WHY?
-	/*for (size_t i=0; i<switches.size(); i++)
-		switches[i] = false;*/
+
+	//First, count the total number of switches which are on (used later)
+	size_t totalSwitchesOn = 0;
+	for (size_t i=0; i<switches.size(); i++) {
+		totalSwitchesOn += switches[i] ? 1 : 0;
+	}
 
 	//For each rule, generate and match a series of candidates
 	//  As we do this, move the "dot" from position 0 to position len(input)
+	vector<Rule> nullVec; //Ugh
+	Candidate finalResult(nullVec);
+	bool finalResultPass = false;
+	//Candidate nullCand(nullVec); //Double-ugh
 	bool matchedOneVirtualKey = false;
-	bool resetLoop = false;
+	//bool resetLoop = false;
 	bool breakLoop = false;
 	unsigned int totalMatchesOverall = 0;
-	for (int rpmID=0; rpmID<(int)replacements.size(); rpmID++) {
-		//Somewhat of a hack...
-		if (resetLoop) {
-			rpmID = 0;
-			resetLoop = false;
+
+	while (!breakLoop) {
+		//pair<Candidate, bool> finalResult(nullCand, false); //Again...
+		//NOTE: Calling replacements.size() will kill whatever's in finalResult.... we've def. got a pointer error somewhere.
+		for (int rpmID=0; rpmID<(int)replacements.size(); rpmID++) {
+			//Somewhat of a hack...
+			//if (resetLoop) {
+			//	rpmID = 0;
+			//	resetLoop = false;
+			//}
+
+			//Match this rule
+			pair<Candidate, bool> result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
+
+			//Did we match anything?
+			if (result.second) {
+				//Log match rule
+				wstring logLine = L"   " + (!replacements[rpmID].debugRuleText.empty() ? replacements[rpmID].debugRuleText : L"<Empty Rule Text>");
+				finalResultPass = true;
+
+				//Did we match all switches?
+				if (totalSwitchesOn == replacements[rpmID].requiredSwitches.size()) {
+					//Total match
+					KeyMagicInputMethod::writeLogLine(logLine);
+					finalResult = result.first;
+					break; //Break and deal with the current rule.
+				} else if (!finalResultPass){
+					//First partial match
+					finalResult = result.first;
+					KeyMagicInputMethod::writeLogLine(logLine + L"  (looking for a better match...)");
+				}
+			}
 		}
 
-		//Match this rule
-		pair<Candidate, bool> result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
 
-		//Did we match anything?
-		if (result.second) {
-			//Log match rule
-			KeyMagicInputMethod::writeLogLine(L"   " + (!replacements[rpmID].debugRuleText.empty() ? replacements[rpmID].debugRuleText : L"<Empty Rule Text>"));
-
+		//Deal with our match (if any)
+		if (finalResultPass) {
 			//Before we apply the rule, check if we've looped "forever"
 			if (++totalMatchesOverall >= std::max<size_t>(50, replacements.size())) {
 				//To do: We might also consider logging this, later.
@@ -1481,17 +1509,19 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			}
 
 			//Apply, update input.
-			wstring part1 = input.substr(0, result.first.dotStartID);
-			wstring part2 = applyMatch(result.first, resetLoop, breakLoop);
-			wstring part3 = input.substr(result.first.dotEndID, input.size());
+			wstring part1 = input.substr(0, finalResult.dotStartID);
+			wstring part2 = applyMatch(finalResult, breakLoop); //Update "break loop"; we'll break if it's set to "true".
+			wstring part3 = input.substr(finalResult.dotEndID, input.size());
 			input = part1 + part2 + part3;
 			KeyMagicInputMethod::writeLogLine(L"      ==>" + input);
 
+			//Log
 			if (breakLoop)
-				break;
+				KeyMagicInputMethod::writeLogLine(L"STOP: Single-letter ascii");
 		}
+
+		KeyMagicInputMethod::writeLogLine();
 	}
-	KeyMagicInputMethod::writeLogLine();
 
 	return input;
 }
