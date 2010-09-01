@@ -58,6 +58,49 @@ struct RuleSet {
 	std::vector<Rule> replace;
 	std::vector<unsigned int> requiredSwitches;
 	std::wstring debugRuleText;
+	unsigned int tempOriginalSortID;
+
+	//Helpers
+	size_t getNumVkeys() const {
+		size_t total = 0;
+		for (std::vector<Rule>::const_iterator it=match.begin(); it!=match.end(); it++) {
+			if (it->type==KMRT_KEYCOMBINATION) {
+				total++;
+				if ((it->val&KM_VKMOD_ALT)!=0)
+					total++;
+				if ((it->val&KM_VKMOD_CTRL)!=0)
+					total++;
+				if ((it->val&KM_VKMOD_SHIFT)!=0)
+					total++;
+				if ((it->val&KM_VKMOD_CAPS)!=0)
+					total++;
+			}
+		}
+		return total;
+	}
+
+	size_t getMatchStrExpectedLength(std::wstring(*GetVarString)(const std::vector< std::vector<Rule> >&, size_t), const std::vector< std::vector<Rule> >& variables) const {
+		int estRuleSize = 0;
+		for (size_t i=0; i<match.size(); i++) {
+			//String: just add the string length; all escape 
+			// sequences, etc., have already been folded in.
+			if (match[i].type==KMRT_STRING)
+				estRuleSize += match[i].str.length();
+
+			//"Wild card" or "Vararray", or "Vararray Special" 
+			// will only ever match one character.
+			else if (match[i].type==KMRT_WILDCARD || match[i].type==KMRT_VARARRAY || match[i].type==KMRT_VARARRAY_SPECIAL)
+				estRuleSize++;
+
+			//"Key combination" has already been accounted for.
+			// "Variable" only counts (for now) if it's a string
+			//TODO: Extend and make fully recursive
+			else if (match[i].type==KMRT_VARIABLE)
+				estRuleSize += GetVarString(variables, match[i].id).size();
+				
+		}
+		return estRuleSize;
+	}
 };
 
 
@@ -274,12 +317,14 @@ public:
 	//Additional useful stuff
 	const std::wstring& getOption(const std::wstring& optName);
 	std::vector< std::pair<std::wstring, std::wstring> > convertToRulePairs();
+	static std::wstring getVariableString(const std::vector< std::vector<Rule> >& variables, size_t variableID);
 
 	//Overrides of LetterInputMethod
 	std::pair<std::wstring, bool> appendTypedLetter(const std::wstring& prevStr, VirtKey& vkey);
 	virtual void handleBackspace(VirtKey& vkey);
 	virtual void handleStop(bool isFull, VirtKey& vkey);
 	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
+
 
 private:
 	//Trace?
@@ -297,6 +342,7 @@ private:
 	//Data
 	std::vector<bool> switches;
 	std::vector< std::vector<Rule> > variables;
+	static const std::vector< std::vector<Rule> >* lastConsideredVariables;
 	std::vector< RuleSet > replacements;
 	std::map<std::wstring, std::wstring> options; //Loaded from the first comment.
 
@@ -305,9 +351,13 @@ private:
 	Rule parseRule(const std::wstring& ruleStr);
 	void addSingleRule(const std::wstring& fullRuleText, const std::vector<Rule>& rules, std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, size_t rhsStart, bool isVariable);
 	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, std::vector<unsigned int>& switchesUsed, size_t iStart, size_t iEnd, bool condenseStrings);
-	Rule compressToSingleStringRule(const std::vector<Rule>& rules);
+	static Rule compressToSingleStringRule(const std::vector<Rule>& rules, const std::vector< std::vector<Rule> >& variables);
 	std::pair<Candidate, bool> getCandidateMatch(RuleSet& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
 	std::wstring applyMatch(const Candidate& result, bool& breakLoop);
+
+	//Again
+	static bool ReplacementCompare(const RuleSet& first, const RuleSet& second);
+
 
 
 

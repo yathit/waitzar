@@ -62,8 +62,8 @@ vector< pair<wstring, wstring> > KeyMagicInputMethod::convertToRulePairs()
 
 	//Add a rule for each pair; enforce that they're string/string pairs.
 	for (size_t i=0; i<replacements.size(); i++) {
-		Rule lhs = compressToSingleStringRule(replacements[i].match);
-		Rule rhs = compressToSingleStringRule(replacements[i].replace);
+		Rule lhs = compressToSingleStringRule(replacements[i].match, variables);
+		Rule rhs = compressToSingleStringRule(replacements[i].replace, variables);
 		if (lhs.type!=KMRT_STRING)
 			throw std::exception("Error: LHS is not of type \"string\".");
 		if (rhs.type!=KMRT_STRING)
@@ -674,7 +674,58 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 		//Save previous line; it sometimes helps with error messages.
 		prevLine = line;
 	}
+
+
+	//Before sorting, add one final discriminator, to keep rules in order
+	for (size_t i=0; i<replacements.size(); i++) {
+		replacements[i].tempOriginalSortID = i;
+	}
+
+	//NOTE: This step is necessary, but means we can't thread multiple calls to this function:
+	KeyMagicInputMethod::lastConsideredVariables = &variables;
+
+	//Final step: sort the replacements list according to KeyMagic's rules of precedence
+	std::sort(replacements.begin(), replacements.end(), KeyMagicInputMethod::ReplacementCompare);
 }
+
+
+const std::vector< std::vector<Rule> >* KeyMagicInputMethod::lastConsideredVariables = NULL;
+
+
+//Returns true if first < second
+bool KeyMagicInputMethod::ReplacementCompare(const RuleSet& first, const RuleSet& second)
+{
+	//First comparison: does one have more virtual keys than another?
+	size_t sum1 = first.getNumVkeys();
+	size_t sum2 = second.getNumVkeys();
+	if (sum1!=sum2)
+		return sum1<sum2;
+
+	//Second comparison: are we matching strings of different lengths?
+	//NOTE: Takes into account the keystroke length, too, although it shouldn't matter.
+	sum1 += first.getMatchStrExpectedLength(KeyMagicInputMethod::getVariableString, *KeyMagicInputMethod::lastConsideredVariables);
+	sum2 += second.getMatchStrExpectedLength(KeyMagicInputMethod::getVariableString, *KeyMagicInputMethod::lastConsideredVariables);
+	if (sum1!=sum2)
+		return sum1<sum2;
+
+	//Third comparison: does one rule have more/less switches than the other?
+	sum1 = first.requiredSwitches.size();
+	sum2 = second.requiredSwitches.size();
+	if (sum1!=sum2)
+		return sum1<sum2;
+	
+	//Final comparison: added by Seth
+	// To ensure that rules remain in the same order, we MUST return a comparison.
+	// Else, the sort algorithm might re-order them.
+	sum1 = first.tempOriginalSortID;
+	sum2 = second.tempOriginalSortID;
+	if (sum1!=sum2)
+		return sum1<sum2;
+
+	//Else, error
+	throw std::exception("Error! ReplacementCompare cannot determine a sorting order for some rules.");
+}
+
 
 
 int KeyMagicInputMethod::hexVal(wchar_t letter)
@@ -948,8 +999,17 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 
 
 
+wstring KeyMagicInputMethod::getVariableString(const vector< vector<Rule> >& variables, size_t variableID)
+{
+	if (variableID < variables.size())
+		return compressToSingleStringRule(variables[variableID], variables).str;
+	return L"";
+}
+
+
+
 //This function will likely be replaced by something more powerful later
-Rule KeyMagicInputMethod::compressToSingleStringRule(const std::vector<Rule>& rules)
+Rule KeyMagicInputMethod::compressToSingleStringRule(const std::vector<Rule>& rules, const vector< vector<Rule> >& variables)
 {
 	//Init
 	Rule res(KMRT_STRING, L"", 0);
@@ -1012,7 +1072,7 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 				if (currRule.type==KMRT_VARARRAY_SPECIAL || currRule.type==KMRT_VARARRAY_BACKREF) {
 					//For now, we need to treat these as arrays of strings. To avoid crashing at runtime, we
 					//   attempt to conver them here. (We let the result fizzle)
-					compressToSingleStringRule(variables[currRule.id]);
+					compressToSingleStringRule(variables[currRule.id], variables);
 				}
 				break;
 
@@ -1184,7 +1244,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 					case KMRT_VARARRAY:
 					{
 						//TODO: Right now, this fails for anything except a string array (and anything simple)
-						Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id]);
+						Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id], variables);
 						wstring str = toCheck.str;
 						if (curr->getCurrRule().val>0 && curr->getCurrRule().val<=(int)str.length() && (str[curr->getCurrRule().val-1] == input[dot]))
 							curr->advance(input[dot], -1);
@@ -1199,7 +1259,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 							allow = false;
 						else {
 							//TODO: Right now, this fails silently for anything except strings and simple variables.
-							Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id]);
+							Rule toCheck  = compressToSingleStringRule(variables[curr->getCurrRule().id], variables);
 							int foundID = -1;
 							for (size_t i=0; i<toCheck.str.length(); i++) {
 								//Does it match?
@@ -1313,7 +1373,7 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop
 			case KMRT_VARIABLE:
 			{
 				//To-do: Right now, this only applies for simple & semi-complex rules.
-				Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
+				Rule toAdd  = compressToSingleStringRule(variables[repRule->id], variables);
 				replacementStr <<toAdd.str;
 				break;
 			}
@@ -1326,7 +1386,7 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop
 			//Vararray: just add that character
 			case KMRT_VARARRAY:
 			{
-				Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
+				Rule toAdd  = compressToSingleStringRule(variables[repRule->id], variables);
 				replacementStr <<toAdd.str[repRule->val-1];
 				break;
 			}
@@ -1339,7 +1399,7 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop
 			//Vararray backref: Requires a little more indexing
 			case KMRT_VARARRAY_BACKREF:
 			{
-				Rule toAdd  = compressToSingleStringRule(variables[repRule->id]);
+				Rule toAdd  = compressToSingleStringRule(variables[repRule->id], variables);
 				replacementStr <<toAdd.str[result.getMatchID(repRule->val-1)];
  				break;
 			}
@@ -1448,10 +1508,10 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 
 
 	//First, count the total number of switches which are on (used later)
-	size_t totalSwitchesOn = 0;
+	/*size_t totalSwitchesOn = 0;
 	for (size_t i=0; i<switches.size(); i++) {
 		totalSwitchesOn += switches[i] ? 1 : 0;
-	}
+	}*/
 
 	//For each rule, generate and match a series of candidates
 	//  As we do this, move the "dot" from position 0 to position len(input)
@@ -1463,7 +1523,8 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 	while (!breakLoop) {
 		pair<Candidate, bool> finalResult = pair<Candidate, bool>(Candidate(), false);
 
-		for (int rpmID=0; rpmID<(int)replacements.size(); rpmID++) {
+		//Iterate backwards
+		for (vector<RuleSet>::reverse_iterator it = replacements.rbegin();it!=replacements.rend(); it++) {
 			//Somewhat of a hack...
 			//if (resetLoop) {
 			//	rpmID = 0;
@@ -1471,24 +1532,24 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			//}
 
 			//Match this rule
-			pair<Candidate, bool> result = getCandidateMatch(replacements[rpmID], input, vkeyCode, matchedOneVirtualKey);
+			finalResult = getCandidateMatch(*it, input, vkeyCode, matchedOneVirtualKey);
 
 			//Did we match anything?
-			if (result.second) {
+			if (finalResult.second) {
 				//Log match rule
-				wstring logLine = L"   " + (!replacements[rpmID].debugRuleText.empty() ? replacements[rpmID].debugRuleText : L"<Empty Rule Text>");
+				wstring logLine = L"   " + (!it->debugRuleText.empty() ? it->debugRuleText : L"<Empty Rule Text>");
 
 				//Did we match all switches?
-				if (totalSwitchesOn == replacements[rpmID].requiredSwitches.size()) {
-					//Total match
-					KeyMagicInputMethod::writeLogLine(logLine);
-					finalResult = result;
-					break; //Break and deal with the current rule.
-				} else if (!finalResult.second){
+				//if (totalSwitchesOn == replacements[rpmID].requiredSwitches.size()) {
+				//Total match
+				KeyMagicInputMethod::writeLogLine(logLine);
+				//finalResult = result;
+				break; //Break and deal with the current rule.
+				//} else if (!finalResult.second){
 					//First partial match
-					finalResult = result;
-					KeyMagicInputMethod::writeLogLine(logLine + L"  (looking for a better match...)");
-				}
+				//	finalResult = result;
+				//	KeyMagicInputMethod::writeLogLine(logLine + L"  (looking for a better match...)");
+				//}
 			}
 		}
 
