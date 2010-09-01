@@ -353,7 +353,7 @@ private:
 	std::vector<Rule> createRuleVector(const std::vector<Rule>& rules, const std::map< std::wstring, unsigned int>& varLookup, std::map< std::wstring, unsigned int>& switchLookup, std::vector<unsigned int>& switchesUsed, size_t iStart, size_t iEnd, bool condenseStrings);
 	static Rule compressToSingleStringRule(const std::vector<Rule>& rules, const std::vector< std::vector<Rule> >& variables);
 	std::pair<Candidate, bool> getCandidateMatch(RuleSet& rule, const std::wstring& input, unsigned int vkeyCode, bool& matchedOneVirtualKey);
-	std::wstring applyMatch(const Candidate& result, bool& breakLoop);
+	std::wstring applyMatch(const Candidate& result, bool& breakLoop, std::vector<int>& switchesToOn);
 
 	//Again
 	static bool ReplacementCompare(const RuleSet& first, const RuleSet& second);

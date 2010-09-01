@@ -1226,9 +1226,13 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 			//"Moving the dot" is allowed under different circumstances, depending on the type of rule we're dealing with.
 			if (allow) {
 				switch(curr->getCurrRule().type) {
-					//Wildcard: always move
+					//Wildcard: ALMOST always move
+					//"\x{21}-\x{7d}\x{ff}-\x{ffff}"
 					case KMRT_WILDCARD:
-						curr->advance(input[dot], -1);
+						if (((input[dot]>=0x21)&&(input[dot]<=0x7D)) || ((input[dot]>=0xFF)&&(input[dot]<=L'\uFFFF')))
+							curr->advance(input[dot], -1);
+						else
+							allow = false;
 						break;
 
 					//String: only if the current char matches
@@ -1348,7 +1352,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 
 //NOTE: breakLoop is changed by this function.
 //NOTE: breakLoop takes precedence
-wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop)
+wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop, vector<int>& switchesToOn)
 {
 	//Reset flags
 //	resetLoop = false;
@@ -1380,7 +1384,9 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop
 
 			//Turn switches back on.
 			case KMRT_SWITCH:
-				switches[repRule->id] = true;
+				//Later
+				switchesToOn.push_back(repRule->id);
+				//switches[repRule->id] = true;
 				break;
 
 			//Vararray: just add that character
@@ -1519,6 +1525,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 	bool matchedOneVirtualKey = false;
 	bool breakLoop = false;
 	unsigned int totalMatchesOverall = 0;
+	vector<int> switchesToOn;
 
 	while (!breakLoop) {
 		pair<Candidate, bool> finalResult = pair<Candidate, bool>(Candidate(), false);
@@ -1564,7 +1571,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 
 			//Apply, update input.
 			wstring part1 = input.substr(0, finalResult.first.dotStartID);
-			wstring part2 = applyMatch(finalResult.first, breakLoop); //Update "break loop"; we'll break if it's set to "true".
+			wstring part2 = applyMatch(finalResult.first, breakLoop, switchesToOn); //Update "break loop"; we'll break if it's set to "true".
 			wstring part3 = input.substr(finalResult.first.dotEndID, input.size());
 			input = part1 + part2 + part3;
 			KeyMagicInputMethod::writeLogLine(L"      ==>" + input);
@@ -1578,6 +1585,11 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			//Not a single match; done. 
 			break;
 		}		
+	}
+
+	//Finally, change switches
+	for (size_t i=0; i<switchesToOn.size(); i++) {
+		switches[switchesToOn[i]] = true;
 	}
 
 	return input;
