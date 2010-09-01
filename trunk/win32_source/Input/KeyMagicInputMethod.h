@@ -74,20 +74,33 @@ struct Group {
 
 //A rule being matched and any relevant data (like the dot)
 struct Matcher {
-	std::vector<Rule>& rulestream; //Can't make this const or it won't let itself be copied easily.
+private:
+	//NOTE: This is a pointer to constant data. 
+	//      The pointer itself cannot be made constant, because that wouuld require us to
+	//      write a custom operator= to deal with this (assignment is needed by the vector class), 
+	//      and would most likely require a const-cast-away. So, we just allow the pointer to be 
+	//      re-assigned, which isn't a problem, since this used to be a reference anyway.
+	const std::vector<Rule>* rulestream; 
+
 	int dot; //0 means "before the first rule"
 	int strDot; //Special dot for the string.
-	Matcher(std::vector<Rule>& rules) : rulestream(rules), dot(0), strDot(0) {}
 
-	Matcher operator=(const Matcher& m2) {
+public:
+	//Constructor
+	Matcher(const std::vector<Rule>* const rules = NULL) : rulestream(rules), dot(0), strDot(0) {}
+
+	/*Matcher operator=(const Matcher& m2) {
 		rulestream = m2.rulestream;
 		dot = m2.dot;
 		strDot = m2.strDot;
 		return *this;
-	}
+	}*/
 
 	void moveDot() {
-		if (rulestream[dot].type==KMRT_STRING && strDot<(int)rulestream[dot].str.length()-1)
+		if (rulestream==NULL)
+			return;
+
+		if ((*rulestream)[dot].type==KMRT_STRING && strDot<(int)(*rulestream)[dot].str.length()-1)
 			strDot++;
 		else {
 			dot++;
@@ -97,8 +110,14 @@ struct Matcher {
 	int getDot() {
 		return dot;
 	}
+	int getStrDot() {
+		return strDot;
+	}
 	bool isDone() {
-		return dot==rulestream.size();
+		return (rulestream==NULL) || (dot==rulestream->size());
+	}
+	const std::vector<Rule>* const getRulestream() {
+		return rulestream;
 	}
 };
 
@@ -116,20 +135,24 @@ private:
 	//What switches will this candidate turn off?
 	std::vector<unsigned int> switchesToOff;
 
-public:
 	//What to replace after
-	std::vector<Rule>& replacementRules;
+	const std::vector<Rule>* replacementRules; //Note: See "Matcher" for why this can't be a constant pointer.
+
+public:
+
+	const std::vector<Rule>* const getReplacementRules() const { return replacementRules; }
+
 
 	//Dot IDS
 	int dotStartID;
 	int dotEndID;
 
 	//Default constructor
-	Candidate(std::vector<Rule> tempVec) : replacementRules(tempVec) {}
+	Candidate(const std::vector<Rule>* const repRules = NULL) : replacementRules(repRules) {}
 
 	//Init
-	Candidate(RuleSet& ruleSet, int dotStartID1) : replacementRules(ruleSet.replace) {
-		matchStack.push(Matcher(ruleSet.match));
+	Candidate(const RuleSet& ruleSet, int dotStartID1) : replacementRules(&(ruleSet.replace)) {
+		matchStack.push(Matcher(&(ruleSet.match)));
 		switchesToOff = ruleSet.requiredSwitches;
 
 		//Init array sizes
@@ -151,8 +174,8 @@ public:
 	}*/
 
 
-	//For vector contexts
-	Candidate operator=(const Candidate& c2) {
+	//For vector contexts 
+	/*Candidate operator=(const Candidate& c2) {
 		matches = c2.matches;
 		matchStack = c2.matchStack;
 		switchesToOff = c2.switchesToOff;
@@ -161,7 +184,7 @@ public:
 		dotEndID = c2.dotEndID;
 		currRootDot = c2.currRootDot;
 		return *this;
-	}
+	}*/
 
 	//Our "current match" is the top entry on the stack; this greatly simplifies memory management
 	Matcher& currMatch() {
@@ -172,16 +195,19 @@ public:
 
 	//Useful stuff
 	const Rule& getCurrRule() {
-		if (currMatch().dot<(int)currMatch().rulestream.size())
-			return currMatch().rulestream[currMatch().dot];
+		if (currMatch().getRulestream()==NULL)
+			throw std::exception("Bad programming: can't call \"getCurrRule\" on an emtpy rulestream.");
+
+		if (currMatch().getDot() < (int)currMatch().getRulestream()->size())
+			return (*(currMatch().getRulestream()))[currMatch().getDot()];
 		throw std::exception("Bad programming: the dot has exceeded the length of the current rulestream.");
 	}
 	wchar_t getCurrStringRuleChar() {
 		if (getCurrRule().type!=KMRT_STRING)
 			throw std::exception("Can only call getCurrStringRuleChar() on a STRING type");
-		return getCurrRule().str[currMatch().strDot];
+		return getCurrRule().str[currMatch().getStrDot()];
 	}
-	void newCurr(std::vector<Rule>& rule) {
+	void newCurr(const std::vector<Rule>* const rule) {
 		matchStack.push(Matcher(rule));
 	}
 	void advance(const std::wstring& foundStr, int foundID) { //Called if a match is allowed
