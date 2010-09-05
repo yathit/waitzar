@@ -160,7 +160,8 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 	//Special cases
 	if (nextBit.length()==1 && nextBit[0]==L'\u1039') {
 		//Combiner functions in reverse
-		if (len>1 && canStack(currStr[len-2])) {
+		wchar_t prev2 = (len>2) ? currStr[len-3] : 0x0000;
+		if (len>1 && canStack(currStr[len-2], prev2)) {
 			currStr[len-1] = currStr[len-2];
 			currStr[len-2] = nextBit[0];
 		} else {
@@ -169,7 +170,8 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 	} else if (nextBit == wstring(L"\u1004\u103A\u1039")) {
 		//Kinzi can be typed after the consonant instead of before it.
 		//For now, we only cover the general case of typing "kinzi" directly after a consonant
-		if (len>3 && canStack(currStr[len-4])) {
+		wchar_t prev2 = (len>4) ? currStr[len-5] : 0x0000;
+		if (len>3 && canStack(currStr[len-4], prev2)) {
 			currStr[len-1] = currStr[len-4];
 			currStr[len-4] = nextBit[0];
 			currStr[len-3] = nextBit[1];

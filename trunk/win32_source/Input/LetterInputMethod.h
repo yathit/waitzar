@@ -58,7 +58,9 @@ protected:
 
 private:
 	//myWin 2.1 rules for stacking
-	bool canStack(wchar_t letter) { return (letter>=0x1000 && letter<=0x1003) || (letter>=0x1005 && letter<=0x1021); }
+	bool canStack(wchar_t letter, wchar_t oneBefLetter) { 
+		return ((letter>=0x1000 && letter<=0x1003) || (letter>=0x1005 && letter<=0x1021)) && (oneBefLetter != L'\u1039');
+	}
 
 };
 
