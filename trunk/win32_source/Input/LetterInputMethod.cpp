@@ -39,10 +39,33 @@ void LetterInputMethod::handleEsc()
 
 void LetterInputMethod::handleBackspace(VirtKey& vkey)
 {
+	//Get the string, make a "new" version.
+	wstring oldString = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
+	wstring newStr;
+
+	//Special cases: backspace on a stacked letter deletes the stacker, and deleting on Kinzi deletes Kinzi
+	size_t len = oldString.length();
+
+	//Case 1: kinzi only
+	if (oldString==L"\u1004\u103A\u1039")
+		newStr = L"";
+
+	//Case 2: kinzi with a stacked letter after
+	else if (len>=4 && oldString[len-4]==L'\u1004' && oldString[len-3]==L'\u103A' && oldString[len-2]==L'\u1039' && canStack(oldString[len-1], 0x0000))
+		newStr = oldString.substr(0, len-4) + wstring(1, oldString[len-1]);
+
+	//Case 3: stacker with stacked letter after (stackers by themselves will be eliminated by the default
+	//        backspace beavior
+	else if (len>=2 && oldString[len-2]==L'\u1039' && canStack(oldString[len-1], 0x0000))
+		newStr = oldString.substr(0, len-2) + wstring(1, oldString[len-1]);
+
+	//Default behavior: cut off the last letter
+	else
+		newStr = !oldString.empty() ? oldString.substr(0, oldString.length()-1) : L"";
+
 	//Delete a letter (performs differently in help mode)
 	if (this->isHelpInput()) {
 		//If help mode, delete a letter but don't hide the window
-		wstring newStr = !typedCandidateStr.str().empty() ? typedCandidateStr.str().substr(0, typedCandidateStr.str().length()-1) : L"";
 		typedCandidateStr.str(L"");
 		typedCandidateStr <<newStr;
 
@@ -50,7 +73,6 @@ void LetterInputMethod::handleBackspace(VirtKey& vkey)
 		viewChanged = true;
 	} else {
 		// Otherwise, delete a letter from the sentece, and hide if nothing left
-		wstring newStr = !typedSentenceStr.str().empty() ? typedSentenceStr.str().substr(0, typedSentenceStr.str().length()-1) : L"";
 		typedSentenceStr.str(L"");
 		typedSentenceStr <<newStr;
 		viewChanged = true;
