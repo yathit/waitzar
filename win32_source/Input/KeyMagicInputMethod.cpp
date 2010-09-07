@@ -922,8 +922,8 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 		}
 
 		
-		//KMRT_WILDCARD: The * wildcard
-		else if (ruleStr == L"*") {
+		//KMRT_WILDCARD: The * wildcard. Or, "ANY" in KeyMagic 1.3+
+		else if (ruleStr==L"*" || ruleLowercase==L"any") {
 			result.type = KMRT_WILDCARD;
 			result.str = L"*";
 		}
