@@ -346,6 +346,11 @@ private:
 	std::vector< RuleSet > replacements;
 	std::map<std::wstring, std::wstring> options; //Loaded from the first comment.
 
+	//Another index (helps search with switches quickly)
+	std::map<unsigned int, std::vector<unsigned int> > switchLookup;
+	static unsigned int getSwitchUniqueID(const std::vector<unsigned int>& reqSw);
+	static unsigned int getSwitchUniqueID(const std::vector<bool>& switchVals);
+
 	//Helpers
 	int hexVal(wchar_t letter);
 	Rule parseRule(const std::wstring& ruleStr);

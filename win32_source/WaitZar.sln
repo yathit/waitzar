@@ -1,8 +1,8 @@
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WaitZar", "WaitZar.vcproj", "{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WaitZar", "WaitZar.vcxproj", "{183C81FD-BA71-4A97-9F6C-2DEA55C135B6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExternalModelTester", "..\ExternalModelTester\ExternalModelTester.vcproj", "{42D38E70-0234-480A-8E0B-1DA6FFF390E7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExternalModelTester", "..\ExternalModelTester\ExternalModelTester.vcxproj", "{42D38E70-0234-480A-8E0B-1DA6FFF390E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
