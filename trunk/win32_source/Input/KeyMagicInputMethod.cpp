@@ -686,6 +686,40 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 
 	//Final step: sort the replacements list according to KeyMagic's rules of precedence
 	std::sort(replacements.begin(), replacements.end(), KeyMagicInputMethod::ReplacementCompare);
+
+	//After-final step: re-build the index
+	switchLookup.clear();
+	for (size_t id=0; id<replacements.size(); id++) {
+		//Don't index rules with no switches
+		if (replacements[id].requiredSwitches.size()==0)
+			continue;
+
+		//Build an identifier for this rule's switch set; save it.
+		unsigned int switchIndexID = KeyMagicInputMethod::getSwitchUniqueID(replacements[id].requiredSwitches);
+		switchLookup[switchIndexID].push_back(id);
+	}
+}
+
+
+unsigned int KeyMagicInputMethod::getSwitchUniqueID(const vector<unsigned int>& reqSw)
+{
+	unsigned int res = 0;
+	for (size_t i=0; i<reqSw.size(); i++) {
+		//Shift, add it
+		res |= (1<<reqSw[i]);
+	}
+	return res;
+}
+
+unsigned int KeyMagicInputMethod::getSwitchUniqueID(const std::vector<bool>& switchVals)
+{
+	unsigned int res = 0;
+	for (size_t i=0; i<switchVals.size(); i++) {
+		//Shift, add it
+		if (switchVals[i])
+			res |= (1<<i);
+	}
+	return res;
 }
 
 
@@ -1528,41 +1562,54 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 	vector<int> switchesToOn;
 
 	while (!breakLoop) {
+		//Found result
 		pair<Candidate, bool> finalResult = pair<Candidate, bool>(Candidate(), false);
+		wstring logLine;
 
-		//Iterate backwards
-		for (vector<RuleSet>::reverse_iterator it = replacements.rbegin();it!=replacements.rend(); it++) {
-			//Somewhat of a hack...
-			//if (resetLoop) {
-			//	rpmID = 0;
-			//	resetLoop = false;
-			//}
+		//What rules have we checked already?
+		vector<bool> checkFlags(replacements.size(), false);
 
-			//Match this rule
-			finalResult = getCandidateMatch(*it, input, vkeyCode, matchedOneVirtualKey);
+		//First step: match rules for the current switch context
+		unsigned int switchIndexID = KeyMagicInputMethod::getSwitchUniqueID(switches);
+		if (switchLookup.count(switchIndexID)>0) {
+			for (vector<unsigned int>::reverse_iterator it=switchLookup[switchIndexID].rbegin(); it!=switchLookup[switchIndexID].rend(); it++) {
+				//Avoid checking this again
+				checkFlags[*it] = true;
 
-			//Did we match anything?
-			if (finalResult.second) {
-				//Log match rule
-				wstring logLine = L"   " + (!it->debugRuleText.empty() ? it->debugRuleText : L"<Empty Rule Text>");
+				//Does it match?
+				finalResult = getCandidateMatch(replacements[*it], input, vkeyCode, matchedOneVirtualKey);
+				if (finalResult.second) {
+					logLine = L"   " + (!replacements[*it].debugRuleText.empty() ? replacements[*it].debugRuleText : L"<Empty Rule Text>");
+					break; //Break and deal with the current rule.
+				}
+			}
+		}
 
-				//Did we match all switches?
-				//if (totalSwitchesOn == replacements[rpmID].requiredSwitches.size()) {
-				//Total match
-				KeyMagicInputMethod::writeLogLine(logLine);
-				//finalResult = result;
-				break; //Break and deal with the current rule.
-				//} else if (!finalResult.second){
-					//First partial match
-				//	finalResult = result;
-				//	KeyMagicInputMethod::writeLogLine(logLine + L"  (looking for a better match...)");
-				//}
+		//Second step: iterate backwards, skipping rules that we've already matched.
+		if (!finalResult.second) {
+			for (int rID=replacements.size()-1; rID>=0; rID--) {
+				//Avoid checking a rule twice
+				if (checkFlags[rID])
+					continue;
+
+				//Match this rule
+				finalResult = getCandidateMatch(replacements[rID], input, vkeyCode, matchedOneVirtualKey);
+
+				//Did we match anything?
+				if (finalResult.second) {
+					logLine = L"   " + (!replacements[rID].debugRuleText.empty() ? replacements[rID].debugRuleText : L"<Empty Rule Text>");
+					break; //Break and deal with the current rule.
+				}
 			}
 		}
 
 
 		//Deal with our match (if any)
 		if (finalResult.second) {
+				//Log match rule
+				KeyMagicInputMethod::writeLogLine(logLine);
+
+
 			//Before we apply the rule, check if we've looped "forever"
 			if (++totalMatchesOverall >= std::max<size_t>(50, replacements.size())) {
 				//To do: We might also consider logging this, later.
