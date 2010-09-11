@@ -1455,7 +1455,7 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop
 	//if (result.replacementRules.size()==1 && result.replacementRules[0].type==KMRT_STRING && result.replacementRules[0].str.length()==1) {
 	//NOTE: We're also checking if the string is empty.
 	//NOTE: We're actually checking the FIRST letter, not a "single" one.
-	if (replacementStr.str().length()==0 || (replacementStr.str()[0]>=0x20 && replacementStr.str()[0]<=0x7F)) {
+	if (replacementStr.str().length()==0 || (replacementStr.str().length()==1 && replacementStr.str()[0]>=0x20 && replacementStr.str()[0]<=0x7F)) {
 		//wchar_t ch = result.replacementRules[0].str[0];
 		//wchar_t ch = replacementStr.str()[0];
 		//if (ch>L'\x020' && ch<L'\x07F') {
