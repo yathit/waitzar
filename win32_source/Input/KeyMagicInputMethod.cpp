@@ -677,8 +677,9 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 
 
 	//Before sorting, add one final discriminator, to keep rules in order
+	//NOTE: This has to be in REVERSE order, since we search the rules list backwards...
 	for (size_t i=0; i<replacements.size(); i++) {
-		replacements[i].tempOriginalSortID = i;
+		replacements[i].tempOriginalSortID = replacements.size()-i-1;
 	}
 
 	//NOTE: This step is necessary, but means we can't thread multiple calls to this function:
