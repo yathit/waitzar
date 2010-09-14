@@ -44,7 +44,8 @@
 // a bit easier.
 enum {
 	//Context menu
-    IDM_HELP                 = 40001,
+	IDM_NEWVERSION           = 40001,
+    IDM_HELP,
     IDM_SETTINGS,
     IDM_EXIT,
     IDM_ENGLISH,
