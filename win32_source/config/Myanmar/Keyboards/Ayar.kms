@@ -35,7 +35,12 @@ $twh[^] + < VK_KEY_J > => $1 + u200B + $yayit
 U200B + $yayit + <VK_BACK> => null
 $row4K = "zxcvbnm,"
 $row4U = U1016 + U1011 + U1001 + U101C + U1018 + U100A + U102C + U101A
-'/' => U200B + U104B
+
+//CHANGED by Seth: The latest keyboard layout from Ko Minn Kyaw switches half/full stop
+//'/' => U200B + U104B
+'/' => U200B + U104A
+//END CHANGE
+
 U200B + U104B + <VK_BACK> => null
 '.' => U200B + U104F
 U200B + U104F + <VK_BACK> => null
@@ -50,7 +55,11 @@ $row4K[*] => $row4U[$1]
 //Shifted
 //Normal First Row
 $row1K_S = "!@#$%^&*()_+"
-$row1U_S = U100B + U100D + U100E + U1023 + U1008+ U002F + U101B + U1002 + U1026 + U101D + U1029 + U102A
+
+//CHANGED by Seth: 101D -> 1040. Using "wa" as "tone nya" is not a good idea. 
+//$row1U_S = U100B + U100D + U100E + U1023 + U1008+ U002F + U101B + U1002 + U1026 + U101D + U1029 + U102A
+$row1U_S = U100B + U100D + U100E + U1023 + U1008+ U002F + U101B + U1002 + U1026 + U1040 + U1029 + U102A
+//END CHANGE
 
 $row1K_S[*] => $row1U_S[$1]
 
@@ -62,7 +71,13 @@ $row2U_S = U100F + U1024 + U1025 + U1027
 U100B + U1039 + U100C + <VK_BACK> => null
 'Y' => U200B + U104C
 'I' => U200B + U104D
-'|' => $ZWS + U104E + U1004 + U103A + U1038
+
+//CHANGED by Seth: The latest keyboard layout from Ko Minn Kyaw has "|" generate 
+//         the alternate form of "lay", not the entire word "lakaung"
+//'|' => $ZWS + U104E + U1004 + U103A + U1038
+'|' => $ZWS + U104E
+//END CHANGE 
+
 $ZWS + U104E + U1004 + U103A + U1038 + <VK_BACK> => null
 
 $row2K_S[*] => $row2U_S[$1]
@@ -97,7 +112,12 @@ U102B + U103A + < VK_BACK > => NULL
 //Normal Fourth Row
 $row4K_S = "ZXCV"
 $row4U_S = U1007 + U100C + U1003 + U1020
-'?' => U200B + U104A
+
+
+//CHANGED by Seth: The latest keyboard layout from Ko Minn Kyaw switches half/full stop
+//'?' => U200B + U104A
+'?' => U200B + U104B
+//END CHANGE
 
 $row4K_S[*] => $row4U_S[$1]
 
