@@ -72,6 +72,7 @@
 #include <psapi.h> //For getting a list of currently running processes
 //#include <wingdi.h> //For the TEXTINFO stuff
 #include <shlobj.h> //GetFolderPath
+#include <urlmon.h> //File downloads
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
@@ -114,8 +115,11 @@ using std::wstringstream;
 using std::ofstream;
 
 
-//Current version
-const wstring WAIT_ZAR_VERSION = L"1.7";
+//Versioning information & lookup
+const wstring WZ_VERSION_MAIN = L"1.7";
+const bool WZ_VERSION_IS_NIGHTLY = false;
+const wstring WZ_VERSION_FULL = WZ_VERSION_IS_NIGHTLY ? L"nightly-"+WZ_VERSION_MAIN+L"+" : WZ_VERSION_MAIN;
+bool newVersionAvailable = false; 
 
 //Menu item texts
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
@@ -186,6 +190,7 @@ const string cfgFile = "config.json.txt";
 string pathMainConfig;       //Path to the main config file.
 string pathLocalFolder;      //Path to WZ's "local" folder in the AppData directory.
 string pathLocalTinySave;    //Path to the "tiny" save file we use for quickly remembering last-used input methods, etc.
+string pathLocalLastSavedVersionInfo; //Path to the last locally cached copy of the "latest version" file.
 string pathLocalConfig;      //Path to WZ's "local" config.json.txt file in the AppData folder.
 string pathUserConfig;       //Path to the user's config.json.txt file in his "My Documents" directory.
 
@@ -547,6 +552,81 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 	return 0;
 }
+
+
+
+
+
+//General method to check if a new version is available.
+void CheckCurrentVersion()
+{
+	//Nightlies never check this.
+	if (WZ_VERSION_IS_NIGHTLY)
+		return;
+
+	//First, try to download the URL into a local file.
+	wstringstream temp;
+	temp <<pathLocalLastSavedVersionInfo.c_str();
+	if (URLDownloadToFile(NULL, L"http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt", temp.str().c_str(), 0, NULL)!=S_OK)
+		return;
+
+	//Second, open the file and parse it line-by-line
+	std::ifstream txtFile(pathLocalLastSavedVersionInfo.c_str(), std::ios::in|std::ios::binary);
+	if (txtFile.fail())
+		return;
+
+	//Get the size, rewind
+	txtFile.seekg(0, std::ios::end);
+	int file_size = txtFile.tellg();
+	txtFile.seekg(0, std::ios::beg);
+	if (file_size==-1)
+		return;
+
+	//Load the entire file at once to minimize file I/O
+	unsigned char* buffer = new unsigned char [file_size];
+	txtFile.read((char*)(&buffer[0]), file_size);
+	txtFile.close();
+
+	//Now, loop
+	vector<string> lines;
+	std::stringstream currLine;
+	for (size_t i=0; i<(size_t)file_size; i++) {
+		//Skip \r, space
+		if (buffer[i]=='\r' || buffer[i]==' ')
+			continue;
+
+		//If we encounter a '#', skip to the end of the line
+		if (buffer[i]=='#') {
+			while (buffer[i]!='\n' && i<(size_t)file_size)
+				i++;
+		}
+
+		//If we're at the end of the line, add an entry
+		if (buffer[i]=='\n' || i==((size_t)file_size)-1) {
+			if (!currLine.str().empty()) {
+				lines.push_back(currLine.str());
+				currLine.str("");
+			}
+		} else {
+			//Otherwise, just add the letter
+			currLine <<buffer[i];
+		}
+	}
+
+	//Finally, check. For now, we only fail if our item is in the list but not in the first position.
+	//  This makes it easier to whitelist, say, a "long-term" support version later.
+	int ourIndex = -1;
+	string verString = waitzar::escape_wstr(WZ_VERSION_FULL, false);
+	for (size_t i=0; i<lines.size(); i++) {
+		if (lines[i] == verString) {
+			ourIndex = i;
+			break;
+		}
+	}
+	newVersionAvailable = ourIndex>0;
+}
+
+
 
 
 //Borrowed from the code project, modified
@@ -2034,7 +2114,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 				//Line 1
 				wstringstream txtS;
-				txtS << "WaitZar version " <<WAIT_ZAR_VERSION <<" - for the latest news, visit ";
+				txtS << "WaitZar version " <<WZ_VERSION_FULL <<" - for the latest news, visit ";
 				pendingItems.push_back(WControl(IDC_HELP_L1, txtS.str(), L"STATIC", false, txtR.left));
 				pendingItems.push_back(WControl(IDC_HELP_H1, L"WaitZar.com", L"STATIC", true));
 				pendingItems[pendingItems.size()-1].hPlus = fHeight*2;
@@ -3216,6 +3296,8 @@ void createContextMenu()
 
 	//Add normal entries, including "Typing", but no sub-entries.
 	typingMenu = CreateMenu();
+	//if (newVersionAvailable)  //Looks terrible in the menu.
+	//	AppendMenu(contextMenuPopup, MF_STRING, IDM_NEWVERSION, L"New Version Available!");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_HELP, L"&Help/About");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_SETTINGS, L"&Settings");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_EXIT, L"E&xit");
@@ -3817,6 +3899,7 @@ void buildFilePathNames()
 			pathLocalFolder = waitzar::escape_wstr(wstring(localAppPath), true) + fs + "WaitZar";
 			pathLocalConfig = pathLocalFolder + fs + "config.override.json.txt";
 			pathLocalTinySave = pathLocalFolder + fs + "tinysave.txt";
+			pathLocalLastSavedVersionInfo = pathLocalFolder + fs + "waitzar_version.txt";
 		} catch (std::exception ex) {}
 	}
 
@@ -4414,7 +4497,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
 		if (testFileName.empty())
-			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick here for more options."), hkString.c_str());
+			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick this icon for more options."), hkString.c_str());
 		else
 			swprintf(nid.szInfo, _T("WaitZar is running regression tests. \n\nPlease wait for these to finish."));
 		nid.uTimeout = 20;
@@ -4456,6 +4539,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		Logger::markLogTime('L', L"User regression tests run.");
 		delete mainWindow;
 	}
+
+
+	//Check if the current version is up-to-date.
+	//TODO: Thread this call.
+	CheckCurrentVersion();
+	Logger::markLogTime('L', L"Checked latest version.");
+
 
 	//Set the locale to the current system locale.
 	//VirtKey::SetCurrLocale(LOWORD(GetKeyboardLayout(0)));
