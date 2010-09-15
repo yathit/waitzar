@@ -1,0 +1,565 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Engine">
+      <UniqueIdentifier>{cc090970-21fe-45e5-8be7-13bf5c757cd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Input">
+      <UniqueIdentifier>{169f3f55-e347-4ea4-96fb-bf64dfc63f57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Display">
+      <UniqueIdentifier>{3980c216-9c67-46a4-bff3-736752410ab8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Transform">
+      <UniqueIdentifier>{870cb065-29f2-4c68-8227-99609b122434}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Settings">
+      <UniqueIdentifier>{19a80feb-dc64-4d74-94d5-99ec8f9e6f27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib">
+      <UniqueIdentifier>{3e67ae12-36a2-4cd6-b9b5-e112fd3859ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\Burglish">
+      <UniqueIdentifier>{6d4f5e6f-cde2-40dd-82c3-9ba6eabe0ce9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\Jazzlib">
+      <UniqueIdentifier>{197fee4c-fd7d-42b5-9294-86d6bdc2232e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\Hyperlinks">
+      <UniqueIdentifier>{e0d6524c-b93a-495e-a2a1-f3ff87f4335d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\Json Spirit">
+      <UniqueIdentifier>{56a7024f-ce24-48fc-aa05-b0b34f9cc093}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\NGram">
+      <UniqueIdentifier>{360cb404-e655-4e70-a478-f2d22136fdd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\Pulp Core">
+      <UniqueIdentifier>{5a528580-ccfa-49d2-9807-2ec50df39e96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\CryptoPP">
+      <UniqueIdentifier>{76a0504e-e733-409f-912d-a2cfbb33105d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files\Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Engine">
+      <UniqueIdentifier>{85a9d8bd-8800-4cb7-a7e1-1eaa76db356d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Engine\Display">
+      <UniqueIdentifier>{f20086b2-244c-4eca-956f-2b86bc2decf9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Engine\Input">
+      <UniqueIdentifier>{8e9baa3d-7739-4f0c-b23f-bf2a46809ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Engine\Transform">
+      <UniqueIdentifier>{bdaac690-bc1c-42f6-81e8-66ab018195ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Settings">
+      <UniqueIdentifier>{193e1247-166a-42bc-912e-f4b4311287a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib">
+      <UniqueIdentifier>{2d561f02-ca15-4336-91e0-8a31ca14ac6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\Burglish">
+      <UniqueIdentifier>{ffa44214-e7f6-4c97-a7e4-775ec1b0e8f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\Jazzlib">
+      <UniqueIdentifier>{61ad9363-9e3d-4a8d-82eb-28e428e03a32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\Pulp Core">
+      <UniqueIdentifier>{d3cca06b-2280-41e5-b492-d6742b4f7a99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\Hyperlinks">
+      <UniqueIdentifier>{36ed5515-19ee-4b25-ade5-8e94026c037c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\Json Spirit">
+      <UniqueIdentifier>{6f0ffbb6-8bf2-4e34-ae59-be5afef2d4f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\Boost">
+      <UniqueIdentifier>{46d9b2bf-fb79-4bc7-830e-2164cbd149a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\NGram">
+      <UniqueIdentifier>{37baf452-9110-4b48-9fe6-2534c99ddc86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\CryptoPP">
+      <UniqueIdentifier>{8b119ec2-e594-49bf-98db-6dd40e802e81}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MyWin32Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OnscreenKeyboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\InputMethod.cpp">
+      <Filter>Source Files\Engine\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\KeyMagicInputMethod.cpp">
+      <Filter>Source Files\Engine\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\LetterInputMethod.cpp">
+      <Filter>Source Files\Engine\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\RomanInputMethod.cpp">
+      <Filter>Source Files\Engine\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\VirtKey.cpp">
+      <Filter>Source Files\Engine\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\TtfDisplay.cpp">
+      <Filter>Source Files\Engine\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform\Ayar2Uni.cpp">
+      <Filter>Source Files\Engine\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform\Self2Self.cpp">
+      <Filter>Source Files\Engine\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform\Uni2Ayar.cpp">
+      <Filter>Source Files\Engine\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform\Uni2WinInnwa.cpp">
+      <Filter>Source Files\Engine\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform\Uni2Zg.cpp">
+      <Filter>Source Files\Engine\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform\Zg2Uni.cpp">
+      <Filter>Source Files\Engine\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings\ConfigManager.cpp">
+      <Filter>Source Files\Settings</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings\WZFactory.cpp">
+      <Filter>Source Files\Settings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontconv.cpp">
+      <Filter>Source Files\Contrib\Burglish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontmap.cpp">
+      <Filter>Source Files\Contrib\Burglish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\burglish\lib.cpp">
+      <Filter>Source Files\Contrib\Burglish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\burglish\regex.cpp">
+      <Filter>Source Files\Contrib\Burglish</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Jazzlib\Adler32.cpp">
+      <Filter>Source Files\Contrib\Jazzlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Jazzlib\Inflater.cpp">
+      <Filter>Source Files\Contrib\Jazzlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Jazzlib\InflaterDynHeader.cpp">
+      <Filter>Source Files\Contrib\Jazzlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Jazzlib\InflaterHuffmanTree.cpp">
+      <Filter>Source Files\Contrib\Jazzlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Jazzlib\OutputWindow.cpp">
+      <Filter>Source Files\Contrib\Jazzlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Jazzlib\StreamManipulator.cpp">
+      <Filter>Source Files\Contrib\Jazzlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Hyperlinks\Hyperlinks.cpp">
+      <Filter>Source Files\Contrib\Hyperlinks</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Json Spirit\json_spirit_reader.cpp">
+      <Filter>Source Files\Contrib\Json Spirit</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Json Spirit\json_spirit_value.cpp">
+      <Filter>Source Files\Contrib\Json Spirit</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Json Spirit\json_spirit_writer.cpp">
+      <Filter>Source Files\Contrib\Json Spirit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.cpp">
+      <Filter>Source Files\Contrib\NGram</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\ngram\SentenceList.cpp">
+      <Filter>Source Files\Contrib\NGram</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp">
+      <Filter>Source Files\Contrib\NGram</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp">
+      <Filter>Source Files\Contrib\NGram</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Pulp Core\PulpCoreFont.cpp">
+      <Filter>Source Files\Contrib\Pulp Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Pulp Core\PulpCoreImage.cpp">
+      <Filter>Source Files\Contrib\Pulp Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\algparam.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\basecode.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\cpu.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\cryptlib.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\files.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\filters.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\fips140.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\hex.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\hrtimer.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\iterhash.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\md5.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\misc.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\mqueue.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\osrng.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\pch.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\queue.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\randpool.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\rdtables.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\rijndael.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\rng.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\sha.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\simple.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\CryptoPP\trdlocal.cpp">
+      <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="loading.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="wz.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="wz_eng.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="wz_mm.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="config.txt" />
+    <None Include="default-config.json.txt" />
+    <None Include="easypatsint.txt" />
+    <None Include="help_ar_letters.font.png" />
+    <None Include="help_zg_main.font.png" />
+    <None Include="help_zg_sub.font.png" />
+    <None Include="keybd_corner.png" />
+    <None Include="Myanmar.model" />
+    <None Include="mywords.txt" />
+    <None Include="waitzar.font.png" />
+    <None Include="waitzar_small.font.png" />
+    <None Include="wz_log.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WaitZarRes.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Hotkeys.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscUtils.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyWin32Window.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OnscreenKeyboard.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_ex.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\DisplayMethod.h">
+      <Filter>Resource Files\Header Files\Engine\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\TtfDisplay.h">
+      <Filter>Resource Files\Header Files\Engine\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\burglish_data.h">
+      <Filter>Resource Files\Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\InputMethod.h">
+      <Filter>Resource Files\Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\keymagic_vkeys.h">
+      <Filter>Resource Files\Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\KeyMagicInputMethod.h">
+      <Filter>Resource Files\Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\LetterInputMethod.h">
+      <Filter>Resource Files\Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\RomanInputMethod.h">
+      <Filter>Resource Files\Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\VirtKey.h">
+      <Filter>Resource Files\Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform\Ayar2Uni.h">
+      <Filter>Resource Files\Header Files\Engine\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform\Self2Self.h">
+      <Filter>Resource Files\Header Files\Engine\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform\Transformation.h">
+      <Filter>Resource Files\Header Files\Engine\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform\Uni2Ayar.h">
+      <Filter>Resource Files\Header Files\Engine\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform\Uni2WinInnwa.h">
+      <Filter>Resource Files\Header Files\Engine\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform\Uni2Zg.h">
+      <Filter>Resource Files\Header Files\Engine\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform\Zg2Uni.h">
+      <Filter>Resource Files\Header Files\Engine\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings\ConfigManager.h">
+      <Filter>Resource Files\Header Files\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings\Encoding.h">
+      <Filter>Resource Files\Header Files\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings\Language.h">
+      <Filter>Resource Files\Header Files\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings\Types.h">
+      <Filter>Resource Files\Header Files\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings\WZFactory.h">
+      <Filter>Resource Files\Header Files\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontconv.h">
+      <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontmap.h">
+      <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\burglish\lib.h">
+      <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\burglish\regex.h">
+      <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Jazzlib\Adler32.h">
+      <Filter>Resource Files\Header Files\Contrib\Jazzlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Jazzlib\Inflater.h">
+      <Filter>Resource Files\Header Files\Contrib\Jazzlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Jazzlib\InflaterDynHeader.h">
+      <Filter>Resource Files\Header Files\Contrib\Jazzlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Jazzlib\InflaterHuffmanTree.h">
+      <Filter>Resource Files\Header Files\Contrib\Jazzlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Jazzlib\OutputWindow.h">
+      <Filter>Resource Files\Header Files\Contrib\Jazzlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Jazzlib\StreamManipulator.h">
+      <Filter>Resource Files\Header Files\Contrib\Jazzlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Pulp Core\PulpCoreFont.h">
+      <Filter>Resource Files\Header Files\Contrib\Pulp Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Pulp Core\PulpCoreImage.h">
+      <Filter>Resource Files\Header Files\Contrib\Pulp Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Hyperlinks\Hyperlinks.h">
+      <Filter>Resource Files\Header Files\Contrib\Hyperlinks</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Json Spirit\json_spirit.h">
+      <Filter>Resource Files\Header Files\Contrib\Json Spirit</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Json Spirit\json_spirit_reader.h">
+      <Filter>Resource Files\Header Files\Contrib\Json Spirit</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Json Spirit\json_spirit_utils.h">
+      <Filter>Resource Files\Header Files\Contrib\Json Spirit</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Json Spirit\json_spirit_value.h">
+      <Filter>Resource Files\Header Files\Contrib\Json Spirit</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Json Spirit\json_spirit_writer.h">
+      <Filter>Resource Files\Header Files\Contrib\Json Spirit</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Boost\config.hpp">
+      <Filter>Resource Files\Header Files\Contrib\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Boost\version.hpp">
+      <Filter>Resource Files\Header Files\Contrib\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.h">
+      <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\ngram\SentenceList.h">
+      <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h">
+      <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h">
+      <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\aes.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\algparam.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\argnames.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\basecode.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\config.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\cpu.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\cryptlib.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\files.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\filters.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\fips140.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\fltrimpl.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\hex.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\hrtimer.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\iterhash.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\md5.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\misc.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\mqueue.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\osrng.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\pch.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\queue.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\randpool.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\rijndael.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\rng.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\secblock.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\seckey.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\sha.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\simple.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\smartptr.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\stdcpp.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\trdlocal.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\CryptoPP\words.h">
+      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
