@@ -30,7 +30,10 @@
 
 //Define to require a specific version of Windows.
 #define _WIN32_WINNT 0x0500 //Run on Windows 2000, XP, and Vista (haven't tested NT or the "server"s yet)
-#define _WIN32_IE 0x0500    //I don't understand why I need this, but the speech balloons won't compile unless I have it.
+#define _WIN32_IE 0x0501    //I don't understand why I need this, but the speech balloons won't compile unless I have it.
+//Note that version 0x0501 is needed for "clicking on notification balloons". There's reports of this not working on 
+//   win2k, but so far we don't have any WZ users on that platform. 
+
 //#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
 
 //Slim-down our list of definitions. Would you believe that this causes NO
@@ -117,9 +120,9 @@ using std::ofstream;
 
 //Versioning information & lookup
 const wstring WZ_VERSION_MAIN = L"1.7";
-const bool WZ_VERSION_IS_NIGHTLY = false;
-const wstring WZ_VERSION_FULL = WZ_VERSION_IS_NIGHTLY ? L"nightly-"+WZ_VERSION_MAIN+L"+" : WZ_VERSION_MAIN;
-bool newVersionAvailable = false; 
+const bool WZ_VERSION_IS_NIGHTLY = true;
+const wstring WZ_VERSION_FULL = WZ_VERSION_IS_NIGHTLY ? L"NIGHTLY-"+WZ_VERSION_MAIN+L"+" : WZ_VERSION_MAIN;
+bool newVersionAvailable = false;
 
 //Menu item texts
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
@@ -324,6 +327,11 @@ bool highlightKeys = true;
 string fontFileRegular;
 string fontFileSmall;
 
+//Another possible setting & its associated thread data
+bool checkLatestVersion = true;
+HANDLE checkVersionThread;   //Handle to our thread
+DWORD  checkVersionThreadID;     //Its unique ID (never zero)
+
 
 //Partially-managed windows
 MyWin32Window* mainWindow = NULL;
@@ -406,7 +414,7 @@ string getMD5Hash(const std::string& fileName) {
 	return md5Res;
 }
 
-//Means of getting a transformation; we'll have to pass this as a functional pointer later, 
+//Means of getting a transformation; we'll have to pass this as a functional pointer later,
 //   because of circular dependencies. TODO: Fix this.
 const Transformation* ConfigGetTransformation(const Encoding& fromEnc, const Encoding& toEnc) {
 	return config.getTransformation(config.activeLanguage, fromEnc, toEnc);
@@ -520,7 +528,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 						//SendMessage(mainWindow, UWM_HOTKEY_UP, *keyItr,0); //Send message seems to make no difference
 						//MessageBox(NULL, _T("Couldn't post message to Main Window"), _T("Error"), MB_OK);
 						//Bad! Don't send Message Boxes from a critical section!
-					
+
 
 					//Key has been released, stop tracking it
 					keyItr = hotkeysDown.erase(keyItr); //Returns the next valid value
@@ -558,72 +566,103 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 
 //General method to check if a new version is available.
-void CheckCurrentVersion()
+DWORD WINAPI CheckForNewVersion(LPVOID args)
 {
-	//Nightlies never check this.
-	if (WZ_VERSION_IS_NIGHTLY)
-		return;
+	try {
+		//Nightlies never check this.
+		if (WZ_VERSION_IS_NIGHTLY)
+			return 0;
 
-	//First, try to download the URL into a local file.
-	wstringstream temp;
-	temp <<pathLocalLastSavedVersionInfo.c_str();
-	if (URLDownloadToFile(NULL, L"http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt", temp.str().c_str(), 0, NULL)!=S_OK)
-		return;
+		//Wait a bit before checking
+		Sleep(10 * 1000);  //10 seconds
 
-	//Second, open the file and parse it line-by-line
-	std::ifstream txtFile(pathLocalLastSavedVersionInfo.c_str(), std::ios::in|std::ios::binary);
-	if (txtFile.fail())
-		return;
+		//First, try to download the URL into a local file.
+		wstringstream temp;
+		temp <<pathLocalLastSavedVersionInfo.c_str();
+		if (URLDownloadToFile(NULL, L"http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt", temp.str().c_str(), 0, NULL)!=S_OK)
+			return 0;
 
-	//Get the size, rewind
-	txtFile.seekg(0, std::ios::end);
-	int file_size = txtFile.tellg();
-	txtFile.seekg(0, std::ios::beg);
-	if (file_size==-1)
-		return;
+		//Second, open the file and parse it line-by-line
+		std::ifstream txtFile(pathLocalLastSavedVersionInfo.c_str(), std::ios::in|std::ios::binary);
+		if (txtFile.fail())
+			return 0;
 
-	//Load the entire file at once to minimize file I/O
-	unsigned char* buffer = new unsigned char [file_size];
-	txtFile.read((char*)(&buffer[0]), file_size);
-	txtFile.close();
+		//Get the size, rewind
+		txtFile.seekg(0, std::ios::end);
+		int file_size = txtFile.tellg();
+		txtFile.seekg(0, std::ios::beg);
+		if (file_size==-1)
+			return 0;
 
-	//Now, loop
-	vector<string> lines;
-	std::stringstream currLine;
-	for (size_t i=0; i<(size_t)file_size; i++) {
-		//Skip \r, space
-		if (buffer[i]=='\r' || buffer[i]==' ')
-			continue;
+		//Load the entire file at once to minimize file I/O
+		unsigned char* buffer = new unsigned char [file_size];
+		txtFile.read((char*)(&buffer[0]), file_size);
+		txtFile.close();
 
-		//If we encounter a '#', skip to the end of the line
-		if (buffer[i]=='#') {
-			while (buffer[i]!='\n' && i<(size_t)file_size)
-				i++;
-		}
+		//Now, loop
+		vector<string> lines;
+		std::stringstream currLine;
+		for (size_t i=0; i<(size_t)file_size; i++) {
+			//Skip \r, space
+			if (buffer[i]=='\r' || buffer[i]==' ')
+				continue;
 
-		//If we're at the end of the line, add an entry
-		if (buffer[i]=='\n' || i==((size_t)file_size)-1) {
-			if (!currLine.str().empty()) {
-				lines.push_back(currLine.str());
-				currLine.str("");
+			//If we encounter a '#', skip to the end of the line
+			if (buffer[i]=='#') {
+				while (buffer[i]!='\n' && i<(size_t)file_size)
+					i++;
 			}
-		} else {
-			//Otherwise, just add the letter
-			currLine <<buffer[i];
+
+			//If we're at the end of the line, add an entry
+			if (buffer[i]=='\n' || i==((size_t)file_size)-1) {
+				if (!currLine.str().empty()) {
+					lines.push_back(currLine.str());
+					currLine.str("");
+				}
+			} else {
+				//Otherwise, just add the letter
+				currLine <<buffer[i];
+			}
 		}
+
+		//Finally, check. For now, we only fail if our item is in the list but not in the first position.
+		//  This makes it easier to whitelist, say, a "long-term" support version later.
+		int ourIndex = -1;
+		string verString = waitzar::escape_wstr(WZ_VERSION_FULL, false);
+		for (size_t i=0; i<lines.size(); i++) {
+			if (lines[i] == verString) {
+				ourIndex = i;
+				break;
+			}
+		}
+		newVersionAvailable = ourIndex>0;
+
+	} catch (std::exception ex) {
+		//Silently fail on exceptions
+		newVersionAvailable = false;
 	}
 
-	//Finally, check. For now, we only fail if our item is in the list but not in the first position.
-	//  This makes it easier to whitelist, say, a "long-term" support version later.
-	int ourIndex = -1;
-	string verString = waitzar::escape_wstr(WZ_VERSION_FULL, false);
-	for (size_t i=0; i<lines.size(); i++) {
-		if (lines[i] == verString) {
-			ourIndex = i;
-			break;
-		}
+	//What to do if there's a new version available
+	if (newVersionAvailable) {
+		try {
+			//Add a balloon tooltip to our systray icon.
+			//Note that multiple messages will stack, so we can just add this message and it 
+			//   will display after the "Welcome to WaitZar" message.
+			NOTIFYICONDATA nid;
+			mainWindow->initShellNotifyIconData(nid);
+			nid.uID = STATUS_NID;
+			nid.uFlags = NIF_INFO; //Only update the balloon-related variables are set (szInfo, szInfoTitle, dwInfoFlags, uTimeout)
+			lstrcpy(nid.szInfoTitle, _T("New Version Available"));
+			lstrcpy(nid.szInfo, _T("The current version of WaitZar is out of date.\n\nPlease click here to download the latest version."));
+			//nid.uTimeout = 30;  //timeout is invalid as of Vista
+			nid.uVersion = NOTIFYICON_VERSION;
+			nid.dwInfoFlags = NIIF_WARNING; //Can we switch to NIIF_USER if supported?
+			Shell_NotifyIcon(NIM_MODIFY, &nid);
+		} catch (std::exception ex) {} // Fail silently.
 	}
-	newVersionAvailable = ourIndex>0;
+
+
+	return 0;
 }
 
 
@@ -649,7 +688,7 @@ HBITMAP CreateGrayscaleBitmap(HBITMAP hBmp)
     hMemDC1 = ::CreateCompatibleDC(hMainDC);
     hMemDC2 = ::CreateCompatibleDC(hMainDC);
     if (hMainDC == NULL || hMemDC1 == NULL || hMemDC2 == NULL) return NULL;
-  
+
     if (GetObject(hBmp, sizeof(BITMAP), &bmp))
     {
         //DWORD   dwWidth = bmp. csII.xHotspot*2;
@@ -661,7 +700,7 @@ HBITMAP CreateGrayscaleBitmap(HBITMAP hBmp)
             hOldBmp1 = (HBITMAP)::SelectObject(hMemDC1, hBmp/*csII.hbmColor*/);
             hOldBmp2 = (HBITMAP)::SelectObject(hMemDC2, hGrayBmp/*csGrayII.hbmColor*/);
 
-            //::BitBlt(hMemDC2, 0, 0, dwWidth, dwHeight, hMemDC1, 0, 0, 
+            //::BitBlt(hMemDC2, 0, 0, dwWidth, dwHeight, hMemDC1, 0, 0,
 
             //         SRCCOPY);
 
@@ -676,11 +715,11 @@ HBITMAP CreateGrayscaleBitmap(HBITMAP hBmp)
                 {
                     crPixel = ::GetPixel(hMemDC1, dwLoopX, dwLoopY);
 
-                    byNewPixel = (BYTE)((GetRValue(crPixel) * 0.299) + 
-                                        (GetGValue(crPixel) * 0.587) + 
+                    byNewPixel = (BYTE)((GetRValue(crPixel) * 0.299) +
+                                        (GetGValue(crPixel) * 0.587) +
                                         (GetBValue(crPixel) * 0.114));
-                    if (crPixel) ::SetPixel(hMemDC2, dwLoopX, dwLoopY, 
-                                            RGB(byNewPixel, byNewPixel, 
+                    if (crPixel) ::SetPixel(hMemDC2, dwLoopX, dwLoopY,
+                                            RGB(byNewPixel, byNewPixel,
                                             byNewPixel));
                 } // for
 
@@ -714,7 +753,7 @@ HBITMAP CreateGrayscaleBitmap(HBITMAP hBmp)
 
 
 
-bool FileExists(const wstring& fileName) 
+bool FileExists(const wstring& fileName)
 {
 	WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 	return (GetFileAttributesEx(fileName.c_str(), GetFileExInfoStandard, &InfoFile)==TRUE);
@@ -779,9 +818,9 @@ void FlashSaveState()
 	if (outFile.fail())
 		return;
 
-	
+
 	//Silently fail on any error.
-	wstringstream outStr;	
+	wstringstream outStr;
 	try {
 		//Write a version number
 		outStr <<L"1\n";
@@ -1052,7 +1091,7 @@ void makeFont()
 	//Initialize the other 3.
 	for (size_t i=1; i<=3; i++)
 		pageImages[i] = new PulpCoreImage();
-	
+
 
 	//Copy image[1], PGUP_COLOR, and flip image[0] to create it
 	mainWindow->initPulpCoreImage(pageImages[1], pageImages[0]);
@@ -1355,7 +1394,7 @@ void positionAtCaret()
 // Hotkey registration/deregistration
 ///////////////////////////////////////////
 
-bool turnOnHotkeySet(const Hotkey* hkSet, const size_t& size, bool on, bool& flagToSet) 
+bool turnOnHotkeySet(const Hotkey* hkSet, const size_t& size, bool on, bool& flagToSet)
 {
 	//Do nothing if already on/off
 	if (flagToSet==on)
@@ -1417,7 +1456,7 @@ bool turnOnControlkeys(bool on)
 }
 
 
-//TODO: Find a way of automating this, without writing out each one. Is there some kind of 
+//TODO: Find a way of automating this, without writing out each one. Is there some kind of
 //      good static initializer or generator?
 bool turnOnAlphaHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 {
@@ -1463,7 +1502,7 @@ bool turnOnAlphaHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 
 
 //Show our simple settings dialog.
-void showSettingsMenu(HWND hwnd) 
+void showSettingsMenu(HWND hwnd)
 {
 	//Properly handle hotkeys
 	bool refreshControl = controlKeysOn;
@@ -1534,6 +1573,7 @@ void switchToLanguage(bool toMM) {
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
+	nid.uVersion = NOTIFYICON_VERSION; //Win2000+ messages
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 	if (mmOn)
 		nid.hIcon = mmIcon;
@@ -1623,7 +1663,7 @@ void reBlitHelp(RECT blitArea)
 void initCalculateHelp()
 {
 	//Initialize our keyboard
-	//TODO: Is there a better way? 
+	//TODO: Is there a better way?
 	if (helpKeyboard!=NULL)
 		delete helpKeyboard;
 
@@ -1635,7 +1675,7 @@ void initCalculateHelp()
 
 	//Make
 	helpKeyboard = new OnscreenKeyboard(zgSmall, helpFntKeys, helpFntFore, helpFntBack, helpFntMemory, helpCornerImg, helpCloseImg);
-	
+
 }
 
 
@@ -1643,7 +1683,7 @@ void initCalculateHelp()
 void initCalculate()
 {
 	//Figure out how big each of our areas is, and where they start
-	//TODO: For now, "NULL" is ok, since we're using a bitmapped font. But 
+	//TODO: For now, "NULL" is ok, since we're using a bitmapped font. But
 	//      we'll need a valid DC (which hasn't been created yet) to pass in if we load
 	//      user TTF Fonts. Possible solution: create a dummy window and just copy its DC?
 	spaceWidth = mmFont->getStringWidth(_T(" "), NULL);
@@ -1982,7 +2022,7 @@ void typeCurrentPhrase(const wstring& stringToType)
 
 //Compute x and y co-ordinates based on some criteria.
 //Note: hPlus is the amount to increase height by
-void LayoutDialogControls(vector<WControl>& pendingItems, HDC currDC, size_t startX, size_t startY, size_t fHeight) 
+void LayoutDialogControls(vector<WControl>& pendingItems, HDC currDC, size_t startX, size_t startY, size_t fHeight)
 {
 	size_t accX = startX;
 	size_t accY = startY;
@@ -2004,7 +2044,7 @@ void LayoutDialogControls(vector<WControl>& pendingItems, HDC currDC, size_t sta
 	}
 }
 
-void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFont) 
+void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFont)
 {
 	unsigned int flags = 0;
 	for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
@@ -2027,7 +2067,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 			throw std::exception(waitzar::glue(L"Unknown control type: ", it->type).c_str());
 
 		//Create the control, set the font
-		HWND ctl = CreateWindow(it->type.c_str(), it->text.c_str(), flags, 
+		HWND ctl = CreateWindow(it->type.c_str(), it->text.c_str(), flags,
 				 it->x, it->y, it->w, it->h,
                  hwnd, NULL, hInst, NULL );
 		SendMessage(ctl, WM_SETFONT, (WPARAM)dlgFont, MAKELPARAM(FALSE, 0));
@@ -2053,7 +2093,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 			}
 			unsigned int errCode = GetLastError();
 			SendMessage(ctl, STM_SETIMAGE, (WPARAM)flags2, (LPARAM)hicon);
-			
+
 		}
 
 		//Turn it into a hyperlink?
@@ -2079,9 +2119,9 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			GetWindowRect(hwnd, &wndR);
 			MoveWindow(hwnd, wndR.left, wndR.top, wndWidth, wndHeight, TRUE);
 			SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)L"About");
-			
 
-			//Get our dialog's default font, since the DS_SETFONT style doesn't apply outside the 
+
+			//Get our dialog's default font, since the DS_SETFONT style doesn't apply outside the
 			//  resource editor. Load it into the DC, so that we can measure text.
 			//HFONT hFont = GetWindowFont(hwnd);
 			HFONT dlgFont = (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0);
@@ -2108,7 +2148,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			txtR.right = wndR.right-txtR.left - fHeight*2 - fHeight/2;
 			txtR.bottom = wndR.bottom-txtR.top - fHeight - bkgrdH;
 
-			//For each of these controls, if x or y is set, keep that value. 
+			//For each of these controls, if x or y is set, keep that value.
 			// Else, keep adding components to the right (x + width of prev. component).
 			//If h is set, add that to y after adding the component.
 			{
@@ -2229,7 +2269,7 @@ unsigned int lastHelpDlgID = 0;
 
 //Also used for the settings dialog
 vector<wstring> settingsLangIDs;
-void UpdateSettingsTab(HWND dlgHwnd, int tabID) 
+void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 {
 	//Remove all entries.
 	HWND ctlA = GetDlgItem(dlgHwnd, IDC_SETTINGS_IMCOMBO);
@@ -2265,7 +2305,7 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 vector< pair<unsigned int, POINT> > controlsToMove; //"ID", "initialX", where initialX of 0 means "show/hide"
 vector< pair<wstring, wstring> > helpIconDlgTextStrings;
 bool helpBoxIsVisible = false;
-void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<size_t, size_t> wndWidthMinPlus) 
+void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<size_t, size_t> wndWidthMinPlus)
 {
 	//Always update the help icons' colors
 	pair<wstring, wstring> panelText;
@@ -2286,7 +2326,7 @@ void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<s
 		ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPTPNLTITLETXT);
 		SetWindowText(ctl, panelText.first.c_str());
 		//ctl = GetDlgItem(dlgHwnd, IDC_SETTINGS_HELPCLOSEBTN);
-		//SetWindowText(ctl, L"X"); //We need to set this, or it will be overshadowed by the 
+		//SetWindowText(ctl, L"X"); //We need to set this, or it will be overshadowed by the
 	}
 
 	//Don't do anything else if we're not performing a full change.
@@ -2400,7 +2440,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_SETOPTLBL, L"Settings:", L"STATIC", false, 15, 15));
 			pendingItems[pendingItems.size()-1].hPlus = fHeight2;
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKHELP, L"", L"STATIC", false, 15, 0, iconSz, iconSz));
-			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID;
 			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
 			pendingItems[pendingItems.size()-1].blWh = true;
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKLBL, L"Language Hotkey", L"STATIC", false, 37));
@@ -2411,7 +2451,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_HKCOMBO2, L"", L"COMBOBOX", false, 0, 0, comboShortWidth2, comboHeight));
 			pendingItems[pendingItems.size()-1].hPlus = cHPlus;
 			pendingItems.push_back(WControl(IDC_SETTINGS_LANGHELP, L"", L"STATIC", false, 15, 0, iconSz, iconSz));
-			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID;
 			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
 			pendingItems.push_back(WControl(IDC_SETTINGS_LANGLBL, L"Default Language", L"STATIC", false, 37));
 			pendingItems[pendingItems.size()-1].yPlus = (cHPlus-fHeight) - 5;
@@ -2427,7 +2467,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_MAINTAB, L"", L"SysTabControl32", false, 15)); //We'll have to fix w/h later.
 			pendingItems[pendingItems.size()-1].hPlus = fHeight2*2;
 			pendingItems.push_back(WControl(IDC_SETTINGS_IMHELP, L"", L"STATIC", false, 15+6, 0, iconSz, iconSz));
-			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID;
 			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
 			pendingItems[pendingItems.size()-1].blWh = true;
 			pendingItems.push_back(WControl(IDC_SETTINGS_IMLBL, L"Default Input Method", L"STATIC", false, 37+6));
@@ -2435,7 +2475,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems.push_back(WControl(IDC_SETTINGS_IMCOMBO, L"", L"COMBOBOX", false, lblWidth+6+20, 0, comboWidth, comboHeight));
 			pendingItems[pendingItems.size()-1].hPlus = cHPlus;
 			pendingItems.push_back(WControl(IDC_SETTINGS_OUTENCHELP, L"", L"STATIC", false, 15+6, 0, iconSz, iconSz));
-			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID; 
+			pendingItems[pendingItems.size()-1].iconID = IDC_SETTINGS_FAKEICONID;
 			pendingItems[pendingItems.size()-1].yPlus = (cHPlus - iconSz)/2 - 1;
 			pendingItems[pendingItems.size()-1].blWh = true;
 			pendingItems.push_back(WControl(IDC_SETTINGS_OUTLBL, L"Default Output Encoding", L"STATIC", false, 37+6));
@@ -2587,7 +2627,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_DRAWITEM:
 		{
 			//Draw our owner-drawn button?
-			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam; 
+			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam;
 			if (wParam!=IDC_SETTINGS_HELPCLOSEBTN)
 				break;
 
@@ -2595,7 +2635,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HDC& currDC = drawInfo->hDC; //We need the direct DC to draw properly
 			RECT bounds = drawInfo->rcItem; //Draw within these bounds
 
-			//Should draw the button with three different states: highlighted, 
+			//Should draw the button with three different states: highlighted,
 			//  depressed, neither. But for now, it's not important.
 
 			//Draw the border
@@ -2744,14 +2784,14 @@ struct pairmatches : public std::binary_function<pair<unsigned int, VirtKey>, un
 //NOTE: We should avoid using hotkeyCode when possible, since it doesn't account for locale-specific information
 void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 {
-	//NOTE: HOTKEY_VIRT_LSHIFT is not being triggered here. 
+	//NOTE: HOTKEY_VIRT_LSHIFT is not being triggered here.
 	//      It seems that "GetKeyState()" isn't working for some reason.
 	/*if (hotkeyCode==HOTKEY_VIRT_LSHIFT||hotkeyCode==HOTKEY_VIRT_RSHIFT) {
 		Logger::writeLogLine('L');
 	}*/
 
 	//NOTE: This is happening because GetKeyState() returns the state of the keyboard
-	//      at the time the last message was parsed. 
+	//      at the time the last message was parsed.
 	// We might try to hack around this with GetKeyAsyncState(), but it is prbably a better
 	//      idea to see how the main loop differs when switching directly from another language.
 	// NOTE: This might be related to the bug of the first key not being pumped correctly!
@@ -2894,7 +2934,7 @@ void checkAndInitHelpWindow()
 
 	//Move the memory window, too
 	memoryWindow->expandWindow(newX+helpKeyboard->getWidth(), newY, helpKeyboard->getMemoryWidth(), helpKeyboard->getMemoryHeight(), false);
-	
+
 	//Might as well build the reverse lookup
 	//model->reverseLookupWord(0);
 
@@ -2956,9 +2996,9 @@ void toggleHelpMode(bool toggleTo)
 		currInput = currHelpInput;
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
-		//Also reset the helper keyboard. 
+		//Also reset the helper keyboard.
 		currTypeInput->reset(true, true, false, false);
-		currHelpInput->reset(true, true, true, true); 
+		currHelpInput->reset(true, true, true, true);
 
 		//Show the help window
 		helpKeyboard->turnOnHelpMode(true, suppressHelpWindow, suppressMemoryWindow);
@@ -3033,7 +3073,7 @@ void checkAllHotkeysAndWindows()
 
 //Change our model; reset as necessary depending on what changed
 bool logLangChange = false; //Only set once.
-void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid) 
+void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 {
 	//Step 1: Set
 	if (!langid.empty()) {
@@ -3055,7 +3095,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	//Step 2: Read
 	currInput = config.activeInputMethod;
 	currTypeInput = currInput;
-	currHelpInput = NULL; 
+	currHelpInput = NULL;
 	mmFont = config.activeDisplayMethods[0];
 	mmFontSmall = config.activeDisplayMethods[1];
 	input2Uni = config.getTransformation(config.activeLanguage, config.activeInputMethod->encoding, config.unicodeEncoding);
@@ -3063,7 +3103,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethods[0]->encoding);
 	if (logLangChange)
 		Logger::markLogTime('L', L"Cached entries saved");
-	
+
 
 	//TEMP: Enable myWin2.2 for Roman Input Methods
 	bool isRoman = false;
@@ -3096,7 +3136,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 			Logger::markLogTime('L', L"Input reset");
 	}
 	if (!langid.empty()) { //Rebuild the menus, or build for the first time
-		
+
 		//Reclaim, reset
 		if (contextMenu!=NULL) {
 			DestroyMenu(contextMenu);
@@ -3182,7 +3222,7 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 	//bool isUpper = (wParam>='A' && wParam<='Z');
 
 	//Handle user input; anything that updates a non-specific "model".
-	//  TODO: Put code for "help" keyboard functionality HERE; DON'T put it into 
+	//  TODO: Put code for "help" keyboard functionality HERE; DON'T put it into
 	//        LetterInputMethod.h
 	switch (hotkeyCode) {
 		case HOTKEY_ESC:
@@ -3319,14 +3359,14 @@ void createContextMenu()
 		//Init the cache; store in a vector for now.
 		WZMenuItem sep = WZMenuItem(0, WZMI_SEP, L"", L"");
 		vector<WZMenuItem> myMenuItems;
-		
+
 		//Add the "Language" section
 		myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_HEADER, L"", WND_TITLE_LANGUAGE));
 		myMenuItems.push_back(sep);
 		currDynamicCmd++; //Maintain easy access
 
 		//Add each language as a MI
-		for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++) 
+		for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++)
 			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
 
 		if (logLangChange)
@@ -3338,7 +3378,7 @@ void createContextMenu()
 		currDynamicCmd++; //Maintain easy access
 
 		//Add each input method as an MI
-		for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++) 
+		for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++)
 			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_INPUT, (*it)->id, (*it)->displayName));
 
 		if (logLangChange)
@@ -3389,7 +3429,7 @@ void createContextMenu()
 
 
 //Build the context menu --first time
-void initContextMenu() 
+void initContextMenu()
 {
 	//Make the font
 	createMyanmarMenuFont();
@@ -3400,7 +3440,7 @@ void initContextMenu()
 	//Logger::markLogTime('L', L"Context menu created");
 
 	//NOTE: This is a bit of a hack; it forces the context menu
-	//      to be rebuilt when the language changes. 
+	//      to be rebuilt when the language changes.
 	//      Later, we can just make it happen all the time.
 	//contextMenu = CreateMenu();
 	//customMenuItems = new WZMenuItem[1];
@@ -3416,7 +3456,7 @@ void updateContextMenuState()
 	ModifyMenu(contextMenu, IDM_ENGLISH, MF_BYCOMMAND|(mmOn?0:MF_CHECKED), IDM_ENGLISH, txt.str().c_str());
 	txt.str(L"");
 	txt <<L"Myanmar (" <<hkString <<")";
-	ModifyMenu(contextMenu, IDM_MYANMAR, MF_BYCOMMAND|(mmOn?MF_CHECKED:0), IDM_MYANMAR, txt.str().c_str());	
+	ModifyMenu(contextMenu, IDM_MYANMAR, MF_BYCOMMAND|(mmOn?MF_CHECKED:0), IDM_MYANMAR, txt.str().c_str());
 
 	//Set a check for the "Look Up Word" function
 	//  Also remove the "F1" if not applicable.
@@ -3445,7 +3485,7 @@ void updateContextMenuState()
 
 
 
-//If there's an exception, show an error message and disable that input in the future. 
+//If there's an exception, show an error message and disable that input in the future.
 void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 {
 	//First, display our warning message.
@@ -3468,7 +3508,7 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 		customMenuItems[i].disabled = true;
 	}
 
-	//Finally, switch the input to WaitZar. 
+	//Finally, switch the input to WaitZar.
 	if (FindKeyInSet(config.activeLanguage.inputMethods, L"waitzar")==config.activeLanguage.inputMethods.end())
 		ChangeLangInputOutput(L"myanmar", L"waitzar", L""); //Removes our blacklisted item, but at least we're back in MM
 	else
@@ -3478,7 +3518,7 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 
 
 //Change the encoding by clicking on the SentenceWindow icon
-void OnEncodingChangeClick(unsigned int regionID) 
+void OnEncodingChangeClick(unsigned int regionID)
 {
 	//Retrieve the current language, increment by one
 	size_t customMenuStartID = 2 + config.getLanguages().size() + 2 + config.getInputMethods().size() + 2;
@@ -3525,10 +3565,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		 *   1) All hotkey registration/unregistration and, by extension, the language hotkey.
 		 *   2) Showing/hiding of windows.
 		 *   3) Sending output to Windows
-		 *   4) Repainting and recalculating of window content. 
+		 *   4) Repainting and recalculating of window content.
 		 * Thus, we expect InputManagers to only handle updates to their internal models, which is still
 		 *  fairly complex. InputManagers can indicate that they require repainting, or that they've
-		 *  just invalidated their sentence window, but the main loop is where this happens. 
+		 *  just invalidated their sentence window, but the main loop is where this happens.
 		 */
 		case WM_HOTKEY:
 		{
@@ -3539,7 +3579,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Turn this hotkey into a virtual key, to make things simpler.
 			VirtKey vk(lParam);
 
-			//NOTE: We have to mangle this a bit (with shift) if the virtual 
+			//NOTE: We have to mangle this a bit (with shift) if the virtual
 			//      keyboard is showing and Shift has been pressed.
 			if (helpKeyboard->isHelpEnabled() && helpKeyboard->isShiftLocked()) {
 				vk = VirtKey(vk.vkCode, true, vk.modAlt, vk.modCtrl);
@@ -3548,7 +3588,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//First, handle all "system" or "meta" level commands, like switching the language,
 			// switching into help mode, etc.
-			//Then, handle all "dynamic" commands; those which change depending on the 
+			//Then, handle all "dynamic" commands; those which change depending on the
 			// current IM or mode.
 			if (handleMetaHotkeys(wParam, vk)) {
 				//Make sure our hotkeys are set
@@ -3589,12 +3629,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				wstring stringToType = currInput->getTypedSentenceStrings()[3];
 
 				//Check 1: Did we just switch out of help mode?
-				if (wasProvidingHelp != currInput->isHelpInput()) 
+				if (wasProvidingHelp != currInput->isHelpInput())
 					toggleHelpMode(!wasProvidingHelp);
 
 				//Check 2: Did SOMETHING change? (Entering/exiting sentence mode, just type the first
-				//         word in the candidate list or finish it, or enter/exit help mode?) This will 
-				//         perform unnecessary calculations, but it's not too wasteful, and makes up for it 
+				//         word in the candidate list or finish it, or enter/exit help mode?) This will
+				//         perform unnecessary calculations, but it's not too wasteful, and makes up for it
 				//         by cleaning up the code sufficiently.
 				if (    (wasEmptySentence != currInput->getTypedSentenceStrings()[3].empty())
 					||  (wasEmptyRoman != currInput->getTypedRomanString(false).empty())
@@ -3665,8 +3705,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				break;
 
 			//Retrieve our custom data structure.
-			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam; 
-            WZMenuItem* item = (WZMenuItem*)drawInfo->itemData; 
+			LPDRAWITEMSTRUCT drawInfo = (LPDRAWITEMSTRUCT)lParam;
+            WZMenuItem* item = (WZMenuItem*)drawInfo->itemData;
 			HDC& currDC = drawInfo->hDC; //We need the direct DC to draw properly
 
 			//Check the type, again
@@ -3719,8 +3759,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			SelectObject(currDC, oldPen);
 			SelectObject(currDC, oldBrush);
-			
-			
+
+
 			//Leave space for the check-mark bitmap
 			int checkTop = (drawInfo->rcItem.bottom-drawInfo->rcItem.top)/2-GetSystemMetrics(SM_CYMENUCHECK)/2;
 			RECT checkRect = {drawInfo->rcItem.left, drawInfo->rcItem.top+checkTop, drawInfo->rcItem.left+GetSystemMetrics(SM_CXMENUCHECK), drawInfo->rcItem.top+checkTop+GetSystemMetrics(SM_CYMENUCHECK)};
@@ -3754,7 +3794,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case UWM_SYSTRAY: //Custom callback for our system tray icon
 		{
-			if (lParam==WM_RBUTTONUP || lParam==WM_LBUTTONUP) {
+			if (lParam == NIN_BALLOONUSERCLICK) {
+				//A bit of a hack; it's not obvious how to check WHICH baloon message is set
+				if (newVersionAvailable) {
+					//Go to the WaitZar web page.
+					ShellExecute(NULL, L"open", L"http://www.waitzar.com/download.py", NULL, NULL, SW_SHOWNORMAL);
+				}
+			} else if (lParam==WM_RBUTTONUP || lParam==WM_LBUTTONUP) {
 				//Get the mouse's position; we'll put the menu there
 				POINT pt;
 				GetCursorPos(&pt);
@@ -4109,7 +4155,7 @@ bool findAndLoadAllConfigFiles()
 
 
 
-void createPaintResources() 
+void createPaintResources()
 {
 	cr_MenuItemBkgrd = RGB(0x8F, 0xA1, 0xF8);
 	cr_MenuDefaultBkgrd = GetSysColor(COLOR_MENU);
@@ -4141,13 +4187,13 @@ void createPaintResources()
 
 
 //Temp code; borrowed for now:
-//TODO: Test & replace with waitzar::wcs2mbs() 
+//TODO: Test & replace with waitzar::wcs2mbs()
 std::string to_utf8(const wchar_t* buffer, int len) {
   int nChars = ::WideCharToMultiByte(CP_UTF8, 0, buffer, len, NULL, 0, NULL, NULL);
   if (nChars == 0) return "";
   string newbuffer;
   newbuffer.resize(nChars) ;
-  WideCharToMultiByte(CP_UTF8, 0, buffer, len, const_cast< char* >(newbuffer.c_str()), nChars, NULL, NULL); 
+  WideCharToMultiByte(CP_UTF8, 0, buffer, len, const_cast< char* >(newbuffer.c_str()), nChars, NULL, NULL);
   return newbuffer;
 }
 std::string to_utf8(const std::wstring& str) { return to_utf8(str.c_str(), (int)str.size()); }
@@ -4217,7 +4263,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		temp <<outFileName.c_str();
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
 			remove(waitzar::escape_wstr(outFileName, false).c_str()); //Will only fail if the file doesn't exist anyway.
-		
+
 
 		//Now, let's track our errors!
 		for (vector< pair<wstring, wstring> >::iterator currTest = testPairs.begin(); currTest!=testPairs.end(); currTest++) {
@@ -4258,16 +4304,16 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 				}
 
 				//Print our test results
-				outFile <<to_utf8(currTest->first) 
-					<<" => " <<to_utf8(currTest->second) 
-					<<std::endl 
-					<<"   Actual result: " 
-					<<to_utf8(resOut) 
+				outFile <<to_utf8(currTest->first)
+					<<" => " <<to_utf8(currTest->second)
+					<<std::endl
+					<<"   Actual result: "
+					<<to_utf8(resOut)
 					<<std::endl;
 				outFile.flush();
 			}
 		}
-		
+
 
 		//Close output file
 		if (outFile.is_open())
@@ -4346,7 +4392,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			for (size_t i=cmdID; i<cmdLine.length(); i++) {
 				if (cmdLine[i]==L' ' && !inQuote)
 					break;
-				if (cmdLine[i]==L'"') 
+				if (cmdLine[i]==L'"')
 					inQuote = !inQuote;
 				else
 					val <<cmdLine[i];
@@ -4468,6 +4514,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
+	nid.uVersion = NOTIFYICON_VERSION; //Win2000+ style notifications
 	nid.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_LOADING), IMAGE_ICON,
                         GetSystemMetrics(SM_CXSMICON),
                         GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
@@ -4500,7 +4547,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick this icon for more options."), hkString.c_str());
 		else
 			swprintf(nid.szInfo, _T("WaitZar is running regression tests. \n\nPlease wait for these to finish."));
-		nid.uTimeout = 20;
+		//nid.uTimeout = 20; //Timeout is invalid as of vista
+		nid.uVersion = NOTIFYICON_VERSION;
 		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported?
 	}
 
@@ -4543,8 +4591,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Check if the current version is up-to-date.
 	//TODO: Thread this call.
-	CheckCurrentVersion();
-	Logger::markLogTime('L', L"Checked latest version.");
+	//CheckCurrentVersion();
+
 
 
 	//Set the locale to the current system locale.
@@ -4602,6 +4650,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 
+	//Create (but don't start) our version checking thread
+	if (checkLatestVersion) {
+		checkVersionThread = CreateThread(
+			NULL,                //Default security attributes
+			0,                   //Default stack size
+			CheckForNewVersion,  //Threaded function (name)
+			NULL,                //Arguments to threaded function
+			CREATE_SUSPENDED,    //Don't start this thread when it's created
+			&checkVersionThreadID);  //Pointer to return the thread's id into
+		if (checkVersionThread==NULL) {
+			MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it will prevent WaitZar from checking if there are new updates to the software."), _T("Warning"), MB_ICONWARNING | MB_OK);
+			checkLatestVersion = false;
+		}
+
+		Logger::markLogTime('L', L"Version checking thread created.");
+	}
+
+	//Check for a new version of WZ.
+	// (This should trigger the thread to sleep?)
+	ResumeThread(checkVersionThread);
+
+
 	//Potential debug loop (useful)
 	if (currTest == model_print) {
 		//logFile = fopen("wz_log.txt", "w");
@@ -4618,6 +4688,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	nid.uID = STATUS_NID;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
+	nid.uVersion = NOTIFYICON_VERSION; //Win2000+ version notifications
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 	nid.hIcon = engIcon;
 	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
