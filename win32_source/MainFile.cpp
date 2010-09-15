@@ -570,8 +570,8 @@ DWORD WINAPI CheckForNewVersion(LPVOID args)
 {
 	try {
 		//Nightlies never check this.
-		if (WZ_VERSION_IS_NIGHTLY)
-			return 0;
+		//if (WZ_VERSION_IS_NIGHTLY)
+		//	return 0;
 
 		//Wait a bit before checking
 		Sleep(10 * 1000);  //10 seconds
@@ -628,7 +628,7 @@ DWORD WINAPI CheckForNewVersion(LPVOID args)
 		//Finally, check. For now, we only fail if our item is in the list but not in the first position.
 		//  This makes it easier to whitelist, say, a "long-term" support version later.
 		int ourIndex = -1;
-		string verString = waitzar::escape_wstr(WZ_VERSION_FULL, false);
+		string verString = waitzar::escape_wstr(WZ_VERSION_MAIN, false);
 		for (size_t i=0; i<lines.size(); i++) {
 			if (lines[i] == verString) {
 				ourIndex = i;
