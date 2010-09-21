@@ -184,7 +184,7 @@ public:
 	Encoding unicodeEncoding;
 
 	//Quality control
-	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);
+	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings);
 
 	//Useful
 	static std::wstring sanitize_id(const std::wstring& str);
@@ -199,7 +199,7 @@ private:
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
 
 	void resolvePartialSettings();
-	void generateInputsDisplaysOutputs();
+	void generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings);
 
 private:
 	//Our many config files.
