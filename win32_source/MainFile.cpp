@@ -115,6 +115,7 @@ using std::map;
 using std::list;
 using std::pair;
 using std::wstringstream;
+using std::ifstream;
 using std::ofstream;
 
 
@@ -123,6 +124,7 @@ const wstring WZ_VERSION_MAIN = L"1.7";
 const bool WZ_VERSION_IS_NIGHTLY = true;
 const wstring WZ_VERSION_FULL = WZ_VERSION_IS_NIGHTLY ? L"NIGHTLY-"+WZ_VERSION_MAIN+L"+" : WZ_VERSION_MAIN;
 bool newVersionAvailable = false;
+const unsigned int FLASH_SAVE_VERSION_NUMBER = 1;
 
 //Menu item texts
 const wstring POPUP_LOOKUP_MM = L"&Look Up Word (F1)";
@@ -807,6 +809,62 @@ vector<string> GetConfigSubDirs(std::string dirToCheck, std::string configFileNa
 }
 
 
+//Quickly load and parse the current input method, etc., for all languages
+void FlashLoadState(map<wstring, vector<wstring> >& lastUsedSettings)
+{
+	//Try to open it.
+	if (pathLocalTinySave.empty())
+		return;
+	wstring buff;
+	try {
+		buff = waitzar::readUTF8File(pathLocalTinySave);
+		if (buff.empty())
+			return;
+	} catch (std::exception ex) {
+		return;
+	}
+
+	//Read the version number
+	size_t i=0;
+	int version = 0;
+	for (;buff[i]!='\n' && i<buff.size();i++) {
+		if (buff[i]>='0' && buff[i]<='1')
+			version = version*10 + (buff[i]-'0');
+	}
+	if (version!=FLASH_SAVE_VERSION_NUMBER)
+		return; //Out-of-date.
+
+	//Now, read each line. Break it down by ":" as well.
+	wstring currLang = L"";
+	wstringstream currOpt;
+	for (i++; i<buff.size(); i++) {
+		//Add this?
+		if (buff[i]!='\r' && buff[i]!='\n' && buff[i]!=':' && buff[i]!='!')
+			currOpt <<buff[i];
+
+		//New option?
+		if (buff[i]==L':' || buff[i]==L'!' || buff[i]==L'\n' || i==buff.size()-1) {
+			if (currLang.empty()) {
+				//Set the language
+				currLang = currOpt.str();
+
+				//Note if it's the default
+				if (buff[i]==L'!') {
+					lastUsedSettings[L"language.default"].push_back(currLang);
+				}
+			} else {
+				//Push back the current value
+				lastUsedSettings[currLang].push_back(currOpt.str());
+			}
+			currOpt.str(L"");
+		}
+
+		//New line?
+		if (buff[i]==L'\n') 
+			currLang = L"";
+	}
+}
+
 
 //Quickly save the current input method, etc. for all languages.
 void FlashSaveState()
@@ -823,10 +881,10 @@ void FlashSaveState()
 	wstringstream outStr;
 	try {
 		//Write a version number
-		outStr <<L"1\n";
+		outStr <<FLASH_SAVE_VERSION_NUMBER <<L"\n";
 		for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
 			if (it->id==config.activeLanguage.id) {
-				outStr <<config.activeLanguage.id <<L":" <<config.activeInputMethod->id <<L":";
+				outStr <<config.activeLanguage.id <<L"!" <<config.activeInputMethod->id <<L":"; //Use a "!" to mean "default"
 				outStr <<config.activeOutputEncoding.id <<L":" <<config.activeDisplayMethods[0]->id <<L":";
 				outStr <<config.activeDisplayMethods[1]->id <<L"\n";
 			} else {
@@ -3964,9 +4022,19 @@ bool findAndLoadAllConfigFiles()
 {
 	//Find all config files
 	bool suppressThisException = false;
+	map<wstring, vector<wstring> > lastUsedSettings;
 	try {
 		//Build up known path names, save globally for future use.
 		buildFilePathNames();
+
+		//First, load the flash-save and parse it.
+		try {
+			//Get the file.
+			FlashLoadState(lastUsedSettings);
+		} catch (std::exception ex) {
+			//Doesn't much matter if this fails; just pass an empty map.
+			lastUsedSettings.clear();
+		}
 
 		//Set the main config file
 		config.initMainConfig(pathMainConfig);
@@ -4096,7 +4164,7 @@ bool findAndLoadAllConfigFiles()
 
 		//Final test: make sure all config files work
 		Logger::startLogTimer('L', L"Reading & validating config files");
-		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
 	} catch (std::exception& ex) {
@@ -4139,9 +4207,9 @@ bool findAndLoadAllConfigFiles()
 			Logger::markLogTime('L', L"Config files loaded: DEFAULT is taking over");
 
 			//One more test.
-			config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+			config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 			Logger::markLogTime('L', L"Config files validated: DEFAULT is taking over");
-		} catch (std::exception ex2) {
+		} catch (std::exception& ex2) {
 			std::wstringstream msg2;
 			msg2 << "Error loading default config file.\nWaitZar will not be able to function, and is shutting down.\n\nDetails:\n";
 			msg2 << ex2.what();

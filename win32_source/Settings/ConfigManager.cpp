@@ -156,7 +156,7 @@ void ConfigManager::resolvePartialSettings()
 //Make our model worrrrrrrrk......
 // (Note: We also need to replace all of our placeholder encodings with the real thing.
 //        We can't use references, since those might be in validated if we somehow resized the container).
-void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard) 
+void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings) 
 {
 	//Step 1: Read
 	getSettings();
@@ -176,7 +176,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	Logger::markLogTime('L', L"Resolved partial settings.");
 
 	//Step 3: Make it useful
-	generateInputsDisplaysOutputs();
+	generateInputsDisplaysOutputs(lastUsedSettings);
 	Logger::markLogTime('L', L"Generated list of input/output/display/encodings.");
 
 	//Step 4: Set our current language, input method, etc.
@@ -196,22 +196,55 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 //Validate all Input Managers, Display Managers, Outputs, and Transformations; make
 //     sure the right encodings (and transformations) exist for each.
 //Then, build fast-to-lookup data structures for actual use in WZ.
-void ConfigManager::generateInputsDisplaysOutputs() 
+//   lastUsedSettings = languageid -> [lastInput, lastOutput, lastDispBig, lastDispSmall]
+void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings) 
 {
 	//Cache our self2self lookup
 	self2self = new Self2Self();
 
 	//Validate our settings
 	//TODO: Check the hotkey, later
+	//TODO: Check the "language.default" key in lastUsedSettings for the default language.
 	if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end())
 		throw std::exception(glue(L"Settings references non-existant default language: ", options.settings.defaultLanguage).c_str());
 
 	//Validate over each language
 	for (std::set<Language>::iterator lg=options.languages.begin(); lg!=options.languages.end(); lg++) {
+		//Get the current "backup" input/encoding for this language
+		map<wstring, vector<wstring> >::const_iterator thisLangLast =  lastUsedSettings.find(lg->id);
+		wstring lastUsedInput = thisLangLast==lastUsedSettings.end() ? L"" : thisLangLast->second[0];
+		wstring lastUsedOutput = thisLangLast==lastUsedSettings.end() ? L"" : thisLangLast->second[1];
+
+		//First, if either of the default input/output methods/encodings is "lastused", then see if their respective 
+		// lastUsed items exists. If so, set that. If not, keep the setting.
+		size_t luID = lg->defaultInputMethod.find(L"lastused");
+		if (luID != wstring::npos && !lastUsedInput.empty()) {
+			//Retrieve the default value.
+			wstring defaultVal = lg->defaultInputMethod.substr(0, luID-1);
+
+			//Check if the input method exists
+			if (FindKeyInSet(lg->inputMethods, lastUsedInput)==lg->inputMethods.end())
+				lg->defaultInputMethod = defaultVal;
+			else
+				lg->defaultInputMethod = lastUsedInput;
+		}
+		luID = lg->defaultOutputEncoding.id.find(L"lastused");
+		if (luID != wstring::npos && !lastUsedOutput.empty()) {
+			//Retrieve the default value.
+			wstring defaultVal = lg->defaultOutputEncoding.id.substr(0, luID-1);
+
+			//Check if the input method exists
+			lg->defaultOutputEncoding.id = lastUsedOutput;
+			if (lg->encodings.find(lg->defaultOutputEncoding)==lg->encodings.end())
+				lg->defaultOutputEncoding.id = defaultVal;
+			else
+				lg->defaultOutputEncoding.id = lastUsedOutput;
+		}
+
 		//Substitute the encoding
 		std::set<Encoding>::iterator defEnc = lg->encodings.find(lg->defaultOutputEncoding);
 		if (defEnc!=lg->encodings.end())
-			lg->defaultOutputEncoding = *defEnc;
+			lg->defaultOutputEncoding = *defEnc; //We have to re-set it, since the original "defaultOutputEncoding" is just a placeholder.
 		else
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default output encoding: ", lg->defaultOutputEncoding.id).c_str());
 
@@ -365,10 +398,26 @@ const Settings& ConfigManager::getSettings()
 
 		//Parse each config file in turn.
 		//First: main config
+		{
 		vector<wstring> ctxt;
 		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false);
+		}
+
+		//Parse each language config file.
+		// (Note: This will all have to be moved out eventually.... we can't put this into loadLanguageMainFiles() because
+		//   the local/user configs might expect certain languages to be loaded.)
+		{
+			vector<wstring> ctxt;
+			for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
+				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false);
+				for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false);
+				}
+			}
+		}
 
 		//Next: local and user configs
+		vector<wstring> ctxt;
 		if (this->localConfig.isSet())
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true);
 		if (this->userConfig.isSet())
@@ -390,12 +439,6 @@ void ConfigManager::loadLanguageMainFiles()
 	if (!this->loadedSettings)
 		throw std::exception("Must load settings before language main files.");
 
-	//Parse each language config file.
-	vector<wstring> ctxt;
-	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-		this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false);
-	}
-
 	//Done
 	loadedLanguageMainFiles = true;
 }
@@ -406,14 +449,6 @@ void ConfigManager::loadLanguageSubFiles()
 	//Main config file must be read by now
 	if (!this->loadedSettings)
 		throw std::exception("Must load settings before language sub files.");
-
-	//Parse each language config file.
-	vector<wstring> ctxt;
-	for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-		for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-			this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false);
-		}
-	}
 
 	//Done
 	loadedLanguageSubFiles = true;
