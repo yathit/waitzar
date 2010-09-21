@@ -4099,7 +4099,7 @@ bool findAndLoadAllConfigFiles()
 		config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
-	} catch (std::exception ex) {
+	} catch (std::exception& ex) {
 		//In case of errors, just reset & use the embedded file
 		config = ConfigManager(getMD5Hash);
 
