@@ -1,4 +1,4 @@
-﻿##NOTE: Old config settings; make sure to handle these in code before release WZ 1.8:
+##NOTE: Old config settings; make sure to handle these in code before release WZ 1.8:
 #hotkey = ^+
 #mywordswarning = no
 #silencemywordserrors = no
