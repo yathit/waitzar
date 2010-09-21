@@ -540,9 +540,20 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 				options.settings.trackCaret = read_bool(value);
 			else if (name[1] == sanitize_id(L"lock-windows"))
 				options.settings.lockWindows = read_bool(value);
-			else if (name[1] == sanitize_id(L"default-language"))
-				options.settings.defaultLanguage = sanitize_id(value);
-			else
+			else if (name[1] == sanitize_id(L"default-language")) {
+				//We have to handle "lastused" values slightly differently.
+				wstring defLang = sanitize_id(value);
+				if (defLang==L"lastused") {
+					//First, make sure we're not setting this in an inappropriate location.
+					if (options.settings.defaultLanguage.empty())
+						throw std::runtime_error("Cannot specify a default language of \"lastused\" unless a fallback default is specified.");
+					if (options.settings.defaultLanguage.find(L"lastused")==wstring::npos)
+						options.settings.defaultLanguage += L".lastused"; //E.g., "myanmar.lastused"
+				} else {
+					//Normal setting
+					options.settings.defaultLanguage = defLang;
+				}
+			} else
 				throw 1;
 
 			//Done
@@ -566,15 +577,37 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 			//Static settings
 			if (name[2] == sanitize_id(L"display-name"))
 				lang->displayName = value;
-			else if (name[2] == sanitize_id(L"default-output-encoding"))
-				lang->defaultOutputEncoding.id = sanitize_id(value);
-			else if (name[2] == sanitize_id(L"default-display-method"))
+			else if (name[2] == sanitize_id(L"default-output-encoding")) {
+				//We have to handle "lastused" values slightly differently.
+				wstring defOutput = sanitize_id(value);
+				if (defOutput==L"lastused") {
+					//First, make sure we're not setting this in an inappropriate location.
+					if (lang->defaultOutputEncoding.id.empty())
+						throw std::runtime_error("Cannot specify a default output encoding of \"lastused\" unless a fallback default is specified.");
+					if (lang->defaultOutputEncoding.id.find(L"lastused")==wstring::npos)
+						lang->defaultOutputEncoding.id += L".lastused"; //E.g., "unicode.lastused"
+				} else {
+					//Normal setting
+					lang->defaultOutputEncoding.id = defOutput;
+				}
+			} else if (name[2] == sanitize_id(L"default-display-method"))
 				lang->defaultDisplayMethodReg = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-display-method-small"))
 				lang->defaultDisplayMethodSmall = sanitize_id(value);
-			else if (name[2] == sanitize_id(L"default-input-method"))
-				lang->defaultInputMethod = sanitize_id(value);
-			else {
+			else if (name[2] == sanitize_id(L"default-input-method")) {
+				//We have to handle "lastused" values slightly differently.
+				wstring defInput = sanitize_id(value);
+				if (defInput==L"lastused") {
+					//First, make sure we're not setting this in an inappropriate location.
+					if (lang->defaultInputMethod.empty())
+						throw std::runtime_error("Cannot specify a default input method of \"lastused\" unless a fallback default is specified.");
+					if (lang->defaultInputMethod.find(L"lastused")==wstring::npos)
+						lang->defaultInputMethod += L".lastused"; //E.g., "ayarkbd.lastused"
+				} else {
+					//Normal setting
+					lang->defaultInputMethod = defInput;
+				}
+			} else {
 				//Need to finish all partial settings
 				if (name.size()<=4)
 					throw 1;
