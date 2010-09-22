@@ -202,9 +202,26 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 	//Cache our self2self lookup
 	self2self = new Self2Self();
 
+	//What was the last-used language?
+	map<wstring, vector<wstring> >::const_iterator lastDefaultLang = lastUsedSettings.find(L"language.default");
+	wstring lastUsedLang = lastDefaultLang==lastUsedSettings.end() ? L"" : lastDefaultLang->second[0];
+
+	//Check and replace the "lastused" language, if it exists. 
+	size_t luID = options.settings.defaultLanguage.find(L"lastused");
+	if (luID!=wstring::npos) {
+		//Retrieve the default value.
+		wstring defaultVal = options.settings.defaultLanguage.substr(0, luID-1);
+
+		//Apply it if we have a last-used lang
+		//Also check if the language exists
+		if (lastUsedLang.empty() || FindKeyInSet(options.languages, lastUsedLang)==options.languages.end())
+			options.settings.defaultLanguage = defaultVal;
+		else
+			options.settings.defaultLanguage = lastUsedLang;
+	}
+
 	//Validate our settings
 	//TODO: Check the hotkey, later
-	//TODO: Check the "language.default" key in lastUsedSettings for the default language.
 	if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end())
 		throw std::exception(glue(L"Settings references non-existant default language: ", options.settings.defaultLanguage).c_str());
 
@@ -217,25 +234,25 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 
 		//First, if either of the default input/output methods/encodings is "lastused", then see if their respective 
 		// lastUsed items exists. If so, set that. If not, keep the setting.
-		size_t luID = lg->defaultInputMethod.find(L"lastused");
-		if (luID != wstring::npos && !lastUsedInput.empty()) {
+		luID = lg->defaultInputMethod.find(L"lastused");
+		if (luID != wstring::npos) {
 			//Retrieve the default value.
 			wstring defaultVal = lg->defaultInputMethod.substr(0, luID-1);
 
 			//Check if the input method exists
-			if (FindKeyInSet(lg->inputMethods, lastUsedInput)==lg->inputMethods.end())
+			if (lastUsedInput.empty() || FindKeyInSet(lg->inputMethods, lastUsedInput)==lg->inputMethods.end())
 				lg->defaultInputMethod = defaultVal;
 			else
 				lg->defaultInputMethod = lastUsedInput;
 		}
 		luID = lg->defaultOutputEncoding.id.find(L"lastused");
-		if (luID != wstring::npos && !lastUsedOutput.empty()) {
+		if (luID != wstring::npos) {
 			//Retrieve the default value.
 			wstring defaultVal = lg->defaultOutputEncoding.id.substr(0, luID-1);
 
 			//Check if the input method exists
 			lg->defaultOutputEncoding.id = lastUsedOutput;
-			if (lg->encodings.find(lg->defaultOutputEncoding)==lg->encodings.end())
+			if (lastUsedOutput.empty() || lg->encodings.find(lg->defaultOutputEncoding)==lg->encodings.end())
 				lg->defaultOutputEncoding.id = defaultVal;
 			else
 				lg->defaultOutputEncoding.id = lastUsedOutput;
