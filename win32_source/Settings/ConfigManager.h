@@ -129,17 +129,27 @@ private:
 	mutable bool hasParsed;
 };
 
+//Hotkey wrapper
+struct HotkeyData {
+	wstring hotkeyStrFormatted;
+	int hotkeyID;
+	unsigned int hkModifiers;
+	unsigned int hkVirtKeyCode;
+};
 
 //Options for our ConfigManager class
 struct Settings {
 	//Simple
-	std::wstring hotkey;
+	std::wstring hotkeyStrRaw;
 	bool silenceMywordsErrors;
 	bool balloonStart;
 	bool alwaysElevate;
 	bool trackCaret;
 	bool lockWindows;
 	std::wstring defaultLanguage;
+
+	//Derived
+	HotkeyData hotkey;
 };
 struct OptionTree {
 	Settings settings;
@@ -200,6 +210,7 @@ private:
 
 	void resolvePartialSettings();
 	void generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings);
+	void generateHotkeyValues();
 
 private:
 	//Our many config files.

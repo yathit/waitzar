@@ -138,7 +138,6 @@ bool isDragging;
 POINT dragFrom;
 
 //Unique IDs
-const unsigned int LANG_HOTKEY = 142;
 const unsigned int STATUS_NID = 144;
 
 //Custom message IDs
@@ -226,7 +225,7 @@ unsigned int numInputOptions;
 
 PAINTSTRUCT Ps;
 WORD stopChar;
-int numConfigOptions;
+//int numConfigOptions;
 int numCustomWords;
 INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
@@ -316,8 +315,8 @@ ConfigManager config(getMD5Hash);
 
 
 //These two will take some serious fixing later.
-wstring hkString;
-string hkRaw;
+//wstring hkString;
+//string hkRaw;
 
 //To-do: make this settable via the config file; that way,
 //   we can simply set it and disable the help window for good.
@@ -326,8 +325,8 @@ bool suppressMemoryWindow = false;
 
 //More old-style settings; have to remove somehow.
 bool highlightKeys = true;
-string fontFileRegular;
-string fontFileSmall;
+//string fontFileRegular;
+//string fontFileSmall;
 
 //Another possible setting & its associated thread data
 bool checkLatestVersion = true;
@@ -1249,38 +1248,38 @@ BOOL waitzarAlreadyStarted()
 }*/
 
 
-void loadConfigOptions()
-{
+//void loadConfigOptions()
+//{
 	//Default keys
-	hkString  = L"Ctrl+Shift";
-	hkRaw = "^+";
+	//hkString  = L"Ctrl+Shift";
+	//hkRaw = "^+";
 
 	//Default encoding
 	//setEncoding(ENCODING_UNICODE);
 
 	//Default font files
-	fontFileRegular = "";
-	fontFileSmall = "";
+	//fontFileRegular = "";
+	//fontFileSmall = "";
 
 	//Read our config file, if it exists.
-	numConfigOptions = -1;
-	FILE* configFile = fopen("config.txt", "r");
-	if (configFile == NULL)
-		return;
+	//numConfigOptions = -1;
+	//FILE* configFile = fopen("config.txt", "r");
+	//if (configFile == NULL)
+	//	return;
 
 	//Get file size
-	fseek (configFile, 0, SEEK_END);
-	long fileSize = ftell(configFile);
-	rewind(configFile);
+	//fseek (configFile, 0, SEEK_END);
+	//long fileSize = ftell(configFile);
+	//rewind(configFile);
 
 	//Read it all into an array, close the file.
-	char * buffer = (char*) malloc(sizeof(char)*fileSize);
-	size_t buff_size = fread(buffer, 1, fileSize, configFile);
-	fclose(configFile);
+	//char * buffer = (char*) malloc(sizeof(char)*fileSize);
+	//size_t buff_size = fread(buffer, 1, fileSize, configFile);
+	//fclose(configFile);
 
 
 	//Read each line
-	numConfigOptions = 0;
+	/*numConfigOptions = 0;
 	char* name = new char[100];
 	char* value = new char[100];
 	for (size_t i=0; i<buff_size;) {
@@ -1304,41 +1303,27 @@ void loadConfigOptions()
 		} else if (strcmp(name, "charaset")==0) {
 		} else if (strcmp(name, "defaultencoding")==0) {
 		} else if (strcmp(name, "hotkey")==0) {
-			//Set it later
-			hkRaw = string(value);
-			numConfigOptions++;
 		} else if (strcmp(name, "fontfileregular")==0) {
-			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
-			} else {
-				fontFileRegular = string(value);
-			}
-			numConfigOptions++;
 		} else if (strcmp(name, "fontfilesmall")==0) {
-			if (strcmp(value, "embedded")==0 || strcmp(value, "default")==0) {
-			} else {
-				fontFileSmall = string(value);
-			}
-			numConfigOptions++;
 		}
-
-	}
+	}*/
 
 	//Get rid of our buffer
-	free(buffer);
-	delete [] name;
-	delete [] value;
-}
+	//free(buffer);
+	//delete [] name;
+	//delete [] value;
+//}
 
 
 
 bool registerInitialHotkey()
 {
-	UINT modifier = 0;
-	UINT keycode = 0;
+	//UINT modifier = 0;
+	//UINT keycode = 0;
 
 	//Now, set the keycode
 	//Additional rule: all keystroke modifiers must also themselves be modifiers
-	keycode = hkRaw[hkRaw.length()-1];
+	/*keycode = hkRaw[hkRaw.length()-1];
 	switch(keycode) {
 		case '!':
 			hkString = L"Alt";
@@ -1391,9 +1376,11 @@ bool registerInitialHotkey()
 	//Additional rule: Lowercase letters are coded by their uppercase value
 	if (keycode>='a' && keycode<='z') {
 		keycode -= 'a'-'A';
-	}
+	}*/
 
-	return mainWindow->registerHotKey(LANG_HOTKEY, modifier, keycode);
+	//return mainWindow->registerHotKey(LANG_HOTKEY, modifier, keycode);
+	const HotkeyData& hk = config.getSettings().hotkey;
+	return mainWindow->registerHotKey(LANGUAGE_HOTKEY, hk.hkModifiers, hk.hkVirtKeyCode);
 }
 
 
@@ -2219,7 +2206,7 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 				//Line 2
 				txtS.str(L"");
-				txtS <<hkString <<" - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".";
+				txtS <<config.getSettings().hotkey.hotkeyStrFormatted <<" - Switch between Myanmar and English\nType Burmese words like they sound, and press \"space\".";
 				pendingItems.push_back(WControl(IDC_HELP_L2, txtS.str(), L"STATIC", false, txtR.left));
 				pendingItems[pendingItems.size()-1].hPlus = fHeight*3;
 
@@ -3242,7 +3229,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 {
 	switch (hotkeyCode) {
-		case LANG_HOTKEY:
+		case LANGUAGE_HOTKEY:
 			//Switch language
 			switchToLanguage(!mmOn);
 			return true;
@@ -3510,10 +3497,10 @@ void updateContextMenuState()
 {
 	//Hotkey string, check mark for the current language.
 	std::wstringstream txt;
-	txt <<L"English (" <<hkString <<")";
+	txt <<L"English (" <<config.getSettings().hotkey.hotkeyStrFormatted <<")";
 	ModifyMenu(contextMenu, IDM_ENGLISH, MF_BYCOMMAND|(mmOn?0:MF_CHECKED), IDM_ENGLISH, txt.str().c_str());
 	txt.str(L"");
-	txt <<L"Myanmar (" <<hkString <<")";
+	txt <<L"Myanmar (" <<config.getSettings().hotkey.hotkeyStrFormatted <<")";
 	ModifyMenu(contextMenu, IDM_MYANMAR, MF_BYCOMMAND|(mmOn?MF_CHECKED:0), IDM_MYANMAR, txt.str().c_str());
 
 	//Set a check for the "Look Up Word" function
@@ -3951,7 +3938,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_DESTROY:
 		{
 			//Cleanup
-			if (!mainWindow->unregisterHotKey(LANG_HOTKEY))
+			if (!mainWindow->unregisterHotKey(LANGUAGE_HOTKEY))
 				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
 			if (mmOn) {
 				if (!turnOnAlphaHotkeys(false, true, true))
@@ -4493,7 +4480,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Load our configuration file now; save some headaches later
 	//NOTE: These are the OLD config settings; we should be able to remove them eventually.
-	loadConfigOptions();
+	//loadConfigOptions();  //~finally~ all removed
 
 
 	//Give this process a low background priority
@@ -4612,7 +4599,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
 		if (testFileName.empty())
-			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick this icon for more options."), hkString.c_str());
+			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick this icon for more options."), config.getSettings().hotkey.hotkeyStrFormatted.c_str());
 		else
 			swprintf(nid.szInfo, _T("WaitZar is running regression tests. \n\nPlease wait for these to finish."));
 		//nid.uTimeout = 20; //Timeout is invalid as of vista
