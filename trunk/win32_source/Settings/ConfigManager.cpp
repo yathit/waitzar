@@ -405,6 +405,99 @@ void ConfigManager::overrideSetting(const wstring& settingName, bool value)
 
 
 
+//Take the raw hotkey string and generate a formatted string + hotkey register combo.
+void ConfigManager::generateHotkeyValues()
+{
+	//Parse the raw string; build up a vector of substrings in reverse
+	vector<wstring> hkSubs;
+	const wstring& src = options.settings.hotkeyStrRaw;
+	std::wstringstream segment;
+	for (size_t i=0; i<src.size(); i++) {
+		//Skip non-ascii
+		char c = (char)src[i];
+		if (src[i]>0x7F)
+			c = '\0'; //Needed to allow for the final string to be added...
+
+		//Capitalize
+		if (c>='a'&&c<='z')
+			c = (c-'a')+'A';
+
+		//Valid?
+		if((c>='A'&&c<='Z')||(c>='0'&&c<='9'))
+			segment <<c;
+
+		//Done?
+		if ((c=='+'||i==src.size()-1) && !segment.str().empty()) {
+			hkSubs.insert(hkSubs.begin(), segment.str());
+			segment.str(L"");
+		}
+	}
+
+	//Build up the hotkey data: key code
+	options.settings.hotkey.hotkeyID = LANGUAGE_HOTKEY;
+
+	//Enough?
+	if (hkSubs.empty())
+		throw std::runtime_error("Invalid hotkey: empty string");
+
+	//Build up the hotkey data: vk 
+	unsigned int vk = 0;
+	if (hkSubs[0]==L"SPACE")
+		vk = VK_SPACE;
+	else if (hkSubs[0]==L"CTRL")
+		vk = VK_CONTROL;
+	else if (hkSubs[0]==L"SHIFT")
+		vk = VK_SHIFT;
+	else if (hkSubs[0]==L"ALT")
+		vk = VK_MENU; //VK_MENU == VK_ALT
+	else if (hkSubs[0].length()==1) {
+		if ((hkSubs[0][0]>='A'&&hkSubs[0][0]<='Z')||(hkSubs[0][0]>='0'&&hkSubs[0][0]<='9'))
+			vk = hkSubs[0][0];   //Capital letters (or numbers) for vk codes
+		else
+			throw std::runtime_error(waitzar::glue(L"Invalid hotkey letter: ", hkSubs[0]).c_str());
+	} else
+		throw std::runtime_error(waitzar::glue(L"Invalid hotkey letter: ", hkSubs[0]).c_str());
+	options.settings.hotkey.hkVirtKeyCode = vk;
+
+	//Build up the hotkey data: modifiers
+	unsigned int mod = 0;
+	for (size_t i=1; i<hkSubs.size(); i++) {
+		if (hkSubs[i]==L"CTRL")
+			mod |= MOD_CONTROL;
+		else if (hkSubs[i]==L"SHIFT")
+			mod |= MOD_SHIFT;
+		else if (hkSubs[i]==L"ALT")
+			mod |= MOD_ALT;
+		else
+			throw std::runtime_error(waitzar::glue(L"Invalid hotkey modifier: ", hkSubs[i]).c_str());
+	}
+	options.settings.hotkey.hkModifiers = mod;
+
+	//Build up the formatted string (at this point, we know all arguments are correct)
+	wstring fmt = L"";
+	for (int i=hkSubs.size()-1; i>=0; i--) {
+		if (hkSubs[i]==L"CTRL")
+			fmt += L"Ctrl";
+		else if (hkSubs[i]==L"SHIFT")
+			fmt += L"Shift";
+		else if (hkSubs[i]==L"ALT")
+			fmt += L"Alt";
+		else if (hkSubs[i]==L"SPACE")
+			fmt += L"Space";
+		else
+			fmt += hkSubs[i];
+
+		if (i!=0)
+			fmt += L"+";
+	}
+	options.settings.hotkey.hotkeyStrFormatted = fmt;
+
+	//Final check
+	if (((vk>='A'&&vk<='Z')||(vk>='0'&&vk<='9'))&&(mod==MOD_SHIFT||mod==0))
+		throw std::runtime_error(waitzar::glue(L"Invalid hotkey: ", fmt, L" --overlaps existing typable letter.").c_str());
+}
+
+
 const Settings& ConfigManager::getSettings() 
 {
 	//Load if needed
@@ -439,6 +532,8 @@ const Settings& ConfigManager::getSettings()
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true);
 		if (this->userConfig.isSet())
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true);
+
+		generateHotkeyValues();
 
 		//Done
 		loadedSettings = true;
@@ -581,7 +676,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 			//Set this based on name/value pair
 			if (name[1] == L"hotkey")
-				options.settings.hotkey = sanitize_id(value);
+				options.settings.hotkeyStrRaw = sanitize_id(value);
 			else if (name[1] == sanitize_id(L"silence-mywords-errors"))
 				options.settings.silenceMywordsErrors = read_bool(value);
 			else if (name[1] == sanitize_id(L"balloon-start"))

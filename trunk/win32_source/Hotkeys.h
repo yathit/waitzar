@@ -138,7 +138,8 @@ enum {
 	HOTKEY_SHIFT_SEMICOLON = 139,
 	HOTKEY_SHIFT_APOSTROPHE = 140,
 	HOTKEY_MINUS = 141,
-	//Hotkey 142 somehow crashes our virtual keyboard. Needs looking into...
+	//Hotkey 142 somehow crashes our virtual keyboard. Needs looking into... //HAHA, that's because we used
+	//   it as the language hotkey. Stupid us....
 	HOTKEY_SHIFT_MINUS = 143,
 	HOTKEY_SHIFT_EQUALS = 144,
 	HOTKEY_EQUALS = 145,
@@ -154,6 +155,8 @@ enum {
 	HOTKEY_PAGEDOWN = 153,
 	HOTKEY_TAB = 154,
 	HOTKEY_SHIFT_TAB = 155,
+
+	LANGUAGE_HOTKEY = 156,
 }; 
 
 //Easier way of storing hotkeys
