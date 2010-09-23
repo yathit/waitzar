@@ -4191,12 +4191,23 @@ bool findAndLoadAllConfigFiles()
 		Logger::markLogTime('L', L"Config files validated");
 	} catch (std::exception& ex) {
 		//In case of errors, just reset & use the embedded file
+		bool locError = config.localConfigCausedError();
 		config = ConfigManager(getMD5Hash);
+
+		//Delete the local config file if this caused the error
+		if (locError) {
+			std::wstringstream temp;
+			temp << pathLocalConfig.c_str();
+			config.saveLocalConfigFile(temp.str(), true);
+		}
 
 		//Inform the user, UNLESS they set the magic number...
 		if (!suppressThisException) {
 			std::wstringstream msg;
-			msg << "Error loading one of your config files.\nWaitZar will use the default configuration.\n\nDetails:\n";
+			msg << "Error loading one of your config files.\nWaitZar will use the default configuration.\n";
+			if (locError)
+				msg << "WaitZar has deleted an invalid setting in the LOCAL config cache. Try restarting WaitZar to see if this fixed the problem.\n";
+			msg << "\nDetails:\n";
 			msg << ex.what();
 			MessageBox(NULL, msg.str().c_str(), L"Config File Error", MB_ICONWARNING | MB_OK);
 		}
