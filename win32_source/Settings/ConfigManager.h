@@ -186,6 +186,12 @@ public:
 	const std::set<DisplayMethod*>& getDisplayMethods();
 	void overrideSetting(const std::wstring& settingName, bool value);
 
+	//Helpful
+	std::wstring getLocalConfigOpt(const std::wstring& key);
+	void clearLocalConfigOpt(const std::wstring& key);
+	void setLocalConfigOpt(const std::wstring& key, const std::wstring& val);
+	void saveLocalConfigFile(const std::wstring& path, bool emptyFile);
+
 	//Control
 	Language activeLanguage;
 	Encoding activeOutputEncoding;
@@ -205,7 +211,7 @@ public:
 
 
 private:
-	void readInConfig(json_spirit::wValue root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted);
+	void readInConfig(json_spirit::wValue root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet);
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
 
 	void resolvePartialSettings();
@@ -241,6 +247,7 @@ private:
 
 	//The actual representation
 	OptionTree options;
+	map<wstring, wstring> localOpts;
 
 	//Cache
 	Transformation* self2self;
