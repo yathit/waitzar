@@ -159,6 +159,7 @@ void ConfigManager::resolvePartialSettings()
 void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings) 
 {
 	//Step 1: Read
+	localConfError = false;
 	getSettings();
 	getLanguages();
 	getEncodings();
@@ -222,8 +223,11 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 
 	//Validate our settings
 	//TODO: Check the hotkey, later
-	if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end())
+	if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end()) {
+		if (getLocalConfigOpt(L"settings.defaultlanguage")==options.settings.defaultLanguage)
+			localConfError = true;
 		throw std::exception(glue(L"Settings references non-existant default language: ", options.settings.defaultLanguage).c_str());
+	}
 
 	//Validate over each language
 	for (std::set<Language>::iterator lg=options.languages.begin(); lg!=options.languages.end(); lg++) {
@@ -262,8 +266,11 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 		std::set<Encoding>::iterator defEnc = lg->encodings.find(lg->defaultOutputEncoding);
 		if (defEnc!=lg->encodings.end())
 			lg->defaultOutputEncoding = *defEnc; //We have to re-set it, since the original "defaultOutputEncoding" is just a placeholder.
-		else
+		else {
+			if (getLocalConfigOpt(L"languages." + lg->id + L".defaultoutputencoding")==lg->defaultOutputEncoding.id)
+				localConfError = true;
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default output encoding: ", lg->defaultOutputEncoding.id).c_str());
+		}
 
 		//Next, validate some default settings of the language
 		if (!defEnc->canUseAsOutput)
@@ -272,8 +279,11 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default display method: ", lg->defaultDisplayMethodReg).c_str());
 		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethodSmall)==lg->displayMethods.end())
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant \"small\" default display method: ", lg->defaultDisplayMethodSmall).c_str());
-		if (FindKeyInSet(lg->inputMethods, lg->defaultInputMethod)==lg->inputMethods.end())
+		if (FindKeyInSet(lg->inputMethods, lg->defaultInputMethod)==lg->inputMethods.end()) {
+			if (getLocalConfigOpt(L"languages." + lg->id + L".defaultinputmethod")==lg->defaultInputMethod)
+				localConfError = true;
 			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default input method: ", lg->defaultInputMethod).c_str());
+		}
 
 		//TODO: Right now, "unicode" is hard-coded into a lot of places. Is there a better way?
 		std::set<Encoding>::iterator uniEnc = FindKeyInSet(lg->encodings, L"unicode");
@@ -422,6 +432,12 @@ void ConfigManager::clearLocalConfigOpt(const wstring& key)
 void ConfigManager::setLocalConfigOpt(const wstring& key, const wstring& val)
 {
 	localOpts[key] = val;
+}
+
+
+bool ConfigManager::localConfigCausedError()
+{
+	return localConfError;
 }
 
 
