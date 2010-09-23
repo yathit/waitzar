@@ -2361,8 +2361,8 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	//Add all combo item entries.
 	SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)L"N/A");
 	SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)L"N/A");
-	SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)L"(Auto)");
-	SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)L"(Auto)");
+	SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)L"(Last Used)");
+	SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)L"(Last Used)");
 	size_t count = 0;
 	for (std::set<InputMethod*>::const_iterator it2=lng.inputMethods.begin(); it2!=lng.inputMethods.end(); it2++) {
 		SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
