@@ -450,6 +450,8 @@ void ConfigManager::generateHotkeyValues()
 		vk = VK_SHIFT;
 	else if (hkSubs[0]==L"ALT")
 		vk = VK_MENU; //VK_MENU == VK_ALT
+	else if (hkSubs[0]==L"WIN")
+		throw std::runtime_error("Invalid hotkey: WIN can't be the main hotkey, only a modifier.");
 	else if (hkSubs[0].length()==1) {
 		if ((hkSubs[0][0]>='A'&&hkSubs[0][0]<='Z')||(hkSubs[0][0]>='0'&&hkSubs[0][0]<='9'))
 			vk = hkSubs[0][0];   //Capital letters (or numbers) for vk codes
@@ -468,9 +470,18 @@ void ConfigManager::generateHotkeyValues()
 			mod |= MOD_SHIFT;
 		else if (hkSubs[i]==L"ALT")
 			mod |= MOD_ALT;
+		else if (hkSubs[i]==L"WIN")
+			throw std::runtime_error("Invalid hotkey modifier: WIN is reserved for use by the Windows Operating System.");
 		else
 			throw std::runtime_error(waitzar::glue(L"Invalid hotkey modifier: ", hkSubs[i]).c_str());
 	}
+	//Add modifiers for the keys themselves
+	if (vk==VK_SHIFT)
+		mod |= MOD_SHIFT;
+	else if (vk==VK_CONTROL)
+		mod |= MOD_CONTROL;
+	else if (vk==VK_MENU)
+		mod |= MOD_ALT;
 	options.settings.hotkey.hkModifiers = mod;
 
 	//Build up the formatted string (at this point, we know all arguments are correct)
@@ -484,6 +495,8 @@ void ConfigManager::generateHotkeyValues()
 			fmt += L"Alt";
 		else if (hkSubs[i]==L"SPACE")
 			fmt += L"Space";
+		else if (hkSubs[i]==L"WIN")
+			fmt += L"Win";
 		else
 			fmt += hkSubs[i];
 

@@ -72,7 +72,7 @@
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
 //#include <winuser.h> //For colors
-#include <psapi.h> //For getting a list of currently running processes
+#include <Tlhelp32.h> //For getting a list of currently running processes
 //#include <wingdi.h> //For the TEXTINFO stuff
 #include <shlobj.h> //GetFolderPath
 #include <urlmon.h> //File downloads
@@ -1201,34 +1201,48 @@ void makeFont()
 
 
 
-BOOL waitzarAlreadyStarted()
+bool waitzarAlreadyStarted()
 {
-	//Get all processes
-	DWORD aProcesses[1024], cbNeeded, cProcesses;
-	if ( !EnumProcesses( aProcesses, sizeof(aProcesses), &cbNeeded ) )
-        return FALSE;
-	cProcesses = cbNeeded / sizeof(DWORD);
+	//Get a snapshot
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if( hProcessSnap == INVALID_HANDLE_VALUE)
+		return false;
 
-	//Check for "WaitZar"
-	TCHAR szProcessName[MAX_PATH];
-	for (unsigned int i=0; i<cProcesses; i++ ) {
-		if( aProcesses[i] != 0 ) {
-			//Open a handle to this process, get its name
-			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, aProcesses[i]);
-			if (hProcess!=NULL) {
-				HMODULE hMod;
-				DWORD cbNeeded;
-				lstrcpy(szProcessName, _T("<unknown>"));
-				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
-					GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName)/sizeof(TCHAR));
-					if (lstrcmp(szProcessName, _T("WaitZar.exe"))==0)
-						return TRUE;
-				}
-			}
-        }
-	}
+	//Get information on the first process
+	PROCESSENTRY32 pe32;
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+	if(!Process32First(hProcessSnap, &pe32))
+		return false;
 
-	return FALSE;
+	//Check each process
+	bool wzProcExists = false;
+	DWORD currThreadID = GetCurrentProcessId();
+	do {
+		if (wstring(pe32.szExeFile) == L"WaitZar.exe") {
+			//Is this the current WZ process?
+			if (currThreadID==pe32.th32ProcessID)
+				continue;
+
+			//Ok, handle it
+			//CODE TO EXIT THE PREVIOUSLY_RUNNING VERSION OF WZ, not needed for now..
+			/*HANDLE wzProc = OpenProcess(PROCESS_TERMINATE, false, pe32.th32ProcessID);
+			if (wzProc!=NULL) {
+				//Try to close the currently-running version of waitzar
+				TerminateProcess(wzProc, 1);
+				CloseHandle(wzProc);
+				break;
+			}*/
+
+			//Else, inform the user that the process is already running.
+			wzProcExists = true;
+			break;
+		}
+	} while(Process32Next(hProcessSnap, &pe32));
+	
+
+	//Done
+	CloseHandle(hProcessSnap);
+	return wzProcExists;
 }
 
 
@@ -4584,11 +4598,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Set our hotkey
 	if(!registerInitialHotkey()) {
 		//Check if we're running Wait Zar already
-		if (waitzarAlreadyStarted()==TRUE) {
+		if (waitzarAlreadyStarted()) {
 			MessageBox(NULL, _T("Wait Zar is already running. \n\nYou should see an \"ENG\" icon in your system tray; click on that to change the language. \n\nPlease see the Wait Zar User's Guide if you have any questions.  \n\n(If you are certain WaitZar is not actually running, please wait several minutes and then re-start the program.)"), _T("Wait Zar already running..."), MB_ICONINFORMATION | MB_OK);
 			return 0;
 		}
-		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly, and is shutting down."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		return 0;
 	}
 	mmOn = false;
 
