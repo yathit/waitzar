@@ -160,6 +160,8 @@ HBRUSH g_RedBkgrd;
 HBRUSH g_DlgHelpBkgrd;
 HBRUSH g_DlgHelpSlash;
 HBRUSH g_MenuItemBkgrd;
+HBRUSH g_GrayGreenBkgrd;
+HBRUSH g_GreenishDlgBkgrd;
 HBRUSH g_MenuItemHilite;
 HBRUSH g_MenuDefaultBkgrd;
 HBRUSH g_DotHiliteBkgrd;
@@ -2679,9 +2681,9 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems[pendingItems.size()-1].ownerDrawnBtn = true;
 			//pendingItems.push_back(WControl(IDC_SETTINGS_GENERICARROW, L"", L"STATIC", false, 30, 30, 16, 16));
 			//pendingItems[pendingItems.size()-1].iconID = OBM_RGARROW;
-			pendingItems.push_back(WControl(IDC_SETTINGS_HKNOTE, L"Changing the hotkey requires that you restart WaitZar.", L"STATIC", false, 15, 82, wndWidth-10, fHeight));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKNOTE, L"(Requires restarting WaitZar)", L"STATIC", false, 15, 82, wndWidth-10, fHeight));
 			pendingItems[pendingItems.size()-1].hidden = true;
-			pendingItems.push_back(WControl(IDC_SETTINGS_HKWARNING, L"WARNING: This hotkey is invalid and will not be saved.", L"STATIC", false, 15, 82, wndWidth-10, fHeight));
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKWARNING, L"WARNING: Invalid hotkey", L"STATIC", false, 15, 82, wndWidth-10, fHeight));
 			pendingItems[pendingItems.size()-1].hidden = true;
 
 			//DC's no longer needed
@@ -2887,11 +2889,13 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (ctlID==IDC_SETTINGS_BKGRD) {
 				//Set the background color of our static item
 				//return (INT_PTR)CreateSolidBrush(RGB(0,0,0));
-				return (INT_PTR)CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
+				return (INT_PTR)g_GreenishDlgBkgrd;
 
 				//return (BOOL)g_DlgHelpSlash;
 			} else if (ctlID==IDC_SETTINGS_IMLBL || ctlID==IDC_SETTINGS_OUTLBL) {
 				return FALSE; //Let the system set itself
+			} else if (ctlID==IDC_SETTINGS_HKWARNING) {
+				SetTextColor((HDC)wParam, RGB(255,0,0));
 			}
 			/*if (ctlID==IDC_SETTINGS_HELPPNL) {
 				SetTextColor((HDC)wParam, RGB(0x00, 0x00, 0x00));
@@ -2901,7 +2905,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Transparent? Ugh.
 			SetBkColor((HDC)wParam, RGB(0xEE, 0xFF, 0xEE));
-			return (INT_PTR)CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
+			return (INT_PTR)g_GrayGreenBkgrd;
 			//return (BOOL)g_DlgHelpBkgrd;
 			break;
 		}
@@ -4490,6 +4494,8 @@ void createPaintResources()
 	g_DlgHelpBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
 	g_MenuItemBkgrd = CreateSolidBrush(cr_MenuItemBkgrd);
 	g_MenuDefaultBkgrd = CreateSolidBrush(cr_MenuDefaultBkgrd);
+	g_GrayGreenBkgrd = CreateSolidBrush(RGB(0xEE, 0xFF, 0xEE));
+	g_GreenishDlgBkgrd = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
 	g_MenuItemHilite = CreateSolidBrush(RGB(0x07, 0x2B, 0xE4));
 	g_DlgHelpSlash = CreateSolidBrush(RGB(0xBB, 0xFF, 0xCC));
 	g_DotHiliteBkgrd = CreateSolidBrush(RGB(0x00, 0x1A, 0x7A));
