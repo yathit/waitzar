@@ -2328,6 +2328,9 @@ unsigned int lastHelpDlgID = 0;
 
 //Also used for the settings dialog
 vector<wstring> settingsLangIDs;
+vector<wstring> settingsInputMethodsIDs;
+vector<wstring> settingsOutputEncodingsIDs;
+wstring currTabLangID; 
 void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 {
 	//Remove all entries.
@@ -2335,14 +2338,16 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	HWND ctlB = GetDlgItem(dlgHwnd, IDC_SETTINGS_OUTCOMBO);
 	SendMessage(ctlA, CB_RESETCONTENT, 0, 0);
 	SendMessage(ctlB, CB_RESETCONTENT, 0, 0);
+	settingsInputMethodsIDs.clear();
+	settingsOutputEncodingsIDs.clear();
 
 	//Invalid language?
 	if (tabID==-1)
 		return;
 
 	//Get the language for this panel.
-	const wstring langID = settingsLangIDs[tabID];
-	const Language& lng = *FindKeyInSet(config.getLanguages(), langID);
+	currTabLangID = settingsLangIDs[tabID]; //Save for later
+	const Language& lng = *FindKeyInSet(config.getLanguages(), currTabLangID);
 
 	//Handle default input/output variables
 	int toSetInID = -2; //-2 = n/a, -1=lastused
@@ -2366,6 +2371,7 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	size_t count = 0;
 	for (std::set<InputMethod*>::const_iterator it2=lng.inputMethods.begin(); it2!=lng.inputMethods.end(); it2++) {
 		SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
+		settingsInputMethodsIDs.push_back((*it2)->id); //Needed in case the set re-orders.
 		if (!defIn.empty() && defIn==(*it2)->id)
 			toSetInID = count;
 		count++;
@@ -2374,6 +2380,7 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	for (std::set<Encoding>::const_iterator it2=lng.encodings.begin(); it2!=lng.encodings.end(); it2++) {
 		if (it2->canUseAsOutput) {
 			SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)it2->displayName.c_str());
+			settingsOutputEncodingsIDs.push_back(it2->id); //Needed in case the set reorders.
 			if (!defOut.empty() && defOut==it2->id)
 				toSetOutID = count;
 			count++;
@@ -2867,6 +2874,44 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								config.setLocalConfigOpt(key, L"lastused");
 							else
 								config.setLocalConfigOpt(key, settingsLangIDs[adjID]);
+						}
+					}
+					break;
+				}
+				case IDC_SETTINGS_IMCOMBO:
+				{
+					//Selection changed?
+					if (HIWORD(wParam)==CBN_SELCHANGE) {
+						LPARAM cmbSelID = SendMessage((HWND)lParam, CB_GETCURSEL, 0, 0);
+						if (cmbSelID!=CB_ERR) {
+							//React
+							int adjID = ((int)cmbSelID)-2;
+							wstring key = L"languages." + currTabLangID + L".defaultinputmethod";
+							if (adjID==-2)
+								config.clearLocalConfigOpt(key);
+							else if (adjID==-1)
+								config.setLocalConfigOpt(key, L"lastused");
+							else
+								config.setLocalConfigOpt(key, settingsInputMethodsIDs[adjID]);
+						}
+					}
+					break;
+				}
+				case IDC_SETTINGS_OUTCOMBO:
+				{
+					//Selection changed?
+					if (HIWORD(wParam)==CBN_SELCHANGE) {
+						LPARAM cmbSelID = SendMessage((HWND)lParam, CB_GETCURSEL, 0, 0);
+						if (cmbSelID!=CB_ERR) {
+							//React
+							int adjID = ((int)cmbSelID)-2;
+							wstring key = L"languages." + currTabLangID + L".defaultoutputencoding";
+							if (adjID==-2)
+								config.clearLocalConfigOpt(key);
+							else if (adjID==-1)
+								config.setLocalConfigOpt(key, L"lastused");
+							else
+								config.setLocalConfigOpt(key, settingsOutputEncodingsIDs[adjID]);
 						}
 					}
 					break;
