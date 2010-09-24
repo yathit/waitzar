@@ -232,6 +232,61 @@ KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
 
 
+//Hotkey & modifier strings
+vector<wstring> settingsHKModifiers;
+vector<wstring> settingsHKKeys;
+map<unsigned int, size_t> settingsHKModifierRevLookup;
+map<unsigned int, size_t> settingsHKKeyRevLookup;
+void InitSettingsHkArrays()   //TODO: Streamline this function; it's kind of fragile now.
+{
+	//Initialize our hotkey array - modifers
+	settingsHKModifiers.clear();
+	settingsHKModifiers.push_back(L"(None)");  //Special: "No key"
+	settingsHKModifiers.push_back(L"Ctrl");
+	settingsHKModifiers.push_back(L"Alt");
+	settingsHKModifiers.push_back(L"Shift");
+	settingsHKModifiers.push_back(L"Ctrl+Shift");
+	settingsHKModifiers.push_back(L"Ctrl+Alt");
+	settingsHKModifiers.push_back(L"Alt+Shift");
+	settingsHKModifiers.push_back(L"Ctrl+Alt+Shift");
+
+	//Build a reverse lookup for the modifiers array
+	settingsHKModifierRevLookup[0] = settingsHKModifierRevLookup.size();
+	settingsHKModifierRevLookup[MOD_CONTROL] = settingsHKModifierRevLookup.size();
+	settingsHKModifierRevLookup[MOD_ALT] = settingsHKModifierRevLookup.size();
+	settingsHKModifierRevLookup[MOD_SHIFT] = settingsHKModifierRevLookup.size();
+	settingsHKModifierRevLookup[MOD_CONTROL|MOD_SHIFT] = settingsHKModifierRevLookup.size();
+	settingsHKModifierRevLookup[MOD_CONTROL|MOD_ALT] = settingsHKModifierRevLookup.size();
+	settingsHKModifierRevLookup[MOD_ALT|MOD_SHIFT] = settingsHKModifierRevLookup.size();
+	settingsHKModifierRevLookup[MOD_CONTROL|MOD_ALT|MOD_SHIFT] = settingsHKModifierRevLookup.size();
+
+	//Secondary array - keys
+	settingsHKKeys.clear();
+	settingsHKKeys.push_back(L"Ctrl");
+	settingsHKKeys.push_back(L"Alt");
+	settingsHKKeys.push_back(L"Shift");
+	settingsHKKeys.push_back(L"Space");
+	for (char c='A'; c<='Z'; c++) {
+		settingsHKKeys.push_back(wstring(1, c));
+	}
+	for (char c='0'; c<='9'; c++) {
+		settingsHKKeys.push_back(wstring(1, c));
+	}
+
+	//Build a reverse lookup for the keys array
+	settingsHKKeyRevLookup[VK_CONTROL] = settingsHKKeyRevLookup.size();
+	settingsHKKeyRevLookup[VK_MENU] = settingsHKKeyRevLookup.size();
+	settingsHKKeyRevLookup[VK_SHIFT] = settingsHKKeyRevLookup.size();
+	settingsHKKeyRevLookup[VK_SPACE] = settingsHKKeyRevLookup.size();
+	for (char c='A'; c<='Z'; c++) {
+		settingsHKKeyRevLookup[c] = settingsHKKeyRevLookup.size();
+	}
+	for (char c='0'; c<='9'; c++) {
+		settingsHKKeyRevLookup[c] = settingsHKKeyRevLookup.size();
+	}
+}
+
+
 //Ugh, prototypes...
 BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void checkAllHotkeysAndWindows();
@@ -2511,6 +2566,12 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			lf.lfUnderline = TRUE;
 			HFONT dlgFontBold = CreateFontIndirect(&lf);
 
+			//Make a "just bold" version
+			if (GetObject(dlgFont, sizeof(lf), &lf)==0)
+				throw std::exception("Could not retrieve handle to dialog font.");
+			lf.lfWeight = FW_BOLD;
+			HFONT dlgFontJustBold = CreateFontIndirect(&lf);
+
 
 			//Create elements and store in a vector.
 			// We won't use any of the auto-layout features of LayoutDialogControls. (Maybe...)
@@ -2618,6 +2679,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			pendingItems[pendingItems.size()-1].ownerDrawnBtn = true;
 			//pendingItems.push_back(WControl(IDC_SETTINGS_GENERICARROW, L"", L"STATIC", false, 30, 30, 16, 16));
 			//pendingItems[pendingItems.size()-1].iconID = OBM_RGARROW;
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKNOTE, L"Changing the hotkey requires that you restart WaitZar.", L"STATIC", false, 15, 82, wndWidth-10, fHeight));
+			pendingItems[pendingItems.size()-1].hidden = true;
+			pendingItems.push_back(WControl(IDC_SETTINGS_HKWARNING, L"WARNING: This hotkey is invalid and will not be saved.", L"STATIC", false, 15, 82, wndWidth-10, fHeight));
+			pendingItems[pendingItems.size()-1].hidden = true;
 
 			//DC's no longer needed
 			ReleaseDC(hwnd, currDC);
@@ -2648,6 +2713,12 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_LANGCOMBO);
 			SendMessage(hwLbl, WM_SETFONT, (WPARAM)mmdlgFont, MAKELPARAM(FALSE, 0)); //Needed for names.
 
+			//Some more fonts (have to make one of these red)
+			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HKNOTE);
+			SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontJustBold, MAKELPARAM(FALSE, 0));
+			hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HKWARNING);
+			SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontJustBold, MAKELPARAM(FALSE, 0));
+
 			//Set "bold" font for close label
 			//hwLbl = GetDlgItem(hwnd, IDC_SETTINGS_HELPPNL);
 			//SendMessage(hwLbl, WM_SETFONT, (WPARAM)dlgFontBold, MAKELPARAM(FALSE, 0));
@@ -2676,26 +2747,42 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				SendMessage(ctl, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)helpIconGray);
 			}
 
+			//Parse the saved hotkey value
+			wstring hk = config.getLocalConfigOpt(L"settings.hotkey");
+			size_t hkModID = 0;
+			size_t hkKeyID = 0;
+			if (!hk.empty()) {
+				//Parse
+				bool parsed = false;
+				HotkeyData hkDat;
+				try {
+					config.generateHotkeyValues(hk, hkDat);
+					parsed = true;
+				} catch (std::exception) {} //Do nothing
+
+				//Set the combo boxes
+				if (parsed) {
+					if (settingsHKModifierRevLookup.count(hkDat.hkModifiers)>0)
+						hkModID = 1 + settingsHKModifierRevLookup[hkDat.hkModifiers];
+						
+					if (settingsHKKeyRevLookup.count(hkDat.hkVirtKeyCode)>0)
+						hkKeyID = 1 + settingsHKKeyRevLookup[hkDat.hkVirtKeyCode];
+				}
+			}
+
 			//Add a few...
 			HWND ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO1);
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(None)");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Alt");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Shift");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Shift");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Alt");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Alt+Shift");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Ctrl+Alt+Shift");
-			SendMessage(ctl, CB_SETCURSEL, 1, 0); //Just pick one for now
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"N/A");
+			for (size_t i=0; i<settingsHKModifiers.size(); i++)
+				SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)settingsHKModifiers[i].c_str());
+			SendMessage(ctl, CB_SETCURSEL, hkModID, 0); //Just pick one for now
 
 			//Some more...
 			ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO2);
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(None)");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"Shift");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"A");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"B");
-			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"C");
-			SendMessage(ctl, CB_SETCURSEL, 1, 0); //Just pick one for now
+			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"N/A");
+			for (size_t i=0; i<settingsHKKeys.size(); i++)
+				SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)settingsHKKeys[i].c_str());
+			SendMessage(ctl, CB_SETCURSEL, hkKeyID, 0); //Just pick one for now
 
 			//Get the default-language flash-save option; will be "" if none.
 			int toSetID = -2; //-2 = n/a, -1=lastused
@@ -2912,6 +2999,49 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								config.setLocalConfigOpt(key, L"lastused");
 							else
 								config.setLocalConfigOpt(key, settingsOutputEncodingsIDs[adjID]);
+						}
+					}
+					break;
+				}
+				case IDC_SETTINGS_HKCOMBO1:
+				case IDC_SETTINGS_HKCOMBO2:
+				{
+					//Handle both at the same time
+					if (HIWORD(wParam)==CBN_SELCHANGE) {
+						//Assume a reset by default (safer)
+						wstring key = L"settings.hotkey";
+						config.clearLocalConfigOpt(key);
+
+						//Get the current selection
+						HWND ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO1);
+						LPARAM modSelID = SendMessage(ctl, CB_GETCURSEL, 0, 0);
+						ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO2);
+						LPARAM keySelID = SendMessage(ctl, CB_GETCURSEL, 0, 0);
+						if (modSelID!=CB_ERR && keySelID!=CB_ERR) {
+							//Is it valid
+							int modAdjID = (int)modSelID - 1;
+							int keyAdjID = (int)keySelID - 1;
+							ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKWARNING);
+							ShowWindow(ctl, SW_HIDE);
+							ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKNOTE);
+							ShowWindow(ctl, SW_HIDE);
+							if (modAdjID>=0 && keyAdjID>=0) {
+								//Can't allow regular keys with only shift/nothing
+								wstring modStr = settingsHKModifiers[modAdjID];
+								wstring keyStr = settingsHKKeys[keyAdjID];
+								char vk = (keyStr.length()==1 && keyStr[0]<=0x7F) ? (char)keyStr[0] : '\0';
+								if (((vk>='A'&&vk<='Z')||(vk>='0'&&vk<='9')||keyStr==L"Space")&&(modAdjID==0 || modStr==L"Shift")) {
+									//INVALID
+									ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKWARNING);
+									ShowWindow(ctl, SW_SHOW);
+								} else {
+									//Set the key
+									wstring combinedStr = (modAdjID==0 ? L"" : modStr+L"+") + keyStr;
+									config.setLocalConfigOpt(key, combinedStr);
+									ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKNOTE);
+									ShowWindow(ctl, SW_SHOW);
+								}
+							}
 						}
 					}
 					break;
@@ -4554,6 +4684,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	customMenuItems = NULL;
 	menuFont = NULL;
 	sysFont = NULL;
+	InitSettingsHkArrays();
 
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
