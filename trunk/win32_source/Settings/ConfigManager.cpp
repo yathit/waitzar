@@ -414,6 +414,19 @@ void ConfigManager::overrideSetting(const wstring& settingName, bool value)
 }
 
 
+void ConfigManager::backupLocalConfigOpts()
+{
+	localOptsBackup.clear();
+	localOptsBackup.insert(localOpts.begin(), localOpts.end());
+}
+
+
+void ConfigManager::restoreLocalConfigOpts()
+{
+	localOpts.clear();
+	localOpts.insert(localOptsBackup.begin(), localOptsBackup.end());
+}
+
 
 wstring ConfigManager::getLocalConfigOpt(const wstring& key)
 {

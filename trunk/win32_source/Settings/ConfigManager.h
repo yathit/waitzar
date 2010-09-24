@@ -192,6 +192,8 @@ public:
 	void setLocalConfigOpt(const std::wstring& key, const std::wstring& val);
 	void saveLocalConfigFile(const std::wstring& path, bool emptyFile);
 	bool localConfigCausedError();
+	void backupLocalConfigOpts();
+	void restoreLocalConfigOpts();
 
 	//Control
 	Language activeLanguage;
@@ -249,6 +251,7 @@ private:
 	//The actual representation
 	OptionTree options;
 	map<wstring, wstring> localOpts;
+	map<wstring, wstring> localOptsBackup;
 	bool localConfError;
 
 	//Cache
