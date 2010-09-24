@@ -212,6 +212,9 @@ public:
 	static bool read_bool(const std::wstring& str);
 	static int read_int(const std::wstring& str);
 
+	//Kind of out of place, but it works
+	void generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData);
+
 
 private:
 	void readInConfig(json_spirit::wValue root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet);
@@ -219,7 +222,6 @@ private:
 
 	void resolvePartialSettings();
 	void generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings);
-	void generateHotkeyValues();
 
 private:
 	//Our many config files.

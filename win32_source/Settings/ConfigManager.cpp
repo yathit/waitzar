@@ -478,6 +478,7 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 			cfgFile <<nl <<"    \"" <<waitzar::escape_wstr(it->first, false) <<"\" : \"" <<waitzar::escape_wstr(it->second, false) <<"\"";
 			nl = ",\n";
 		}
+		cfgFile << std::endl;
 	}
 		
 	//Done
@@ -492,11 +493,11 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 
 
 //Take the raw hotkey string and generate a formatted string + hotkey register combo.
-void ConfigManager::generateHotkeyValues()
+void ConfigManager::generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData)
 {
 	//Parse the raw string; build up a vector of substrings in reverse
 	vector<wstring> hkSubs;
-	const wstring& src = options.settings.hotkeyStrRaw;
+	const wstring& src = srcStr;
 	std::wstringstream segment;
 	for (size_t i=0; i<src.size(); i++) {
 		//Skip non-ascii
@@ -520,7 +521,7 @@ void ConfigManager::generateHotkeyValues()
 	}
 
 	//Build up the hotkey data: key code
-	options.settings.hotkey.hotkeyID = LANGUAGE_HOTKEY;
+	hkData.hotkeyID = LANGUAGE_HOTKEY;
 
 	//Enough?
 	if (hkSubs.empty())
@@ -545,7 +546,7 @@ void ConfigManager::generateHotkeyValues()
 			throw std::runtime_error(waitzar::glue(L"Invalid hotkey letter: ", hkSubs[0]).c_str());
 	} else
 		throw std::runtime_error(waitzar::glue(L"Invalid hotkey letter: ", hkSubs[0]).c_str());
-	options.settings.hotkey.hkVirtKeyCode = vk;
+	hkData.hkVirtKeyCode = vk;
 
 	//Build up the hotkey data: modifiers
 	unsigned int mod = 0;
@@ -568,7 +569,7 @@ void ConfigManager::generateHotkeyValues()
 		mod |= MOD_CONTROL;
 	else if (vk==VK_MENU)
 		mod |= MOD_ALT;
-	options.settings.hotkey.hkModifiers = mod;
+	hkData.hkModifiers = mod;
 
 	//Build up the formatted string (at this point, we know all arguments are correct)
 	wstring fmt = L"";
@@ -589,11 +590,11 @@ void ConfigManager::generateHotkeyValues()
 		if (i!=0)
 			fmt += L"+";
 	}
-	options.settings.hotkey.hotkeyStrFormatted = fmt;
+	hkData.hotkeyStrFormatted = fmt;
 
 	//Final check
-	if (((vk>='A'&&vk<='Z')||(vk>='0'&&vk<='9'))&&(mod==MOD_SHIFT||mod==0))
-		throw std::runtime_error(waitzar::glue(L"Invalid hotkey: ", fmt, L" --overlaps existing typable letter.").c_str());
+	if (((vk>='A'&&vk<='Z')||(vk>='0'&&vk<='9')||vk==VK_SPACE)&&(mod==MOD_SHIFT||mod==0))
+		throw std::runtime_error(waitzar::glue(L"Invalid hotkey: ", fmt, L" --overlaps existing typable letter or space.").c_str());
 }
 
 
@@ -632,7 +633,7 @@ const Settings& ConfigManager::getSettings()
 		if (this->userConfig.isSet())
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, NULL);
 
-		generateHotkeyValues();
+		generateHotkeyValues(options.settings.hotkeyStrRaw, options.settings.hotkey);
 
 		//Done
 		loadedSettings = true;
