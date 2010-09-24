@@ -2716,6 +2716,9 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			TabCtrl_SetCurSel(hwTabMain, defTabID);
 			UpdateSettingsTab(hwnd, defTabID);
 
+			//Save the current settings so we can revert if needed.
+			config.backupLocalConfigOpts();
+
 			break;
 		}
 		case WM_DRAWITEM:
@@ -2749,6 +2752,13 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
+/*		case CBN_SELCHANGE:
+		{
+
+
+
+			break;
+		}*/
 		case WM_NOTIFY:
 		{
 			LPNMHDR info = (LPNMHDR)lParam;
@@ -2806,10 +2816,16 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			unsigned int ctlID = LOWORD(wParam);
 			switch(ctlID)
 			{
-				case IDOK:
+				case IDOK: 
+				{
+					std::wstringstream temp;
+					temp << pathLocalConfig.c_str();
+					config.saveLocalConfigFile(temp.str(), false);
 					EndDialog(hwnd, IDOK);
 					break;
+				}
 				case IDCANCEL:
+					config.restoreLocalConfigOpts();
 					EndDialog(hwnd, IDCANCEL);
 					break;
 
@@ -2832,10 +2848,34 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						lastHelpDlgID = 0;
 					}
 					break;
+
+
+
+				//Combo selection.
+				case IDC_SETTINGS_LANGCOMBO:
+				{
+					//Selection changed?
+					if (HIWORD(wParam)==CBN_SELCHANGE) {
+						LPARAM cmbSelID = SendMessage((HWND)lParam, CB_GETCURSEL, 0, 0);
+						if (cmbSelID!=CB_ERR) {
+							//React
+							int adjID = ((int)cmbSelID)-2;
+							wstring key = L"settings.defaultlanguage";
+							if (adjID==-2)
+								config.clearLocalConfigOpt(key);
+							else if (adjID==-1)
+								config.setLocalConfigOpt(key, L"lastused");
+							else
+								config.setLocalConfigOpt(key, settingsLangIDs[adjID]);
+						}
+					}
+					break;
+				}
 			}
 			break;
 		}
 		case WM_CLOSE:
+			config.restoreLocalConfigOpts();
 			EndDialog(hwnd, IDCANCEL);
 			break;
 		default:
