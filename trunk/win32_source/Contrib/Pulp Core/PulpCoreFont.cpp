@@ -196,10 +196,10 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 		int index = nextIndex;
         int pos = charPositions[index];
         int charWidth = charPositions[index+1] - pos;
-		int nextKerning = -1;
+		bool thisCharIsZWS = filterStr.find(str[i])!=wstring::npos;
 
 		//Modify for our special spaces
-		if (filterStr.find(str[i])!=wstring::npos) {
+		if (thisCharIsZWS) {
 			//Draw the separator
 			HPEN oldPen = (HPEN)SelectObject(bufferDC, greenPen);
 			MoveToEx(bufferDC, startX, yPos, NULL);
@@ -208,7 +208,6 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 
 			//New width/kerning
 			charWidth = filterLetterWidth;
-			nextKerning = 0;
 		} else {
 			//Re-tint?
 			if (cachedColor[index]!=currColor)
@@ -224,9 +223,14 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 
 		//Prepare next character.... if any
         if (i < numChars-1) {
-			if (nextKerning==-1)
-				nextKerning = getKerning(index, nextIndex);
             nextIndex = getCharIndex(str[i + 1]);
+
+			//Fix kerning on ZWS letters
+			bool nextCharIsZWS = filterStr.find(str[i+1])!=wstring::npos;
+			int nextKerning = getKerning(index, nextIndex);
+			if (thisCharIsZWS || nextCharIsZWS)
+				nextKerning = 0; 
+
             int dx = charWidth + nextKerning;
 			startX += dx;
         }
