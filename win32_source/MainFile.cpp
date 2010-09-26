@@ -1930,12 +1930,12 @@ void recalculate()
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
 	if (!dispSentenceStr[0].empty())
-		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[0]) + 1;
+		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[0], config.getSettings().markedWhitespace, zwsWidth) + 1;
 	mmFontSmall->setColor(0xFF, 0x00, 0x00);
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	if (!dispSentenceStr[1].empty())
-		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[1]) + 1;
+		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[1], config.getSettings().markedWhitespace, zwsWidth) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
 	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
 
