@@ -74,13 +74,13 @@ public:
 	void init(const std::wstring& fileName, HDC currDC, unsigned int defaultColor, int devLogPixelsY)  {throw std::exception("Error: At the moment, PulpCore fonts must be loaded manually.");}
 
 	//Drawing functionality
-	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos);
+	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
 	void drawString(HDC bufferDC, const std::string &str, int xPos, int yPos);
 	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
 	
 	//Other useful metrics
-	int getStringWidth(const std::wstring &str, HDC currDC);
-	int getStringWidth(const std::wstring &str, int start, int length);
+	int getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
+	int getStringWidth(const std::wstring &str, int start, int length, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
 	int getCharWidth(char letter);
 	int getHeight(HDC currDC);
 
@@ -111,4 +111,7 @@ private:
 
 	//Added
 	void tintLetter(int letterID, unsigned int color);
+
+	//Drawing...
+	HPEN greenPen;
 };

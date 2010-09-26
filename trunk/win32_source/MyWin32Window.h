@@ -117,9 +117,9 @@ public:
 	bool drawPolygon(const POINT *points, int numPoints);
 	bool drawImage(PulpCoreImage* img, int x, int y);
 	bool drawImage(PulpCoreImage* img, int x, int y, unsigned int cropLeft, unsigned int cropRight, unsigned int cropTop, unsigned int cropBottom);
-	unsigned int getStringWidth(DisplayMethod* font, const std::wstring& str);
+	unsigned int getStringWidth(DisplayMethod* font, const std::wstring& str, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
 	bool drawString(DisplayMethod* font, const std::string& str, int x, int y);
-	bool drawString(DisplayMethod* font, const std::wstring& str, int x, int y);
+	bool drawString(DisplayMethod* font, const std::wstring& str, int x, int y, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
 	bool drawChar(DisplayMethod* font, char letter, int xPos, int yPos);
 
 
