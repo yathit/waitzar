@@ -11,7 +11,8 @@
       "lock-windows" : "yes",
       "default-language" : "myanmar",
       "marked-whitespace" : "\u200B\u200C\u200D",
-      "filtered-whitespace" : "\u200B"
+	  "unmarked-whitespace" : "",
+      "untyped-whitespace" : "\u200B"
     },
     
     "languages" : 

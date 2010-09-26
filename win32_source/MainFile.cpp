@@ -1854,6 +1854,11 @@ void recalculate()
 	vector<wstring> dispSentenceStr;
 	{
 		vector<wstring> inputSentenceStr = currInput->getTypedSentenceStrings();
+		if (!config.getSettings().unmarkedWhitespace.empty()) {
+			for (size_t i=0; i<inputSentenceStr.size(); i++) {
+				inputSentenceStr[i] = waitzar::removeZWS(inputSentenceStr[i], config.getSettings().unmarkedWhitespace);
+			}
+		}
 		for (vector<wstring>::iterator i=inputSentenceStr.begin(); i!=inputSentenceStr.end(); i++) {
 			wstring candidate = *i;
 			if (!noEncChange) {
@@ -1866,10 +1871,11 @@ void recalculate()
 
 	//Candidate strings are slightly more complex; have the convert the entire array
 	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
-	if (!config.getSettings().markedWhitespace.empty()) {
+	wstring newFilterStr = config.getSettings().markedWhitespace + config.getSettings().unmarkedWhitespace;
+	if (!newFilterStr.empty()) {
 		for (size_t i=0; i<dispCandidateStrs.size(); i++) {
 			//Filter MARKED whitespace; we don't want to show this in the candidate list
-			dispCandidateStrs[i].first = waitzar::removeZWS(dispCandidateStrs[i].first, config.getSettings().markedWhitespace);
+			dispCandidateStrs[i].first = waitzar::removeZWS(dispCandidateStrs[i].first, newFilterStr);
 		}
 	}
 	if (!noEncChange) {

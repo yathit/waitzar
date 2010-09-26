@@ -800,7 +800,9 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 				options.settings.lockWindows = read_bool(value);
 			else if (name[1] == sanitize_id(L"marked-whitespace"))
 				options.settings.markedWhitespace = sanitize_id(value);
-			else if (name[1] == sanitize_id(L"filtered-whitespace"))
+			else if (name[1] == sanitize_id(L"unmarked-whitespace"))
+				options.settings.unmarkedWhitespace = sanitize_id(value);
+			else if (name[1] == sanitize_id(L"untyped-whitespace"))
 				options.settings.filteredWhitespace = sanitize_id(value);
 			else if (name[1] == sanitize_id(L"default-language")) {
 				//We have to handle "lastused" values slightly differently.
