@@ -148,6 +148,7 @@ struct Settings {
 	bool lockWindows;
 	std::wstring defaultLanguage;
 	std::wstring markedWhitespace;
+	std::wstring unmarkedWhitespace;
 	std::wstring filteredWhitespace;
 
 	//Derived
