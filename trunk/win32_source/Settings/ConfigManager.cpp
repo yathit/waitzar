@@ -957,6 +957,8 @@ wstring ConfigManager::sanitize(const wstring& str)
 {
 	size_t firstLetter = str.find_first_not_of(L" \t\n");
 	size_t lastLetter = str.find_last_not_of(L" \t\n");
+	if (firstLetter==wstring::npos||lastLetter==wstring::npos)
+		return L"";
 	return str.substr(firstLetter, lastLetter-firstLetter+1);
 }
 
