@@ -49,6 +49,7 @@ void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC, unsigned int default
 	//Color, however, should be re-created
 	this->cachedColor = new unsigned int[num_char_pos-1];
 	this->tintSelf(defaultColor);
+	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 
@@ -62,6 +63,7 @@ void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devL
 	//Tint the default color
 	this->currColor = defaultColor;
 	this->tintSelf(defaultColor);
+	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 
@@ -72,6 +74,7 @@ void PulpCoreFont::init(char *data, DWORD size, HDC currDC, unsigned int default
 	//Tint the default color
 	this->currColor = defaultColor;
 	this->tintSelf(defaultColor);
+	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 
@@ -179,7 +182,7 @@ void PulpCoreFont::drawChar(HDC bufferDC, char letter, int xPos, int yPos)
 
 
 
-void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yPos)
+void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yPos, const std::wstring& filterStr, size_t filterLetterWidth)
 {
 	//Don't loop through null or zero-lengthed strings
 	int numChars = str.length();
@@ -193,22 +196,38 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 		int index = nextIndex;
         int pos = charPositions[index];
         int charWidth = charPositions[index+1] - pos;
+		int nextKerning = -1;
 
-		//Re-tint?
-		if (cachedColor[index]!=currColor)
-			tintLetter(index, currColor);
+		//Modify for our special spaces
+		if (filterStr.find(str[i])!=wstring::npos) {
+			//Draw the separator
+			HPEN oldPen = (HPEN)SelectObject(bufferDC, greenPen);
+			MoveToEx(bufferDC, startX, yPos, NULL);
+			LineTo(bufferDC, startX, yPos+height);
+			SelectObject(bufferDC, oldPen);
 
-		//Draw this letter
-		AlphaBlend(
-			   bufferDC, startX, yPos, charWidth, height,   //Destination
-			   directDC, pos, 0, charWidth, height,    //Source
-			   blendFunc				   //Method
-		);
+			//New width/kerning
+			charWidth = filterLetterWidth;
+			nextKerning = 0;
+		} else {
+			//Re-tint?
+			if (cachedColor[index]!=currColor)
+				tintLetter(index, currColor);
+
+			//Draw this letter
+			AlphaBlend(
+				bufferDC, startX, yPos, charWidth, height,   //Destination
+				directDC, pos, 0, charWidth, height,    //Source
+				blendFunc				   //Method
+			);
+		}
 
 		//Prepare next character.... if any
         if (i < numChars-1) {
+			if (nextKerning==-1)
+				nextKerning = getKerning(index, nextIndex);
             nextIndex = getCharIndex(str[i + 1]);
-            int dx = charWidth + getKerning(index, nextIndex);
+            int dx = charWidth + nextKerning;
 			startX += dx;
         }
     }
@@ -313,13 +332,13 @@ int PulpCoreFont::getHeight(HDC currDC)
 }
 
 
-int PulpCoreFont::getStringWidth(const wstring &str, HDC currDC)
+int PulpCoreFont::getStringWidth(const wstring &str, HDC currDC, const std::wstring& filterStr, size_t filterLetterWidth)
 {
-	return getStringWidth(str, 0, str.length());
+	return getStringWidth(str, 0, str.length(), filterStr, filterLetterWidth);
 }
 
 
-int PulpCoreFont::getStringWidth(const wstring &str, int start, int end)
+int PulpCoreFont::getStringWidth(const wstring &str, int start, int end, const std::wstring& filterStr, size_t filterLetterWidth)
 {
         if (end <= start) {
             return 0;
@@ -327,13 +346,18 @@ int PulpCoreFont::getStringWidth(const wstring &str, int start, int end)
         int stringWidth = 0;
         
         int lastIndex = -1;
-        for (int i=start; i<end; i++) {  //FIXME: Something's causing an error here, in this loop...
+        for (int i=start; i<end; i++) { 
             int index = getCharIndex(str[i]);
             int charWidth = charPositions[index+1] - charPositions[index];
-            
-            if (lastIndex!=-1)
-                stringWidth += getKerning(lastIndex, index);
-            stringWidth += charWidth;
+
+			//Special case: ZWS letter:
+			if (filterStr.find(str[i])!=wstring::npos) {
+				stringWidth += filterLetterWidth;
+			} else {
+				if (lastIndex!=-1)
+	                stringWidth += getKerning(lastIndex, index);
+				stringWidth += charWidth;
+			}
             lastIndex = index;
         }
         return stringWidth;

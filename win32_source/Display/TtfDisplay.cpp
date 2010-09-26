@@ -107,7 +107,7 @@ HFONT TtfDisplay::getInternalHFont()
 
 
 
-void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos)
+void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos, const std::wstring& filterStr, size_t filterLetterWidth)
 {
 	//Save
 	if (bufferDC!=NULL)
@@ -154,7 +154,7 @@ void TtfDisplay::drawChar(HDC bufferDC, char letter, int xPos, int yPos)
 }
 
 
-int TtfDisplay::getStringWidth(const std::wstring &str, HDC currDC)
+int TtfDisplay::getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr, size_t filterLetterWidth)
 {
 	//Save
 	if (currDC!=NULL)

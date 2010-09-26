@@ -36,10 +36,10 @@ public:
 	void init(HFONT existingFont);
 
 	//Functionality
-	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos);
+	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
 	void drawString(HDC bufferDC, const std::string &str, int xPos, int yPos);
 	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
-	int getStringWidth(const std::wstring &str, HDC currDC);
+	int getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
 	int getHeight(HDC currDC);
 
 	//Hackish, but needed in one place...

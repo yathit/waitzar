@@ -1866,6 +1866,12 @@ void recalculate()
 
 	//Candidate strings are slightly more complex; have the convert the entire array
 	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
+	if (!config.getSettings().markedWhitespace.empty()) {
+		for (size_t i=0; i<dispCandidateStrs.size(); i++) {
+			//Filter MARKED whitespace; we don't want to show this in the candidate list
+			dispCandidateStrs[i].first = waitzar::removeZWS(dispCandidateStrs[i].first, config.getSettings().markedWhitespace);
+		}
+	}
 	if (!noEncChange) {
 		for (size_t i=0; i<dispCandidateStrs.size(); i++) {
 			if (!noEncChange) {
@@ -1877,12 +1883,13 @@ void recalculate()
 
 	//First things first: can we fit this in the current background?
 	// (Includes pat-sint strings)
+	const size_t zwsWidth = 1;
 	int cumulativeWidth = (borderWidth+1)*2;
 	for (size_t i=0; i<10; i++) {
 		unsigned int id = i + currInput->getPagingInfo().first * 10;
 		if (id>=dispCandidateStrs.size())
 			break;
-		cumulativeWidth += mainWindow->getStringWidth(mmFont, dispCandidateStrs[id].first);
+		cumulativeWidth += mainWindow->getStringWidth(mmFont, dispCandidateStrs[id].first, config.getSettings().markedWhitespace, zwsWidth);
 		cumulativeWidth += spaceWidth;
 	}
 
@@ -1921,16 +1928,16 @@ void recalculate()
 	//Draw each string, highlight the previous word if it's a pat-sint candidate.
 	int currPosX = borderWidth + 1;
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
-	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
 	if (!dispSentenceStr[0].empty())
 		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[0]) + 1;
 	mmFontSmall->setColor(0xFF, 0x00, 0x00);
-	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	if (!dispSentenceStr[1].empty())
 		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[1]) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
-	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
 
 	//Draw the cursor
 	sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
