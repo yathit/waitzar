@@ -9,7 +9,9 @@
       "always-elevate" : "no",
       "track-caret" : "yes",
       "lock-windows" : "yes",
-      "default-language" : "myanmar"
+      "default-language" : "myanmar",
+      "marked-whitespace" : "\u200B\u200C\u200D",
+      "filtered-whitespace" : "\u200B"
     },
     
     "languages" : 

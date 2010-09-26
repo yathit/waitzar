@@ -3939,7 +3939,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 
 				//Save the "typed string" for later
-				wstring stringToType = currInput->getTypedSentenceStrings()[3];
+				wstring stringToType = waitzar::removeZWS(currInput->getTypedSentenceStrings()[3], config.getSettings().filteredWhitespace);
 
 				//Check 1: Did we just switch out of help mode?
 				if (wasProvidingHelp != currInput->isHelpInput())

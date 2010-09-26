@@ -1655,12 +1655,12 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 }
 
 
-
-std::wstring removeZWS(const std::wstring& str)
+//Add everything EXCEPT what's in the filterStr.
+std::wstring removeZWS(const std::wstring& str, const std::wstring& filterStr)
 {
 	std::wstringstream res; 
 	for (size_t i=0; i<str.length(); i++) {
-		if (str[i]!=L'\u200B')
+		if (filterStr.find(str[i])==wstring::npos) 
 			res <<str[i];
 	}
 	return res.str();
