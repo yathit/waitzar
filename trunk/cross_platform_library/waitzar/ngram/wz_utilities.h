@@ -61,7 +61,7 @@ namespace waitzar
 	std::string wcs2mbs(const std::wstring& str);
 	std::wstring preparse_json(const std::wstring& str);
 	std::wstring normalize_bgunicode(const std::wstring& str);
-	std::wstring removeZWS(const std::wstring& str);
+	std::wstring removeZWS(const std::wstring& str, const std::wstring& filterStr);
 	size_t count_letter(const std::wstring& str, wchar_t letter);
 
 	//And finally, locale-driven nonsense with to_lower:

@@ -54,6 +54,15 @@
       "lock-windows" : "yes",
       
       # What language do we start WaitZar in?
-      "default-language" : "myanmar"
+      "default-language" : "myanmar",
+	  
+      # Which whitespace letters are marked with a straight vertical line?
+      #  One may choose, for example, to add U2008/U2009 (thin space/hair space)
+      #  Generally, though, this setting is reserved for zero-width letters
+      "marked-whitespace" : "\u200B\u200C\u200D",
+	  
+      # Which letters should be filtered (never sent as input, but still shown)?
+      #  We currently filter U+200B because some fonts have trouble showing it.
+      "filtered-whitespace" : "\u200B"
     }
 }

@@ -147,6 +147,8 @@ struct Settings {
 	bool trackCaret;
 	bool lockWindows;
 	std::wstring defaultLanguage;
+	std::wstring markedWhitespace;
+	std::wstring filteredWhitespace;
 
 	//Derived
 	HotkeyData hotkey;
