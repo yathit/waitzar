@@ -454,6 +454,32 @@ bool ConfigManager::localConfigCausedError()
 }
 
 
+
+void ConfigManager::saveUserConfigFile(const std::wstring& path, bool emptyFile) 
+{
+	//Create the file
+	std::ofstream cfgFile;
+	cfgFile.open(path.c_str());
+
+	//Add an empty set of parameters "{}" and some comments.
+	cfgFile << "# This file contains user-specific settings for the WaitZar" <<std::endl
+		<< "# typing program. These are the highest-level overrides possible;" <<std::endl
+		<< "# to set an option, provide its full path and value. Separate" <<std::endl
+		<< "# different settings with commas." <<std::endl
+		<< "{" <<std::endl
+		<< "  # Example: un-comment the following two lines (remove the \"#\")" <<std::endl
+		<< "  #  to activate these settings:" <<std::endl
+		<< std::endl
+		<< "  #\"settings.track-caret\" : \"no\"," <<std::endl
+		<< "  #\"settings.hotkey\" : \"Ctrl + Space\"" <<std::endl
+		<< "}" <<std::endl;
+
+	//Save
+	cfgFile.flush();
+	cfgFile.close();
+}
+
+
 void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile)
 {
 	//Open the file

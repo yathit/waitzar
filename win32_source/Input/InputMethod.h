@@ -88,6 +88,7 @@ public:
 	virtual void handleTab() = 0;
 
 	virtual void handleKeyPress(VirtKey& vkey);
+	virtual void typeZWS();
 
 
 	//Need to move later...
@@ -128,6 +129,10 @@ protected:
 	//Repaint after this?
 	bool viewChanged;
 	bool requestToTypeSentence;
+
+	//Helpful placeholders (in case we need to change them)
+	wchar_t zwsAlpha;
+	int zwsID;
 
 	//Must be maintained by the subclass
 	std::wstringstream typedRomanStr;

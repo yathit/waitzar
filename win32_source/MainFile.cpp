@@ -3605,7 +3605,10 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 
 		case HOTKEY_SPACE: case HOTKEY_SHIFT_SPACE:
 			//Handle word selection, cursor advancing
-			currInput->handleCommit(false);
+			if (hotkeyCode==HOTKEY_SHIFT_SPACE && !currInput->isHelpInput()) //ZWS override
+				currInput->typeZWS();
+			else
+				currInput->handleCommit(false);
 			return true;
 
 		case HOTKEY_0: case HOTKEY_NUM0:
@@ -4383,25 +4386,7 @@ bool findAndLoadAllConfigFiles()
 				config.initUserConfig(pathUserConfig);
 			else {
 				//Create the file
-				std::ofstream emptyConfig;
-				emptyConfig.open(temp.str().c_str());
-
-				//Add an empty set of parameters "{}" and some comments.
-				emptyConfig << "# This file contains user-specific settings for the WaitZar" <<std::endl
-					<< "# typing program. These are the highest-level overrides possible;" <<std::endl
-					<< "# to set an option, provide its full path and value. Separate" <<std::endl
-					<< "# different settings with commas." <<std::endl
-					<< "{" <<std::endl
-					<< "  # Example: un-comment the following two lines (remove the \"#\")" <<std::endl
-					<< "  #  to activate these settings:" <<std::endl
-					<< std::endl
-					<< "  #\"settings.track-caret\" : \"no\"," <<std::endl
-					<< "  #\"settings.hotkey\" : \"Ctrl + Space\"" <<std::endl
-					<< "}" <<std::endl;
-
-				//Save
-				emptyConfig.flush();
-				emptyConfig.close();
+				config.saveUserConfigFile(temp.str(), true);
 			}
 		}
 

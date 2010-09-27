@@ -31,6 +31,17 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 	this->systemWordLookup = systemWordLookup;
 	this->systemDefinedWords = systemDefinedWords;
 	this->helpKeyboard = helpKeyboard;
+
+	//Index ZWS; -1 means "not found"
+	this->zwsID = -1;
+	this->zwsAlpha = L'\u200B';
+	for (size_t i=0; i<systemWordLookup.size(); i++) {
+		if (systemWordLookup[i].first==zwsAlpha) {
+			//This represents a negative offset
+			this->zwsID = -1-i;
+			break;
+		}
+	}
 }
 
 
@@ -113,6 +124,16 @@ void InputMethod::handleKeyPress(VirtKey& vkey)
 
 		//Try to type this word; we now have its numCode and letter.
 		this->appendToSentence(vkey.alphanum, numberValue);
+	}
+}
+
+
+void InputMethod::typeZWS()
+{
+	//Type ZWS, but ONLY if the sentence window is the only thing visible.
+	if (!mainWindow->isVisible() && zwsID!=-1) {
+		this->appendToSentence(zwsAlpha, zwsID);
+		viewChanged = true;
 	}
 }
 
