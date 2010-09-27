@@ -6,7 +6,7 @@
         "encoding" : "ayar", 
         "type" : "keymagic",
         "keyboard-file" : "Ayar.kms",
-		"disable-cache" : "true"
+		"disable-cache" : "false"
       },
 	  
       "myanmar3" : 

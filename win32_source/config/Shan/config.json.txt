@@ -5,7 +5,7 @@
   "default-output-encoding" : "unicode",
   "default-display-method" : "yghkttf",
   "default-display-method-small" : "yghkttfsmall",
-  "default-input-method" : "shantemp",
+  "default-input-method" : "yunghkio",
         
   "encodings" : 
   {
@@ -19,12 +19,12 @@
         
   "input-methods" : 
   {
-      "shantemp" : 
+      "yunghkio" : 
       {
-        "display-name" : "Test Keyboard",
+        "display-name" : "Yunghkio",
         "encoding" : "unicode", 
         "type" : "keymagic",
-        "keyboard-file" : "shan_temp.kms",
+        "keyboard-file" : "yunghkio.kms",
 		"disable-cache" : "false"
       }
   },
