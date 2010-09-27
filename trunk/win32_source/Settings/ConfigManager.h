@@ -194,6 +194,7 @@ public:
 	void clearLocalConfigOpt(const std::wstring& key);
 	void setLocalConfigOpt(const std::wstring& key, const std::wstring& val);
 	void saveLocalConfigFile(const std::wstring& path, bool emptyFile);
+	void saveUserConfigFile(const std::wstring& path, bool emptyFile);
 	bool localConfigCausedError();
 	void backupLocalConfigOpts();
 	void restoreLocalConfigOpts();

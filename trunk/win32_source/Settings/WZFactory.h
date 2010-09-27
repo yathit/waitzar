@@ -143,7 +143,7 @@ template <class ModelType> OnscreenKeyboard* WZFactory<ModelType>::helpKeyboard 
 template <class ModelType> std::vector< std::pair <int, unsigned short> > WZFactory<ModelType>::systemWordLookup = std::vector< std::pair <int, unsigned short> >();
 
 //A few more static initializers
-template <class ModelType> const std::wstring WZFactory<ModelType>::systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890";
+template <class ModelType> const std::wstring WZFactory<ModelType>::systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890\u200B";
 /*template <class ModelType> const int WZFactory<ModelType>::systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
 		HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
 		HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
