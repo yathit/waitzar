@@ -49,6 +49,7 @@ private:
 	HFONT font;
 	HANDLE fontHandle;
 	HDC lastKnownGoodHDC;
+	HPEN greenPen;
 	std::wstring fileToDelete;
 	int fontHeight;
 

@@ -33,12 +33,14 @@ TtfDisplay::~TtfDisplay()
 void TtfDisplay::init(HFONT existingFont)
 {
 	this->font = existingFont;
+	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 
 void TtfDisplay::init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor)
 {
 	//No use for now
+	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 void TtfDisplay::init(const wstring& fileName,  HDC currDC, unsigned int defaultColor, int devLogPixelsY)
@@ -56,6 +58,7 @@ void TtfDisplay::init(const wstring& fileName,  HDC currDC, unsigned int default
 
 	//Now, add the logical font
 	this->initLogicalFont(devLogPixelsY);
+	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 
@@ -80,6 +83,7 @@ void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLog
 
 	//Now, add the logical font
 	this->initLogicalFont(devLogPixelsY);
+	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 
@@ -121,12 +125,34 @@ void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int
 
 	//Actual drawing code
 	int prevBkgMode = SetBkMode(lastKnownGoodHDC, TRANSPARENT);
-	//int oldSmooth;
-	//SystemParametersInfo(SPI_GETFONTSMOOTHINGCONTRAST, 0, &oldSmooth, FALSE);
-	//int newSmooth = 2200; //Maximum smoothing. BAD: Messes up the entire window!
-	//SystemParametersInfo(SPI_SETFONTSMOOTHINGCONTRAST, 0, &newSmooth, FALSE);
-	ExtTextOut(lastKnownGoodHDC, xPos, yPos, 0, NULL, str.c_str(), str.length(), NULL);
-	//SystemParametersInfo(SPI_SETFONTSMOOTHINGCONTRAST, 0, &oldSmooth, FALSE);
+	int startX = xPos;
+	HPEN oldPen = (HPEN)SelectObject(bufferDC, greenPen);
+	std::wstringstream segment;
+	for (size_t i=0; i<str.length(); i++) {
+		//Append?
+		bool isZWS = filterStr.find(str[i])!=wstring::npos;
+		if (!isZWS)
+			segment <<str[i];
+
+		//Draw?
+		if (isZWS || i==str.length()-1) {
+			//Draw the text
+			if (!segment.str().empty()) {
+				ExtTextOut(lastKnownGoodHDC, startX, yPos, 0, NULL, segment.str().c_str(), segment.str().length(), NULL);
+				startX += this->getStringWidth(segment.str(), NULL, filterStr, filterLetterWidth);
+				segment.str(L"");
+			}
+
+			//Draw the separator
+			if (isZWS) {
+				MoveToEx(bufferDC, startX, yPos, NULL);
+				LineTo(bufferDC, startX, yPos+this->getHeight(NULL));
+				startX+=filterLetterWidth;
+			}
+		}
+			
+	}
+	SelectObject(bufferDC, oldPen);
 	SetBkMode(lastKnownGoodHDC, prevBkgMode);
 	
 	//Restore
@@ -167,10 +193,21 @@ int TtfDisplay::getStringWidth(const std::wstring &str, HDC currDC, const std::w
 		oldFont = (HFONT)SelectObject(lastKnownGoodHDC, font);
 	GetTextExtentPoint32(lastKnownGoodHDC, str.c_str(), str.length(), &textSize);
 
-	//Restore the DC, return
+	//Restore the DC
 	if (oldFont!=NULL)
 		SelectObject(lastKnownGoodHDC, oldFont);
-	return textSize.cx;
+
+	//Calculate the total number of ZWS letters
+	size_t countZWS = 0;
+	if (!filterStr.empty()) {
+		for (size_t i=0; i<str.length(); i++) {
+			if (filterStr.find(str[i])!=wstring::npos)
+				countZWS++;
+		}
+	}
+
+	//Done
+	return textSize.cx + countZWS*filterLetterWidth;
 }
 
 int TtfDisplay::getHeight(HDC currDC)
