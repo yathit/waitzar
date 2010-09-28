@@ -10,9 +10,9 @@
       "track-caret" : "yes",
       "lock-windows" : "yes",
       "default-language" : "myanmar",
-      "marked-whitespace" : "\u200B\u200C\u200D",
-	  "unmarked-whitespace" : "\u200B\u200C\u200D",
-      "untyped-whitespace" : "\u200B"
+      "whitespace-characters" : "\u200B",
+	  "ignored-characters" : "\u200B",
+      "hide-whitespace-markings" : "yes"
     },
     
     "languages" : 

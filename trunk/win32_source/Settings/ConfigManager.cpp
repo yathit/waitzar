@@ -824,12 +824,12 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 				options.settings.trackCaret = read_bool(value);
 			else if (name[1] == sanitize_id(L"lock-windows"))
 				options.settings.lockWindows = read_bool(value);
-			else if (name[1] == sanitize_id(L"marked-whitespace"))
-				options.settings.markedWhitespace = sanitize_id(value);
-			else if (name[1] == sanitize_id(L"unmarked-whitespace"))
-				options.settings.unmarkedWhitespace = sanitize_id(value);
-			else if (name[1] == sanitize_id(L"untyped-whitespace"))
-				options.settings.filteredWhitespace = sanitize_id(value);
+			else if (name[1] == sanitize_id(L"whitespace-characters"))
+				options.settings.whitespaceCharacters = sanitize_id(value);
+			else if (name[1] == sanitize_id(L"ignored-characters"))
+				options.settings.ignoredCharacters = sanitize_id(value);
+			else if (name[1] == sanitize_id(L"hide-whitespace-markings"))
+				options.settings.hideWhitespaceMarkings = read_bool(value);
 			else if (name[1] == sanitize_id(L"default-language")) {
 				//We have to handle "lastused" values slightly differently.
 				wstring defLang = sanitize_id(value);

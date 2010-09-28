@@ -201,10 +201,12 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 		//Modify for our special spaces
 		if (thisCharIsZWS) {
 			//Draw the separator
-			HPEN oldPen = (HPEN)SelectObject(bufferDC, greenPen);
-			MoveToEx(bufferDC, startX, yPos, NULL);
-			LineTo(bufferDC, startX, yPos+height);
-			SelectObject(bufferDC, oldPen);
+			if (filterLetterWidth>0) {
+				HPEN oldPen = (HPEN)SelectObject(bufferDC, greenPen);
+				MoveToEx(bufferDC, startX, yPos, NULL);
+				LineTo(bufferDC, startX, yPos+height);
+				SelectObject(bufferDC, oldPen);
+			}
 
 			//New width/kerning
 			charWidth = filterLetterWidth;

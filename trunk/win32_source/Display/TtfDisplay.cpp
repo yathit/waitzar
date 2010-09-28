@@ -144,7 +144,7 @@ void TtfDisplay::drawString(HDC bufferDC, const std::wstring &str, int xPos, int
 			}
 
 			//Draw the separator
-			if (isZWS) {
+			if (isZWS && filterLetterWidth>0) {
 				MoveToEx(bufferDC, startX, yPos, NULL);
 				LineTo(bufferDC, startX, yPos+this->getHeight(NULL));
 				startX+=filterLetterWidth;
