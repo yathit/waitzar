@@ -1854,11 +1854,11 @@ void recalculate()
 	vector<wstring> dispSentenceStr;
 	{
 		vector<wstring> inputSentenceStr = currInput->getTypedSentenceStrings();
-		if (!config.getSettings().unmarkedWhitespace.empty()) {
+		/*if (!config.getSettings().unmarkedWhitespace.empty()) {
 			for (size_t i=0; i<inputSentenceStr.size(); i++) {
 				inputSentenceStr[i] = waitzar::removeZWS(inputSentenceStr[i], config.getSettings().unmarkedWhitespace);
 			}
-		}
+		}*/
 		for (vector<wstring>::iterator i=inputSentenceStr.begin(); i!=inputSentenceStr.end(); i++) {
 			wstring candidate = *i;
 			if (!noEncChange) {
@@ -1871,7 +1871,7 @@ void recalculate()
 
 	//Candidate strings are slightly more complex; have the convert the entire array
 	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
-	wstring newFilterStr = config.getSettings().markedWhitespace + config.getSettings().unmarkedWhitespace;
+	wstring newFilterStr = config.getSettings().whitespaceCharacters; //We assume all candidates are complete; no ZWS
 	if (!newFilterStr.empty()) {
 		for (size_t i=0; i<dispCandidateStrs.size(); i++) {
 			//Filter MARKED whitespace; we don't want to show this in the candidate list
@@ -1895,7 +1895,7 @@ void recalculate()
 		unsigned int id = i + currInput->getPagingInfo().first * 10;
 		if (id>=dispCandidateStrs.size())
 			break;
-		cumulativeWidth += mainWindow->getStringWidth(mmFont, dispCandidateStrs[id].first, config.getSettings().markedWhitespace, zwsWidth);
+		cumulativeWidth += mainWindow->getStringWidth(mmFont, dispCandidateStrs[id].first, config.getSettings().whitespaceCharacters, (config.getSettings().hideWhitespaceMarkings?0:zwsWidth));
 		cumulativeWidth += spaceWidth;
 	}
 
@@ -1934,16 +1934,16 @@ void recalculate()
 	//Draw each string, highlight the previous word if it's a pat-sint candidate.
 	int currPosX = borderWidth + 1;
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
-	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[0], currPosX, borderWidth+1, config.getSettings().whitespaceCharacters, (config.getSettings().hideWhitespaceMarkings?0:zwsWidth));
 	if (!dispSentenceStr[0].empty())
-		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[0], config.getSettings().markedWhitespace, zwsWidth) + 1;
+		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[0], config.getSettings().whitespaceCharacters, (config.getSettings().hideWhitespaceMarkings?0:zwsWidth)) + 1;
 	mmFontSmall->setColor(0xFF, 0x00, 0x00);
-	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[1], currPosX, borderWidth+1, config.getSettings().whitespaceCharacters, (config.getSettings().hideWhitespaceMarkings?0:zwsWidth));
 	mmFontSmall->setColor(0xFF, 0xFF, 0xFF);
 	if (!dispSentenceStr[1].empty())
-		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[1], config.getSettings().markedWhitespace, zwsWidth) + 1;
+		currPosX += mainWindow->getStringWidth(mmFontSmall, dispSentenceStr[1], config.getSettings().whitespaceCharacters, (config.getSettings().hideWhitespaceMarkings?0:zwsWidth)) + 1;
 	int cursorPosX = currPosX++;  //+1 for the cursor
-	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1, config.getSettings().markedWhitespace, zwsWidth);
+	sentenceWindow->drawString(mmFontSmall, dispSentenceStr[2], currPosX, borderWidth+1, config.getSettings().whitespaceCharacters, (config.getSettings().hideWhitespaceMarkings?0:zwsWidth));
 
 	//Draw the cursor
 	sentenceWindow->moveTo(cursorPosX-1, borderWidth+1);
@@ -3955,7 +3955,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 
 				//Save the "typed string" for later
-				wstring stringToType = waitzar::removeZWS(currInput->getTypedSentenceStrings()[3], config.getSettings().filteredWhitespace);
+				wstring stringToType = waitzar::removeZWS(currInput->getTypedSentenceStrings()[3], config.getSettings().ignoredCharacters);
 
 				//Check 1: Did we just switch out of help mode?
 				if (wasProvidingHelp != currInput->isHelpInput())

@@ -57,17 +57,16 @@
       "default-language" : "myanmar",
 	  
       # Which whitespace letters are marked with a straight vertical line?
-      #  One may choose, for example, to add U2008/U2009 (thin space/hair space)
-      #  Generally, though, this setting is reserved for zero-width letters
-      "marked-whitespace" : "\u200B\u200C\u200D",
+      #  One may choose, for example, to add U200C (zero-width non-joiner)
+      #  Generally, though, this setting is reserved for a single character: zero-width space
+      "whitespace-characters" : "\u200B",
 	  
-      # Which whitespace letters won't be shown at all?
-	  #  (Any letters here will not be shown, even if "market-whitespace" contains them).
-	  #  Currently, we don't mark any whitespace; it will still be type-able, but I don't want to confuse users too much.
-      "unmarked-whitespace" : "\u200B\u200C\u200D",
+      # Which characters are filtered from the output before typing them
+	  #  Any letters here will not be added to the output stream. 
+	  #  We currently filter U+200B because Open Office takes issue with it.
+      "ignored-characters" : "\u200B",
 	  
-      # Which letters should be filtered (never sent as input, but still shown)?
-      #  We currently filter U+200B because some fonts have trouble showing it.
-      "untyped-whitespace" : "\u200B"
+      # Should we hide our vertical ZWS markers? If "yes", these markers will not be drawn. 
+      "hide-whitespace-markings" : "yes"
     }
 }
