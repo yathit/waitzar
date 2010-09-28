@@ -857,7 +857,7 @@ wstring readUTF8File(const string& path)
 	//Open the file, read-only, binary.
 	FILE* userFile = fopen(path.c_str(), "rb");
 	if (userFile == NULL)
-		throw std::exception(std::string("File doesn't exist: " + path).c_str()); //File doesn't exist
+		throw std::runtime_error(std::string("File doesn't exist: " + path).c_str()); //File doesn't exist
 
 	//Get file size
 	fseek (userFile, 0, SEEK_END);
@@ -877,11 +877,11 @@ wstring readUTF8File(const string& path)
 	/*if (buff_size==numUniChars) {
 		std::stringstream msg;
 		msg <<"Error reading file. Buffer size: " <<buff_size << " , numUniChars: " <<numUniChars;
-		throw std::exception(msg.str().c_str()); //Conversion probably failed.
+		throw std::runtime_error(msg.str().c_str()); //Conversion probably failed.
 	}*/ //Not true! What about an ascii-only file?
 	uniBuffer = new wchar_t[numUniChars]; // (wchar_t*) malloc(sizeof(wchar_t)*numUniChars);
 	if (mymbstowcs(uniBuffer, buffer, buff_size)==0)
-		throw std::exception("Invalid UTF-8 characters in file."); //Invalid UTF-8 characters
+		throw std::runtime_error("Invalid UTF-8 characters in file."); //Invalid UTF-8 characters
 
 	//Done, clean up resources
 	wstring res = wstring(uniBuffer, numUniChars);
@@ -1471,7 +1471,7 @@ std::string escape_wstr(const std::wstring& str, bool errOnUnicode)
 		if (*c < std::numeric_limits<char>::max())
 			res << static_cast<char>(*c);
 		else if (errOnUnicode)
-			throw std::exception("String contains unicode");
+			throw std::runtime_error("String contains unicode");
 		else
 			res << "\\u" << std::hex << *c << std::dec;
 	}
@@ -1494,7 +1494,7 @@ std::string wcs2mbs(const std::wstring& str)
 			char c2 = (((*c)>>6)&0x3F) | 0x80;
 			char c3 = ((*c)&0x3F) | 0x80;
 		} else 
-			throw std::exception("Unicode value out of range.");
+			throw std::runtime_error("Unicode value out of range.");
 
 	}
 	return res.str();
@@ -1608,7 +1608,7 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 
 		//Check our ID anyway
 		if (x<0 || x>=(int)numFlags)
-			throw std::exception("normalize_bgunicode id error!");
+			throw std::runtime_error("normalize_bgunicode id error!");
 
 		//Now, append the letter ONLY if this flag is false
 		if (!flags[x]) {

@@ -115,7 +115,7 @@ void PulpCoreFont::fontSet()
 		if (res_data[currPos++] != PULP_MAGICNUM[i]) {
 			std::stringstream msg;
 			msg <<"PULP_MAGICNUM[" <<i <<"] is " <<res_data[currPos-1] <<" not " <<PULP_MAGICNUM[i];
-			throw std::exception(msg.str().c_str());
+			throw std::runtime_error(msg.str().c_str());
 		}
 	}
 

@@ -22,7 +22,7 @@ void Uni2WinInnwa::convertInPlace(std::wstring& src) const
 	wchar_t srcStr[200];
 	wchar_t destStr[200];
 	if (src.size() >= 200)
-		throw std::exception("String too big in Uni2WinInnwa");
+		throw std::runtime_error("String too big in Uni2WinInnwa");
 
 	//First, convert
 	wcscpy(srcStr, src.c_str());

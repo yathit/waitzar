@@ -69,7 +69,7 @@ void MyWin32Window::init(LPCWSTR windowTitle, WNDPROC userWndProc, HBRUSH& bkgrd
 	if (WndMap.count(windowClassName)>0 && WndMap[windowClassName]!=this) {
 		std::stringstream err;
 		err << "Window class already exists " << waitzar::escape_wstr(windowClassName, false);
-		throw std::exception(err.str().c_str());
+		throw std::runtime_error(err.str().c_str());
 	}
 
 	//Create the window class
@@ -89,7 +89,7 @@ void MyWin32Window::init(LPCWSTR windowTitle, WNDPROC userWndProc, HBRUSH& bkgrd
 	if(!RegisterClassEx(&wc)) {
 		std::stringstream err;
 		err << "Window class registration failed for " << waitzar::escape_wstr(windowClassName);
-		throw std::exception(err.str().c_str());
+		throw std::runtime_error(err.str().c_str());
 	}
 
 
@@ -124,13 +124,13 @@ LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 	//Get the window's class name
 	TCHAR wndClassName[256];
 	if (GetClassName(hwnd, wndClassName, 256)==0)
-		throw std::exception("Window class name doesn't exist for the current hwnd");
+		throw std::runtime_error("Window class name doesn't exist for the current hwnd");
 
 	//Get the class that created this window
 	if (WndMap.count(wndClassName)==0) {
 		std::stringstream err;
 		err << "Window class not known: " << waitzar::escape_wstr(wndClassName, false);
-		throw std::exception(err.str().c_str());
+		throw std::runtime_error(err.str().c_str());
 	}
 	MyWin32Window* caller = WndMap[wndClassName];
 
@@ -286,7 +286,7 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 				else if (i==NORTH)
 					linkedWindows[i]->setWindowPosition(min(max(myRect.left, 0), deskRect.right-linkedWindows[i]->getClientWidth()), max(myRect.top-linkedWindows[i]->getClientHeight(), 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 				else
-					throw std::exception("Cannot move windows linked EAST/WEST (Todo...)");
+					throw std::runtime_error("Cannot move windows linked EAST/WEST (Todo...)");
 			}
 
 			break;
@@ -764,7 +764,7 @@ void MyWin32Window::linkToWindow(MyWin32Window* other, ATTACH_DIRECTION linkAt)
 
 	//Check if it's already attached
 	if (this->linkedWindows[linkAt]!=NULL || other->linkedWindows[linkFrom]!=NULL)
-		throw std::exception("Cannot link: one of these windows is already linked");
+		throw std::runtime_error("Cannot link: one of these windows is already linked");
 
 	//Attach.
 	this->linkedWindows[linkAt] = other;
@@ -928,7 +928,7 @@ void MyWin32Window::endMassSubscription()
 unsigned int MyWin32Window::subscribeRect(const RECT& area, void(*onclick)(unsigned int), void(*onover)(unsigned int), void(*onout)(unsigned int))
 {
 	if (area.right<=area.left || area.bottom<=area.top)
-		throw std::exception("Error: invalid rectangle in subscribeRect().");
+		throw std::runtime_error("Error: invalid rectangle in subscribeRect().");
 
 	RegionActions reg = {onclick, onover, onout};
 	regionHandles.push_back(std::pair<RECT, RegionActions>(area, reg));

@@ -40,7 +40,7 @@ void BurglishBuilder::InitStatic()
 	json_spirit::wmValue specialRoot;
 
 	if (!(json_spirit::read(BURGLISH_ONSETS, onsetRoot) && 	json_spirit::read(BURGLISH_RHYMES, rhymeRoot) && json_spirit::read(BURGLISH_SPECIALS, specialRoot)))
-		throw std::exception("BURGLISH_ONSETS, BURGLISH_RHYMES, or BURGLISH_SPECIALS contains parse errors --this should never happen in release mode.");
+		throw std::runtime_error("BURGLISH_ONSETS, BURGLISH_RHYMES, or BURGLISH_SPECIALS contains parse errors --this should never happen in release mode.");
 
 	onsetPairs = onsetRoot.get_value<json_spirit::wmObject>();
 	rhymePairs = rhymeRoot.get_value<json_spirit::wmObject>();

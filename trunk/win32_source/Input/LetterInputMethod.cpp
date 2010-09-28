@@ -118,12 +118,12 @@ void LetterInputMethod::handleStop(bool isFull, VirtKey& vkey)
 
 std::pair<int, std::string> LetterInputMethod::lookupWord(std::wstring typedWord)
 {
-	throw std::exception("Error: Cannot perform \"lookup word\" in a letter-based model.");
+	throw std::runtime_error("Error: Cannot perform \"lookup word\" in a letter-based model.");
 }
 
 void LetterInputMethod::typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID)
 {
-	throw std::exception("Error: Cannot perform \"type help word\" in a letter-based model.");
+	throw std::runtime_error("Error: Cannot perform \"type help word\" in a letter-based model.");
 }
 
 void LetterInputMethod::handleCommit(bool strongCommit)

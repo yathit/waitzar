@@ -65,9 +65,9 @@ vector< pair<wstring, wstring> > KeyMagicInputMethod::convertToRulePairs()
 		Rule lhs = compressToSingleStringRule(replacements[i].match, variables);
 		Rule rhs = compressToSingleStringRule(replacements[i].replace, variables);
 		if (lhs.type!=KMRT_STRING)
-			throw std::exception("Error: LHS is not of type \"string\".");
+			throw std::runtime_error("Error: LHS is not of type \"string\".");
 		if (rhs.type!=KMRT_STRING)
-			throw std::exception("Error: RHS is not of type \"string\".");
+			throw std::runtime_error("Error: RHS is not of type \"string\".");
 		res.push_back(pair<wstring, wstring>(lhs.str, rhs.str));
 	}
 
@@ -125,7 +125,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 
 				//Check
 				if (actualMD5.length()!=32 || expectedMD5.length()!=32)
-					throw std::exception("Bad MD5 length in KeyMagic binary file (or source file)");
+					throw std::runtime_error("Bad MD5 length in KeyMagic binary file (or source file)");
 				if (actualMD5==expectedMD5)
 					reloadSourceText = false;
 			}
@@ -148,7 +148,7 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 int KeyMagicInputMethod::readInt(unsigned char* buffer, size_t& currPos, size_t bufferSize)
 {
 	if (currPos+2>bufferSize)
-		throw std::exception("Error: buffer overrun when reading KeyMagic file");
+		throw std::runtime_error("Error: buffer overrun when reading KeyMagic file");
 
 	int res = buffer[currPos++]<<8;
 	res |= buffer[currPos++];
@@ -177,10 +177,10 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& binaryFilePath)
 	size_t pos = 0;
 	int version = buffer[pos++];
 	if (version!=KEYMAGIC_BINARY_VERSION)
-		throw std::exception("Error: invalid Key Magic binary file version");
+		throw std::runtime_error("Error: invalid Key Magic binary file version");
 	int bom = readInt(buffer, pos, file_size);
 	if (bom!=0xFEFF)
-		throw std::exception("Error: invalid Key Magic binary file BOM");
+		throw std::runtime_error("Error: invalid Key Magic binary file BOM");
 	pos += 16; //Skip checksum
 	int numSwitches = readInt(buffer, pos, file_size);
 	for (int i=0; i<numSwitches; i++)
@@ -199,7 +199,7 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& binaryFilePath)
 		size_t numMatches = readInt(buffer, pos, file_size);
 		size_t numReplacements = readInt(buffer, pos, file_size);
 		if (isVar && (numSwitches!=0 || numMatches!=0))
-			throw std::exception("Error: Variable contains switches and matches in KeyMagic binary file.");
+			throw std::runtime_error("Error: Variable contains switches and matches in KeyMagic binary file.");
 
 		//Read all switches into a vector for later.
 		vector<unsigned int> switches;
@@ -226,7 +226,7 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& binaryFilePath)
 				case 6:   r.type = KMRT_VARARRAY_SPECIAL;   break;
 				case 7:   r.type = KMRT_VARARRAY_BACKREF;   break;
 				case 8:   r.type = KMRT_KEYCOMBINATION;     break;
-				default:   throw std::exception("Error: bad rule \"type\" in binary Key Magic file");
+				default:   throw std::runtime_error("Error: bad rule \"type\" in binary Key Magic file");
 			}
 			r.val = readInt(buffer, pos, file_size);
 			r.id = readInt(buffer, pos, file_size);
@@ -273,7 +273,7 @@ void KeyMagicInputMethod::writeInt(vector<unsigned char>& stream, int intVal)
 	if (intVal<0 || intVal>=0xFFFF) {
 		std::stringstream msg;
 		msg <<"Integer is too big or too small: " <<intVal;
-		throw std::exception(msg.str().c_str());
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Write first half, write second half
@@ -293,7 +293,7 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 	binStream.push_back(KEYMAGIC_BINARY_VERSION);
 	writeInt(binStream, 0xFEFF);
 	if (checksum.size()!=32)
-		throw std::exception((string("Invalid checksum: ") + checksum).c_str());
+		throw std::runtime_error((string("Invalid checksum: ") + checksum).c_str());
 	for (size_t i=0; i<16; i++) {
 		int nextInt = (hexVal(checksum[i*2])<<4) | hexVal(checksum[i*2+1]);
 		binStream.push_back((unsigned char)(nextInt&0xFF));
@@ -355,7 +355,7 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 					for (size_t i=0; i<r.str.length(); i++) 
 						writeInt(binStream, r.str[i]);
 				}
-			} catch (std::exception ex) {
+			} catch (std::exception& ex) {
 				std::stringstream msg;
 				msg <<"Error writing rule file: \n";
 				msg <<ex.what() <<std::endl;
@@ -365,7 +365,7 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 					msg <<"On rule:\n";
 					msg <<waitzar::escape_wstr(replacements[actID].debugRuleText, false) <<std::endl;
 				}
-				throw std::exception(msg.str().c_str());
+				throw std::runtime_error(msg.str().c_str());
 			}
 		}
 	}
@@ -392,7 +392,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 		if (datastream[i] == L'\uFEFF')
 			i++;
 		else if (datastream[i] == L'\uFFFE')
-			throw std::exception("KeyMagicInputMethod rules file  appears to be encoded backwards.");
+			throw std::runtime_error("KeyMagicInputMethod rules file  appears to be encoded backwards.");
 
 
 		//First, parse into an array of single "rules" (or variables), removing 
@@ -568,7 +568,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				//TODO: Put this in a central place.
 				try {
 					allRules.push_back(parseRule(rule.str()));
-				} catch (std::exception ex) {
+				} catch (std::exception& ex) {
 					std::wstringstream err;
 					err <<"File: " <<rulesFilePath.c_str() <<"\n";
 					err <<ex.what();
@@ -576,7 +576,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 					err <<line;
 					err <<"\nPrevious rule:\n";
 					err <<prevLine;
-					throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
+					throw std::runtime_error(waitzar::escape_wstr(err.str(), false).c_str());
 				}
 				//Reset
 				rule.str(L"");
@@ -614,7 +614,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				//Interpret
 				try {
 					allRules.push_back(parseRule(rule.str()));
-				} catch (std::exception ex) {
+				} catch (std::exception& ex) {
 					std::wstringstream err;
 					err <<"File: " <<rulesFilePath.c_str() <<"\n";
 					err <<ex.what();
@@ -622,7 +622,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 					err <<line;
 					err <<"\nPrevious rule:\n";
 					err <<prevLine;
-					throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
+					throw std::runtime_error(waitzar::escape_wstr(err.str(), false).c_str());
 				}
 
 				//Reset
@@ -636,7 +636,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 			//Interpret
 			try {
 				allRules.push_back(parseRule(rule.str()));
-			} catch (std::exception ex) {
+			} catch (std::exception& ex) {
 				std::wstringstream err;
 				err <<"File: " <<rulesFilePath.c_str() <<"\n";
 				err <<ex.what();
@@ -644,7 +644,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				err <<line;
 				err <<"\nPrevious rule:\n";
 				err <<prevLine;
-				throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
+				throw std::runtime_error(waitzar::escape_wstr(err.str(), false).c_str());
 			}
 
 			//Reset
@@ -656,11 +656,11 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 		try {
 			//Check
 			if (separator==0)
-				throw std::exception("Error: Rule does not contain = or =>");
+				throw std::runtime_error("Error: Rule does not contain = or =>");
 
 			//Try to add
 			addSingleRule(line, allRules, tempVarLookup, tempSwitchLookup, sepIndex, separator==1);
-		} catch (std::exception ex) {
+		} catch (std::exception& ex) {
 			std::wstringstream err;
 			err <<"File: " <<rulesFilePath.c_str() <<"\n";
 			err <<ex.what();
@@ -668,7 +668,7 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 			err <<line;
 			err <<"\nPrevious rule:\n";
 			err <<prevLine;
-			throw std::exception(waitzar::escape_wstr(err.str(), false).c_str());
+			throw std::runtime_error(waitzar::escape_wstr(err.str(), false).c_str());
 		}
 
 		//Save previous line; it sometimes helps with error messages.
@@ -758,7 +758,7 @@ bool KeyMagicInputMethod::ReplacementCompare(const RuleSet& first, const RuleSet
 		return sum1<sum2;
 
 	//Else, error
-	throw std::exception("Error! ReplacementCompare cannot determine a sorting order for some rules.");
+	throw std::runtime_error("Error! ReplacementCompare cannot determine a sorting order for some rules.");
 }
 
 
@@ -784,7 +784,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 	try {
 		//Detection of type is a bit ad-hoc for now. At least, we need SOME length of string
 		if (ruleStr.empty())
-			throw std::exception("Error: Cannot create a rule from an empty string");
+			throw std::runtime_error("Error: Cannot create a rule from an empty string");
 		wstring ruleLowercase = ruleStr;
 		waitzar::loc_to_lower(ruleLowercase);
 
@@ -815,7 +815,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				//Switch?
 				if (c==L'[') {
 					if (numberVal!=-1)
-						throw std::exception("Invalid variable: cannot subscript number constants");
+						throw std::runtime_error("Invalid variable: cannot subscript number constants");
 
 					//Flag for further parsing
 					bracesStartIndex = i;
@@ -823,7 +823,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				}
 
 				//Else, error
-				throw std::exception("Invalid variable letter: should be alphanumeric.");
+				throw std::runtime_error("Invalid variable letter: should be alphanumeric.");
 			}
 
 			//No further parsing?
@@ -840,7 +840,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 			} else {
 				//It's a complex variable.
 				if (bracesStartIndex==ruleStr.length()-1 || ruleStr[ruleStr.length()-1]!=L']')
-					throw std::exception("Invalid variable: bracket isn't closed.");
+					throw std::runtime_error("Invalid variable: bracket isn't closed.");
 				result.str = ruleStr.substr(0, bracesStartIndex);
 				
 				//Could be [*] or [^]; check these first
@@ -855,10 +855,10 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 							total *= 10;
 							total += (ruleStr[id]-L'0');
 						} else 
-							throw std::exception("Invalid variable: bracket variable contains non-numeric ID characters.");
+							throw std::runtime_error("Invalid variable: bracket variable contains non-numeric ID characters.");
 					}
 					if (total==0)
-						throw std::exception("Invalid variable: bracket variable has no ID.");
+						throw std::runtime_error("Invalid variable: bracket variable has no ID.");
 
 					//Save
 					result.type = KMRT_VARARRAY_BACKREF;
@@ -871,10 +871,10 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 							total *= 10;
 							total += (ruleStr[id]-L'0');
 						} else 
-							throw std::exception("Invalid variable: bracket id contains non-numeric ID characters.");
+							throw std::runtime_error("Invalid variable: bracket id contains non-numeric ID characters.");
 					}
 					if (total==0)
-						throw std::exception("Invalid variable: bracket id has no ID.");
+						throw std::runtime_error("Invalid variable: bracket id has no ID.");
 
 					//Save
 					result.type = KMRT_VARARRAY;
@@ -914,7 +914,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 						if (eID>=0 && eID<ruleStr.length())
 							tempEsc <<wstring(1, ruleStr[eID]);
 					}
-					throw std::exception(waitzar::glue(L"Invalid escape sequence around: ", tempEsc.str()).c_str());
+					throw std::runtime_error(waitzar::glue(L"Invalid escape sequence around: ", tempEsc.str()).c_str());
 				}
 			}
 			result.type = KMRT_STRING;
@@ -942,7 +942,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				}
 			}
 			if (result.val == -1)
-				throw std::exception("Unknown VKEY specified");
+				throw std::runtime_error("Unknown VKEY specified");
 		}
 
 
@@ -971,7 +971,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				result.type = KMRT_SWITCH;
 				result.str = ruleStr.substr(2, ruleStr.length()-4);
 			} else 
-				throw std::exception("Bad 'switch' type rule");
+				throw std::runtime_error("Bad 'switch' type rule");
 		}
 		
 
@@ -996,7 +996,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 			result.type = KMRT_KEYCOMBINATION;
 			result.val = -1;
 			if (vkeys.empty())
-				throw std::exception("Invalid VKEY: nothing specified");
+				throw std::runtime_error("Invalid VKEY: nothing specified");
 			for (size_t id=0; !KeyMagicVKeys[id].keyName.empty(); id++) {
 				if (KeyMagicVKeys[id].keyName == vkeys[vkeys.size()-1]) {
 					result.val = KeyMagicVKeys[id].keyValue;
@@ -1004,7 +1004,7 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				}
 			}
 			if (result.val == -1)
-				throw std::exception(waitzar::glue(L"Unknown VKEY specified \"", vkeys[vkeys.size()-1], L"\"").c_str());
+				throw std::runtime_error(waitzar::glue(L"Unknown VKEY specified \"", vkeys[vkeys.size()-1], L"\"").c_str());
 
 			//Now, handle all modifiers
 			for (size_t id=0; id<vkeys.size()-1; id++) {
@@ -1017,16 +1017,16 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				} else if (vkeys[id]==L"VK_CAPSLOCK" || vkeys[id]==L"VK_CAPITAL") {
 					result.val |= KM_VKMOD_CAPS;
 				} else {
-					throw std::exception(waitzar::glue(L"Unknown VKEY specified as modifier \"", vkeys[id], L"\"").c_str());
+					throw std::runtime_error(waitzar::glue(L"Unknown VKEY specified as modifier \"", vkeys[id], L"\"").c_str());
 				}
 			}
 		}
 
 		//Done?
 		if (result.type==KMRT_UNKNOWN)
-			throw std::exception("Error: Unknown rule type");
-	} catch (std::exception ex) {
-		throw std::exception(waitzar::glue(ex.what(), "  \"", waitzar::escape_wstr(ruleStr, false), "\"").c_str());
+			throw std::runtime_error("Error: Unknown rule type");
+	} catch (std::exception& ex) {
+		throw std::runtime_error(waitzar::glue(ex.what(), "  \"", waitzar::escape_wstr(ruleStr, false), "\"").c_str());
 	}
 
 	return result;
@@ -1055,14 +1055,14 @@ Rule KeyMagicInputMethod::compressToSingleStringRule(const std::vector<Rule>& ru
 			res.str += topRule->str;
 		} else if (topRule->type==KMRT_VARARRAY) {
 			if (variables[topRule->id].size()!=1 || variables[topRule->id][0].type!=KMRT_STRING)
-				throw std::exception("Error: Variable depth too great for '^' or '*' reference as \"VARARRAY\"");
+				throw std::runtime_error("Error: Variable depth too great for '^' or '*' reference as \"VARARRAY\"");
 			res.str += variables[topRule->id][0].str[topRule->val];
 		} else if (topRule->type==KMRT_VARIABLE) {
 			if (variables[topRule->id].size()!=1 || variables[topRule->id][0].type!=KMRT_STRING)
-				throw std::exception("Error: Variable depth too great for '^' or '*' reference as \"VARIABLE\"");
+				throw std::runtime_error("Error: Variable depth too great for '^' or '*' reference as \"VARIABLE\"");
 			res.str += variables[topRule->id][0].str;
 		} else
-			throw std::exception("Error: Variable accessed with '*' or '^', but points to non-obvious data structure.");
+			throw std::runtime_error("Error: Variable accessed with '*' or '^', but points to non-obvious data structure.");
 	}
 
 	return res;
@@ -1081,7 +1081,7 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 		Rule currRule = rules[i];
 		switch (currRule.type) {
 			case KMRT_UNKNOWN:
-				throw std::exception("Error: A rule was discovered with type \"KMRT_UNKNOWN\"");
+				throw std::runtime_error("Error: A rule was discovered with type \"KMRT_UNKNOWN\"");
 
 			case KMRT_STRING:
 				//If a string is followed by another string, combine them.
@@ -1100,7 +1100,7 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 				//Make sure all variables exist; fill in their implicit ID
 				//NOTE: We cannot assume variables before they are declared; this would allow for circular references.
 				if (varLookup.count(currRule.str)==0)
-					throw std::exception(waitzar::glue(L"Error: Previously undefined variable \"", currRule.str, L"\"").c_str());
+					throw std::runtime_error(waitzar::glue(L"Error: Previously undefined variable \"", currRule.str, L"\"").c_str());
 				currRule.id = varLookup.find(currRule.str)->second;
 
 				//Special check
@@ -1142,20 +1142,20 @@ void KeyMagicInputMethod::addSingleRule(const std::wstring& fullRuleText, const 
 
 	//Simple checks 1,2: Variables are correct
 	if (isVariable && rhsStart!=1)
-		throw std::exception("Rule error: Variables cannot have multiple assignments left of the parentheses");
+		throw std::runtime_error("Rule error: Variables cannot have multiple assignments left of the parentheses");
 	if (isVariable && rules[0].type!=KMRT_VARIABLE)
-		throw std::exception("Rule error: Assignment ($x = y) can only assign into a variable.");
+		throw std::runtime_error("Rule error: Assignment ($x = y) can only assign into a variable.");
 
 	//LHS checks: no backreferences
 	for (size_t i=0; i<rhsStart; i++) {
 		if (rules[i].type==KMRT_MATCHVAR || rules[i].type==KMRT_VARARRAY_BACKREF)
-			throw std::exception("Cannot have backreference ($1, $2, or $test[$1]) on the left of an expression");
+			throw std::runtime_error("Cannot have backreference ($1, $2, or $test[$1]) on the left of an expression");
 	}
 
 	//RHS checks: no ambiguous wildcards
 	for (size_t i=rhsStart; i<rules.size(); i++) {
 		if (rules[i].type==KMRT_WILDCARD || rules[i].type==KMRT_VARARRAY_SPECIAL)
-			throw std::exception("Cannot have wildcards (*, $test[*], $test[^]) on the right of an expression");
+			throw std::runtime_error("Cannot have wildcards (*, $test[*], $test[^]) on the right of an expression");
 	}
 
 	//TODO: We might consider checking the number of backreferences against the $1...${n} values, but I don't 
@@ -1174,12 +1174,12 @@ void KeyMagicInputMethod::addSingleRule(const std::wstring& fullRuleText, const 
 	if (isVariable) {
 		//TODO: Allow switches in variables under some conditions
 		if (!temp.empty())
-			throw std::exception("Error: At the moment, Key Magic on WaitZar does not support switches inside of variables");
+			throw std::runtime_error("Error: At the moment, Key Magic on WaitZar does not support switches inside of variables");
 
 		//Make sure it's in the array ONLY once. Then add it.
 		const wstring& candidate = rules[0].str;
 		if (varLookup.count(candidate) != 0)
-			throw std::exception(waitzar::glue(L"Error: Duplicate variable definition: \"", candidate, L"\"").c_str());
+			throw std::runtime_error(waitzar::glue(L"Error: Duplicate variable definition: \"", candidate, L"\"").c_str());
 		varLookup[candidate] = variables.size();
 		variables.push_back(rhsVector);
 	} else {
@@ -1340,11 +1340,11 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 
 					//"Error" and "quasi-error" cases.
 					case KMRT_VARIABLE:
-						throw std::exception("Bad match: variables should be dealt with outside the main loop.");
+						throw std::runtime_error("Bad match: variables should be dealt with outside the main loop.");
 					case KMRT_SWITCH:
-						throw std::exception("Bad match: switches should be dealt with outside the main loop.");
+						throw std::runtime_error("Bad match: switches should be dealt with outside the main loop.");
 					default:
-						throw std::exception("Bad match: inavlid rule type.");
+						throw std::runtime_error("Bad match: inavlid rule type.");
 				}
 			}
 
@@ -1447,7 +1447,7 @@ wstring KeyMagicInputMethod::applyMatch(const Candidate& result, bool& breakLoop
 
 			//Anything else (WILDCARD, VARARRAY_SPECIAL , KEYCOMBINATION) is an error.
 			default:
-				throw std::exception("Bad match: inavlid replacement type.");
+				throw std::runtime_error("Bad match: inavlid replacement type.");
 		}
 	}
 
@@ -1616,7 +1616,7 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			//Before we apply the rule, check if we've looped "forever"
 			if (++totalMatchesOverall >= std::max<size_t>(50, replacements.size())) {
 				//To do: We might also consider logging this, later.
-				throw std::exception(waitzar::glue(L"Error on keymagic regex; infinite loop on input: \n   ", input).c_str());
+				throw std::runtime_error(waitzar::glue(L"Error on keymagic regex; infinite loop on input: \n   ", input).c_str());
 			}
 
 			//Apply, update input.

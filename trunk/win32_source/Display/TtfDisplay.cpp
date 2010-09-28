@@ -53,7 +53,7 @@ void TtfDisplay::init(const wstring& fileName,  HDC currDC, unsigned int default
 	if (!fileName.empty()) {
 		fileToDelete = fileName;
 		if (AddFontResourceEx(fileName.c_str(), FR_PRIVATE, 0)==0)
-			throw std::exception("Couldn't load internal font file");
+			throw std::runtime_error("Couldn't load internal font file");
 	}
 
 	//Now, add the logical font
@@ -76,7 +76,7 @@ void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLog
 	DWORD nFonts;
 	fontHandle = AddFontMemResourceEx(data, len, 0, &nFonts);
 	if(!fontHandle)
-		throw std::exception("Embedded font could not be loaded.");
+		throw std::runtime_error("Embedded font could not be loaded.");
 
 	//Unlock this resource for later use.
 	UnlockResource(dataHandle);
@@ -100,7 +100,7 @@ void TtfDisplay::initLogicalFont(int devLogPixelsY)
 	wcscpy_s(lf.lfFaceName, fontFaceName.c_str());
 	font = CreateFontIndirect(&lf);
 	if (!font)
-		throw std::exception("Could not create font");
+		throw std::runtime_error("Could not create font");
 }
 
 
