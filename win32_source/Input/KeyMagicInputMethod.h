@@ -232,22 +232,22 @@ public:
 	//Our "current match" is the top entry on the stack; this greatly simplifies memory management
 	Matcher& currMatch() {
 		if (matchStack.empty())
-			throw std::exception("Error: cannot match on a rule which is already done");
+			throw std::runtime_error("Error: cannot match on a rule which is already done");
 		return matchStack.top();
 	}
 
 	//Useful stuff
 	const Rule& getCurrRule() {
 		if (currMatch().getRulestream()==NULL)
-			throw std::exception("Bad programming: can't call \"getCurrRule\" on an emtpy rulestream.");
+			throw std::runtime_error("Bad programming: can't call \"getCurrRule\" on an emtpy rulestream.");
 
 		if (currMatch().getDot() < (int)currMatch().getRulestream()->size())
 			return (*(currMatch().getRulestream()))[currMatch().getDot()];
-		throw std::exception("Bad programming: the dot has exceeded the length of the current rulestream.");
+		throw std::runtime_error("Bad programming: the dot has exceeded the length of the current rulestream.");
 	}
 	wchar_t getCurrStringRuleChar() {
 		if (getCurrRule().type!=KMRT_STRING)
-			throw std::exception("Can only call getCurrStringRuleChar() on a STRING type");
+			throw std::runtime_error("Can only call getCurrStringRuleChar() on a STRING type");
 		return getCurrRule().str[currMatch().getStrDot()];
 	}
 	void newCurr(const std::vector<Rule>* const rule) {

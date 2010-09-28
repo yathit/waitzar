@@ -160,7 +160,7 @@ void WZFactory<ModelType>::buildSystemWordLookup()
 	//Check (if only....)
 	//Checked in TextPad: 41 == 41
 	//if (WZFactory<ModelType>::systemDefinedWords.length() != sizeof(WZFactory<ModelType>::systemDefinedKeys)/sizeof(int))
-	//	throw std::exception("System words arrays of mismatched size.");
+	//	throw std::runtime_error("System words arrays of mismatched size.");
 
 	//Build our reverse lookup.
 	for (size_t i=0; i<WZFactory<ModelType>::systemDefinedWords.size(); i++) {
@@ -188,10 +188,10 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 	//Load the resource as a byte array and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_MODEL), _T("Model"));
 	if (!res)
-		throw std::exception("Couldn't find IDR_WAITZAR_MODEL");
+		throw std::runtime_error("Couldn't find IDR_WAITZAR_MODEL");
 	res_handle = LoadResource(NULL, res);
 	if (!res_handle)
-		throw std::exception("Couldn't get a handle on IDR_WAITZAR_MODEL");
+		throw std::runtime_error("Couldn't get a handle on IDR_WAITZAR_MODEL");
 	res_data = (char*)LockResource(res_handle);
 	res_size = SizeofResource(NULL, res);
 
@@ -208,10 +208,10 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 	//Load the resource as a byte array and get its size, etc.
 	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_EASYPS), _T("Model"));
 	if (!res)
-		throw std::exception("Couldn't find IDR_WAITZAR_EASYPS");
+		throw std::runtime_error("Couldn't find IDR_WAITZAR_EASYPS");
 	res_handle = LoadResource(NULL, res);
 	if (!res_handle)
-		throw std::exception("Couldn't get a handle on IDR_WAITZAR_EASYPS");
+		throw std::runtime_error("Couldn't get a handle on IDR_WAITZAR_EASYPS");
 	res_data = (char*)LockResource(res_handle);
 	res_size = SizeofResource(NULL, res);
 
@@ -287,7 +287,7 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 		if (wcslen(post)!=0 && wcslen(curr)!=0 && wcslen(pre)!=0) {
 			//Ok, process these strings and store them
 			if (!model->addShortcut(pre, curr, post)) {
-				throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
+				throw std::runtime_error(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 				/*if (isLogging) {
 					for (size_t q=0; q<model->getLastError().size(); q++)
@@ -348,7 +348,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 	size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
 	uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
 	if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars))
-		throw std::exception("mywords.txt contains invalid UTF-8 characters.");
+		throw std::runtime_error("mywords.txt contains invalid UTF-8 characters.");
 	delete [] buffer;
 
 	//Skip the BOM, if it exists
@@ -356,7 +356,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 	if (uniBuffer[currPosition] == UNICOD_BOM)
 		currPosition++;
 	else if (uniBuffer[currPosition] == BACKWARDS_BOM)
-		throw std::exception("mywords.txt appears to be encoded backwards.");
+		throw std::runtime_error("mywords.txt appears to be encoded backwards.");
 
 	//Read each line
 	wchar_t* name = new wchar_t[100];
@@ -371,7 +371,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 
 		//Add this romanization
 		if (!model->addRomanization(name, value, true))
-			throw std::exception(string(string("Error adding romanisation: ") + waitzar::escape_wstr(model->getLastError(), false)).c_str());
+			throw std::runtime_error(string(string("Error adding romanisation: ") + waitzar::escape_wstr(model->getLastError(), false)).c_str());
 	}
 
 	//Reclaim memory
@@ -405,7 +405,7 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(ws
 
 		//One final check	
 		if (model->isInError())
-			throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
+			throw std::runtime_error(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 		//Should probably build the reverse lookup now
 		model->reverseLookupWord(0);
@@ -534,7 +534,7 @@ RomanInputMethod<WordBuilder>* WZFactory<ModelType>::getWordlistBasedInput(wstri
 
 		//One final check
 		if (model->isInError())
-			throw std::exception(waitzar::escape_wstr(model->getLastError(), false).c_str());
+			throw std::runtime_error(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 		//Now, build the romanisation method and return
 		WZFactory<ModelType>::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
@@ -556,12 +556,12 @@ DisplayMethod* WZFactory<ModelType>::getZawgyiPngDisplay(std::wstring langID, st
 		//Load our internal font
 		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(dispResourceID), _T("COREFONT"));
 		if (!fontRes)
-			throw std::exception("Couldn't find IDR_(MAIN|SMALL)_FONT");
+			throw std::runtime_error("Couldn't find IDR_(MAIN|SMALL)_FONT");
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(hInst, fontRes);
 		if (!res_handle)
-			throw std::exception("Couldn't get a handle on IDR_(MAIN|SMALL)_FONT");
+			throw std::runtime_error("Couldn't get a handle on IDR_(MAIN|SMALL)_FONT");
 
 		//Create, init
 		WZFactory<ModelType>::cachedDisplayMethods[fullID] = new PulpCoreFont();
@@ -588,10 +588,10 @@ DisplayMethod* WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(std::wstring lang
 		//Get the Padauk embedded resource
 		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), _T("MODEL"));
 		if (!fontRes)
-			throw std::exception("Couldn't find IDR_PADAUK_ZG");
+			throw std::runtime_error("Couldn't find IDR_PADAUK_ZG");
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle)
-			throw std::exception("Couldn't get a handle on IDR_PADAUK_ZG");
+			throw std::runtime_error("Couldn't get a handle on IDR_PADAUK_ZG");
 
 		//Save, init
 		WZFactory<ModelType>::cachedDisplayMethods[fullID] = res;
@@ -634,12 +634,12 @@ DisplayMethod* WZFactory<ModelType>::getPngDisplayManager(std::wstring langID, s
 	if (WZFactory<ModelType>::cachedDisplayMethods.count(fullID)==0) {
 		//Does it end in ".png"
 		if (fontFileName.length()<5 || fontFileName[fontFileName.length()-4]!=L'.' || fontFileName[fontFileName.length()-3]!=L'p' || fontFileName[fontFileName.length()-2]!=L'n' || fontFileName[fontFileName.length()-1]!=L'g')
-			throw std::exception("PngFont file does not end in \".png\"");
+			throw std::runtime_error("PngFont file does not end in \".png\"");
 
 		//Open it
 		FILE* fontFile = fopen(waitzar::escape_wstr(fontFileName, false).c_str(), "rb");
 		if (fontFile == NULL)
-			throw std::exception("PngFont file could not be opened for reading.");
+			throw std::runtime_error("PngFont file could not be opened for reading.");
 
 		//Try to read its data into a char[] array; get the size, too
 		fseek (fontFile, 0, SEEK_END);
@@ -649,7 +649,7 @@ DisplayMethod* WZFactory<ModelType>::getPngDisplayManager(std::wstring langID, s
 		size_t file_buff_size = fread(file_buff, 1, fileSize, fontFile);
 		fclose(fontFile);
 		if (file_buff_size!=fileSize)
-			throw std::exception("PngFont file could not be read to the end of the file.");
+			throw std::runtime_error("PngFont file could not be read to the end of the file.");
 		
 		//Ok, load our font
 		PulpCoreFont* res = new PulpCoreFont();
@@ -660,7 +660,7 @@ DisplayMethod* WZFactory<ModelType>::getPngDisplayManager(std::wstring langID, s
 			std::stringstream msg;
 			msg <<"Custom font didn't load correctly: " <<ex.what();
 			delete res;
-			throw std::exception(msg.str().c_str());
+			throw std::runtime_error(msg.str().c_str());
 		}
 
 		//Save
@@ -699,11 +699,11 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 
 	//Check some required settings 
 	if (options.count(L"type")==0)
-		throw std::exception("Cannot construct input manager: no \"type\"");
+		throw std::runtime_error("Cannot construct input manager: no \"type\"");
 	if (options.count(L"encoding")==0)
-		throw std::exception("Cannot construct input manager: no \"encoding\"");
+		throw std::runtime_error("Cannot construct input manager: no \"encoding\"");
 	if (options.count(sanitize_id(L"display-name"))==0)
-		throw std::exception("Cannot construct input manager: no \"display-name\"");
+		throw std::runtime_error("Cannot construct input manager: no \"display-name\"");
 
 	//First, generate an actual object, based on the type.
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
@@ -715,14 +715,14 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		else if (id==L"burglish")
 			res = WZFactory<ModelType>::getBurglishInput(language.id);
 		else
-			throw std::exception(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", id).c_str());
+			throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", id).c_str());
 		res->type = BUILTIN;
 	} else if (sanitize_id(options.find(L"type")->second) == L"roman") {
 		//These use a wordlist, for now.
 		if (options.count(L"wordlist")==0)
-			throw std::exception("Cannot construct \"roman\" input manager: no \"wordlist\".");
+			throw std::runtime_error("Cannot construct \"roman\" input manager: no \"wordlist\".");
 		if (options.count(sanitize_id(L"current-folder"))==0)
-			throw std::exception("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
+			throw std::runtime_error("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
 
 		//Build the wordlist file; we will need the respective directory, too.
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
@@ -733,7 +733,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		std::wstringstream temp;
 		temp << wordlistFile.c_str();
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::exception(waitzar::glue(L"Wordlist file does not exist: ", wordlistFile).c_str());
+			throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", wordlistFile).c_str());
 
 		//Get it, as a singleton
 		res = WZFactory<ModelType>::getWordlistBasedInput(language.id, id, waitzar::escape_wstr(wordlistFile, false));
@@ -741,9 +741,9 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 	} else if (sanitize_id(options.find(L"type")->second) == L"keymagic") {
 		//Requires a keyboard file
 		if (options.count(sanitize_id(L"keyboard-file"))==0)
-			throw std::exception("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
+			throw std::runtime_error("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
 		if (options.count(sanitize_id(L"current-folder"))==0)
-			throw std::exception("Cannot construct \"keymagic\" input manager: no \"current-folder\" (should be auto-added).");
+			throw std::runtime_error("Cannot construct \"keymagic\" input manager: no \"current-folder\" (should be auto-added).");
 
 		//Build the wordlist file; we will need the respective directory, too.
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
@@ -754,7 +754,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		std::wstringstream temp;
 		temp << keymagicFile.c_str();
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::exception(waitzar::glue(L"Keyboard file does not exist: ", keymagicFile).c_str());
+			throw std::runtime_error(waitzar::glue(L"Keyboard file does not exist: ", keymagicFile).c_str());
 
 		//Check the cache
 		bool disableCache = false;
@@ -765,7 +765,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache, fileMD5Function);
 		res->type = IME_KEYBOARD;
 	} else {
-		throw std::exception(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
+		throw std::runtime_error(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
 	}
 
 	//Now, add general settings
@@ -786,7 +786,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		else if (prop == L"japanese")
 			res->controlKeyStyle = CK_JAPANESE;
 		else
-			throw std::exception("Invalid option for \"control keys\"");
+			throw std::runtime_error("Invalid option for \"control keys\"");
 	}
 
 	//Also
@@ -806,9 +806,9 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 
 	//Check some required settings 
 	if (options.count(L"type")==0)
-		throw std::exception("Cannot construct display method: no \"type\"");
+		throw std::runtime_error("Cannot construct display method: no \"type\"");
 	if (options.count(L"encoding")==0)
-		throw std::exception("Cannot construct display method: no \"encoding\"");
+		throw std::runtime_error("Cannot construct display method: no \"encoding\"");
 
 	//First, generate an actual object, based on the type.
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
@@ -820,21 +820,21 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		else if (id==L"pdkzgwz")
 			res = WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(language.id, id);
 		else
-			throw std::exception(waitzar::glue(L"Invalid \"builtin\" Display Method: ", id).c_str());
+			throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Display Method: ", id).c_str());
 		res->type = BUILTIN;
 	} else if (sanitize_id(options.find(L"type")->second) == L"ttf") {
 		//Enforce that a font-face-name is given
 		if (options.count(sanitize_id(L"font-face-name"))==0)
-			throw std::exception(waitzar::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
+			throw std::runtime_error(waitzar::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
 		std::wstring fontFaceName = options.find(sanitize_id(L"font-face-name"))->second;
 
 		//Enforce that a point-size is given
 		if (options.count(sanitize_id(L"point-size"))==0)
-			throw std::exception("Cannot construct \"ttf\" display method: no \"point-size\".");
+			throw std::runtime_error("Cannot construct \"ttf\" display method: no \"point-size\".");
 		int pointSize = read_int(options.find(sanitize_id(L"point-size"))->second);
 
 		if (options.count(sanitize_id(L"current-folder"))==0)
-			throw std::exception("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
+			throw std::runtime_error("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
 		
 		//Get the local directory; add the font-file:
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
@@ -846,7 +846,7 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 			std::wstringstream temp;
 			temp << fontFile.c_str();
 			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-				throw std::exception(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
+				throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
 		}
 
 		//Get it, as a singleton
@@ -855,11 +855,11 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 	} else if (sanitize_id(options.find(L"type")->second) == L"png") {
 		//Enforce that a font-file is given
 		if (options.count(sanitize_id(L"font-file"))==0)
-			throw std::exception("Cannot construct \"png\" display method: no \"font-file\".");
+			throw std::runtime_error("Cannot construct \"png\" display method: no \"font-file\".");
 		std::wstring fontFile = options.find(sanitize_id(L"font-file"))->second;
 
 		if (options.count(sanitize_id(L"current-folder"))==0)
-			throw std::exception("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
+			throw std::runtime_error("Cannot construct \"roman\" input manager: no \"current-folder\" (should be auto-added).");
 		
 		//Get the local directory; add the font-file:
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
@@ -870,13 +870,13 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		std::wstringstream temp;
 		temp << fontFile.c_str();
 		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::exception(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
+			throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
 
 		//Get it, as a singleton
 		res = WZFactory<ModelType>::getPngDisplayManager(language.id, id, fontFile);
 		res->type = DISPM_PNG;
 	} else {
-		throw std::exception(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Display Method: ", id).c_str());
+		throw std::runtime_error(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Display Method: ", id).c_str());
 	}
 
 	//Now, add general settings
@@ -895,11 +895,11 @@ Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id,
 
 	//Check some required settings 
 	if (options.count(L"type")==0)
-		throw std::exception("Cannot construct transformation: no \"type\"");
+		throw std::runtime_error("Cannot construct transformation: no \"type\"");
 	if (options.count(sanitize_id(L"from-encoding"))==0)
-		throw std::exception("Cannot construct transformation: no \"from-encoding\"");
+		throw std::runtime_error("Cannot construct transformation: no \"from-encoding\"");
 	if (options.count(sanitize_id(L"to-encoding"))==0)
-		throw std::exception("Cannot construct transformation: no \"to-encoding\"");
+		throw std::runtime_error("Cannot construct transformation: no \"to-encoding\"");
 
 	//First, generate an actual object, based on the type.
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
@@ -915,10 +915,10 @@ Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id,
 		else if (id==L"ayar2uni")
 			res = new Ayar2Uni();
 		else
-			throw std::exception(waitzar::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
+			throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
 		res->type = BUILTIN;
 	} else {
-		throw std::exception(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Transformation: ", id).c_str());
+		throw std::runtime_error(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Transformation: ", id).c_str());
 	}
 
 	//Now, add general settings
@@ -943,7 +943,7 @@ Encoding WZFactory<ModelType>::makeEncoding(const std::wstring& id, const std::m
 
 	//Check some required settings 
 	if (options.count(sanitize_id(L"display-name"))==0)
-		throw std::exception("Cannot construct encoding: no \"display-name\"");
+		throw std::runtime_error("Cannot construct encoding: no \"display-name\"");
 
 	//General Settings
 	res.id = id;

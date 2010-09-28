@@ -134,7 +134,7 @@ void ConfigManager::resolvePartialSettings()
 			//Call the factory method, add it to the current language
 			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
 			if (lang==options.languages.end())
-				throw std::exception(glue(L"Language \"", langName , L"\" expected but not found...").c_str());
+				throw std::runtime_error(glue(L"Language \"", langName , L"\" expected but not found...").c_str());
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
@@ -188,7 +188,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodReg));
 	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodSmall));
 	if (activeDisplayMethods[0]->encoding != activeDisplayMethods[1]->encoding)
-		throw std::exception("Error: \"small\" and \"regular\" sized display methods have different encodings");
+		throw std::runtime_error("Error: \"small\" and \"regular\" sized display methods have different encodings");
 	Logger::markLogTime('L', L"Set \"active\" input/output/display/encodings.");
 }
 
@@ -226,7 +226,7 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 	if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end()) {
 		if (getLocalConfigOpt(L"settings.defaultlanguage")==options.settings.defaultLanguage)
 			localConfError = true;
-		throw std::exception(glue(L"Settings references non-existant default language: ", options.settings.defaultLanguage).c_str());
+		throw std::runtime_error(glue(L"Settings references non-existant default language: ", options.settings.defaultLanguage).c_str());
 	}
 
 	//Validate over each language
@@ -269,26 +269,26 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 		else {
 			if (getLocalConfigOpt(L"languages." + lg->id + L".defaultoutputencoding")==lg->defaultOutputEncoding.id)
 				localConfError = true;
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default output encoding: ", lg->defaultOutputEncoding.id).c_str());
+			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" references non-existant default output encoding: ", lg->defaultOutputEncoding.id).c_str());
 		}
 
 		//Next, validate some default settings of the language
 		if (!defEnc->canUseAsOutput)
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" uses a default output encoding which does not support output.").c_str());
+			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" uses a default output encoding which does not support output.").c_str());
 		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethodReg)==lg->displayMethods.end())
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default display method: ", lg->defaultDisplayMethodReg).c_str());
+			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" references non-existant default display method: ", lg->defaultDisplayMethodReg).c_str());
 		if (FindKeyInSet(lg->displayMethods, lg->defaultDisplayMethodSmall)==lg->displayMethods.end())
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant \"small\" default display method: ", lg->defaultDisplayMethodSmall).c_str());
+			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" references non-existant \"small\" default display method: ", lg->defaultDisplayMethodSmall).c_str());
 		if (FindKeyInSet(lg->inputMethods, lg->defaultInputMethod)==lg->inputMethods.end()) {
 			if (getLocalConfigOpt(L"languages." + lg->id + L".defaultinputmethod")==lg->defaultInputMethod)
 				localConfError = true;
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" references non-existant default input method: ", lg->defaultInputMethod).c_str());
+			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" references non-existant default input method: ", lg->defaultInputMethod).c_str());
 		}
 
 		//TODO: Right now, "unicode" is hard-coded into a lot of places. Is there a better way?
 		std::set<Encoding>::iterator uniEnc = FindKeyInSet(lg->encodings, L"unicode");
 		if (uniEnc==lg->encodings.end())
-			throw std::exception(glue(L"Language \"" , lg->id , L"\" does not include \"unicode\" as an encoding.").c_str());
+			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" does not include \"unicode\" as an encoding.").c_str());
 		unicodeEncoding = *uniEnc;
 
 		//Validate transformations & cache a lookup table.
@@ -299,14 +299,14 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			if (frEnc!=lg->encodings.end())
 				(*it)->fromEncoding = *frEnc;
 			else
-				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant from-encoding: ", (*it)->fromEncoding.id).c_str());
+				throw std::runtime_error(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant from-encoding: ", (*it)->fromEncoding.id).c_str());
 			}
 			{
 			std::set<Encoding>::iterator toEnc = lg->encodings.find((*it)->toEncoding);
 			if (toEnc!=lg->encodings.end())
 				(*it)->toEncoding = *toEnc;
 			else
-				throw std::exception(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant to-encoding: ", (*it)->toEncoding.id).c_str());
+				throw std::runtime_error(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant to-encoding: ", (*it)->toEncoding.id).c_str());
 			}
 
 			//Add to our lookup table, conditional on a few key points
@@ -318,9 +318,9 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			if (foundPair==lg->transformationLookup.end())
 				lg->transformationLookup[newPair] = *it;
 			else if (foundPair->second->hasPriority)
-				throw std::exception(glue(L"Cannot add new Transformation (", (*it)->id, L") over one with priority: ", foundPair->second->id).c_str());
+				throw std::runtime_error(glue(L"Cannot add new Transformation (", (*it)->id, L") over one with priority: ", foundPair->second->id).c_str());
 			else if (!(*it)->hasPriority)
-				throw std::exception(glue(L"Cannot add new Transformation (", (*it)->id, L"); it does not set \"hasPriority\"").c_str());
+				throw std::runtime_error(glue(L"Cannot add new Transformation (", (*it)->id, L"); it does not set \"hasPriority\"").c_str());
 			else
 				lg->transformationLookup[newPair] = *it;
 		}
@@ -333,7 +333,7 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			if (inEnc!=lg->encodings.end())
 				(*it)->encoding = *inEnc;
 			else
-				throw std::exception(glue(L"Input Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding.id).c_str());
+				throw std::runtime_error(glue(L"Input Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding.id).c_str());
 			}
 
 			//Make sure that our encoding is EITHER the default, OR there is an appropriate transform.
@@ -342,7 +342,7 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 				lookup.first = *(lg->encodings.find((*it)->encoding));
 				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
 				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
-					throw std::exception(glue(L"No \"transformation\" exists for input method(", (*it)->id, L").").c_str());
+					throw std::runtime_error(glue(L"No \"transformation\" exists for input method(", (*it)->id, L").").c_str());
 			}
 		}
 
@@ -354,7 +354,7 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			if (outEnc!=lg->encodings.end())
 				(*it)->encoding = *outEnc;
 			else
-				throw std::exception(glue(L"Display Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding.id).c_str());
+				throw std::runtime_error(glue(L"Display Method (", (*it)->id, L") references non-existant encoding: ", (*it)->encoding.id).c_str());
 			}
 
 			//Make sure that our encoding is EITHER the default, OR there is an appropriate transform.
@@ -363,7 +363,7 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 				lookup.first = *(lg->encodings.find((*it)->encoding));
 				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
 				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
-					throw std::exception(glue(L"No \"transformation\" exists for display method(", (*it)->id, L").").c_str());
+					throw std::runtime_error(glue(L"No \"transformation\" exists for display method(", (*it)->id, L").").c_str());
 			}
 		}
 	}
@@ -381,7 +381,7 @@ const Transformation* ConfigManager::getTransformation(const Language& lang, con
 	std::pair<Encoding, Encoding> lookup(fromEnc, toEnc);
 	std::map< std::pair<Encoding, Encoding>, Transformation* >::const_iterator found = lang.transformationLookup.find(lookup);
 	if (found==lang.transformationLookup.end())
-		throw std::exception(glue(L"Error! An unvalidated transformation exists in the configuration model: ", fromEnc.id, L"->", toEnc.id).c_str());
+		throw std::runtime_error(glue(L"Error! An unvalidated transformation exists in the configuration model: ", fromEnc.id, L"->", toEnc.id).c_str());
 
 	//Done
 	return found->second;
@@ -396,9 +396,9 @@ void ConfigManager::overrideSetting(const wstring& settingName, bool value)
 	//      the list of options
 			//Set this based on name/value pair
 	if (settingPure == L"hotkey")
-		throw std::exception("Cannot override hotkey setting");
+		throw std::runtime_error("Cannot override hotkey setting");
 	else if (settingPure == sanitize_id(L"default-language"))
-		throw std::exception("Cannot override default language setting");
+		throw std::runtime_error("Cannot override default language setting");
 	else if (settingPure == sanitize_id(L"silence-mywords-errors"))
 		options.settings.silenceMywordsErrors = value;
 	else if (settingPure == sanitize_id(L"balloon-start"))
@@ -410,7 +410,7 @@ void ConfigManager::overrideSetting(const wstring& settingName, bool value)
 	else if (settingPure == sanitize_id(L"lock-windows"))
 		options.settings.lockWindows = value;
 	else
-		throw std::exception(waitzar::glue(L"Cannot override setting: ", settingName).c_str());
+		throw std::runtime_error(waitzar::glue(L"Cannot override setting: ", settingName).c_str());
 }
 
 
@@ -630,7 +630,7 @@ const Settings& ConfigManager::getSettings()
 	if (!loadedSettings) {
 		//We need at least one config file to parse.
 		if (this->mainConfig.isEmpty())
-			throw std::exception("No main config file defined.");
+			throw std::runtime_error("No main config file defined.");
 
 		//Parse each config file in turn.
 		//First: main config
@@ -675,7 +675,7 @@ void ConfigManager::loadLanguageMainFiles()
 {
 	//Main config file must be read by now
 	if (!this->loadedSettings)
-		throw std::exception("Must load settings before language main files.");
+		throw std::runtime_error("Must load settings before language main files.");
 
 	//Done
 	loadedLanguageMainFiles = true;
@@ -686,7 +686,7 @@ void ConfigManager::loadLanguageSubFiles()
 {
 	//Main config file must be read by now
 	if (!this->loadedSettings)
-		throw std::exception("Must load settings before language sub files.");
+		throw std::runtime_error("Must load settings before language sub files.");
 
 	//Done
 	loadedLanguageSubFiles = true;
@@ -783,7 +783,7 @@ void ConfigManager::readInConfig(wValue root, const wstring& folderPath, vector<
 				(*optionsSet)[key] = val;
 			}
 		} else {
-			throw std::exception("ERROR: Config file options should always be string or hash types.");
+			throw std::runtime_error("ERROR: Config file options should always be string or hash types.");
 		}
 
 		//Remove, get ready for the next option
@@ -859,7 +859,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
 			if (lang==options.languages.end()) {
 				if(restricted)
-					throw std::exception("Cannot create a new Language in user or system-local config files.");
+					throw std::runtime_error("Cannot create a new Language in user or system-local config files.");
 				else
 					lang = options.languages.insert(Language(langName)).first;
 			}
@@ -910,7 +910,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 					//Allowed to add new Input Methods?
 					if (FindKeyInSet(lang->inputMethods, inputName)==lang->inputMethods.end() && restricted)
-						throw std::exception("Cannot create a new Input Method in user or system-local config files.");
+						throw std::runtime_error("Cannot create a new Input Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
 					pair<wstring,wstring> key = pair<wstring,wstring>(langName,inputName);
@@ -923,7 +923,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 					//Allowed to add new Encodings?
 					if (FindKeyInSet(lang->encodings, encName)==lang->encodings.end() && restricted)
-						throw std::exception("Cannot create a new Encoding in user or system-local config files.");
+						throw std::runtime_error("Cannot create a new Encoding in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
 					pair<wstring, wstring> key = pair<wstring, wstring>(langName,encName);
@@ -936,7 +936,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 					//Allowed to add new Transformations?
 					if (FindKeyInSet(lang->transformations, transName)==lang->transformations.end() && restricted)
-						throw std::exception("Cannot create a new Tranformation in user or system-local config files.");
+						throw std::runtime_error("Cannot create a new Tranformation in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
 					pair<wstring, wstring> key = pair<wstring, wstring>(langName,transName);
@@ -949,7 +949,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 					//Allowed to add new Display Method?
 					if (FindKeyInSet(lang->displayMethods, dispMethod)==lang->displayMethods.end() && restricted)
-						throw std::exception("Cannot create a new Display Method in user or system-local config files.");
+						throw std::runtime_error("Cannot create a new Display Method in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
 					pair<wstring, wstring> key = pair<wstring, wstring>(langName,dispMethod);
@@ -971,7 +971,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 			nameStr <<dot <<(*nameOpt);
 			dot = L"/"; //To distinguish "dot" errors
 		}
-		throw std::exception(std::string("Invalid option: \"" + waitzar::escape_wstr(nameStr.str()) + "\", with value: \"" + waitzar::escape_wstr(value) + "\"").c_str());
+		throw std::runtime_error(std::string("Invalid option: \"" + waitzar::escape_wstr(nameStr.str()) + "\", with value: \"" + waitzar::escape_wstr(value) + "\"").c_str());
 	}
 }
 
@@ -1024,7 +1024,7 @@ bool ConfigManager::read_bool(const std::wstring& str)
 	else if (test==L"no" || test==L"false")
 		return false;
 	else
-		throw std::exception(glue(L"Bad boolean value: \"", str, L"\"").c_str());
+		throw std::runtime_error(glue(L"Bad boolean value: \"", str, L"\"").c_str());
 }
 
 
@@ -1037,7 +1037,7 @@ int ConfigManager::read_int(const std::wstring& str)
 
 	//Problem?
 	if (reader.fail())
-		throw std::exception(glue(L"Bad integer value: \"", str, L"\"").c_str());
+		throw std::runtime_error(glue(L"Bad integer value: \"", str, L"\"").c_str());
 
 	//Done
 	return resInt;

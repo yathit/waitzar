@@ -18,7 +18,7 @@ void Zg2Uni::convertInPlace(std::wstring& src) const
 	wchar_t srcStr[200];
 	wchar_t destStr[200];
 	if (src.size() >= 200)
-		throw std::exception("String too big in Zg2Uni");
+		throw std::runtime_error("String too big in Zg2Uni");
 
 	//First, convert
 	wcscpy(srcStr, src.c_str());

@@ -2193,7 +2193,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 		else if (it->type==L"SysTabControl32")
 			flags = WS_CHILD | visFlag;
 		else
-			throw std::exception(waitzar::glue(L"Unknown control type: ", it->type).c_str());
+			throw std::runtime_error(waitzar::glue(L"Unknown control type: ", it->type).c_str());
 
 		//Create the control, set the font
 		HWND ctl = CreateWindow(it->type.c_str(), it->text.c_str(), flags,
@@ -2542,7 +2542,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (helpIconGray==NULL)
 				helpIconGray = CreateGrayscaleBitmap(helpIconColor);
 			if (helpIconColor==NULL || helpIconGray==NULL)
-				throw std::exception("Couldn't load color/grayscale help icon from memory");
+				throw std::runtime_error("Couldn't load color/grayscale help icon from memory");
 			helpBoxIsVisible = false;
 
 			//Save strings
@@ -2576,14 +2576,14 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Make a bold/underlined version of the dialog font.
 			LOGFONT lf;
 			if (GetObject(dlgFont, sizeof(lf), &lf)==0)
-				throw std::exception("Could not retrieve handle to dialog font.");
+				throw std::runtime_error("Could not retrieve handle to dialog font.");
 			lf.lfWeight = FW_BOLD;
 			lf.lfUnderline = TRUE;
 			HFONT dlgFontBold = CreateFontIndirect(&lf);
 
 			//Make a "just bold" version
 			if (GetObject(dlgFont, sizeof(lf), &lf)==0)
-				throw std::exception("Could not retrieve handle to dialog font.");
+				throw std::runtime_error("Could not retrieve handle to dialog font.");
 			lf.lfWeight = FW_BOLD;
 			HFONT dlgFontJustBold = CreateFontIndirect(&lf);
 
@@ -4191,7 +4191,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} else if (retVal >= IDM_TYPING_SUBMENU_START) {
 					//Switch the language, input manager, or output manager.
 					if (customMenuItemsLookup.count(retVal)==0)
-						throw std::exception("Bad menu item");
+						throw std::runtime_error("Bad menu item");
 					WZMenuItem* currItem = customMenuItemsLookup[retVal];
 					if (!currItem->disabled) {
 						//Reset the help keyboard
@@ -4346,7 +4346,7 @@ bool findAndLoadAllConfigFiles()
 			//Handle errors:
 			//TODO: Better. (Check, e.g., Unicode directory names.)
 			//if (inError)
-			//	throw std::exception(errorMsg.str().c_str());
+			//	throw std::runtime_error(errorMsg.str().c_str());
 
 			config.initAddLanguage(langCfgFile, langModuleCfgFiles);
 		}
@@ -4398,7 +4398,7 @@ bool findAndLoadAllConfigFiles()
 		temp << cfgDir.c_str();
 		if (!FileExists(temp.str())) {
 			suppressThisException = true;
-			throw std::exception("No config directory");
+			throw std::runtime_error("No config directory");
 		}
 
 		//Final test: make sure all config files work
@@ -4435,17 +4435,17 @@ bool findAndLoadAllConfigFiles()
 			//Load the resource as a byte array and get its size, etc.
 			HRSRC res = FindResource(hInst, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), _T("Model"));
 			if (!res)
-				throw std::exception("Couldn't find resource WZ_DEFAULT_CFG.");
+				throw std::runtime_error("Couldn't find resource WZ_DEFAULT_CFG.");
 			HGLOBAL res_handle = LoadResource(NULL, res);
 			if (!res_handle)
-				throw std::exception("Couldn't get a handle on WZ_DEFAULT_CFG.");
+				throw std::runtime_error("Couldn't get a handle on WZ_DEFAULT_CFG.");
 			char* res_data = (char*)LockResource(res_handle);
 			DWORD res_size = SizeofResource(NULL, res);
 
 			//Convert the byte array to unicode
 			wchar_t *uniData = new wchar_t[res_size];
 			if (mymbstowcs(uniData, res_data, res_size)==0)
-				throw std::exception("Invalid unicode character in WZ_DEFAULT_CFG.");
+				throw std::runtime_error("Invalid unicode character in WZ_DEFAULT_CFG.");
 
 			//Set the config file
 			config.initMainConfig(wstring(uniData));
@@ -4541,11 +4541,11 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		const std::wstring& inputMethod = testFile.getOption(ConfigManager::sanitize_id(L"input-method"));
 		const std::wstring& outEncoding = testFile.getOption(ConfigManager::sanitize_id(L"output-encoding"));
 		if (language.empty())
-			throw std::exception("Invalid test file: missing the \"language\" option.");
+			throw std::runtime_error("Invalid test file: missing the \"language\" option.");
 		if (inputMethod.empty())
-			throw std::exception("Invalid test file: missing the \"input-method\" option.");
+			throw std::runtime_error("Invalid test file: missing the \"input-method\" option.");
 		if (outEncoding.empty())
-			throw std::exception("Invalid test file: missing the \"output-encoding\" option.");
+			throw std::runtime_error("Invalid test file: missing the \"output-encoding\" option.");
 
 		//Convert all Rules to "single string" format; this will test them, too.
 		vector< pair<wstring, wstring> > testPairs = testFile.convertToRulePairs();
@@ -4553,11 +4553,11 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		//Set the language, input method, and output encoding.
 		//First check if they exist, though.
 		if (FindKeyInSet(config.getLanguages(), language)==config.getLanguages().end())
-			throw std::exception(waitzar::glue(L"Unknown language: \"", language, L"\"").c_str());
+			throw std::runtime_error(waitzar::glue(L"Unknown language: \"", language, L"\"").c_str());
 		if (FindKeyInSet(config.getInputMethods(), inputMethod)==config.getInputMethods().end())
-			throw std::exception(waitzar::glue(L"Unknown input method: \"", inputMethod, L"\"").c_str());
+			throw std::runtime_error(waitzar::glue(L"Unknown input method: \"", inputMethod, L"\"").c_str());
 		if (FindKeyInSet(config.getEncodings(), outEncoding)==config.getEncodings().end())
-			throw std::exception(waitzar::glue(L"Unknown output encoding: \"", outEncoding, L"\"").c_str());
+			throw std::runtime_error(waitzar::glue(L"Unknown output encoding: \"", outEncoding, L"\"").c_str());
 		ChangeLangInputOutput(language, inputMethod, outEncoding);
 
 		//Construct the output file name
@@ -4595,11 +4595,11 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 				//Construct a VirtKey. Do some extra checking to avoid silent errors.
 				wchar_t wc = currTest->first[i];
 				if (wc >= 0x7F)
-					throw std::exception("Error: Cannot type unicode sequences as input.");
+					throw std::runtime_error("Error: Cannot type unicode sequences as input.");
 				char c = (wc&0x7F);
 				VirtKey vk(c);
 				if (vk.vkCode==0)
-					throw std::exception(waitzar::glue("Error: Unknown input letter: ", string(1, c)).c_str());
+					throw std::runtime_error(waitzar::glue("Error: Unknown input letter: ", string(1, c)).c_str());
 				currInput->handleKeyPress(vk);
 			}
 
@@ -4618,7 +4618,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 				if (numErrors++ == 0) {
 					outFile.open(outFileName.c_str(), std::ios::out|std::ios::binary); //binary needed for utf-8
 					if (outFile.fail())
-						throw std::exception(waitzar::glue(L"Cannot open output file: ", outFileName).c_str());
+						throw std::runtime_error(waitzar::glue(L"Cannot open output file: ", outFileName).c_str());
 					outFile <<"Test results\n-----------\n";
 					outFile.flush();
 				}

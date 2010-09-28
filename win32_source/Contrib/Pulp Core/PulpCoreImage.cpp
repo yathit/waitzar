@@ -54,7 +54,7 @@ void PulpCoreImage::init(int width, int height, int bkgrdARGB, HDC currDC, HDC &
 	directBitmap = thisBmp = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
 	SelectObject(directDC, directBitmap);
 	if (directBitmap==NULL)
-		throw std::exception("Couldn't create image bitmap.");
+		throw std::runtime_error("Couldn't create image bitmap.");
 
 	//Init with background color
 	for (int i=0; i<width*height; i++)  {
@@ -94,7 +94,7 @@ void PulpCoreImage::init(PulpCoreImage *copyFrom, HDC currDC)
 	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
 	SelectObject(directDC, directBitmap);
 	if (directBitmap==NULL)
-		throw std::exception("Couldn't create font bitmap.");
+		throw std::runtime_error("Couldn't create font bitmap.");
 
 	//Copy pixels
 	for (int i=0; i<width*height; i++)  {
@@ -412,7 +412,7 @@ void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
 		if (res_data[currPos++] != PNG_SIGNATURE[i]) {
 			std::stringstream msg;
 			msg <<"PNG_SIG[" <<i <<"] is " <<res_data[currPos-1] <<" not " <<PNG_SIGNATURE[i];
-			throw std::exception(msg.str().c_str());
+			throw std::runtime_error(msg.str().c_str());
 		}
 	}
 
@@ -438,7 +438,7 @@ void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
 	if (currPos != res_size) {
 		std::stringstream msg;
 		msg <<"Extraneous bytes: %l" <<(res_size-currPos);
-		throw std::exception(msg.str().c_str());
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 
@@ -540,7 +540,7 @@ void PulpCoreImage::readHeader(HDC currDC)
 		     colorType != COLOR_TYPE_GRAYSCALE_WITH_ALPHA && colorType != COLOR_TYPE_RGB_WITH_ALPHA))
 	{
 		//It's an error...
-		throw std::exception("PNG header requires unsupported options");
+		throw std::runtime_error("PNG header requires unsupported options");
 	}
 
 	//Create a new image
@@ -560,7 +560,7 @@ void PulpCoreImage::readHeader(HDC currDC)
 	directBitmap = CreateDIBSection(directDC, &bmpInfo,  DIB_RGB_COLORS, (void**) &directPixels, NULL, 0);
 	SelectObject(directDC, directBitmap);
 	if (directBitmap==NULL) 
-		throw std::exception("Couldn't create font bitmap.");
+		throw std::runtime_error("Couldn't create font bitmap.");
 }
 
 
@@ -570,7 +570,7 @@ void PulpCoreImage::readPalette(int length)
 	if (length%3!=0) {
 		std::stringstream msg;
 		msg <<"Palette length " <<length <<" is not mod 3";
-		throw std::exception(msg.str().c_str());
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Init palette array
@@ -593,7 +593,7 @@ void PulpCoreImage::readTransparency(int length)
 {
 	//Was the palette valid
 	if ((palette == NULL || length > pal_length)) 
-		throw std::exception("Pallete is null or too short.");
+		throw std::runtime_error("Pallete is null or too short.");
 
 	//Read data
     for (int i=0; i<length; i++) {
@@ -658,7 +658,7 @@ void PulpCoreImage::readData(int length)
 		else if (filter!=0) {
 			std::stringstream msg;
 			msg <<"Illegal filter type: " <<filter;
-			throw std::exception(msg.str().c_str());
+			throw std::runtime_error(msg.str().c_str());
         }
 
         //Convert bytes into ARGB pixels
@@ -745,11 +745,11 @@ void PulpCoreImage::inflateFully(Inflater* inflater, char* result, int res_lengt
 
     while (bytesRead < res_length) {
 		if (inflater->needsInput())
-			throw std::exception("Inflater ran out of input");
+			throw std::runtime_error("Inflater ran out of input");
 
 		int res = inflater->inflate(result, res_length, bytesRead, res_length - bytesRead);
 		if (res==-1)
-			throw std::exception("0 > off || off > off + len || off + len > buf_length");
+			throw std::runtime_error("0 > off || off > off + len || off + len > buf_length");
 
         bytesRead += res;
     }

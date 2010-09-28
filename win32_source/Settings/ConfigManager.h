@@ -92,7 +92,7 @@ public:
 					errMsg << std::endl << "  Problem: " << ex.reason_;
 					errMsg << std::endl << "  Surrounding Text: ";
 					errMsg << std::endl << "      " <<"..." << waitzar::escape_wstr(segment, false) <<"...";
-					throw std::exception(errMsg.str().c_str());
+					throw std::runtime_error(errMsg.str().c_str());
 				}
 			}
 

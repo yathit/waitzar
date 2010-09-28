@@ -461,7 +461,7 @@ vector<wstring> RomanInputMethod<ModelType>::getTypedSentenceStrings()
 	while (res.size()<3)
 		res.push_back(L"");
 	if (res.size()!=3)
-		throw std::exception("Error! getTypedSentenceStr() must always return a vector of size 3+1");
+		throw std::runtime_error("Error! getTypedSentenceStr() must always return a vector of size 3+1");
 
 	//Finally, add the full entry
 	res.push_back(full.str());
@@ -570,7 +570,7 @@ std::pair<int, int> RomanInputMethod<ModelType>::getPagingInfo() const
 template <class ModelType>
 void RomanInputMethod<ModelType>::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc))
 {
-	throw std::exception("Cannot use a Romanized keyboard for a help input method");
+	throw std::runtime_error("Cannot use a Romanized keyboard for a help input method");
 }
 
 
