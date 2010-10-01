@@ -15,7 +15,7 @@ Add What the Community Wants
 The lead developers choose which features to add to WaitZar. They should try to add features the community wants. This is much more challenging than it sounds.
    * Sometimes it is easy. For example, the famous "April 6th" meeting concluded that users should be able to add custom words to the dictionary. This was added in version 1.4.
    * Sometimes, only the developers could possibly know what will be useful later. For example, the current "config" setup was Seth's idea, and it laid the foundation for LOTS of features the community wanted (like Burglish input, etc.). But no-one had suggested making WaitZar pluggable. 
-   * Sometimes community requests are tricky. For example, some users want to remove all encodings except "Unicode" from WaitZar. Acceping this request is wrong, and denying it is wrong too. Instead, we made the set of encodings customizable, so each user can change it to what he or she wants. 
+   * Sometimes community requests are tricky. For example, some users want to remove all encodings except "Unicode" from WaitZar. Accepting this request is wrong, and denying it is wrong too. Instead, we made the set of encodings customizable, so each user can change it to what he or she wants. 
    * As a general rule: never ignore the community. Be happy that they are suggesting new features, because it means that they want to use WaitZar. (You can ignore trolls, of course.)
 This is the most important guideline for lead developers. 
    
@@ -23,7 +23,7 @@ This is the most important guideline for lead developers.
 ------------------------
 Think First, Code Second
 ------------------------
-This is the most important guideline for programmers. When faced with a bugfix or new feature, it's easy to code up a simple solution. However, we encourage coders to think through each new feature and write a short article on the wiki before implementing anything very important. 
+This is the most important guideline for programmers. When faced with a bug-fix or new feature, it's easy to code up a simple solution. However, we encourage coders to think through each new feature and write a short article on the wiki before implementing anything very important. 
    * For example, the wiki article "IDEAKeyMagicDataStructs" explains some of my own thoughts before implementing Key Magic support in WaitZar. 
    
    
