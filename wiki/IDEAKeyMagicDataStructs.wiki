@@ -182,7 +182,7 @@ This allows us to match a rule even if it does not occur at the beginning of the
 
 Following this, it is fairly simple to determine what rules will "allow" the dot to move:
    * *STRING* -- If the character after the dot matches this rule's character after the dot, advancing is allowed.
-   * *WILDCARD* -- Advancing is always allowed.
+   * *WILDCARD* -- Advancing is allowed if the character after the dot is between 0x21 and 0x7D (ascii non-control characters) or if it is between 0xFF and 0xFFFF (unicode BMP).
    * *VARIABLE* -- The dot is first moved inside the variable (see below).
    * *SWITCH* -- The dot moves if the switch is on.
    * *VARARRAY* -- The dot moves if the character at the vararray's index matches the character after the dot.
