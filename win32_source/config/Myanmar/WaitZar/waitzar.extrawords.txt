@@ -1,9 +1,5 @@
-﻿#Add all words according to the following notation:
-# mm = roman
-# where mm is the word in Burmese, in the encoding of your choice (Zawgyi for now)
-# ...and roman is the romanisation of that word. For example:
-#အား = ar
-#ဣတ္ = ate
+﻿#New words go here.  This file is primarily used for words identified by WaitZar's developers
+#  Users may want to put words in a file "waitzar.userwords.txt", located in the same directory as WaitZar.exe
 
 #Words reported by our users (will be incorporated into the main dictionary later).
 ဆီမ့္ = seint
