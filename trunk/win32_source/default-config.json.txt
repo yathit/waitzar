@@ -30,6 +30,7 @@
           {
             "display-name" : "WaitZar",
             "encoding" : "zawgyi-one",
+            "user-words-file" : "waitzar.userwords.txt",
             "type" : "builtin"
           },
           "mywin" : 

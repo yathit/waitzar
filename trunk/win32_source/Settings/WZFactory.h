@@ -62,7 +62,7 @@ public:
 	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 
 	//More specific builders/instances
-	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID);
+	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID, const std::wstring& extraWordsFileName, const std::wstring& userWordsFileName);
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
 	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache, std::string (*fileMD5Function)(const std::string&));
@@ -348,7 +348,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 	size_t numUniChars = MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, NULL, 0);
 	uniBuffer = (TCHAR*) malloc(sizeof(TCHAR)*numUniChars);
 	if (!MultiByteToWideChar(CP_UTF8, 0, buffer, (int)buff_size, uniBuffer, (int)numUniChars))
-		throw std::runtime_error("mywords.txt contains invalid UTF-8 characters.");
+		throw std::runtime_error("waitzar user wordlist file contains invalid UTF-8 characters.");
 	delete [] buffer;
 
 	//Skip the BOM, if it exists
@@ -356,7 +356,7 @@ void WZFactory<ModelType>::addWordsToModel(WordBuilder* model, string userWordsF
 	if (uniBuffer[currPosition] == UNICOD_BOM)
 		currPosition++;
 	else if (uniBuffer[currPosition] == BACKWARDS_BOM)
-		throw std::runtime_error("mywords.txt appears to be encoded backwards.");
+		throw std::runtime_error("waitzar user wordlist file appears to be encoded backwards.");
 
 	//Read each line
 	wchar_t* name = new wchar_t[100];
@@ -388,7 +388,7 @@ template <class ModelType> std::map<std::wstring, DisplayMethod*> WZFactory<Mode
 template <class ModelType> std::map<std::wstring, LetterInputMethod*> WZFactory<ModelType>::cachedLetterInputs;
 
 template <class ModelType>
-RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(wstring langID) 
+RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(wstring langID, const wstring& extraWordsFileName, const wstring& userWordsFileName) 
 {
 	wstring fullID = langID + L"." + L"waitzar";
 
@@ -400,9 +400,12 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(ws
 		WordBuilder* model = WZFactory<ModelType>::readModel();
 		SentenceList<waitzar::WordBuilder>* sentence = new SentenceList<waitzar::WordBuilder>();
 
-		//Add user words
-		WZFactory<ModelType>::addWordsToModel(model, "mywords.txt");
+		//Add extra words
+		WZFactory<ModelType>::addWordsToModel(model, waitzar::escape_wstr(extraWordsFileName, false));
 
+		//Add user words
+		WZFactory<ModelType>::addWordsToModel(model, waitzar::escape_wstr(userWordsFileName, false));
+		
 		//One final check	
 		if (model->isInError())
 			throw std::runtime_error(waitzar::escape_wstr(model->getLastError(), false).c_str());
@@ -708,9 +711,18 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 	//First, generate an actual object, based on the type.
 	if (sanitize_id(options.find(L"type")->second) == L"builtin") {
 		//Built-in types are known entirely by our core code
-		if (id==L"waitzar")
-			res = WZFactory<ModelType>::getWaitZarInput(language.id);
-		else if (id==L"mywin")
+		if (id==L"waitzar") {
+			//Get the user words file name if it exists
+			wstring extraWordsFileName;
+			wstring userWordsFileName;
+			if ((options.count(sanitize_id(L"wordlist"))>0) && (options.count(sanitize_id(L"current-folder"))>0)) {
+				extraWordsFileName = options.find(sanitize_id(L"current-folder"))->second;
+				extraWordsFileName += options.find(L"wordlist")->second;
+			}
+			if (options.count(sanitize_id(L"user-words-file"))>0)
+				userWordsFileName = options.find(sanitize_id(L"user-words-file"))->second;
+			res = WZFactory<ModelType>::getWaitZarInput(language.id, extraWordsFileName, userWordsFileName);
+		} else if (id==L"mywin")
 			res = WZFactory<ModelType>::getMywinInput(language.id);
 		else if (id==L"burglish")
 			res = WZFactory<ModelType>::getBurglishInput(language.id);
