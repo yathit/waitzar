@@ -146,6 +146,7 @@ struct Settings {
 	bool alwaysElevate;
 	bool trackCaret;
 	bool lockWindows;
+	bool suppressVirtualKeyboard;
 	std::wstring defaultLanguage;
 	std::wstring whitespaceCharacters;
 	std::wstring ignoredCharacters;

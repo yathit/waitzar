@@ -3177,7 +3177,13 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 {
 	//Catch this key press; disable the window for the remainder of the session.
 	if (helpKeyboard->closeHelpWindow(btnID)) {
-		suppressHelpWindow = true;
+		//Cancel - keyboard level
+		currInput->handleEsc();
+
+		//Cancel - system level
+		toggleHelpMode(false);
+		checkAllHotkeysAndWindows();
+		//suppressHelpWindow = true;
 	}
 
 	//Alternatively, minimize it
@@ -3224,7 +3230,13 @@ void OnMemoryTitleBtnClick(unsigned int btnID)
 {
 	//Catch this key press; disable the window for the remainder of the session.
 	if (helpKeyboard->closeMemoryWindow(btnID)) {
-		suppressMemoryWindow = true;
+		//Cancel - keyboard level
+		currInput->handleEsc();
+
+		//Cancel - system level
+		toggleHelpMode(false);
+		checkAllHotkeysAndWindows();
+		//suppressMemoryWindow = true;
 	}
 
 	//Alternatively, minimize it
@@ -4788,6 +4800,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (config.getSettings().lockWindows)
 		mainWindow->linkToWindow(sentenceWindow, SOUTH);
 
+
+	//Suppress the virtual keyboard if required
+	if (config.getSettings().suppressVirtualKeyboard) {
+		suppressHelpWindow = true;
+		suppressMemoryWindow = true;
+	}
 
 	//Should we run a UAC test on startup?
 	if (config.getSettings().alwaysElevate) {
