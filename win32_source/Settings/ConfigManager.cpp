@@ -388,6 +388,9 @@ const Transformation* ConfigManager::getTransformation(const Language& lang, con
 }
 
 
+
+//Right now, this is only used to turn "track caret" off. 
+// We need to merge this with standard code later.
 void ConfigManager::overrideSetting(const wstring& settingName, bool value)
 {
 	wstring settingPure = sanitize_id(settingName);
@@ -824,6 +827,8 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 				options.settings.trackCaret = read_bool(value);
 			else if (name[1] == sanitize_id(L"lock-windows"))
 				options.settings.lockWindows = read_bool(value);
+			else if (name[1] == sanitize_id(L"suppress-virtual-keyboard"))
+				options.settings.suppressVirtualKeyboard = read_bool(value);
 			else if (name[1] == sanitize_id(L"whitespace-characters"))
 				options.settings.whitespaceCharacters = sanitize_id(value);
 			else if (name[1] == sanitize_id(L"ignored-characters"))

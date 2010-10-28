@@ -9,6 +9,7 @@
       "always-elevate" : "no",
       "track-caret" : "yes",
       "lock-windows" : "yes",
+      "suppress-virtual-keyboard" : "no",
       "default-language" : "myanmar",
       "whitespace-characters" : "\u200B",
 	  "ignored-characters" : "\u200B",

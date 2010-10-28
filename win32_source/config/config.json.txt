@@ -43,6 +43,9 @@
 	  
       # Should we force the sentence window to always be displayed below the word selection window?
       "lock-windows" : "yes",
+
+      # Should we hide the help/memory window at all times? (For now, just suppress both)
+      "suppress-virtual-keyboard" : "no",
       
       # What language do we start WaitZar in?
       "default-language" : "myanmar",
