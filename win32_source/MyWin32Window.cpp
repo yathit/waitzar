@@ -515,6 +515,12 @@ bool MyWin32Window::showWindow(bool show)
 	if (!is_visible && this->onShowFunction!=NULL)
 		onShowFunction();
 
+	//If we're hiding the window, de-highlight all regions
+	if (!show) {
+		vector<unsigned int> emptyList;
+		checkRegionTriggersAndCursor(emptyList);
+	}
+
 	//Set flags, perform show/hide
 	ShowWindow(window, show?SW_SHOW:SW_HIDE);
 	is_visible = show;
