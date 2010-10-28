@@ -24,6 +24,7 @@
     {
       "display-name" : "Wait Zar",
       "encoding" : "zawgyi-one",
+      "user-words-file" : "waitzar.userwords.txt",
       "type" : "builtin"
     },
 	
