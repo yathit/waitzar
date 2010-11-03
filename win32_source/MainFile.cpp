@@ -4617,7 +4617,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 
 			//Retrieve the output, in the correct encoding.
 			bool noEncChange = (uni2Output->toEncoding==currInput->encoding);
-			wstring resOut = currInput->getTypedSentenceStrings()[3];
+			wstring resOut = waitzar::removeZWS(currInput->getTypedSentenceStrings()[3], config.getSettings().ignoredCharacters);
 			if (!noEncChange) {
 				input2Uni->convertInPlace(resOut);
 				uni2Output->convertInPlace(resOut);
