@@ -812,7 +812,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 		if (name[0] == L"settings") {
 			//Need to finish all partial settings
 			if (name.size()<=1)
-				throw 1;
+				throw std::invalid_argument("");
 
 			//Set this based on name/value pair
 			if (name[1] == L"hotkey")
@@ -849,14 +849,14 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					options.settings.defaultLanguage = defLang;
 				}
 			} else
-				throw 1;
+				throw std::invalid_argument("");
 
 			//Done
 			return;
 		} else if (name[0] == L"languages") {
 			//Need to finish all partial settings
 			if (name.size()<=2)
-				throw 1;
+				throw std::invalid_argument("");
 
 			//Get the language id
 			//TODO: Add better error messages using the glue() functions.
@@ -905,7 +905,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 			} else {
 				//Need to finish all partial settings
 				if (name.size()<=4)
-					throw 1;
+					throw std::invalid_argument("");
 
 				//Dynamic settings
 				//Todo: Make this slightly less wordy.
@@ -963,12 +963,12 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 						partialDisplayMethods[key][sanitize_id(L"current-folder")] = folderPath;
 				} else {
 					//Error
-					throw 1;
+					throw std::invalid_argument("");
 				}
 			}
 		} else
-			throw 1;
-	} catch (int) {
+			throw std::invalid_argument("");
+	} catch (std::invalid_argument&) {
 		//Bad option
 		std::wstringstream nameStr;
 		wstring dot = L"";
