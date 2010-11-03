@@ -115,8 +115,9 @@ void LetterInputMethod::handleStop(bool isFull, VirtKey& vkey)
 	if (isHelpInput())
 		handleKeyPress(vkey);
 	else {
-		typedStopChar = isFull ? L'\u104B' : L'\u104A'; //TODO: Make this based on encoding...
-		requestToTypeSentence = true;
+		handleKeyPress(vkey);
+		//typedStopChar = isFull ? L'\u104B' : L'\u104A'; //TODO: Make this based on encoding...
+		//requestToTypeSentence = true;
 	}
 }
 
