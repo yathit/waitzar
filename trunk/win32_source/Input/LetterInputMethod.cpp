@@ -111,9 +111,13 @@ void LetterInputMethod::handleNumber(VirtKey& vkey, bool typeBurmeseNumbers)
 
 void LetterInputMethod::handleStop(bool isFull, VirtKey& vkey)
 {
-	//Perform the normal "enter" routine.
-	typedStopChar = isFull ? L'\u104B' : L'\u104A'; //TODO: Make this based on encoding...
-	requestToTypeSentence = true;
+	//Perform the normal "enter" routine, unless we're being used as a help keyboard
+	if (isHelpInput())
+		handleKeyPress(vkey);
+	else {
+		typedStopChar = isFull ? L'\u104B' : L'\u104A'; //TODO: Make this based on encoding...
+		requestToTypeSentence = true;
+	}
 }
 
 std::pair<int, std::string> LetterInputMethod::lookupWord(std::wstring typedWord)
