@@ -318,10 +318,6 @@
 //TEST: Make sure that "~" works only for ONE letter. 
 //TEST: ordering when stacked letters are involved.
 //TEST: specific test cases for Lionslayer's bug report. 
-
-
-
-
-
-//TO-TEST:
-// Later: CAPS -> "type normally" mode
+//LATER: CAPS -> "type normally" mode
+//         NOTE: It seems that CAPS_LOCK is treated as the "symbol key", which is "}". Verify?
+//         NOTE: In addition, Zawgyi.kms simply mirrors "|" onto "}" for all combinations. Revert? Or..?
