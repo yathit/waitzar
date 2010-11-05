@@ -115,6 +115,10 @@ $row4K_S[*] => $row4U_S[$1]
 //< VK_CFLEX > => U1039
 < VK_CFLEX > => ('zg_key')
 
+//Added by Seth: Shift should trigger this too
+< VK_SHIFT & VK_CFLEX > => ('zg_key')
+//End added by Seth
+
 < VK_CAPSLOCK > => ('zg_gk')
 ('zg_gk') + * => $1 + ('zg_gk')
 
