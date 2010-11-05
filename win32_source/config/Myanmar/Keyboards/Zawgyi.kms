@@ -235,8 +235,13 @@ U1031 + U103C + U101E + U102C + U103A => U102A
 ('zg_key') + 's' => U103A 
 ('zg_key') + 'd' => U102D + U1036
 ('zg_key') + 'f' => U1039 + U1004 + U1036
-('zg_key') + 'g' => U0067 
-('zg_key') + 'h' => U0068 
+
+//Seth changed
+//('zg_key') + 'g' => U0067 
+//('zg_key') + 'h' => U0068 
+('zg_key') + 'g' => ""
+('zg_key') + 'h' => ""
+
 ('zg_key') + 'j' => U103B 
 ('zg_key') + 'k' => U103D + U1030
 ('zg_key') + 'l' => U1039 + U1004 + U1036
@@ -285,8 +290,13 @@ U1031 + U103C + U101E + U102C + U103A => U102A
 ('zg_key') + 'S' => U103D
 ('zg_key') + 'D' => U1039 + U1004 + U102E
 ('zg_key') + 'F' => U1039 + U1004 + U102D
-('zg_key') + 'G' => U0047 
-('zg_key') + 'H' => U0048
+
+//Seth changed
+//('zg_key') + 'G' => U0047 
+//('zg_key') + 'H' => U0048
+('zg_key') + 'G' => ""
+('zg_key') + 'H' => ""
+
 ('zg_key') + 'J' => U103B 
 ('zg_key') + 'K' => U103D + U1030
 ('zg_key') + 'L' => U1039 + U1004 + U102D
