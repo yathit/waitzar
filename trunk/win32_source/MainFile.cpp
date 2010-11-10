@@ -4740,7 +4740,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 ////////////////
 //DEBUG
 ////////////////
-//testFileName = L"../test_cases/zawgyi_tests.txt";
+//testFileName = L"../test_cases/ayar_tests.txt";
 ////////////////
 ////////////////
 
