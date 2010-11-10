@@ -72,7 +72,7 @@ void Logger::writeLogLine(char logLetter, const std::wstring& logLine)
 			//Generate line
 			std::stringstream msg;
 			for (size_t i=0; i<newLine.length(); i++) {
-				if (newLine[i]<=0xFF)
+				if (newLine[i]<=0xFF && newLine[i]!=0x00)
 					msg <<(char)newLine[i];
 				else
 					msg <<"\\u" <<std::hex <<std::uppercase <<newLine[i] <<std::dec <<std::nouppercase;
