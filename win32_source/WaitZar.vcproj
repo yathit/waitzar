@@ -185,10 +185,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Logger.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\MainFile.cpp"
 				>
 			</File>
@@ -370,6 +366,10 @@
 						RelativePath="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp"
 						>
 					</File>
+					<File
+						RelativePath="..\cross_platform_library\waitzar\ngram\Logger.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Pulp Core"
@@ -513,10 +513,6 @@
 				>
 				<File
 					RelativePath=".\Hotkeys.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Logger.h"
 					>
 				</File>
 				<File
@@ -767,6 +763,10 @@
 						</File>
 						<File
 							RelativePath="..\cross_platform_library\waitzar\ngram\wz_utilities.h"
+							>
+						</File>
+						<File
+							RelativePath="..\cross_platform_library\waitzar\ngram\Logger.h"
 							>
 						</File>
 					</Filter>

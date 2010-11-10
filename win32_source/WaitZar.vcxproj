@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -135,6 +135,7 @@
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\SentenceList.cpp" />
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp" />
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp" />
+    <ClCompile Include="..\cross_platform_library\waitzar\ngram\Logger.cpp" />
     <ClCompile Include="Contrib\Pulp Core\PulpCoreFont.cpp" />
     <ClCompile Include="Contrib\Pulp Core\PulpCoreImage.cpp" />
     <ClCompile Include="Contrib\CryptoPP\algparam.cpp" />
@@ -235,6 +236,7 @@
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\SentenceList.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h" />
+    <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h" />
     <ClInclude Include="Contrib\CryptoPP\aes.h" />
     <ClInclude Include="Contrib\CryptoPP\algparam.h" />
     <ClInclude Include="Contrib\CryptoPP\argnames.h" />

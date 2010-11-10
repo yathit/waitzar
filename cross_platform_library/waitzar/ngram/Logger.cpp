@@ -12,6 +12,7 @@
 //Consts:
 const std::string Logger::mainLogFileName = "wz_log.txt";
 const std::string Logger::keymagicLogFileName = "wz_log_keymagic.txt";
+const std::string Logger::uni2ZawgyiLogFileName = "wz_log_uni2zawgyi.txt";
 
 //Variables:
 std::map< char, std::vector<FILETIME> > Logger::filetimeStacks;
@@ -23,6 +24,8 @@ bool Logger::isLogging(char logLetter)
 	if (WZ_LOG_MAIN && (logLetter==waitzarLogchar))
 		return true;
 	if (WZ_LOG_KEYMAGIC && (logLetter==keymagicLogchar))
+		return true;
+	if (WZ_LOG_UNI2ZAWGYI && (logLetter==uni2ZawgyiLogchar))
 		return true;
 	return false;
 }
@@ -45,7 +48,7 @@ void Logger::resetLogFile(char logLetter)
 		filetimeStacks[logLetter].clear();
 
 		//Ensure the file path has been added.
-		filePaths[logLetter] = logLetter==waitzarLogchar ? mainLogFileName : keymagicLogFileName;
+		filePaths[logLetter] = (logLetter==waitzarLogchar) ? mainLogFileName : (logLetter==keymagicLogchar) ? keymagicLogFileName : uni2ZawgyiLogFileName;
 
 		//Reset log file contents
 		std::ofstream log(filePaths[logLetter].c_str(), std::ios::out);
@@ -72,7 +75,7 @@ void Logger::writeLogLine(char logLetter, const std::wstring& logLine)
 				if (newLine[i]<=0xFF)
 					msg <<(char)newLine[i];
 				else
-					msg <<'\u' <<std::hex <<newLine[i] <<std::dec;
+					msg <<'\\u' <<std::hex <<newLine[i] <<std::dec;
 			}
 
 			//Write line

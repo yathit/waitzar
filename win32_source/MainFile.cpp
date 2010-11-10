@@ -101,7 +101,7 @@
 #include "Display/TtfDisplay.h"
 #include "Input/RomanInputMethod.h"
 #include "Transform/Self2Self.h"
-#include "Logger.h"
+#include "NGram/Logger.h"
 
 //VS Includes
 #include "resource_ex.h"

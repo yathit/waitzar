@@ -21,7 +21,7 @@
 
 //Should probably move 'mymb' function here..
 #include "WordBuilder.h"
-//#include "Logger.h" //Will eventually need to become part of "contrib"
+#include "NGram/Logger.h" 
 
 
 //////////////////////////////////////////////////////////////////////////////////

@@ -65,8 +65,8 @@ void convertFont(wchar_t* dst, const wchar_t* src, int srcFont, int dstFont){
 			
 			/* "ext", decomposition */
 			if(srcExtHash[*srcTmp]!=0x0
-				&& _f[dstFont].val[LOBYTE(srcExtHash[*srcTmp])]==0x0){ /* only done when dest font dont have this char */
-				wchar_t *retVal = getExtValue(_f[srcFont], HIBYTE(srcExtHash[*srcTmp]));
+				&& _f[dstFont].val[LOBYTE2(srcExtHash[*srcTmp])]==0x0){ /* only done when dest font dont have this char */
+				wchar_t *retVal = getExtValue(_f[srcFont], HIBYTE2(srcExtHash[*srcTmp]));
 				wchar_t *extval = retVal;
 				while(*extval){ 
 					*dstTmp++=*extval++;
