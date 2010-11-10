@@ -954,8 +954,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 
 		//Append it, and a dash if necessary
 		//Don't dash our stack letter; it's not necessary
-		if (!passed && currType!=BF_STACKER) 
-			zawgyiStr[destID++] = ZG_DASH;
+		/*if (!passed && currType!=BF_STACKER) 
+			zawgyiStr[destID++] = ZG_DASH;*/
 		zawgyiStr[destID++] = currLetter;
 
 		//Increment
