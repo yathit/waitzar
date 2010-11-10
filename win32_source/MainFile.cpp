@@ -2101,6 +2101,9 @@ void typeCurrentPhrase(const wstring& stringToType)
 		uni2Output->convertInPlace(keyStrokes);
 	}
 
+	//Remove ZWS --must do this AFTER converting, or helpful semantic information is lost.
+	keyStrokes = waitzar::removeZWS(keyStrokes, config.getSettings().ignoredCharacters);
+
 
 	//Use SendInput instead of SendMessage, since SendMessage requires the actual
 	//  sub-window (component) to recieve the message, whereas SendInput only
@@ -3967,7 +3970,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 
 				//Save the "typed string" for later
-				wstring stringToType = waitzar::removeZWS(currInput->getTypedSentenceStrings()[3], config.getSettings().ignoredCharacters);
+				wstring stringToType = currInput->getTypedSentenceStrings()[3];
 
 				//Check 1: Did we just switch out of help mode?
 				if (wasProvidingHelp != currInput->isHelpInput())
