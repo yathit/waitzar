@@ -210,6 +210,30 @@ namespace
 			this->replace = replace;
 			this->blacklisted = false;
 		}
+
+		wstring matchFlagsBin() const {
+			std::wstringstream res;
+			for (__int64 i=S3_VISARGA; i>0; i>>=1) {
+				if (match_flags&i)
+					res <<L"1";
+				else
+					res <<L"0";
+			}
+			return res.str();
+		}
+
+		wstring toString() const {
+			std::wstringstream res;
+			res <<L"Rule{";
+			res <<((type==RULE_MODIFY)?L"MODIFY":(type==RULE_COMBINE)?L"COMBINE":(type==RULE_ORDER)?L"ORDER":L"<ERR>");
+			res <<L", at[" <<at_letter <<"]";
+			res <<L", match[" <<matchFlagsBin() <<L"]";
+			if (match_additional!=NULL)
+				res <<L", additional[" <<match_additional <<L"]";
+			res <<L", replace[" <<replace <<L"]";
+			res <<L"}";
+			return res.str();
+		}
 	};
 	std::vector<Rule*> matchRules;
 	std::vector<wchar_t*> reorderPairs;
@@ -226,7 +250,8 @@ namespace
 	{
 		return (letter>=0x1000 && letter<=0x1021)
 			|| (letter>=0x1023 && letter<=0x1027)
-			|| (letter==0x103F);
+			|| (letter==0x103F)
+			|| (letter==0x200B);
 	}
 
 	bool isDigit(wchar_t letter)
@@ -1026,8 +1051,11 @@ wstring renderAsZawgyi(const wstring &uniString)
 	zawgyiStr[destID++] = 0x0000;
 
 
+	Logger::writeLogLine('Z', tab + L"stck: {" + wstring(zawgyiStr, destID) + L"}");
+
+
 	//Step 3: Apply a series of specific rules
-	if (matchRules.size()==0) {
+	if (matchRules.empty()) {
 		//Add initial rules; do this manually for now
 		//1-7
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u102F', 0x7FFE00000, L"\u1009\u1025\u100A", ZG_TALL_SINGLE_LEG));
@@ -1071,6 +1099,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_2, 0x2000, NULL, L'\u1037'));
 	}
 
+	Logger::writeLogLine('Z', tab + L"Begin Match");
+
 
 	//We maintain a series of offsets for the most recent match. This is used to speed up the process of 
 	// pattern matching. We only track the first occurrance, from left-to-right, of the given flag.
@@ -1093,7 +1123,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 		//Are we at a stopping point?
 		if (isConsonant(currLetter)|| i==length) {
 			//First, scan for and fix "tall leg"s
-			for (size_t x=i-1; x>=prevConsonant&&x<length; x--) {
+			for (size_t x=i-1; x>=prevConsonant&&x<length; x--) { //Note: checking x<length is a very weird way of handling overflow (it works, though)
 				if (zawgyiStr[x]==0x102F || zawgyiStr[x]==0x1030) {
 					Rule *r = matchRules[zawgyiStr[x]-0x102F];
 					bool matches = ((r->match_flags&currMatchFlags)!=0);
@@ -1108,6 +1138,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 					}
 
 					if (matches) {
+						Logger::writeLogLine('Z', tab+tab + r->toString() + L"  (pre)");
+
 						int currID = getStage3ID(getStage3BitFlags(zawgyiStr[x]));
 						int replacementID = getStage3ID(getStage3BitFlags(r->replace));
 						if (currID!=-1) {
@@ -1161,6 +1193,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 							matchLoc = firstOccurrence[matchLoc];
 					}
 
+					Logger::writeLogLine('Z', tab+tab + r->toString());
+
 					//Then, apply the rule. Make sure to keep our index array up-to-date
 					//Note that protocol specifies that we DON'T re-scan for the next occurrence of a medial
 					//  after modifying or combining it.
@@ -1192,6 +1226,11 @@ wstring renderAsZawgyi(const wstring &uniString)
 								break; //Don't shift right
 							if (r->blacklisted)
 								break; //Avoid cycles
+
+							wstringstream logLine;
+							logLine <<L"(" <<x <<"," <<matchLoc <<")";
+							Logger::writeLogLine('Z', tab+tab+tab + logLine.str());
+
 							wchar_t prevLetter = zawgyiStr[x];
 							for (size_t repID=matchLoc; repID<=x; repID++) {
 								int prevID = getStage3ID(getStage3BitFlags(prevLetter));
@@ -1351,8 +1390,20 @@ wstring renderAsZawgyi(const wstring &uniString)
 					firstOccurrence[currFlagID] = i;
 				currMatchFlags |= currFlag;
 			}
+
+			//Fix some segmentation problems
+			/*if (currLetter==L'\u200B') {
+				//ZWS will _always_ reset everything
+				prevConsonant = i;
+				for (size_t itr=0; itr<S3_TOTAL_FLAGS; itr++)
+					firstOccurrence[itr] = -1;
+				currMatchFlags = 0;
+			}*/
 		}
 	}
+
+	Logger::writeLogLine('Z', tab + L"End Match");
+	Logger::writeLogLine('Z', tab + L"mtch: {" + wstring(zawgyiStr, length) + L"}");
 
 	//Step 4: Convert each letter to its Zawgyi-equivalent
 	//length = wcslen(zawgyiStr); //Keep embedded zeroes
@@ -1364,6 +1415,9 @@ wstring renderAsZawgyi(const wstring &uniString)
 	}
 	zawgyiStr[destID++] = 0x0000;
 
+
+	Logger::writeLogLine('Z', tab + L"subs: {" + wstring(zawgyiStr, destID) + L"}");
+	Logger::writeLogLine('Z', tab + L"Begin Re-Ordering");
 
 
 	//Stage 5: Apply rules for re-ordering the Zawgyi text to fit our weird model.
@@ -1407,6 +1461,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 		for (size_t ruleID=0; ruleID<reorderPairs.size(); ruleID++) {
 			wchar_t *rule = reorderPairs[ruleID];
 			if (zawgyiStr[i]==rule[0] && zawgyiStr[i-1]==rule[1]) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{" + wstring(rule) + L"}");
+
 				zawgyiStr[i-1] = rule[0];
 				zawgyiStr[i] = rule[1];
 			}
@@ -1415,28 +1471,40 @@ wstring renderAsZawgyi(const wstring &uniString)
 		//Apply stage 3 fixed rules
 		if (i>1) {
 			if (zawgyiStr[i-2]==0x1019 && zawgyiStr[i-1]==0x102C && zawgyiStr[i]==0x107B) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L3[1]}");
+
 				zawgyiStr[i-1]=0x107B;
 				zawgyiStr[i]=0x102C;
 			}
 			if (zawgyiStr[i-2]==0x103A && zawgyiStr[i-1]==0x102D && zawgyiStr[i]==0x1033) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L3[2]}");
+
 				zawgyiStr[i-1]=0x1033;
 				zawgyiStr[i]=0x102D;
 			}
 			if (zawgyiStr[i-2]==0x103C && zawgyiStr[i-1]==0x1033 && zawgyiStr[i]==0x102D) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L3[3]}");
+
 				zawgyiStr[i-1]=0x102D;
 				zawgyiStr[i]=0x1033;
 			}
 			if (zawgyiStr[i-2]==0x103A && zawgyiStr[i-1]==0x1033 && zawgyiStr[i]==0x1036) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L3[4]}");
+
 				zawgyiStr[i-1]=0x1036;
 				zawgyiStr[i]=0x1033;
 			}
 			if (zawgyiStr[i-2]==0x103A && zawgyiStr[i-1]==0x108B && zawgyiStr[i]==0x1033) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L3[5]}");
+
 				zawgyiStr[i-1]=0x1033;
 				zawgyiStr[i]=0x108B;
 			}
 
 			//This one's a little different
 			if (zawgyiStr[i]==0x1036 && zawgyiStr[i-2]==0x103C && zawgyiStr[i-1]==0x107D) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L3[6]}");
+
 				zawgyiStr[i-2]=0x1036;
 				zawgyiStr[i-1]=0x103C;
 				zawgyiStr[i]=0x107D;
@@ -1451,16 +1519,23 @@ wstring renderAsZawgyi(const wstring &uniString)
 					  ||(zawgyiStr[i-2]==0x102C && zawgyiStr[i-1]==0x1037 && zawgyiStr[i]==0x107B)
 					  ||(zawgyiStr[i-2]==0x1037 && zawgyiStr[i-1]==0x107B && zawgyiStr[i]==0x102C)
 					)) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L4[1]}");
+
 				zawgyiStr[i-2]=0x107B;
 				zawgyiStr[i-1]=0x102C;
 				zawgyiStr[i]=0x1037;
 			}
 			if (zawgyiStr[i-3]==0x107E && zawgyiStr[i-1]==0x1033 && zawgyiStr[i]==0x1036) {
+				Logger::writeLogLine('Z', tab+tab + L"Order{L4[2]}");
+
 				zawgyiStr[i-1]=0x1036;
 				zawgyiStr[i]=0x1033;
 			}
 		}
 	}
+
+
+	Logger::writeLogLine('Z', tab + L"End Re-Ordering");
 
 
 	return wstring(zawgyiStr);
