@@ -142,6 +142,20 @@ void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const strin
 	//Now, we may save the text file back as a binary file
 	if (!disableCache && reloadSourceText)
 		saveBinaryRulesFile(binaryFilePath, actualMD5);
+
+
+	//After-final step: re-build the index
+	//TODO: Save this in the binary format somehow.
+	switchLookup.clear();
+	for (size_t id=0; id<replacements.size(); id++) {
+		//Don't index rules with no switches
+		if (replacements[id].requiredSwitches.size()==0)
+			continue;
+
+		//Build an identifier for this rule's switch set; save it.
+		unsigned int switchIndexID = KeyMagicInputMethod::getSwitchUniqueID(replacements[id].requiredSwitches);
+		switchLookup[switchIndexID].push_back(id);
+	}
 }
 
 
@@ -687,18 +701,6 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 
 	//Final step: sort the replacements list according to KeyMagic's rules of precedence
 	std::sort(replacements.begin(), replacements.end(), KeyMagicInputMethod::ReplacementCompare);
-
-	//After-final step: re-build the index
-	switchLookup.clear();
-	for (size_t id=0; id<replacements.size(); id++) {
-		//Don't index rules with no switches
-		if (replacements[id].requiredSwitches.size()==0)
-			continue;
-
-		//Build an identifier for this rule's switch set; save it.
-		unsigned int switchIndexID = KeyMagicInputMethod::getSwitchUniqueID(replacements[id].requiredSwitches);
-		switchLookup[switchIndexID].push_back(id);
-	}
 }
 
 
@@ -1531,12 +1533,13 @@ pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevSt
 	//Now apply.
 	wstring result = applyRules(appended, vkey.toKeyMagicVal());
 	//Remove all trailing '\0's //TODO: Replace this with a "removeall" at some point...
-	for (;;) {
+	result = waitzar::removeZWS(result, L"\0");
+	/*for (;;) {
 		size_t zeroIndex = result.rfind(L'\0');
 		if (zeroIndex==wstring::npos)
 			break;
 		result.replace(zeroIndex, 1, L"");
-	}
+	}*/
 	return pair<wstring, bool>(result, true);
 }
 
