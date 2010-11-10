@@ -1349,7 +1349,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 	//length = wcslen(zawgyiStr); //Keep embedded zeroes
 	destID =0;
 	for (size_t i=0; i<length; i++) {
-		if (zawgyiStr[i]==0x0000)
+		if (zawgyiStr[i]==0x0000 || zawgyiStr[i]==ZG_DASH)
 			continue;
 		zawgyiStr[destID++] = zawgyiLetter(zawgyiStr[i]);
 	}
