@@ -20,9 +20,9 @@ std::map< char, std::string > Logger::filePaths;
 //Helper 1
 bool Logger::isLogging(char logLetter)
 {
-	if (WZ_LOG_MAIN && logLetter==waitzarLogchar)
+	if (WZ_LOG_MAIN && (logLetter==waitzarLogchar))
 		return true;
-	if (WZ_LOG_KEYMAGIC && logLetter==keymagicLogchar)
+	if (WZ_LOG_KEYMAGIC && (logLetter==keymagicLogchar))
 		return true;
 	return false;
 }
