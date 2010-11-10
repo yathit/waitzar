@@ -27,95 +27,99 @@ using std::string;
 //A hidden namespace for our "private" methods
 namespace
 {
-	//Constant pseudo-letters
-	#define ZG_DASH         0x2000
-	#define ZG_KINZI        0x2001
+	//Various constants
+	enum {
+		//Constant pseudo-letters
+		ZG_DASH           = 0xE000,
+	    ZG_KINZI,
 
-	//Constant pseudo-letters (stacked)
-	#define ZG_STACK_KA     0x3000
-	#define ZG_STACK_KHA    0x3001
-	#define ZG_STACK_GA     0x3002
-	#define ZG_STACK_GHA    0x3003
-	#define ZG_STACK_NGA    0x3004
-	#define ZG_STACK_SA     0x3005
-	#define ZG_STACK_SSA    0x3006
-	#define ZG_STACK_ZA     0x3007
-	#define ZG_STACK_ZHA    0x3008
-	//Skip one...
-	#define ZG_STACK_NYA    0x3009
-	#define ZG_STACK_TTA    0x300A
-	#define ZG_STACK_HTA1   0x300B
-	#define ZG_STACK_DHA1   0x300C
-	//Skip one...
-	#define ZG_STACK_NHA    0x300D
-	#define ZG_STACK_TA     0x300E
-	#define ZG_STACK_HTA2   0x300F
-	#define ZG_STACK_DDA    0x3010
-	#define ZG_STACK_DHA2   0x3011
-	#define ZG_STACK_NA     0x3012
-	#define ZG_STACK_PA     0x3013
-	#define ZG_STACK_PHA    0x3014
-	#define ZG_STACK_VA     0x3015
-	#define ZG_STACK_BA     0x3016
-	#define ZG_STACK_MA     0x3017
-	//Break sequence
-	#define ZG_STACK_YA     0x3018
-	#define ZG_STACK_LA     0x3019
-	#define ZG_STACK_THA    0x301A
-	#define ZG_STACK_A      0x301B
-	//Special-purpose indented stacked letters
-	#define ZG_STACK_SSA_INDENT     0x301C
-	#define ZG_STACK_TA_INDENT      0x301D
-	#define ZG_STACK_HTA2_INDENT    0x301E
+		//Constant pseudo-letters (stacked)
+		ZG_STACK_KA       = 0xE100,
+		ZG_STACK_KHA,
+		ZG_STACK_GA,
+		ZG_STACK_GHA,
+		ZG_STACK_NGA,
+		ZG_STACK_SA,
+		ZG_STACK_SSA,
+		ZG_STACK_ZA,
+		ZG_STACK_ZHA,
+		//Skip one...
+		ZG_STACK_NYA,
+		ZG_STACK_TTA,
+		ZG_STACK_HTA1,
+		ZG_STACK_DHA1,
+		//Skip one...
+		ZG_STACK_NHA,
+		ZG_STACK_TA,
+		ZG_STACK_HTA2,
+		ZG_STACK_DDA,
+		ZG_STACK_DHA2,
+		ZG_STACK_NA,
+		ZG_STACK_PA,
+		ZG_STACK_PHA,
+		ZG_STACK_VA,
+		ZG_STACK_BA,
+		ZG_STACK_MA,
+		//Break sequence
+		ZG_STACK_YA,
+		ZG_STACK_LA,
+		ZG_STACK_THA,
+		ZG_STACK_A,
+		//Special-purpose indented stacked letters
+		ZG_STACK_SSA_INDENT,
+		ZG_STACK_TA_INDENT,
+		ZG_STACK_HTA2_INDENT,
 
-	//Some complex letters
-	#define ZG_COMPLEX_1            0x4000
-	#define ZG_COMPLEX_NA           0x4001
+		//Some complex letters
+		ZG_COMPLEX_1                  = 0xE200,
+		ZG_COMPLEX_NA,
 
-	//Letters which share similar semantic functionality
-	#define ZG_TALL_WITH_ASAT       0x4002
-	#define ZG_DOTTED_CIRCLE_ABOVE  0x4003
-	#define ZG_LEGGED_CIRCLE_BELOW  0x4004
-	#define ZG_LEGS_BOTH_WAYS       0x4005
-	#define ZG_LEGS_OF_THREE        0x4006
-	#define ZG_KINZI_102D           0x4007
-	#define ZG_KINZI_102E           0x4008
-	#define ZG_KINZI_1036           0x4009
+		//Letters which share similar semantic functionality
+		ZG_TALL_WITH_ASAT,
+		ZG_DOTTED_CIRCLE_ABOVE,
+		ZG_LEGGED_CIRCLE_BELOW,
+		ZG_LEGS_BOTH_WAYS,
+		ZG_LEGS_OF_THREE,
+		ZG_KINZI_102D,
+		ZG_KINZI_102E,
+		ZG_KINZI_1036,
 
-	//Some more substitures
-	#define ZG_DOT_BELOW_SHIFT_1    0x400A
-	#define ZG_DOT_BELOW_SHIFT_2    0x400B
-	#define ZG_TALL_SINGLE_LEG      0x400C
-	#define ZG_TALL_DOUBLE_LEG      0x400D
-	#define ZG_YA_PIN_CUT           0x400E
-	#define ZG_YA_PIN_SA            0x400F
-	#define ZG_YA_YIT_LONG          0x4010
-	#define ZG_YA_YIT_HIGHCUT       0x4011
-	#define ZG_YA_YIT_LONG_HIGHCUT  0x4012
-	#define ZG_YA_YIT_LOWCUT        0x4013
-	#define ZG_YA_YIT_LONG_LOWCUT   0x4014
-	#define ZG_YA_YIT_BOTHCUT       0x4015
-	#define ZG_YA_YIT_LONG_BOTHCUT  0x4016
-	#define ZG_LEG_FWD_SMALL        0x4017
-	#define ZG_NA_CUT               0x4018
-	#define ZG_YA_CUT               0x4019
-	#define ZG_NYA_CUT              0x401A
-	#define ZG_O_CUT                0x401B
-
+		//Some more substitures
+		ZG_DOT_BELOW_SHIFT_1,
+		ZG_DOT_BELOW_SHIFT_2,
+		ZG_TALL_SINGLE_LEG,
+		ZG_TALL_DOUBLE_LEG,
+		ZG_YA_PIN_CUT,
+		ZG_YA_PIN_SA,
+		ZG_YA_YIT_LONG,
+		ZG_YA_YIT_HIGHCUT,
+		ZG_YA_YIT_LONG_HIGHCUT,
+		ZG_YA_YIT_LOWCUT,
+		ZG_YA_YIT_LONG_LOWCUT,
+		ZG_YA_YIT_BOTHCUT,
+		ZG_YA_YIT_LONG_BOTHCUT,
+		ZG_LEG_FWD_SMALL,
+		ZG_NA_CUT,
+		ZG_YA_CUT,
+		ZG_NYA_CUT,
+		ZG_O_CUT,
+	};
 
 	//Constants for our counting sort algorithm
-	#define ID_MED_Y        0
-	#define ID_MED_R        1
-	#define ID_MED_W        2
-	#define ID_MED_H        3
-	#define ID_VOW_E        4
-	#define ID_VOW_ABOVE    5
-	#define ID_VOW_BELOW    6
-	#define ID_VOW_A        7
-	#define ID_ANUSVARA     8
-	#define ID_DOW_BELOW    9
-	#define ID_VISARGA     10
-	#define ID_TOTAL       11
+	enum {
+		ID_MED_Y          = 0,
+		ID_MED_R,
+		ID_MED_W,
+		ID_MED_H,
+		ID_VOW_E,
+		ID_VOW_ABOVE,
+		ID_VOW_BELOW,
+		ID_VOW_A,
+		ID_ANUSVARA,
+		ID_DOW_BELOW,
+		ID_VISARGA,
+		ID_TOTAL
+	};
 
 	//Bitflags for our step-three algorithm
 	#define S3_TOTAL_FLAGS               42
@@ -900,7 +904,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 	if (uniString.empty())
 		return uniString;
 
-	Logger::writeLogLine('Z', std::wstring(L"   norm: {") + uniString + L"}");
+	const std::wstring tab = L"   ";
+	Logger::writeLogLine('Z', tab + L"norm: {" + uniString + L"}");
 
 	//For now, just wrap a low-level data structure.
 	//  I want to re-write the entire algorithm to use
@@ -966,6 +971,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 	}
 	zawgyiStr[destID] = 0x0000;
 
+
+	Logger::writeLogLine('Z', tab + L"dash: {" + wstring(zawgyiStr, destID) + L"}");
 
 
 	//Step 2: Stack letters. This will only reduce the string's length, so

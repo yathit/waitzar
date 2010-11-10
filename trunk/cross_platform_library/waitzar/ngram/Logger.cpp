@@ -75,7 +75,7 @@ void Logger::writeLogLine(char logLetter, const std::wstring& logLine)
 				if (newLine[i]<=0xFF)
 					msg <<(char)newLine[i];
 				else
-					msg <<'\\u' <<std::hex <<newLine[i] <<std::dec;
+					msg <<"\\u" <<std::hex <<std::uppercase <<newLine[i] <<std::dec <<std::nouppercase;
 			}
 
 			//Write line
