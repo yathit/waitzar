@@ -773,6 +773,10 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		if (options.count(sanitize_id(L"disable-cache"))>0)
 			disableCache = read_bool(options.find(sanitize_id(L"disable-cache"))->second);
 
+		//Override disabling the cache, keymagic only.
+		if (Logger::isLogging('K'))
+			disableCache = true;
+
 		//Get it, as a singleton
 		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache, fileMD5Function);
 		res->type = IME_KEYBOARD;
