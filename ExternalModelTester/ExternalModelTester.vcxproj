@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -82,6 +82,7 @@
     <ClCompile Include="..\cross_platform_library\waitzar\burglish\regex.cpp" />
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp" />
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp" />
+    <ClCompile Include="..\cross_platform_library\waitzar\ngram\Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontconv.h" />
@@ -90,6 +91,7 @@
     <ClInclude Include="..\cross_platform_library\waitzar\burglish\regex.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h" />
+    <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

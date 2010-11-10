@@ -15,6 +15,10 @@ Uni2Zg::Uni2Zg()
 //Convert
 void Uni2Zg::convertInPlace(std::wstring& src) const
 {
+	//Save time
+	if (src.empty())
+		return;
+
 	//Use our code, from the utilities package.
 	Logger::writeLogLine('Z', std::wstring(L"Unicode: {") + src + L"}");
 	src = waitzar::sortMyanmarString(src);
