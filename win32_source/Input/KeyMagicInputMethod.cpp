@@ -1533,7 +1533,7 @@ pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevSt
 	//Now apply.
 	wstring result = applyRules(appended, vkey.toKeyMagicVal());
 	//Remove all trailing '\0's //TODO: Replace this with a "removeall" at some point...
-	result = waitzar::removeZWS(result, L"\0");
+	result = waitzar::removeZWS(result, wstring(1, L'\0'));
 	/*for (;;) {
 		size_t zeroIndex = result.rfind(L'\0');
 		if (zeroIndex==wstring::npos)
