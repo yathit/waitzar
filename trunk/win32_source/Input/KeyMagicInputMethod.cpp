@@ -1629,6 +1629,8 @@ wstring KeyMagicInputMethod::applyRules(const wstring& origInput, unsigned int v
 			//Log
 			if (breakLoop)
 				KeyMagicInputMethod::writeLogLine(L"STOP: Single-letter ascii");
+			else //TODO: Some esoteric rule might not use the VKEY but still match. Low priority... better to get a standard first. 
+				vkeyCode = '\0'; //We've matched a rule, so the virtual key is consumed.
 
 			KeyMagicInputMethod::writeLogLine();
 		} else {
