@@ -142,6 +142,7 @@ public:
 
 	//Post fake messages
 	bool postMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+	//void scheduleDelete();
 
 	//Link two windows
 	void linkToWindow(MyWin32Window* other, ATTACH_DIRECTION linkAt);

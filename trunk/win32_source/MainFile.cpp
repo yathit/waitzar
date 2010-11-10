@@ -4740,7 +4740,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 ////////////////
 //DEBUG
 ////////////////
-//testFileName = L"../test_cases/ayar_tests.txt";
+//testFileName = L"../test_cases/zawgyi_tests.txt";
 ////////////////
 ////////////////
 
@@ -4922,10 +4922,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	//Now that everything has been loaded, run any user-driven tests
+	bool deleteMainWindowLater = false;
 	if (checkUserSpecifiedRegressionTests(testFileName)) {
 		//Cleanly exit. (Sort of... this might be bad since no messages are being pumped).
 		Logger::markLogTime('L', L"User regression tests run.");
-		delete mainWindow;
+
+		//delete mainWindow; //ALL sorts of memory errors
+		deleteMainWindowLater = true;
 	}
 
 
@@ -5031,7 +5034,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	nid.uVersion = NOTIFYICON_VERSION; //Win2000+ version notifications
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 	nid.hIcon = engIcon;
-	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
+	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) { //Note: If we delete the main window before this line, then calling this will fail  --yet the error MessageBox won't show!
 		TCHAR eTemp[200];
 		swprintf(eTemp, _T("Can't load initial icon.\nError code: %x"), GetLastError());
 		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
@@ -5064,6 +5067,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Logger::endLogTimer('L');
 	Logger::markLogTime('L', L"WaitZar is now running");
 	Logger::endLogTimer('L', L"}");
+
+
+	//Is this window destined to be destroyed anyway?
+	if (deleteMainWindowLater) 
+		delete mainWindow;
 
 
 	//Main message handling loop
