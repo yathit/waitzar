@@ -8,6 +8,7 @@
 
 Uni2Zg::Uni2Zg()
 {
+	Logger::resetLogFile('Z');
 }
 
 
@@ -15,8 +16,11 @@ Uni2Zg::Uni2Zg()
 void Uni2Zg::convertInPlace(std::wstring& src) const
 {
 	//Use our code, from the utilities package.
+	Logger::writeLogLine('Z', std::wstring(L"Unicode: {") + src + L"}");
 	src = waitzar::sortMyanmarString(src);
 	src = waitzar::renderAsZawgyi(src);
+	Logger::writeLogLine('Z', std::wstring(L"Zawgyi1: {") + src + L"}");
+	Logger::writeLogLine('Z');
 	//src = waitzar::removeZWS(src, L"-"); //Remove hyphens
 }
 

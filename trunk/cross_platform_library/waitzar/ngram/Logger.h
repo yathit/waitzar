@@ -34,6 +34,11 @@ private:
 	const static char keymagicLogchar = 'K';
 	const static std::string keymagicLogFileName;
 
+	//Uni2Zawgyi log file: constants
+	const static bool WZ_LOG_UNI2ZAWGYI = true;
+	const static char uni2ZawgyiLogchar = 'Z';
+	const static std::string uni2ZawgyiLogFileName;
+
 private:
 	//Variables
 	static std::map< char, std::vector<FILETIME> > filetimeStacks;

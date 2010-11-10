@@ -9,6 +9,7 @@
 
 #include "Transform/Transformation.h"
 #include "NGram/wz_utilities.h"
+#include "NGram/Logger.h"
 
 /**
  * Placeholder class: to be used for Uni2Zg Conversion method

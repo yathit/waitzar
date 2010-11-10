@@ -900,6 +900,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 	if (uniString.empty())
 		return uniString;
 
+	Logger::writeLogLine('Z', std::wstring(L"   norm: {") + uniString + L"}");
+
 	//For now, just wrap a low-level data structure.
 	//  I want to re-write the entire algorithm to use
 	//  bitflags, so for now we'll just preserve the STL interface.
@@ -1468,7 +1470,8 @@ std::string escape_wstr(const std::wstring& str, bool errOnUnicode)
 {
 	std::stringstream res;
 	for (wstring::const_iterator c=str.begin(); c!=str.end(); c++) {
-		if (*c < std::numeric_limits<char>::max())
+		//if (*c < std::numeric_limits<char>::max())
+		if (*c < 0x7F) //TODO: This might not be correct..
 			res << static_cast<char>(*c);
 		else if (errOnUnicode)
 			throw std::runtime_error("String contains unicode");

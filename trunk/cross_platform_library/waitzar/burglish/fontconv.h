@@ -29,10 +29,10 @@ namespace waitzar
 #define CHAR_BUFFER 0xFFFF /* Input string buffer length */
 #define VIRTUAL_OFFSET 0x3000 /* Virtual font offset */
 
-#ifndef HIBYTE
-	#define LOBYTE(a)           ((unsigned char)(((unsigned long)(a)) & 0xff))
-	#define HIBYTE(a)           ((unsigned char)((((unsigned long)(a)) >> 8) & 0xff))
-#endif
+//#ifndef HIBYTE
+#define LOBYTE2(a)           ((unsigned char)(((unsigned long)(a)) & 0xff))
+#define HIBYTE2(a)           ((unsigned char)((((unsigned long)(a)) >> 8) & 0xff))
+//#endif
 
 void convertFont(wchar_t* dst, const wchar_t* src, int srcFont, int dstFont);
 
