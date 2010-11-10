@@ -17,7 +17,7 @@ void Uni2Zg::convertInPlace(std::wstring& src) const
 	//Use our code, from the utilities package.
 	src = waitzar::sortMyanmarString(src);
 	src = waitzar::renderAsZawgyi(src);
-	src = waitzar::removeZWS(src, L"-"); //Remove hyphens
+	//src = waitzar::removeZWS(src, L"-"); //Remove hyphens
 }
 
 
