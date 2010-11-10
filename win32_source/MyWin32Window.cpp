@@ -117,6 +117,14 @@ MyWin32Window::~MyWin32Window()
 }
 
 
+/*void MyWin32Window::scheduleDelete()
+{
+	//Will this work? 
+	if (window!=NULL)
+		DestroyWindow(window);
+}*/
+
+
 
 //General message management
 LRESULT CALLBACK MyWin32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
