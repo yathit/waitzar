@@ -636,7 +636,7 @@ namespace
 			/*case :
 				return 0x1092;*/ //Add later; this is actually a typing issue, not a rendering one.
 			case ZG_DASH:
-				return 0x002D;
+				return 0x200B;
 			case ZG_KINZI:
 				return 0x1064;
 			case ZG_STACK_KA:
@@ -954,8 +954,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 
 		//Append it, and a dash if necessary
 		//Don't dash our stack letter; it's not necessary
-		/*if (!passed && currType!=BF_STACKER) 
-			zawgyiStr[destID++] = ZG_DASH;*/
+		if (!passed && currType!=BF_STACKER) 
+			zawgyiStr[destID++] = ZG_DASH;
 		zawgyiStr[destID++] = currLetter;
 
 		//Increment
