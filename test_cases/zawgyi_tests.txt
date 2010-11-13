@@ -373,21 +373,54 @@
 //Test general encoding order as specified by UTN11
 //  -င်္   CONS  ္က  ျ  ြ  ွ  ှ  ေ  ိ  ု  ာ  ံ  ့  ်  -း
 // (Note: some letters, like ူ, are grouped with others, since you can't have both in the same word)
-//TODO
+"u~uF" => "င်္က္က"
+"uF~u" => "င်္က္က"
+"juF" => "င်္ကြ"
+"ju~u" => "က္ကြ"
+"uFs" => "င်္ကျ"
+"usF" => "င်္ကျ"
+"u~us" => "က္ကျ"
+"us~u" => "က္ကျ"
+"acs" => "ချေ"
+"csG" => "ချွ"
+"cGs" => "ချွ"
+"acGs" => "ချွေ"
+"acGD" => "ခွေီ"
+"acDG" => "ခွေီ"
+"aul" => "ကေူ"
+"acSGDm" => "ခွှေီာ"
+"jcSGDm" => "ခြွှီာ"
+"jum" => "ကြာ"
+"jxmf" => "ထြာ်"
+"axmfh" => "ထော့်"
+"axmhf" => "ထော့်"
+"axmhH" => "ထောံ့"
+"axmHh" => "ထောံ့"
+"u~uH" => "က္ကံ"
+"uJ~u" => "က္ကဲ"
+"u~uJ" => "က္ကဲ"
+"uJh" => "ကဲ့"
+"uhJ" => "ကဲ့"
+"ukdH" => "ကိုံ"
+"udkH" => "ကိုံ"
+"udHk" => "ကိုံ"
+"ukHd" => "ကိုံ"
+"uHkd" => "ကိုံ"
+"uHdk" => "ကိုံ"
 
-//Test "tall" and "short" versions of U102B/C
-//TODO
+//Trying to type a complex word as many ways as possible
+"oc"+"sFdk"+"if;" => "သင်္ချိုင်း"
+"oc"+"sdFk"+"if;" => "သင်္ချိုင်း"
+"oc"+"s~Lk"+"if;" => "သင်္ချိုင်း"
 
 //Bug reports & other user-reported tests
 "zpsGyoans/" => "ဖစျွပသညျေ။"
 "zjpGyoans/" => "ဖစြွပသညျေ။"
 "typsG" => "အပစျွ"
 "tzjpG" => "အဖစြွ"
-
-//TODO: Tests for specific combinations, like "ps" versus "sp"
+"r*Fvmyg" => "မင်္ဂလာပါ"
 
 
 //Combinations of keys:
 //LATER: CAPS -> "type normally" mode
-//         NOTE: It seems that CAPS_LOCK is treated as the "symbol key", which is "}". Verify?
-//         NOTE: In addition, Zawgyi.kms simply mirrors "|" onto "}" for all combinations. Revert? Or..?
+//         NOTE: It seems that CAPS_LOCK is treated as the "symbol key", which turns on "English typing".
