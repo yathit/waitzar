@@ -43,11 +43,14 @@ $ZWS[^] + U104F => $1 + $ZWS + $2
 $row3K = "sdfghkl;'"
 $row3U = U103B + U102D + U103A + U102B + U1037 + U102F + U1030 + U1038 + U1012
 
-//Force word breaks (might not be correct...)
+//Force word breaks, unless another prefix vowel or medial is there
+//$yayit + < VK_KEY_A > => $1 + $twh
 < VK_KEY_A > => $ZWS + $twh
-< VK_KEY_J > => $ZWS + $yayit
+//$twh + < VK_KEY_J > => $1 + $yayit
+< VK_KEY_J > =>  $ZWS + $yayit
 
 $ZWS + $twh + <VK_BACK> => null
+$ZWS + $yayit + <VK_BACK> => null
 
 //CHANGED: This doesn't make sense! If we type "ju", then after "yayit" is put after
 //             "ka", this rule will put a ZWS between the two (when they're clearly part
@@ -113,10 +116,10 @@ $row2U_S = U1014 + U1037 + U1037 + U1025 + U100F + U1027
 //('zg_key') + 's' => U103A 
 'I' => U103E + U102F
 ('zg_key') + 'o' => U103F
-('zg_key') + 'L' => U1004 + U103A + U1039 + U102D
-('zg_key') + 'D' => U1004 + U103A + U1039 + U102E
+('zg_key') + 'L' => $kinzi + U102D
+('zg_key') + 'D' => $kinzi + U102E
 ('zg_key') + 'E' => U1039 + U1010 + U103D
-('zg_key') + 'l' => U1004 + U103A + U1039 + U1036
+('zg_key') + 'l' => $kinzi + U1036
 ('zg_key') + 's' => U103B
 //END CHANGED
 
@@ -134,7 +137,7 @@ $row3K_S[*] => $row3U_S[$1]
 //Shifted
 //Non-Normal on Third row
 < VK_SHIFT & VK_KEY_F > => $kinzi
-U1004 + U103A + U1039 + < VK_BACK > => NULL
+$kinzi + < VK_BACK > => NULL
 < VK_SHIFT & VK_KEY_K > => U102F
 < VK_SHIFT & VK_KEY_L > => U1030
 < VK_SHIFT & VK_COLON > => U102B + U103A
@@ -167,9 +170,12 @@ $row4K_S[*] => $row4U_S[$1]
 ('zg_gk') + * => $1 + ('zg_gk')
 
 //AUTO CORRECTION SECTION
+
+//Number auto-correct
 $NumOrLetK = "780"
 $NumOrLetU = U1047 + U1048 + U1040
 $NumAsLetU = U101B + U1002 + U101D
+
 //prefix autocorrect
 $prefix = $twh + $yayit
 //$prefix[*] + $NumOrLetK[*] => $1 + $NumAsLetU[$2]
@@ -180,7 +186,8 @@ $postfix = U102E + U102D + U103E + U102E + U103D + U1036 + U1037 + U1032 + U102F
 $ZWS + $NumOrLetU[*] + $postfix[*] => $1 + $NumAsLetU[$2] + $3
 
 //za myin swel
-U1005 + U103B => U1008
+//NOTE: I don't like generating this letter; it messes up some words.
+//U1005 + U103B => U1008
 $bridge_zws[^] + U1008 => $1 + $ZWS + $2
 $bridge + $ZWS + U1008 => $bridge + U1008
 
@@ -191,7 +198,8 @@ $ttt + $akm => $2 + $1
 $ZWS + $NumOrLetU[*] + $NumOrLetU[*] + 'f' => $1 + $NumAsLetU[$2] + $NumAsLetU[$3] + U103A 
 $ZWS + $NumOrLetU[*] + $consU[*] => $NumAsLetU[$2] + $3
 
-$ZWS + $NumOrLetU[*] + U1004 + U103A + U1039 => $1 + $NumAsLetU[$2] + U1004 + U103A + U1039
+//Fix "7,8,0" when typed as numbers (but should be letters)
+$ZWS + $NumOrLetU[*] + $kinzi => $1 + $NumAsLetU[$2] + $3
 
 U102F + U102D => $2 + $1
 U1037 + U1036 => $2 + $1
@@ -205,7 +213,7 @@ U103E + U103E => $1
 //U102D + U102D => $1
 //U102E + U102E => $1
 //U103A + U103A => $1
-U1004 + U103A + U1039 + 'F' => $1 + $2 + $3
+$kinzi + 'F' => $1
 U102B + U102B => $1
 //U103D + U103D => $1
 U1037 + U1037 => $1
@@ -378,11 +386,51 @@ U101E + U103A + U101E => U103F
 
 //Test: Re-order ya-yit, kinzi, and tha-way-htoe. ZWS should prevent re-ordering 
 //        after typing a second consonant.
-$twh + $yayit + $consU[*] + $kinzi => $4 + $3 + $2 + $1
-$twh + $yayit + $consU[*] => $3 + $2 + $1
-$yayit + $consU[*] + $kinzi => $3 + $2 + $1
-$yayit + $consU[*] => $2 + $1
-$twh + $consU[*] + $kinzi => $3 + $2 + $1
-$twh + $consU[*] => $2 + $1
+//Remove ZWS when re-ordering.
+$yyORtwh = $yayit + $twh
+$ZWS + $twh + $ZWS + $yayit + $consU[*] + $kinzi => $6 + $5 + $4 + $2
+$ZWS + $yayit + $ZWS + $twh + $consU[*] + $kinzi => $6 + $5 + $2 + $4
+$ZWS + $twh + $ZWS + $yayit + $consU[*] => $5 + $4 + $2
+$ZWS + $yayit + $ZWS + $twh + $consU[*] => $5 + $2 + $4
+$ZWS + $yyORtwh[*] + $consU[*] + $kinzi => $4 + $3 + $2
+$ZWS + $yyORtwh[*] + $consU[*] => $3 + $2
 
+//NOTE: Re-ordering occurs in-place, so we need extra rules for "jpF" (see examples below)
+$consU[*] + $yayit + $twh + $kinzi => $4 + $1 + $2 + $3
+$consU[*] + $yyORtwh[*] + $kinzi => $3 + $1 + $2
+$consU[*] + $kinzi => $2 + $1
+
+//More re-ordering with stacked consonant and optional medial-ya 
+//$consU is a superset of stackable letters, so just use that.
+$consU[*] + $yayit + $twh + U1039 + $consU[*] + U103B => $1 + $4 + $5 + $6 + $2 + $3
+$consU[*] + $yayit + $twh + U103B => $1 + $4 + $2 + $3
+$consU[*] + $yayit + $twh + U1039 + $consU[*] => $1 + $4 + $5 + $2 + $3
+$consU[*] + $yyORtwh[*] + U1039 + $consU[*] + U103B => $1 + $3 + $4 + $5 + $2
+$consU[*] + $yyORtwh[*] + U103B => $1 + $3 + $2
+$consU[*] + $yyORtwh[*] + U1039 + $consU[*] => $1 + $3 + $4 + $2
+
+//Re-order with circle-below and aspirator character
+U103E + U103D => $2 + $1
+$twh + U103D + U103E => $2 + $3 + $1
+$twh + U103E => $2 + $1
+$twh + U103D => $2 + $1
+
+//Fix ordering of circle-above and leg-below
+$upperVowel = U102D + U102E + U1032
+$lowerVowel = U102F + U1030
+$lowerVowel[*] + $upperVowel[*] => $2 + $1
+
+//Fix ordering of closing medials + asat
+$dotAbove = U1036
+$dotBelow = U1037
+$asat = U103A
+$asat[*] + $dotBelow[*] => $2 + $1
+$dotBelow[*] + $dotAbove[*] => $2 + $1
+
+//Minor cleanup; hope this won't loop much
+// (we expand the search a few times to avoid pointless looping)
+$ZWS + $ZWS + $ZWS + $ZWS + $ZWS => $1
+$ZWS + $ZWS + $ZWS + $ZWS => $1
+$ZWS + $ZWS + $ZWS => $1
+$ZWS + $ZWS => $1
 
