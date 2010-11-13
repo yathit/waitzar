@@ -323,11 +323,71 @@
 "`?" => ""
 "~?" => ""
 
+
+///////////////////////////////////////////////////////
+// Phase Two: Reorderings & Complex Typing
+///////////////////////////////////////////////////////
+
+//General reordering; ya-yit and twh (including wrong typing order, and multiple syllables)
+"au" => "ကေ"
+"ac" => "ခေ"
+"pj" => "စြ"
+"eB" => "နြ"
+"x~ja" => "ထြေ"
+"'ja" => "ဒြေ"
+"aum" => "ကော"
+"xjam" => "ထြော"
+"auju" => "ကေကြ"
+"auau" => "ကေကေ"
+"juju" => "ကြကြ"
+"juau" => "ကြကေ"
+"jumau" => "ကြာကေ"
+"juuau" => "ကြကကေ"
+"juuju" => "ကြကကြ"
+"auuju" => "ကေကကြ"
+
+//Test kinzi
+"*F" => "င်္ဂ"
+"apF" => "င်္စေ"
+"jpF" => "င်္စြ"
+"aj*F" => "င်္ဂြေ"
+"ja*F" => "င်္ဂြေ"
+"ja*Fm" => "င်္ဂြော"
+
+//Ordering with other stacked letters
+"au~c" => "က္ခေ"
+"jc~e" => "ခ္နြ"
+"jau~e" => "က္နြေ"
+"aju~e" => "က္နြေ"
+"au`c" => "က္ခေ"
+"jc`e" => "ခ္နြ"
+"jau`e" => "က္နြေ"
+"aju`e" => "က္နြေ"
+
+//Ensure that "~" is switched off 
+"u~uu~u" => "က္ကက္က"
+"u~qz" => "က္ဆဖ"
+"u`uu`u" => "က္ကက္က"
+"u`qz" => "က္ဆဖ"
+
+//Test general encoding order as specified by UTN11
+//  -င်္   CONS  ္က  ျ  ြ  ွ  ှ  ေ  ိ  ု  ာ  ံ  ့  ်  -း
+// (Note: some letters, like ူ, are grouped with others, since you can't have both in the same word)
+//TODO
+
+//Test "tall" and "short" versions of U102B/C
+//TODO
+
+//Bug reports & other user-reported tests
+"zpsGyoans/" => "ဖစျွပသညျေ။"
+"zjpGyoans/" => "ဖစြွပသညျေ။"
+"typsG" => "အပစျွ"
+"tzjpG" => "အဖစြွ"
+
+//TODO: Tests for specific combinations, like "ps" versus "sp"
+
+
 //Combinations of keys:
-//TEST: ordering of ya, twh, etc.
-//TEST: Make sure that "~" works only for ONE letter. 
-//TEST: ordering when stacked letters are involved.
-//TEST: specific test cases for Lionslayer's bug report. 
 //LATER: CAPS -> "type normally" mode
 //         NOTE: It seems that CAPS_LOCK is treated as the "symbol key", which is "}". Verify?
 //         NOTE: In addition, Zawgyi.kms simply mirrors "|" onto "}" for all combinations. Revert? Or..?
