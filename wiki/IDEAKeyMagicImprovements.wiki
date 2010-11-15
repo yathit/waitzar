@@ -1,0 +1,152 @@
+#summary What are some small improvements we might make to KeyMagic?
+#labels Phase-Design
+
+= Introduction =
+
+We now support virtually all of KeyMagic's features. Eventually, I want to work on a specification. But for now, I would like to list some things that bothered me when editing the Zawgyi-One KeyMagic file. Details of KeyMagic in general can be found here:
+http://code.google.com/p/keymagic/
+
+
+
+= Smart Backspace =
+*Summary:* Backspace should behave more intelligently by default.
+
+*Problem* 
+  * Zawgyi.kbd has a lot of rules like this:
+{{{
+    U200B + U104B + <VK_BACK> => null
+}}}
+  * This requires ALL re-orderings to be reversible, which is kind of extreme. In fact, when most users hit backspace, they really just want to "undo" the last letter they typed, including all of its reordering effects. 
+
+*Solution:* Each time a letter is typed, we can push the current string to the stack. When the user types "backspace", just pop the stack and present this to the user. We can add a header parameter, "@smart_backspace" = "true", to turn this on. The normal rule about backspace only activating if no rules match VK_BACK also applies. 
+
+*Difficulty:* Easy
+
+
+
+= Arrays-Of-Strings =
+*Summary:* All the useful KeyMagic syntax (like $res[*]) only works on individual characters.
+
+*Problem* 
+  * Something like this:
+   {{{
+   $row1K = "1234"
+   $row1U = U1041 + U1042 + U1043 + U1044
+   $row1K[*] => $row1U[$1]
+   }}}
+  *...is a very useful abstraction. Unfortunately, it only applies to strings. Trying this:
+   {{{
+   //NOTE: Doesn't work!
+   $stackedUNI = "\u1004\u103A\u1039" + "\u1039\u1000" + "\u1039\u1001"
+   $stackedZG = "\u1064" + "\u1060" + "\u1061"
+   $stackedUNI[*] => $stackedZG[$1]
+   }}}
+  *...doesn't. Instead of replacing kinzi and stacked ka/kha with its equivalent in Zawgyi, it replaces each individual letter, resulting in either the wrong string entirely or a crash (if it overflows the array). The thing is, it would be nice to be able to use something like this. 
+
+*Solution:* I propose the following syntax to designate an array:
+   {{{
+   $stackedUNI = ["\u1004\u103A\u1039" + "\u1039\u1000" + "\u1039\u1001"]
+   }}}
+This is very similar to the current syntax. Regular strings can be automatically converted into arrays, if this helps:
+   {{{
+   //$row1K = "1234"
+   $row1K = ["1" + "2" + "3" + "4"]
+   //$row1U = U1041 + U1042 + U1043 + U1044
+   $row1U = [U1041 + U1042 + U1043 + U1044]
+   }}}
+The only problem is that some developers might like the UXXXX syntax:
+   {{{
+   //NOTE: Doesn't work!
+   $stackedUNI = [U1004+U103A+U1039 + U1039+U1000 + U1039+U1001]
+   }}}
+But I think this won't happen. First of all, UXXX is generally only used in regular strings now. Secondly, most programmers are already familiar with using quotes for strings. 
+
+*Difficulty:* Medium. Variables would have to be flattened to include things like:
+   {{{
+   $kinzi = U1004 + U103A + U1039
+   $stackedKA = "\u1039\u1000"
+   $stackedKHA = "\u1039\u1001"
+   $stackedUNI = [$kinzi + $stackedKA + $stackedKHA]
+   }}}
+Also, note that in this example, strings are specified with UXXXX, but that's ok since they are contained in variables. However, this should ONLY occur inside of the array brackets; consider something like this:
+   {{{
+   $num1 = U0031 + U0032 + U0033
+   $num2 = U0034 + U0035 + U0036
+   $numX = $num1 + $num2
+   $numA = [$num1 + $num2]
+   $numA2 = [$numX]
+   }}}
+For this case, $numX should be treated as "123456", while $numA should be treated as ["123", "456"]. In addition, $numA2 should be ["123456"]. Finally, we would need some equivalency rules. Consider:
+   {{{
+   $num1 = "123"
+   $num2 = "456"
+   $numA = [$num1 + $num2]
+   "a" => $numA
+   }}}
+...should this replace "a" with the entire flattened array (123456) or just the first element (123)? And what if we WANT to break apart a string? Can we add some new syntax like this:
+   {{{
+   $kinzi = "\u1004\u103A\u1039"
+   $others = "\u102B\u102C\u102F\u1030"
+   $postfix = [$kinzi + $[others]]
+   //Should expand to: 
+   //  $postfix = ["\u1004\u103A\u1039" + "\u102B" + "\u102C" + "\u102F" + "\u1030"]
+   }}}
+And what about stacking arrays inside of other arrays (via variables)? Anyway, these are just edge cases; I think that the whole point to this example is it should be easy to represent multiple letters as a single entity. 
+
+
+
+= Easier Normalization =
+todo (can we specify a normalization pattern, and have KM take care of the rest?)
+
+
+
+= Null Switch =
+todo (how to match "no switch" only)
+
+
+= Switched Ranges =
+todo (can we avoid re-typing the same switch for multiple rules in a row?)
+
+
+= Single-Pass Matching = 
+todo (A switch to say "don't reset to rule zero after matching, and don't stop after single-letter ascii".)
+
+= Better Replacement for Single Letter ASCII =
+todo (Consider typing |=> to mean "Only match one rule of this type per letter typed", with => meaning "keep matching until no more rules match". So, |=> represents a keypress, and => represents a normalization rule. Note that, for "single-pass", we can skip to the end of |=> after one of them matches.)
+
+= "Optional" Match =
+todo (Have to be careful of non-deterministic size, but I think we can do it. Consider:)
+   {{{
+   $threeVowels = $lowerVowel + $dotAbove + $dotBelow
+   $threeVowels[*] + $upperVowel[*] + $threeVowels[*] + $threeVowels[*] => $2 + $1 + $3 + $4
+   $threeVowels[*] + $threeVowels[*] + $upperVowel[*] + $threeVowels[*] => $3 + $1 + $2 + $4
+   $threeVowels[*] + $threeVowels[*] + $threeVowels[*] + $upperVowel[*] => $4 + $1 + $2 + $3
+   $threeVowels[*] + $upperVowel[*] + $threeVowels[*] => $2 + $1 + $3
+   $threeVowels[*] + $threeVowels[*] + $upperVowel[*] => $3 + $1 + $2
+   $threeVowels[*] + $upperVowel[*] => $2 + $1
+   }}}
+...this could be replaced with:
+   {{{
+   $threeVowels = $lowerVowel + $dotAbove + $dotBelow
+   $?threeVowels[*] + $?threeVowels[*] + $threeVowels[*] + $upperVowel[*] => $4 + $1 + $2 + $3
+   }}}
+..although care would have to be taken to make sure that $4 returns the empty string, e.g., "nothing is matched". 
+
+
+= Ranges =
+todo (Should be easy to do with something like:)
+   {{{
+   $cons = U[1000..1003] + U[1005..101F]
+   }}}
+No need for a minus sign yet. 
+
+
+= Key Labels =
+todo (It'd be nice to have a pre-determined variable that is used to "label" keys, for the virtual keyboard. For example:)
+   {{{
+   <SYS_KEYLABEL> => "qwerty...."
+   <VK_SHIFT & SYS_KEYLABEL> => "QWERTY...."
+   <VK_CONTROL & SYS_KEYLABEL> => "------...."
+   }}}
+...in this case, the string is pre-defined; e.g., the first letter will be used for the "Q" key, etc. This will require arrays, of course, for labeling multi-char. keys. 
+
