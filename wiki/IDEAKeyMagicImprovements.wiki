@@ -6,44 +6,51 @@
 We now support virtually all of KeyMagic's features. Eventually, I want to work on a specification. But for now, I would like to list some things that bothered me when editing the Zawgyi-One KeyMagic file. Details of KeyMagic in general can be found here:
 http://code.google.com/p/keymagic/
 
+Note that *most* of these changes are backwards-compatible with KeyMagic, so existing developers can continue to use the syntax as it exists now. 
+
+
+----
 
 
 = Smart Backspace =
-*Summary:* Backspace should behave more intelligently by default.
-
-*Problem* 
-  * Zawgyi.kbd has a lot of rules like this:
-{{{
-    U200B + U104B + <VK_BACK> => null
-}}}
-  * This requires ALL re-orderings to be reversible, which is kind of extreme. In fact, when most users hit backspace, they really just want to "undo" the last letter they typed, including all of its reordering effects. 
-
-*Solution:* Each time a letter is typed, we can push the current string to the stack. When the user types "backspace", just pop the stack and present this to the user. We can add a header parameter, "@smart_backspace" = "true", to turn this on. The normal rule about backspace only activating if no rules match VK_BACK also applies. 
 
 *Difficulty:* Easy
 
+Backspace should behave more intelligently by default. Zawgyi.kbd has a lot of rules like this:
+{{{
+    U200B + U104B + <VK_BACK> => null
+}}}
+This requires ALL re-orderings to be reversible, which is kind of extreme. In fact, when most users hit backspace, they really just want to "undo" the last letter they typed, including all of its reordering effects. We can add a header parameter:
+   {{{
+   "@smart_backspace" = "true"
+   }}}
+If this is on, then each time a letter is typed, we can push the current string to the stack. When the user types "backspace", just pop the stack and present this to the user. The normal rule about backspace only activating if no rules match VK_BACK also applies. 
+
+
+----
 
 
 = Arrays-Of-Strings =
-*Summary:* All the useful KeyMagic syntax (like $res[*]) only works on individual characters.
 
-*Problem* 
-  * Something like this:
+*Difficulty:* Medium
+
+
+All the useful KeyMagic syntax (like $res[*]) only works on individual characters. Something like this:
    {{{
    $row1K = "1234"
    $row1U = U1041 + U1042 + U1043 + U1044
    $row1K[*] => $row1U[$1]
    }}}
-  *...is a very useful abstraction. Unfortunately, it only applies to strings. Trying this:
+...is a very useful abstraction. Unfortunately, it only applies to strings. Trying this:
    {{{
    //NOTE: Doesn't work!
    $stackedUNI = "\u1004\u103A\u1039" + "\u1039\u1000" + "\u1039\u1001"
    $stackedZG = "\u1064" + "\u1060" + "\u1061"
    $stackedUNI[*] => $stackedZG[$1]
    }}}
-  *...doesn't. Instead of replacing kinzi and stacked ka/kha with its equivalent in Zawgyi, it replaces each individual letter, resulting in either the wrong string entirely or a crash (if it overflows the array). The thing is, it would be nice to be able to use something like this. 
+...doesn't. Instead of replacing kinzi and stacked ka/kha with its equivalent in Zawgyi, it replaces each individual letter, resulting in either the wrong string entirely or a crash (if it overflows the array). The thing is, it would be nice to be able to use something like this. 
 
-*Solution:* I propose the following syntax to designate an array:
+I propose the following syntax to designate an array:
    {{{
    $stackedUNI = ["\u1004\u103A\u1039" + "\u1039\u1000" + "\u1039\u1001"]
    }}}
@@ -61,7 +68,7 @@ The only problem is that some developers might like the UXXXX syntax:
    }}}
 But I think this won't happen. First of all, UXXX is generally only used in regular strings now. Secondly, most programmers are already familiar with using quotes for strings. 
 
-*Difficulty:* Medium. Variables would have to be flattened to include things like:
+Variables would have to be flattened to include things like:
    {{{
    $kinzi = U1004 + U103A + U1039
    $stackedKA = "\u1039\u1000"
@@ -94,25 +101,145 @@ For this case, $numX should be treated as "123456", while $numA should be treate
 And what about stacking arrays inside of other arrays (via variables)? Anyway, these are just edge cases; I think that the whole point to this example is it should be easy to represent multiple letters as a single entity. 
 
 
+----
+
+
+= Single-Pass Matching = 
+
+*Difficulty:* Easy
+
+We need a switch:
+   {{{
+   "@single-pass-matching" = "true"
+   }}}
+If the program matches a single rule, currently it will restart at the beginning of the rules set. With this switch, we:
+  * Don't reset (keep matching from the current rule)
+  * Don't sort the rules set (we can still group rules that have switches together)
+  * Don't stop after the "single letter ASCII" rule
+Basically, some developers are comfortable with only one match loop, and it's easy to gain some performance by not constantly resetting.
+
+
+----
+
+
+= Better Replacement for Single Letter ASCII =
+
+*Difficulty:* Easy
+
+Consider typing |=> to mean "Only match one rule of this type per letter typed", with => meaning "keep matching until no more rules match". So, |=> represents a keypress, and => represents a normalization rule. For example:
+   {{{
+   //VARIABLES
+   $row3K = "sdfghkl;'"
+   $row3U = U103B + U102D + U103A + U102B + U1037 + U102F + U1030 + U1038 + U1012
+   
+   //KEYS
+   'a' |=> $twh
+   'j' |=>  $yayit
+   $row3K[*] |=> $row3U[$1]
+
+   //NORMS
+   $yayit + $cons => $2 + $1
+   $twh + $cons => $2 + $1
+   $twh + $yayit => $2 + $1
+   }}}
+In this case, after matching "a", the system would no longer match any more KEYS rules. The NORMS rules would still match. If "single-pass-matching" is enabled, then the system can just jump to the end of the |=> rules (we can sort them, of course). 
+
+This reflects what users are actually modeling; "type a key" and then "re-order as appropriate". 
+
+
+
+----
+
+
+= Ranges =
+
+*Difficulty:* Easy
+
+We should allow something like this:
+   {{{
+   $cons = U[1000..1003] + U[1005..101F]
+   }}}
+This will automatically expand to:
+   {{{
+   $cons = U1000 + U1001 + U1002 + U1003 + U1005 + U1006 + U1007 + \
+            U1008 + U1009 + U100A + U100B + U100C + U100D + U100E + U100F + \
+            U1010 + U1011 + U1012 + U1013 + U1014 + U1015 + U1016 + U1017 + \
+            U1018 + U1019 + U101A + U101B + U101C + U101D + U101E + U101F
+   }}}
+Some regular expressions use the minus sign to remove elements from a range, but I think that's not needed now. Just a simple "letters in this range" would be good. 
+
+
+----
+
 
 = Easier Normalization =
-todo (can we specify a normalization pattern, and have KM take care of the rest?)
 
+*Difficulty:* Hard
+
+A lot of rules focus on what essentially boils down to normalization. Consider:
+   {{{
+   $dotBelow + $dotAbove  => $2 + $1
+   }}}
+The only purpose of this rule is to ensure that $dotAbove comes before $dotBelow. Unfortunately, what if something's in between them (like $legFwd)? You'll need a new rule to handle this case:
+   {{{
+   $dotBelow + $legFwd + $dotAbove  => $3 + $2 + $1
+   }}}
+This can become nightmarish if there are multiple optional letters in between the two. And ALL keyboards that do reordering (Zawgyi/Win Innwa/Ayar if they choose to output Unicode) face the same problem. I'd like to add a *normalization pattern*, which is put into effect after no more rules match (or, in single-pass matching, after all |=> rules) and looks something like this:
+   {{{
+   $consonant = U[1000..1021]
+   $stackedCons = ["\u1039\u1000" + "\u1039\u1001" + /*manually expand*/]
+   $yayit = U103C
+   $twh = U1031
+   $kinzi = U1004 + U103A + U1039
+   $upperVowel = U102D + U102E + U1032
+   $lowerVowel = U102F + U1030
+   $circBelow = U103D
+   $aspirate = U103E
+
+   NORMALIZATION = {$kinzi + $consonant[*] + $stackedCons[*] + $yayit + $circBelow + $aspirate + $twh + $upperVowel[*] + $lowerVowel[*]}
+   }}}
+Here, the curly braces are a special array which doesn't merge sub-arrays. That way, $kinzi matches the entire pattern, but $stackedCons only matches U1039 plus ONE consonant. 
+
+The main challenge with this is that KeyMagic would have to do a lot of smart processing to reorder correctly. After all, the above normalization gives no indication of segment boundaries. Maybe we can do a mapping?
+   {{{
+   $consonant = U[1000..1021]
+   $stackedCons = ["\u1039\u1000" + "\u1039\u1001" + /*manually expand*/]
+   $yayit = U103C
+   $twh = U1031
+   $kinzi = U1004 + U103A + U1039
+   $upperVowel = U102D + U102E + U1032
+   $lowerVowel = U102F + U1030
+   $circBelow = U103D
+   $aspirate = U103E
+
+   $zawgyiPrefix = [$yayit + $twh]
+   $zawgyiPostfix = $upperVowel + $lowerVowel + $circBelow + $aspirate
+
+   {$zawgyiPrefix + $consonant[*] + [$kinzi + $[stackedCons] + $[zawgyiPostfix]]} |=NORM=> {$kinzi + $consonant[*] + $stackedCons[*] + $yayit + $circBelow + $aspirate + $twh + $upperVowel[*] + $lowerVowel[*]}
+   }}}
+In other words, we define a normalization of Zawgyi ("what order can it be typed?") and map it to Unicode ("what order should it be output?"). Note that the $stackedCons syntax is incorrect here; we'd have to be VERY careful with the array syntax here. 
+
+So, this is hard for many reasons. But it would really simplify rules files, and should definitely boost performance. 
+
+
+----
 
 
 = Null Switch =
 todo (how to match "no switch" only)
 
 
+----
+
+
 = Switched Ranges =
 todo (can we avoid re-typing the same switch for multiple rules in a row?)
 
 
-= Single-Pass Matching = 
-todo (A switch to say "don't reset to rule zero after matching, and don't stop after single-letter ascii".)
 
-= Better Replacement for Single Letter ASCII =
-todo (Consider typing |=> to mean "Only match one rule of this type per letter typed", with => meaning "keep matching until no more rules match". So, |=> represents a keypress, and => represents a normalization rule. Note that, for "single-pass", we can skip to the end of |=> after one of them matches.)
+
+----
+
 
 = "Optional" Match =
 todo (Have to be careful of non-deterministic size, but I think we can do it. Consider:)
@@ -133,12 +260,7 @@ todo (Have to be careful of non-deterministic size, but I think we can do it. Co
 ..although care would have to be taken to make sure that $4 returns the empty string, e.g., "nothing is matched". 
 
 
-= Ranges =
-todo (Should be easy to do with something like:)
-   {{{
-   $cons = U[1000..1003] + U[1005..101F]
-   }}}
-No need for a minus sign yet. 
+----
 
 
 = Key Labels =
@@ -149,4 +271,3 @@ todo (It'd be nice to have a pre-determined variable that is used to "label" key
    <VK_CONTROL & SYS_KEYLABEL> => "------...."
    }}}
 ...in this case, the string is pre-defined; e.g., the first letter will be used for the "Q" key, etc. This will require arrays, of course, for labeling multi-char. keys. 
-
