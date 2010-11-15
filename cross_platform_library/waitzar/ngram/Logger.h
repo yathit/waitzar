@@ -30,7 +30,7 @@ private:
 	const static std::string mainLogFileName;
 
 	//Keymagic log file: constants
-	const static bool WZ_LOG_KEYMAGIC = true;
+	const static bool WZ_LOG_KEYMAGIC = false;
 	const static char keymagicLogchar = 'K';
 	const static std::string keymagicLogFileName;
 

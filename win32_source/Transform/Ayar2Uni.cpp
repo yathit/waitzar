@@ -59,6 +59,8 @@ void Ayar2Uni::convertInPlace(std::wstring& src) const
 				boundary = false; //Stacked
 			else if (i+1<src.length() && src[i+1]==L'\u103A')
 				boundary = false; //Killed
+			else if (i>0 && (src[i-1]==L'\u1031' || src[i-1]==L'\u103C'))
+				boundary = false; //The word has actually already started. 
 		}
 		if (boundary) {
 			res <<currSyllablePrefix.str() <<currSyllable.str();
@@ -70,9 +72,10 @@ void Ayar2Uni::convertInPlace(std::wstring& src) const
 		if (src[i]==L'\u1004' && i+2<src.length() && src[i+1]==L'\u103A' && src[i+2]==L'\u1039') {
 			res <<L"\u1004\u103A\u1039";
 			i+=2;
-		} else if (IsConsonant(src[i]) && currSyllablePrefix.str().empty()) //Only the first consonant is the prefix.
+		} else if (IsConsonant(src[i]) && currSyllablePrefix.str().empty()) {
+			//Only the first consonant is the prefix.
 			currSyllablePrefix <<src[i];
-		else {
+		} else {
 			//Enforce ordering of 103C 1031 in Unicode
 			if (i+1<src.length() && src[i]==L'\u1031' && src[i+1]==L'\u103C') {
 				currSyllable <<L"\u103C\u1031";
