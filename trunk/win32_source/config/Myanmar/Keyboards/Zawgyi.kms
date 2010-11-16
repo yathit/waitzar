@@ -43,11 +43,6 @@ $ZWS[^] + U104F => $1 + $ZWS + $2
 $row3K = "sdfghkl;'"
 $row3U = U103B + U102D + U103A + U102B + U1037 + U102F + U1030 + U1038 + U1012
 
-//Force word breaks, unless another prefix vowel or medial is there
-//$yayit + < VK_KEY_A > => $1 + $twh
-< VK_KEY_A > => $ZWS + $twh
-//$twh + < VK_KEY_J > => $1 + $yayit
-< VK_KEY_J > =>  $ZWS + $yayit
 
 $ZWS + $twh + <VK_BACK> => null
 $ZWS + $yayit + <VK_BACK> => null
@@ -149,8 +144,8 @@ U102B + U103A + < VK_BACK > => NULL
 //CHANGED: ">" has no entry in the keyboard file
 //$row4K_S = "ZXCVBNM<>?"
 //$row4U_S = U1007 + U100C + U1003 + U1020 + U103C + U103C + U103C + U101D + U1008 + U104A
-$row4K_S = "ZXCVBNM<?"
-$row4U_S = U1007 + U100C + U1003 + U1020 + U103C + U103C + U103C + U101D + U104A
+$row4K_S = "ZXCV<?"
+$row4U_S = U1007 + U100C + U1003 + U1020 + U101D + U104A
 //END CHANGED
 
 
@@ -363,10 +358,8 @@ $consZkeyIgnore = 'ghGHVB?<>\\#^&*@_+(){}|KFOTR.f'
 //('zg_key') + '!' => U100D + U1039 + U100D
 //('zg_key') + 'k' => U103D + U1030
 //('zg_key') + 'j' => U103B 
-('zg_key') + 'M' => U103C 
 ('zg_key') + 'N' => U1039 + U1008
 ('zg_key') + 'X' => U1039 + U1019
-('zg_key') + 'J' => U103C
 ('zg_key') + '2' => U1039 + U100C
 ('zg_key') + '1' => U100E
 ('zg_key') + '3' => U1039 + U100B
@@ -378,12 +371,25 @@ $consZkeyIgnore = 'ghGHVB?<>\\#^&*@_+(){}|KFOTR.f'
 ('zg_key') + 'S' => U103E
 ('zg_key') + 'Y' => U1039 + U1015
 ('zg_key') + ',' => ','
-('zg_key') + 'm' => U103C
 ('zg_key') + 'n' => U100A
 ('zg_key') + '!' => U100D + U1039 + U100E
 ('zg_key') + 'k' => U103E + U1030
-('zg_key') + 'j' => U103C
 //END CHANGED
+
+
+
+//NOTE: Put _all_ the $yayit and $twh keys here, since they need special consideration
+//Force word breaks, unless another prefix vowel or medial is there
+'a' => $ZWS + $twh
+'j' =>  $ZWS + $yayit
+'B' =>  $ZWS + $yayit
+'N' =>  $ZWS + $yayit
+'M' =>  $ZWS + $yayit
+('zg_key') + 'M' => $ZWS + $yayit 
+('zg_key') + 'J' => $ZWS + $yayit
+('zg_key') + 'm' => $ZWS + $yayit
+('zg_key') + 'j' => $ZWS + $yayit
+
 
 U1025 + U1039 + U1025 => U1009
 U1025 + U102C => U1009 + U102C

@@ -420,6 +420,21 @@
 "tzjpG" => "အဖစြွ"
 "r*Fvmyg" => "မင်္ဂလာပါ"
 
+//Bug reports: ya-yit misbehaving for B,N,M, etc.
+"uBau" => "ကကြေ"
+"uaBu" => "ကကြေ"
+"uNau" => "ကကြေ"
+"uaNu" => "ကကြေ"
+"uMau" => "ကကြေ"
+"uaMu" => "ကကြေ"
+"u~jau" => "ကကြေ"
+"ua~ju" => "ကကြေ"
+"u~mau" => "ကကြေ"
+"ua~mu" => "ကကြေ"
+"u~Jau" => "ကကြေ"
+"ua~Ju" => "ကကြေ"
+"u~Mau" => "ကကြေ"
+"ua~Mu" => "ကကြေ"
 
 //Combinations of keys:
 //LATER: CAPS -> "type normally" mode
