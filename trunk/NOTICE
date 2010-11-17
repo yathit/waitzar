@@ -13,6 +13,17 @@ Site: http://www.htootayzar.com/
 Contact: Htoo Tay Zar
 
 
+WaitZar Hacker's Hat Logo
+ - wz_haticon_dev.pdn
+ - img_guide/wz_haticon.png
+The original hat icon was drawn (2007) by Nicu Buculei, and was placed in the Public Domain as
+  specified on OpenClipArt.org. This work was modified (colored green, WaitZar logo added)
+  by Seth Hetu. These changes remain in the Public Domain.
+License: Public Domain
+Site: http://www.openclipart.org/detail/2864
+Contact: Nicu Buculei
+
+
 The Pulp Core Project: Version 0.10.11
  - CoreFont.java
  - CoreImage.java
