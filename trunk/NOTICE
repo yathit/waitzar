@@ -1,4 +1,17 @@
-The following software was used to develop, compile, or maintain this project. 
+The following software and resources were used to develop, compile, or maintain this project. 
+
+
+WaitZar Logo
+ - img_guide/wz_main_icon_medium.png
+This file is copyright (2009) Htoo Tay Zar, and we are very grateful to him for the time
+  he spent working on this. It is included in the WaitZar project under the provisions of 
+  the Creative Commons Attribution, Share Alike license. If you reuse this image in
+  your work, you must give credit to the original source. Any derivative works must also 
+  be under a similar license. 
+License: Creative Commons Attribution, Share Alike
+Site: http://www.htootayzar.com/
+Contact: Htoo Tay Zar
+
 
 The Pulp Core Project: Version 0.10.11
  - CoreFont.java
@@ -29,10 +42,10 @@ The Jazzlib Project: Version 0.0.7
   InflaterDynHeader.(cpp|h)
   InflaterHuffmanTree.(cpp|h)
   Adler32.(cpp|h)
- These files are part of the Jazzlib project, which is part of the GNU Classpath.
- License: GNU Classpath
- Site: http://jazzlib.sourceforge.net/
- Contact: John Leuner
+These files are part of the Jazzlib project, which is part of the GNU Classpath.
+License: GNU Classpath
+Site: http://jazzlib.sourceforge.net/
+Contact: John Leuner
 
 
 The Zawgyi-One Font: Version 3.14
