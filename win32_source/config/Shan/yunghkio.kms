@@ -26,8 +26,8 @@ $val2_r = U1078 + U1010 + U107C + U1019 + U1022 + U1015 + U1075 + U1004 + U101E 
 $key2_r[*] => $val2_r[$1]
 
 //Row 2 - Shifted
-$key2_s = "QWRTYUOP"
-$val2_s = U1079 + U107B + U109E + U109F + U107F + U1077 + U101D + U1080
+$key2_s = "QWRTYUIOP"
+$val2_s = U1079 + U107B + U109E + U109F + U107F + U1077 + U101B + U101D + U1080
 $key2_s[*] => $val2_s[$1]
 
 //Row 3 - Normal
