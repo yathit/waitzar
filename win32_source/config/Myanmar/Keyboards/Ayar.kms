@@ -213,8 +213,10 @@ U1044 + U1004 + U103A + U1038 => U104E + U1004 + U103A + U1038
 U103C + U101E => U1029
 U1031 + U103C + U101E + U102C + U103A => U102A
 
+//Changed: Minus should allow for typing all English words until it is pressed again.
+('eng_key') + < VK_OEM_MINUS > => ""
 < VK_OEM_MINUS > => ('eng_key')
-* + ('eng_key') => $1
+* + ('eng_key') => $1 + ('eng_key')
 
 < VK_CAPSLOCK > => ('zg_gk')
 ('zg_gk') + * => $1 + ('zg_gk')

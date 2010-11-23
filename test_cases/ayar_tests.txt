@@ -160,12 +160,14 @@
 "u-u" => "ကu"
 "u-F" => "ကF"
 "u-," => "က,"
-"--" => "-"
+//"--" => "-"
 "u-" => "က"
-"u--" => "က-"
+"u-u" => "ကu"
+"u-uu" => "ကuu"
+"u-uu-u" => "ကuuက"
 "-1" => "1"
-"-1-2-3-4-5-6-7-8-9-0" => "1234567890"
-
+"-1-2-3-4-5-6-7-8-9-0" => "1၂3၄5၆7၈9၀"
+"1234567890-1234567890-1234567890" => "၁၂၃၄၅၆၇၈၉၀1234567890၁၂၃၄၅၆၇၈၉၀"
 
 //TODO: Test various combinations of letters, various words, multiple words in a row, et cettera
 //TODO: Add in test cases for the various bugs reported by users; that way we can avoid them in the future! :D
