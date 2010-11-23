@@ -104,6 +104,7 @@ private:
 	void fontSet();
 	int getCharIndex(wchar_t ch);
 	int getCharIndex(char ch);
+	bool charIsOutOfRange(wchar_t ch);
 	//int getKerning(TCHAR left, TCHAR right);
 	//int getKerning(char left, char right);
 	int getKerning(int leftIndex, int rightIndex);
