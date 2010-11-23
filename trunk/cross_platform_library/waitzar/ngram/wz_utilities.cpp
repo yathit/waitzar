@@ -48,7 +48,7 @@ namespace
 		ZG_STACK_TTA,
 		ZG_STACK_HTA1,
 		ZG_STACK_DHA1,
-		//Skip one...
+		ZG_STACK_EXTRA,
 		ZG_STACK_NHA,
 		ZG_STACK_TA,
 		ZG_STACK_HTA2,
@@ -72,6 +72,10 @@ namespace
 
 		//Some complex letters
 		ZG_COMPLEX_1                  = 0xE200,
+		ZG_COMPLEX_2,
+		ZG_COMPLEX_3,
+		ZG_COMPLEX_4,
+		ZG_COMPLEX_5,
 		ZG_COMPLEX_NA,
 
 		//Letters which share similar semantic functionality
@@ -636,6 +640,8 @@ namespace
 					return (uniLetter-0x100A)+ZG_STACK_NYA;
 				} else if (uniLetter>=0x100F && uniLetter<=0x1019) {
 					return (uniLetter-0x100F)+ZG_STACK_NHA;
+				} else if (uniLetter==0x100E) {
+					return ZG_STACK_EXTRA; //Todo: we can merge this & the top 2 "if"s. 
 				}
 		}
 		return 0;
@@ -696,6 +702,8 @@ namespace
 				return 0x106D;
 			case ZG_STACK_DHA1:
 				return 0x003F; //Appears we can't stack this either.
+			case ZG_STACK_EXTRA:
+				return 0x003F; //Appears we can't stack this either.
 			case ZG_STACK_NHA:
 				return 0x1070;
 			case ZG_STACK_TA:
@@ -732,6 +740,14 @@ namespace
 				return 0x003F; //Can't stack "a"
 			case ZG_COMPLEX_1:
 				return 0x1092;
+			case ZG_COMPLEX_2:
+				return 0x1097;
+			case ZG_COMPLEX_3:
+				return 0x106E;
+			case ZG_COMPLEX_4:
+				return 0x106F;
+			case ZG_COMPLEX_5:
+				return 0x1096;
 			case ZG_COMPLEX_NA:
 				return 0x1091;
 			case ZG_TALL_WITH_ASAT:
@@ -1017,8 +1033,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 
 		//Should we stack this?
 		if (prevType==BF_STACKER && currType==BF_CONSONANT) {
-			//Note: We must make an active check for letters with no Zawgyi representation
-			// (0x003F)
+			//Note: We must make an active check for letters with no stacked Zawgyi representation (0x003F)
 			wchar_t stacked = getStackedVersion(currLetter);
 			if (stacked!=0) {
 				//General case
@@ -1026,19 +1041,32 @@ wstring renderAsZawgyi(const wstring &uniString)
 				if (zawgyiLetter(stacked)!=0x003F) {
 					destID--;
 					currLetter = stacked;
-				}
+				} 
 
 				//Special cases (stacked)
 				if (oldDestID>1) {
 					if (stacked==ZG_STACK_HTA1 && zawgyiStr[oldDestID-2]==L'\u100B') {
 						destID = oldDestID-2;
 						currLetter = ZG_COMPLEX_1;
+					} else if (stacked==ZG_STACK_TTA && zawgyiStr[oldDestID-2]==L'\u100B') {
+						destID = oldDestID-2;
+						currLetter = ZG_COMPLEX_2;
 					} else if (stacked==ZG_STACK_DHA1 && zawgyiStr[oldDestID-2]==L'\u100F') {
 						destID = oldDestID-2;
 						currLetter = ZG_COMPLEX_NA;
+					} else if (zawgyiStr[destID-2]==L'\u100D' && zawgyiStr[destID-1]==L'\u1039') {
+						//There are a few letters without a rendering in Zawgyi that can stack specially.
+						// So, the "if" block might look different for this one.
+						if (zawgyiStr[destID]==L'\u100D') {
+							destID -= 2;
+							currLetter = ZG_COMPLEX_3;
+						} else if (zawgyiStr[destID]==L'\u100E') {
+							destID -= 2;
+							currLetter = ZG_COMPLEX_4;
+						}
 					}
 				}
-			} 
+			}
 		}
 
 		//Re-copy this letter
@@ -1067,8 +1095,13 @@ wstring renderAsZawgyi(const wstring &uniString)
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_1, 0xA700E00000, L"\u101B", ZG_DOT_BELOW_SHIFT_2));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103A', 0x8000, NULL, ZG_TALL_WITH_ASAT));
 
-		//8-14
+		//8
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x800, NULL, ZG_DOTTED_CIRCLE_ABOVE));
+
+		//A new rule! Combine "stacked TA" with "circle below"
+		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_TA, 0x400000, NULL, ZG_COMPLEX_5));
+
+		//9-14
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x100, NULL, ZG_KINZI_1036));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102D', 0x100, NULL, ZG_KINZI_102D));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102E', 0x100, NULL, ZG_KINZI_102E));
