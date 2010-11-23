@@ -498,7 +498,9 @@ bool BurglishBuilder::typeLetter(char letter, bool isUpper, const std::wstring& 
 	}
 
 	//Success
-	return true;
+	currSelectedID = 0; //Reset
+	currSelectedPage = 0; //Reset
+	return true;  //Flag success
 }
 
 
