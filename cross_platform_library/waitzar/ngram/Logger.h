@@ -35,7 +35,7 @@ private:
 	const static std::string keymagicLogFileName;
 
 	//Uni2Zawgyi log file: constants
-	const static bool WZ_LOG_UNI2ZAWGYI = false;
+	const static bool WZ_LOG_UNI2ZAWGYI = true;
 	const static char uni2ZawgyiLogchar = 'Z';
 	const static std::string uni2ZawgyiLogFileName;
 
