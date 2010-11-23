@@ -51,6 +51,12 @@ $key4_s = "ZBNM<>"
 $val4_s = U107E + U1086 + U101A + U1083 + U104A + U104B
 $key4_s[*] => $val4_s[$1]
 
+//Special keys; consume input (should set this later in the @settings)
+"V" => ""
+"C" => ""
+"X" => ""
+"E" => ""
+
 
 //Variables
 $zws = U200B
