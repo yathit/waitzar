@@ -4569,6 +4569,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		//First check if they exist, though.
 		if (FindKeyInSet(config.getLanguages(), language)==config.getLanguages().end())
 			throw std::runtime_error(waitzar::glue(L"Unknown language: \"", language, L"\"").c_str());
+		ChangeLangInputOutput(language, L"", L""); //Need this to get the right input/output ids
 		if (FindKeyInSet(config.getInputMethods(), inputMethod)==config.getInputMethods().end())
 			throw std::runtime_error(waitzar::glue(L"Unknown input method: \"", inputMethod, L"\"").c_str());
 		if (FindKeyInSet(config.getEncodings(), outEncoding)==config.getEncodings().end())
@@ -4653,7 +4654,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		//Close output file
 		if (outFile.is_open())
 			outFile.close();
-	} catch (std::exception ex) {
+	} catch (std::exception& ex) {
 		wstringstream msg;
 		msg <<L"Error running test file: \"" <<testFileName <<L"\"" <<std::endl;
 		msg <<L"WaitZar will now exit.\n\nDetails: " <<ex.what() <<std::endl;
@@ -4743,7 +4744,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 ////////////////
 //DEBUG
 ////////////////
-//testFileName = L"../test_cases/ayar_tests.txt";
+//testFileName = L"../test_cases/yunghkio_tests.txt";
 ////////////////
 ////////////////
 
