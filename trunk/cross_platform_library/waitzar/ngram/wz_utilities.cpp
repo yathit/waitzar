@@ -1146,7 +1146,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 		firstOccurrence[i] = -1;
 	length = wcslen(zawgyiStr);
 	size_t prevConsonant = 0;
-	int kinziCascade = 0;
+	//int kinziCascade = 0;
+	bool switchedKinziOnce = false;
 	for (size_t i=0; i<=length; i++) {
 		//Get properties on this letter
 		wchar_t currLetter = zawgyiStr[i];
@@ -1154,7 +1155,8 @@ wstring renderAsZawgyi(const wstring &uniString)
 		int currFlagID = getStage3ID(currFlag);
 
 		//Are we at a stopping point?
-		if (isConsonant(currLetter)|| i==length) {
+		//NOTE: kinzi occurs before the consonant for Unicode
+		if ((!switchedKinziOnce && currLetter==ZG_KINZI) || isConsonant(currLetter) || i==length) {
 			//First, scan for and fix "tall leg"s
 			for (size_t x=i-1; x>=prevConsonant&&x<length; x--) { //Note: checking x<length is a very weird way of handling overflow (it works, though)
 				if (zawgyiStr[x]==0x102F || zawgyiStr[x]==0x1030) {
@@ -1189,6 +1191,10 @@ wstring renderAsZawgyi(const wstring &uniString)
 			}
 
 			//Apply our filters, from right-to-left
+			wstringstream lLine;
+			if ((i-1)<length)
+				lLine <<L"Dealing with syllable from " <<(i-1) <<" to " <<prevConsonant;
+			Logger::writeLogLine('Z', tab+tab + lLine.str());
 			for (size_t x=i-1; x>=prevConsonant&&x<length; x--) {
 				bool resetRules = false;
 				for (size_t ruleID=2; ruleID<matchRules.size(); ruleID++) {
@@ -1261,7 +1267,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 								break; //Avoid cycles
 
 							wstringstream logLine;
-							logLine <<L"(" <<x <<"," <<matchLoc <<")";
+							logLine <<L"shift sequence[" <<matchLoc <<".." <<x <<"] right 1, wrap around";
 							Logger::writeLogLine('Z', tab+tab+tab + logLine.str());
 
 							wchar_t prevLetter = zawgyiStr[x];
@@ -1349,10 +1355,11 @@ wstring renderAsZawgyi(const wstring &uniString)
 				yaLong = true;
 			}
 			if (yaYitID != -1) {
+				//111111110000
 				bool cutTop = false;
 				bool cutBottom = false;
 				if ((currMatchFlags&0xFF0)!=0)
-					cutTop = true;
+					cutTop = true; 
 				if ((currMatchFlags&0x100E00000)!=0)
 					cutBottom = true;
 				wchar_t yaFinal = 'X';
@@ -1382,6 +1389,10 @@ wstring renderAsZawgyi(const wstring &uniString)
 					}
 				}
 				zawgyiStr[yaYitID] = yaFinal; 
+
+				std::wstringstream logline;
+				logline <<L"YA at [" <<yaYitID <<L"], cut? " <<cutTop <<"T  " <<cutBottom <<"B";
+				Logger::writeLogLine('Z', tab+tab + logline.str());
 			}
 
 
@@ -1394,26 +1405,33 @@ wstring renderAsZawgyi(const wstring &uniString)
 				firstOccurrence[x] = -1;
 			}
 			if (!softStop) {
-				//Special case: re-order "kinzi + consonant"
-				if (i>0 && kinziCascade==0 && zawgyiStr[i-1]==ZG_KINZI && zawgyiStr[i]!=0x0000) {
-					zawgyiStr[i-1] = zawgyiStr[i];
-					zawgyiStr[i] = ZG_KINZI;
-					i--;
-					kinziCascade = 2;
+				//Special case: re-order "kinzi + consonant" on "kinzi"
+				if (i+1<length && isConsonant(zawgyiStr[i+1]) && zawgyiStr[i]==ZG_KINZI && !switchedKinziOnce) {
+				//if (i>0 && kinziCascade==0 && zawgyiStr[i-1]==ZG_KINZI && zawgyiStr[i]!=0x0000) {
+					zawgyiStr[i] = zawgyiStr[i+1];
+					zawgyiStr[i+1] = ZG_KINZI;
+					//i--;
+					switchedKinziOnce = true;
 				}
 
 				//Reset our black-list.
 				for (size_t rID=0; rID<matchRules.size(); rID++)
 					matchRules[rID]->blacklisted = false;
 
+				//Reeset letter & flags
+				currLetter = zawgyiStr[i];
+				currFlag = getStage3BitFlags(currLetter);
+				currFlagID = getStage3ID(currFlag);
+
+				//Propagate
 				if (currFlagID!=-1) {
 					firstOccurrence[currFlagID] = i;
 					currMatchFlags = currFlag;
 				} else 
 					currMatchFlags = 0;
 
-				if (kinziCascade>0)
-					kinziCascade--;
+				//if (kinziCascade>0)
+				//	kinziCascade--;
 			}
 			prevConsonant = i;
 		} else {
@@ -1423,6 +1441,10 @@ wstring renderAsZawgyi(const wstring &uniString)
 					firstOccurrence[currFlagID] = i;
 				currMatchFlags |= currFlag;
 			}
+
+			//Allow kinzi to work again for the next letter
+			if (currLetter==ZG_KINZI)
+				switchedKinziOnce = false;
 
 			//Fix some segmentation problems
 			/*if (currLetter==L'\u200B') {
