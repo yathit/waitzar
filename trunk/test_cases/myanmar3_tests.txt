@@ -21,8 +21,6 @@
 "8" => "၈"
 "9" => "၉"
 "0" => "၀"
-"-" => ""
-"=" => ""
 
 //Row 2 - unshifted
 "q" => "ဆ"
@@ -50,7 +48,6 @@
 "k" => "ု"
 "l" => "ူ"
 ";" => "း"
-"'" => ""
 
 //Row 4 - unshifted
 "z" => "ဖ"
@@ -60,9 +57,6 @@
 "b" => "ဘ"
 "n" => "ည"
 "m" => "ာ"
-"," => ""
-"." => ""
-"/" => ""
 
 //Row 1 - shifted
 "~" => "ဎ"
@@ -73,11 +67,6 @@
 "%" => "ၔ"
 "^" => "ၕ"
 "&" => "ရ"
-"*" => ""
-"(" => ""
-")" => ""
-"_" => ""
-"+" => ""
 
 //Row 2 - shifted
 "Q" => "ဈ"
@@ -105,7 +94,6 @@
 "K" => "ဒ"
 "L" => "ဓ"
 ":" => "ဂ"
-"\"" => ""
 
 //Row 4 - shifted
 "Z" => "ဇ"
@@ -117,8 +105,23 @@
 "M" => "ဦ"
 "<" => "၊"
 ">" => "။"
-"?" => ""
 
+//Keys that aren't listed in the Myanmar3 layout diagram, but are included in the keyboard.
+ // It's reasonable to keep these, but I'm leaving the tests in here (to fail) until we decide to update our own layout diagrams.
+ // 13 total
+ "?" => ""
+ "\"" => ""
+"(" => ""
+")" => ""
+"_" => ""
+"+" => "" 
+"-" => ""
+"=" => ""
+"*" => ""
+"," => ""
+"." => ""
+"/" => ""
+"'" => ""
 
 //A few reordering tests
 
