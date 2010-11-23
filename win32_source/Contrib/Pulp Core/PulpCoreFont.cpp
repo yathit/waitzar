@@ -246,13 +246,24 @@ int PulpCoreFont::getCharIndex(wchar_t ch)
 	if (uppercaseOnly && ch>='a' &&ch<= 'z')
 		ch += 'A' - 'a';
 
+	//Also...
+	int fallback = charIsOutOfRange('?') ? lastChar : '?';
+
 	//Bound (default to last character)
-	if (ch<firstChar || ch>lastChar)
-		ch = lastChar;
+	if (charIsOutOfRange(ch))
+		ch = fallback;
 
 	return ch - firstChar;
 }
 
+
+bool PulpCoreFont::charIsOutOfRange(wchar_t ch)
+{
+	//Special-case (not in WZ)
+	if (uppercaseOnly && ch>='a' &&ch<= 'z')
+		ch += 'A' - 'a';
+	return (ch<firstChar || ch>lastChar);
+}
 
 
 void PulpCoreFont::drawString(HDC bufferDC, const string &str, int xPos, int yPos)
