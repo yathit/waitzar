@@ -464,11 +464,11 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 							//Otherwise, just process the newline later.
 						}
 
-						//Append the letter. We strictly support only lowercase characters.
+						//Append the letter. We strictly support only lowercase characters and numbers.
 						wchar_t c = datastream[x]; 
 						if (c>=L'A' && c<=L'Z')
 							c = (c-L'A') + 'a';
-						if (c>='a' && c<='z')
+						if ((c>='a' && c<='z') || (c>='0' && c<='9'))
 							(*currOpt) <<c;
 
 						//Advance the option

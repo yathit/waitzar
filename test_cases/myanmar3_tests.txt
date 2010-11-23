@@ -1,0 +1,151 @@
+﻿/*
+ * Regression tests for the Myanmar 3 keyboard. Run on the command line with:
+ * WaitZar.exe -t myanmar3_tests.txt
+ * The following options help WZ initialize the testing environment. 
+     @language = myanmar
+     @input-method = myanmar3
+     @output-encoding = unicode
+*/
+
+//Keys:
+
+//Row 1 - unshifted
+"`" => "ၐ"
+"1" => "၁"
+"2" => "၂"
+"3" => "၃"
+"4" => "၄"
+"5" => "၅"
+"6" => "၆"
+"7" => "၇"
+"8" => "၈"
+"9" => "၉"
+"0" => "၀"
+"-" => ""
+"=" => ""
+
+//Row 2 - unshifted
+"q" => "ဆ"
+"w" => "တ"
+"e" => "န"
+"r" => "မ"
+"t" => "အ"
+"y" => "ပ"
+"u" => "က"
+"i" => "င"
+"o" => "သ"
+"p" => "စ"
+"[" => "ဟ"
+"]" => "ဩ"
+"\\" => "၏"
+
+//Row 3 - unshifted
+"a" => "ေ"
+"s" => "ျ"
+"d" => "ိ"
+"f" => "်"
+"g" => "ါ"
+"h" => "့"
+"j" => "ြ"
+"k" => "ု"
+"l" => "ူ"
+";" => "း"
+"'" => ""
+
+//Row 4 - unshifted
+"z" => "ဖ"
+"x" => "ထ"
+"c" => "ခ"
+"v" => "လ"
+"b" => "ဘ"
+"n" => "ည"
+"m" => "ာ"
+"," => ""
+"." => ""
+"/" => ""
+
+//Row 1 - shifted
+"~" => "ဎ"
+"!" => "ဍ"
+"@" => "ၒ"
+"#" => "ဋ"
+"$" => "ၓ"
+"%" => "ၔ"
+"^" => "ၕ"
+"&" => "ရ"
+"*" => ""
+"(" => ""
+")" => ""
+"_" => ""
+"+" => ""
+
+//Row 2 - shifted
+"Q" => "ဈ"
+"W" => "ဝ"
+"E" => "ဣ"
+"R" => "၎"
+"T" => "ဤ"
+"Y" => "၌"
+"U" => "ဥ"
+"I" => "၍"
+"O" => "ဿ"
+"P" => "ဏ"
+"{" => "ဧ"
+"}" => "ဪ"
+"|" => "ၑ"
+
+//Row 3 - shifted
+"A" => "ဗ"
+"S" => "ှ"
+"D" => "ီ"
+"F" => U1039
+"G" => "ွ"
+"H" => "ံ"
+"J" => "ဲ"
+"K" => "ဒ"
+"L" => "ဓ"
+":" => "ဂ"
+"\"" => ""
+
+//Row 4 - shifted
+"Z" => "ဇ"
+"X" => "ဌ"
+"C" => "ဃ"
+"V" => "ဠ"
+"B" => "ယ"
+"N" => "ဉ"
+"M" => "ဦ"
+"<" => "၊"
+">" => "။"
+"?" => ""
+
+
+//A few reordering tests
+
+//General reordering; ya-yit and twh (including wrong typing order, and multiple syllables)
+"au" => "ကေ"
+"ac" => "ခေ"
+"pj" => "စြ"
+"xja" => "ထြေ"
+"'ja" => "ဒြေ"
+"aum" => "ကော"
+"xjam" => "ထြော"
+"auju" => "ကေကြ"
+"auau" => "ကေကေ"
+"juju" => "ကြကြ"
+"juau" => "ကြကေ"
+"jumau" => "ကြာကေ"
+"juuau" => "ကြကကေ"
+"juuju" => "ကြကကြ"
+"auuju" => "ကေကကြ"
+
+//Ordering with other stacked letters
+"auFc" => "က္ခေ"
+"jcFe" => "ခ္နြ"
+"jauFe" => "က္နြေ"
+"ajuFe" => "က္နြေ"
+
+//Ensure that "F" only emits one letter
+"uFuuFu" => "က္ကက္က"
+"uFqz" => "က္ဆဖ"
+
