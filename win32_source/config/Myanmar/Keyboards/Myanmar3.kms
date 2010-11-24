@@ -93,7 +93,7 @@ $secondDiaU = u102D + u1036 + u1037 + u102F
 
 $stackK = 'F'
 $stackU = u1039 
-
+ 
 $vowelEK => $filler + $vowelEU
 $stackK => $stackU
 $filler + u1031 + $baseK[*] => $baseU[$3] + u1031
