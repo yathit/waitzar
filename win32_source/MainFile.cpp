@@ -120,8 +120,8 @@ using std::ofstream;
 
 
 //Versioning information & lookup
-const wstring WZ_VERSION_MAIN = L"1.7";
-const bool WZ_VERSION_IS_NIGHTLY = true;
+const wstring WZ_VERSION_MAIN = L"1.8";
+const bool WZ_VERSION_IS_NIGHTLY = false;
 const wstring WZ_VERSION_FULL = WZ_VERSION_IS_NIGHTLY ? L"NIGHTLY-"+WZ_VERSION_MAIN+L"+" : WZ_VERSION_MAIN;
 bool newVersionAvailable = false;
 const unsigned int FLASH_SAVE_VERSION_NUMBER = 1;
