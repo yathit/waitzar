@@ -2374,9 +2374,9 @@ BOOL CALLBACK HelpDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				case IDC_HELP_H6:
 					//Slightly more complex: try to load the User's Guide locally if it exists; if not,
 					// then simply open the user's browser to the latest guide.
-					int retVal = (int)ShellExecute(hwnd, L"open", L"WaitZar User's Guide.doc", NULL, NULL, SW_SHOWNORMAL);
+					int retVal = (int)ShellExecute(hwnd, L"open", L"WaitZar User's Guide.pdf", NULL, NULL, SW_SHOWNORMAL);
 					if (retVal<=32) {
-						ShellExecute(hwnd, L"open", L"http://waitzar.googlecode.com/svn/trunk/WaitZar%20User%27s%20Guide.doc", NULL, NULL, SW_SHOWNORMAL);
+						ShellExecute(hwnd, L"open", L"http://waitzar.googlecode.com/svn/trunk/WaitZar%20User%27s%20Guide.pdf", NULL, NULL, SW_SHOWNORMAL);
 					}
 					EndDialog(hwnd, IDOK);
 					break;
