@@ -397,9 +397,6 @@ MyWin32Window* sentenceWindow = NULL;
 MyWin32Window* helpWindow = NULL;
 MyWin32Window* memoryWindow = NULL;
 
-//Avoid cyclical messaging:
-//bool mainWindowSkipMove = false;
-//bool senWindowSkipMove = false;
 
 //Helpful!
 size_t changeEncRegionHandle = 0;
@@ -964,55 +961,6 @@ void FlashSaveState()
 
 
 
-//False on some error
-/*bool testAllWordsByHand()
-{
-	//First, ensure that the reverse-lookup is ready
-	model->reverseLookupWord(0);
-
-	//Time
-	GetSystemTimeAsFileTime(&startTime);
-
-	//For each typable word
-	string revWord;
-	for (unsigned int wordID=0; ; wordID++) {
-		//Check
-		revWord=model->reverseLookupWord(wordID);
-		if (revWord.empty())
-			break;
-
-		//Type this
-		model->reset(false);
-		for (string::iterator rom = revWord.begin(); rom!=revWord.end(); rom++) {
-			//Just check that our romanisation is stored properly.
-			if (!model->typeLetter(*rom))
-				return false;
-		}
-
-		//Test "output" it
-		std::pair<bool, unsigned int> ret = model->typeSpace(-1, false);
-		if (!ret.first)
-			return false;
-		model->getWordKeyStrokes(ret.second);
-	}
-
-
-	//Done, display a message box
-	GetSystemTimeAsFileTime(&endTime);
-	DWORD timeMS = getTimeDifferenceMS(startTime, endTime);
-
-	wchar_t msg[500];
-	swprintf(msg, L"Type All total time:   %dms", timeMS);
-	MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
-	return true;
-}*/
-
-
-
-
-
-
-
 /**
  * Create our inner-used Zawgyi-One fonts.
  */
@@ -1218,41 +1166,6 @@ void makeFont()
 	//Copy image[3], IDR_PGUP_SEPIA, and sepia-ize image[1] to create it.
 	mainWindow->initPulpCoreImage(pageImages[3], pageImages[1]);
 	pageImages[3]->sepiaizeSelf();
-
-
-
-
-
-	//Load our page down/up images
-	/*for (int i=0; i<4; i++) {
-		//First the resource
-		int PG_RES_ID = i==0?IDR_PGDOWN_COLOR:i==1?IDR_PGUP_COLOR:i==2?IDR_PGDOWN_SEPIA:IDR_PGUP_SEPIA;
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(PG_RES_ID), _T("COREFONT"));
-		if (!imgRes) {
-			MessageBox(NULL, _T("Couldn't find PG_RES_ID"), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
-		}
-
-		//Get a handle from this resource.
-		HGLOBAL res_handle = LoadResource(NULL, imgRes);
-		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on PG_RES_ID"), _T("Error"), MB_ICONERROR | MB_OK);
-			return;
-		}
-
-		pageImages[i] = new PulpCoreImage();
-		try {
-			mainWindow->initPulpCoreImage(pageImages[i], imgRes, res_handle);
-		} catch (std::exception ex) {
-			wstringstream msg;
-			msg <<"WZ Page Image File didn't load correctly: " <<ex.what();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
-			throw ex;
-		}
-
-		//Unlock this resource for later use.
-		//UnlockResource(res_handle);
-	}*/
 }
 
 
@@ -1303,153 +1216,8 @@ bool waitzarAlreadyStarted()
 }
 
 
-/*void setEncoding(ENCODING encoding)
-{
-	if (encoding==ENCODING_WININNWA)
-		currEncStr = L"WI";
-	else if (encoding==ENCODING_ZAWGYI)
-		currEncStr = L"ZG";
-	else if (encoding==ENCODING_UNICODE)
-		currEncStr = L"UNI";
-
-	//Set this encoding, and save its value (in case we haven't loaded the model yet)
-	mostRecentEncoding = encoding;
-	if (model!=NULL)
-		model->setOutputEncoding(encoding);
-}*/
-
-
-//void loadConfigOptions()
-//{
-	//Default keys
-	//hkString  = L"Ctrl+Shift";
-	//hkRaw = "^+";
-
-	//Default encoding
-	//setEncoding(ENCODING_UNICODE);
-
-	//Default font files
-	//fontFileRegular = "";
-	//fontFileSmall = "";
-
-	//Read our config file, if it exists.
-	//numConfigOptions = -1;
-	//FILE* configFile = fopen("config.txt", "r");
-	//if (configFile == NULL)
-	//	return;
-
-	//Get file size
-	//fseek (configFile, 0, SEEK_END);
-	//long fileSize = ftell(configFile);
-	//rewind(configFile);
-
-	//Read it all into an array, close the file.
-	//char * buffer = (char*) malloc(sizeof(char)*fileSize);
-	//size_t buff_size = fread(buffer, 1, fileSize, configFile);
-	//fclose(configFile);
-
-
-	//Read each line
-	/*numConfigOptions = 0;
-	char* name = new char[100];
-	char* value = new char[100];
-	for (size_t i=0; i<buff_size;) {
-		//Read name/value
-		readLine(buffer, i, buff_size, true, false, false, false, true, false, true, false, name, value);
-
-		//Are both name and value non-zero?
-		if (strlen(name)==0 || strlen(value)==0)
-			continue;
-
-		//Deal with our name/value pair.
-		if (strcmp(name, "mywordswarning")==0) {
-		} else if (strcmp(name, "lockwindows")==0) {
-		} else if (strcmp(name, "powertyping")==0) {
-		} else if (strcmp(name, "burmesenumerals")==0) {
-		} else if (strcmp(name, "ballooononstart")==0) {
-		} else if (strcmp(name, "alwayselevate")==0) {
-		} else if (strcmp(name, "trackcaret")==0) {
-		} else if (strcmp(name, "ignoremodel")==0) {
-		} else if (strcmp(name, "silencemywordserrors")==0) {
-		} else if (strcmp(name, "charaset")==0) {
-		} else if (strcmp(name, "defaultencoding")==0) {
-		} else if (strcmp(name, "hotkey")==0) {
-		} else if (strcmp(name, "fontfileregular")==0) {
-		} else if (strcmp(name, "fontfilesmall")==0) {
-		}
-	}*/
-
-	//Get rid of our buffer
-	//free(buffer);
-	//delete [] name;
-	//delete [] value;
-//}
-
-
-
 bool registerInitialHotkey()
 {
-	//UINT modifier = 0;
-	//UINT keycode = 0;
-
-	//Now, set the keycode
-	//Additional rule: all keystroke modifiers must also themselves be modifiers
-	/*keycode = hkRaw[hkRaw.length()-1];
-	switch(keycode) {
-		case '!':
-			hkString = L"Alt";
-			keycode = VK_MENU; //VK_MENU == VK_ALT
-			modifier |= MOD_ALT;
-			break;
-		case '^':
-			hkString = L"Ctrl";
-			keycode = VK_CONTROL;
-			modifier |= MOD_CONTROL;
-			break;
-		case '+':
-			hkString = L"Shift";
-			keycode = VK_SHIFT;
-			modifier |= MOD_SHIFT;
-			break;
-		case '_':
-			hkString = L"Space";
-			keycode = VK_SPACE;
-			break;
-		default:
-			hkString = L"*";
-			hkString[0] = (wchar_t)keycode;
-	}
-
-	//Now, set the modifiers
-	for (size_t pos=0; pos<hkRaw.length()-1; pos++) {
-		switch(hkRaw[pos]) {
-			case '!':
-				hkString = L"Alt+" + hkString;
-				modifier |= MOD_ALT;
-				break;
-			case '^':
-				hkString = L"Ctrl+" + hkString;
-				modifier |= MOD_CONTROL;
-				break;
-			case '+':
-				hkString = L"Shift+" + hkString;
-				modifier |= MOD_SHIFT;
-				break;
-		}
-	}
-
-	//Additional rule: Capital letters require a shift modifier
-	if (keycode>='A' && keycode<='Z') {
-		hkString = L"Shift+" + hkString;
-		modifier |= MOD_SHIFT;
-	}
-
-	//Additional rule: Lowercase letters are coded by their uppercase value
-	if (keycode>='a' && keycode<='z') {
-		keycode -= 'a'-'A';
-	}*/
-
-	//return mainWindow->registerHotKey(LANG_HOTKEY, modifier, keycode);
 	const HotkeyData& hk = config.getSettings().hotkey;
 	return mainWindow->registerHotKey(LANGUAGE_HOTKEY, hk.hkModifiers, hk.hkVirtKeyCode);
 }
