@@ -1,5 +1,4 @@
 ##NOTE: Old config settings; make sure to handle these in code before release WZ 1.8:
-#silencemywordserrors = no
 #ballooononstart = yes
 #alwayselevate = no
 #trackcaret = yes
