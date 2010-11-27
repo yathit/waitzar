@@ -3412,7 +3412,7 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 			//int numberValue = vkey.alphanum - '0';
 
 			//Handle key press; letter-based keyboard should just pass this on through
-			bool typeNumerals = true; //TODO: put this SOMEWHERE in the config file.
+			bool typeNumerals = true; //TODO: put this SOMEWHERE in the config file. (Probably in "WaitZar")
 			currInput->handleNumber(vkey, typeNumerals);
 			return true;
 		}
