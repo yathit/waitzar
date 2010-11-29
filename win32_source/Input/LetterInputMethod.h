@@ -27,7 +27,7 @@ public:
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(VirtKey& vkey, bool typeBurmeseNumbers);
+	void handleNumber(VirtKey& vkey);
 	virtual void handleStop(bool isFull, VirtKey& vkey);
 	void handleKeyPress(VirtKey& vkey);
 	void handleTab();

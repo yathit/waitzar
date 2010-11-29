@@ -66,6 +66,7 @@ public:
 	bool suppressUppercase;
 	bool typeNumeralConglomerates;
 	bool disableCache;
+	bool typeBurmeseNumbers;
 	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality
@@ -83,7 +84,7 @@ public:
 	virtual void handleLeftRight(bool isRight, bool loopToZero) = 0;
 	virtual void handleUpDown(bool isDown) = 0;
 	virtual void handleCommit(bool strongCommit) = 0;
-	virtual void handleNumber(VirtKey& vkey, bool typeBurmeseNumbers) = 0;
+	virtual void handleNumber(VirtKey& vkey) = 0;
 	virtual void handleStop(bool isFull, VirtKey& vkey) = 0;
 	virtual void handleTab() = 0;
 

@@ -30,7 +30,7 @@ public:
 	void handleLeftRight(bool isRight, bool loopToZero);
 	void handleUpDown(bool isDown);
 	void handleCommit(bool strongCommit);
-	void handleNumber(VirtKey& vkey, bool typeBurmeseNumbers);
+	void handleNumber(VirtKey& vkey);
 	void handleStop(bool isFull, VirtKey& vkey);
 	void handleKeyPress(VirtKey& vkey);
 	void handleTab();
@@ -69,7 +69,7 @@ private:
 	bool selectCurrWord();
 	bool selectWord(int id);
 
-	bool typeBurmeseNumbers;
+	//bool typeBurmeseNumbers;
 
 	bool typedStrContainsNoAlpha;
 };
@@ -215,7 +215,7 @@ void RomanInputMethod<ModelType>::handleUpDown(bool isDown)
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey, bool typeBurmeseNumbers)
+void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey)
 {
 	//Special case: conglomerate numbers
 	if ((vkey.alphanum>='0'&&vkey.alphanum<='9') && typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
@@ -245,10 +245,17 @@ void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey, bool typeBurmeseNu
 	} else if (vkey.alphanum=='`' || vkey.alphanum=='~') {
 		//Check for system keys
 		InputMethod::handleKeyPress(vkey);
-	} else if (typeBurmeseNumbers) {
-		//Type this number --ask the model for the number directly, to avoid crashing Burglish.
-		sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
-		sentence->moveCursorRight(0, true, *model);
+	} else {
+		//Sentence is visible and we are typing 0-9. But what about BurmeseNumerals?
+		if (typeBurmeseNumbers) {
+			//Type this number --ask the model for the number directly, to avoid crashing Burglish.
+			sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
+			sentence->moveCursorRight(0, true, *model);
+		} else {
+			//TODO: We need an ID for the arabic numerals, otherwise we can't insert it.
+			//sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
+			//sentence->moveCursorRight(0, true, *model);
+		}
 
 		viewChanged = true;
 	}

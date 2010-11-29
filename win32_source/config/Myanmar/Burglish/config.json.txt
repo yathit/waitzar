@@ -5,6 +5,7 @@
       "suppress-uppercase" : "false",
       "control-keys" : "japanese",
       "numeral-conglomerate" : "true",
+      "type-burmese-numerals" : "yes",
       "type" : "built-in"
     }
 }

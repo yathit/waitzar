@@ -793,6 +793,10 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 	if (options.count(sanitize_id(L"suppress-uppercase"))>0)
 		res->suppressUppercase = read_bool(options.find(sanitize_id(L"suppress-uppercase"))->second);
 
+	res->typeBurmeseNumbers = true;
+	if (options.count(sanitize_id(L"type-burmese-numerals"))>0)
+		res->typeBurmeseNumbers = read_bool(options.find(sanitize_id(L"type-burmese-numerals"))->second);
+
 	//Extra for RomanInputMethod
 	res->controlKeyStyle = CK_CHINESE;
 	if (options.count(sanitize_id(L"control-keys"))>0) {
