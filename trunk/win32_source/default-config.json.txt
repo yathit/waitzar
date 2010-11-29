@@ -32,6 +32,7 @@
             "display-name" : "WaitZar",
             "encoding" : "zawgyi-one",
             "user-words-file" : "waitzar.userwords.txt",
+            "type-burmese-numerals" : "yes",
             "type" : "builtin"
           },
           "mywin" : 

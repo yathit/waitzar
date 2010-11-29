@@ -104,7 +104,7 @@ void LetterInputMethod::handleUpDown(bool isDown)
 }
 
 //Ignore numCode, typeBurmeseNumbers
-void LetterInputMethod::handleNumber(VirtKey& vkey, bool typeBurmeseNumbers)
+void LetterInputMethod::handleNumber(VirtKey& vkey)
 {
 	this->handleKeyPress(vkey);
 }
