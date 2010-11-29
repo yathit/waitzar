@@ -246,15 +246,14 @@ void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey)
 		//Check for system keys
 		InputMethod::handleKeyPress(vkey);
 	} else {
-		//Sentence is visible and we are typing 0-9. But what about BurmeseNumerals?
+		//Main window is not visible and we are typing 0-9. But what about BurmeseNumerals?
 		if (typeBurmeseNumbers) {
 			//Type this number --ask the model for the number directly, to avoid crashing Burglish.
 			sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
 			sentence->moveCursorRight(0, true, *model);
-		} else {
-			//TODO: We need an ID for the arabic numerals, otherwise we can't insert it.
-			//sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
-			//sentence->moveCursorRight(0, true, *model);
+		} else /*if (sentenceWindow->isVisible())*/ {
+			//As long as the numbers 0-9 are in the "system key" list (they are) then we can just pass this off. 
+			InputMethod::handleKeyPress(vkey);
 		}
 
 		viewChanged = true;
