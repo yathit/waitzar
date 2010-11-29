@@ -1960,7 +1960,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 			else
 				flags |= WS_BORDER | (it->id==IDOK ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
 		} else if (it->type==L"COMBOBOX")
-			flags = WS_CHILD|visFlag|WS_TABSTOP|CBS_DROPDOWNLIST;
+			flags = WS_CHILD|visFlag|WS_TABSTOP|CBS_DROPDOWNLIST|WS_VSCROLL;
 		else if (it->type==L"SysTabControl32")
 			flags = WS_CHILD | visFlag;
 		else
