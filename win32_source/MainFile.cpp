@@ -1226,13 +1226,17 @@ bool registerInitialHotkey()
 //Re-position this near the caret
 void positionAtCaret()
 {
-	//Default "off" flag
-	if (!config.getSettings().trackCaret)
-		return;
-
 	//Also skip if one window is already visible
 	if (mainWindow->isVisible() || sentenceWindow->isVisible())
 		return;
+
+	//Default "off" flag
+	if (!config.getSettings().trackCaret) {
+		//At least line them up on the main window itself.
+		mainWindow->moveWindow(mainWindow->getXPos(), mainWindow->getYPos());
+		sentenceWindow->moveWindow(mainWindow->getXPos(), mainWindow->getYPos() + mainWindow->getHeight());
+		return;
+	}
 
 	//Reset parameters for our thread
 	//  (We set to a nice default, instead of 0,0, so that our window doesn't get "stuck" somewhere.)
