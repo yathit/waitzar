@@ -39,6 +39,11 @@ private:
 	const static char uni2ZawgyiLogchar = 'Z';
 	const static std::string uni2ZawgyiLogFileName;
 
+	//"Typing" log file: constants
+	const static bool WZ_LOG_TYPING = true;
+	const static char typingLogchar = 'T';
+	const static std::string typingLogFileName;
+
 private:
 	//Variables
 	static std::map< char, std::vector<FILETIME> > filetimeStacks;

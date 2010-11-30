@@ -13,6 +13,7 @@
 const std::string Logger::mainLogFileName = "wz_log.txt";
 const std::string Logger::keymagicLogFileName = "wz_log_keymagic.txt";
 const std::string Logger::uni2ZawgyiLogFileName = "wz_log_uni2zawgyi.txt";
+const std::string Logger::typingLogFileName = "wz_log_typing.txt";
 
 //Variables:
 std::map< char, std::vector<FILETIME> > Logger::filetimeStacks;
@@ -26,6 +27,8 @@ bool Logger::isLogging(char logLetter)
 	if (WZ_LOG_KEYMAGIC && (logLetter==keymagicLogchar))
 		return true;
 	if (WZ_LOG_UNI2ZAWGYI && (logLetter==uni2ZawgyiLogchar))
+		return true;
+	if (WZ_LOG_TYPING && (logLetter==typingLogchar))
 		return true;
 	return false;
 }
@@ -48,7 +51,7 @@ void Logger::resetLogFile(char logLetter)
 		filetimeStacks[logLetter].clear();
 
 		//Ensure the file path has been added.
-		filePaths[logLetter] = (logLetter==waitzarLogchar) ? mainLogFileName : (logLetter==keymagicLogchar) ? keymagicLogFileName : uni2ZawgyiLogFileName;
+		filePaths[logLetter] = (logLetter==waitzarLogchar) ? mainLogFileName : (logLetter==keymagicLogchar) ? keymagicLogFileName : (logLetter==typingLogchar) ? typingLogFileName : uni2ZawgyiLogFileName;
 
 		//Reset log file contents
 		std::ofstream log(filePaths[logLetter].c_str(), std::ios::out);

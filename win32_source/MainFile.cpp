@@ -3691,8 +3691,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (showingHelpPopup || showingKeyInputPopup || showingSettingsPopup)
 				break;
 
+			if (Logger::isLogging('T')) {
+				wstringstream msg;
+				msg <<L"Hotkey: " <<std::hex <<wParam <<std::dec;
+				Logger::writeLogLine('T', msg.str());
+			}
+
 			//Turn this hotkey into a virtual key, to make things simpler.
 			VirtKey vk(lParam);
+
+			if (Logger::isLogging('T')) {
+				wstringstream msg;
+				msg <<L"   VirtKey: " <<vk.alphanum <<L"  " <<std::hex <<vk.vkCode <<std::dec;
+				msg <<L"   (" <<(vk.modShift?L"1":L"0") <<L"," <<(vk.modAlt?L"1":L"0") <<L"," <<(vk.modCtrl?L"1":L"0") <<L")";
+				Logger::writeLogLine('T', msg.str());
+			}
 
 			//NOTE: We have to mangle this a bit (with shift) if the virtual
 			//      keyboard is showing and Shift has been pressed.
@@ -3709,6 +3722,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Make sure our hotkeys are set
 				//TODO: Remove specific hotkey calls from toggleHelp() and other meta functions...
 				//checkAllHotkeysAndWindows();
+
+				Logger::writeLogLine('T', L"   Meta hotkey handled.");
 			} else {
 				//Set flags for the current state of the Input Manager. We will
 				// check these against the exit state to see what has changed,
@@ -3720,7 +3735,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Process the message
 				try {
 					handleUserHotkeys(wParam, vk);
-				} catch (std::exception ex) {
+				} catch (std::exception& ex) {
 					if (!showingKeyInputPopup) {
 						//Properly handle hotkeys
 						//NOTE: We need this here so that "Enter" is passed to the window.
@@ -3737,8 +3752,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if  (refreshControl==true)
 							turnOnControlkeys(true);
 					}
+
+					wstringstream msg;
+					msg <<L"   <Exception> "  <<ex.what();
+					Logger::writeLogLine('T', msg.str());
+
 					break;
 				}
+
+				Logger::writeLogLine('T', L"   User hotkey handled.");
 
 				//Save the "typed string" for later
 				wstring stringToType = currInput->getTypedSentenceStrings()[3];
@@ -3764,6 +3786,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (currInput->getAndClearViewChanged())
 					recalculate();
 			}
+
+			Logger::writeLogLine('T', L"   Done with hotkey.");
 			break;
 		}
 
@@ -4462,6 +4486,9 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
  */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	//Init typing log:
+	Logger::resetLogFile('T');
+
 	//Init log:
 	Logger::resetLogFile('L');
 	Logger::startLogTimer('L', L"Starting WaitZar {");
