@@ -35,7 +35,7 @@ void Uni2Ayar::convertInPlace(std::wstring& src) const
 	std::wstringstream currSyllablePrefix;
 	for (size_t i=0; i<src.length(); i++) {
 		//The next syllable starts at the first non-stacked non-killed consonant, or at a non-myanmar letter
-		if (src[i]<L'\u1000' || src[i]>L'\u109F') {
+		if (src[i]<L'\u1000' || src[i]>L'\u109F') {   //TODO: Replace with an "IsMyanmar()" function, to catch extra characters in Unicode 5.2.
 			//Append all non-Myanmar letters and continue
 			res <<currSyllablePrefix.str() <<currSyllable.str();
 			currSyllablePrefix.str(L"");
@@ -75,7 +75,7 @@ void Uni2Ayar::convertInPlace(std::wstring& src) const
 				//If BOTH prefix letters are present, enforce Ayar's ordering
 				res <<L"\u1031\u103C";
 				i+=1;
-			} else 
+			} else
 				res <<src[i];
 		} else
 			currSyllable <<src[i];
