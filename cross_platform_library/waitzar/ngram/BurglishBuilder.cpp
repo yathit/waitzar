@@ -411,7 +411,7 @@ void BurglishBuilder::expandCurrentWords(std::set<std::wstring>& resultsKeyset, 
 			}
 
 			//Append
-			if (!consumed)
+			if (!consumed && i<word->size())
 				newWord <<(*word)[i];
 		}
 
