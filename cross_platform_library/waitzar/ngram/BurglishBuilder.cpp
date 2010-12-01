@@ -17,12 +17,12 @@ using std::map;
 using std::set;
 
 
-namespace waitzar 
+namespace waitzar
 {
 
 
 /**
- * Empty constructor. 
+ * Empty constructor.
  */
 BurglishBuilder::BurglishBuilder() {}
 BurglishBuilder::~BurglishBuilder() {}
@@ -86,7 +86,7 @@ bool BurglishBuilder::IsValid(const wstring& word)
 		switch (word[i]) {
 			case L'\u100D':  case L'\u100B':  case L'\u100C':  case L'\u1023':
 				switch (word[i+1]) {
-					case L'\u1087':  case L'\u103D':  case L'\u102F':  case L'\u1030':  
+					case L'\u1087':  case L'\u103D':  case L'\u102F':  case L'\u1030':
 					case L'\u1088':  case L'\u1089':  case L'\u103C':  case L'\u108A':
 						return false;
 				}
@@ -98,12 +98,12 @@ bool BurglishBuilder::IsValid(const wstring& word)
 				}
 				break;
 			case L'\u1060':  case L'\u1061':  case L'\u1062':  case L'\u1063':  case L'\u1064':  case L'\u1065':
-			case L'\u1066':  case L'\u1067':  case L'\u1068':  case L'\u1069':  case L'\u106A':  case L'\u106B': 
+			case L'\u1066':  case L'\u1067':  case L'\u1068':  case L'\u1069':  case L'\u106A':  case L'\u106B':
 			case L'\u106C':  case L'\u106D':  case L'\u106E':  case L'\u106F':  case L'\u1070':  case L'\u1071':
 			case L'\u1072':  case L'\u1073':  case L'\u1074':  case L'\u1075':  case L'\u1076':  case L'\u1077':
 			case L'\u1078':  case L'\u1079':  case L'\u107A':  case L'\u107B':  case L'\u107C':  case L'\u1092':
 				switch (word[i+1]) {
-					case L'\u1087':  case L'\u103D':  case L'\u1088':  case L'\u1089':  
+					case L'\u1087':  case L'\u103D':  case L'\u1088':  case L'\u1089':
 					case L'\u103C':  case L'\u108A':
 						return false;
 				}
@@ -125,22 +125,22 @@ std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std
 
 	//Valid if the previous word has U+103A and not anything else stacked (U+1039)
 	//Valid if the stacked word has 1039
-	int aIndex = base.rfind(L"\u103A");
-	if (aIndex==-1 || base.find(L"\u1039")!=-1 || stacked.find(L"\u1039")==-1)
+	size_t aIndex = base.rfind(L"\u103A");
+	if (aIndex==wstring::npos || base.find(L"\u1039")!=wstring::npos || stacked.find(L"\u1039")==wstring::npos)
 		return L"";
 
-	//Step 1: Remove U+103A from the base. 
+	//Step 1: Remove U+103A from the base.
 	wstring empty = L"";
 	wstring baseRep = base;
 	baseRep.replace(aIndex, 1, empty);
 
 	//Step 2: Remove kinzi from the stacked
 	wstring kinzi = L"\u1004\u103A\u1039";
-	int kIndex = stacked.rfind(L"\u1004\u103A\u1039");
+	size_t kIndex = stacked.rfind(L"\u1004\u103A\u1039");
 	wstring stackRep = stacked;
-	if (kIndex!=-1) {
+	if (kIndex!=wstring::npos) {
 		stackRep.replace(kIndex, kinzi.length(), empty);
-	} else if (baseRep[aIndex-1]==L'\u1004') {
+	} else if (aIndex>0 && baseRep[aIndex-1]==L'\u1004') {
 		//Special case: we keep kinzi if base is stacking "nga"
 		//See if we've got U+1039 followed by at least one letter
 		size_t asatID = stackRep.find(L'\u1039');
@@ -149,7 +149,8 @@ std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std
 			baseRep[aIndex-1] = stackRep[asatID+1];
 
 			//Step 2: Re-work the stacked letter; remove the consonant and U+1039
-			stackRep = stackRep.substr(0, asatID) + stackRep.substr(asatID+2, stackRep.length());			
+			wstring postfix = (asatID+2<stackRep.length()) ? (stackRep.substr(asatID+2, stackRep.length()) : L"";
+			stackRep = stackRep.substr(0, asatID) + postfix);
 		} else {
 			//Ditch kinzi
 			kinzi = empty;
@@ -160,7 +161,9 @@ std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std
 	}
 
 	//Step 3: Combine (kinzi?) + base + stacked. Note that kinzi should appear to the left of the killed consonant, not the base consonant
-	return baseRep.substr(0, aIndex-1) + kinzi + baseRep.substr(aIndex-1, baseRep.length()) + stackRep;
+	if (baseRep.size()>0 && aIndex>0 && aIndex-1<baseRep.size())
+		return baseRep.substr(0, aIndex-1) + kinzi + baseRep.substr(aIndex-1, baseRep.length()) + stackRep;
+	return L"";
 }
 
 
@@ -183,7 +186,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 		wstring candPrefix = roman.substr(0, i);
 		if (onsetPairs.count(candPrefix)==0)
 			break;
-		
+
 		//Update (suffix is "a" if prefix takes up the whole string)
 		prefix = candPrefix;
 		suffix = (i==roman.size() ? L"a" : roman.substr(i, roman.size()-i));
@@ -217,10 +220,10 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 			wstring oldPrefix = onset.str();
 			wchar_t c = oldPrefix[0];
 			if (oldPrefix.length()==1 || (oldPrefix.length()==2 && c!=L'\u1004' && (oldPrefix[1]==L'\u103B' || oldPrefix[1]==L'\u103C'))) {
-				
+
 				if (  (c>=L'\u1000' && c<=L'\u1008')
 					||(c==L'\u100B' || c==L'\u100C' || c==L'\u101C')
-					||(c>=L'\u100F' && c<=L'\u1019')) 
+					||(c>=L'\u100F' && c<=L'\u1019'))
 				{
 					//Stack it
 					onset.str(L"");
@@ -249,7 +252,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 			if (rhyme.str().empty())
 				continue;
 
-			//We've built our onset + rhyme into rhyme directly. 
+			//We've built our onset + rhyme into rhyme directly.
 			//Now, we just need to test for errors, etc.
 			wstring word = waitzar::normalize_bgunicode(rhyme.str());
 			if (IsValid(word) && resultsKeyset.count(word)==0 && !word.empty()) {
@@ -514,7 +517,7 @@ std::wstring BurglishBuilder::getParenString() const
 
 //Get all possible words. Requires IDs, though.
 //IDs are numbered starting after those in savedWordIDs() and savedDigitIDs()
-//Note that a word in savedWordIDs and generatedWords might have 1..N 
+//Note that a word in savedWordIDs and generatedWords might have 1..N
 //   possible IDs. This isn't really a problem, as the words only build up as sentences are typed.
 std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 {
@@ -559,7 +562,7 @@ std::wstring BurglishBuilder::getWordString(unsigned int id) const
 
 
 
-//Turns the current myanmar word into a list of all possible spellings. 
+//Turns the current myanmar word into a list of all possible spellings.
 //The original word is the first item in the list.
 //Does not check for validity.
 vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
@@ -590,7 +593,7 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 
 		//Build a new word based on this. Keep the old word handy too.
 		for (size_t i=startAt; i<currMM.size(); i++) {
-			//Used to store the replacement string, so we can put our 
+			//Used to store the replacement string, so we can put our
 			// "new candidate" logic all in one place.
 			size_t matchIndex = wstring::npos;
 			wstring matchRep = L"";
@@ -613,7 +616,7 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 				matchRep = L"\u1021\u1031\u102C";
 			}
 
-			//React if matched 
+			//React if matched
 			if (matchIndex!=wstring::npos) {
 				//If we matched once, add ONLY the new word to the list of new candidates.
 				wstring suffix = currMM.substr(i+1, currMM.length());
@@ -740,7 +743,7 @@ pair<string, bool> BurglishBuilder::matchOnset(const wstring& myanmar)
 				else if (unprefRes.empty())
 					unprefRes = waitzar::escape_wstr(roman, false);
 			}
-				
+
 
 			//Finally: reset
 			entry.str(L"");
@@ -789,7 +792,7 @@ pair<string, bool> BurglishBuilder::matchRhyme(const wstring& myanmar)
 
 
 
-//We return what would be the "first match" in Burglish. 
+//We return what would be the "first match" in Burglish.
 // For multiple spellings, we just return the one that matches first.
 pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 {
@@ -810,7 +813,7 @@ pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 	//Prepare a result string; we'll generate the ID later.
 	string roman = "";
 
-	//If the word itself is invalid, we can ONLY match against the special words. 
+	//If the word itself is invalid, we can ONLY match against the special words.
 	//Best to get that out of the way here.
 	if (!IsValid(word)) {
 		//Look it up directly.
@@ -832,7 +835,7 @@ pair<int, string> BurglishBuilder::reverseLookupWord(std::wstring word)
 		//Only continue if we haven't found it yet
 		if (roman.empty()) {
 			//Have to consider the effect of expandCurrentWords
-			// Since some of them (like "oo" and "u") don't require expanding, we form a list of 
+			// Since some of them (like "oo" and "u") don't require expanding, we form a list of
 			// possible words and their candidate romanisations. We keep the original word at the top of the list.
 			vector< pair<wstring, string> > my2rom;
 			vector<wstring> altSpellings = reverseExpandWords(word);
