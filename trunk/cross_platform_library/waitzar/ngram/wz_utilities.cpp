@@ -16,7 +16,7 @@ using std::string;
 //   to be UNSTABLE, and is not included in the Linux build by default.
 // This is because most of its functionality is of direct benefit to the
 //   Windows build, so we hope to test its correctness through the next
-//   two Windows releases of WaitZar. 
+//   two Windows releases of WaitZar.
 // Since there is some universally-useful code here, we will eventually
 //   include this in both releases, but we want to avoid bumping libwaitzar's
 //   major revision for breakages caused by code that wasn't originally intended
@@ -250,7 +250,7 @@ namespace
 			|| (letter>=0x1036 && letter<=0x104F);
 	}
 
-	bool isConsonant(wchar_t letter) 
+	bool isConsonant(wchar_t letter)
 	{
 		return (letter>=0x1000 && letter<=0x1021)
 			|| (letter>=0x1023 && letter<=0x1027)
@@ -363,7 +363,7 @@ namespace
 
 
 
-	__int64 getStage3BitFlags(wchar_t letter) 
+	__int64 getStage3BitFlags(wchar_t letter)
 	{
 		switch (letter) {
 			case 0x1038:
@@ -641,7 +641,7 @@ namespace
 				} else if (uniLetter>=0x100F && uniLetter<=0x1019) {
 					return (uniLetter-0x100F)+ZG_STACK_NHA;
 				} else if (uniLetter==0x100E) {
-					return ZG_STACK_EXTRA; //Todo: we can merge this & the top 2 "if"s. 
+					return ZG_STACK_EXTRA; //Todo: we can merge this & the top 2 "if"s.
 				}
 		}
 		return 0;
@@ -812,11 +812,11 @@ namespace
 
 
 
-namespace waitzar 
+namespace waitzar
 {
 
 
-//TODO: This will sometimes append "\0" to a string for no apparent reason. 
+//TODO: This will sometimes append "\0" to a string for no apparent reason.
 //      Try: U+1000 U+1037
 //      Need to fix eventually...
 std::wstring sortMyanmarString(const std::wstring &uniString)
@@ -834,7 +834,7 @@ std::wstring sortMyanmarString(const std::wstring &uniString)
 		rhyme_flags[res] = 0;
 		rhyme_vals[res] = 0x0000;
 	}
-	
+
 	//Scan each letter
 	//size_t destI = 0;    //Allows us to eliminate duplicate letters
 	size_t prevStop = 0; //What was our last-processed letter
@@ -897,7 +897,7 @@ std::wstring sortMyanmarString(const std::wstring &uniString)
 
 
 //TODO: We should remove the BOM here; it's just a nuisance elsewhere.
-wstring readUTF8File(const string& path) 
+wstring readUTF8File(const string& path)
 {
 	//Open the file, read-only, binary.
 	FILE* userFile = fopen(path.c_str(), "rb");
@@ -981,7 +981,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 					//  against stacker in phase 1, it's not necessary. So we'll call it "other"
 					currLetter = ZG_KINZI;
 					currType = BF_OTHER;
-				} else 
+				} else
 					passed = false;
 			} else {
 				//Handle special cases
@@ -1002,7 +1002,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 
 		//Append it, and a dash if necessary
 		//Don't dash our stack letter; it's not necessary
-		if (!passed && currType!=BF_STACKER) 
+		if (!passed && currType!=BF_STACKER)
 			zawgyiStr[destID++] = ZG_DASH;
 		zawgyiStr[destID++] = currLetter;
 
@@ -1041,7 +1041,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 				if (zawgyiLetter(stacked)!=0x003F) {
 					destID--;
 					currLetter = stacked;
-				} 
+				}
 
 				//Special cases (stacked)
 				if (oldDestID>1) {
@@ -1135,11 +1135,11 @@ wstring renderAsZawgyi(const wstring &uniString)
 	Logger::writeLogLine('Z', tab + L"Begin Match");
 
 
-	//We maintain a series of offsets for the most recent match. This is used to speed up the process of 
+	//We maintain a series of offsets for the most recent match. This is used to speed up the process of
 	// pattern matching. We only track the first occurrance, from left-to-right, of the given flag.
 	//We scan from left-to-right, then apply rules from right-to-left breaking after each consonant.
 	// A "minor break" occurs after each killed consonant, which is not tracked. "CONSONANT" always refers
-	// to the main consonant. 
+	// to the main consonant.
 	int firstOccurrence[S3_TOTAL_FLAGS];
 	__int64 currMatchFlags = 0;
 	for (size_t i=0; i<S3_TOTAL_FLAGS; i++)
@@ -1206,7 +1206,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 					//Unfortunately, we have to apply ALL filters.
 					Rule *r = matchRules[ruleID];
 					if (r->at_letter!=zawgyiStr[x])
-						continue; 
+						continue;
 
 					//First, match the input
 					__int64 matchRes = r->match_flags&currMatchFlags;
@@ -1281,7 +1281,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 							}
 
 							//We actually have to apply rules from the beginning, unfortunately. However,
-							// we prevent an infinite cycle by blacklisting this rule until the next 
+							// we prevent an infinite cycle by blacklisting this rule until the next
 							// consonant occurs.
 							r->blacklisted = true;
 							resetRules = true;
@@ -1347,7 +1347,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 				}
 			}
 
-			//Final special cases 
+			//Final special cases
 			int yaYitID = firstOccurrence[getStage3ID(S3_MED_YA_YIT)];
 			bool yaLong = false;
 			if (yaYitID==-1) {
@@ -1359,7 +1359,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 				bool cutTop = false;
 				bool cutBottom = false;
 				if ((currMatchFlags&0xFF0)!=0)
-					cutTop = true; 
+					cutTop = true;
 				if ((currMatchFlags&0x100E00000)!=0)
 					cutBottom = true;
 				wchar_t yaFinal = 'X';
@@ -1388,7 +1388,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 							yaFinal = L'\u103C';
 					}
 				}
-				zawgyiStr[yaYitID] = yaFinal; 
+				zawgyiStr[yaYitID] = yaFinal;
 
 				std::wstringstream logline;
 				logline <<L"YA at [" <<yaYitID <<L"], cut? " <<cutTop <<"T  " <<cutBottom <<"B";
@@ -1427,7 +1427,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 				if (currFlagID!=-1) {
 					firstOccurrence[currFlagID] = i;
 					currMatchFlags = currFlag;
-				} else 
+				} else
 					currMatchFlags = 0;
 
 				//if (kinziCascade>0)
@@ -1633,7 +1633,7 @@ std::string wcs2mbs(const std::wstring& str)
 			char c1 = (((*c)>>12)&0xF) | 0xE0;
 			char c2 = (((*c)>>6)&0x3F) | 0x80;
 			char c3 = ((*c)&0x3F) | 0x80;
-		} else 
+		} else
 			throw std::runtime_error("Unicode value out of range.");
 
 	}
@@ -1643,7 +1643,7 @@ std::string wcs2mbs(const std::wstring& str)
 
 
 
-//Remove: 
+//Remove:
 //  space_p, comment_p('#'), U+FEFF (BOM)
 std::wstring preparse_json(const std::wstring& str)
 {
@@ -1695,7 +1695,7 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 	//KINZI = \u1004\u103A\u1039
 	//CONSONANT = [\u1000..\u102A, \u103F, \u104E]
 	//STACKED = \u1039 [\u1000..\u1019 \u101C, \u101E, \u1020, \u1021]
-	//...exclusively for Myanmar. Now... we just have to flag each item, and avoid adding it twice. If something unknown 
+	//...exclusively for Myanmar. Now... we just have to flag each item, and avoid adding it twice. If something unknown
 	//   if found, return the orig. word.
 	//This function is very fragile; we'll have to replace it with something better eventually.
 	//We can assume kinzi & stacked letters aren't abused. Also consonant.
@@ -1704,9 +1704,9 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 	size_t numFlags = 13;
 	for (size_t i=0; i<str.size(); i++) {
 		//First, skip stuff we don't care about
-		if (str[i]==L'\u1004' && i+2<str.size() && str[i+1]==L'\u103A' && str[i+1]==L'\u1039') {
+		if (str[i]==L'\u1004' && i+2<str.size() && str[i+1]==L'\u103A' && str[i+2]==L'\u1039') {
 			//Kinzi, skip
-			res <<str[i] <<str[i+1] <<str[i+2];
+			res <<L"\u1004\u103A\u1039";
 			i += 2;
 			continue;
 		} else if (str[i]==L'\u1039' && i+1<str.size()) {
@@ -1721,7 +1721,7 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 			//Also, reset our "flags" array so that multiple killed consants parse ok.
 			for (size_t x=0; x<numFlags; x++)
 				flags[x] = false;
-			
+
 			continue;
 		}
 
@@ -1798,16 +1798,16 @@ std::wstring normalize_bgunicode(const std::wstring& str)
 //Add everything EXCEPT what's in the filterStr.
 std::wstring removeZWS(const std::wstring& str, const std::wstring& filterStr)
 {
-	std::wstringstream res; 
+	std::wstringstream res;
 	for (size_t i=0; i<str.length(); i++) {
-		if (filterStr.find(str[i])==wstring::npos) 
+		if (filterStr.find(str[i])==wstring::npos)
 			res <<str[i];
 	}
 	return res.str();
 }
 
 
-size_t count_letter(const std::wstring& str, wchar_t letter) 
+size_t count_letter(const std::wstring& str, wchar_t letter)
 {
 	size_t res = 0;
 	for (size_t i=0; i<str.length(); i++) {
