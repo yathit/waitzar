@@ -35,7 +35,7 @@ void Ayar2Uni::convertInPlace(std::wstring& src) const
 	std::wstringstream currSyllablePrefix;
 	for (size_t i=0; i<src.length(); i++) {
 		//The next syllable starts at the first non-stacked non-killed consonant, or at tha-way-htoe or ya-yit
-		if (src[i]<L'\u1000' || src[i]>L'\u109F') {
+		if (src[i]<L'\u1000' || src[i]>L'\u109F') {  //TODO: We need to extract this out to "IsMyanmar()" to include Unicode 5.2 letters.
 			//Append all non-Myanmar letters and continue
 			res <<currSyllablePrefix.str() <<currSyllable.str();
 			currSyllablePrefix.str(L"");
@@ -60,7 +60,7 @@ void Ayar2Uni::convertInPlace(std::wstring& src) const
 			else if (i+1<src.length() && src[i+1]==L'\u103A')
 				boundary = false; //Killed
 			else if (i>0 && (src[i-1]==L'\u1031' || src[i-1]==L'\u103C'))
-				boundary = false; //The word has actually already started. 
+				boundary = false; //The word has actually already started.
 		}
 		if (boundary) {
 			res <<currSyllablePrefix.str() <<currSyllable.str();
@@ -80,7 +80,7 @@ void Ayar2Uni::convertInPlace(std::wstring& src) const
 			if (i+1<src.length() && src[i]==L'\u1031' && src[i+1]==L'\u103C') {
 				currSyllable <<L"\u103C\u1031";
 				i+=1;
-			} else 
+			} else
 				currSyllable <<src[i];
 		}
 
