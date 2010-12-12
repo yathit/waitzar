@@ -40,7 +40,7 @@ private:
 	const static std::string uni2ZawgyiLogFileName;
 
 	//"Typing" log file: constants
-	const static bool WZ_LOG_TYPING = true;
+	const static bool WZ_LOG_TYPING = false;
 	const static char typingLogchar = 'T';
 	const static std::string typingLogFileName;
 

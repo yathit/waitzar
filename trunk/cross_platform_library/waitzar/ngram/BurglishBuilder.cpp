@@ -961,7 +961,10 @@ bool BurglishBuilder::backspace(const std::wstring& prevWord)
 	typedRomanStr <<newStr;
 
 	reGenerateWordlist(prevWord);
-	return true;
+
+	currSelectedID = 0; //Reset
+	currSelectedPage = 0; //Reset
+	return true; //Indicate success
 }
 
 
