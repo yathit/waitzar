@@ -790,7 +790,7 @@ pair<int, int> WordBuilder::typeSpace(int quickJumpID)
 
 	//Reset the model, return this word
 	this->reset(false);
-	return pair<int, int>(newWord, canTypeShortcut() ? newWord : -1);
+	return pair<int, int>(newWord, (canTypeShortcut()&&quickJumpID<0)? newWord : -1);
 }
 
 
