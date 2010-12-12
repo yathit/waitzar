@@ -321,7 +321,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 	wchar_t alpha = vkey.alphanum;
 	if ((alpha>='a' && alpha<='z') || alpha==';') {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
+		if (!model->typeLetter(vkey.alphanum, suppressUppercase?false:vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
 			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
 			if (controlKeyStyle==CK_CHINESE || typedRomanStr.str().empty())
 				return;
@@ -331,7 +331,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 			viewChanged = true;
 
 			//Nothing left on the new string?
-			if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords)))
+			if (!model->typeLetter(vkey.alphanum, suppressUppercase?false:vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords)))
 				return;
 		}
 
