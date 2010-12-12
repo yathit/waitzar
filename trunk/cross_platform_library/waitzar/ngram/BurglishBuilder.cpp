@@ -149,8 +149,8 @@ std::wstring BurglishBuilder::PatSintCombine(const std::wstring& base, const std
 			baseRep[aIndex-1] = stackRep[asatID+1];
 
 			//Step 2: Re-work the stacked letter; remove the consonant and U+1039
-			wstring postfix = (asatID+2<stackRep.length()) ? (stackRep.substr(asatID+2, stackRep.length()) : L"";
-			stackRep = stackRep.substr(0, asatID) + postfix);
+			wstring postfix = (asatID+2<stackRep.length()) ? (stackRep.substr(asatID+2, stackRep.length())) : L"";
+			stackRep = stackRep.substr(0, asatID) + postfix;
 		} else {
 			//Ditch kinzi
 			kinzi = empty;
@@ -522,6 +522,7 @@ std::wstring BurglishBuilder::getParenString() const
 std::vector<unsigned int> BurglishBuilder::getPossibleWords() const
 {
 	//TEMP: For now, the word's ID is just its index. (We might need to hack around this for 0..9)
+	//NOTE: This might be a problem. Isn't res.size() < generatedWords.size() for PS words?
 	vector<unsigned int> res;
 	while (res.size()<generatedWords.size())
 		res.push_back(savedDigitIDs.size() + savedWordIDs.size() + savedCombinationIDs.size() + res.size());
@@ -1034,7 +1035,7 @@ std::pair<int, int> BurglishBuilder::typeSpace(int quickJumpID)
 	}
 
 	//Remove unwanted characters
-	//TODO: Somewhere else I need a "remove all" function....
+	//TODO: Somewhere else I need a "remove all" function.... (note: it's in waitzar::, but we'll switch it later)
 	wstring candidateStr = getWordString(adjustedID);
 	{
 		wstringstream toSave;
