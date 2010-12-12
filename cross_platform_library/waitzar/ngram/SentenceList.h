@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <list>
+#include <vector>
 
 
 namespace waitzar 
@@ -39,7 +40,7 @@ public:
 	size_t size() const;
 	bool deleteNext();
 	bool deletePrev(ModelType &model);
-	std::wstring getPrevTypedWord(ModelType &model) const;
+	std::wstring getPrevTypedWord(ModelType &model, const std::vector<std::wstring>& userDefinedWords) const;
 
 	//Iterating
 	std::list<int>::const_iterator begin() const;
@@ -187,15 +188,23 @@ bool SentenceList<ModelType>::deletePrev(ModelType &model)
 
 
 template <class ModelType>
-std::wstring SentenceList<ModelType>::getPrevTypedWord(ModelType &model) const
+std::wstring SentenceList<ModelType>::getPrevTypedWord(ModelType &model, const std::vector<std::wstring>& userDefinedWords) const
 {
 	std::wstring prevWord = L"";
 	std::list<int>::const_iterator it=this->begin();
 	for (int currID=0; currID<=this->getCursorIndex(); currID++) {
 		if (*it>=0)
 			prevWord = model.getWordString(*it);
-		else
-			prevWord = std::wstring(1, WZFactory<ModelType>::systemDefinedWords[-1 - (*it)]);
+		else {
+			int adjID = -1 - (*it);
+			size_t sysSize = WZFactory<ModelType>::systemDefinedWords.size();
+			if (adjID < (int)sysSize) {
+				prevWord = std::wstring(1, WZFactory<ModelType>::systemDefinedWords[adjID]);
+			} else {
+				adjID -= sysSize;
+				prevWord = userDefinedWords[adjID];
+			}
+		}
 		it++;
 	}
 	return prevWord;
