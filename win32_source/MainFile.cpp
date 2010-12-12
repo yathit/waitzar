@@ -1226,9 +1226,15 @@ bool registerInitialHotkey()
 //Re-position this near the caret
 void positionAtCaret()
 {
-	//Also skip if one window is already visible
-	if (mainWindow->isVisible() || sentenceWindow->isVisible())
+	//This behaves differently if a window is already showing.
+	if (sentenceWindow->isVisible()) {
+		if (mainWindow->isVisible())
+			return;
+
+		//Position the main window above the sentence window in this case. 
+		mainWindow->moveWindow(sentenceWindow->getXPos(), sentenceWindow->getYPos() - mainWindow->getHeight());
 		return;
+	}
 
 	//Default "off" flag
 	if (!config.getSettings().trackCaret) {

@@ -262,6 +262,18 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		}
 		case WM_MOVE:
 		{
+			//Bookkeeping
+			int newX = LOWORD(lParam);
+			int newY = HIWORD(lParam);
+			windowArea.right = newX + getWidth();
+			windowArea.bottom = newY + getHeight();
+			windowArea.left = newX;
+			windowArea.top = newY;
+			clientArea.right = newX + getClientWidth();
+			clientArea.bottom = newY + getClientHeight();
+			clientArea.left = newX;
+			clientArea.top = newY;
+
 			//Move any linked windows
 			for (int i=0; i<4; i++) {
 				//Nothing here?
