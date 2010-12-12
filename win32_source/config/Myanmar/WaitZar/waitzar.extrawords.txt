@@ -8,6 +8,8 @@
 ရြန္ = yon
 ဂဲ = gal
 ႒ာ = htar
+ျဖည္ = phyi
+
 
 #Words which cannot be added to the model, as they already have a standard romanisation.
 # These will be included perpetually for convenience
