@@ -90,6 +90,7 @@ public:
 
 	//Functionality similar to Win32, with minor differences
 	bool moveWindow(int newX, int newY); //Preserves width/height
+	bool moveWindow(int newX, int newY, bool forceWithinDesktop); //Preserves width/height
 	bool resizeWindow(int newWidth, int newHeight, bool doRepaint); //Preserve x/y
 	bool expandWindow(int newX, int newY, int newWidth, int newHeight, bool dontMove); //Ugh...
 	bool expandWindow(int newWidth, int newHeight);
