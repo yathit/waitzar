@@ -420,13 +420,13 @@ void OnscreenKeyboard::minmaxHelpWindow(unsigned int btnID)
 		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
 		initHelp(NULL, NULL, NULL);
 		helpWindow->repaintWindow();
-		helpWindow->moveWindow(helpWindow->getXPos(), helpWindow->getYPos() - (this->height-this->smallHeight));
+		helpWindow->moveWindow(helpWindow->getXPos(), helpWindow->getYPos() - (this->height-this->smallHeight), true);
 	} else {
 		helpWindow->resizeWindow(this->width, this->smallHeight, false);
 		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
 		initHelpSmall();
 		helpWindow->repaintWindow();
-		helpWindow->moveWindow(helpWindow->getXPos(), helpWindow->getYPos() + (this->height-this->smallHeight));
+		helpWindow->moveWindow(helpWindow->getXPos(), helpWindow->getYPos() + (this->height-this->smallHeight), true);
 	}
 }
 
@@ -460,13 +460,13 @@ void OnscreenKeyboard::minmaxMemoryWindow(unsigned int btnID)
 		initMemory(NULL, NULL, NULL);
 		refreshMemoryList(); //Re-flash all memory entries
 		memoryWindow->repaintWindow();
-		memoryWindow->moveWindow(memoryWindow->getXPos(), memoryWindow->getYPos() - (this->memHeight-this->smallMemHeight));
+		memoryWindow->moveWindow(memoryWindow->getXPos(), memoryWindow->getYPos() - (this->memHeight-this->smallMemHeight), true);
 	} else {
 		memoryWindow->resizeWindow(this->memWidth, this->smallMemHeight, false);
 		//helpWindow->createDoubleBufferedSurface();  //NOTE: We can keep the old surface; it's big enough.
 		initMemorySmall();
 		memoryWindow->repaintWindow();
-		memoryWindow->moveWindow(memoryWindow->getXPos(), memoryWindow->getYPos() + (this->memHeight-this->smallMemHeight));
+		memoryWindow->moveWindow(memoryWindow->getXPos(), memoryWindow->getYPos() + (this->memHeight-this->smallMemHeight), true);
 	}
 }
 

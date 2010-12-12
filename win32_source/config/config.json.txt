@@ -1,6 +1,3 @@
-##NOTE: Old config settings; make sure to handle these in code before release WZ 1.8:
-#burmesenumerals = yes
-
 {
     # General settings. To override these, edit the file:
 	#   waitzar.config.json.txt

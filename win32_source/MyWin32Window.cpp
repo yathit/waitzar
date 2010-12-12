@@ -413,15 +413,44 @@ bool MyWin32Window::unregisterHotKey(int id)
 }
 
 
+bool MyWin32Window::moveWindow(int newX, int newY)
+{
+	return this->moveWindow(newX, newY, false);
+}
+
 
 //Do not resize.
 //Do not repaint.
-bool MyWin32Window::moveWindow(int newX, int newY)
+bool MyWin32Window::moveWindow(int newX, int newY, bool forceWithinDesktop)
 {
+	//Pre-calc
 	int width = getWidth();
 	int height = getHeight();
 	int c_width = getClientWidth();
 	int c_height = getClientHeight();
+
+	//Keep it within the desktop rectangle?
+	if (forceWithinDesktop) {
+		//Get desktop rect.
+		RECT deskRect;
+		GetWindowRect(GetDesktopWindow(), &deskRect);
+
+		//Fix left/right
+		if (newX < deskRect.left) {
+			newX = deskRect.left;
+		} else if (newX + width > deskRect.right) {
+			newX = deskRect.right - width;
+		}
+
+		//Fix top/bottom
+		if (newY < deskRect.top) {
+			newY = deskRect.top;
+		} else if (newY + height > deskRect.bottom) {
+			newY = deskRect.bottom - height;
+		}
+	}
+
+	//Move it
 	bool res = (MoveWindow(window, newX, newY, width, height, FALSE)==TRUE);
 
 	//Bookkeeping
