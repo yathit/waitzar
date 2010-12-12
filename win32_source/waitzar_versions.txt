@@ -1,4 +1,5 @@
 #This file lists all versions of WaitZar, latest first.
+1.8
 1.7
 1.6
 1.5+ Beta
