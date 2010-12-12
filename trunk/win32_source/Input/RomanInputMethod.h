@@ -144,7 +144,7 @@ void RomanInputMethod<ModelType>::handleBackspace(VirtKey& vkey)
 			viewChanged = true;
 	} else {
 		//Delete the previously-typed letter
-		model->backspace(sentence->getPrevTypedWord(*model));
+		model->backspace(sentence->getPrevTypedWord(*model, userDefinedWords));
 
 		//Truncate...
 		wstring newStr = !typedRomanStr.str().empty() ? typedRomanStr.str().substr(0, typedRomanStr.str().length()-1) : L"";
@@ -219,7 +219,7 @@ void RomanInputMethod<ModelType>::handleNumber(VirtKey& vkey)
 {
 	//Special case: conglomerate numbers
 	if ((vkey.alphanum>='0'&&vkey.alphanum<='9') && typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
-	 if (model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
+	 if (model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
 		 typedRomanStr <<vkey.alphanum;
 		 viewChanged = true;
 	 }
@@ -321,7 +321,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 	wchar_t alpha = vkey.alphanum;
 	if ((alpha>='a' && alpha<='z') || alpha==';') {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model))) {
+		if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
 			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
 			if (controlKeyStyle==CK_CHINESE || typedRomanStr.str().empty())
 				return;
@@ -331,7 +331,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 			viewChanged = true;
 
 			//Nothing left on the new string?
-			if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model)))
+			if (!model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords)))
 				return;
 		}
 
@@ -492,7 +492,7 @@ vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandi
 		std::pair<std::wstring, unsigned int> item = std::pair<std::wstring, unsigned int>(model->getWordString(words[i]), HF_NOTHING);
 		
 		//Get the previous word
-		std::wstring prevWord = sentence->getPrevTypedWord(*model);
+		std::wstring prevWord = sentence->getPrevTypedWord(*model, userDefinedWords);
 
 		//Color properly.
 		if (combinations[i]!=-1) {
