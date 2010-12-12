@@ -137,6 +137,10 @@ const wstring ROMAN_INPUT_PROMPT = L"(Press \"Space\" to type this word)";
 bool isDragging;
 POINT dragFrom;
 
+
+//AGH
+bool stillPositioning = false;
+
 //Unique IDs
 const unsigned int STATUS_NID = 144;
 
@@ -1226,13 +1230,20 @@ bool registerInitialHotkey()
 //Re-position this near the caret
 void positionAtCaret()
 {
-	//This behaves differently if a window is already showing.
-	if (sentenceWindow->isVisible()) {
-		if (mainWindow->isVisible())
-			return;
+	//Mutual recursive destruction avoidance! (This function is used both to position windows at the caret AND to line them up. Bad! TODO: fix!)
+	/*if (stillPositioning) {
+		stillPositioning = false;
+		return;
+	}*/
 
-		//Position the main window above the sentence window in this case. 
+	//This behaves differently if a window is already showing.
+	if (!mainWindow->isVisible() && sentenceWindow->isVisible()) {
+		//For some STRANGE reason, accessing "sentenceWindow" BEFORE "mainWindow" will delay rendering on both for a few seconds
+		//  directly AFTER switching the language. This can be as simple as putting "sentenceWindow->isVisible()" first...
 		mainWindow->moveWindow(sentenceWindow->getXPos(), sentenceWindow->getYPos() - mainWindow->getHeight());
+		return;
+	}
+	if (mainWindow->isVisible() || sentenceWindow->isVisible()) {
 		return;
 	}
 
