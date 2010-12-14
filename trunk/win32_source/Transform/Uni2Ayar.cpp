@@ -33,10 +33,13 @@ void Uni2Ayar::convertInPlace(std::wstring& src) const
 	std::wstringstream res;
 	std::wstringstream currSyllable;
 	std::wstringstream currSyllablePrefix;
+	size_t u1031count = 0;
+	size_t u103Ccount = 0;
 	for (size_t i=0; i<src.length(); i++) {
 		//The next syllable starts at the first non-stacked non-killed consonant, or at a non-myanmar letter
 		if (src[i]<L'\u1000' || src[i]>L'\u109F') {   //TODO: Replace with an "IsMyanmar()" function, to catch extra characters in Unicode 5.2.
 			//Append all non-Myanmar letters and continue
+			res <<std::wstring(u1031count, L'\u1031') <<std::wstring(u103Ccount, L'\u103C');
 			res <<currSyllablePrefix.str() <<currSyllable.str();
 			currSyllablePrefix.str(L"");
 			currSyllable.str(L"");
@@ -44,6 +47,7 @@ void Uni2Ayar::convertInPlace(std::wstring& src) const
 				res <<src[i++];
 			}
 			i--;
+			u1031count = u103Ccount = 0;
 			continue;
 		}
 
@@ -59,9 +63,11 @@ void Uni2Ayar::convertInPlace(std::wstring& src) const
 				boundary = false; //Killed
 		}
 		if (boundary) {
+			res <<std::wstring(u1031count, L'\u1031') <<std::wstring(u103Ccount, L'\u103C');
 			res <<currSyllablePrefix.str() <<currSyllable.str();
 			currSyllablePrefix.str(L"");
 			currSyllable.str(L"");
+			u1031count = u103Ccount = 0;
 		}
 
 		//Now, collect as usual.
@@ -71,19 +77,27 @@ void Uni2Ayar::convertInPlace(std::wstring& src) const
 		} else if (IsConsonant(src[i]) && currSyllablePrefix.str().empty()) //Only the first consonant is the prefix.
 			currSyllablePrefix <<src[i];
 		else if (src[i]==L'\u1031' || src[i]==L'\u103C') {
-			if (i+1<src.length() && src[i]==L'\u103C' && src[i+1]==L'\u1031') {
+			//Save for later
+			if (src[i]==L'\u1031')
+				u1031count++;
+			else if (src[i]==L'\u103C')
+				u103Ccount++;
+
+			/*if (i+1<src.length() && src[i]==L'\u103C' && src[i+1]==L'\u1031') {
 				//If BOTH prefix letters are present, enforce Ayar's ordering
 				res <<L"\u1031\u103C";
 				i+=1;
 			} else
-				res <<src[i];
+				res <<src[i];*/
 		} else
 			currSyllable <<src[i];
 
 		if (i==src.length()-1) {
+			res <<std::wstring(u1031count, L'\u1031') <<std::wstring(u103Ccount, L'\u103C');
 			res <<currSyllablePrefix.str() <<currSyllable.str();
 			currSyllablePrefix.str(L"");
 			currSyllable.str(L"");
+			u1031count = u103Ccount = 0;
 		}
 	}
 
