@@ -153,27 +153,27 @@ U1005 + < VK_KEY_S > => U1008
 
 < VK_OEM_1 > => U1038
 
-$consU[*] + u1031 + < VK_BACK > => $zsve 
-$conoU[*] + u1031 + < VK_BACK > => $zsve 
-$smvU[*] + u1031 + < VK_BACK > => u1031
-$smvU[*] + $smvU[*] + u1031 + < VK_BACK > => u1031
-$smvU[*] + $smvU[*] + $smvU[*] + u1031 + < VK_BACK > => u1031
-u100B + u1039 + u100C + < VK_BACK > => NULL 
-u100B + u1039 + u100C + u1031 + < VK_BACK > => u1031 
-u100F + u1039 + u100D + < VK_BACK > => NULL
+//$consU[*] + u1031 + < VK_BACK > => $zsve 
+//$conoU[*] + u1031 + < VK_BACK > => $zsve 
+//$smvU[*] + u1031 + < VK_BACK > => u1031
+//$smvU[*] + $smvU[*] + u1031 + < VK_BACK > => u1031
+//$smvU[*] + $smvU[*] + $smvU[*] + u1031 + < VK_BACK > => u1031
+//u100B + u1039 + u100C + < VK_BACK > => NULL 
+//u100B + u1039 + u100C + u1031 + < VK_BACK > => u1031 
+//u100F + u1039 + u100D + < VK_BACK > => NULL
 
-$raha + < VK_BACK > => NULL
-$rawaha + < VK_BACK > => NULL  
-$rawa + < VK_BACK > => NULL
-$waha + < VK_BACK > => NULL 
-$yawa + < VK_BACK > => NULL
-$yaha + < VK_BACK > => NULL
-$zsve + < VK_BACK > => NULL
+//$raha + < VK_BACK > => NULL
+//$rawaha + < VK_BACK > => NULL  
+//$rawa + < VK_BACK > => NULL
+//$waha + < VK_BACK > => NULL 
+//$yawa + < VK_BACK > => NULL
+//$yaha + < VK_BACK > => NULL
+//$zsve + < VK_BACK > => NULL
 
-u1004 + u103A + u1039 + < VK_BACK > => NULL    
-u102B + u103A + < VK_BACK > => NULL
-u103E + u102D + u102F + < VK_BACK > => u103E + u102D 
-u1039 + $consU[*] + < VK_BACK > => NULL 
+//u1004 + u103A + u1039 + < VK_BACK > => NULL    
+//u102B + u103A + < VK_BACK > => NULL
+//u103E + u102D + u102F + < VK_BACK > => u103E + u102D 
+//u1039 + $consU[*] + < VK_BACK > => NULL 
 
 
 // Wa * Zero Checking

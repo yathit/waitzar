@@ -319,7 +319,11 @@ vector< pair<wstring, unsigned int> > LetterInputMethod::getTypedCandidateString
 
 void LetterInputMethod::appendToSentence(wchar_t letter, int id)
 {
-	typedSentenceStr <<letter;
+	//Used for system keys and ZWS
+	if (this->isHelpInput())
+		typedCandidateStr <<letter;
+	else
+		typedSentenceStr <<letter;
 }
 
 

@@ -20,7 +20,7 @@ $bridge_zws = $ZWS + $bridge
 $twh_yy = $twh + $yayit + $bridge /* a hacked */ + $ZWS
 
 < VK_SPACE > => U200B + VK_SPACE
-U200B + VK_SPACE + <VK_BACK> => null
+//U200B + VK_SPACE + <VK_BACK> => null
 //Non-Shifted
 $row1K = "1234567890"
 $row1U = U1041 + u1042 + u1043 + u1044 + u1045 + u1046 + u1047 + u1048 + u1049 + u1040 /* a hacked */ + $ZWS
@@ -29,10 +29,10 @@ $row2U = U1006 + u1010 + u1014 + u1019 + u1021 + u1015 + u1000 + u1004 + u101E +
 $row3K = "sdfghkl;'"
 $row3U = U103B + u102D + u103A + u102B + u1037 + u102F + u1030 + u1038 + u1012
 < VK_KEY_A > => U200B + $twh
-U200B + $twh + <VK_BACK> => null
+//U200B + $twh + <VK_BACK> => null
 $twh[^] + < VK_KEY_J > => $1 + u200B + $yayit
 < VK_KEY_J > => $yayit
-U200B + $yayit + <VK_BACK> => null
+//U200B + $yayit + <VK_BACK> => null
 $row4K = "zxcvbnm,"
 $row4U = U1016 + U1011 + U1001 + U101C + U1018 + U100A + U102C + U101A
 
@@ -41,13 +41,13 @@ $row4U = U1016 + U1011 + U1001 + U101C + U1018 + U100A + U102C + U101A
 '/' => U200B + U104A
 //END CHANGE
 
-U200B + U104B + <VK_BACK> => null
+//U200B + U104B + <VK_BACK> => null
 '.' => U200B + U104F
-U200B + U104F + <VK_BACK> => null
+//U200B + U104F + <VK_BACK> => null
 
 $row1K[*] => $ZWS + $row1U[$1]
 $row1U[*] + $ZWS + $row1U[*] => $1 + $3
-$ZWS + $row1U[*] + <VK_BACK> => null
+//$ZWS + $row1U[*] + <VK_BACK> => null
 $row2K[*] => $row2U[$1]
 $row3K[*] => $row3U[$1]
 $row4K[*] => $row4U[$1]
@@ -68,7 +68,7 @@ $row1K_S[*] => $row1U_S[$1]
 $row2K_S = "ETO{" 
 $row2U_S = U100F + U1024 + U1025 + U1027
 '}' => U100B + U1039 + U100C
-U100B + U1039 + U100C + <VK_BACK> => null
+//U100B + U1039 + U100C + <VK_BACK> => null
 'Y' => U200B + U104C
 'I' => U200B + U104D
 
@@ -78,7 +78,7 @@ U100B + U1039 + U100C + <VK_BACK> => null
 '|' => $ZWS + U104E
 //END CHANGE 
 
-$ZWS + U104E + U1004 + U103A + U1038 + <VK_BACK> => null
+//$ZWS + U104E + U1004 + U103A + U1038 + <VK_BACK> => null
 
 $row2K_S[*] => $row2U_S[$1]
 
@@ -88,7 +88,7 @@ $stackK = "QWRUP"
 $stackU = U1001 + U1010 + U1019 + U1000 + U1005
 
 $stackK[*] => U1039 + $stackU[$1]
-U1039 + $stackU[*] + < VK_BACK > => NULL
+//U1039 + $stackU[*] + < VK_BACK > => NULL
 
 //Shifted
 //Normal Third Row
@@ -100,13 +100,13 @@ $row3K_S[*] => $row3U_S[$1]
 //Shifted
 //Non-Normal on Third row
 < VK_SHIFT & VK_KEY_F > => U1004 + U103A + U1039
-U1004 + U103A + U1039 + < VK_BACK > => NULL
+//U1004 + U103A + U1039 + < VK_BACK > => NULL
 < VK_SHIFT & VK_KEY_K > => U103E + U102F
-U103E + U102F + < VK_BACK > => NULL
+//U103E + U102F + < VK_BACK > => NULL
 < VK_SHIFT & VK_KEY_L > => U103E + U1030
-U103E + U1030 + < VK_BACK > => NULL
+//U103E + U1030 + < VK_BACK > => NULL
 < VK_SHIFT & VK_COLON > => U102B + U103A
-U102B + U103A + < VK_BACK > => NULL
+//U102B + U103A + < VK_BACK > => NULL
 
 //Shifted
 //Normal Fourth Row
@@ -125,7 +125,7 @@ $stack4thK = "BNM<>"
 $stack4thU = U1018 + U1012 + U1014 + U1013 + U1006
 
 $stack4thK[*] => U1039 + $stack4thU[$1]
-U1039 + $stack4thU[*] + < VK_BACK > => NULL
+//U1039 + $stack4thU[*] + < VK_BACK > => NULL
 
 < VK_CFLEX > => U1039
 < VK_OEM_PLUS > => U1039
@@ -203,7 +203,7 @@ $consU[*] + $Abv2U[*] + $bridge + $consU[*] => $1 + $3 + $4 + $2
 $consU[*] + $BlwU[*] + $bridge + $consU[*] => $1 + $3 + $4 + $2
 
 $twh_yy[^] + $consU[*] => $1 + $ZWS + $2
-$ZWS + $consU[*] + <VK_BACK> => null
+//$ZWS + $consU[*] + <VK_BACK> => null
 $ZWS + $consU[*] + $killer => $2 + $3
 U101B + U103B => $1 + U103E
 U1036 + U102D => $2 + $1
