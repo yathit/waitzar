@@ -159,6 +159,34 @@ $dotAbove = U1036
 $dotBelow = U1037
 $asat = U103A
 
+$yayit = U103C
+//BEGIN: Rules that involve typing ya-yit after the consonant
+//NOTE: We don't catch all of them...
+//$specLower[*] + $specLower[*] + $upperVowel[*] + $lowerVowel[*] + $dotAbove[*] + $dotBelow[*] + $yayit => 
+U103E + $upperVowel[*] + $dotAbove[*] + U103D => $4 + $1 + $2 + $3
+$specLower + $upperVowel[*] + $dotAbove[*] + $specLower => $1 + $4 + $2 + $3
+U103E + $dotAbove[*] + U103D + $yayit => $4 + $3 + $1 + $2
+$specLower[*] + $dotAbove[*] + $specLower[*] + $yayit => $4 + $1 + $3 + $2
+U103E + $dotAbove[*] + U103D =>$3 + $1 + $2
+$specLower[*] + $dotAbove[*] + $specLower[*] =>$1 + $3 + $2
+U103E + U103D + $upperVowel[*] + $dotAbove[*] + $yayit => $5 + $2 + $1 + $3 + $4
+$specLower[*] + $specLower[*] + $upperVowel[*] + $dotAbove[*] + $yayit => $5 + $1 + $2 + $3 + $4
+U103E + U103D + $upperVowel[*] + $yayit => $4 + $2 + $1 + $3
+$specLower[*] + $specLower[*] + $upperVowel[*] + $yayit => $4 + $1 + $2 + $3
+U103E + U103D + $dotAbove[*] + $yayit => $4 + $2 + $1 + $3
+$specLower[*] + $specLower[*] + $dotAbove[*] + $yayit => $4 + $1 + $2 + $3
+$specLower[*] + $upperVowel[*] + $dotAbove[*] + $yayit => $4 + $1 + $2 + $3
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + $yayit => $4 + $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] + $yayit => $4 + $2 + $1 + $3
+$upperVowel[*] + $dotAbove[*] + $yayit => $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + $yayit => $3 + $2 + $1
+$specLower[*] + $upperVowel[*] + $yayit => $3 + $1 + $2
+U103E + U103D + $yayit => $3 + $2 + $1
+$specLower[*] + $specLower[*] + $yayit => $3 + $1 + $2
+$specLower[*] + $yayit => $2 + $1
+$upperVowel[*] + $yayit => $2 + $1
+//END
+
 //Fix a few more cases of U103B
 //NOTE: Ensure U103D + U103E is enforced whenever it's not set to last
 $upperVowel[*] + $dotAbove[*] + $specLower[*] + U103B => $4 + $3 + $1 + $2
