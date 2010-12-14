@@ -222,7 +222,7 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 			if (oldPrefix.length()==1 || (oldPrefix.length()==2 && c!=L'\u1004' && (oldPrefix[1]==L'\u103B' || oldPrefix[1]==L'\u103C'))) {
 
 				if (  (c>=L'\u1000' && c<=L'\u1008')
-					||(c==L'\u100B' || c==L'\u100C' || c==L'\u101C')
+					||(c==L'\u100B' || c==L'\u100C' || c==L'\u100D' || c==L'\u101C' || c==L'\u101E')
 					||(c>=L'\u100F' && c<=L'\u1019'))
 				{
 					//Stack it
