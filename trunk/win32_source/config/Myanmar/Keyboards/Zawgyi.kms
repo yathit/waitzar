@@ -459,8 +459,6 @@ U103E + U103D => $2 + $1
 $specLower = U103D + U103E
 $specLower[*] + $specLower[*] + $twh + U103B => $4 + $1 + $2 + $3
 $specLower[*] + $twh + U103B => $3 + $1 + $2 
-$specLower[*] + $specLower[*] + U103B => $3 + $1 + $2
-$specLower[*] + U103B => $2 + $1
 
 //Fix ordering of circle-above and leg-below
 $upperVowel = U102D + U102E + U1032
@@ -470,6 +468,33 @@ $lowerVowel = U102F + U1030
 $dotAbove = U1036
 $dotBelow = U1037
 $asat = U103A
+
+//Fix a few more cases of U103B
+//NOTE: Ensure U103D + U103E is enforced whenever it's not set to last
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + U103B => $4 + $3 + $1 + $2
+$specLower[*] + $upperVowel[*] + $dotAbove[*] + U103B => $4 + $1 + $2 + $3
+$upperVowel[*] + U103E + U103D + U103B => $4 + $3 + $2 + $1
+$upperVowel[*] + $specLower[*] + $specLower[*] + U103B => $4 + $2 + $3 + $1
+U103E + U103D + $upperVowel[*] + U103B => $4 + $2 + $1 + $3
+$specLower[*] + $specLower[*] + $upperVowel[*] + U103B => $4 + $1 + $2 + $3
+$upperVowel[*] + U103B + U103E + U103D => $2 + $4 + $3 + $1
+$upperVowel[*] + U103B + $specLower[*] + $specLower[*] => $2 + $3 + $4 + $1
+U103E + $upperVowel[*] + U103D + U103B => $4 + $3 + $1 + $2
+$specLower[*] + $upperVowel[*] + $specLower[*] + U103B => $4 + $1 + $3 + $2
+U103E + $upperVowel[*] + U103B + U103D => $3 + $4 + $1 + $2
+$specLower[*] + $upperVowel[*] + U103B + $specLower[*] => $3 + $1 + $4 + $2
+$upperVowel[*] + U103E + U103B + U103D => $3 + $4 + $2 + $1
+$upperVowel[*] + $specLower[*] + U103B + $specLower[*] => $3 + $2 + $4 + $1
+$upperVowel[*] + $dotAbove[*] + U103B => $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + U103B => $3 + $2 + $1
+$specLower[*] + $upperVowel[*] + U103B => $3 + $1 + $2
+$dotAbove[*] + $specLower[*] + U103B => $3 + $2 + $1
+$specLower[*] + $dotAbove[*] + U103B => $3 + $1 + $2
+U103E + U103D + U103B => $3 + $2 + $1
+$specLower[*] + $specLower[*] + U103B => $3 + $1 + $2
+$specLower[*] + U103B => $2 + $1
+$upperVowel[*] + U103B => $2 + $1
+$dotAbove[*] + U103B => $2 + $1
 
 //Fix bad normalization all in a row
 //Step 1: Get upper vowel in place
@@ -495,10 +520,30 @@ $oneVowel + $dotAbove  => $2 + $1
 $asat[*] + $dotBelow[*] => $2 + $1
 
 //Now, there's one more possibility: an $upperVowel could be competing with $specLower
+//(AND upper vowels might have a dot.)
+$twh + $dotAbove[*] + $upperVowel[*] + $specLower[*] + $specLower[*] => $4 + $5 + $1 + $3 + $2
+$twh + $upperVowel[*] + $dotAbove[*] + $specLower[*] + $specLower[*] => $4 + $5 + $1 + $2 + $3
+$twh + $upperVowel[*] + $specLower[*] + $dotAbove[*] + $specLower[*] => $3 + $5 + $1 + $2 + $4
+$twh + $upperVowel[*] + $specLower[*] + $specLower[*] + $dotAbove[*] => $3 + $4 + $1 + $2 + $5
+$twh + $dotAbove[*] + $upperVowel[*] + $specLower[*] => $4 + $1 + $3 + $2
+$twh + $dotAbove[*] + $specLower[*] + $upperVowel[*] => $3 + $1 + $4 + $2
+$twh + $upperVowel[*] + $dotAbove[*] + $specLower[*] => $4 + $1 + $2 + $3
+$twh + $upperVowel[*] + $specLower[*] + $dotAbove[*] => $3 + $1 + $2 + $4
 $twh + $upperVowel[*] + $specLower[*] + $specLower[*] => $3 + $4 + $1 + $2
 $twh + $upperVowel[*] + $specLower[*] => $3 + $1 + $2
+$dotAbove[*] + $upperVowel[*] + $specLower[*] + $specLower[*] => $3 + $4 + $2 + $1
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + $specLower[*] => $3 + $4 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] + $specLower[*] => $2 + $4 + $1 + $3
+$upperVowel[*] + $specLower[*] + $specLower[*] + $dotAbove[*] => $2 + $3 + $1 + $4
+$dotAbove[*] + $upperVowel[*] + $specLower[*] => $3 + $2 + $1
+$dotAbove[*] + $specLower[*] + $upperVowel[*] => $2 + $3 + $1
+$upperVowel[*] + $dotAbove[*] + $specLower[*] => $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] => $2 + $1 + $3
+$upperVowel[*] + $specLower[*] + $lowerVowel[*] => $2 + $1 + $3
 $upperVowel[*] + $specLower[*] + $specLower[*] => $2 + $3 + $1
+U103E + $upperVowel[*] + U103D => $3 + $1 + $2
 $upperVowel[*] + $specLower[*] => $2 + $1
+
 
 
 //Minor cleanup; hope this won't loop much
