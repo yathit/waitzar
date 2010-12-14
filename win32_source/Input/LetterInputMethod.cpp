@@ -59,6 +59,10 @@ void LetterInputMethod::handleBackspace(VirtKey& vkey)
 	else if (len>=2 && oldString[len-2]==L'\u1039' && canStack(oldString[len-1], 0x0000))
 		newStr = oldString.substr(0, len-2) + wstring(1, oldString[len-1]);
 
+	//Case X: CONS, U+1031
+	else if (len>=2 && oldString[len-1]==L'\u1031' && ((oldString[len-2]>=L'\u1000' && oldString[len-2]<=L'\u102A')||oldString[len-2]==L'\u103F')) 
+		newStr = oldString.substr(0, len-2) + wstring(1, oldString[len-1]);
+
 	//Default behavior: cut off the last letter
 	else
 		newStr = !oldString.empty() ? oldString.substr(0, oldString.length()-1) : L"";
@@ -203,6 +207,13 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 			currStr[len-4] = nextBit[0];
 			currStr[len-3] = nextBit[1];
 			currStr[len-2] = nextBit[2];
+		}
+	} else if (len>=2 && currStr[len-2]==L'\u1031') {
+		//U+1031 is actually typed before the consonant
+		wchar_t cons = currStr[len-1];
+		if ((cons>=L'\u1000' && cons<=L'\u102A')||cons==L'\u103F') {
+			currStr[len-1] = currStr[len-2];
+			currStr[len-2] = cons;
 		}
 	}
 
