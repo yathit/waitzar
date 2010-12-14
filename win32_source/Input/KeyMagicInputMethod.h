@@ -325,6 +325,10 @@ public:
 	virtual void handleStop(bool isFull, VirtKey& vkey);
 	virtual void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
+	//Overridden just for "smart backspace"
+	virtual void handleKeyPress(VirtKey& vkey);
+	//virtual void appendToSentence(wchar_t letter, int id);
+
 
 private:
 	//Trace?
@@ -338,6 +342,7 @@ private:
 	
 	//Ugh
 	static const std::wstring emptyStr;
+	static bool useSmartBackspace; //Pull out into the header configs later
 
 	//Data
 	std::vector<bool> switches;
@@ -345,6 +350,9 @@ private:
 	static const std::vector< std::vector<Rule> >* lastConsideredVariables;
 	std::vector< RuleSet > replacements;
 	std::map<std::wstring, std::wstring> options; //Loaded from the first comment.
+
+	//Used for smart backspace
+	std::vector<std::wstring> typedStack;
 
 	//Another index (helps search with switches quickly)
 	std::map<unsigned int, std::vector<unsigned int> > switchLookup;

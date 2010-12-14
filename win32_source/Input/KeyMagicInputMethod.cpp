@@ -49,6 +49,7 @@ KeyMagicInputMethod::~KeyMagicInputMethod()
 
 
 const std::wstring KeyMagicInputMethod::emptyStr = L"";
+bool KeyMagicInputMethod::useSmartBackspace = true;
 const wstring& KeyMagicInputMethod::getOption(const wstring& optName)
 {
 	if (options.count(optName)>0)
@@ -1501,7 +1502,24 @@ void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 	pair<wstring, bool> next = appendTypedLetter(currStr, vkey);
 	if (currStr == next.first) {
 		//Default backspace rules
-		LetterInputMethod::handleBackspace(vkey);
+		if (!useSmartBackspace) {
+			//Delete one letter
+			LetterInputMethod::handleBackspace(vkey);
+		} else {
+			//Delete whatever was "last typed"
+			if (!typedStack.empty())
+				typedStack.pop_back();
+			currStr = typedStack.empty() ? L"" : typedStack.back();
+			if (this->isHelpInput()) {  //TODO: This is now in THREE places. Argh! Can't we make "helpInput" more transparent?
+				typedCandidateStr.str(L"");
+				typedCandidateStr <<currStr;
+				updateRomanHelpString(); //TODO: Fix; bad to have this in two places...
+			} else {
+				typedSentenceStr.str(L"");
+				typedSentenceStr <<currStr;
+			}
+			viewChanged = true;
+		}
 	} else {
 		if (this->isHelpInput()) {
 			typedCandidateStr.str(L"");
@@ -1517,6 +1535,18 @@ void KeyMagicInputMethod::handleBackspace(VirtKey& vkey)
 
 
 
+void KeyMagicInputMethod::handleKeyPress(VirtKey& vkey)
+{
+	LetterInputMethod::handleKeyPress(vkey);
+	if (viewChanged) {
+		wstring typed = this->isHelpInput() ? typedCandidateStr.str() : typedSentenceStr.str();
+		typedStack.push_back(typed);
+	}
+}
+
+/*void KeyMagicInputMethod:appendToSentence(wchar_t letter, int id)
+{
+}*/
 
 pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, VirtKey& vkey)
 {
@@ -1532,14 +1562,8 @@ pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevSt
 
 	//Now apply.
 	wstring result = applyRules(appended, vkey.toKeyMagicVal());
-	//Remove all trailing '\0's //TODO: Replace this with a "removeall" at some point...
+	//Remove all trailing '\0's 
 	result = waitzar::removeZWS(result, wstring(1, L'\0'));
-	/*for (;;) {
-		size_t zeroIndex = result.rfind(L'\0');
-		if (zeroIndex==wstring::npos)
-			break;
-		result.replace(zeroIndex, 1, L"");
-	}*/
 	return pair<wstring, bool>(result, true);
 }
 
@@ -1655,6 +1679,7 @@ void KeyMagicInputMethod::reset(bool resetCandidates, bool resetRoman, bool rese
 {
 	//Reset all switches.
 	if (performFullReset) {
+		typedStack.clear(); 
 		for (size_t i=0; i<switches.size(); i++) 
 			switches[i] = false;
 	}

@@ -436,6 +436,26 @@
 "u~Mau" => "ကကြေ"
 "ua~Mu" => "ကကြေ"
 
+//Test backspace
+//TODO: WZ doesn't support testing VK's yet....
+//"au" + <VK_BACK> => "ေ"
+//"aju" + <VK_BACK> => "ြေ"
+//"jau" + <VK_BACK> => "ြေ"
+//"ua" + <VK_BACK> => "က"
+//"uj" + <VK_BACK> => "က"
+
+//Backspace all the way to an empty sentence and beyond
+//TODO: WZ doesn't support testing VK's yet....
+"ajuFjauF" => "င်္ကြေင်္ကြေ"
+//"ajuFjauF" + <VK_BACK> => "င်္ကြေကြေ"
+//"ajuFjauF" + <VK_BACK> + <VK_BACK> => "င်္ကြေြေ"
+//"ajuFjauF" + <VK_BACK> + <VK_BACK> + <VK_BACK> => "င်္ကြေြ"
+//"ajuFjauF" + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> => "င်္ကြေ"
+//"ajuFjauF" + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> => "ကြေ"
+//"ajuFjauF" + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> => "က"
+//"ajuFjauF" + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> => ""
+//"ajuFjauF" + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> + <VK_BACK> => ""
+
 //Combinations of keys:
 //LATER: CAPS -> "type normally" mode
 //         NOTE: It seems that CAPS_LOCK is treated as the "symbol key", which turns on "English typing".
