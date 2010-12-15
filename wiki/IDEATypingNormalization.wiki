@@ -17,7 +17,9 @@ The Zawgyi-One keyboard contains about 130 rules for normalizing typed text, and
 Here, "က" stands for "any consonant" and "္က" for "any stacked consonant". Slashes mean that a letter can by typed in any order. For example, some users type "ိ" before "ု", but actually the reverse is ok. The encoding, of course, is much stricter than the typing order. 
 
 The lines printed above aren't 100% complete; for example, "ီ" can be typed instead of "ိ". And what do you do about obvious errors, like "ိ" + "ီ" (which overlaps)? Still, these two lines adequately describe a huge part of the problem. One sample rule in the Zawgyi keyboard file illustrates how complicated this can get. 
+{{{
    $consU[*] + $yayit + $twh + U1039 + $consU[*] + $kinzi + $afterKinzi[*] => $6 + $1 + $2 + $3 + $4 + $5 + $7
+}}}
 
 Can we translate our two-line solution into something fast, efficient, and equally easy to understand?
 
