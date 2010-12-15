@@ -26,7 +26,9 @@ Can we translate our two-line solution into something fast, efficient, and equal
 
 Consider a series of boxes. Each box has a tab above it and a tab to the right. The tab above specifies which letters it can contain. The tab to the right specifies how many letters it can hold, and whether or not the letters it holds must be unique. For now, consider "င်္" and "္က" to be single letters. 
 
-Here are the diagrams of our "typing order" and "encoding order" for the Zawgyi keyboard, slightly modified to be more realistic:
+Here are the diagrams of our "typing order" and "encoding order" for the Zawgyi keyboard, slightly modified to be more realistic. Note that "encoding order" does not have tabs to the right; this will be explained later. 
+
+[http://waitzar.googlecode.com/svn-history/r1392/trunk/img_guide/wiki_zg_typing_order.png]
 
 
 
