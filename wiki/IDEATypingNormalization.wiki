@@ -1,0 +1,32 @@
+#summary How do we normalize on a key-by-key basis while we type?
+#labels Phase-Design
+
+= Encoding =
+
+Myanmar text in this wiki page is encoded in Unicode. Please [http://www.myanmarlanguage.org/unicode/myanmar-fonts-which-follow-unicode-rules check this page] for a list of Unicode-enabled fonts. (We are currently in the process of switching all of our wiki pages to use Unicode).
+
+
+= Introduction =
+
+The Zawgyi-One keyboard contains about 130 rules for normalizing typed text, and even then it still cannot type some words properly. The IDEA article on Key Magic improvements could probably shorten this list down to 50 or 60 rules, but they would still be fairly complex. In fact, the entire solution can be described in two lines:
+
+*Typing order*:  ေ ြ က ္က/-င်္  ျ/ွ/ှ/ိ/ု/ာ/ံ/့/်/-း
+
+*Encoding order*:  -င်္ က ္က  ျ  ြ  ွ  ှ  ေ  ိ  ု  ာ  ံ  ့  ် -း
+
+Here, "က" stands for "any consonant" and "္က" for "any stacked consonant". Slashes mean that a letter can by typed in any order. For example, some users type "ိ" before "ု", but actually the reverse is ok. The encoding, of course, is much stricter than the typing order. 
+
+The lines printed above aren't 100% complete; for example, "ီ" can be typed instead of "ိ". And what do you do about obvious errors, like "ိ" + "ီ" (which overlaps)? Still, these two lines adequately describe a huge part of the problem. One sample rule in the Zawgyi keyboard file illustrates how complicated this can get. 
+   $consU[*] + $yayit + $twh + U1039 + $consU[*] + $kinzi + $afterKinzi[*] => $6 + $1 + $2 + $3 + $4 + $5 + $7
+
+Can we translate our two-line solution into something fast, efficient, and equally easy to understand?
+
+
+= General Description of Solution =
+
+Consider a series of boxes. Each box has a tab above it and a tab to the right. The tab above specifies which letters it can contain. The tab to the right specifies how many letters it can hold, and whether or not the letters it holds must be unique. For now, consider "င်္" and "္က" to be single letters. 
+
+Here are the diagrams of our "typing order" and "encoding order" for the Zawgyi keyboard, slightly modified to be more realistic:
+
+
+
