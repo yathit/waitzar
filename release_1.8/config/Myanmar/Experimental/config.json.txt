@@ -1,0 +1,19 @@
+# 
+# Our demo Romabama keyboard is included here. Note that this keyboard is entirely
+#  experimental, and is only around 20% compatible. Only use it for experimenting.
+# Some problems:
+#   1) It is not clear from the website which version of the specification is the latest. 
+#   2) Some letters are from the Latin-1 extensions and cannot currently be typed. Others, like "/" and "//"
+#       may not be usable in WaitZar at the moment. Finally, we should allow "-" to function as "space" or "tab",
+#       since this is what Romabama typists are used to.
+#   3) Some additional leters (such as "." and ":") are truncated, so "ku" will match the entries for "ku." and "ku:" as well.
+#
+{"languages.myanmar.input-methods" : {
+#      "romabama" : 
+#      {
+#        "display-name" : "Romabama",
+#        "encoding" : "zawgyi-one", 
+#        "type" : "roman",
+#        "wordlist" : "roma_words_sample.txt"
+#      }
+}}

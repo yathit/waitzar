@@ -1,0 +1,555 @@
+/*
+ * Modified from Dr. Carbon's layout to output Ayar-encoded 
+ * text using the Zawgyi layout. (Now outputs Unicode)
+ * Settings:
+    @track_capslocks = false
+    @eat_all_unused_keys = true
+    @US_layout_based = true
+*/
+
+$consU =    U1000 + U1001 + U1002 + U1003 +        U1005 + U1006 + U1007 + \
+			U1008 + U1009 + U100A + U100B + U100C + U100D + U100E + U100F + \
+			U1010 + U1011 + U1012 + U1013 + U1014 + U1015 + U1016 + U1017 + \
+			U1018 + U1019 + U101A + U101B + U101C + U101D + U101E + U101F + \
+			U1020 + U1021 
+
+/*$consK = 'uc*CpqZ' +\
+	'NUn#X!@P' +\
+	"wx'" +\
+	'"eyzAbr,&vWo[' +\
+	'Vt'*/
+
+$twh = U1031
+$yayit = U103C
+$kinzi = U1004 + U103A + U1039
+$ZWS = U200B
+$killer = U103A
+$bridge = U1039
+$bridge_zws = $ZWS + $bridge
+$twh_yy = $twh + $yayit + $bridge /* a hacked */ + $ZWS
+
+<VK_SPACE> => $ZWS + VK_SPACE
+//$ZWS + VK_SPACE + <VK_BACK> => null
+//Non-Shifted
+$row1K = "1234567890"
+$row1U = U1041 + U1042 + U1043 + U1044 + U1045 + U1046 + U1047 + U1048 + U1049 + U1040 + /* a hacked */ $ZWS
+< VK_OEM_MINUS > => '-'
+< VK_OEM_PLUS > => '='
+
+$row2K = "qwertyuiop[\\"
+$row2U = U1006 + U1010 + U1014 + U1019 + U1021 + U1015 + U1000 + U1004 + U101E + U1005 + U101F + U104F
+
+$ZWS[^] + U104F => $1 + $ZWS + $2
+$row3K = "sdfghkl;'"
+$row3U = U103B + U102D + U103A + U102B + U1037 + U102F + U1030 + U1038 + U1012
+
+
+//$ZWS + $twh + <VK_BACK> => null
+//$ZWS + $yayit + <VK_BACK> => null
+
+//CHANGED: This doesn't make sense! If we type "ju", then after "yayit" is put after
+//             "ka", this rule will put a ZWS between the two (when they're clearly part
+//             of the same word).
+//$twh_yy[^] + $yayit => $1 + $ZWS + $yayit
+//END CHANGED
+
+//$ZWS + $yayit + <VK_BACK> => null
+$row4K = "zxcvbnm,./"
+$row4U = U1016 + U1011 + U1001 + U101C + U1018 + U100A + U102C + U101A + U002E + U104B
+$ZWS[^] + U104B => $1 + $ZWS + $2
+//$ZWS + U104B + <VK_BACK> => null
+
+
+$row1K[*] => $ZWS + $row1U[$1]
+$row1U[*] + $ZWS + $row1U[*] => $1 + $3
+//$ZWS + $row1U[*] + <VK_BACK> => null
+$row2K[*] => $row2U[$1]
+$row3K[*] => $row3U[$1]
+$row4K[*] => $row4U[$1]
+
+//Shifted
+//Normal First Row
+$row1K_S = "!#%^&*()_+"
+$row1U_S = U100D + U100B + U0025 + U002F + U101B + U1002 + U0028 + U0029 + U00D7 + U002B
+'@' => U100F + U1039 + U100D
+//U100F + U1039 + U100D + <VK_BACK>=> null
+<VK_SHIFT & VK_KEY_4> => U1000 + U103B + U1015 + U103A
+//U1000 + U103B + U1015 + U103A + <VK_BACK>=> null
+
+$row1K_S[*] => $row1U_S[$1]
+
+//Shifted
+//Normal Second Row
+$row2K_S = "EYUOP{" 
+$row2U_S = U1014 + U1037 + U1037 + U1025 + U100F + U1027
+
+//CHANGED: Zawgyi uses these for double quotes
+//']' => U104F
+//'}' => U100B + U1039 + U100C
+//('zg_key') + ';' => U003B 
+//('zg_key') + ':' => U003A
+']' => U201C
+'}' => U201D
+('zg_key') + ';' => U2018
+('zg_key') + ':' => U2019
+//END CHANGED
+
+
+'|' => U100B + U1039 + U100C
+'Q' => U103B + U103E
+'W' => U103B + U103D + U103E
+'R' => U103B + U103D
+'T' => U103D + U103E
+
+//CHANGED: Most likely these are legitimate errors
+//'I' => U103E + U1030
+//('zg_key') + 'o' => U101E + U1039 + U101E 
+//('zg_key') + 'L' => U1039 + U1004 + U102D
+//('zg_key') + 'D' => U1039 + U1004 + U102E
+//('zg_key') + 'E' => U1039 + U1010 + U103C
+//('zg_key') + 'l' => U1039 + U1004 + U1036
+//('zg_key') + 's' => U103A 
+'I' => U103E + U102F
+('zg_key') + 'o' => U103F
+('zg_key') + 'L' => $kinzi + U102D
+('zg_key') + 'D' => $kinzi + U102E
+('zg_key') + 'E' => U1039 + U1010 + U103D
+('zg_key') + 'l' => $kinzi + U1036
+('zg_key') + 's' => U103B
+//END CHANGED
+
+//U104E + U1004 + U103A + U1038 + <VK_BACK> => null
+
+$row2K_S[*] => $row2U_S[$1]
+
+//Shifted
+//Normal Third Row
+$row3K_S = 'ASDGHJ"'
+$row3U_S = U1017 + U103E + U102E + U103D + U1036 + U1032 + U1013
+
+$row3K_S[*] => $row3U_S[$1]
+
+//Shifted
+//Non-Normal on Third row
+< VK_SHIFT & VK_KEY_F > => $kinzi
+//$kinzi + < VK_BACK > => NULL
+< VK_SHIFT & VK_KEY_K > => U102F
+< VK_SHIFT & VK_KEY_L > => U1030
+< VK_SHIFT & VK_COLON > => U102B + U103A
+//U102B + U103A + < VK_BACK > => NULL
+
+//Shifted
+//Normal Fourth Row
+
+//CHANGED: ">" has no entry in the keyboard file
+//$row4K_S = "ZXCVBNM<>?"
+//$row4U_S = U1007 + U100C + U1003 + U1020 + U103C + U103C + U103C + U101D + U1008 + U104A
+$row4K_S = "ZXCV<?"
+$row4U_S = U1007 + U100C + U1003 + U1020 + U101D + U104A
+//END CHANGED
+
+
+$ZWS[^] + U104A => $1 + $ZWS + $2
+//$ZWS + U104a + <VK_BACK> => null
+
+$row4K_S[*] => $row4U_S[$1]
+
+//< VK_CFLEX > => U1039
+< VK_CFLEX > => ('zg_key')
+
+//Added by Seth: Shift should trigger this too
+< VK_SHIFT & VK_CFLEX > => ('zg_key')
+//End added by Seth
+
+< VK_CAPSLOCK > => ('zg_gk')
+('zg_gk') + * => $1 + ('zg_gk')
+
+//AUTO CORRECTION SECTION
+
+//Number auto-correct
+$NumOrLetK = "780"
+$NumOrLetU = U1047 + U1048 + U1040
+$NumAsLetU = U101B + U1002 + U101D
+
+//prefix autocorrect
+$prefix = $twh + $yayit
+//$prefix[*] + $NumOrLetK[*] => $1 + $NumAsLetU[$2]
+//$prefix[*] + $ZWS + $NumOrLetU[*] => $1 + $NumAsLetU[$3]
+//postfix autocorrect
+$postfix = U102E + U102D + U103E + U102E + U103D + U1036 + U1037 + U1032 + U102F + U102B + U1030 + U1038 + U103B + U103A + U1039
+//$NumOrLetU[*] + $postfix[*] => $1 + $postfix[$2]
+$ZWS + $NumOrLetU[*] + $postfix[*] => $1 + $NumAsLetU[$2] + $3
+
+//za myin swel
+//NOTE: I don't like generating this letter; it messes up some words.
+//U1005 + U103B => U1008
+$bridge_zws[^] + U1008 => $1 + $ZWS + $2
+$bridge + $ZWS + U1008 => $bridge + U1008
+
+$ttt = U1036
+$akm = U103B
+$ttt + $akm => $2 + $1 
+
+$ZWS + $NumOrLetU[*] + $NumOrLetU[*] + 'f' => $1 + $NumAsLetU[$2] + $NumAsLetU[$3] + U103A 
+$ZWS + $NumOrLetU[*] + $consU[*] => $NumAsLetU[$2] + $3
+
+//Fix "7,8,0" when typed as numbers (but should be letters)
+$ZWS + $NumOrLetU[*] + $kinzi => $1 + $NumAsLetU[$2] + $3
+
+//REMOVED reordering rules for now... I think we capture them in our own code
+//U102F + U102D => $2 + $1
+//U1037 + U1036 => $2 + $1
+//U102F + U1036 => $2 + $1
+//U103E + U103B => $2 + $1
+//U103D + U103B => $2 + $1
+//U103E + U103D => $2 + $1
+
+U103B + U103B => $1
+U103E + U103E => $1
+
+//U102D + U102D => $1
+//U102E + U102E => $1
+//U103A + U103A => $1
+$kinzi + 'F' => $1
+U102B + U102B => $1
+//U103D + U103D => $1
+U1037 + U1037 => $1
+//U1036 + U1036 => $1
+U103C + U103C => $1
+//U1032 + U1032 => $1
+//U102F + U102F => $1
+//U1030 + U1030 => $1
+
+//These rules are good, but they don't necessarily capture
+// all Burmese. They may be _technically_ correct, but I'm disabling them for now.
+$AbvU = U102D + U102E + U103A + U1032
+//$AbvU[*] + $AbvU[*] => $2
+$Abv2U = U1036 + U1032
+//$Abv2U[*] + $Abv2U[*] => $2
+$BlwU = U103D + U102F + U1030
+//$BlwU[*] + $BlwU[*] => $2
+
+$v1 = U1038 + U104A + U104B
+$v2 = U102D + U103A + U1037 + U102E + U1032
+$v1[*] + U200B + $v2[*] => $3 + U200B + $1
+
+U200B + U1039 => U1039
+
+//NOTE: These aren't really needed, since any prefix vowel will insert its own ZWS
+//$v3 = U1038 + U1037 + U104B + U104A + U002D + U0028 + U0029
+//$v3[*] => $1 + U200B
+
+//autocorrect for pat sint
+$consU[*] + $AbvU[*] + $bridge + $consU[*] => $1 + $3 + $4 + $2 //@DebugBreak
+$consU[*] + $Abv2U[*] + $bridge + $consU[*] => $1 + $3 + $4 + $2
+$consU[*] + $BlwU[*] + $bridge + $consU[*] => $1 + $3 + $4 + $2
+
+$twh_yy[^] + $consU[*] => $1 + $ZWS + $2
+
+//$ZWS + $consU[*] + <VK_BACK> => null
+$ZWS + $consU[*] + $killer => $2 + $3
+U101B + U103B => $1 + U103E
+//U1036 + U102D => $2 + $1
+
+//la kaung
+U1044 + U1004 + U103A + U1038 => U104E + U1004 + U103A + U1038
+U103C + U101E => U1029
+U1031 + U103C + U101E + U102C + U103A => U102A
+
+// '~' + ............
+('zg_key') + '4' => U104E + U1004 + U103A + U1038
+('zg_key') + '5' => U1029
+('zg_key') + '7' => U101B
+('zg_key') + '8' => U1039 + U1002
+('zg_key') + '9' => U1026
+
+('zg_key') + 'q' => U1039 + U1006 
+('zg_key') + 'w' => U1039 + U1010 
+('zg_key') + 'e' => U1039 + U1014 
+('zg_key') + 'r' => U1039 + U1019
+('zg_key') + 't' => U1024 
+('zg_key') + 'u' => U1039 + U1000 
+('zg_key') + 'i' => U104D
+('zg_key') + 'p' => U1039 + U1005 
+('zg_key') + '[' => U005B 
+('zg_key') + ']' => U005D
+
+('zg_key') + 'a' => U1008 
+('zg_key') + 'd' => U102D + U1036
+
+('zg_key') + "'" => U1039 + U1012
+
+('zg_key') + 'z' => U1039 + U1016 
+('zg_key') + 'x' => U1039 + U1011 
+('zg_key') + 'c' => U1039 + U1001 
+('zg_key') + 'v' => U1039 + U101C 
+('zg_key') + 'b' => U1039 + U1018 
+('zg_key') + '/' => U003F 
+
+('zg_key') + '$' => U1023
+('zg_key') + '%' => U102A
+
+('zg_key') + 'Q' => U1039 + U1006
+('zg_key') + 'W' => U1039 + U1010 
+('zg_key') + 'U' => U1009
+('zg_key') + 'I' => U1025
+('zg_key') + 'P' => U1039 + U100F
+
+('zg_key') + 'A' => U1039 + U1017
+
+('zg_key') + '"' => U1039 + U1013
+
+('zg_key') + 'Z' => U1039 + U1007
+('zg_key') + 'C' => U1039 + U1003
+
+//CHANGED: Keyboard layout doesn't include these
+//('zg_key') + 'V' => U1039 + U101C
+//('zg_key') + 'B' => U1039 + U1018 
+//('zg_key') + '?' => U003F
+//('zg_key') + '>' => U1039 + U1008
+//('zg_key') + '<' => U100D + U1039 + U100E
+//('zg_key') + 'G' => U0047 
+//('zg_key') + 'H' => U0048
+//('zg_key') + 'g' => U0067 
+//('zg_key') + 'h' => U0068 
+//('zg_key') + '\\' => U005C
+//('zg_key') + '#' => U100B + U1039 + U100B
+//('zg_key') + '^'=> U0036
+//('zg_key') + '&' => U101B
+//('zg_key') + '*' => U1039 + U1002
+//('zg_key') + '@' => U0032
+//('zg_key') + '_' => U00F7
+//('zg_key') + '+' => U003D
+//('zg_key') + '(' => U1026
+//('zg_key') + ')' => U101D
+//('zg_key') + '{' => U005B 
+//('zg_key') + '}' => U005D
+//('zg_key') + '|' => U005C
+//('zg_key') + 'K' => U103D + U1030
+//('zg_key') + 'F' => U1039 + U1004 + U102D
+//('zg_key') + 'O' => U1009 + U102C
+//('zg_key') + 'T' => U1023
+//('zg_key') + 'R' => U1039 + U1019
+//('zg_key') + '.' => U1039 + U1008 
+//('zg_key') + 'f' => U1039 + U1004 + U1036
+'>' => ''
+$consZkeyIgnore = 'ghGHVB?<>\\#^&*@_+(){}|KFOTR.f'
+('zg_key') + $consZkeyIgnore[*] => ''
+//END CHANGED
+
+//CHANGED: Keyboard layout uses these differently
+//('zg_key') + 'M' => U103B 
+//('zg_key') + 'N' => U103B 
+//('zg_key') + 'X' => U1039 + U100C
+//('zg_key') + 'J' => U103B 
+//('zg_key') + '2' => U0032
+//('zg_key') + '1' => U100D + U1039 + U100D
+//('zg_key') + '3' => U100B + U1039 + U100B
+//('zg_key') + '6' => U0036
+//('zg_key') + '0' => U101D
+//('zg_key') + '-' => U2212
+//('zg_key') + '=' => U003D
+//('zg_key') + 'y' => U1039 + U1015 
+//('zg_key') + 'S' => U103D
+//('zg_key') + 'Y' => U104C
+//('zg_key') + ',' => U100E
+//('zg_key') + 'm' => U006D
+//('zg_key') + 'n' => U1009   
+//('zg_key') + '!' => U100D + U1039 + U100D
+//('zg_key') + 'k' => U103D + U1030
+//('zg_key') + 'j' => U103B 
+('zg_key') + 'N' => U1039 + U1008
+('zg_key') + 'X' => U1039 + U1019
+('zg_key') + '2' => U1039 + U100C
+('zg_key') + '1' => U100E
+('zg_key') + '3' => U1039 + U100B
+('zg_key') + '6' => ''
+('zg_key') + '0' => U1039 + U101C
+('zg_key') + '-' => U100B + U1039 + U100B
+('zg_key') + '=' => U100D + U1039 + U100D
+('zg_key') + 'y' => U104C
+('zg_key') + 'S' => U103E
+('zg_key') + 'Y' => U1039 + U1015
+('zg_key') + ',' => ','
+('zg_key') + 'n' => U100A
+('zg_key') + '!' => U100D + U1039 + U100E
+('zg_key') + 'k' => U103E + U1030
+//END CHANGED
+
+
+
+//NOTE: Put _all_ the $yayit and $twh keys here, since they need special consideration
+//Force word breaks, unless another prefix vowel or medial is there
+'a' => $ZWS + $twh
+'j' =>  $ZWS + $yayit
+'B' =>  $ZWS + $yayit
+'N' =>  $ZWS + $yayit
+'M' =>  $ZWS + $yayit
+('zg_key') + 'M' => $ZWS + $yayit 
+('zg_key') + 'J' => $ZWS + $yayit
+('zg_key') + 'm' => $ZWS + $yayit
+('zg_key') + 'j' => $ZWS + $yayit
+
+
+U1025 + U1039 + U1025 => U1009
+U1025 + U102C => U1009 + U102C
+U101E + U103A + U101E => U103F
+
+//Test: Re-order ya-yit, kinzi, and tha-way-htoe. ZWS should prevent re-ordering 
+//        after typing a second consonant.
+//Remove ZWS when re-ordering.
+//Make sure to handle the letters that can occur after kinzi, too
+$yyORtwh = $yayit + $twh
+$afterKinzi = U102D + U102E + U1036
+$afterKinzi[*] + $kinzi => $2 + $1
+$ZWS + $twh + $ZWS + $yayit + $consU[*] + $kinzi + $afterKinzi[*] => $6 + $5 + $4 + $2 + $7
+$ZWS + $twh + $ZWS + $yayit + $consU[*] + $kinzi => $6 + $5 + $4 + $2
+$ZWS + $yayit + $ZWS + $twh + $consU[*] + $kinzi + $afterKinzi[*] => $6 + $5 + $2 + $4 + $7
+$ZWS + $yayit + $ZWS + $twh + $consU[*] + $kinzi => $6 + $5 + $2 + $4
+$ZWS + $twh + $ZWS + $yayit + $consU[*] => $5 + $4 + $2
+$ZWS + $yayit + $ZWS + $twh + $consU[*] => $5 + $2 + $4
+$ZWS + $yyORtwh[*] + $consU[*] + $kinzi + $afterKinzi[*] => $4 + $3 + $2 + $5
+$ZWS + $yyORtwh[*] + $consU[*] + $kinzi => $4 + $3 + $2
+$ZWS + $yyORtwh[*] + $consU[*] => $3 + $2
+
+//NOTE: Re-ordering occurs in-place, so we need extra rules for "jpF" (see examples below)
+$consU[*] + $yayit + $twh + $kinzi + $afterKinzi[*] => $4 + $1 + $2 + $3 + $5
+$consU[*] + $yyORtwh[*] + $kinzi + $afterKinzi[*] => $3 + $1 + $2 + $4
+$consU[*] + $kinzi + $afterKinzi[*] => $2 + $1 + $3
+$consU[*] + $yayit + $twh + $kinzi => $4 + $1 + $2 + $3
+$consU[*] + $yyORtwh[*] + $kinzi => $3 + $1 + $2
+$consU[*] + $kinzi => $2 + $1
+
+//More re-ordering with stacked consonant and optional medial-ya 
+//$consU is a superset of stackable letters, so just use that.
+$consU[*] + $yayit + $twh + U1039 + $consU[*] + U103B => $1 + $4 + $5 + $6 + $2 + $3
+$consU[*] + $yayit + $twh + U103B => $1 + $4 + $2 + $3
+$consU[*] + $yayit + $twh + U1039 + $consU[*] => $1 + $4 + $5 + $2 + $3
+$consU[*] + $yyORtwh[*] + U1039 + $consU[*] + U103B => $1 + $3 + $4 + $5 + $2
+$consU[*] + $yyORtwh[*] + U103B => $1 + $3 + $2
+$consU[*] + $yyORtwh[*] + U1039 + $consU[*] => $1 + $3 + $4 + $2
+$consU[*]+ U103B + U1039 + $consU[*] => $1 + $3 + $4 + $2
+
+//Stacked plus kinzi
+$consU[*] + $yayit + $twh + U1039 + $consU[*] + $kinzi + $afterKinzi[*] => $6 + $1 + $2 + $3 + $4 + $5 + $7
+$consU[*] + $yyORtwh[*] + U1039 + $consU[*] + $kinzi + $afterKinzi[*] => $5 + $1 + $2 + $3 + $4 + $6
+$consU[*] + U1039 + $consU[*] + $kinzi + $afterKinzi[*] => $4 + $1 + $2 + $3 + $5
+$consU[*] + $yayit + $twh + U1039 + $consU[*] + $kinzi => $6 + $1 + $2 + $3 + $4 + $5
+$consU[*] + $yyORtwh[*] + U1039 + $consU[*] + $kinzi => $5 + $1 + $2 + $3 + $4
+$consU[*] + U1039 + $consU[*] + $kinzi => $4 + $1 + $2 + $3
+
+//Kinzi plus U103B
+$consU[*] + $yayit + $twh + U103B + $kinzi + $afterKinzi[*] => $5 + $1 + $2 + $3 + $4 + $6
+$consU[*] + $yyORtwh[*] + U103B + $kinzi + $afterKinzi[*] => $4 + $1 + $2 + $3 + $5
+$consU[*]+ U103B + $kinzi + $afterKinzi[*] => $3 + $1 + $2 + $4
+$consU[*] + $yayit + $twh + U103B + $kinzi => $5 + $1 + $2 + $3 + $4
+$consU[*] + $yyORtwh[*] + U103B + $kinzi => $4 + $1 + $2 + $3
+$consU[*]+ U103B + $kinzi => $3 + $1 + $2
+
+//Re-order with circle-below and aspirator character; put before twh
+$twh + U103D + U103E => $2 + $3 + $1
+$twh + U103E + U103D => $3 + $2 + $1
+U103D + $twh + U103E => $1 + $3 + $2
+U103E + $twh + U103D => $3 + $1 + $2
+$twh + U103E => $2 + $1
+$twh + U103D => $2 + $1
+U103E + U103D => $2 + $1
+
+//Handle U103B after this mess
+$specLower = U103D + U103E
+$specLower[*] + $specLower[*] + $twh + U103B => $4 + $1 + $2 + $3
+$specLower[*] + $twh + U103B => $3 + $1 + $2 
+
+//Fix ordering of circle-above and leg-below
+$upperVowel = U102D + U102E + U1032
+$lowerVowel = U102F + U1030
+
+//Fix ordering of closing medials + asat
+$dotAbove = U1036
+$dotBelow = U1037
+$asat = U103A
+
+//Fix a few more cases of U103B
+//NOTE: Ensure U103D + U103E is enforced whenever it's not set to last
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + U103B => $4 + $3 + $1 + $2
+$specLower[*] + $upperVowel[*] + $dotAbove[*] + U103B => $4 + $1 + $2 + $3
+$upperVowel[*] + U103E + U103D + U103B => $4 + $3 + $2 + $1
+$upperVowel[*] + $specLower[*] + $specLower[*] + U103B => $4 + $2 + $3 + $1
+U103E + U103D + $upperVowel[*] + U103B => $4 + $2 + $1 + $3
+$specLower[*] + $specLower[*] + $upperVowel[*] + U103B => $4 + $1 + $2 + $3
+$upperVowel[*] + U103B + U103E + U103D => $2 + $4 + $3 + $1
+$upperVowel[*] + U103B + $specLower[*] + $specLower[*] => $2 + $3 + $4 + $1
+U103E + $upperVowel[*] + U103D + U103B => $4 + $3 + $1 + $2
+$specLower[*] + $upperVowel[*] + $specLower[*] + U103B => $4 + $1 + $3 + $2
+U103E + $upperVowel[*] + U103B + U103D => $3 + $4 + $1 + $2
+$specLower[*] + $upperVowel[*] + U103B + $specLower[*] => $3 + $1 + $4 + $2
+$upperVowel[*] + U103E + U103B + U103D => $3 + $4 + $2 + $1
+$upperVowel[*] + $specLower[*] + U103B + $specLower[*] => $3 + $2 + $4 + $1
+$upperVowel[*] + $dotAbove[*] + U103B => $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + U103B => $3 + $2 + $1
+$specLower[*] + $upperVowel[*] + U103B => $3 + $1 + $2
+$dotAbove[*] + $specLower[*] + U103B => $3 + $2 + $1
+$specLower[*] + $dotAbove[*] + U103B => $3 + $1 + $2
+U103E + U103D + U103B => $3 + $2 + $1
+$specLower[*] + $specLower[*] + U103B => $3 + $1 + $2
+$specLower[*] + U103B => $2 + $1
+$upperVowel[*] + U103B => $2 + $1
+$dotAbove[*] + U103B => $2 + $1
+
+//Fix bad normalization all in a row
+//Step 1: Get upper vowel in place
+$threeVowels = $lowerVowel + $dotAbove + $dotBelow
+$threeVowels[*] + $upperVowel[*] + $threeVowels[*] + $threeVowels[*] => $2 + $1 + $3 + $4
+$threeVowels[*] + $threeVowels[*] + $upperVowel[*] + $threeVowels[*] => $3 + $1 + $2 + $4
+$threeVowels[*] + $threeVowels[*] + $threeVowels[*] + $upperVowel[*] => $4 + $1 + $2 + $3
+$threeVowels[*] + $upperVowel[*] + $threeVowels[*] => $2 + $1 + $3
+$threeVowels[*] + $threeVowels[*] + $upperVowel[*] => $3 + $1 + $2
+$threeVowels[*] + $upperVowel[*] => $2 + $1
+
+//Step 2: Get lower vowel into place
+$twoVowels = $dotAbove + $dotBelow
+$twoVowels[*] + $lowerVowel[*] + $twoVowels[*] => $2 + $1 + $3
+$twoVowels[*] + $twoVowels[*] + $lowerVowel[*] => $3 + $1 + $2
+$twoVowels[*] + $lowerVowel[*] => $2 + $1
+
+//Step 3: Get dot above into place
+$oneVowel = $dotBelow
+$oneVowel + $dotAbove  => $2 + $1
+
+//Fix asat and dot below
+$asat[*] + $dotBelow[*] => $2 + $1
+
+//Now, there's one more possibility: an $upperVowel could be competing with $specLower
+//(AND upper vowels might have a dot.)
+$twh + $dotAbove[*] + $upperVowel[*] + $specLower[*] + $specLower[*] => $4 + $5 + $1 + $3 + $2
+$twh + $upperVowel[*] + $dotAbove[*] + $specLower[*] + $specLower[*] => $4 + $5 + $1 + $2 + $3
+$twh + $upperVowel[*] + $specLower[*] + $dotAbove[*] + $specLower[*] => $3 + $5 + $1 + $2 + $4
+$twh + $upperVowel[*] + $specLower[*] + $specLower[*] + $dotAbove[*] => $3 + $4 + $1 + $2 + $5
+$twh + $dotAbove[*] + $upperVowel[*] + $specLower[*] => $4 + $1 + $3 + $2
+$twh + $dotAbove[*] + $specLower[*] + $upperVowel[*] => $3 + $1 + $4 + $2
+$twh + $upperVowel[*] + $dotAbove[*] + $specLower[*] => $4 + $1 + $2 + $3
+$twh + $upperVowel[*] + $specLower[*] + $dotAbove[*] => $3 + $1 + $2 + $4
+$twh + $upperVowel[*] + $specLower[*] + $specLower[*] => $3 + $4 + $1 + $2
+$twh + $upperVowel[*] + $specLower[*] => $3 + $1 + $2
+$dotAbove[*] + $upperVowel[*] + $specLower[*] + $specLower[*] => $3 + $4 + $2 + $1
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + $specLower[*] => $3 + $4 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] + $specLower[*] => $2 + $4 + $1 + $3
+$upperVowel[*] + $specLower[*] + $specLower[*] + $dotAbove[*] => $2 + $3 + $1 + $4
+$dotAbove[*] + $upperVowel[*] + $specLower[*] => $3 + $2 + $1
+$dotAbove[*] + $specLower[*] + $upperVowel[*] => $2 + $3 + $1
+$upperVowel[*] + $dotAbove[*] + $specLower[*] => $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] => $2 + $1 + $3
+$upperVowel[*] + $specLower[*] + $lowerVowel[*] => $2 + $1 + $3
+$upperVowel[*] + $specLower[*] + $specLower[*] => $2 + $3 + $1
+U103E + $upperVowel[*] + U103D => $3 + $1 + $2
+$upperVowel[*] + $specLower[*] => $2 + $1
+
+
+
+//Minor cleanup; hope this won't loop much
+// (we expand the search a few times to avoid pointless looping)
+$ZWS + $ZWS + $ZWS + $ZWS + $ZWS => $1
+$ZWS + $ZWS + $ZWS + $ZWS => $1
+$ZWS + $ZWS + $ZWS => $1
+$ZWS + $ZWS => $1
+

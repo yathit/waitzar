@@ -1,0 +1,38 @@
+﻿# Various input method keyboards, collected in one folder
+{"languages.myanmar.input-methods" : {
+      "ayar" : 
+      {
+        "display-name" : "Ayar Keyboard",
+        "encoding" : "ayar", 
+        "type" : "keymagic",
+        "keyboard-file" : "Ayar.kms",
+		"disable-cache" : "false"
+      },
+	  
+      "myanmar3" : 
+      {
+        "display-name" : "Myanmar3 Keyboard",
+        "encoding" : "unicode", 
+        "type" : "keymagic",
+        "keyboard-file" : "Myanmar3.kms",
+		"disable-cache" : "false"
+      },
+	  
+      "zawgyikbd" : 
+      {
+        "display-name" : "Zawgyi-One Keyboard",
+        "encoding" : "unicode", 
+        "type" : "keymagic",
+        "keyboard-file" : "Zawgyi.kms",
+		"disable-cache" : "false"
+      }
+
+#      "parabaik" : 
+#      {
+#        "display-name" : "Parabaik Keyboard",
+#        "encoding" : "unicode", 
+#        "type" : "keymagic",
+#        "keyboard-file" : "Parabaik.kms",
+#		"disable-cache" : "false"
+#      }
+}}

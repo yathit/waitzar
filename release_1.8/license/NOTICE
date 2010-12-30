@@ -1,0 +1,141 @@
+The following software and resources were used to develop, compile, or maintain this project. 
+
+
+WaitZar Logo
+ - img_guide/wz_main_icon_medium.png
+This file is copyright (2009) Htoo Tay Zar, and we are very grateful to him for the time
+  he spent working on this. It is included in the WaitZar project under the provisions of 
+  the Creative Commons Attribution, Share Alike license. If you reuse this image in
+  your work, you must give credit to the original source. Any derivative works must also 
+  be under a similar license. 
+License: Creative Commons Attribution, Share Alike
+Site: http://www.htootayzar.com/
+Contact: Htoo Tay Zar
+
+
+WaitZar Hacker's Hat Logo
+ - wz_haticon_dev.pdn
+ - img_guide/wz_haticon.png
+The original hat icon was drawn (2007) by Nicu Buculei, and was placed in the Public Domain as
+  specified on OpenClipArt.org. This work was modified (colored green, WaitZar logo added)
+  by Seth Hetu. These changes remain in the Public Domain.
+License: Public Domain
+Site: http://www.openclipart.org/detail/2864
+Contact: Nicu Buculei
+
+
+The Pulp Core Project: Version 0.10.11
+ - CoreFont.java
+ - CoreImage.java
+ - PNGReader.java
+ ...and several other files were combined to form:
+ PulpCoreFont.cpp
+ PulpCoreFont.h
+ PulpCoreImage.cpp
+ PulpCoreImage.h
+These files, and the PNG format used in them, are part of the Pulp Core project. 
+License: New BSD License
+Site: http://code.google.com/p/pulpcore/
+Contact: David Brackeen
+
+
+The Jazzlib Project: Version 0.0.7
+  - OutputWindow.java
+  - StreamManipulator.java
+  - Inflater.java
+  - InflaterDynHeader.java
+  - InflaterHuffmanTree.java
+  - Adler32.java
+  ...and several other files were combined to form:
+  OutputWindow.(cpp|h)
+  StreamManipulator.(cpp|h)
+  Inflater.(cpp|h)
+  InflaterDynHeader.(cpp|h)
+  InflaterHuffmanTree.(cpp|h)
+  Adler32.(cpp|h)
+These files are part of the Jazzlib project, which is part of the GNU Classpath.
+License: GNU Classpath
+Site: http://jazzlib.sourceforge.net/
+Contact: John Leuner
+
+
+The Zawgyi-One Font: Version 3.14
+ Zawgyi-One is a curious font; its copyright belongs to Zawgyi.net and Alpha Mandalay.
+ However, it is distributed with no licensing information, and is thus classified and 
+ redistributable under the terms of license-free software. The Zawgyi.net website has
+ stated in a front-page article that Zawgyi-One is and will always be free. 
+ The Wait Zar project sees fonts like Zawgyi-One as an enabling technology, and sees no 
+ legal need to request special permission to embed or redistribute such fonts, so long
+ as credit is duly given and links to the latest versions of such fonts are provided.
+ We would encourage members of the Alpha Myanmar team to contact us directly if they
+ have any questions or requests.
+License: Unknown (License-Free)
+Site: http://www.zawgyi.net/
+Contact: Alpha Myanmar
+
+
+The Padauk Font: Version 2.4
+ Padauk is available from SIL International and Than Lwin Soft under the Open Font License;
+ a copy of which has been embedded at the end of the LICENSE file.
+Note that WaitZar's rendering order of letters (in "Help" mode) may appear similar to that of 
+ Padauk's. Our algorithm is based slightly on Padauk's ligature substitution rules, although our
+ behaviour differs subtly and is unique to WaitZar. Should you consider this to be a "derivative work",
+ please note that we choose to license this algorithm under the Apache license like the rest of the project. 
+ This is in conformance with the Open Font License. 
+License: Open Font License
+Site: http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=Padauk
+Contact: SIL International, Than Lwin Soft
+
+
+The Hyperlink Files
+ The files Hyperlinks.[cpp|h] have been retrieved from CodeGurus; the CodeGurus license is a
+ bit vague, but they state:
+ "While we are talking about copyrights, you retain copyright of your article and code, but by submitting 
+ it to CodeGuru you give permission to use it in a fair manner and also permit all developers to freely use 
+ the code in their own applications -even if they are commercial."
+ ...thus, we choose to include the Hyperlinks code in our project.
+License: Code Gurus-specific, 2009
+Site: http://www.codeguru.com/Cpp/controls/staticctrl/article.php/c5803/
+Contact: Neal Stublen
+
+
+The Prince Ka Naung Project: svn revision 700
+ The files:
+ - fontmap.(cpp|h)
+ - fontconv.(cpp|h)
+ - lib.(cpp|h)
+ - regex.(cpp|h)
+ ...listed in cross_platform_library/waitzar/ are included with written permission from
+ the copyright holder (Soe Min) and also under the provisions of the GNU General Public
+ License, version 2.0, which the Prince Ka Naung Project adhered to as of SVN revision 700.
+ These files are used to convert WaitZar's Zawgyi-One-encoded dictionary into Unicdoe 5.1
+ and Win Innwa encodings. 
+License: GNU General Public License, version 2.0
+Site: http://code.google.com/p/kanaung/
+Contact: Soe Min
+
+
+The myWin Myanmar Unicode keyboard layout, version 2.2
+ The files:
+ - myWin2.2.kmn (in a derivative form)
+ The myWin Unicode keyboard was designed as a Unicode 5.1-compliant re-visioning of the 
+ popular Win Burmese font layouts. It was considered a good candidate for WaitZar, as it 
+ is explicitly recommended for both Windows and Linux input of Myanmar text. This layout
+ is not used in its original format; rather, it is refactored into the "Help" menu (F1)
+ to allow users to perform a reverse-lookup of Burmese words in the WaitZar dictionary.
+ As per the license, we are re-licensing this derivative work under the GPL version 3.0
+License: GNU General Public License, version 3.0
+Site: http://www.thanlwinsoft.org/ThanLwinSoft/Downloads/index.php#keyboards
+Contact: Keith Stribley, Martin Hosken
+
+
+The Crypto++ Library, version 5.60
+ The files:
+ - *.h, *.cpp in Contrib/CryptoPP
+ The Crypto++ library provides an excellent implementation of various hashing algorithms and cryptographic
+ algorithms in C++. All files are released under the public domain, while the library itself has a separate license.
+ We only include the files needed for the MD5 algorithm.
+License: Public Domain
+Site: http://www.cryptopp.com/
+Contact: Wei Dai
+

@@ -1,0 +1,51 @@
+﻿# Settings for the Shan language, including display name and input method.
+# NOTE: This is a stub file until we get better Shan support.
+{"languages.shan" :       {
+  "display-name" : "ရှမ်းစာ",
+  "default-output-encoding" : "unicode",
+  "default-display-method" : "yghkttf",
+  "default-display-method-small" : "yghkttfsmall",
+  "default-input-method" : "yunghkio",
+        
+  "encodings" : 
+  {
+    "unicode" : 
+    {
+      "display-name" : "Unicode",
+      "use-as-output" : "yes",
+	  "initial" : "UNI"
+    }
+  },
+        
+  "input-methods" : 
+  {
+      "yunghkio" : 
+      {
+        "display-name" : "Yunghkio",
+        "encoding" : "unicode", 
+        "type" : "keymagic",
+        "keyboard-file" : "yunghkio.kms",
+		"disable-cache" : "false"
+      }
+  },
+
+  "display-methods" : 
+  {
+      "yghkttf" :  #Load from a file
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Yunghkio Unicode",
+        "point-size" : "14",
+        "font-file" : "yghk_uni.ttf"
+      },
+      "yghkttfsmall" :  #Load from a file
+      {
+        "encoding" : "unicode",
+        "type" : "ttf",
+        "font-face-name" : "Yunghkio Unicode",
+        "point-size" : "12",
+        "font-file" : "yghk_uni.ttf"
+      }
+  }
+}}
