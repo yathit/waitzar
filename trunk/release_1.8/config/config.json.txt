@@ -1,0 +1,58 @@
+{
+    # General settings. To override these, edit the file:
+	#   waitzar.config.json.txt
+	# ...located in your "Documents" or "My Documents" folder.
+	#
+	# You can override a single setting by appending the "settings" prefix and a period to it, e.g.:
+	#   "settings.hotkey" : "Ctrl + M"
+	# For most simple configuration options, "yes" or "no" will suffice. Alternatively, "y" or "true" may be used
+	#  to mean "yes", and "n" or "false" may be used to mean "no".
+    "settings" : 
+    {
+      # Which hotkey switches between Burmese and English? The following "modifiers" may appear before a key:
+      #   "Ctrl" , "Alt", or "Shift"
+      # One of the following keys must appear as the final key press:
+      #   "Space" or any letter key or any modifier (letter keys are case-insensitive)
+      # Some examples:
+      #   "Ctrl + M"
+      #   "Ctrl + Alt + Space"
+      #   "Alt + Shift"
+      "hotkey" : "Ctrl + Shift",
+	  
+      # Should we hide all errors that occur when adding words from a custom dictionary?
+      "silence-mywords-errors" : "no",
+	  
+      # Should we show a helpful popup when WaitZar starts?
+      # Note: This is helpful for showing new users how WaitZar works. Advanced users can disable it if they find it distracting.
+      "balloon-start" : "yes",
+	  
+      # Should we _always_ show the UAC dialog when running on Vista or Windows 7?
+      # This can help fix some weird bugs with UAC in Vista, but it is generally not necessary to turn on.
+      "always-elevate" : "no",
+	  
+      # Should we try to position the WaitZar window over the caret when the user starts to type? If "no", just put the window anywhere.
+      "track-caret" : "yes",
+	  
+      # Should we force the sentence window to always be displayed below the word selection window?
+      "lock-windows" : "yes",
+
+      # Should we hide the help/memory window at all times? (For now, just suppress both)
+      "suppress-virtual-keyboard" : "no",
+      
+      # What language do we start WaitZar in?
+      "default-language" : "myanmar",
+	  
+      # Which whitespace letters are marked with a straight vertical line?
+      #  One may choose, for example, to add U200C (zero-width non-joiner)
+      #  Generally, though, this setting is reserved for a single character: zero-width space
+      "whitespace-characters" : "\u200B",
+	  
+      # Which characters are filtered from the output before typing them
+	  #  Any letters here will not be added to the output stream. 
+	  #  We currently filter U+200B because Open Office takes issue with it.
+      "ignored-characters" : "\u200B",
+	  
+      # Should we hide our vertical ZWS markers? If "yes", these markers will not be drawn. 
+      "hide-whitespace-markings" : "yes"
+    }
+}

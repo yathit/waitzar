@@ -1,0 +1,21 @@
+﻿#New words go here.  This file is primarily used for words identified by WaitZar's developers
+#  Users may want to put words in a file "waitzar.userwords.txt", located in the same directory as WaitZar.exe
+
+#Words reported by our users (will be incorporated into the main dictionary later).
+ဆီမ့္ = seint
+ခြန္႔ = khont
+ခစ္ = khit
+ရြန္ = yon
+ဂဲ = gal
+႒ာ = htar
+ျဖည္ = phyi
+
+
+#Words which cannot be added to the model, as they already have a standard romanisation.
+# These will be included perpetually for convenience
+ဖုိင္ = file
+ဥစ္ = oait
+ဥ = ou
+
+#Added as a reminder to make patsint words easier to type
+မဂၤလာပါ = minggalarpar

@@ -1,0 +1,11 @@
+﻿# Settings for the Myanmar language, including display name and input method.
+{"languages.myanmar.input-methods.burglish" : {
+      "display-name" : "Burglish",
+      "encoding" : "unicode",
+      "suppress-uppercase" : "false",
+      "control-keys" : "japanese",
+      "numeral-conglomerate" : "true",
+      "type-burmese-numerals" : "yes",
+      "type" : "built-in"
+    }
+}

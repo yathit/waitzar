@@ -1,0 +1,91 @@
+﻿/*
+ * This is a test keyboard; based on the image of the Yungkhio keyboard mapping
+ * I've changed a few things (e.g., the numbers) since KeyMagic on WZ doesn't have
+ *   Ctrl or Alt hotkeys set up at the moment.
+ * Note that Ctrl+Shift+F is the only combination (besides numbers) we can't type.
+ * "Yungkhio" is copyright Sai Zin Di Di Zone
+@track_capslocks = false
+@eat_all_unused_keys = true
+@US_layout_based = true
+*/
+
+
+//Row 1 - Normal
+$key1_r = "1234567890"
+$val1_r = U1091 + U1092 + U1093 + U1094 + U1095 + U1096 + U1097 + U1098 + U1099 + U1090
+$key1_r[*] => $val1_r[$1]
+
+//Row 1 - Shifted
+$key1_s = "!@#$%^&*()"
+$val1_s = U1041 + U1042 + U1043 + U1044 + U1045 + U1046 + U1047 + U1048 + U1049 + U1040
+$key1_s[*] => $val1_s[$1]
+
+//Row 2 - Normal
+$key2_r = "qwertyuiop"
+$val2_r = U1078 + U1010 + U107C + U1019 + U1022 + U1015 + U1075 + U1004 + U101E + U1081
+$key2_r[*] => $val2_r[$1]
+
+//Row 2 - Shifted
+$key2_s = "QWRTYUIOP"
+$val2_s = U1079 + U107B + U109E + U109F + U107F + U1077 + U101B + U101D + U1080
+$key2_s[*] => $val2_s[$1]
+
+//Row 3 - Normal
+$key3_r = "dfghjkl;"
+$val3_r = U102D + U103A + U103D + U1089 + U1088 + U102F + U1030 + U1038
+$key3_r[*] => $val3_r[$1]
+
+//Row 3 - Shifted
+$key3_s = "ASDFGHK:"
+$val3_s = U1035 + U1085 + U102E + U1036 + U1082 + U1037 + U103B + U108A
+$key3_s[*] => $val3_s[$1]
+<VK_SHIFT & VK_KEY_J> => U1082 + U103A
+
+//Row 4 - Normal
+$key4_r = "zxcvbnm,."
+$val4_r = U107D + U1011 + U1076 + U101C + U1087 + U107A + U1062 + ',' + '.'
+$key4_r[*] => $val4_r[$1]
+
+//Row 4 - Shifted
+$key4_s = "ZBNM<>"
+$val4_s = U107E + U1086 + U101A + U1083 + U104A + U104B
+$key4_s[*] => $val4_s[$1]
+
+//Special keys; consume input (should set this later in the @settings)
+"V" => ""
+"C" => ""
+"X" => ""
+"E" => ""
+
+
+//Variables
+$zws = U200B
+$yayit = U103C
+$twt = U1031
+$twtsh = U1084
+$consU = "\u1078\u1010\u107C\u1019\u1022\u1015\u1075\u1004\u101E\u1081\u107D\u1011\u1076\u101C\u107A\u1079\u107B\u107F\u1077\u101D\u1080\u107E\u101A"
+$twt_both = $twt + $twtsh
+$twt_both_yy = $twt + $twtsh + $yayit
+
+//Default 'a', 's', 'L'
+//These always generate U200B before them, to allow for easy reordering later
+<VK_KEY_A> => $zws + $twt
+<VK_KEY_S> => $zws + $twtsh
+<VK_SHIFT & VK_KEY_L> => $zws + $yayit
+
+//'L' with 'a' or 's' first won't generate ZWS; it's already there. 
+$zws + $twt_both[*] + <VK_SHIFT & VK_KEY_L> => $1 + $2 + $yayit
+
+//Re-order U1031 and U1084, which are typed BEFORE the consonant.
+//Ensure that ya-yit is before the vowel, too
+//We use ZWS to ensure that letters aren't accidentally re-ordered. 
+$zws + $twt_both[*] + $yayit + $consU[*] => $1 + $4 + $3 + $2
+$zws + $twt_both_yy[*] + $consU[*] => $1 + $3 + $2
+
+//Handle backspace properly: partials
+//$zws + $twt_both_yy[*] + <VK_BACK> => null
+
+//Handle backspace properly: deleting consonants
+//$consU[*] + $yayit + $twt_both[*] + <VK_BACK> => $3 + $2
+//$consU[*] + $twt_both_yy[*] + <VK_BACK> => $2
+

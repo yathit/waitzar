@@ -1,0 +1,7 @@
+﻿# Additional settings for WaitZar that only take effect when run with a config directory.
+{"languages.myanmar.input-methods.waitzar" : {
+      #Additional words. Half of "mywords.txt"  --the other half is the "user-words-file" in default.config & config/Myanmar
+      #We need to add the "WaitZar\\" prefix because our "current config dir" value applies to the FIRST definition of the WaitZar IM
+      "wordlist" : "Waitzar\\waitzar.extrawords.txt"
+    }
+}	
