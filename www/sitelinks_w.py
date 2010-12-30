@@ -63,7 +63,7 @@ class SitelinksTemplate(FallbackTemplate):
 				<tr>
 					<td width="260" class="gll" colspan="2">
 						<span style="font-size: 12px;">Name of web site:</span>
-						<br><input id="webSiteName" class="zawgyi" onmousedown="unRedAddElement('webSiteName');"  name="webSiteName" type="text" style="width: 230px;" onchange="document.getElementById('previewName').innerHTML=this.value;"/>
+						<br><input id="webSiteName" class="pdk" onmousedown="unRedAddElement('webSiteName');"  name="webSiteName" type="text" style="width: 230px;" onchange="document.getElementById('previewName').innerHTML=this.value;"/>
 					</td>
 					<td class="glr glb" height="1" rowspan="4" colspan="2" valign="top">
 					Submission Preview:
@@ -83,7 +83,7 @@ class SitelinksTemplate(FallbackTemplate):
 								</td>
 								<td width="100%" valign="top" align="left"  class="pl10 pt10" style="padding-right:50px; color:#CCC;">
 									<a class="ninjalink" href="http://www.x.com">
-										<span class="helpbigtxt zawgyi" id="previewName" name="previewName"></span>
+										<span class="helpbigtxt pdk" id="previewName" name="previewName"></span>
 									</a>
 									<br><span id="previewURL" name="previewURL"></span>
 								</td>
@@ -151,7 +151,7 @@ class SitelinksTemplate(FallbackTemplate):
 				<tr>
 					<td width="260" class="gll" colspan="2">
 						<span style="font-size: 12px;">Site to Remove:</span>
-						<br><select id="removeSite" onmousedown="unRedRemoveElement('removeSite');" name="removeSite" class="zawgyi" style="width:160;">
+						<br><select id="removeSite" onmousedown="unRedRemoveElement('removeSite');" name="removeSite" class="pdk" style="width:160;">
 							<option selected value="none">Please choose...</option>
 							${{self.generateRemovalLists()}}
 						</select>
@@ -275,7 +275,7 @@ class SitelinksTemplate(FallbackTemplate):
 			#Cell 2
 			self.out.append(self.tabs(4) + '<td width="100%" valign="top" align="left"  class="pl10 pt10 sitelinkname">')
 			self.out.append(self.tabs(5) + '<a class="ninjalink" href="%s">' % (link,))
-			self.out.append(self.tabs(6) + '<span class="helpbigtxt zawgyi">%s</span>' % (name,))
+			self.out.append(self.tabs(6) + '<span class="helpbigtxt pdk">%s</span>' % (name,))
 			self.out.append(self.tabs(5) + '</a>')
 			self.out.append(self.tabs(5) + '<br>%s' % (link,))
 			self.out.append(self.tabs(4) + '</td>')

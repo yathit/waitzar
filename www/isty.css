@@ -10,12 +10,12 @@ h1 {
 }
 
 @font-face {
-    font-family: Zawgyi-One;
-    src: url(Zawgyi-One.v1.ttf);
+    font-family: Padauk;
+    src: url(pdkzg.ttf);
     unicode-range: U+1000-1097;
 }
-.zawgyi {
-    font-family: Zawgyi-One;
+.pdk {
+    font-family: Padauk;
 }
 
 
