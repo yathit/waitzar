@@ -10,12 +10,12 @@ h1 {
 }
 
 @font-face {
-    font-family: Padauk;
-    src: url(pdkzg.ttf);
+    font-family: Myanmar3;
+    src: url(mm3.ttf);
     unicode-range: U+1000-1097;
 }
 .pdk {
-    font-family: Padauk;
+    font-family: Myanmar3;
 }
 
 
