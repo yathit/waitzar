@@ -1,10 +1,10 @@
 [
 {"name":"Wiki.My Input Guide","link":"http://my.wikipedia.org/wiki/Help:Input","img":"http://upload.wikimedia.org/wikipedia/my/b/bc/Wiki.png"},
-{"name":"\u1016\u1030\u1038\u108F\u102F\u101E\u1005\u1039","link":"http://phoonuthit.blogspot.com/","img":"http://1.bp.blogspot.com/_xDtWdfB7vv8/Sfx9r7Cvz_I/AAAAAAAAAMM/HF6rHMTbJ1k/s320/background1.jpg"},
+{"name":"\u1016\u1030\u1038\u1014\u102F\u101E\u1005\u103A","link":"http://phoonuthit.blogspot.com/","img":"http://1.bp.blogspot.com/_xDtWdfB7vv8/Sfx9r7Cvz_I/AAAAAAAAAMM/HF6rHMTbJ1k/s320/background1.jpg"},
 {"name":"WaitZar Newsletter","link":"http://groups.google.com/group/waitzar","img":"http://groups.google.com/group/waitzar/icon?v=1&hl=en"},
 {"name":"Mark","link":"http://www.soemin.net"},
 {"name":"WaitZar Facebook Group","link":"http://www.facebook.com/group.php?gid=113021162952","img":"http://creative.ak.facebook.com/ads3/creative/pressroom/jpg/b_1234209334_facebook_logo.jpg"},
 {"name":"Keymagic","link":"http://keymagic.googlecode.com","img":"http://code.google.com/p/keymagic/logo?logo_id=1240063741"},
-{"name":"\u1015\u101B\u101F\u102D\u1010 ","link":"http://prahita-tmhtet.blogspot.com/","img":"http://www.iconspedia.com/uploads/19103351232114866690.png"},
+{"name":"\u1015\u101B\u101F\u102D\u1010","link":"http://prahita-tmhtet.blogspot.com/","img":"http://www.iconspedia.com/uploads/19103351232114866690.png"},
 {"name":"MM Gamers","link":"http://mmgamers.com/","img":"http://mmgamers.com/wp-content/uploads/2010/07/favicon-1.ico"}
 ]
