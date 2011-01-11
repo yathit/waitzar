@@ -13,6 +13,7 @@ We need to document the current syntax (so people will understand how Wait Zar a
      * Not in the current version, but might be supported for compatibility with old source files (e.g., representing "ANY" with "`*`")
      * Currently represented differently in Key Magic and Wait Zar. In this case, we will choose the Key Magic representation to be official, and will document Wait Zar's usage as legacy.
   * If dr. Carbon or I (or anyone else) wants to implement their own features, they can do so at any time. If the feature proves useful, then a formal description can be added to the documentation for versions 2.1, 2.2, etc. 
+  * Versions 1.1, 1.2, etc. of the standard will have less features in blue and more features in black or red. When all of the 2.0 features have been successfully tested in both Key Magic and Wait Zar, then we will start on 2.1, 2.2, etc. 
 
 
 = Steps =
