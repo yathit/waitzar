@@ -17,11 +17,12 @@
 #include <string>
 #include <stdexcept>
 
-#define _UNICODE
-#define UNICODE
-#include <shlobj.h> //GetFolderPath
+//#define _UNICODE
+//#define UNICODE
+//#include <shlobj.h> //GetFolderPath
+#include "windows_wz.h"
 
-#include "resource.h"
+//#include "resource.h"
 
 #include "Input/RomanInputMethod.h"
 #include "Input/LetterInputMethod.h"
@@ -187,7 +188,7 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 	WordBuilder* model = NULL;
 	{
 	//Load the resource as a byte array and get its size, etc.
-	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_MODEL), _T("Model"));
+	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_MODEL), L"Model");
 	if (!res)
 		throw std::runtime_error("Couldn't find IDR_WAITZAR_MODEL");
 	res_handle = LoadResource(NULL, res);
@@ -207,7 +208,7 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 	{
 	//We also need to load our easy pat-sint combinations
 	//Load the resource as a byte array and get its size, etc.
-	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_EASYPS), _T("Model"));
+	res = FindResource(hInst, MAKEINTRESOURCE(IDR_WAITZAR_EASYPS), L"Model");
 	if (!res)
 		throw std::runtime_error("Couldn't find IDR_WAITZAR_EASYPS");
 	res_handle = LoadResource(NULL, res);
@@ -558,7 +559,7 @@ DisplayMethod* WZFactory<ModelType>::getZawgyiPngDisplay(std::wstring langID, st
 	//Singleton init
 	if (WZFactory<ModelType>::cachedDisplayMethods.count(fullID)==0) {
 		//Load our internal font
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(dispResourceID), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(dispResourceID), L"COREFONT");
 		if (!fontRes)
 			throw std::runtime_error("Couldn't find IDR_(MAIN|SMALL)_FONT");
 
@@ -590,7 +591,7 @@ DisplayMethod* WZFactory<ModelType>::getPadaukZawgyiTtfDisplay(std::wstring lang
 		res->pointSize = 10;
 
 		//Get the Padauk embedded resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), _T("MODEL"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), L"MODEL");
 		if (!fontRes)
 			throw std::runtime_error("Couldn't find IDR_PADAUK_ZG");
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);

@@ -11,9 +11,7 @@
 #define _UNICODE
 #define UNICODE
 
-#include <windows.h>
-#undef min
-#undef max
+#include <windows_wz.h>
 
 //System includes
 #include <map>

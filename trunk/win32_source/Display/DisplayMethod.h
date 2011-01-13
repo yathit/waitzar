@@ -7,10 +7,8 @@
 #ifndef _DISPLAY_METHOD
 #define _DISPLAY_METHOD
 
-#include <windows.h>
+#include <windows_wz.h>
 #include <string>
-#undef min
-#undef max
 #include "Settings/Types.h"
 #include "Settings/Encoding.h"
 

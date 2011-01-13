@@ -7,9 +7,7 @@
 // http://www.codeguru.com/Cpp/controls/staticctrl/article.php/c5803/
 //
 
-#include <windows.h>
-#undef min
-#undef max
+#include <windows_wz.h>
 
 #include "Hyperlinks.h"
 

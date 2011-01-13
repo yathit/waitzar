@@ -24,10 +24,8 @@
 //#define _CRT_NON_CONFORMING_SWPRINTFS
 
 
-#include <windows.h>
-#undef min
-#undef max
-#include <stdio.h>
+#include <windows_wz.h>
+//#include <stdio.h>
 
 #include <string>
 

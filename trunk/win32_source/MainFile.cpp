@@ -7,8 +7,8 @@
 //Defines for Unicode-enabled text.
 //  As far as I know, these must appear _before_ including the windows.h include
 //  so that we get the proper Unicode-enabled source.
-#define _UNICODE
-#define UNICODE
+//#define _UNICODE
+//#define UNICODE
 
 
 
@@ -29,8 +29,8 @@
 //#define _CRT_NON_CONFORMING_SWPRINTFS
 
 //Define to require a specific version of Windows.
-#define _WIN32_WINNT 0x0500 //Run on Windows 2000, XP, and Vista (haven't tested NT or the "server"s yet)
-#define _WIN32_IE 0x0501    //I don't understand why I need this, but the speech balloons won't compile unless I have it.
+//efine _WIN32_WINNT 0x0500 //Run on Windows 2000, XP, and Vista (haven't tested NT or the "server"s yet)
+//#define _WIN32_IE 0x0501    //I don't understand why I need this, but the speech balloons won't compile unless I have it.
 //Note that version 0x0501 is needed for "clicking on notification balloons". There's reports of this not working on 
 //   win2k, but so far we don't have any WZ users on that platform. 
 
@@ -41,7 +41,7 @@
 //  on Vista....
 //Anyway, if you add a new function and get an "undefined" error, comment
 //  the relevant #define out.
-#define NOGDICAPMASKS       //- CC_*, LC_*, PC_*, CP_*, TC_*, RC_
+/*#define NOGDICAPMASKS       //- CC_*, LC_*, PC_*, CP_*, TC_*, RC_
 //#define NOKEYSTATES         //- MK_* //Needed for mouse cursors
 #define NOSYSCOMMANDS       //- SC_*
 #define OEMRESOURCE         //- OEM Resource values
@@ -64,18 +64,20 @@
 #define NOHELP              //- Help engine interface.
 #define NOPROFILER          //- Profiler interface.
 #define NODEFERWINDOWPOS    //- DeferWindowPos routines
-#define NOMCX               //- Modem Configuration Extensions
+#define NOMCX               //- Modem Configuration Extensions*/
 
 
 //System includes
 //#define NOMINMAX
-#include <windows.h>
-#include <windowsx.h> //For GET_X_LPARAM
+//#include <windows.h>
+//#include <windowsx.h> //For GET_X_LPARAM
 //#include <winuser.h> //For colors
-#include <Tlhelp32.h> //For getting a list of currently running processes
+//#include <Tlhelp32.h> //For getting a list of currently running processes
 //#include <wingdi.h> //For the TEXTINFO stuff
-#include <shlobj.h> //GetFolderPath
-#include <urlmon.h> //File downloads
+//#include <shlobj.h> //GetFolderPath
+#include <windows_wz.h>
+
+//#include <urlmon.h> //File downloads
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
@@ -87,8 +89,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#undef min
-#undef max
+//#undef min
+//#undef max
 
 //Our includes
 #include "NGram/WordBuilder.h"

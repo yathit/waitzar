@@ -16,10 +16,7 @@
 //#define _CRT_NON_CONFORMING_SWPRINTFS
 
 
-#include <windows.h>
-#include <windowsx.h> //For GET_X_LPARAM
-#undef min
-#undef max
+#include <windows_wz.h>
 #include <string>
 #include <sstream>
 #include <vector>

@@ -7,9 +7,7 @@
 #pragma once
 
 //Our FILETIME structure
-#include <windows.h>
-#undef min
-#undef max
+#include "../../../win32_source/windows_wz.h"
 
 #include <sstream>
 #include <fstream>

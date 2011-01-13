@@ -11,14 +11,15 @@
 //#define _CRT_SECURE_NO_WARNINGS
 
 //Necessary libraries
-#include <wchar.h>
-#include <stdio.h>
+//#include "windows_wz.h"
+//#include <wchar.h>
+//#include <stdio.h>
 #include <vector>
 #include <algorithm>
 #include <functional>
 #include <locale>
 #include <stdexcept>
-#include <ctype.h>
+//#include <ctype.h>
 
 //Should probably move 'mymb' function here..
 #include "WordBuilder.h"

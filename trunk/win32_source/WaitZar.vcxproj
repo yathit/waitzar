@@ -266,6 +266,7 @@
     <ClInclude Include="Contrib\CryptoPP\stdcpp.h" />
     <ClInclude Include="Contrib\CryptoPP\trdlocal.h" />
     <ClInclude Include="Contrib\CryptoPP\words.h" />
+    <ClInclude Include="windows_wz.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
