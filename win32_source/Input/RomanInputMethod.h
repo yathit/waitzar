@@ -7,6 +7,8 @@
 #ifndef _ROMAN_INPUT_METHOD
 #define _ROMAN_INPUT_METHOD
 
+#include <stdexcept>
+
 #include "MyWin32Window.h"
 #include "Input/InputMethod.h"
 #include "NGram/SentenceList.h"

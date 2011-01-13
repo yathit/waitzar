@@ -25,6 +25,7 @@
 #include <sstream>
 #include <map>
 #include <limits>
+#include <stdexcept>
 #include "Burglish/fontconv.h"
 
 

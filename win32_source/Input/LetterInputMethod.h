@@ -7,6 +7,8 @@
 #ifndef _LETTER_INPUT_METHOD
 #define _LETTER_INPUT_METHOD
 
+#include <stdexcept>
+
 #include "MyWin32Window.h"
 #include "Input/InputMethod.h"
 #include "OnscreenKeyboard.h"

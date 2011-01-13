@@ -15,6 +15,7 @@
 
 #include <map>
 #include <string>
+#include <stdexcept>
 
 #define _UNICODE
 #define UNICODE

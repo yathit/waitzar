@@ -21,6 +21,8 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <stdexcept>
+
 #include "Pulp Core/PulpCoreFont.h"
 #include "NGram/wz_utilities.h"
 
