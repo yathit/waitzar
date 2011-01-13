@@ -132,19 +132,19 @@ void ConfigManager::resolvePartialSettings()
 			wstring id = it->first.second;
 
 			//Call the factory method, add it to the current language
-			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			std::set<Language>::const_iterator lang = FindKeyInSet<Language>(options.languages, langName);
 			if (lang==options.languages.end())
 				throw std::runtime_error(glue(L"Language \"", langName , L"\" expected but not found...").c_str());
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				lang->inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second, getMD5Function));
+				const_cast<Language&>(*lang).inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second, getMD5Function));
 			else if (i==PART_ENC) 
-				lang->encodings.insert(WZFactory<waitzar::WordBuilder>::makeEncoding(id, it->second));
+				const_cast<Language&>(*lang).encodings.insert(WZFactory<waitzar::WordBuilder>::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) 
-				lang->transformations.insert(WZFactory<waitzar::WordBuilder>::makeTransformation(id, it->second));
+				const_cast<Language&>(*lang).transformations.insert(WZFactory<waitzar::WordBuilder>::makeTransformation(id, it->second));
 			else if (i==PART_DISP) 
-				lang->displayMethods.insert(WZFactory<waitzar::WordBuilder>::makeDisplayMethod(id, *lang, it->second));
+				const_cast<Language&>(*lang).displayMethods.insert(WZFactory<waitzar::WordBuilder>::makeDisplayMethod(id, *lang, it->second));
 		}
 
 		//Clear all entries from this map
@@ -230,7 +230,7 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 	}
 
 	//Validate over each language
-	for (std::set<Language>::iterator lg=options.languages.begin(); lg!=options.languages.end(); lg++) {
+	for (std::set<Language>::const_iterator lg=options.languages.begin(); lg!=options.languages.end(); lg++) {
 		//Get the current "backup" input/encoding for this language
 		map<wstring, vector<wstring> >::const_iterator thisLangLast =  lastUsedSettings.find(lg->id);
 		wstring lastUsedInput = thisLangLast==lastUsedSettings.end() ? L"" : thisLangLast->second[0];
@@ -245,9 +245,9 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 
 			//Check if the input method exists
 			if (lastUsedInput.empty() || FindKeyInSet(lg->inputMethods, lastUsedInput)==lg->inputMethods.end())
-				lg->defaultInputMethod = defaultVal;
+				const_cast<Language&>(*lg).defaultInputMethod = defaultVal;
 			else
-				lg->defaultInputMethod = lastUsedInput;
+				const_cast<Language&>(*lg).defaultInputMethod = lastUsedInput;
 		}
 		luID = lg->defaultOutputEncoding.id.find(L"lastused");
 		if (luID != wstring::npos) {
@@ -255,17 +255,17 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			wstring defaultVal = lg->defaultOutputEncoding.id.substr(0, luID-1);
 
 			//Check if the input method exists
-			lg->defaultOutputEncoding.id = lastUsedOutput;
+			const_cast<Language&>(*lg).defaultOutputEncoding.id = lastUsedOutput;
 			if (lastUsedOutput.empty() || lg->encodings.find(lg->defaultOutputEncoding)==lg->encodings.end())
-				lg->defaultOutputEncoding.id = defaultVal;
+				const_cast<Language&>(*lg).defaultOutputEncoding.id = defaultVal;
 			else
-				lg->defaultOutputEncoding.id = lastUsedOutput;
+				const_cast<Language&>(*lg).defaultOutputEncoding.id = lastUsedOutput;
 		}
 
 		//Substitute the encoding
-		std::set<Encoding>::iterator defEnc = lg->encodings.find(lg->defaultOutputEncoding);
+		std::set<Encoding>::iterator defEnc = const_cast<Language&>(*lg).encodings.find(lg->defaultOutputEncoding);
 		if (defEnc!=lg->encodings.end())
-			lg->defaultOutputEncoding = *defEnc; //We have to re-set it, since the original "defaultOutputEncoding" is just a placeholder.
+			const_cast<Language&>(*lg).defaultOutputEncoding = *defEnc; //We have to re-set it, since the original "defaultOutputEncoding" is just a placeholder.
 		else {
 			if (getLocalConfigOpt(L"languages." + lg->id + L".defaultoutputencoding")==lg->defaultOutputEncoding.id)
 				localConfError = true;
@@ -286,23 +286,23 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 		}
 
 		//TODO: Right now, "unicode" is hard-coded into a lot of places. Is there a better way?
-		std::set<Encoding>::iterator uniEnc = FindKeyInSet(lg->encodings, L"unicode");
+		std::set<Encoding>::const_iterator uniEnc = FindKeyInSet(lg->encodings, L"unicode");
 		if (uniEnc==lg->encodings.end())
 			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" does not include \"unicode\" as an encoding.").c_str());
 		unicodeEncoding = *uniEnc;
 
 		//Validate transformations & cache a lookup table.
-		for (std::set<Transformation*>::iterator it=lg->transformations.begin(); it!=lg->transformations.end(); it++) {
+		for (std::set<Transformation*>::const_iterator it=lg->transformations.begin(); it!=lg->transformations.end(); it++) {
 			//Make sure this transformation references existing encodings. Replace them as we find them
 			{
-			std::set<Encoding>::iterator frEnc = lg->encodings.find((*it)->fromEncoding);
+			std::set<Encoding>::const_iterator frEnc = lg->encodings.find((*it)->fromEncoding);
 			if (frEnc!=lg->encodings.end())
 				(*it)->fromEncoding = *frEnc;
 			else
 				throw std::runtime_error(glue(L"Transformation \"" , (*it)->id , L"\" references non-existant from-encoding: ", (*it)->fromEncoding.id).c_str());
 			}
 			{
-			std::set<Encoding>::iterator toEnc = lg->encodings.find((*it)->toEncoding);
+			std::set<Encoding>::const_iterator toEnc = lg->encodings.find((*it)->toEncoding);
 			if (toEnc!=lg->encodings.end())
 				(*it)->toEncoding = *toEnc;
 			else
@@ -314,22 +314,22 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			std::pair<Encoding, Encoding> newPair;
 			newPair.first = *(lg->encodings.find((*it)->fromEncoding));
 			newPair.second = *(lg->encodings.find((*it)->toEncoding));
-			std::map< std::pair<Encoding, Encoding>, Transformation* >::iterator foundPair = lg->transformationLookup.find(newPair);
+			std::map< std::pair<Encoding, Encoding>, Transformation* >::iterator foundPair = const_cast<Language&>(*lg).transformationLookup.find(newPair);
 			if (foundPair==lg->transformationLookup.end())
-				lg->transformationLookup[newPair] = *it;
+				const_cast<Language&>(*lg).transformationLookup[newPair] = *it;
 			else if (foundPair->second->hasPriority)
 				throw std::runtime_error(glue(L"Cannot add new Transformation (", (*it)->id, L") over one with priority: ", foundPair->second->id).c_str());
 			else if (!(*it)->hasPriority)
 				throw std::runtime_error(glue(L"Cannot add new Transformation (", (*it)->id, L"); it does not set \"hasPriority\"").c_str());
 			else
-				lg->transformationLookup[newPair] = *it;
+				const_cast<Language&>(*lg).transformationLookup[newPair] = *it;
 		}
 
 		//Validate each input method
-		for (std::set<InputMethod*>::iterator it=lg->inputMethods.begin(); it!=lg->inputMethods.end(); it++) {
+		for (std::set<InputMethod*>::const_iterator it=lg->inputMethods.begin(); it!=lg->inputMethods.end(); it++) {
 			//Make sure this input method references an existing encoding. Replace it as we find it
 			{
-			std::set<Encoding>::iterator inEnc = lg->encodings.find((*it)->encoding);
+			std::set<Encoding>::const_iterator inEnc = lg->encodings.find((*it)->encoding);
 			if (inEnc!=lg->encodings.end())
 				(*it)->encoding = *inEnc;
 			else
@@ -347,10 +347,10 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 		}
 
 		//Validate each display method
-		for (std::set<DisplayMethod*>::iterator it=lg->displayMethods.begin(); it!=lg->displayMethods.end(); it++) {
+		for (std::set<DisplayMethod*>::const_iterator it=lg->displayMethods.begin(); it!=lg->displayMethods.end(); it++) {
 			//Make sure this display method references an existing encoding. Replace it as we find it.
 			{
-			std::set<Encoding>::iterator outEnc = lg->encodings.find((*it)->encoding);
+			std::set<Encoding>::const_iterator outEnc = lg->encodings.find((*it)->encoding);
 			if (outEnc!=lg->encodings.end())
 				(*it)->encoding = *outEnc;
 			else
@@ -861,7 +861,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 			//Get the language id
 			//TODO: Add better error messages using the glue() functions.
 			wstring langName = name[1];
-			std::set<Language>::iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			std::set<Language>::const_iterator lang = FindKeyInSet<Language>(options.languages, langName);
 			if (lang==options.languages.end()) {
 				if(restricted)
 					throw std::runtime_error("Cannot create a new Language in user or system-local config files.");
@@ -871,7 +871,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 			//Static settings
 			if (name[2] == sanitize_id(L"display-name"))
-				lang->displayName = value;
+				const_cast<Language&>(*lang).displayName = value;
 			else if (name[2] == sanitize_id(L"default-output-encoding")) {
 				//We have to handle "lastused" values slightly differently.
 				wstring defOutput = sanitize_id(value);
@@ -880,15 +880,15 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					if (lang->defaultOutputEncoding.id.empty())
 						throw std::runtime_error("Cannot specify a default output encoding of \"lastused\" unless a fallback default is specified.");
 					if (lang->defaultOutputEncoding.id.find(L"lastused")==wstring::npos)
-						lang->defaultOutputEncoding.id += L".lastused"; //E.g., "unicode.lastused"
+						const_cast<Language&>(*lang).defaultOutputEncoding.id += L".lastused"; //E.g., "unicode.lastused"
 				} else {
 					//Normal setting
-					lang->defaultOutputEncoding.id = defOutput;
+					const_cast<Language&>(*lang).defaultOutputEncoding.id = defOutput;
 				}
 			} else if (name[2] == sanitize_id(L"default-display-method"))
-				lang->defaultDisplayMethodReg = sanitize_id(value);
+				const_cast<Language&>(*lang).defaultDisplayMethodReg = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-display-method-small"))
-				lang->defaultDisplayMethodSmall = sanitize_id(value);
+				const_cast<Language&>(*lang).defaultDisplayMethodSmall = sanitize_id(value);
 			else if (name[2] == sanitize_id(L"default-input-method")) {
 				//We have to handle "lastused" values slightly differently.
 				wstring defInput = sanitize_id(value);
@@ -897,10 +897,10 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					if (lang->defaultInputMethod.empty())
 						throw std::runtime_error("Cannot specify a default input method of \"lastused\" unless a fallback default is specified.");
 					if (lang->defaultInputMethod.find(L"lastused")==wstring::npos)
-						lang->defaultInputMethod += L".lastused"; //E.g., "ayarkbd.lastused"
+						const_cast<Language&>(*lang).defaultInputMethod += L".lastused"; //E.g., "ayarkbd.lastused"
 				} else {
 					//Normal setting
-					lang->defaultInputMethod = defInput;
+					const_cast<Language&>(*lang).defaultInputMethod = defInput;
 				}
 			} else {
 				//Need to finish all partial settings
