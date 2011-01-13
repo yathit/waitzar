@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -40,9 +40,6 @@
     </Filter>
     <Filter Include="Source Files\Contrib\Pulp Core">
       <UniqueIdentifier>{5a528580-ccfa-49d2-9807-2ec50df39e96}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Contrib\CryptoPP">
-      <UniqueIdentifier>{76a0504e-e733-409f-912d-a2cfbb33105d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -90,9 +87,6 @@
     </Filter>
     <Filter Include="Resource Files\Header Files\Contrib\NGram">
       <UniqueIdentifier>{37baf452-9110-4b48-9fe6-2534c99ddc86}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Header Files\Contrib\CryptoPP">
-      <UniqueIdentifier>{8b119ec2-e594-49bf-98db-6dd40e802e81}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files\Header Files\Contrib\MD5">
       <UniqueIdentifier>{c0ed08ff-2cd1-4960-a6cb-cb0ff62d26c0}</UniqueIdentifier>
@@ -218,75 +212,6 @@
     </ClCompile>
     <ClCompile Include="Contrib\MD5\md5.c">
       <Filter>Source Files\Contrib\MD5</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\algparam.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\basecode.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\cpu.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\cryptlib.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\files.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\filters.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\fips140.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\hex.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\hrtimer.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\iterhash.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\md5.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\misc.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\mqueue.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\osrng.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\pch.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\queue.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\randpool.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\rdtables.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\rijndael.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\rng.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\sha.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\simple.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\CryptoPP\trdlocal.cpp">
-      <Filter>Source Files\Contrib\CryptoPP</Filter>
     </ClCompile>
     <ClCompile Include="Contrib\MD5\md5.c">
       <Filter>Source Files</Filter>
@@ -482,99 +407,6 @@
     </ClInclude>
     <ClInclude Include="Contrib\MD5\md5.h">
       <Filter>Resource Files\Header Files\Contrib\MD5</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\aes.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\algparam.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\argnames.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\basecode.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\config.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\cpu.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\cryptlib.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\files.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\filters.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\fips140.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\fltrimpl.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\hex.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\hrtimer.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\iterhash.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\md5.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\misc.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\mqueue.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\osrng.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\pch.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\queue.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\randpool.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\rijndael.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\rng.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\secblock.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\seckey.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\sha.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\simple.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\smartptr.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\stdcpp.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\trdlocal.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\CryptoPP\words.h">
-      <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
     </ClInclude>
     <ClInclude Include="windows_wz.h">
       <Filter>Resource Files\Header Files</Filter>
