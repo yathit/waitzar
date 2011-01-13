@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -93,6 +93,12 @@
     </Filter>
     <Filter Include="Resource Files\Header Files\Contrib\CryptoPP">
       <UniqueIdentifier>{8b119ec2-e594-49bf-98db-6dd40e802e81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\MD5">
+      <UniqueIdentifier>{c0ed08ff-2cd1-4960-a6cb-cb0ff62d26c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\MD5">
+      <UniqueIdentifier>{171468c2-1c4b-4561-93e1-3a9fc76ba292}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -210,6 +216,9 @@
     <ClCompile Include="Contrib\Pulp Core\PulpCoreImage.cpp">
       <Filter>Source Files\Contrib\Pulp Core</Filter>
     </ClCompile>
+    <ClCompile Include="Contrib\MD5\md5.c">
+      <Filter>Source Files\Contrib\MD5</Filter>
+    </ClCompile>
     <ClCompile Include="Contrib\CryptoPP\algparam.cpp">
       <Filter>Source Files\Contrib\CryptoPP</Filter>
     </ClCompile>
@@ -278,6 +287,9 @@
     </ClCompile>
     <ClCompile Include="Contrib\CryptoPP\trdlocal.cpp">
       <Filter>Source Files\Contrib\CryptoPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\MD5\md5.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -468,6 +480,9 @@
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h">
       <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
     </ClInclude>
+    <ClInclude Include="Contrib\MD5\md5.h">
+      <Filter>Resource Files\Header Files\Contrib\MD5</Filter>
+    </ClInclude>
     <ClInclude Include="Contrib\CryptoPP\aes.h">
       <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
     </ClInclude>
@@ -562,6 +577,9 @@
       <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
     </ClInclude>
     <ClInclude Include="windows_wz.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\MD5\md5.h">
       <Filter>Resource Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

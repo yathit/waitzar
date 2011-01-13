@@ -14,14 +14,14 @@
 
 #pragma once
 
-#define _UNICODE
-#define UNICODE
+//#define _UNICODE
+//#define UNICODE
 
 //Don't let Visual Studio warn us to use the _s functions
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 
 //Ironic that adding compliance now causes headaches compiling under VS2003
-#define _CRT_NON_CONFORMING_SWPRINTFS
+//#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <windows_wz.h>
 //#include <stdio.h>
