@@ -8,6 +8,8 @@
 
 //Our FILETIME structure
 #include <windows.h>
+#undef min
+#undef max
 
 #include <sstream>
 #include <fstream>

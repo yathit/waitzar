@@ -8,6 +8,8 @@
 
 #if defined(CRYPTOPP_WIN32_AVAILABLE)
 #include <windows.h>
+#undef min
+#undef max
 #elif defined(CRYPTOPP_UNIX_AVAILABLE)
 #include <sys/time.h>
 #include <sys/times.h>

@@ -26,6 +26,8 @@
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
+#undef min
+#undef max
 
 #include "StreamManipulator.h"
 #include "InflaterHuffmanTree.h"

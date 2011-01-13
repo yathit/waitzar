@@ -17,6 +17,8 @@
 #define _WIN32_WINNT 0x0400
 #endif
 #include <windows.h>
+#undef min
+#undef max
 #include <wincrypt.h>
 #endif
 

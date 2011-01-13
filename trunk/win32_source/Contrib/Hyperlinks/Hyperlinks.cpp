@@ -8,6 +8,8 @@
 //
 
 #include <windows.h>
+#undef min
+#undef max
 
 #include "Hyperlinks.h"
 

@@ -8,7 +8,10 @@
 
 using std::vector;
 using std::pair;
-
+using std::min;
+using std::max;
+using waitzar::min;
+using waitzar::max;
 
 //Useful constants
 namespace {

@@ -18,10 +18,14 @@
 
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
+#undef min
+#undef max
 #include <string>
 #include <sstream>
+#include <vector>
 #include <map>
 #include <stdexcept>
+#include <limits>
 
 #include "Pulp Core/PulpCoreFont.h"
 #include "NGram/wz_utilities.h"

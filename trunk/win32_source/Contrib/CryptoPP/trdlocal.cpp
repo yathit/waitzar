@@ -9,6 +9,8 @@
 
 #ifdef HAS_WINTHREADS
 #include <windows.h>
+#undef min
+#undef max
 #endif
 
 NAMESPACE_BEGIN(CryptoPP)

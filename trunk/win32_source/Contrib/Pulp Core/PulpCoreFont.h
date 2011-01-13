@@ -25,6 +25,8 @@
 
 
 #include <windows.h>
+#undef min
+#undef max
 #include <stdio.h>
 
 #include <string>
