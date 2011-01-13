@@ -13,11 +13,11 @@
 
 
 //NOTE: This won't compile unless it's in the main file.... not sure why. :( We'll link it here for now...
-#define CRYPTOPP_DEFAULT_NO_DLL
+/*#define CRYPTOPP_DEFAULT_NO_DLL
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include "CryptoPP/md5.h"
 #include "CryptoPP/hex.h"
-#include "CryptoPP/files.h"
+#include "CryptoPP/files.h"*/
 
 
 
@@ -108,6 +108,7 @@
 #include "Input/RomanInputMethod.h"
 #include "Transform/Self2Self.h"
 #include "NGram/Logger.h"
+#include "MD5/md5.h"
 
 //VS Includes
 #include "resource_ex.h"
@@ -475,10 +476,14 @@ inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 
 //Crypto++ implementation of MD5; we'll pass this as a pointer later.
 string getMD5Hash(const std::string& fileName) {
+
+
+
+
 	string md5Res;
-	CryptoPP::Weak::MD5 hash;
+	/*CryptoPP::Weak::MD5 hash;
 	CryptoPP::FileSource(fileName.c_str(), true, new
-		CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(md5Res),false)));
+		CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(md5Res),false)));*/
 	return md5Res;
 }
 
@@ -4711,10 +4716,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (config.getSettings().balloonStart) {
 		nid.uFlags |= NIF_INFO;
 		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
-		if (testFileName.empty())
-			swprintf(nid.szInfo, _T("Hit %ls to switch to Myanmar.\n\nClick this icon for more options."), config.getSettings().hotkey.hotkeyStrFormatted.c_str());
-		else
-			swprintf(nid.szInfo, _T("WaitZar is running regression tests. \n\nPlease wait for these to finish."));
+		if (testFileName.empty()) {
+			wstringstream msg;
+			msg <<L"Hit " <<config.getSettings().hotkey.hotkeyStrFormatted <<L" to switch to Myanmar.\n\nClick this icon for more options.";
+			wcscpy(nid.szInfo, msg.str().c_str());
+		} else
+			wcscpy(nid.szInfo, L"WaitZar is running regression tests. \n\nPlease wait for these to finish.");
 		//nid.uTimeout = 20; //Timeout is invalid as of vista
 		nid.uVersion = NOTIFYICON_VERSION;
 		nid.dwInfoFlags = NIIF_INFO; //Can we switch to NIIF_USER if supported?
@@ -4790,9 +4797,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DWORD timeMS = 0; /*getTimeDifferenceMS(startTime, endTime);*/
 
 
-		wchar_t msg[500];
-		swprintf(msg, L"Mywords total time:   %dms", timeMS);
-		MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
+		wstringstream msg;
+		msg <<L"Mywords total time:   " <<timeMS <<L"ms";
+		MessageBox(NULL, msg.str().c_str(), L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 
 		return 0;
 	}
@@ -4863,9 +4870,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
 	nid.hIcon = engIcon;
 	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) { //Note: If we delete the main window before this line, then calling this will fail  --yet the error MessageBox won't show!
-		TCHAR eTemp[200];
-		swprintf(eTemp, _T("Can't load initial icon.\nError code: %x"), GetLastError());
-		MessageBox(NULL, eTemp, _T("Warning"), MB_ICONERROR | MB_OK);
+		wstringstream msg;
+		msg <<L"Can't load initial icon.\nError code: " <<std::ios::hex <<GetLastError() <<std::ios::dec;
+		MessageBox(NULL, msg.str().c_str(), L"Warning", MB_ICONERROR | MB_OK);
 	}
 
 	Logger::markLogTime('L', L"System tray icon set to \"ready\"");
@@ -4876,9 +4883,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//GetSystemTimeAsFileTime(&endTime);
 		DWORD timeMS = 0; /*getTimeDifferenceMS(startTime, endTime);*/
 
-		wchar_t msg[500];
-		swprintf(msg, L"Time to start up:   %dms", timeMS);
-		MessageBox(NULL, msg, L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
+		wstringstream msg;
+		msg <<L"Time to start up:   " <<timeMS <<L"ms";
+		MessageBox(NULL, msg.str().c_str(), L"WaitZar Testing Mode", MB_ICONERROR | MB_OK);
 
 		return 0;
 	}
