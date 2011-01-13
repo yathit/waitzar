@@ -197,9 +197,9 @@ std::wstring SentenceList<ModelType>::getPrevTypedWord(ModelType &model, const s
 			prevWord = model.getWordString(*it);
 		else {
 			int adjID = -1 - (*it);
-			size_t sysSize = WZFactory<ModelType>::systemDefinedWords.size();
+			size_t sysSize = waitzar::WZSystemDefinedWords.size();
 			if (adjID < (int)sysSize) {
-				prevWord = std::wstring(1, WZFactory<ModelType>::systemDefinedWords[adjID]);
+				prevWord = std::wstring(1, waitzar::WZSystemDefinedWords[adjID]);
 			} else {
 				adjID -= sysSize;
 				prevWord = userDefinedWords[adjID];
