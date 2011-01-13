@@ -272,7 +272,7 @@ private:
 template <class T> 
 typename std::set<T>::iterator FindKeyInSet(std::set<T>& container, const std::wstring& key)
 {
-	std::set<T>::iterator it=container.begin();
+	typename std::set<T>::iterator it=container.begin();
 	for (; it!=container.end(); it++)  {
 		if ((*it) == key)
 			break;
@@ -284,7 +284,7 @@ typename std::set<T>::iterator FindKeyInSet(std::set<T>& container, const std::w
 template <class T> 
 typename std::set<T>::const_iterator FindKeyInSet(const std::set<T>& container, const std::wstring& key)
 {
-	std::set<T>::const_iterator it=container.begin();
+	typename std::set<T>::const_iterator it=container.begin();
 	for (; it!=container.end(); it++)  {
 		if ((*it) == key)
 			break;
@@ -296,7 +296,7 @@ typename std::set<T>::const_iterator FindKeyInSet(const std::set<T>& container, 
 template <class T> 
 typename std::set<T*>::iterator FindKeyInSet(std::set<T*>& container, const std::wstring& key)
 {
-	std::set<T*>::iterator it=container.begin();
+	typename std::set<T*>::iterator it=container.begin();
 	for (; it!=container.end(); it++)  {
 		if ((*(*it)) == key)
 			break;
@@ -308,7 +308,7 @@ typename std::set<T*>::iterator FindKeyInSet(std::set<T*>& container, const std:
 template <class T> 
 typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container, const std::wstring& key)
 {
-	std::set<T*>::const_iterator it=container.begin();
+	typename std::set<T*>::const_iterator it=container.begin();
 	for (; it!=container.end(); it++)  {
 		if ((*(*it)) == key)
 			break;

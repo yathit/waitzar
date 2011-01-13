@@ -9,6 +9,8 @@
 
 #include <windows.h>
 #include <string>
+#undef min
+#undef max
 #include "Settings/Types.h"
 #include "Settings/Encoding.h"
 

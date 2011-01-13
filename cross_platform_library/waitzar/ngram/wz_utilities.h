@@ -120,6 +120,11 @@ namespace waitzar
 		return glue(str1, str2, L"", L"");
 	}
 
+	
+	//These two functions can be included (with "using") to clear up complaints of "ambiguous" by the compiler. 
+	static long max(const long &a, const int &b) { return std::max<long>(a, b); }
+	static long min(const long &a, const int &b) { return std::min<long>(a,b); }
+
 
 } //End waitzar namespace
 

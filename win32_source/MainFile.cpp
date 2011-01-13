@@ -68,7 +68,7 @@
 
 
 //System includes
-#define NOMINMAX
+//#define NOMINMAX
 #include <windows.h>
 #include <windowsx.h> //For GET_X_LPARAM
 //#include <winuser.h> //For colors
@@ -86,6 +86,9 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+
+#undef min
+#undef max
 
 //Our includes
 #include "NGram/WordBuilder.h"
@@ -118,6 +121,7 @@ using std::pair;
 using std::wstringstream;
 using std::ifstream;
 using std::ofstream;
+
 
 
 //Versioning information & lookup
@@ -455,14 +459,16 @@ test_type currTest = none;
 
 
 //Ugh, Windows
-template< typename T >
+//MOVED to wz_utilities
+/*template< typename T >
 inline T max(const T & a, const T & b) { return std::max(a, b); }
-inline long max(const long &a, const int &b) { return max<long>(a, b); }
+inline long max(const long &a, const int &b) { return max<long>(a, b); }*/
 
 //Ugh, Windows
-template< typename T >
+//MOVED to wz_utilities
+/*template< typename T >
 inline T min(const T & a, const T & b) { return std::min(a, b); }
-inline long min (const long &a, const int &b) { return min<long>(a,b); }
+inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 
 
 //Crypto++ implementation of MD5; we'll pass this as a pointer later.

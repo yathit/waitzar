@@ -26,6 +26,9 @@
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
+#undef min
+#undef max
+#include <algorithm>
 
 #include "StreamManipulator.h"
 

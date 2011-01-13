@@ -74,7 +74,7 @@ void OutputWindow::repeat(int len, int dist)
 int OutputWindow::copyStored(StreamManipulator &input, int len)
 {
 	int copied;
-    len = min(min(len, WINDOW_SIZE - window_filled), input.getAvailableBytes());
+    len = std::min<int>(std::min<int>(len, WINDOW_SIZE - window_filled), input.getAvailableBytes());
     
 	int tailLen = WINDOW_SIZE - window_end;
     if (len > tailLen) {
