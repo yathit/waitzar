@@ -126,6 +126,55 @@ namespace waitzar
 	static long min(const long &a, const int &b) { return std::min<long>(a,b); }
 
 
+	//Helper predicate
+	//TODO: Make private
+	template <class T>
+	class is_id_delim : public std::unary_function<T, bool>
+	{
+	public:
+	 bool operator ()(T t) const
+	 {
+	  if ((t==' ')||(t=='\t')||(t=='\n')||(t=='-')||(t=='_'))
+	   return true; //Remove it
+	  return false; //Don't remove it
+	 }
+	};
+
+	//Used elsewhere...
+	static std::wstring sanitize_id(const std::wstring& str)
+	{
+		std::wstring res = str; //Copy out the "const"-ness.
+		res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
+		loc_to_lower(res); //Operates in-place.
+		return res;
+	}
+	static bool read_bool(const std::wstring& str)
+	{
+		std::wstring test = str;
+		loc_to_lower(test);
+		if (test == L"yes" || test==L"true")
+			return true;
+		else if (test==L"no" || test==L"false")
+			return false;
+		else
+			throw std::runtime_error(glue(L"Bad boolean value: \"", str, L"\"").c_str());
+	}
+	static int read_int(const std::wstring& str)
+	{
+		//Read
+		int resInt;
+		std::wistringstream reader(str);
+		reader >>resInt;
+
+		//Problem?
+		if (reader.fail())
+			throw std::runtime_error(glue(L"Bad integer value: \"", str, L"\"").c_str());
+
+		//Done
+		return resInt;
+	}
+
+
 } //End waitzar namespace
 
 

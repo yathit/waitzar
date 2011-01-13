@@ -21,6 +21,7 @@
 #include "Settings/Language.h"
 #include "NGram/BurglishBuilder.h"
 #include "Input/InputMethod.h"
+#include "NGram/wz_utilities.h"
 
 
 //json_spirit_reader is defined elsewhere
@@ -319,7 +320,7 @@ typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container
 
 
 //Helper predicate
-template <class T> 
+/*template <class T> 
 class is_id_delim : public std::unary_function<T, bool>
 {
 public:
@@ -329,7 +330,7 @@ public:
    return true; //Remove it
   return false; //Don't remove it
  }
-};
+};*/
 
 
 

@@ -996,10 +996,11 @@ wstring ConfigManager::sanitize(const wstring& str)
 //Sanitize, then return in lowercase, with '-', '_', and whitespace removed
 wstring ConfigManager::sanitize_id(const wstring& str) 
 {
-	wstring res = str; //Copy out the "const"-ness.
+	return waitzar::sanitize_id(str);
+	/*wstring res = str; //Copy out the "const"-ness.
 	res = wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
 	loc_to_lower(res); //Operates in-place.
-	return res;
+	return res;*/
 }
 
 //Tokenize on a character
@@ -1022,20 +1023,22 @@ vector<wstring> ConfigManager::separate(wstring str, wchar_t delim)
 
 bool ConfigManager::read_bool(const std::wstring& str)
 {
-	std::wstring test = str;
+	return waitzar::read_bool(str);
+	/*std::wstring test = str;
 	loc_to_lower(test);
 	if (test == L"yes" || test==L"true")
 		return true;
 	else if (test==L"no" || test==L"false")
 		return false;
 	else
-		throw std::runtime_error(glue(L"Bad boolean value: \"", str, L"\"").c_str());
+		throw std::runtime_error(glue(L"Bad boolean value: \"", str, L"\"").c_str());*/
 }
 
 
 int ConfigManager::read_int(const std::wstring& str)
 {
-	//Read
+	return waitzar::read_int(str);
+	/*//Read
 	int resInt;
 	std::wistringstream reader(str);
 	reader >>resInt;
@@ -1045,7 +1048,7 @@ int ConfigManager::read_int(const std::wstring& str)
 		throw std::runtime_error(glue(L"Bad integer value: \"", str, L"\"").c_str());
 
 	//Done
-	return resInt;
+	return resInt;*/
 }
 
 
