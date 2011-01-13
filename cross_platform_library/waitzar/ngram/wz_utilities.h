@@ -38,6 +38,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 namespace waitzar 
 {
+	//Moved from WZFactory
+	const std::wstring WZSystemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890\u200B";
+
 
 	/**
 	 * Sort a unicode string according to the rules defined in UTN-11 and K. Soe Min's blog.

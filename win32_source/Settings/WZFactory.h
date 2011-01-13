@@ -144,7 +144,7 @@ template <class ModelType> OnscreenKeyboard* WZFactory<ModelType>::helpKeyboard 
 template <class ModelType> std::vector< std::pair <int, unsigned short> > WZFactory<ModelType>::systemWordLookup = std::vector< std::pair <int, unsigned short> >();
 
 //A few more static initializers
-template <class ModelType> const std::wstring WZFactory<ModelType>::systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890\u200B";
+//template <class ModelType> const std::wstring WZFactory<ModelType>::systemDefinedWords = L"`~!@#$%^&*()-_=+[{]}\\|;:'\"<>/? 1234567890\u200B";
 /*template <class ModelType> const int WZFactory<ModelType>::systemDefinedKeys[] = {HOTKEY_COMBINE, HOTKEY_SHIFT_COMBINE, HOTKEY_SHIFT_1, HOTKEY_SHIFT_2, HOTKEY_SHIFT_3, 
 		HOTKEY_SHIFT_4, HOTKEY_SHIFT_5, HOTKEY_SHIFT_6, HOTKEY_SHIFT_7, HOTKEY_SHIFT_8, HOTKEY_SHIFT_9, HOTKEY_SHIFT_0, 
 		HOTKEY_MINUS, HOTKEY_SHIFT_MINUS, HOTKEY_EQUALS, HOTKEY_SHIFT_EQUALS, HOTKEY_LEFT_BRACKET, 
@@ -164,9 +164,9 @@ void WZFactory<ModelType>::buildSystemWordLookup()
 	//	throw std::runtime_error("System words arrays of mismatched size.");
 
 	//Build our reverse lookup.
-	for (size_t i=0; i<WZFactory<ModelType>::systemDefinedWords.size(); i++) {
+	for (size_t i=0; i<waitzar::WZSystemDefinedWords.size(); i++) {
 		//int hotkey_id = WZFactory<ModelType>::systemDefinedKeys[i];
-		int letter_id = WZFactory<ModelType>::systemDefinedWords[i];
+		int letter_id = waitzar::WZSystemDefinedWords[i];
 		WZFactory<ModelType>::systemWordLookup.push_back(pair<int, unsigned short>(letter_id, i));
 	}
 }
@@ -416,7 +416,7 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory<ModelType>::getWaitZarInput(ws
 
 		//Create, init
 		WZFactory<ModelType>::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
-		WZFactory<ModelType>::cachedWBInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
+		WZFactory<ModelType>::cachedWBInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence);
 	}
 	
 	return WZFactory<ModelType>::cachedWBInputs[fullID];
@@ -432,7 +432,7 @@ LetterInputMethod* WZFactory<ModelType>::getMywinInput(std::wstring langID)
 	if (WZFactory<ModelType>::cachedLetterInputs.count(fullID)==0) {
 		//Create, init
 		WZFactory<ModelType>::cachedLetterInputs[fullID] = new LetterInputMethod();
-		WZFactory<ModelType>::cachedLetterInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords);
+		WZFactory<ModelType>::cachedLetterInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, waitzar::WZSystemDefinedWords);
 	}
 	
 	return WZFactory<ModelType>::cachedLetterInputs[fullID];
@@ -455,7 +455,7 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory<ModelType>::getBurglishInp
 
 		//Create, init
 		WZFactory<ModelType>::cachedBGInputs[fullID] = new RomanInputMethod<waitzar::BurglishBuilder>();
-		WZFactory<ModelType>::cachedBGInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
+		WZFactory<ModelType>::cachedBGInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence);
 	}
 	
 	return WZFactory<ModelType>::cachedBGInputs[fullID];
@@ -505,7 +505,7 @@ LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring lang
 
 		//Build our result
 		KeyMagicInputMethod* res = new KeyMagicInputMethod();
-		res->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords);
+		res->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, waitzar::WZSystemDefinedWords);
 		res->loadRulesFile(wordlistFileName, binaryName.str(), disableCache, fileMD5Function);
 		res->disableCache = disableCache;
 
@@ -542,7 +542,7 @@ RomanInputMethod<WordBuilder>* WZFactory<ModelType>::getWordlistBasedInput(wstri
 
 		//Now, build the romanisation method and return
 		WZFactory<ModelType>::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
-		WZFactory<ModelType>::cachedWBInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, WZFactory<ModelType>::systemDefinedWords, model, sentence);
+		WZFactory<ModelType>::cachedWBInputs[fullID]->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence);
 	}
 
 	return WZFactory<ModelType>::cachedWBInputs[fullID];
