@@ -40,6 +40,8 @@ bool elevateWaitZar(LPCWSTR wzFileName)
 }
 
 
+
+
 /**
  * Borrowed from KeyMagic.
  *
@@ -86,9 +88,11 @@ bool IsAdmin()
    const DWORD ACCESS_WRITE = 2;
 
 
-   __try
-   {
-
+   //Perform the following once, but allow breaking out at any time.
+   // "Break" will lead immediately to the clean-up tasks. 
+   // This is done to remove the __try/__leave/__finally code (which is a nasty Win32 leftover
+   //    that even Microsoft seems to advise against in general).
+   do {
       /*
          AccessCheck() requires an impersonation token.  We first get a primary
          token and then create a duplicate impersonation token.  The
@@ -101,16 +105,16 @@ bool IsAdmin()
 		  TRUE, &hToken))
       {
          if (GetLastError() != ERROR_NO_TOKEN)
-            __leave;
+            break;
 
          if (!OpenProcessToken(GetCurrentProcess(),
 			 TOKEN_DUPLICATE|TOKEN_QUERY, &hToken))
-            __leave;
+            break;
       }
 
       if (!DuplicateToken (hToken, SecurityImpersonation,
 		  &hImpersonationToken))
-		  __leave;
+		  break;
 
 
       /*
@@ -124,15 +128,15 @@ bool IsAdmin()
                                     SECURITY_BUILTIN_DOMAIN_RID,
                                     DOMAIN_ALIAS_RID_ADMINS,
                                     0, 0, 0, 0, 0, 0, &psidAdmin))
-         __leave;
+         break;
 
       psdAdmin = LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
       if (psdAdmin == NULL)
-         __leave;
+         break;
 
       if (!InitializeSecurityDescriptor(psdAdmin,
 		  SECURITY_DESCRIPTOR_REVISION))
-         __leave;
+         break;
 
       // Compute size needed for the ACL.
       dwACLSize = sizeof(ACL) + sizeof(ACCESS_ALLOWED_ACE) +
@@ -140,19 +144,19 @@ bool IsAdmin()
 
       pACL = (PACL)LocalAlloc(LPTR, dwACLSize);
       if (pACL == NULL)
-         __leave;
+         break;
 
       if (!InitializeAcl(pACL, dwACLSize, ACL_REVISION2))
-         __leave;
+         break;
 
       dwAccessMask= ACCESS_READ | ACCESS_WRITE;
 
       if (!AddAccessAllowedAce(pACL, ACL_REVISION2, dwAccessMask,
 		  psidAdmin))
-         __leave;
+         break;
 
       if (!SetSecurityDescriptorDacl(psdAdmin, TRUE, pACL, FALSE))
-         __leave;
+         break;
 
       /*
          AccessCheck validates a security descriptor somewhat; set the group
@@ -163,7 +167,7 @@ bool IsAdmin()
       SetSecurityDescriptorOwner(psdAdmin, psidAdmin, FALSE);
 
       if (!IsValidSecurityDescriptor(psdAdmin))
-         __leave;
+         break;
 
       dwAccessDesired = ACCESS_READ;
 
@@ -181,20 +185,17 @@ bool IsAdmin()
                        &fReturn))
       {
          fReturn = FALSE;
-         __leave;
+         break;
       }
 
-   }
+   } while (false);
 
-   __finally
-   {
-      // Clean up.
-      if (pACL) LocalFree(pACL);
-      if (psdAdmin) LocalFree(psdAdmin);
-      if (psidAdmin) FreeSid(psidAdmin);
-      if (hImpersonationToken) CloseHandle (hImpersonationToken);
-      if (hToken) CloseHandle (hToken);
-   }
+    // Clean up.
+    if (pACL) LocalFree(pACL);
+    if (psdAdmin) LocalFree(psdAdmin);
+    if (psidAdmin) FreeSid(psidAdmin);
+    if (hImpersonationToken) CloseHandle (hImpersonationToken);
+    if (hToken) CloseHandle (hToken);
 
    return (fReturn==TRUE);
 }
