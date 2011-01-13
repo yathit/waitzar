@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -138,29 +138,6 @@
     <ClCompile Include="Contrib\Pulp Core\PulpCoreFont.cpp" />
     <ClCompile Include="Contrib\Pulp Core\PulpCoreImage.cpp" />
     <ClCompile Include="Contrib\MD5\md5.c" />
-    <ClCompile Include="Contrib\CryptoPP\algparam.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\basecode.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\cpu.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\cryptlib.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\files.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\filters.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\fips140.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\hex.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\hrtimer.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\iterhash.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\md5.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\misc.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\mqueue.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\osrng.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\pch.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\queue.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\randpool.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\rdtables.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\rijndael.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\rng.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\sha.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\simple.cpp" />
-    <ClCompile Include="Contrib\CryptoPP\trdlocal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="loading.ico" />
@@ -237,37 +214,6 @@
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h" />
     <ClInclude Include="Contrib\MD5\md5.h" />
-    <ClInclude Include="Contrib\CryptoPP\aes.h" />
-    <ClInclude Include="Contrib\CryptoPP\algparam.h" />
-    <ClInclude Include="Contrib\CryptoPP\argnames.h" />
-    <ClInclude Include="Contrib\CryptoPP\basecode.h" />
-    <ClInclude Include="Contrib\CryptoPP\config.h" />
-    <ClInclude Include="Contrib\CryptoPP\cpu.h" />
-    <ClInclude Include="Contrib\CryptoPP\cryptlib.h" />
-    <ClInclude Include="Contrib\CryptoPP\files.h" />
-    <ClInclude Include="Contrib\CryptoPP\filters.h" />
-    <ClInclude Include="Contrib\CryptoPP\fips140.h" />
-    <ClInclude Include="Contrib\CryptoPP\fltrimpl.h" />
-    <ClInclude Include="Contrib\CryptoPP\hex.h" />
-    <ClInclude Include="Contrib\CryptoPP\hrtimer.h" />
-    <ClInclude Include="Contrib\CryptoPP\iterhash.h" />
-    <ClInclude Include="Contrib\CryptoPP\md5.h" />
-    <ClInclude Include="Contrib\CryptoPP\misc.h" />
-    <ClInclude Include="Contrib\CryptoPP\mqueue.h" />
-    <ClInclude Include="Contrib\CryptoPP\osrng.h" />
-    <ClInclude Include="Contrib\CryptoPP\pch.h" />
-    <ClInclude Include="Contrib\CryptoPP\queue.h" />
-    <ClInclude Include="Contrib\CryptoPP\randpool.h" />
-    <ClInclude Include="Contrib\CryptoPP\rijndael.h" />
-    <ClInclude Include="Contrib\CryptoPP\rng.h" />
-    <ClInclude Include="Contrib\CryptoPP\secblock.h" />
-    <ClInclude Include="Contrib\CryptoPP\seckey.h" />
-    <ClInclude Include="Contrib\CryptoPP\sha.h" />
-    <ClInclude Include="Contrib\CryptoPP\simple.h" />
-    <ClInclude Include="Contrib\CryptoPP\smartptr.h" />
-    <ClInclude Include="Contrib\CryptoPP\stdcpp.h" />
-    <ClInclude Include="Contrib\CryptoPP\trdlocal.h" />
-    <ClInclude Include="Contrib\CryptoPP\words.h" />
     <ClInclude Include="windows_wz.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

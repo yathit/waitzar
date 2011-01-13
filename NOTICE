@@ -129,13 +129,13 @@ Site: http://www.thanlwinsoft.org/ThanLwinSoft/Downloads/index.php#keyboards
 Contact: Keith Stribley, Martin Hosken
 
 
-The Crypto++ Library, version 5.60
+L Peter Deutsch's MD5 Library
  The files:
- - *.h, *.cpp in Contrib/CryptoPP
- The Crypto++ library provides an excellent implementation of various hashing algorithms and cryptographic
- algorithms in C++. All files are released under the public domain, while the library itself has a separate license.
- We only include the files needed for the MD5 algorithm.
-License: Public Domain
-Site: http://www.cryptopp.com/
-Contact: Wei Dai
+ - md5.h, md5.cpp in Contrib/MD5
+ This algorithm was a re-write of RFC 1321, intended to avoid any copyrighted code whatsoever.
+ (I've heard this is in direct response to RSA.) Regardless of its motives, it is an excellent
+ piece of software; it's nice and tiny and it does exactly what I want it to.
+License: BSD-Style
+Site: N/A
+Contact: L Peter Deutsch <ghost@aladdin.com>
 
