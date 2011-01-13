@@ -7,6 +7,8 @@
 #ifndef _OUTPUT_TTFDISPLAY
 #define _OUTPUT_TTFDISPLAY
 
+#include <stdexcept>
+
 #include "MyWin32Window.h"
 #include "Display/DisplayMethod.h"
 

@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <functional>
 #include <locale>
+#include <stdexcept>
 #include <ctype.h>
 
 //Should probably move 'mymb' function here..

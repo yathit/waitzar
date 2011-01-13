@@ -14,6 +14,7 @@
 #include <limits>
 #include <functional>
 #include <locale>
+#include <stdexcept>
 
 #include "Json Spirit/json_spirit_value.h"
 #include "Settings/WZFactory.h"

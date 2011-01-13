@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 
 #include "Jazzlib/Inflater.h"
 

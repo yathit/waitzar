@@ -7,6 +7,8 @@
 #ifndef _TRANSFORM_ZG2UNI
 #define _TRANSFORM_ZG2UNI
 
+#include <stdexcept>
+
 #include "Transform/Transformation.h"
 #include "Burglish/fontmap.h"
 #include "Burglish/fontconv.h"

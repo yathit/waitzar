@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 
 #include "Input/burglish_data.h"
 #include "Json Spirit/json_spirit_value.h"

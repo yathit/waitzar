@@ -7,6 +7,8 @@
 #ifndef _TRANSFORM_UNI2WININNWA
 #define _TRANSFORM_UNI2WININNWA
 
+#include <stdexcept>
+
 #include "Transform/Transformation.h"
 #include "NGram/wz_utilities.h"
 #include "Burglish/fontmap.h"

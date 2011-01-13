@@ -9,6 +9,8 @@
 
 #include <stack>
 #include <fstream>
+#include <stdexcept>
+
 #include "MyWin32Window.h"
 #include "Input/LetterInputMethod.h"
 #include "Input/keymagic_vkeys.h"

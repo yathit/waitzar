@@ -85,6 +85,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 
 //Our includes
 #include "NGram/WordBuilder.h"
