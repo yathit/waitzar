@@ -23,11 +23,8 @@
 #define _UNICODE
 #define UNICODE
 
-#include <windows.h>
-#undef min
-#undef max
-#include <tchar.h>
-#include <stdio.h>
+#include <windows_wz.h>
+//#include <stdio.h>
 
 #include "StreamManipulator.h"
 

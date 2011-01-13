@@ -561,5 +561,8 @@
     <ClInclude Include="Contrib\CryptoPP\words.h">
       <Filter>Resource Files\Header Files\Contrib\CryptoPP</Filter>
     </ClInclude>
+    <ClInclude Include="windows_wz.h">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

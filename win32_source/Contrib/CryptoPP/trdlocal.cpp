@@ -8,9 +8,7 @@
 #include "trdlocal.h"
 
 #ifdef HAS_WINTHREADS
-#include <windows.h>
-#undef min
-#undef max
+#include <windows_wz.h>
 #endif
 
 NAMESPACE_BEGIN(CryptoPP)

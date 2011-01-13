@@ -20,14 +20,8 @@
 
 #pragma once
 
-#define _UNICODE
-#define UNICODE
-
-#include <windows.h>
-#include <tchar.h>
-#include <stdio.h>
-#undef min
-#undef max
+#include <windows_wz.h>
+//#include <stdio.h>
 #include <algorithm>
 
 #include "StreamManipulator.h"
