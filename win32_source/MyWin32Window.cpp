@@ -26,7 +26,7 @@ std::map< std::wstring, MyWin32Window* > MyWin32Window::WndMap;
 	return *res;
 }*/
 
-HCURSOR MyWin32Window::ArrowCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
+HCURSOR MyWin32Window::ArrowCursor = LoadCursor(NULL, IDC_ARROW);
 
 
 MyWin32Window::MyWin32Window(LPCWSTR windowClassName)

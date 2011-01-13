@@ -987,17 +987,17 @@ Encoding WZFactory<ModelType>::makeEncoding(const std::wstring& id, const std::m
 template <class ModelType>
 std::wstring WZFactory<ModelType>::sanitize_id(const std::wstring& str)
 {
-	return ConfigManager::sanitize_id(str);
+	return waitzar::sanitize_id(str);
 }
 template <class ModelType>
 bool WZFactory<ModelType>::read_bool(const std::wstring& str)
 {
-	return ConfigManager::read_bool(str);
+	return waitzar::read_bool(str);
 }
 template <class ModelType>
 int WZFactory<ModelType>::read_int(const std::wstring& str)
 {
-	return ConfigManager::read_int(str);
+	return waitzar::read_int(str);
 }
 
 
