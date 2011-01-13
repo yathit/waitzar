@@ -87,6 +87,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <stdexcept>
 
 //#undef min
@@ -476,15 +477,29 @@ inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 
 //Crypto++ implementation of MD5; we'll pass this as a pointer later.
 string getMD5Hash(const std::string& fileName) {
+	//Some variables
+	const size_t digest_size = 16;
+	md5_state_t state;
+	md5_byte_t digest[digest_size];
 
+	//Get the file's binary data
+	string data = waitzar::ReadBinaryFile(fileName);
 
+	//Run the algorithm on the data
+	md5_init(&state);
+	md5_append(&state, (const md5_byte_t *)data.c_str(), data.size());
+	md5_finish(&state, digest);
 
+	std::stringstream md5Res;
+	md5Res <<std::hex;
+	for (size_t i=0; i<digest_size; i++) {
+		md5Res <<((digest[i]<0x10)?"0":"") <<(unsigned int)(digest[i]);
+	}
 
-	string md5Res;
 	/*CryptoPP::Weak::MD5 hash;
 	CryptoPP::FileSource(fileName.c_str(), true, new
 		CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(md5Res),false)));*/
-	return md5Res;
+	return md5Res.str();
 }
 
 //Means of getting a transformation; we'll have to pass this as a functional pointer later,

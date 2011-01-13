@@ -896,6 +896,36 @@ std::wstring sortMyanmarString(const std::wstring &uniString)
 
 
 
+//TODO: Merge readUTF8File with this, and also clean up mymbstowcs
+string ReadBinaryFile(const string& path)
+{
+	//Open the file, read-only, binary.
+	FILE* userFile = fopen(path.c_str(), "rb");
+	if (userFile == NULL)
+		throw std::runtime_error(std::string("File doesn't exist: " + path).c_str()); //File doesn't exist
+
+	//Get file size
+	fseek (userFile, 0, SEEK_END);
+	long fileSize = ftell(userFile);
+	rewind(userFile);
+
+	//Read that file as a sequence of bytes
+	char* buffer = new char[fileSize];
+	size_t buff_size = fread(buffer, 1, fileSize, userFile);
+	fclose(userFile);
+	if (buff_size==0)
+		return ""; //Empty file
+
+	//Done, clean up resources
+	string res = string(buffer, fileSize);
+	delete [] buffer;
+
+	//And return
+	return res;
+}
+
+
+
 //TODO: We should remove the BOM here; it's just a nuisance elsewhere.
 wstring readUTF8File(const string& path)
 {

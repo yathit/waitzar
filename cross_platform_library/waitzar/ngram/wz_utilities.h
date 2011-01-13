@@ -58,6 +58,7 @@ namespace waitzar
 
 	std::wstring renderAsZawgyi(const std::wstring &uniString);
 
+	std::string ReadBinaryFile(const std::string& path);
 	std::wstring readUTF8File(const std::string& path);
 
 	//Other useful methods
