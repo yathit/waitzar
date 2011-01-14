@@ -97,7 +97,7 @@ void TtfDisplay::initLogicalFont(int devLogPixelsY)
 	lf.lfWeight = FW_DONTCARE;
 	lf.lfOutPrecision = OUT_TT_ONLY_PRECIS;
 	lf.lfQuality = DEFAULT_QUALITY;//PROOF_QUALITY;
-	wcscpy_s(lf.lfFaceName, fontFaceName.c_str());
+	wcscpy(lf.lfFaceName, fontFaceName.c_str());
 	font = CreateFontIndirect(&lf);
 	if (!font)
 		throw std::runtime_error("Could not create font");

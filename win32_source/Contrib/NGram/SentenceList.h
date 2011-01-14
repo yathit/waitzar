@@ -14,6 +14,8 @@
 #include <list>
 #include <vector>
 
+#include "NGram/wz_utilities.h"
+
 
 namespace waitzar 
 {
