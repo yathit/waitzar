@@ -109,7 +109,8 @@
 #include "Input/RomanInputMethod.h"
 #include "Transform/Self2Self.h"
 #include "NGram/Logger.h"
-#include "MD5/md5.h"
+#include "MD5/md5simple.h"
+#include "Curl/curl.h"
 
 //VS Includes
 #include "resource_ex.h"
