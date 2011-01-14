@@ -74,7 +74,7 @@
 #include <Tlhelp32.h> //For getting a list of currently running processes
 //#include <wingdi.h> //For the TEXTINFO stuff
 #include <shlobj.h> //GetFolderPath
-#include <urlmon.h> //File downloads
+//#include <urlmon.h> //File downloads
 
 
 //////////////////////////////////////////

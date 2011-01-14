@@ -131,7 +131,7 @@ using std::ofstream;
 
 //Versioning information & lookup
 const wstring WZ_VERSION_MAIN = L"1.8";
-const bool WZ_VERSION_IS_NIGHTLY = false;
+const bool WZ_VERSION_IS_NIGHTLY = true;
 const wstring WZ_VERSION_FULL = WZ_VERSION_IS_NIGHTLY ? L"NIGHTLY-"+WZ_VERSION_MAIN+L"+" : WZ_VERSION_MAIN;
 bool newVersionAvailable = false;
 const unsigned int FLASH_SAVE_VERSION_NUMBER = 1;
@@ -653,6 +653,22 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 
 
+//Callback function for curl
+FILE* curlfilestream = NULL;
+static size_t curl_writeback(void *buffer, size_t size, size_t nmemb)
+{
+	//Open file? 
+	if (!curlfilestream) {
+		curlfilestream = fopen(pathLocalLastSavedVersionInfo.c_str(), "wb");
+		if (!curlfilestream)
+			return -1; //Failed to open stream
+	}
+
+	//Write file
+	return fwrite(buffer, size, nmemb, curlfilestream);
+}
+
+
 
 //General method to check if a new version is available.
 DWORD WINAPI CheckForNewVersion(LPVOID args)
@@ -666,10 +682,45 @@ DWORD WINAPI CheckForNewVersion(LPVOID args)
 		Sleep(10 * 1000);  //10 seconds
 
 		//First, try to download the URL into a local file.
-		wstringstream temp;
-		temp <<pathLocalLastSavedVersionInfo.c_str();
-		if (URLDownloadToFile(NULL, L"http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt", temp.str().c_str(), 0, NULL)!=S_OK)
+		bool filedownloadsuccess = false;
+		curlfilestream = NULL;
+		{
+			//Init curl; get the curl object
+			curl_global_init(CURL_GLOBAL_DEFAULT);
+			CURL* curl = curl_easy_init();
+			if (curl) {
+				//Option: Url to download
+				curl_easy_setopt(curl, CURLOPT_URL, "http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt");
+				//Option: callback function for writing data
+				curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writeback);
+				//Option: debug output
+				curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+				//Call curl
+				CURLcode resCode = curl_easy_perform(curl);
+
+				//Cleanup
+				curl_easy_cleanup(curl);
+
+				//React
+				if (resCode == CURLE_OK) 
+					filedownloadsuccess = true;
+			}
+
+			//Always clean up/close file
+			if(curlfilestream)
+				fclose(curlfilestream); /* close the local file */ 
+
+			//Cleaup curl globally
+			curl_global_cleanup();
+		}
+		if (!filedownloadsuccess)
 			return 0;
+
+		/*wstringstream temp;
+		temp <<pathLocalLastSavedVersionInfo.c_str();
+		if (URLDownloadToFile(NULL, L"", temp.str().c_str(), 0, NULL)!=S_OK)
+			return 0;*/
 
 		//Second, open the file and parse it line-by-line
 		std::ifstream txtFile(pathLocalLastSavedVersionInfo.c_str(), std::ios::in|std::ios::binary);

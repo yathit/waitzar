@@ -62,7 +62,7 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;urlmon.lib;Ws2_32.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;Ws2_32.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)WaitZar.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)WaitZar.pdb</ProgramDatabaseFile>
@@ -85,7 +85,7 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;urlmon.lib;Wldap32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;Wldap32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)WaitZar.exe</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
