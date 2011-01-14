@@ -62,7 +62,7 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;urlmon.lib;Ws2_32.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)WaitZar.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)WaitZar.pdb</ProgramDatabaseFile>
@@ -85,7 +85,7 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msimg32.lib;Kernel32.lib;shell32.lib;Imm32.lib;urlmon.lib;Wldap32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)WaitZar.exe</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -130,6 +130,96 @@
     <ClCompile Include="Contrib\Json Spirit\json_spirit_reader.cpp" />
     <ClCompile Include="Contrib\Json Spirit\json_spirit_value.cpp" />
     <ClCompile Include="Contrib\Json Spirit\json_spirit_writer.cpp" />
+    <ClCompile Include="Contrib\Curl\base64.c" />
+    <ClCompile Include="Contrib\Curl\connect.c" />
+    <ClCompile Include="Contrib\Curl\content_encoding.c" />
+    <ClCompile Include="Contrib\Curl\cookie.c" />
+    <ClCompile Include="Contrib\Curl\curl_addrinfo.c" />
+    <ClCompile Include="Contrib\Curl\curl_fnmatch.c" />
+    <ClCompile Include="Contrib\Curl\curl_gethostname.c" />
+    <ClCompile Include="Contrib\Curl\curl_memrchr.c" />
+    <ClCompile Include="Contrib\Curl\curl_rand.c" />
+    <ClCompile Include="Contrib\Curl\curl_rtmp.c" />
+    <ClCompile Include="Contrib\Curl\curl_sspi.c" />
+    <ClCompile Include="Contrib\Curl\curl_threads.c" />
+    <ClCompile Include="Contrib\Curl\dict.c" />
+    <ClCompile Include="Contrib\Curl\easy.c" />
+    <ClCompile Include="Contrib\Curl\escape.c" />
+    <ClCompile Include="Contrib\Curl\file.c" />
+    <ClCompile Include="Contrib\Curl\fileinfo.c" />
+    <ClCompile Include="Contrib\Curl\formdata.c" />
+    <ClCompile Include="Contrib\Curl\ftp.c" />
+    <ClCompile Include="Contrib\Curl\ftplistparser.c" />
+    <ClCompile Include="Contrib\Curl\getenv.c" />
+    <ClCompile Include="Contrib\Curl\getinfo.c" />
+    <ClCompile Include="Contrib\Curl\gopher.c" />
+    <ClCompile Include="Contrib\Curl\gtls.c" />
+    <ClCompile Include="Contrib\Curl\hash.c" />
+    <ClCompile Include="Contrib\Curl\hmac.c" />
+    <ClCompile Include="Contrib\Curl\hostares.c" />
+    <ClCompile Include="Contrib\Curl\hostasyn.c" />
+    <ClCompile Include="Contrib\Curl\hostip4.c" />
+    <ClCompile Include="Contrib\Curl\hostip6.c" />
+    <ClCompile Include="Contrib\Curl\hostip.c" />
+    <ClCompile Include="Contrib\Curl\hostsyn.c" />
+    <ClCompile Include="Contrib\Curl\hostthre.c" />
+    <ClCompile Include="Contrib\Curl\http.c" />
+    <ClCompile Include="Contrib\Curl\http_chunks.c" />
+    <ClCompile Include="Contrib\Curl\http_digest.c" />
+    <ClCompile Include="Contrib\Curl\http_negotiate.c" />
+    <ClCompile Include="Contrib\Curl\http_ntlm.c" />
+    <ClCompile Include="Contrib\Curl\if2ip.c" />
+    <ClCompile Include="Contrib\Curl\imap.c" />
+    <ClCompile Include="Contrib\Curl\inet_ntop.c" />
+    <ClCompile Include="Contrib\Curl\inet_pton.c" />
+    <ClCompile Include="Contrib\Curl\krb4.c" />
+    <ClCompile Include="Contrib\Curl\krb5.c" />
+    <ClCompile Include="Contrib\Curl\ldap.c" />
+    <ClCompile Include="Contrib\Curl\llist.c" />
+    <ClCompile Include="Contrib\Curl\md4.c" />
+    <ClCompile Include="Contrib\Curl\md5.c" />
+    <ClCompile Include="Contrib\Curl\memdebug.c" />
+    <ClCompile Include="Contrib\Curl\mprintf.c" />
+    <ClCompile Include="Contrib\Curl\multi.c" />
+    <ClCompile Include="Contrib\Curl\netrc.c" />
+    <ClCompile Include="Contrib\Curl\nonblock.c" />
+    <ClCompile Include="Contrib\Curl\nss.c" />
+    <ClCompile Include="Contrib\Curl\openldap.c" />
+    <ClCompile Include="Contrib\Curl\parsedate.c" />
+    <ClCompile Include="Contrib\Curl\pingpong.c" />
+    <ClCompile Include="Contrib\Curl\polarssl.c" />
+    <ClCompile Include="Contrib\Curl\pop3.c" />
+    <ClCompile Include="Contrib\Curl\progress.c" />
+    <ClCompile Include="Contrib\Curl\qssl.c" />
+    <ClCompile Include="Contrib\Curl\rawstr.c" />
+    <ClCompile Include="Contrib\Curl\rtsp.c" />
+    <ClCompile Include="Contrib\Curl\security.c" />
+    <ClCompile Include="Contrib\Curl\select.c" />
+    <ClCompile Include="Contrib\Curl\sendf.c" />
+    <ClCompile Include="Contrib\Curl\share.c" />
+    <ClCompile Include="Contrib\Curl\slist.c" />
+    <ClCompile Include="Contrib\Curl\smtp.c" />
+    <ClCompile Include="Contrib\Curl\socks.c" />
+    <ClCompile Include="Contrib\Curl\socks_gssapi.c" />
+    <ClCompile Include="Contrib\Curl\socks_sspi.c" />
+    <ClCompile Include="Contrib\Curl\speedcheck.c" />
+    <ClCompile Include="Contrib\Curl\splay.c" />
+    <ClCompile Include="Contrib\Curl\ssh.c" />
+    <ClCompile Include="Contrib\Curl\sslgen.c" />
+    <ClCompile Include="Contrib\Curl\ssluse.c" />
+    <ClCompile Include="Contrib\Curl\strdup.c" />
+    <ClCompile Include="Contrib\Curl\strequal.c" />
+    <ClCompile Include="Contrib\Curl\strerror.c" />
+    <ClCompile Include="Contrib\Curl\strtok.c" />
+    <ClCompile Include="Contrib\Curl\strtoofft.c" />
+    <ClCompile Include="Contrib\Curl\telnet.c" />
+    <ClCompile Include="Contrib\Curl\tftp.c" />
+    <ClCompile Include="Contrib\Curl\timeval.c" />
+    <ClCompile Include="Contrib\Curl\transfer.c" />
+    <ClCompile Include="Contrib\Curl\url.c" />
+    <ClCompile Include="Contrib\Curl\version.c" />
+    <ClCompile Include="Contrib\Curl\warnless.c" />
+    <ClCompile Include="Contrib\Curl\wildcard.c" />
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.cpp" />
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\SentenceList.cpp" />
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp" />
@@ -137,7 +227,7 @@
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\Logger.cpp" />
     <ClCompile Include="Contrib\Pulp Core\PulpCoreFont.cpp" />
     <ClCompile Include="Contrib\Pulp Core\PulpCoreImage.cpp" />
-    <ClCompile Include="Contrib\MD5\md5.c" />
+    <ClCompile Include="Contrib\MD5\md5simple.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="loading.ico" />
@@ -208,12 +298,106 @@
     <ClInclude Include="Contrib\Json Spirit\json_spirit_writer.h" />
     <ClInclude Include="Contrib\Boost\config.hpp" />
     <ClInclude Include="Contrib\Boost\version.hpp" />
+    <ClInclude Include="Contrib\Curl\arpa_telnet.h" />
+    <ClInclude Include="Contrib\Curl\config-win32.h" />
+    <ClInclude Include="Contrib\Curl\connect.h" />
+    <ClInclude Include="Contrib\Curl\content_encoding.h" />
+    <ClInclude Include="Contrib\Curl\cookie.h" />
+    <ClInclude Include="Contrib\Curl\curl_addrinfo.h" />
+    <ClInclude Include="Contrib\Curl\curl_base64.h" />
+    <ClInclude Include="Contrib\Curl\curl_fnmatch.h" />
+    <ClInclude Include="Contrib\Curl\curl_gethostname.h" />
+    <ClInclude Include="Contrib\Curl\curl_hmac.h" />
+    <ClInclude Include="Contrib\Curl\curl_ldap.h" />
+    <ClInclude Include="Contrib\Curl\curl_md4.h" />
+    <ClInclude Include="Contrib\Curl\curl_md5.h" />
+    <ClInclude Include="Contrib\Curl\curl_memory.h" />
+    <ClInclude Include="Contrib\Curl\curl_memrchr.h" />
+    <ClInclude Include="Contrib\Curl\curl_rand.h" />
+    <ClInclude Include="Contrib\Curl\curl_rtmp.h" />
+    <ClInclude Include="Contrib\Curl\curl_sspi.h" />
+    <ClInclude Include="Contrib\Curl\curl_threads.h" />
+    <ClInclude Include="Contrib\Curl\curlx.h" />
+    <ClInclude Include="Contrib\Curl\dict.h" />
+    <ClInclude Include="Contrib\Curl\easyif.h" />
+    <ClInclude Include="Contrib\Curl\escape.h" />
+    <ClInclude Include="Contrib\Curl\file.h" />
+    <ClInclude Include="Contrib\Curl\fileinfo.h" />
+    <ClInclude Include="Contrib\Curl\formdata.h" />
+    <ClInclude Include="Contrib\Curl\ftp.h" />
+    <ClInclude Include="Contrib\Curl\ftplistparser.h" />
+    <ClInclude Include="Contrib\Curl\getinfo.h" />
+    <ClInclude Include="Contrib\Curl\gopher.h" />
+    <ClInclude Include="Contrib\Curl\gtls.h" />
+    <ClInclude Include="Contrib\Curl\hash.h" />
+    <ClInclude Include="Contrib\Curl\hostip.h" />
+    <ClInclude Include="Contrib\Curl\http_chunks.h" />
+    <ClInclude Include="Contrib\Curl\http_digest.h" />
+    <ClInclude Include="Contrib\Curl\http.h" />
+    <ClInclude Include="Contrib\Curl\http_negotiate.h" />
+    <ClInclude Include="Contrib\Curl\http_ntlm.h" />
+    <ClInclude Include="Contrib\Curl\if2ip.h" />
+    <ClInclude Include="Contrib\Curl\imap.h" />
+    <ClInclude Include="Contrib\Curl\inet_ntop.h" />
+    <ClInclude Include="Contrib\Curl\inet_pton.h" />
+    <ClInclude Include="Contrib\Curl\krb4.h" />
+    <ClInclude Include="Contrib\Curl\llist.h" />
+    <ClInclude Include="Contrib\Curl\memdebug.h" />
+    <ClInclude Include="Contrib\Curl\multiif.h" />
+    <ClInclude Include="Contrib\Curl\netrc.h" />
+    <ClInclude Include="Contrib\Curl\nonblock.h" />
+    <ClInclude Include="Contrib\Curl\nssg.h" />
+    <ClInclude Include="Contrib\Curl\parsedate.h" />
+    <ClInclude Include="Contrib\Curl\pingpong.h" />
+    <ClInclude Include="Contrib\Curl\polarssl.h" />
+    <ClInclude Include="Contrib\Curl\pop3.h" />
+    <ClInclude Include="Contrib\Curl\progress.h" />
+    <ClInclude Include="Contrib\Curl\qssl.h" />
+    <ClInclude Include="Contrib\Curl\rawstr.h" />
+    <ClInclude Include="Contrib\Curl\rtsp.h" />
+    <ClInclude Include="Contrib\Curl\select.h" />
+    <ClInclude Include="Contrib\Curl\sendf.h" />
+    <ClInclude Include="Contrib\Curl\setup.h" />
+    <ClInclude Include="Contrib\Curl\setup_once.h" />
+    <ClInclude Include="Contrib\Curl\share.h" />
+    <ClInclude Include="Contrib\Curl\slist.h" />
+    <ClInclude Include="Contrib\Curl\smtp.h" />
+    <ClInclude Include="Contrib\Curl\sockaddr.h" />
+    <ClInclude Include="Contrib\Curl\socks.h" />
+    <ClInclude Include="Contrib\Curl\speedcheck.h" />
+    <ClInclude Include="Contrib\Curl\splay.h" />
+    <ClInclude Include="Contrib\Curl\ssh.h" />
+    <ClInclude Include="Contrib\Curl\sslgen.h" />
+    <ClInclude Include="Contrib\Curl\ssluse.h" />
+    <ClInclude Include="Contrib\Curl\strdup.h" />
+    <ClInclude Include="Contrib\Curl\strequal.h" />
+    <ClInclude Include="Contrib\Curl\strerror.h" />
+    <ClInclude Include="Contrib\Curl\strtok.h" />
+    <ClInclude Include="Contrib\Curl\strtoofft.h" />
+    <ClInclude Include="Contrib\Curl\telnet.h" />
+    <ClInclude Include="Contrib\Curl\tftp.h" />
+    <ClInclude Include="Contrib\Curl\timeval.h" />
+    <ClInclude Include="Contrib\Curl\transfer.h" />
+    <ClInclude Include="Contrib\Curl\urldata.h" />
+    <ClInclude Include="Contrib\Curl\url.h" />
+    <ClInclude Include="Contrib\Curl\warnless.h" />
+    <ClInclude Include="Contrib\Curl\wildcard.h" />
+    <ClInclude Include="Contrib\Curl\curl.h" />
+    <ClInclude Include="Contrib\Curl\curlbuild.h" />
+    <ClInclude Include="Contrib\Curl\curlrules.h" />
+    <ClInclude Include="Contrib\Curl\curlver.h" />
+    <ClInclude Include="Contrib\Curl\easy.h" />
+    <ClInclude Include="Contrib\Curl\mprintf.h" />
+    <ClInclude Include="Contrib\Curl\multi.h" />
+    <ClInclude Include="Contrib\Curl\stdcheaders.h" />
+    <ClInclude Include="Contrib\Curl\typecheck-gcc.h" />
+    <ClInclude Include="Contrib\Curl\types.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\SentenceList.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h" />
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h" />
-    <ClInclude Include="Contrib\MD5\md5.h" />
+    <ClInclude Include="Contrib\MD5\md5simple.h" />
     <ClInclude Include="windows_wz.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

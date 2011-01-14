@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -93,6 +93,12 @@
     </Filter>
     <Filter Include="Source Files\Contrib\MD5">
       <UniqueIdentifier>{171468c2-1c4b-4561-93e1-3a9fc76ba292}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\Curl">
+      <UniqueIdentifier>{cc64f9fe-6746-452f-9537-b4b212fb8ea3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Header Files\Contrib\Curl">
+      <UniqueIdentifier>{0f1c3212-63c4-48e4-bb1d-0df10e14fdcf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +195,276 @@
     <ClCompile Include="Contrib\Json Spirit\json_spirit_writer.cpp">
       <Filter>Source Files\Contrib\Json Spirit</Filter>
     </ClCompile>
+    <ClCompile Include="Contrib\Curl\base64.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\connect.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\content_encoding.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\cookie.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_addrinfo.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_fnmatch.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_gethostname.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_memrchr.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_rand.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_rtmp.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_sspi.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\curl_threads.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\dict.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\easy.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\escape.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\file.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\fileinfo.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\formdata.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\ftp.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\ftplistparser.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\getenv.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\getinfo.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\gopher.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\gtls.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hash.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hmac.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hostares.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hostasyn.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hostip4.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hostip6.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hostip.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hostsyn.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\hostthre.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\http.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\http_chunks.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\http_digest.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\http_negotiate.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\http_ntlm.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\if2ip.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\imap.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\inet_ntop.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\inet_pton.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\krb4.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\krb5.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\ldap.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\llist.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\md4.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\md5.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\memdebug.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\mprintf.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\multi.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\netrc.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\nonblock.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\nss.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\openldap.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\parsedate.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\pingpong.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\polarssl.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\pop3.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\progress.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\qssl.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\rawstr.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\rtsp.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\security.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\select.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\sendf.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\share.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\slist.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\smtp.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\socks.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\socks_gssapi.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\socks_sspi.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\speedcheck.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\splay.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\ssh.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\sslgen.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\ssluse.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\strdup.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\strequal.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\strerror.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\strtok.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\strtoofft.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\telnet.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\tftp.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\timeval.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\transfer.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\url.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\version.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\warnless.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
+    <ClCompile Include="Contrib\Curl\wildcard.c">
+      <Filter>Source Files\Contrib\Curl</Filter>
+    </ClCompile>
     <ClCompile Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.cpp">
       <Filter>Source Files\Contrib\NGram</Filter>
     </ClCompile>
@@ -210,11 +486,8 @@
     <ClCompile Include="Contrib\Pulp Core\PulpCoreImage.cpp">
       <Filter>Source Files\Contrib\Pulp Core</Filter>
     </ClCompile>
-    <ClCompile Include="Contrib\MD5\md5.c">
+    <ClCompile Include="Contrib\MD5\md5simple.c">
       <Filter>Source Files\Contrib\MD5</Filter>
-    </ClCompile>
-    <ClCompile Include="Contrib\MD5\md5.c">
-      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -330,6 +603,288 @@
     <ClInclude Include="Settings\WZFactory.h">
       <Filter>Resource Files\Header Files\Settings</Filter>
     </ClInclude>
+    <ClInclude Include="Contrib\Curl\arpa_telnet.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\config-win32.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\connect.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\content_encoding.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\cookie.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_addrinfo.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_base64.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_fnmatch.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_gethostname.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_hmac.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_ldap.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_md4.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_md5.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_memory.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_memrchr.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_rand.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_rtmp.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_sspi.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl_threads.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curlx.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\dict.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\easyif.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\escape.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\file.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\fileinfo.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\formdata.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\ftp.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\ftplistparser.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\getinfo.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\gopher.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\gtls.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\hash.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\hostip.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\http_chunks.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\http_digest.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\http.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\http_negotiate.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\http_ntlm.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\if2ip.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\imap.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\inet_ntop.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\inet_pton.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\krb4.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\llist.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\memdebug.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\multiif.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\netrc.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\nonblock.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\nssg.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\parsedate.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\pingpong.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\polarssl.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\pop3.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\progress.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\qssl.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\rawstr.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\rtsp.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\select.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\sendf.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\setup.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\setup_once.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\share.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\slist.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\smtp.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\sockaddr.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\socks.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\speedcheck.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\splay.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\ssh.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\sslgen.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\ssluse.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\strdup.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\strequal.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\strerror.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\strtok.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\strtoofft.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\telnet.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\tftp.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\timeval.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\transfer.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\urldata.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\url.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\warnless.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\wildcard.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curl.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curlbuild.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curlrules.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\curlver.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\easy.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\mprintf.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\multi.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\stdcheaders.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\typecheck-gcc.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Contrib\Curl\types.h">
+      <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
+    </ClInclude>
     <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontconv.h">
       <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
     </ClInclude>
@@ -405,13 +960,10 @@
     <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h">
       <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
     </ClInclude>
-    <ClInclude Include="Contrib\MD5\md5.h">
+    <ClInclude Include="Contrib\MD5\md5simple.h">
       <Filter>Resource Files\Header Files\Contrib\MD5</Filter>
     </ClInclude>
     <ClInclude Include="windows_wz.h">
-      <Filter>Resource Files\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Contrib\MD5\md5.h">
       <Filter>Resource Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
