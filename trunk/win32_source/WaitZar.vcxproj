@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -50,7 +50,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\cross_platform_library\waitzar;Contrib;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Contrib;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -75,7 +75,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\cross_platform_library\waitzar;Contrib;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Contrib;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -116,10 +116,10 @@
     <ClCompile Include="Transform\Zg2Uni.cpp" />
     <ClCompile Include="Settings\ConfigManager.cpp" />
     <ClCompile Include="Settings\WZFactory.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontconv.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontmap.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\lib.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\regex.cpp" />
+    <ClCompile Include="Contrib\burglish\fontconv.cpp" />
+    <ClCompile Include="Contrib\burglish\fontmap.cpp" />
+    <ClCompile Include="Contrib\burglish\lib.cpp" />
+    <ClCompile Include="Contrib\burglish\regex.cpp" />
     <ClCompile Include="Contrib\Jazzlib\Adler32.cpp" />
     <ClCompile Include="Contrib\Jazzlib\Inflater.cpp" />
     <ClCompile Include="Contrib\Jazzlib\InflaterDynHeader.cpp" />
@@ -220,11 +220,11 @@
     <ClCompile Include="Contrib\Curl\version.c" />
     <ClCompile Include="Contrib\Curl\warnless.c" />
     <ClCompile Include="Contrib\Curl\wildcard.c" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\SentenceList.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\Logger.cpp" />
+    <ClCompile Include="Contrib\ngram\BurglishBuilder.cpp" />
+    <ClCompile Include="Contrib\ngram\SentenceList.cpp" />
+    <ClCompile Include="Contrib\ngram\WordBuilder.cpp" />
+    <ClCompile Include="Contrib\ngram\wz_utilities.cpp" />
+    <ClCompile Include="Contrib\ngram\Logger.cpp" />
     <ClCompile Include="Contrib\Pulp Core\PulpCoreFont.cpp" />
     <ClCompile Include="Contrib\Pulp Core\PulpCoreImage.cpp" />
     <ClCompile Include="Contrib\MD5\md5simple.c" />
@@ -278,10 +278,10 @@
     <ClInclude Include="Settings\Language.h" />
     <ClInclude Include="Settings\Types.h" />
     <ClInclude Include="Settings\WZFactory.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontconv.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontmap.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\lib.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\regex.h" />
+    <ClInclude Include="Contrib\burglish\fontconv.h" />
+    <ClInclude Include="Contrib\waitzar\burglish\fontmap.h" />
+    <ClInclude Include="Contrib\burglish\lib.h" />
+    <ClInclude Include="Contrib\burglish\regex.h" />
     <ClInclude Include="Contrib\Jazzlib\Adler32.h" />
     <ClInclude Include="Contrib\Jazzlib\Inflater.h" />
     <ClInclude Include="Contrib\Jazzlib\InflaterDynHeader.h" />
@@ -392,11 +392,11 @@
     <ClInclude Include="Contrib\Curl\stdcheaders.h" />
     <ClInclude Include="Contrib\Curl\typecheck-gcc.h" />
     <ClInclude Include="Contrib\Curl\types.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\SentenceList.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h" />
+    <ClInclude Include="Contrib\ngram\BurglishBuilder.h" />
+    <ClInclude Include="Contrib\ngram\SentenceList.h" />
+    <ClInclude Include="Contrib\ngram\WordBuilder.h" />
+    <ClInclude Include="Contrib\ngram\wz_utilities.h" />
+    <ClInclude Include="Contrib\ngram\Logger.h" />
     <ClInclude Include="Contrib\MD5\md5simple.h" />
     <ClInclude Include="windows_wz.h" />
   </ItemGroup>

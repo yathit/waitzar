@@ -18,48 +18,48 @@
     <ClCompile Include="..\cross_platform_library\ExternalModelTester.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontconv.cpp">
+    <ClCompile Include="..\win32_source\Contrib\burglish\fontconv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontmap.cpp">
+    <ClCompile Include="..\win32_source\Contrib\burglish\fontmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\lib.cpp">
+    <ClCompile Include="..\win32_source\Contrib\burglish\lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\regex.cpp">
+    <ClCompile Include="..\win32_source\Contrib\burglish\regex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp">
+    <ClCompile Include="..\win32_source\Contrib\ngram\WordBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp">
+    <ClCompile Include="..\win32_source\Contrib\ngram\wz_utilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\Logger.cpp">
+    <ClCompile Include="..\win32_source\Contrib\ngram\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontconv.h">
+    <ClInclude Include="..\win32_source\Contrib\burglish\fontconv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontmap.h">
+    <ClInclude Include="..\win32_source\Contrib\burglish\fontmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\lib.h">
+    <ClInclude Include="..\win32_source\Contrib\burglish\lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\regex.h">
+    <ClInclude Include="..\win32_source\Contrib\burglish\regex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h">
+    <ClInclude Include="..\win32_source\Contrib\ngram\WordBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h">
+    <ClInclude Include="..\win32_source\Contrib\ngram\wz_utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h">
+    <ClInclude Include="..\win32_source\Contrib\ngram\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
