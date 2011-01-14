@@ -694,7 +694,7 @@ DWORD WINAPI CheckForNewVersion(LPVOID args)
 				//Option: callback function for writing data
 				curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writeback);
 				//Option: debug output
-				curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+				curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 
 				//Call curl
 				CURLcode resCode = curl_easy_perform(curl);
@@ -4525,7 +4525,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 			if (currTest->second != resOut) {
 				//First time? Then init our file
 				if (numErrors++ == 0) {
-					outFile.open(outFileName.c_str(), std::ios::out|std::ios::binary); //binary needed for utf-8
+					outFile.open(waitzar::escape_wstr(outFileName, false).c_str(), std::ios::out|std::ios::binary); //binary needed for utf-8
 					if (outFile.fail())
 						throw std::runtime_error(waitzar::glue(L"Cannot open output file: ", outFileName).c_str());
 					outFile <<"Test results\n-----------\n";

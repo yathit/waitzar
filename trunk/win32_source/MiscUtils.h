@@ -130,7 +130,7 @@ bool IsAdmin()
                                     0, 0, 0, 0, 0, 0, &psidAdmin))
          break;
 
-      psdAdmin = LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+      psdAdmin = (SECURITY_DESCRIPTOR*)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
       if (psdAdmin == NULL)
          break;
 

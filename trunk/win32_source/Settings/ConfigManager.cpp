@@ -462,7 +462,7 @@ void ConfigManager::saveUserConfigFile(const std::wstring& path, bool emptyFile)
 {
 	//Create the file
 	std::ofstream cfgFile;
-	cfgFile.open(path.c_str());
+	cfgFile.open(waitzar::escape_wstr(path, false).c_str());
 
 	//Add an empty set of parameters "{}" and some comments.
 	cfgFile << "# This file contains user-specific settings for the WaitZar" <<std::endl
@@ -487,7 +487,7 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 {
 	//Open the file
 	std::ofstream cfgFile;
-	cfgFile.open(path.c_str());
+	cfgFile.open(waitzar::escape_wstr(path, false).c_str());
 
 	//Add an empty set of parameters "{}" and some comments.
 	cfgFile << "# This file contains application-specific overrides for the WaitZar" <<std::endl
