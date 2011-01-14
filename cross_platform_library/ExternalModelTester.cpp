@@ -11,17 +11,17 @@ using std::wstring;
   #include <fontconv.h>
   #include <WordBuilder.h>
 #else
-  #ifdef __STDC_ISO_10646__
+  //#ifdef __STDC_ISO_10646__
     //If defined, we are running on Linux
     #include <fontconv.h>
     #include <WordBuilder.h>
 	#include <wz_utilities.h>
-  #else
+  //#else
     //On windows:
-    #include "../cross_platform_library/waitzar/burglish/fontconv.h"
-    #include "../cross_platform_library/waitzar/ngram/WordBuilder.h"
-	#include "../cross_platform_library/waitzar/ngram/wz_utilities.h"
-  #endif
+    //#include "../win32_source/Contrib/burglish/fontconv.h"
+    //#include "../win32_source/Contrib/ngram/WordBuilder.h"
+	//#include "../win32_source/Contrib/ngram/wz_utilities.h"
+  //#endif
 #endif
 
 using namespace waitzar;

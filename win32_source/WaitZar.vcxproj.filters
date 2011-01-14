@@ -153,16 +153,16 @@
     <ClCompile Include="Settings\WZFactory.cpp">
       <Filter>Source Files\Settings</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontconv.cpp">
+    <ClCompile Include="Contrib\burglish\fontconv.cpp">
       <Filter>Source Files\Contrib\Burglish</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontmap.cpp">
+    <ClCompile Include="Contrib\burglish\fontmap.cpp">
       <Filter>Source Files\Contrib\Burglish</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\lib.cpp">
+    <ClCompile Include="Contrib\burglish\lib.cpp">
       <Filter>Source Files\Contrib\Burglish</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\regex.cpp">
+    <ClCompile Include="Contrib\burglish\regex.cpp">
       <Filter>Source Files\Contrib\Burglish</Filter>
     </ClCompile>
     <ClCompile Include="Contrib\Jazzlib\Adler32.cpp">
@@ -465,19 +465,19 @@
     <ClCompile Include="Contrib\Curl\wildcard.c">
       <Filter>Source Files\Contrib\Curl</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.cpp">
+    <ClCompile Include="Contrib\ngram\BurglishBuilder.cpp">
       <Filter>Source Files\Contrib\NGram</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\SentenceList.cpp">
+    <ClCompile Include="Contrib\ngram\SentenceList.cpp">
       <Filter>Source Files\Contrib\NGram</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp">
+    <ClCompile Include="Contrib\ngram\WordBuilder.cpp">
       <Filter>Source Files\Contrib\NGram</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp">
+    <ClCompile Include="Contrib\ngram\wz_utilities.cpp">
       <Filter>Source Files\Contrib\NGram</Filter>
     </ClCompile>
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\Logger.cpp">
+    <ClCompile Include="Contrib\ngram\Logger.cpp">
       <Filter>Source Files\Contrib\NGram</Filter>
     </ClCompile>
     <ClCompile Include="Contrib\Pulp Core\PulpCoreFont.cpp">
@@ -885,16 +885,16 @@
     <ClInclude Include="Contrib\Curl\types.h">
       <Filter>Resource Files\Header Files\Contrib\Curl</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontconv.h">
+    <ClInclude Include="Contrib\burglish\fontconv.h">
       <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontmap.h">
+    <ClInclude Include="Contrib\burglish\fontmap.h">
       <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\lib.h">
+    <ClInclude Include="Contrib\burglish\lib.h">
       <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\regex.h">
+    <ClInclude Include="Contrib\burglish\regex.h">
       <Filter>Resource Files\Header Files\Contrib\Burglish</Filter>
     </ClInclude>
     <ClInclude Include="Contrib\Jazzlib\Adler32.h">
@@ -945,19 +945,19 @@
     <ClInclude Include="Contrib\Boost\version.hpp">
       <Filter>Resource Files\Header Files\Contrib\Boost</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\BurglishBuilder.h">
+    <ClInclude Include="Contrib\ngram\BurglishBuilder.h">
       <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\SentenceList.h">
+    <ClInclude Include="Contrib\ngram\SentenceList.h">
       <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h">
+    <ClInclude Include="Contrib\ngram\WordBuilder.h">
       <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h">
+    <ClInclude Include="Contrib\ngram\wz_utilities.h">
       <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
     </ClInclude>
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h">
+    <ClInclude Include="Contrib\ngram\Logger.h">
       <Filter>Resource Files\Header Files\Contrib\NGram</Filter>
     </ClInclude>
     <ClInclude Include="Contrib\MD5\md5simple.h">

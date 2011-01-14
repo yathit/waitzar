@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -50,6 +50,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\win32_source\Contrib\burglish;..\win32_source\Contrib\ngram;..\win32_source\Contrib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -60,7 +61,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\cross_platform_library\waitzar;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\win32_source\Contrib\burglish;..\win32_source\Contrib\ngram;..\win32_source\Contrib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
@@ -76,22 +77,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\cross_platform_library\ExternalModelTester.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontconv.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\fontmap.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\lib.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\burglish\regex.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\WordBuilder.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\wz_utilities.cpp" />
-    <ClCompile Include="..\cross_platform_library\waitzar\ngram\Logger.cpp" />
+    <ClCompile Include="..\win32_source\Contrib\burglish\fontconv.cpp" />
+    <ClCompile Include="..\win32_source\Contrib\burglish\fontmap.cpp" />
+    <ClCompile Include="..\win32_source\Contrib\burglish\lib.cpp" />
+    <ClCompile Include="..\win32_source\Contrib\burglish\regex.cpp" />
+    <ClCompile Include="..\win32_source\Contrib\ngram\WordBuilder.cpp" />
+    <ClCompile Include="..\win32_source\Contrib\ngram\wz_utilities.cpp" />
+    <ClCompile Include="..\win32_source\Contrib\ngram\Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontconv.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\fontmap.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\lib.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\burglish\regex.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\WordBuilder.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\wz_utilities.h" />
-    <ClInclude Include="..\cross_platform_library\waitzar\ngram\Logger.h" />
+    <ClInclude Include="..\win32_source\Contrib\burglish\fontconv.h" />
+    <ClInclude Include="..\win32_source\Contrib\burglish\fontmap.h" />
+    <ClInclude Include="..\win32_source\Contrib\burglish\lib.h" />
+    <ClInclude Include="..\win32_source\Contrib\burglish\regex.h" />
+    <ClInclude Include="..\win32_source\Contrib\ngram\WordBuilder.h" />
+    <ClInclude Include="..\win32_source\Contrib\ngram\wz_utilities.h" />
+    <ClInclude Include="..\win32_source\Contrib\ngram\Logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
