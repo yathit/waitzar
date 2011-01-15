@@ -759,7 +759,7 @@ void ConfigManager::readInConfig(wValue root, const wstring& folderPath, vector<
 	//We always operate on maps:
 	json_spirit::Value_type t = root.type();
 	wObject currPairs = root.get_value<wObject>();
-	for (wObject::iterator itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
+	for (auto itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
  		//Append to the context
 		int numToRemove = 0;
 		{

@@ -359,7 +359,7 @@ enum { PGDOWNCOLOR_ID=0, PGUPCOLOR_ID=1, PGDOWNSEPIA_ID=2, PGUPSEPIA_ID=3 };
 HANDLE keyTrackThread;   //Handle to our thread
 DWORD  keyTrackThreadID; //Its unique ID (never zero)
 CRITICAL_SECTION threadCriticalSec; //Global critical section object
-list< pair<unsigned int, VirtKey> > hotkeysDown; //If a hotkey code (wparam) is in this list, its corresponding VKey is being tracked.
+list<pair<unsigned int, VirtKey>> hotkeysDown; //If a hotkey code (wparam) is in this list, its corresponding VKey is being tracked.
 bool threadIsActive; //If "false", this thread must be woken to do anything useful
 
 
@@ -1740,7 +1740,7 @@ void recalculate()
 	}
 
 	//Candidate strings are slightly more complex; have the convert the entire array
-	std::vector< std::pair<std::wstring, unsigned int> > dispCandidateStrs = currInput->getTypedCandidateStrings();
+	std::vector< std::pair<std::wstring, unsigned int>> dispCandidateStrs = currInput->getTypedCandidateStrings();
 	wstring newFilterStr = config.getSettings().whitespaceCharacters; //We assume all candidates are complete; no ZWS
 	if (!newFilterStr.empty()) {
 		for (size_t i=0; i<dispCandidateStrs.size(); i++) {
@@ -2028,7 +2028,7 @@ void LayoutDialogControls(vector<WControl>& pendingItems, HDC currDC, size_t sta
 {
 	size_t accX = startX;
 	size_t accY = startY;
-	for (vector<WControl>::iterator it=pendingItems.begin(); it!=pendingItems.end(); it++) {
+	for (auto it=pendingItems.begin(); it!=pendingItems.end(); it++) {
 		//Set x/y, update accX/accY (artificial)
 		accX = it->x = (it->x==0 ? accX : it->x);
 		accY = it->y = (it->y==0 ? accY : it->y);
@@ -2334,8 +2334,8 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 }
 
 
-vector< pair<unsigned int, POINT> > controlsToMove; //"ID", "initialX", where initialX of 0 means "show/hide"
-vector< pair<wstring, wstring> > helpIconDlgTextStrings;
+vector<pair<unsigned int, POINT>> controlsToMove; //"ID", "initialX", where initialX of 0 means "show/hide"
+vector<pair<wstring, wstring>> helpIconDlgTextStrings;
 bool helpBoxIsVisible = false;
 void MakeHelpBoxVisible(HWND dlgHwnd, bool show, unsigned int helpIconID, pair<size_t, size_t> wndWidthMinPlus)
 {
