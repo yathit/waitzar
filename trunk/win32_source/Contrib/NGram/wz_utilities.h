@@ -130,7 +130,7 @@ namespace waitzar
 
 	//Helper predicate
 	//TODO: Make private
-	template <class T>
+	/*template <class T>
 	class is_id_delim : public std::unary_function<T, bool>
 	{
 	public:
@@ -140,13 +140,19 @@ namespace waitzar
 	   return true; //Remove it
 	  return false; //Don't remove it
 	 }
-	};
+	};*/
 
 	//Used elsewhere...
 	static std::wstring sanitize_id(const std::wstring& str)
 	{
 		std::wstring res = str; //Copy out the "const"-ness.
-		res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
+		//res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
+		auto is_id_delim = [](wchar_t letter)->bool {
+			  if ((letter==' ')||(letter=='\t')||(letter=='\n')||(letter=='-')||(letter=='_'))
+			   return true; //Remove it
+			  return false; //Don't remove it
+		};
+		res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim));
 		loc_to_lower(res); //Operates in-place.
 		return res;
 	}
