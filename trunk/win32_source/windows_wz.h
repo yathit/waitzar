@@ -57,7 +57,11 @@
 #define NOPROFILER          //- Profiler interface.
 #define NODEFERWINDOWPOS    //- DeferWindowPos routines
 #define NOMCX               //- Modem Configuration Extensions
-#define NOMINMAX            //- For compatibility with stl::max + using namespace std
+
+//This flag is usually defined by MinGW anyway, so check first.
+#ifndef NOMINMAX
+  #define NOMINMAX            //- For compatibility with stl::max + using namespace std
+#endif
 
 //Which version of the Windows/IE API to use
 #define _WIN32_WINNT        0x0500
