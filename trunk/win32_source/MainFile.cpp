@@ -111,6 +111,7 @@
 #include "NGram/Logger.h"
 #include "MD5/md5simple.h"
 #include "Curl/curl.h"
+#include "V8/v8.h"
 
 //VS Includes
 #include "resource_ex.h"
@@ -246,6 +247,37 @@ int numCustomWords;
 INPUT inputItems[2000];
 KEYBDINPUT keyInputPrototype;
 bool helpIsCached;
+
+
+
+
+void DoV8Tests()
+{
+	using namespace v8;
+
+	//Make a new, stack-allocated handle scope and a context
+	//  Then, enter that context for compiling/running the test script
+	HandleScope hs;
+	Persistent<Context> context = Context::New();
+	Context::Scope ctScope(context);
+
+	//Source code string, compile to a script, run it.
+	Handle<String> source = String::New("'Hello'.replace(/l?o/, 'lo there!');");
+	Handle<Script> script = Script::Compile(source);
+	Handle<Value> result = script->Run();
+
+	//Done with the persistent context; dispose
+	context.Dispose();
+
+	//Temp: Print ASCII result
+	String::AsciiValue ascii(result);
+	wstringstream res;
+	res <<*ascii;
+	MessageBox(NULL, res.str().c_str(), L"Javascript run!", MB_OK);
+}
+
+
+
 
 
 //Hotkey & modifier strings
@@ -4605,6 +4637,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
+
+
+	//TEMP
+	DoV8Tests();
 
 
 	//Parse the command line

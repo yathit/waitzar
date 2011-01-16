@@ -53,11 +53,15 @@
 									<listOptionValue builtIn="false" value="Imm32"/>
 									<listOptionValue builtIn="false" value="Wldap32"/>
 									<listOptionValue builtIn="false" value="Ws2_32"/>
+									<listOptionValue builtIn="false" value="v8"/>
 								</option>
 								<option id="gnu.cpp.link.option.userobjs.933517864" name="Other objects" superClass="gnu.cpp.link.option.userobjs" valueType="userObjs">
 									<listOptionValue builtIn="false" value="Resources/WaitZarRes.o"/>
 								</option>
 								<option id="gnu.cpp.link.option.flags.335139025" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static -Wl,-subsystem,windows" valueType="string"/>
+								<option id="gnu.cpp.link.option.paths.1303949201" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\Contrib\V8&quot;"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1409629151" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -65,6 +69,17 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.mingw.exe.debug.1027844168.295469055" name="v8.lib" rcbsApplicability="disable" resourcePath="Contrib/V8/v8.lib" toolsToInvoke="">
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.888929669" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1048403464" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.2011029508" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
+					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="scannerConfiguration">
@@ -536,6 +551,7 @@
 									<listOptionValue builtIn="false" value="Imm32"/>
 									<listOptionValue builtIn="false" value="Wldap32"/>
 									<listOptionValue builtIn="false" value="Ws2_32"/>
+									<listOptionValue builtIn="false" value="v8"/>
 								</option>
 								<option id="gnu.cpp.link.option.strip.388139266" name="Omit all symbol information (-s)" superClass="gnu.cpp.link.option.strip" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.userobjs.1914957626" name="Other objects" superClass="gnu.cpp.link.option.userobjs" valueType="userObjs">
@@ -543,6 +559,9 @@
 								</option>
 								<option id="gnu.cpp.link.option.flags.1620368756" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static -Wl,-subsystem,windows" valueType="string"/>
 								<option id="gnu.cpp.link.option.nodeflibs.1117394998" name="Do not use default libraries (-nodefaultlibs)" superClass="gnu.cpp.link.option.nodeflibs" value="false" valueType="boolean"/>
+								<option id="gnu.cpp.link.option.paths.1443405732" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\Contrib\V8&quot;"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.375977671" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -550,6 +569,17 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.mingw.exe.release.631498625.1911687809" name="v8.lib" rcbsApplicability="disable" resourcePath="Contrib/V8/v8.lib" toolsToInvoke="">
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1003870455" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.249327889" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.766696244" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
+					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="scannerConfiguration">
