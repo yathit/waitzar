@@ -111,7 +111,7 @@
 #include "NGram/Logger.h"
 #include "MD5/md5simple.h"
 #include "Curl/curl.h"
-#include "V8/v8.h"
+//#include "V8/v8.h"
 
 //VS Includes
 #include "resource_ex.h"
@@ -253,7 +253,7 @@ bool helpIsCached;
 
 void DoV8Tests()
 {
-	using namespace v8;
+	/*using namespace v8;
 
 	//Make a new, stack-allocated handle scope and a context
 	//  Then, enter that context for compiling/running the test script
@@ -273,7 +273,7 @@ void DoV8Tests()
 	String::AsciiValue ascii(result);
 	wstringstream res;
 	res <<*ascii;
-	MessageBox(NULL, res.str().c_str(), L"Javascript run!", MB_OK);
+	MessageBox(NULL, res.str().c_str(), L"Javascript run!", MB_OK);*/
 }
 
 
