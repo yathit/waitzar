@@ -28,23 +28,51 @@ BurglishBuilder::BurglishBuilder() {}
 BurglishBuilder::~BurglishBuilder() {}
 
 //Static initializer:
-json_spirit::wmObject BurglishBuilder::onsetPairs;
-json_spirit::wmObject BurglishBuilder::rhymePairs;
-json_spirit::wmObject BurglishBuilder::specialWords;
-std::vector<std::wstring> BurglishBuilder::savedDigitIDs;
+map<wstring, wstring> BurglishBuilder::onsetPairs;
+map<wstring, wstring> BurglishBuilder::rhymePairs;
+map<wstring, wstring> BurglishBuilder::specialWords;
+vector<wstring> BurglishBuilder::savedDigitIDs;
 void BurglishBuilder::InitStatic()
 {
 	//Create, read, save our onsets and rhymes.
-	json_spirit::wmValue onsetRoot;
-	json_spirit::wmValue rhymeRoot;
-	json_spirit::wmValue specialRoot;
+	//json_spirit::wmValue onsetRoot;
+	//json_spirit::wmValue rhymeRoot;
+	//json_spirit::wmValue specialRoot;
+	Json::Value onsetRoot;
+	Json::Value rhymeRoot;
+	Json::Value specialRoot;
+	{
+		Json::Reader reader;
+		if (!(reader.parse(waitzar::wcs2mbs(BURGLISH_ONSETS), onsetRoot) && reader.parse(waitzar::wcs2mbs(BURGLISH_RHYMES), rhymeRoot) && reader.parse(waitzar::wcs2mbs(BURGLISH_SPECIALS), specialRoot)))
+			throw std::runtime_error("BURGLISH_ONSETS, BURGLISH_RHYMES, or BURGLISH_SPECIALS contains parse errors --this should never happen in release mode.");
+	}
 
-	if (!(json_spirit::read(BURGLISH_ONSETS, onsetRoot) && 	json_spirit::read(BURGLISH_RHYMES, rhymeRoot) && json_spirit::read(BURGLISH_SPECIALS, specialRoot)))
-		throw std::runtime_error("BURGLISH_ONSETS, BURGLISH_RHYMES, or BURGLISH_SPECIALS contains parse errors --this should never happen in release mode.");
+	//Read into each map, convert to wstrings
+	{
+		onsetPairs.clear();
+		Json::Value::Members keys = onsetRoot.getMemberNames();
+		for (auto it=keys.begin(); it!=keys.end(); it++) {
+			onsetPairs[waitzar::mbs2wcs(*it)] = waitzar::mbs2wcs(onsetRoot[*it].asString());
+		}
+	}
+	{
+		rhymePairs.clear();
+		Json::Value::Members keys = rhymeRoot.getMemberNames();
+		for (auto it=keys.begin(); it!=keys.end(); it++) {
+			rhymePairs[waitzar::mbs2wcs(*it)] = waitzar::mbs2wcs(rhymeRoot[*it].asString());
+		}
+	}
+	{
+		specialWords.clear();
+		Json::Value::Members keys = specialRoot.getMemberNames();
+		for (auto it=keys.begin(); it!=keys.end(); it++) {
+			specialWords[waitzar::mbs2wcs(*it)] = waitzar::mbs2wcs(specialRoot[*it].asString());
+		}
+	}
 
-	onsetPairs = onsetRoot.get_value<json_spirit::wmObject>();
-	rhymePairs = rhymeRoot.get_value<json_spirit::wmObject>();
-	specialWords = specialRoot.get_value<json_spirit::wmObject>();
+	//onsetPairs = onsetRoot.get_value<json_spirit::wmObject>();
+	//rhymePairs = rhymeRoot.get_value<json_spirit::wmObject>();
+	//specialWords = specialRoot.get_value<json_spirit::wmObject>();
 
 	//Saved digits; these are never cleared.
 	savedDigitIDs.push_back(L"\u1040");
@@ -195,8 +223,8 @@ void BurglishBuilder::addStandardWords(wstring roman, std::set<std::wstring>& re
 	//Step 3: Null pair? If not, pull their values
 	if (onsetPairs.count(prefix)==0 || rhymePairs.count(suffix)==0)
 		return;
-	wstring prefixStr = onsetPairs[prefix].get_value<wstring>();
-	wstring suffixStr = rhymePairs[suffix].get_value<wstring>();
+	wstring prefixStr = onsetPairs[prefix];
+	wstring suffixStr = rhymePairs[suffix];
 
 	//Step 4: For each prefix, for each suffix, get the combined word.
 	// Prefixes & suffixes are just strings separated by pipe marks: ".....|.....|...."
@@ -334,7 +362,7 @@ void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>
 	//Actually, we have to loop through each special word, to allow "prediction"
 	wstring comma = L"";
 	parenStr.str(L"");
-	for (json_spirit::wmObject::iterator pair=specialWords.begin(); pair!=specialWords.end(); pair++) {
+	for (auto pair=specialWords.begin(); pair!=specialWords.end(); pair++) {
 		wstring key = pair->first;
 		if (key.find(roman)==0) { //If key.startsWith(roman)
 			//Add to the paren str?
@@ -344,7 +372,7 @@ void BurglishBuilder::addSpecialWords(std::wstring roman, std::set<std::wstring>
 			}
 
 			//Append all values
-			wstring specialStrs = pair->second.get_value<wstring>();
+			wstring specialStrs = pair->second;
 			wstringstream entry;
 			for (size_t specID=0; specID<specialStrs.size(); specID++) {
 				//Append?
@@ -646,11 +674,11 @@ vector<wstring> BurglishBuilder::reverseExpandWords(const wstring& myanmar)
 //Match the given myanmar word to its romanisation. Returns "" if no match can be made
 string BurglishBuilder::matchSpecialWord(const wstring& myanmar)
 {
-	for (json_spirit::wmObject::iterator pair=specialWords.begin(); pair!=specialWords.end(); pair++) {
+	for (auto pair=specialWords.begin(); pair!=specialWords.end(); pair++) {
 		wstring roman = pair->first;
 
 		//Have to generate the myanmar words individually
-		wstring specialStrs = pair->second.get_value<wstring>();
+		wstring specialStrs = pair->second;
 		wstringstream entry;
 		for (size_t specID=0; specID<specialStrs.size(); specID++) {
 			//Append?
@@ -724,9 +752,9 @@ pair<string, bool> BurglishBuilder::matchOnset(const wstring& myanmar)
 {
 	//Iterate through each pair.
 	string unprefRes;
-	for (json_spirit::wmObject::iterator it=onsetPairs.begin(); it!=onsetPairs.end(); it++) {
+	for (auto it=onsetPairs.begin(); it!=onsetPairs.end(); it++) {
 		wstring roman = it->first;
-		const wstring& myStrs = it->second.get_value<wstring>();
+		const wstring& myStrs = it->second;
 		wstringstream entry;
 		bool isPref = myStrs.size()>0 && myStrs[myStrs.size()-1] == L'+';
 		for (size_t itemID=0; itemID<myStrs.size(); itemID++) {
@@ -760,9 +788,9 @@ pair<string, bool> BurglishBuilder::matchRhyme(const wstring& myanmar)
 {
 	//Iterate through each pair.
 	string unprefRes;
-	for (json_spirit::wmObject::iterator it=rhymePairs.begin(); it!=rhymePairs.end(); it++) {
+	for (auto it=rhymePairs.begin(); it!=rhymePairs.end(); it++) {
 		wstring roman = it->first;
-		const wstring& myStrs = it->second.get_value<wstring>();
+		const wstring& myStrs = it->second;
 		wstringstream entry;
 		bool isPref = myStrs.size()>0 && myStrs[myStrs.size()-1] == L'+';
 		for (size_t itemID=0; itemID<myStrs.size(); itemID++) {

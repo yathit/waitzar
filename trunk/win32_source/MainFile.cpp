@@ -4383,16 +4383,16 @@ bool findAndLoadAllConfigFiles()
 			DWORD res_size = SizeofResource(NULL, res);
 
 			//Convert the byte array to unicode
-			wchar_t *uniData = new wchar_t[res_size];
+			/*wchar_t *uniData = new wchar_t[res_size];
 			if (mymbstowcs(uniData, res_data, res_size)==0)
-				throw std::runtime_error("Invalid unicode character in WZ_DEFAULT_CFG.");
+				throw std::runtime_error("Invalid unicode character in WZ_DEFAULT_CFG.");*/
 
 			//Set the config file
-			config.initMainConfig(wstring(uniData));
+			config.initMainConfig(string(res_data), true);
 
 			//Reclaim memory and system resources.
 			//delete [] res_data;
-			delete [] uniData;
+			//delete [] uniData;
 			//UnlockResource(res_handle);
 			Logger::markLogTime('L', L"Config files loaded: DEFAULT is taking over");
 

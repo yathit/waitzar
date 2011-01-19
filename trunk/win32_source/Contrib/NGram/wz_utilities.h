@@ -65,6 +65,7 @@ namespace waitzar
 	std::string escape_wstr(const std::wstring& str);
 	std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
 	std::string wcs2mbs(const std::wstring& str);
+	std::wstring mbs2wcs(const std::string& str);
 	std::wstring preparse_json(const std::wstring& str);
 	std::wstring normalize_bgunicode(const std::wstring& str);
 	std::wstring removeZWS(const std::wstring& str, const std::wstring& filterStr);
