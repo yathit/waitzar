@@ -151,3 +151,15 @@ Site: http://curl.haxx.se/libcurl/
 Contact: Daniel Stenberg
 
 
+Json CPP
+ The files:
+  - *.h, *.cpp, *.inl in Contrib/Json CPP
+  Json CPP is a small Json parser written in C++. It uses UTF-8 internally, which is wrapped to UTF-16 
+  by Wait Zar. It was used to replace Json Spirit, another excellent library that I found a bit bloated 
+  (due to its reliance on boost). 
+License: Public Domain
+Site: http://jsoncpp.sourceforge.net/
+Contact: Baptiste Lepilleur
+
+
+
