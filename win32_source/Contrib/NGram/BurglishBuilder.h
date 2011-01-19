@@ -14,8 +14,8 @@
 #include <stdexcept>
 
 #include "Input/burglish_data.h"
-#include "Json Spirit/json_spirit_value.h"
-#include "Json Spirit/json_spirit_reader.h"
+#include "Json CPP/value.h"
+#include "Json CPP/reader.h"
 
 namespace waitzar
 {
@@ -92,9 +92,13 @@ private:
 	bool setCurrSelected(int id);
 
 private:
-	static json_spirit::wmObject onsetPairs;
+	/*static json_spirit::wmObject onsetPairs;
 	static json_spirit::wmObject rhymePairs;
-	static json_spirit::wmObject specialWords;
+	static json_spirit::wmObject specialWords;*/
+	static std::map<std::wstring, std::wstring> onsetPairs;
+	static std::map<std::wstring, std::wstring> rhymePairs;
+	static std::map<std::wstring, std::wstring> specialWords;
+
 	static std::wstring PatSintCombine(const std::wstring& base, const std::wstring& stacked);
 
 	//New candidate words are added like so:

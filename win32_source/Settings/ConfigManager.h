@@ -16,7 +16,9 @@
 #include <locale>
 #include <stdexcept>
 
-#include "Json Spirit/json_spirit_value.h"
+#include "Json CPP/value.h"
+#include "Json CPP/reader.h"
+
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
 #include "NGram/BurglishBuilder.h"
@@ -29,7 +31,7 @@
 	extern bool read( const std::wstring& s, wValue& value );
 	//TODO: Need to add a few more if we want it this way...
 }*/
-#include "Json Spirit/json_spirit_reader.h"
+
 
 
 //Lastly, to avoid LO/HI byte re-definition.
@@ -39,67 +41,79 @@
 //Simple class to help us load json files easier
 class JsonFile {
 public:
-	JsonFile(const std::string& path="") //Confusing, I know. (TODO: Make a better way of loading a file OR a string)
+	JsonFile(const std::string& path="", bool fileIsStream=false) //Confusing, I know. (TODO: Make a better way of loading a file OR a string)
 	{
-		this->path = path;
-		this->folderPath = L"";
-		this->text = L"";
-		this->hasReadFile = false;
-		this->hasParsed = false;
+		if (fileIsStream) {
+			//The "path" represents a stream of data
+			this->path = "";
+			this->folderPath = L"";
+			this->text = path;
+			this->hasReadFile = true;
+			this->hasParsed = false;
+		} else {
+			//The "path" represents an actual file path
+			this->path = path;
+			this->folderPath = L"";
+			this->text = "";
+			this->hasReadFile = false;
+			this->hasParsed = false;
 
-		//Set the folder path
-		int fwIndex = path.rfind("/");
-		int bwIndex = path.rfind("\\");
-		int index = std::max<int>(fwIndex, bwIndex);
-		if (index!=-1) {
-			std::wstringstream temp;
-			temp <<path.substr(0, index+1).c_str();
-			folderPath = temp.str();
+			//Set the folder path
+			int fwIndex = path.rfind("/");
+			int bwIndex = path.rfind("\\");
+			int index = std::max<int>(fwIndex, bwIndex);
+			if (index!=-1) {
+				std::wstringstream temp;
+				temp <<path.substr(0, index+1).c_str();
+				folderPath = temp.str();
+			}
 		}
 	}
-	JsonFile(const std::wstring& text) //Confusing, I know.
+	/*JsonFile(const std::wstring& text) //Confusing, I know.
 	{
 		this->path = "";
 		this->folderPath = L"";
 		this->text = waitzar::preparse_json(text);
 		this->hasReadFile = true;
 		this->hasParsed = false;
-	}
-	json_spirit::wValue json() const
+	}*/
+	Json::Value json() const
 	{
 		if (!hasParsed) {
 			if (!this->hasReadFile) {
-				text = waitzar::readUTF8File(path);
-				text = waitzar::preparse_json(text);
+				//text = waitzar::readUTF8File(path);
+				//text = waitzar::preparse_json(text);
+				text = waitzar::ReadBinaryFile(path);
 				this->hasReadFile = true;
 			}
 
 			//First, try to just read it. If there's an error, then try "read or throw" and get a better error message.
-			if (!json_spirit::read(text, root)) {
-				try {
+			Json::Reader reader;
+			if (!reader.parse(text, root)) {
+				/*try {
 					json_spirit::read_or_throw(text, root);	
-				} catch (json_spirit::Error_position ex) {
+				} catch (json_spirit::Error_position ex) {*/
 					//First, try to build a representative line of text (+/-8 chars)
-					std::wstring segment;
+					/*std::wstring segment;
 					if (text.length()>0) {
 						int amt = 8;
 						int startID = std::max<int>(0, ex.column_ - amt);
 						int endID = std::min<int>(text.length()-1, ex.column_ + amt);
 						segment = text.substr(startID, endID-startID);
-					}
+					}*/
 
 					//Now, throw the error.
 					std::stringstream errMsg;
 					errMsg << "Invalid json config file: " << path;
-					errMsg << std::endl << "  Problem: " << ex.reason_;
-					errMsg << std::endl << "  Surrounding Text: ";
-					errMsg << std::endl << "      " <<"..." << waitzar::escape_wstr(segment, false) <<"...";
+					errMsg << std::endl << "  Problem: " << reader.getFormatedErrorMessages();
+					//errMsg << std::endl << "  Surrounding Text: ";
+					//errMsg << std::endl << "      " <<"..." << waitzar::escape_wstr(segment, false) <<"...";
 					throw std::runtime_error(errMsg.str().c_str());
-				}
+				//}
 			}
 
 			//Save space
-			text = L"";
+			text = "";
 
 			hasParsed = true;
 		}
@@ -125,8 +139,8 @@ public:
 private:
 	std::string path;
 	std::wstring folderPath;
-	mutable std::wstring text;
-	mutable json_spirit::wValue root;
+	mutable std::string text;
+	mutable Json::Value root;
 	mutable bool hasReadFile;
 	mutable bool hasParsed;
 };
@@ -176,8 +190,8 @@ public:
 	~ConfigManager(void);
 
 	//Build our config. manager up slowly
-	void initMainConfig(const std::string& configFile);
-	void initMainConfig(const std::wstring& configStream);
+	void initMainConfig(const std::string& configFile, bool fileIsStream=false);
+	//void initMainConfig(const std::wstring& configStream);
 	void initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles);
 	void initLocalConfig(const std::string& configFile);
 	void initUserConfig(const std::string& configFile);
@@ -224,7 +238,7 @@ public:
 
 
 private:
-	void readInConfig(json_spirit::wValue root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet);
+	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet);
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
 
 	void resolvePartialSettings();

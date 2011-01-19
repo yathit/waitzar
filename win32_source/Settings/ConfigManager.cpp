@@ -11,11 +11,13 @@ using std::vector;
 using std::pair;
 using std::wstring;
 using std::string;
-using json_spirit::wValue;
+
+/*using json_spirit::wValue;
 using json_spirit::wObject;
 using json_spirit::wPair;
 using json_spirit::obj_type;
-using json_spirit::str_type;
+using json_spirit::str_type;*/
+using Json::Value;
 
 
 ConfigManager::ConfigManager(std::string (*myMD5Function)(const std::string&)){
@@ -38,17 +40,17 @@ ConfigManager::~ConfigManager(void){}
  *   languages, keyboards, etc.) here.
  * This is the only config. file that is actually required.
  */
-void ConfigManager::initMainConfig(const std::string& configFile)
+void ConfigManager::initMainConfig(const std::string& configFile, bool fileIsStream)
 {
 	//Save the file, we will load it later when we need it
-	this->mainConfig = JsonFile(configFile);
+	this->mainConfig = JsonFile(configFile, fileIsStream);
 }
 
-void ConfigManager::initMainConfig(const std::wstring& configStream)
+/*void ConfigManager::initMainConfig(const std::wstring& configStream)
 {
 	//Save a copy of the string so that we can reclaim it later
 	this->mainConfig = JsonFile(configStream);
-}
+}*/
 
 
 /**
@@ -754,28 +756,30 @@ const std::set<Encoding>& ConfigManager::getEncodings()
 //Note: Context is managed automatically; never copied.
 //Restricted means don't load new languages, etc.
 //optionsSet, if non-null, will save the string set. E.g., "settings.defaultlanguage"=>"myanmar"
-void ConfigManager::readInConfig(wValue root, const wstring& folderPath, vector<wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet) 
+void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, vector<wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet)
 {
 	//We always operate on maps:
-	json_spirit::Value_type t = root.type();
-	wObject currPairs = root.get_value<wObject>();
+	//json_spirit::Value_type t = root.type();
+	//wObject currPairs = root.get_value<wObject>();
 	//for (auto &itr : currPairs) {
-	for (auto itr=currPairs.begin(); itr!=currPairs.end(); itr++) {
+	Value::Members keys = root.getMemberNames();
+	for (auto itr=keys.begin(); itr!=keys.end(); itr++) {
  		//Append to the context
 		int numToRemove = 0;
 		{
-		vector<wstring> opts = separate(sanitize_id(itr->name_), L'.');
+		vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
 		context.insert(context.end(), opts.begin(), opts.end());
 		numToRemove = opts.size();
 		}
 
 		//React to this option/category
-		if (itr->value_.type()==obj_type) {
+		Value value = root[*itr];
+		if (value.isObject()) {
 			//Inductive case: Continue reading all options under this type
-			this->readInConfig(itr->value_, folderPath, context, restricted, optionsSet);
-		} else if (itr->value_.type()==str_type) {
+			this->readInConfig(value, folderPath, context, restricted, optionsSet);
+		} else if (value.isString()) {
 			//Base case: the "value" is also a string (set the property)
-			wstring val = sanitize(itr->value_.get_value<std::wstring>());
+			wstring val = sanitize(waitzar::mbs2wcs(value.asString()));
 			this->setSingleOption(folderPath, context, val, restricted);
 
 			//Save?

@@ -1671,6 +1671,56 @@ std::string wcs2mbs(const std::wstring& str)
 }
 
 
+std::wstring mbs2wcs(const std::string& src)
+{
+	std::wstringstream res;
+	for (size_t i=0; i<src.size(); i++) {
+		unsigned short curr = (src[i]&0xFF);
+		if (((curr>>3)^0x1E)==0) {
+			//We can't handle anything outside the BMP
+			throw std::runtime_error("Error: mbs2wcs does not handle bytes outside the BMP");
+		} else if (((curr>>4)^0xE)==0) {
+			//Verify the next two bytes
+			if (i>=src.length()-2 || (((src[i+1]&0xFF)>>6)^0x2)!=0 || (((src[i+2]&0xFF)>>6)^0x2)!=0)
+				throw std::runtime_error("Error: 2-byte character error in UTF-8 file");
+
+			//Combine all three bytes, check, increment
+			wchar_t destVal = 0x0000 | ((curr&0xF)<<12) | ((src[i+1]&0x3F)<<6) | (src[i+2]&0x3F);
+			if (destVal>=0x0800 && destVal<=0xFFFF) {
+				i+=2;
+			} else
+				throw std::runtime_error("Error: 2-byte character error in UTF-8 file");
+
+			//Set
+			res <<destVal;
+		} else if (((curr>>5)^0x6)==0) {
+			//Verify the next byte
+			if (i>=src.length()-1 || (((src[i+1]&0xFF)>>6)^0x2)!=0)
+				throw std::runtime_error("Error: 1-byte character error in UTF-8 file");
+
+			//Combine both bytes, check, increment
+			wchar_t destVal = 0x0000 | ((curr&0x1F)<<6) | (src[i+1]&0x3F);
+			if (destVal>=0x80 && destVal<=0x07FF) {
+				i++;
+			} else
+				throw std::runtime_error("Error: 1-byte character error in UTF-8 file");
+
+			//Set
+			res <<destVal;
+		} else if ((curr>>7)==0) {
+			wchar_t destVal = 0x0000 | curr;
+
+			//Set
+			res <<destVal;
+		} else {
+			throw std::runtime_error("Error: Unknown sequence in UTF-8 file");
+		}
+	}
+
+	return res.str();
+}
+
+
 
 
 //Remove:
