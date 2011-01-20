@@ -1663,6 +1663,7 @@ std::string wcs2mbs(const std::wstring& str)
 			char c1 = (((*c)>>12)&0xF) | 0xE0;
 			char c2 = (((*c)>>6)&0x3F) | 0x80;
 			char c3 = ((*c)&0x3F) | 0x80;
+			res <<c1 <<c2 <<c3;
 		} else
 			throw std::runtime_error("Unicode value out of range.");
 
