@@ -7,6 +7,8 @@
 #ifndef _CONFIGMANAGER
 #define _CONFIGMANAGER
 
+#include "windows_wz.h"
+
 #include <vector>
 #include <set>
 #include <iostream>
@@ -24,19 +26,9 @@
 #include "NGram/BurglishBuilder.h"
 #include "Input/InputMethod.h"
 #include "Extension/Extension.h"
+#include "Extension/JavaScriptConverter.h"
 #include "NGram/wz_utilities.h"
 
-
-//json_spirit_reader is defined elsewhere
-/*namespace json_spirit {
-	extern bool read( const std::wstring& s, wValue& value );
-	//TODO: Need to add a few more if we want it this way...
-}*/
-
-
-
-//Lastly, to avoid LO/HI byte re-definition.
-#include "NGram/wz_utilities.h"
 
 
 //Simple class to help us load json files easier
@@ -258,6 +250,9 @@ private:
 
 	//Workaround
 	std::string (*getMD5Function)(const std::string&);
+
+	//Current working directory
+	std::wstring workingDir;
 
 	//Have we loaded...?
 	bool loadedSettings;
