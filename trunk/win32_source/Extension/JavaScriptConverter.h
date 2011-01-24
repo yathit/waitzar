@@ -30,7 +30,7 @@ public:
 
 	//Main functionality
 	virtual void InitDLL(std::string (*MD5Function)(const std::string&));
-	std::pair<bool, std::wstring> ConvertString(const std::wstring& jsSource, const std::wstring& input);
+	std::pair<bool, std::wstring> ConvertString(const std::wstring& jsSource, const std::wstring& input) const;
 
 private:
 	//Additional properties required by the DLL

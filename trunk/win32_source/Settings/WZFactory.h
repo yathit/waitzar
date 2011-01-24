@@ -39,6 +39,7 @@
 #include "Transform/Ayar2Uni.h"
 #include "Transform/Uni2WinInnwa.h"
 #include "Transform/Self2Self.h"
+#include "Transform/JSTransform.h"
 #include "resource.h"
 
 
@@ -61,7 +62,7 @@ public:
 	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options, std::string (*fileMD5Function)(const std::string&));
 	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
-	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
+	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options, const JavaScriptConverter* const jsInterpreter);
 
 	//More specific builders/instances
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID, const std::wstring& extraWordsFileName, const std::wstring& userWordsFileName);
@@ -911,7 +912,7 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 
 
 template <class ModelType>
-Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
+Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options, const JavaScriptConverter* const jsInterpreter)
 {
 	Transformation* res = NULL;
 
@@ -939,6 +940,20 @@ Transformation* WZFactory<ModelType>::makeTransformation(const std::wstring& id,
 		else
 			throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
 		res->type = BUILTIN;
+	} else if (sanitize_id(options.find(L"type")->second) == L"javascript") {
+		if (options.count(sanitize_id(L"source-file"))==0)
+			throw std::runtime_error("Cannot construct transformation: no javascript \"source-file\"");
+		if (jsInterpreter==NULL)
+			throw std::runtime_error("Cannot construct a \"javscript\" Transformation: interpreter DLL failed to load.");
+		if (options.count(sanitize_id(L"current-folder"))==0)
+			throw std::runtime_error("Cannot construct \"javascript\" Transformation: no \"current-folder\" (should be auto-added).");
+
+		//Build the wordlist file; we will need the respective directory, too.
+		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
+		std::wstring jsFile = langConfigDir + options.find(sanitize_id(L"source-file"))->second;
+
+		res = new JSTransform(waitzar::escape_wstr(jsFile, false), *jsInterpreter);
+		res->type = TRANS_JAVASCRIPT;
 	} else {
 		throw std::runtime_error(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Transformation: ", id).c_str());
 	}

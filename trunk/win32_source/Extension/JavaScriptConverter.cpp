@@ -58,8 +58,12 @@ void JavaScriptConverter::InitDLL(std::string (*MD5Function)(const std::string&)
 }
 
 
-pair<bool, wstring> JavaScriptConverter::ConvertString(const wstring& jsSource, const wstring& input)
+pair<bool, wstring> JavaScriptConverter::ConvertString(const wstring& jsSource, const wstring& input) const
 {
+	//Safety check
+	if (JavaScriptConverter::module==NULL)
+		return pair<bool, wstring>(false, L"<fptr_error>");
+
 	//Check the input size
 	if (input.length()+1 >= JavaScriptConverter::MAX_INOUT_SIZE)
 		return pair<bool, wstring>(false, L"Input string too large!");
