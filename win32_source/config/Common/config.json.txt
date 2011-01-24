@@ -1,0 +1,10 @@
+﻿# Settings common to all programs (mostly regarding DLLs)
+{"extensions" : {
+  "javascript" : 
+  {
+    "library-file" : "v8_wz.dll",
+    "enabled" : "yes",
+    "md5-hash" : "6CC7C73271E31F5D4AD48BCACD27A4EB",
+    "check-md5" : "yes"
+  }
+}}

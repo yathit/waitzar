@@ -46,6 +46,15 @@ void ConfigManager::initMainConfig(const std::string& configFile, bool fileIsStr
 	this->mainConfig = JsonFile(configFile, fileIsStream);
 }
 
+
+
+void ConfigManager::initCommonConfig(const std::string& configFile)
+{
+	//Save the file, we will load it later when we need it
+	this->commonConfig = JsonFile(configFile, false);
+}
+
+
 /*void ConfigManager::initMainConfig(const std::wstring& configStream)
 {
 	//Save a copy of the string so that we can reclaim it later
@@ -163,6 +172,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	//Step 1: Read
 	localConfError = false;
 	getSettings();
+	getExtensions();
 	getLanguages();
 	getEncodings();
 	getInputMethods();
@@ -641,7 +651,13 @@ const Settings& ConfigManager::getSettings()
 		//First: main config
 		{
 		vector<wstring> ctxt;
-		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false, NULL);
+		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false, false, NULL);
+		}
+
+		//Second: extensions config
+		if (!this->commonConfig.isEmpty()){
+			vector<wstring> ctxt;
+			this->readInConfig(this->commonConfig.json(), this->commonConfig.getFolderPath(), ctxt, false, true, NULL);
 		}
 
 		//Parse each language config file.
@@ -650,9 +666,9 @@ const Settings& ConfigManager::getSettings()
 		{
 			vector<wstring> ctxt;
 			for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false, NULL);
+				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false, false, NULL);
 				for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false, NULL);
+					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false, false, NULL);
 				}
 			}
 		}
@@ -660,9 +676,9 @@ const Settings& ConfigManager::getSettings()
 		//Next: local and user configs
 		vector<wstring> ctxt;
 		if (this->localConfig.isSet())
-			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, &localOpts);
+			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
 		if (this->userConfig.isSet())
-			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, NULL);
+			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
 
 		generateHotkeyValues(options.settings.hotkeyStrRaw, options.settings.hotkey);
 
@@ -711,6 +727,15 @@ const std::set<Language>& ConfigManager::getLanguages()
 	return this->options.languages;
 }
 
+const std::set<Extension*>& ConfigManager::getExtensions()
+{
+	//Main config file must be read by now
+	if (!this->loadedSettings)
+		throw std::runtime_error("Must load settings before language main files.");
+
+	return this->options.extensions;
+}
+
 const std::set<InputMethod*>& ConfigManager::getInputMethods()
 {
 	//Languages can ONLY be defined in top-level language directories.
@@ -756,7 +781,7 @@ const std::set<Encoding>& ConfigManager::getEncodings()
 //Note: Context is managed automatically; never copied.
 //Restricted means don't load new languages, etc.
 //optionsSet, if non-null, will save the string set. E.g., "settings.defaultlanguage"=>"myanmar"
-void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, vector<wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet)
+void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, vector<wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet)
 {
 	//We always operate on maps:
 	//json_spirit::Value_type t = root.type();
@@ -776,11 +801,11 @@ void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, v
 		Value value = root[*itr];
 		if (value.isObject()) {
 			//Inductive case: Continue reading all options under this type
-			this->readInConfig(value, folderPath, context, restricted, optionsSet);
+			this->readInConfig(value, folderPath, context, restricted, allowDLL, optionsSet);
 		} else if (value.isString()) {
 			//Base case: the "value" is also a string (set the property)
 			wstring val = sanitize(waitzar::mbs2wcs(value.asString()));
-			this->setSingleOption(folderPath, context, val, restricted);
+			this->setSingleOption(folderPath, context, val, restricted, allowDLL);
 
 			//Save?
 			if (optionsSet!=NULL) {
@@ -803,7 +828,7 @@ void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, v
 }
 
 
-void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstring>& name, const std::wstring& value, bool restricted)
+void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstring>& name, const std::wstring& value, bool restricted, bool allowDLL)
 {
 	//Read each "context" setting from left to right. Context settings are separated by periods. 
 	//   Note: There are much faster/better ways of doing this, but for now we'll keep all the code
@@ -813,7 +838,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 		if (name.empty())
 			return;
 
-		//Settings? Languages?
+		//Settings? Languages? Extensions?
 		if (name[0] == L"settings") {
 			//Need to finish all partial settings
 			if (name.size()<=1)
@@ -970,6 +995,37 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					//Error
 					throw std::invalid_argument("");
 				}
+			}
+
+		} else if (name[0] == L"extensions") {
+			//Need to finish all partial settings
+			if (name.size()<=2)
+				throw std::invalid_argument("");
+
+			if (!allowDLL)
+				throw std::runtime_error(waitzar::glue(L"Attempt to modify an extension(", name[1], L") outside of the directory config/Common: " , folderPath).c_str());
+
+			//Get the extension id; insert if necessary
+			wstring extID = name[1];
+			auto ext = FindKeyInSet(options.extensions, extID);
+			if (ext==options.extensions.end())
+				ext = options.extensions.insert(new Extension(extID)).first;
+
+			//Now, react to the individual settings
+			if (name[2] == sanitize_id(L"library-file")) {
+				//Must be local
+				if (value.find(L'\\')!=wstring::npos || value.find(L'/')!=wstring::npos)
+					throw std::runtime_error(waitzar::glue(L"DLL path contains a / or \\: ", value).c_str());
+				const_cast<Extension*>(*ext)->libraryFilePath = folderPath + L"/" + value;
+			} else if (name[2] == sanitize_id(L"enabled")) {
+				const_cast<Extension*>(*ext)->enabled = read_bool(value);
+			} else if (name[2] == sanitize_id(L"check-md5")) {
+				const_cast<Extension*>(*ext)->requireChecksum = read_bool(value);
+			} else if (name[2] == sanitize_id(L"md5-hash")) {
+				const_cast<Extension*>(*ext)->libraryFileChecksum = value;
+			} else {
+				//Error
+				throw std::invalid_argument("");
 			}
 		} else
 			throw std::invalid_argument("");

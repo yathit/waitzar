@@ -23,6 +23,7 @@
 #include "Settings/Language.h"
 #include "NGram/BurglishBuilder.h"
 #include "Input/InputMethod.h"
+#include "Extension/Extension.h"
 #include "NGram/wz_utilities.h"
 
 
@@ -174,6 +175,7 @@ struct Settings {
 struct OptionTree {
 	Settings settings;
 	std::set<Language> languages;
+	std::set<Extension*> extensions;
 };
 
 
@@ -191,6 +193,7 @@ public:
 
 	//Build our config. manager up slowly
 	void initMainConfig(const std::string& configFile, bool fileIsStream=false);
+	void initCommonConfig(const std::string& configFile);
 	//void initMainConfig(const std::wstring& configStream);
 	void initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles);
 	void initLocalConfig(const std::string& configFile);
@@ -199,6 +202,7 @@ public:
 
 	//Accessible by our outside class
 	const Settings& getSettings();
+	const std::set<Extension*>& getExtensions();
 	const std::set<Language>& getLanguages();
 	const std::set<InputMethod*>& getInputMethods();
 	const std::set<Encoding>& getEncodings();
@@ -238,8 +242,8 @@ public:
 
 
 private:
-	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, map<wstring, wstring>* const optionsSet);
-	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted);
+	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet);
+	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
 
 	void resolvePartialSettings();
 	void generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings);
@@ -247,6 +251,7 @@ private:
 private:
 	//Our many config files.
 	JsonFile mainConfig;
+	JsonFile commonConfig;
 	std::map<JsonFile , std::vector<JsonFile> > langConfigs;
 	JsonFile localConfig;
 	JsonFile userConfig;

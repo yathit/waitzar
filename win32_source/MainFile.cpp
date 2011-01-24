@@ -4268,6 +4268,12 @@ bool findAndLoadAllConfigFiles()
 				errorMsg << std::endl << "Details: " << std::endl << ex.what();
 			}
 
+			//Handle "Common" here; it's a directory for DLLs, not languages.
+			if (*fold == "Common") {
+				config.initCommonConfig(langCfgFile);
+				continue;
+			}
+
 			//Now, get the sub-config files
 			vector<string> modFolders = GetConfigSubDirs(langCfgDir, cfgFile);
 			for (vector<string>::iterator mod = modFolders.begin(); mod!=modFolders.end(); mod++) {
