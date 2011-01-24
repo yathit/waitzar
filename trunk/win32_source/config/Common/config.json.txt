@@ -4,7 +4,7 @@
   {
     "library-file" : "v8_wz.dll",
     "enabled" : "yes",
-    "md5-hash" : "6CC7C73271E31F5D4AD48BCACD27A4EB",
+    "md5-hash" : "6cc7c73271e31f5d4ad48bcacd27a4eb",
     "check-md5" : "yes"
   }
 }}

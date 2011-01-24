@@ -79,6 +79,7 @@
 //#include <wingdi.h> //For the TEXTINFO stuff
 #include <shlobj.h> //GetFolderPath
 //#include <urlmon.h> //File downloads
+#include <direct.h>   //For get_cwd()
 
 
 //////////////////////////////////////////

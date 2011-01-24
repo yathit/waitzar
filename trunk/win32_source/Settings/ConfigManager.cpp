@@ -26,6 +26,15 @@ ConfigManager::ConfigManager(std::string (*myMD5Function)(const std::string&)){
 	this->loadedLanguageSubFiles = false;
 
 	this->getMD5Function = myMD5Function;
+
+	//Save the current working directory
+	char* buffer;
+	std::wstringstream txt;
+	if((buffer = _getcwd( NULL, 0)) != NULL) {
+		txt <<buffer;
+		free(buffer);
+	}
+	this->workingDir = txt.str();
 }
 
 ConfigManager::~ConfigManager(void){}
@@ -183,6 +192,13 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	WZFactory<waitzar::WordBuilder>::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 	waitzar::BurglishBuilder::InitStatic();
 	Logger::markLogTime('L', L"Initialized static classes with relevant information.");
+
+	//Step 1.5; check all DLLs
+	for (auto it=options.extensions.begin(); it!=options.extensions.end(); it++) {
+		if (const_cast<Extension*>(*it)->id==L"javascript")
+			((JavaScriptConverter*)*it)->InitDLL(getMD5Function);
+	}
+
 
 	//Step 2: Un-cache
 	resolvePartialSettings();
@@ -1008,15 +1024,22 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 			//Get the extension id; insert if necessary
 			wstring extID = name[1];
 			auto ext = FindKeyInSet(options.extensions, extID);
-			if (ext==options.extensions.end())
-				ext = options.extensions.insert(new Extension(extID)).first;
+			if (ext==options.extensions.end()) {
+				//Save some shuffling now
+				Extension* newExt = NULL;
+				if (extID==L"javascript")
+					newExt = new JavaScriptConverter(extID);
+				else
+					newExt = new Extension(extID);
+				ext = options.extensions.insert(newExt).first;
+			}
 
 			//Now, react to the individual settings
 			if (name[2] == sanitize_id(L"library-file")) {
 				//Must be local
 				if (value.find(L'\\')!=wstring::npos || value.find(L'/')!=wstring::npos)
 					throw std::runtime_error(waitzar::glue(L"DLL path contains a / or \\: ", value).c_str());
-				const_cast<Extension*>(*ext)->libraryFilePath = folderPath + L"/" + value;
+				const_cast<Extension*>(*ext)->libraryFilePath = workingDir + L"\\" + folderPath + L"\\" + value;
 			} else if (name[2] == sanitize_id(L"enabled")) {
 				const_cast<Extension*>(*ext)->enabled = read_bool(value);
 			} else if (name[2] == sanitize_id(L"check-md5")) {
