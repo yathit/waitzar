@@ -4,8 +4,8 @@
  * Please refer to the end of the file for licensing information
  */
 
-#ifndef _LANGUAGE
-#define _LANGUAGE
+#ifndef _WZ_SETTINGS_LANGUAGE
+#define _WZ_SETTINGS_LANGUAGE
 
 #include <string>
 #include <set>
@@ -64,7 +64,7 @@ struct Language {
 
 
 
-#endif //_LANGUAGE
+#endif //_WZ_SETTINGS_LANGUAGE
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

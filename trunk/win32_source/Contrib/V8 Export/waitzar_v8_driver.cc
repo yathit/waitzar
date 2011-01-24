@@ -14,16 +14,10 @@
 // Sample code included at the bottom of this file.
 //
 
-
-//
-//  TODO: Figure out how V8 include memcpy/wcscpy and use that
-//        (Actually, this doesn't really affect performance much)
-//
-
-
 #include "../include/v8.h"
 
 using namespace v8;
+
 
 
 //Input string
@@ -54,6 +48,9 @@ static void createReturnStr(uint16_t* inoutStr, uint16_t errorCode, const wchar_
 	MyMemCpy(&inoutStr[1], (uint16_t*)message, sizeof(uint16_t)*(MyWcsLen(message)+1));
 }
 
+
+//Export the C-style function without decorating it
+extern "C" { 
 
 
 //The function our DLL will use to handle data conversion
@@ -132,6 +129,10 @@ __declspec(dllexport) void ConvertString(uint16_t* scriptSource, uint16_t* inout
 	//Correct execution
 	createReturnStr(inoutStr, ERROR_NONE, myResTxt);
 }
+
+
+
+} //End extern "C"
 
 
 //////////////////////////////////////
