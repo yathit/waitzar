@@ -1,5 +1,6 @@
-﻿# Various input method keyboards, collected in one folder
-{"languages.myanmar.input-methods" : {
+# Various input method keyboards, collected in one folder
+{"languages.myanmar" : {
+    "input-methods" : {
       "ayar" : 
       {
         "display-name" : "Ayar Keyboard",
@@ -35,4 +36,16 @@
 #        "keyboard-file" : "Parabaik.kms",
 #		"disable-cache" : "false"
 #      }
+    },
+    
+    "tranformations" : {
+      "ayar2uni" :
+      {
+        "from-encoding" : "ayar",
+        "to-encoding" : "unicode",
+        "type" : "javascript",
+        "source-file" : "ayar2uni.js"
+      }
+	}
+
 }}

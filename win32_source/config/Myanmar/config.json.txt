@@ -134,15 +134,15 @@
       "from-encoding" : "unicode",
       "to-encoding" : "ayar",
       "type" : "builtin"
-    },
+    }#,
     
 	# Convert from Ayar to Unicode
-    "ayar2uni" :
-    {
-      "from-encoding" : "ayar",
-      "to-encoding" : "unicode",
-      "type" : "builtin"
-    }
+    #"ayar2uni" :
+    #{
+    #  "from-encoding" : "ayar",
+    #  "to-encoding" : "unicode",
+    #  "type" : "builtin"
+    #}
   },
   
   # Declaration of display methods. To add your own display method, create a folder in the 
