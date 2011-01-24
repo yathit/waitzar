@@ -1,19 +1,36 @@
 /*
- * Copyright 2010 by Seth N. Hetu
+ * Copyright 2011 by Seth N. Hetu
  *
  * Please refer to the end of the file for licensing information
  */
 
-#ifndef _SETTINGS_TYPES
-#define _SETTINGS_TYPES
+#ifndef _TRANSFORM_JSTRANS
+#define _TRANSFORM_JSTRANS
+
+#include <string>
+
+#include "Transform/Transformation.h"
+#include "NGram/wz_utilities.h"
+#include "Extension/JavaScriptConverter.h"
+
+/**
+ * Used for one of a variety of javascript transformation classes.
+ */
+class JSTransform : public Transformation
+{
+public:
+	JSTransform(const std::string& jsSourcePath, const JavaScriptConverter& jsInterpreter);
+
+	//Convert
+	void convertInPlace(std::wstring& src) const;
+
+private:
+	std::wstring sourceCode;
+	JavaScriptConverter jsInterpreter;
+};
 
 
-//Global "Types" enum
-//TODO: This is kinda lonely out here...
-enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN, DISPM_TTF, DISPM_PNG, TRANS_JAVASCRIPT};
-
-
-#endif //_SETTINGS_TYPES
+#endif //_TRANSFORM_JSTRANS
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

@@ -161,9 +161,11 @@ void ConfigManager::resolvePartialSettings()
 				const_cast<Language&>(*lang).inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second, getMD5Function));
 			else if (i==PART_ENC) 
 				const_cast<Language&>(*lang).encodings.insert(WZFactory<waitzar::WordBuilder>::makeEncoding(id, it->second));
-			else if (i==PART_TRANS) 
-				const_cast<Language&>(*lang).transformations.insert(WZFactory<waitzar::WordBuilder>::makeTransformation(id, it->second));
-			else if (i==PART_DISP) 
+			else if (i==PART_TRANS) {
+				auto jsIt = FindKeyInSet(options.extensions, L"javascript");
+				JavaScriptConverter* js = (jsIt==options.extensions.end() ? NULL : (JavaScriptConverter*)const_cast<Extension*>(*jsIt));
+				const_cast<Language&>(*lang).transformations.insert(WZFactory<waitzar::WordBuilder>::makeTransformation(id, it->second, js));
+			} else if (i==PART_DISP)
 				const_cast<Language&>(*lang).displayMethods.insert(WZFactory<waitzar::WordBuilder>::makeDisplayMethod(id, *lang, it->second));
 		}
 
@@ -1039,7 +1041,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 				//Must be local
 				if (value.find(L'\\')!=wstring::npos || value.find(L'/')!=wstring::npos)
 					throw std::runtime_error(waitzar::glue(L"DLL path contains a / or \\: ", value).c_str());
-				const_cast<Extension*>(*ext)->libraryFilePath = workingDir + L"\\" + folderPath + L"\\" + value;
+				const_cast<Extension*>(*ext)->libraryFilePath = workingDir + L"\\" + folderPath + value;
 			} else if (name[2] == sanitize_id(L"enabled")) {
 				const_cast<Extension*>(*ext)->enabled = read_bool(value);
 			} else if (name[2] == sanitize_id(L"check-md5")) {
