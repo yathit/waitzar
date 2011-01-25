@@ -54,14 +54,12 @@ namespace waitzar
 	 *  most cases, and exceptions seem to render properly. We will revise this if we find any glaring inconsistencies.
 	 */
 	std::wstring sortMyanmarString(const std::wstring &uniString);
-
-
 	std::wstring renderAsZawgyi(const std::wstring &uniString);
-
 	std::string ReadBinaryFile(const std::string& path);
 	std::wstring readUTF8File(const std::string& path);
 
 	//Other useful methods
+	void loc_to_lower(std::wstring& str);
 	std::string escape_wstr(const std::wstring& str, bool errOnUnicode=false);
 	std::string wcs2mbs(const std::wstring& str);
 	std::wstring mbs2wcs(const std::string& str);
@@ -70,76 +68,15 @@ namespace waitzar
 	std::wstring removeZWS(const std::wstring& str, const std::wstring& filterStr);
 	size_t count_letter(const std::wstring& str, wchar_t letter);
 
-	//And finally, locale-driven nonsense with to_lower:
-	template<class T>
-	class ToLower {
-	public:
-		 ToLower(const std::locale& loc):loc(loc)
-		 {
-		 }
-		 T operator()(const T& src) const
-		 {
-			  return std::tolower<T>(src, loc);
-		 }
-	protected:
-		 const std::locale& loc;
-	};
-
-	static void loc_to_lower(std::wstring& str)
-	{
-		//Locale-aware "toLower" converter
-		std::locale loc(""); //Get native locale
-		std::transform(str.begin(),str.end(),str.begin(),ToLower<wchar_t>(loc));
-	}
-
-
-
 	//Various "glue" functions for Error messages
 	std::string glue(std::string str1, std::string str2=std::string(), std::string str3=std::string(), std::string str4=std::string());
 	std::string glue(std::wstring str1, std::wstring str2=std::wstring(), std::wstring str3=std::wstring(), std::wstring str4=std::wstring());
 
+	//Functions imported from ConfigManager
+	std::wstring sanitize_id(const std::wstring& str);
+	bool read_bool(const std::wstring& str);
+	int read_int(const std::wstring& str);
 
-
-	static std::wstring sanitize_id(const std::wstring& str)
-	{
-		std::wstring res = str; //Copy out the "const"-ness.
-		//res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
-		auto is_id_delim = [](wchar_t letter)->bool {
-			  if ((letter==' ')||(letter=='\t')||(letter=='\n')||(letter=='-')||(letter=='_'))
-			   return true; //Remove it
-			  return false; //Don't remove it
-		};
-		res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim));
-		loc_to_lower(res); //Operates in-place.
-		return res;
-	}
-	static bool read_bool(const std::wstring& str)
-	{
-		std::wstring test = str;
-		loc_to_lower(test);
-		if (test == L"yes" || test==L"true")
-			return true;
-		else if (test==L"no" || test==L"false")
-			return false;
-		else
-			throw std::runtime_error(glue(std::wstring(L"Bad boolean value: \""), str, std::wstring(L"\"")).c_str());
-	}
-	static int read_int(const std::wstring& str)
-	{
-		//Read
-		int resInt;
-		std::wistringstream reader(str);
-		reader >>resInt;
-
-		//Problem?
-		if (reader.fail()) {
-			//TEMP
-			throw std::runtime_error(glue(std::wstring(L"Bad integer value: \""), str, L"\"").c_str());
-		}
-
-		//Done
-		return resInt;
-	}
 
 
 } //End waitzar namespace
