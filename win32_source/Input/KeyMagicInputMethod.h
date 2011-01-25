@@ -159,7 +159,7 @@ public:
 		return strDot;
 	}
 	bool isDone() {
-		return (rulestream==NULL) || (dot==rulestream->size());
+		return (rulestream==NULL) || (dot==(int)rulestream->size());
 	}
 	const std::vector<Rule>* const getRulestream() {
 		return rulestream;
