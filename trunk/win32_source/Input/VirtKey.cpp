@@ -213,7 +213,7 @@ void VirtKey::constructAlphanumFromVkcodeAndModifiers()
 
 
 //Constructor: extrapolate "shfit" and vk values from the "alphanum" parameter. 
-VirtKey::VirtKey(char alphanum) : alphanum(alphanum), vkCode(0), modShift(false), modAlt(false), modCtrl(false) 
+VirtKey::VirtKey(char alphanum) : vkCode(0), alphanum(alphanum), modShift(false), modAlt(false), modCtrl(false)
 {
 	//Primary goal: figure out the vkCode. It remains at "0" if there was any error.
 	if (alphanum>='a' && alphanum<='z') {

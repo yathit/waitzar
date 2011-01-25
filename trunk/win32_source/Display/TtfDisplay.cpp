@@ -79,7 +79,7 @@ void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLog
 		throw std::runtime_error("Embedded font could not be loaded.");
 
 	//Unlock this resource for later use.
-	UnlockResource(dataHandle);
+	//UnlockResource(dataHandle);
 
 	//Now, add the logical font
 	this->initLogicalFont(devLogPixelsY);

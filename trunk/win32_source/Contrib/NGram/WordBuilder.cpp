@@ -641,7 +641,7 @@ bool WordBuilder::typeLetter(char letter, bool isUpper, const std::wstring& prev
 			//Start at "aung" if we haven't already typed "a"
 			char test[5];
 			strcpy(test, "aung");
-			if (pastNexus.size()==1 && jumpToNexus(pastNexus[pastNexus.size()-1], 'a')==currNexus) {
+			if (pastNexus.size()==1 && jumpToNexus(pastNexus[pastNexus.size()-1], 'a')==(int)currNexus) {
 				strcpy(test, "ung");
 			}
 			size_t stLen = strlen(test);
@@ -834,7 +834,7 @@ int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID) const
 {
 	size_t numPrefixPairs = this->prefix[fromPrefix][0];
 	for (size_t i=0; i<numPrefixPairs; i++) {
-		if ( this->prefix[fromPrefix][i*2+1] == jumpID )
+		if ( (int)this->prefix[fromPrefix][i*2+1] == jumpID )
 			return this->prefix[fromPrefix][i*2+2];
 	}
 	return -1;
@@ -1230,7 +1230,7 @@ unsigned int WordBuilder::getWordID(const wstring &wordStr) const
 bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, bool ignoreDuplicates)
 {
 	//First task: find the word; add it if necessary
-	int dictID = getWordID(myanmar);
+	unsigned int dictID = getWordID(myanmar);
 	if (dictID==dictionary.size()) {
 		//Need to add... we DO have a limit, though.
 		if (dictionary.size() == std::numeric_limits<size_t>::max()) {
@@ -1338,10 +1338,6 @@ size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
 		lenStr = strlen(src);
 	}
 	for (unsigned int i=0; i<lenStr; i++) {
-		if (i==0x1630)
-			int x = 10;
-
-
 		unsigned short curr = (src[i]&0xFF);
 
 		//Handle carefully to avoid the security risk...
