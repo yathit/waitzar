@@ -10,8 +10,6 @@ using std::vector;
 using std::pair;
 using std::min;
 using std::max;
-using waitzar::min;
-using waitzar::max;
 
 //Useful constants
 namespace {
@@ -305,9 +303,9 @@ LRESULT CALLBACK MyWin32Window::MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 
 				//NOTE: This is not generic yet; it just works for our special case. Maybe change later?
 				if (i==SOUTH)
-					linkedWindows[i]->setWindowPosition(min(max(myRect.left, 0), deskRect.right-linkedWindows[i]->getClientWidth()), min(myRect.top+this->getClientHeight(), deskRect.bottom-linkedWindows[i]->getClientHeight()), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+					linkedWindows[i]->setWindowPosition(min(max((int)myRect.left, 0), (int)deskRect.right-linkedWindows[i]->getClientWidth()), min(myRect.top+this->getClientHeight(), deskRect.bottom-linkedWindows[i]->getClientHeight()), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 				else if (i==NORTH)
-					linkedWindows[i]->setWindowPosition(min(max(myRect.left, 0), deskRect.right-linkedWindows[i]->getClientWidth()), max(myRect.top-linkedWindows[i]->getClientHeight(), 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+					linkedWindows[i]->setWindowPosition(min(max((int)myRect.left, 0), (int)deskRect.right-linkedWindows[i]->getClientWidth()), max((int)myRect.top-linkedWindows[i]->getClientHeight(), 0), 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 				else
 					throw std::runtime_error("Cannot move windows linked EAST/WEST (Todo...)");
 			}
