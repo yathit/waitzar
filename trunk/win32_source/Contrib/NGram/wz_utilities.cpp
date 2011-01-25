@@ -6,6 +6,7 @@
 
 #include "wz_utilities.h"
 
+using std::vector;
 using std::wstringstream;
 using std::wstring;
 using std::string;
@@ -126,66 +127,66 @@ namespace
 	};
 
 	//Bitflags for our step-three algorithm
-	#define S3_TOTAL_FLAGS               42
-	#define S3_VISARGA                   0x20000000000
-	#define S3_LEG_SINGLE                0x10000000000
-	#define S3_LEG_SINGLE_TALL            0x8000000000
-	#define S3_LEG_DOUBLE                 0x4000000000
-	#define S3_LEG_DOUBLE_TALL            0x2000000000
-	#define S3_TWO_LEGS                   0x1000000000
-	#define S3_THREE_LEGS                  0x800000000
-	#define S3_MED_YA_PIN                  0x400000000
-	#define S3_MED_YA_PIN_SHORT            0x200000000
-	#define S3_MED_YA_PIN_SSA_STACK        0x100000000
-	#define S3_MED_YA_YIT                   0x80000000
-	#define S3_MED_YA_YIT_LONG              0x40000000
-	#define S3_MED_YA_YIT_HIGH_CUT          0x20000000
-	#define S3_MED_YA_YIT_LONG_HIGH_CUT     0x10000000
-	#define S3_MED_YA_YIT_LOW_CUT            0x8000000
-	#define S3_MED_YA_YIT_LONG_LOW_CUT       0x4000000
-	#define S3_MED_YA_YIT_BOTH_CUT           0x2000000
-	#define S3_MED_YA_YIT_LONG_BOTH_CUT      0x1000000
-	#define S3_STACKED						  0x800000 //(includes indented)
-	#define S3_CIRC_BELOW                     0x400000
-	#define S3_CIRC_BELOW_W_LEG               0x200000
-	#define S3_LEG_FWD                        0x100000
-	#define S3_LEG_FWD_SMALL                   0x80000
-	#define S3_DOT_BELOW                       0x40000
-	#define S3_DOT_BELOW_2                     0x20000
-	#define S3_DOT_BELOW_3                     0x10000
-	#define S3_VOW_AR_TALL                      0x8000
-	#define S3_VOW_AR_TALL_ASAT                 0x4000
-	#define S3_VOW_AR_SHORT                     0x2000
-	#define S3_DOT_ABOVE                        0x1000
-	#define S3_CIRCLE_ABOVE                      0x800
-	#define S3_CIRCLE_DOT_ABOVE                  0x400
-	#define S3_CIRCLE_CROSSED_ABOVE              0x200
-	#define S3_KINZI                             0x100
-	#define S3_KINZI_DOT                          0x80
-	#define S3_KINZI_CIRC                         0x40
-	#define S3_KINZI_CIRC_CROSSED                 0x20
-	#define S3_MED_SLANT_ABOVE                    0x10
-	#define S3_VOW_A                               0x8
-	#define S3_CONSONANT_WIDE                      0x4
-	#define S3_CONSONANT_NARROW                    0x2
-	#define S3_CONSONANT_OTHER                     0x1
-	#define S3_OTHER                                 0
+	const uint64_t S3_TOTAL_FLAGS                 = 42;
+	const uint64_t S3_VISARGA                     = 0x20000000000;
+	const uint64_t S3_LEG_SINGLE                  = 0x10000000000;
+	const uint64_t S3_LEG_SINGLE_TALL             =  0x8000000000;
+	const uint64_t S3_LEG_DOUBLE                  =  0x4000000000;
+	const uint64_t S3_LEG_DOUBLE_TALL             =  0x2000000000;
+	const uint64_t S3_TWO_LEGS                    =  0x1000000000;
+	const uint64_t S3_THREE_LEGS                  =   0x800000000;
+	const uint64_t S3_MED_YA_PIN                  =   0x400000000;
+	const uint64_t S3_MED_YA_PIN_SHORT            =   0x200000000;
+	const uint64_t S3_MED_YA_PIN_SSA_STACK        =   0x100000000;
+	const uint64_t S3_MED_YA_YIT                  =    0x80000000;
+	const uint64_t S3_MED_YA_YIT_LONG             =    0x40000000;
+	const uint64_t S3_MED_YA_YIT_HIGH_CUT         =    0x20000000;
+	const uint64_t S3_MED_YA_YIT_LONG_HIGH_CUT    =    0x10000000;
+	const uint64_t S3_MED_YA_YIT_LOW_CUT          =     0x8000000;
+	const uint64_t S3_MED_YA_YIT_LONG_LOW_CUT     =     0x4000000;
+	const uint64_t S3_MED_YA_YIT_BOTH_CUT         =     0x2000000;
+	const uint64_t S3_MED_YA_YIT_LONG_BOTH_CUT    =     0x1000000;
+	const uint64_t S3_STACKED                     =      0x800000; //(includes indented)
+	const uint64_t S3_CIRC_BELOW                  =      0x400000;
+	const uint64_t S3_CIRC_BELOW_W_LEG            =      0x200000;
+	const uint64_t S3_LEG_FWD                     =      0x100000;
+	const uint64_t S3_LEG_FWD_SMALL               =       0x80000;
+	const uint64_t S3_DOT_BELOW                   =       0x40000;
+	const uint64_t S3_DOT_BELOW_2                 =       0x20000;
+	const uint64_t S3_DOT_BELOW_3                 =       0x10000;
+	const uint64_t S3_VOW_AR_TALL                 =        0x8000;
+	const uint64_t S3_VOW_AR_TALL_ASAT            =        0x4000;
+	const uint64_t S3_VOW_AR_SHORT                =        0x2000;
+	const uint64_t S3_DOT_ABOVE                   =        0x1000;
+	const uint64_t S3_CIRCLE_ABOVE                =         0x800;
+	const uint64_t S3_CIRCLE_DOT_ABOVE            =         0x400;
+	const uint64_t S3_CIRCLE_CROSSED_ABOVE        =         0x200;
+	const uint64_t S3_KINZI                       =         0x100;
+	const uint64_t S3_KINZI_DOT                   =          0x80;
+	const uint64_t S3_KINZI_CIRC                  =          0x40;
+	const uint64_t S3_KINZI_CIRC_CROSSED          =          0x20;
+	const uint64_t S3_MED_SLANT_ABOVE             =          0x10;
+	const uint64_t S3_VOW_A                       =           0x8;
+	const uint64_t S3_CONSONANT_WIDE              =           0x4;
+	const uint64_t S3_CONSONANT_NARROW            =           0x2;
+	const uint64_t S3_CONSONANT_OTHER             =           0x1;
+	const uint64_t S3_OTHER                       =           0x0;
 
 
 	//Bitflags for our zawgyi conversion algorithm
-	#define BF_CONSONANT    2048
-	#define BF_STACKER      1024
-	#define BF_DOT_LOW       512
-    #define BF_DOT_OVER      256
-	#define BF_VOW_AR        128
-	#define BF_LEG_NORM       64
-	#define BF_VOW_OVER       32
-    #define BF_VOW_A          16
-	#define BF_LEG_REV         8
-	#define BF_CIRC_LOW        4
-	#define BF_MED_YA          2
-	#define BF_ASAT            1
-	#define BF_OTHER           0
+	const uint16_t BF_CONSONANT    = 2048;
+	const uint16_t BF_STACKER      = 1024;
+	const uint16_t BF_DOT_LOW      =  512;
+	const uint16_t BF_DOT_OVER     =  256;
+	const uint16_t BF_VOW_AR       =  128;
+	const uint16_t BF_LEG_NORM     =   64;
+	const uint16_t BF_VOW_OVER     =   32;
+	const uint16_t BF_VOW_A        =   16;
+	const uint16_t BF_LEG_REV      =    8;
+	const uint16_t BF_CIRC_LOW     =    4;
+	const uint16_t BF_MED_YA       =    2;
+	const uint16_t BF_ASAT         =    1;
+	const uint16_t BF_OTHER        =    0;
 
 	//Match into this array
 	const unsigned int matchFlags[] = {0xBDE, 0x801, 0x803, 0x887, 0x80F, 0x89E, 0x93F, 0xB7F, 0x8FF, 0x9FF, 0x800};
@@ -195,18 +196,21 @@ namespace
 	//FILE *wzUtilLogFile = NULL;
 
 	//A fun struct
-    #define RULE_MODIFY   1
-	#define RULE_COMBINE  2
-	#define RULE_ORDER    3
+	enum {
+		RULE_MODIFY   = 1,
+	    RULE_COMBINE,
+		RULE_ORDER,
+	};
+
 	struct Rule {
 		int type;
 		wchar_t at_letter;
-		__int64 match_flags;
-		wchar_t *match_additional;
+		uint64_t match_flags;
+		wstring match_additional;
 		wchar_t replace;
 		bool blacklisted;
 
-		Rule(int type, wchar_t atLetter, __int64 matchFlags, wchar_t *matchAdditional, wchar_t replace) {
+		Rule(int type, wchar_t atLetter, uint64_t matchFlags, const wstring& matchAdditional, wchar_t replace) {
 			this->type = type;
 			this->at_letter = atLetter;
 			this->match_flags = matchFlags;
@@ -217,7 +221,7 @@ namespace
 
 		wstring matchFlagsBin() const {
 			std::wstringstream res;
-			for (__int64 i=S3_VISARGA; i>0; i>>=1) {
+			for (uint64_t i=S3_VISARGA; i>0; i>>=1) {
 				if (match_flags&i)
 					res <<L"1";
 				else
@@ -232,15 +236,15 @@ namespace
 			res <<((type==RULE_MODIFY)?L"MODIFY":(type==RULE_COMBINE)?L"COMBINE":(type==RULE_ORDER)?L"ORDER":L"<ERR>");
 			res <<L", at[" <<at_letter <<"]";
 			res <<L", match[" <<matchFlagsBin() <<L"]";
-			if (match_additional!=NULL)
+			if (!match_additional.empty())
 				res <<L", additional[" <<match_additional <<L"]";
 			res <<L", replace[" <<replace <<L"]";
 			res <<L"}";
 			return res.str();
 		}
 	};
-	std::vector<Rule*> matchRules;
-	std::vector<wchar_t*> reorderPairs;
+	vector<Rule*> matchRules;
+	vector<wstring> reorderPairs;
 
 
 	bool isMyanmar(wchar_t letter)
@@ -285,31 +289,31 @@ namespace
 	{
 		switch (letter)
 		{
-			case 0x103B:
+			case L'\u103B':
 				return ID_MED_Y;
-			case 0x103C:
+			case L'\u103C':
 				return ID_MED_R;
-			case 0x103D:
+			case L'\u103D':
 				return ID_MED_W;
-			case 0x103E:
+			case L'\u103E':
 				return ID_MED_H;
-			case 0x1031:
+			case L'\u1031':
 				return ID_VOW_E;
-			case 0x102D:
-			case 0x102E:
-			case 0x1032:
+			case L'\u102D':
+			case L'\u102E':
+			case L'\u1032':
 				return ID_VOW_ABOVE;
-			case 0x102F:
-			case 0x1030:
+			case L'\u102F':
+			case L'\u1030':
 				return ID_VOW_BELOW;
-			case 0x102B:
-			case 0x102C:
+			case L'\u102B':
+			case L'\u102C':
 				return ID_VOW_A;
-			case 0x1036:
+			case L'\u1036':
 				return ID_ANUSVARA;
-			case 0x1037:
+			case L'\u1037':
 				return ID_DOW_BELOW;
-			case 0x10338:
+			case L'\u1038':
 				return ID_VISARGA;
 			default:
 				return -1;
@@ -321,41 +325,41 @@ namespace
 	{
 		switch (uniLetter)
 		{
-			case 0x1039:
+			case L'\u1039':
 				return BF_STACKER;
-			case 0x1037:
+			case L'\u1037':
 				return BF_DOT_LOW;
-			case 0x1036:
+			case L'\u1036':
 				return BF_DOT_OVER;
-			case 0x102B:
-			case 0x102C:
+			case L'\u102B':
+			case L'\u102C':
 				return BF_VOW_AR;
-			case 0x102F:
-			case 0x1030:
+			case L'\u102F':
+			case L'\u1030':
 				return BF_LEG_NORM;
-			case 0x102D:
-			case 0x102E:
-			case 0x1032:
+			case L'\u102D':
+			case L'\u102E':
+			case L'\u1032':
 				return BF_VOW_OVER;
-			case 0x1031:
+			case L'\u1031':
 				return BF_VOW_A;
-			case 0x103E:
+			case L'\u103E':
 				return BF_LEG_REV;
-			case 0x103D:
+			case L'\u103D':
 				return BF_CIRC_LOW;
-			case 0x103B:
-			case 0x103C:
+			case L'\u103B':
+			case L'\u103C':
 				return BF_MED_YA;
-			case 0x103A:
+			case L'\u103A':
 				return BF_ASAT;
-			case 0x1025:
-			case 0x1027:
-			case 0x1029:
-			case 0x103F:
+			case L'\u1025':
+			case L'\u1027':
+			case L'\u1029':
+			case L'\u103F':
 			case ZG_DASH:
 				return BF_CONSONANT;
 			default:
-				if (uniLetter>=0x1000 && uniLetter<=0x1021)
+				if (uniLetter>=L'\u1000' && uniLetter<=L'\u1021')
 					return BF_CONSONANT;
 				return BF_OTHER;
 		}
@@ -363,16 +367,16 @@ namespace
 
 
 
-	__int64 getStage3BitFlags(wchar_t letter)
+	uint64_t getStage3BitFlags(wchar_t letter)
 	{
 		switch (letter) {
-			case 0x1038:
+			case L'\u1038':
 				return S3_VISARGA;
-			case 0x102F:
+			case L'\u102F':
 				return S3_LEG_SINGLE;
 			case ZG_TALL_SINGLE_LEG:
 				return S3_LEG_SINGLE_TALL;
-			case 0x1030:
+			case L'\u1030':
 				return S3_LEG_DOUBLE;
 			case ZG_TALL_DOUBLE_LEG:
 				return S3_LEG_DOUBLE_TALL;
@@ -380,13 +384,13 @@ namespace
 				return S3_TWO_LEGS;
 			case ZG_LEGS_OF_THREE:
 				return S3_THREE_LEGS;
-			case 0x103B:
+			case L'\u103B':
 				return S3_MED_YA_PIN;
 			case ZG_YA_PIN_CUT:
 				return S3_MED_YA_PIN_SHORT;
 			case ZG_YA_PIN_SA:
 				return S3_MED_YA_PIN_SSA_STACK;
-			case 0x103C:
+			case L'\u103C':
 				return S3_MED_YA_YIT;
 			case ZG_YA_YIT_LONG:
 				return S3_MED_YA_YIT_LONG;
@@ -402,33 +406,33 @@ namespace
 				return S3_MED_YA_YIT_BOTH_CUT;
 			case ZG_YA_YIT_LONG_BOTHCUT:
 				return S3_MED_YA_YIT_LONG_BOTH_CUT;
-			case 0x103D:
+			case L'\u103D':
 				return S3_CIRC_BELOW;
 			case ZG_LEGGED_CIRCLE_BELOW:
 				return S3_CIRC_BELOW_W_LEG;
-			case 0x103E:
+			case L'\u103E':
 				return S3_LEG_FWD;
 			case ZG_LEG_FWD_SMALL:
 				return S3_LEG_FWD_SMALL;
-			case 0x1037:
+			case L'\u1037':
 				return S3_DOT_BELOW;
 			case ZG_DOT_BELOW_SHIFT_1:
 				return S3_DOT_BELOW_2;
 			case ZG_DOT_BELOW_SHIFT_2:
 				return S3_DOT_BELOW_3;
-			case 0x102B:
+			case L'\u102B':
 				return S3_VOW_AR_TALL;
 			case ZG_TALL_WITH_ASAT:
 				return S3_VOW_AR_TALL_ASAT;
-			case 0x102C:
+			case L'\u102C':
 				return S3_VOW_AR_SHORT;
-			case 0x1036:
+			case L'\u1036':
 				return S3_DOT_ABOVE;
-			case 0x102D:
+			case L'\u102D':
 				return S3_CIRCLE_ABOVE;
 			case ZG_DOTTED_CIRCLE_ABOVE:
 				return S3_CIRCLE_DOT_ABOVE;
-			case 0x102E:
+			case L'\u102E':
 				return S3_CIRCLE_CROSSED_ABOVE;
 			case ZG_KINZI:
 				return S3_KINZI;
@@ -438,54 +442,54 @@ namespace
 				return S3_KINZI_CIRC;
 			case ZG_KINZI_102E:
 				return S3_KINZI_CIRC_CROSSED;
-			case 0x1032:
+			case L'\u1032':
 				return S3_MED_SLANT_ABOVE;
-			case 0x1031:
+			case L'\u1031':
 				return S3_VOW_A;
-			case 0x1000:
-			case 0x1003:
-			case 0x1006:
-			case 0x100F:
-			case 0x1010:
-			case 0x1011:
-			case 0x1018:
-			case 0x101A:
-			case 0x101C:
-			case 0x101E:
-			case 0x101F:
-			case 0x1021:
-			case 0x103F:
+			case L'\u1000':
+			case L'\u1003':
+			case L'\u1006':
+			case L'\u100F':
+			case L'\u1010':
+			case L'\u1011':
+			case L'\u1018':
+			case L'\u101A':
+			case L'\u101C':
+			case L'\u101E':
+			case L'\u101F':
+			case L'\u1021':
+			case L'\u103F':
 				return S3_CONSONANT_WIDE;
-			case 0x1001:
-			case 0x1002:
-			case 0x1004:
-			case 0x1005:
-			case 0x1007:
-			case 0x100E:
-			case 0x1012:
-			case 0x1013:
-			case 0x1014:
-			case 0x1015:
-			case 0x1016:
-			case 0x1017:
-			case 0x1019:
-			case 0x101B:
-			case 0x101D:
-			case 0x1027:
+			case L'\u1001':
+			case L'\u1002':
+			case L'\u1004':
+			case L'\u1005':
+			case L'\u1007':
+			case L'\u100E':
+			case L'\u1012':
+			case L'\u1013':
+			case L'\u1014':
+			case L'\u1015':
+			case L'\u1016':
+			case L'\u1017':
+			case L'\u1019':
+			case L'\u101B':
+			case L'\u101D':
+			case L'\u1027':
 			case ZG_NA_CUT:
 			case ZG_YA_CUT:
 				return S3_CONSONANT_NARROW;
-			case 0x1008:
-			case 0x1009:
-			case 0x100A:
+			case L'\u1008':
+			case L'\u1009':
+			case L'\u100A':
 			case ZG_NYA_CUT:
-			case 0x100B:
-			case 0x100C:
-			case 0x100D:
-			case 0x1020:
-			case 0x1025:
+			case L'\u100B':
+			case L'\u100C':
+			case L'\u100D':
+			case L'\u1020':
+			case L'\u1025':
 			case ZG_O_CUT:
-			case 0x1029:
+			case L'\u1029':
 				return S3_CONSONANT_OTHER;
 			default:
 				if (letter>=ZG_STACK_KA && letter<=ZG_STACK_HTA2_INDENT)
@@ -495,7 +499,7 @@ namespace
 	}
 
 
-	int getStage3ID(__int64 bitflags)
+	int getStage3ID(uint64_t bitflags)
 	{
 		switch (bitflags) {
 			case S3_VISARGA:
@@ -625,22 +629,22 @@ namespace
 	wchar_t getStackedVersion(wchar_t uniLetter)
 	{
 		switch (uniLetter) {
-			case 0x101B:
+			case L'\u101B':
 				return ZG_STACK_YA;
-			case 0x101C:
+			case L'\u101C':
 				return ZG_STACK_LA;
-			case 0x101E:
+			case L'\u101E':
 				return ZG_STACK_THA;
-			case 0x1021:
+			case L'\u1021':
 				return ZG_STACK_A;
 			default:
-				if (uniLetter>=0x1000 && uniLetter<=0x1008) {
-					return (uniLetter-0x1000)+ZG_STACK_KA;
-				} else if (uniLetter>=0x100A && uniLetter<=0x100D) {
-					return (uniLetter-0x100A)+ZG_STACK_NYA;
-				} else if (uniLetter>=0x100F && uniLetter<=0x1019) {
-					return (uniLetter-0x100F)+ZG_STACK_NHA;
-				} else if (uniLetter==0x100E) {
+				if (uniLetter>=L'\u1000' && uniLetter<=L'\u1008') {
+					return (uniLetter-L'\u1000')+ZG_STACK_KA;
+				} else if (uniLetter>=L'\u100A' && uniLetter<=L'\u100D') {
+					return (uniLetter-L'\u100A')+ZG_STACK_NYA;
+				} else if (uniLetter>=L'\u100F' && uniLetter<=L'\u1019') {
+					return (uniLetter-L'\u100F')+ZG_STACK_NHA;
+				} else if (uniLetter==L'\u100E') {
 					return ZG_STACK_EXTRA; //Todo: we can merge this & the top 2 "if"s.
 				}
 		}
@@ -654,159 +658,175 @@ namespace
 	{
 		switch (uniLetter)
 		{
-			case 0x1039:
-				return 0x005E; //Leftover stack letters as ^
-			case 0x103A:
-				return 0x1039;
-			case 0x103B:
-				return 0x103A;
-			case 0x103C:
-				return 0x103B;
-			case 0x103D:
-				return 0x103C;
-			case 0x103E:
-				return 0x103D;
-			case 0x103F:
-				return 0x1086;
+			case L'\u1039':
+				return L'\u005E'; //Leftover stack letters as ^
+			case L'\u103A':
+				return L'\u1039';
+			case L'\u103B':
+				return L'\u103A';
+			case L'\u103C':
+				return L'\u103B';
+			case L'\u103D':
+				return L'\u103C';
+			case L'\u103E':
+				return L'\u103D';
+			case L'\u103F':
+				return L'\u1086';
 			/*case :
-				return 0x1092;*/ //Add later; this is actually a typing issue, not a rendering one.
+				return L'\u1092';*/ //Add later; this is actually a typing issue, not a rendering one.
 			case ZG_DASH:
-				return 0x200B;
+				return L'\u200B';
 			case ZG_KINZI:
-				return 0x1064;
+				return L'\u1064';
 			case ZG_STACK_KA:
-				return 0x1060;
+				return L'\u1060';
 			case ZG_STACK_KHA:
-				return 0x1061;
+				return L'\u1061';
 			case ZG_STACK_GA:
-				return 0x1062;
+				return L'\u1062';
 			case ZG_STACK_GHA:
-				return 0x1063;
+				return L'\u1063';
 			case ZG_STACK_NGA:
-				return 0x003F; //It appears Zawgyi cannot stack "NGA"
+				return L'\u003F'; //It appears Zawgyi cannot stack "NGA"
 			case ZG_STACK_SA:
-				return 0x1065;
+				return L'\u1065';
 			case ZG_STACK_SSA:
-				return 0x1066;
+				return L'\u1066';
 			case ZG_STACK_SSA_INDENT:
-				return 0x1067;
+				return L'\u1067';
 			case ZG_STACK_ZA:
-				return 0x1068;
+				return L'\u1068';
 			case ZG_STACK_ZHA:
-				return 0x1069;
+				return L'\u1069';
 			case ZG_STACK_NYA:
-				return 0x003F; //Can't stack "NYA" either
+				return L'\u003F'; //Can't stack "NYA" either
 			case ZG_STACK_TTA:
-				return 0x106C;
+				return L'\u106C';
 			case ZG_STACK_HTA1:
-				return 0x106D;
+				return L'\u106D';
 			case ZG_STACK_DHA1:
-				return 0x003F; //Appears we can't stack this either.
+				return L'\u003F'; //Appears we can't stack this either.
 			case ZG_STACK_EXTRA:
-				return 0x003F; //Appears we can't stack this either.
+				return L'\u003F'; //Appears we can't stack this either.
 			case ZG_STACK_NHA:
-				return 0x1070;
+				return L'\u1070';
 			case ZG_STACK_TA:
-				return 0x1071;
+				return L'\u1071';
 			case ZG_STACK_TA_INDENT:
-				return 0x1072;
+				return L'\u1072';
 			case ZG_STACK_HTA2:
-				return 0x1073;
+				return L'\u1073';
 			case ZG_STACK_HTA2_INDENT:
-				return 0x1074;
+				return L'\u1074';
 			case ZG_STACK_DDA:
-				return 0x1075;
+				return L'\u1075';
 			case ZG_STACK_DHA2:
-				return 0x1076;
+				return L'\u1076';
 			case ZG_STACK_NA:
-				return 0x1077;
+				return L'\u1077';
 			case ZG_STACK_PA:
-				return 0x1078;
+				return L'\u1078';
 			case ZG_STACK_PHA:
-				return 0x1079;
+				return L'\u1079';
 			case ZG_STACK_VA:
-				return 0x107A;
+				return L'\u107A';
 			case ZG_STACK_BA:
-				return 0x107B;
+				return L'\u107B';
 			case ZG_STACK_MA:
-				return 0x107C;
+				return L'\u107C';
 			case ZG_STACK_YA:
-				return 0x003F; //Can't stack "ya"
+				return L'\u003F'; //Can't stack "ya"
 			case ZG_STACK_LA:
-				return 0x1085;
+				return L'\u1085';
 			case ZG_STACK_THA:
-				return 0x003F; //Can't stack "tha"
+				return L'\u003F'; //Can't stack "tha"
 			case ZG_STACK_A:
-				return 0x003F; //Can't stack "a"
+				return L'\u003F'; //Can't stack "a"
 			case ZG_COMPLEX_1:
-				return 0x1092;
+				return L'\u1092';
 			case ZG_COMPLEX_2:
-				return 0x1097;
+				return L'\u1097';
 			case ZG_COMPLEX_3:
-				return 0x106E;
+				return L'\u106E';
 			case ZG_COMPLEX_4:
-				return 0x106F;
+				return L'\u106F';
 			case ZG_COMPLEX_5:
-				return 0x1096;
+				return L'\u1096';
 			case ZG_COMPLEX_NA:
-				return 0x1091;
+				return L'\u1091';
 			case ZG_TALL_WITH_ASAT:
-				return 0x105A;
+				return L'\u105A';
 			case ZG_DOTTED_CIRCLE_ABOVE:
-				return 0x108E;
+				return L'\u108E';
 			case ZG_LEGGED_CIRCLE_BELOW:
-				return 0x108A;
+				return L'\u108A';
 			case ZG_LEGS_BOTH_WAYS:
-				return 0x1088;
+				return L'\u1088';
 			case ZG_LEGS_OF_THREE:
-				return 0x1089;
+				return L'\u1089';
 			case ZG_KINZI_102D:
-				return 0x108B;
+				return L'\u108B';
 			case ZG_KINZI_102E:
-				return 0x108C;
+				return L'\u108C';
 			case ZG_KINZI_1036:
-				return 0x108D;
+				return L'\u108D';
 			case ZG_DOT_BELOW_SHIFT_1:
-				return 0x1094;
+				return L'\u1094';
 			case ZG_DOT_BELOW_SHIFT_2:
-				return 0x1095;
+				return L'\u1095';
 			case ZG_TALL_SINGLE_LEG:
-				return 0x1033;
+				return L'\u1033';
 			case ZG_TALL_DOUBLE_LEG:
-				return 0x1034;
+				return L'\u1034';
 			case ZG_YA_PIN_CUT:
-				return 0x107D;
+				return L'\u107D';
 			case ZG_YA_PIN_SA:
-				return 0x1069;
+				return L'\u1069';
 			case ZG_YA_YIT_LONG:
-				return 0x107E;
+				return L'\u107E';
 			case ZG_YA_YIT_HIGHCUT:
-				return 0x107F;
+				return L'\u107F';
 			case ZG_YA_YIT_LONG_HIGHCUT:
-				return 0x1080;
+				return L'\u1080';
 			case ZG_YA_YIT_LOWCUT:
-				return 0x1081;
+				return L'\u1081';
 			case ZG_YA_YIT_LONG_LOWCUT:
-				return 0x1082;
+				return L'\u1082';
 			case ZG_YA_YIT_BOTHCUT:
-				return 0x1083;
+				return L'\u1083';
 			case ZG_YA_YIT_LONG_BOTHCUT:
-				return 0x1084;
+				return L'\u1084';
 			case ZG_LEG_FWD_SMALL:
-				return 0x1087;
+				return L'\u1087';
 			case ZG_NA_CUT:
-				return 0x108F;
+				return L'\u108F';
 			case ZG_YA_CUT:
-				return 0x1090;
+				return L'\u1090';
 			case ZG_NYA_CUT:
-				return 0x106B;
+				return L'\u106B';
 			case ZG_O_CUT:
-				return 0x106A;
+				return L'\u106A';
 			default:
 				return uniLetter; //Assume it's correct.
 		}
 	}
 
+
+
+	//And finally, locale-driven nonsense with to_lower:
+	template<class T>
+	class ToLower {
+	public:
+		 ToLower(const std::locale& loc):loc(loc)
+		 {
+		 }
+		 T operator()(const T& src) const
+		 {
+			  return std::tolower<T>(src, loc);
+		 }
+	protected:
+		 const std::locale& loc;
+	};
 
 } //End of hidden namespace
 
@@ -1118,48 +1138,48 @@ wstring renderAsZawgyi(const wstring &uniString)
 		//1-7
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u102F', 0x7FFE00000, L"\u1009\u1025\u100A", ZG_TALL_SINGLE_LEG));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1030', 0x7FFE00000, L"\u1009\u1025\u100A", ZG_TALL_DOUBLE_LEG));
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102F', 0x180000, NULL, ZG_LEGS_BOTH_WAYS));
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1030', 0x180000, NULL, ZG_LEGS_OF_THREE));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102F', 0x180000, L"", ZG_LEGS_BOTH_WAYS));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1030', 0x180000, L"", ZG_LEGS_OF_THREE));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0x1580018C000, L"\u1014", ZG_DOT_BELOW_SHIFT_1));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1037', 0xA700E00000, L"\u101B", ZG_DOT_BELOW_SHIFT_2));
 		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_1, 0xA700E00000, L"\u101B", ZG_DOT_BELOW_SHIFT_2));
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103A', 0x8000, NULL, ZG_TALL_WITH_ASAT));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103A', 0x8000, L"", ZG_TALL_WITH_ASAT));
 
 		//8
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x800, NULL, ZG_DOTTED_CIRCLE_ABOVE));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x800, L"", ZG_DOTTED_CIRCLE_ABOVE));
 
 		//A new rule! Combine "stacked TA" with "circle below"
-		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_TA, 0x400000, NULL, ZG_COMPLEX_5));
+		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_TA, 0x400000, L"", ZG_COMPLEX_5));
 
 		//9-14
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x100, NULL, ZG_KINZI_1036));
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102D', 0x100, NULL, ZG_KINZI_102D));
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102E', 0x100, NULL, ZG_KINZI_102E));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u1036', 0x100, L"", ZG_KINZI_1036));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102D', 0x100, L"", ZG_KINZI_102D));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102E', 0x100, L"", ZG_KINZI_102E));
 		matchRules.push_back(new Rule(RULE_COMBINE, L'\u102E', 0, L"\u1025", L'\u1026'));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103E', 0xFF000000, L"\u1020\u100A", ZG_LEG_FWD_SMALL));
-		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103E', 0x400000, NULL, ZG_LEGGED_CIRCLE_BELOW));
-		matchRules.push_back(new Rule(RULE_COMBINE, ZG_LEG_FWD_SMALL, 0x400000, NULL, ZG_LEGGED_CIRCLE_BELOW));
-		matchRules.push_back(new Rule(RULE_ORDER, L'\u1036', 0xFF000000, NULL, 0x0000));
+		matchRules.push_back(new Rule(RULE_COMBINE, L'\u103E', 0x400000, L"", ZG_LEGGED_CIRCLE_BELOW));
+		matchRules.push_back(new Rule(RULE_COMBINE, ZG_LEG_FWD_SMALL, 0x400000, L"", ZG_LEGGED_CIRCLE_BELOW));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1036', 0xFF000000, L"", 0x0000));
 
 		//15-20
-		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, NULL, 0x0000));
-		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0x7, NULL, 0x0000));
-		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0xFF000000, NULL, 0x0000));
-		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_SA, 0x600000000, NULL, ZG_YA_PIN_SA));
-		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103C', 0x4, NULL, ZG_YA_YIT_LONG));
-		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103B', 0x100E00000, NULL, ZG_YA_PIN_CUT));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u103C', 0x7, L"", 0x0000));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0x7, L"", 0x0000));
+		matchRules.push_back(new Rule(RULE_ORDER, L'\u1031', 0xFF000000, L"", 0x0000));
+		matchRules.push_back(new Rule(RULE_COMBINE, ZG_STACK_SA, 0x600000000, L"", ZG_YA_PIN_SA));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103C', 0x4, L"", ZG_YA_YIT_LONG));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u103B', 0x100E00000, L"", ZG_YA_PIN_CUT));
 
 		//21-30
-		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_SSA, 0x2, NULL, ZG_STACK_SSA_INDENT));
-		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_TA, 0x2, NULL, ZG_STACK_TA_INDENT));
-		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_HTA2, 0x2, NULL, ZG_STACK_HTA2_INDENT));
-		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1014', 0x15F00F80000, NULL, ZG_NA_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_SSA, 0x2, L"", ZG_STACK_SSA_INDENT));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_TA, 0x2, L"", ZG_STACK_TA_INDENT));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_STACK_HTA2, 0x2, L"", ZG_STACK_HTA2_INDENT));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1014', 0x15F00F80000, L"", ZG_NA_CUT));
 		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1009', 0x15800800000, L"\u103A", L'\u1025'));
-		matchRules.push_back(new Rule(RULE_MODIFY, L'\u101B', 0x1800000000, NULL, ZG_YA_CUT));
-		matchRules.push_back(new Rule(RULE_MODIFY, L'\u100A', 0x4000600000, NULL, ZG_NYA_CUT));
-		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1025', 0x800000, NULL, ZG_O_CUT));
-		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_1, 0x2000, NULL, L'\u1037'));
-		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_2, 0x2000, NULL, L'\u1037'));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u101B', 0x1800000000, L"", ZG_YA_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u100A', 0x4000600000, L"", ZG_NYA_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, L'\u1025', 0x800000, L"", ZG_O_CUT));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_1, 0x2000, L"", L'\u1037'));
+		matchRules.push_back(new Rule(RULE_MODIFY, ZG_DOT_BELOW_SHIFT_2, 0x2000, L"", L'\u1037'));
 	}
 
 	Logger::writeLogLine('Z', tab + L"Begin Match");
@@ -1171,7 +1191,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 	// A "minor break" occurs after each killed consonant, which is not tracked. "CONSONANT" always refers
 	// to the main consonant.
 	int firstOccurrence[S3_TOTAL_FLAGS];
-	__int64 currMatchFlags = 0;
+	uint64_t currMatchFlags = 0;
 	for (size_t i=0; i<S3_TOTAL_FLAGS; i++)
 		firstOccurrence[i] = -1;
 	length = wcslen(zawgyiStr);
@@ -1181,7 +1201,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 	for (size_t i=0; i<=length; i++) {
 		//Get properties on this letter
 		wchar_t currLetter = zawgyiStr[i];
-		__int64 currFlag = getStage3BitFlags(currLetter);
+		uint64_t currFlag = getStage3BitFlags(currLetter);
 		int currFlagID = getStage3ID(currFlag);
 
 		//Are we at a stopping point?
@@ -1193,7 +1213,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 					Rule *r = matchRules[zawgyiStr[x]-0x102F];
 					bool matches = ((r->match_flags&currMatchFlags)!=0);
 					if (!matches) {
-						for (size_t sID=0; sID<wcslen(r->match_additional) && !matches; sID++) {
+						for (size_t sID=0; sID<r->match_additional.length()&&!matches; sID++) {
 							for (size_t zID=prevConsonant; zID<i && !matches; zID++) {
 								if (zawgyiStr[zID]==r->match_additional[sID]) {
 									matches = true;
@@ -1239,12 +1259,12 @@ wstring renderAsZawgyi(const wstring &uniString)
 						continue;
 
 					//First, match the input
-					__int64 matchRes = r->match_flags&currMatchFlags;
-					size_t matchLoc = -1;
+					uint64_t matchRes = r->match_flags&currMatchFlags;
+					int matchLoc = -1;
 					if (matchRes==0) {
 						bool foundAdditional = false;
-						if (r->match_additional!=NULL) {
-							for (size_t sID=0; sID<wcslen(r->match_additional) && !foundAdditional; sID++) {
+						if (!r->match_additional.empty()) {
+							for (size_t sID=0; sID<r->match_additional.length()&&!foundAdditional; sID++) {
 								for (size_t zID=prevConsonant; zID<i && !foundAdditional; zID++) {
 									if (zawgyiStr[zID]==r->match_additional[sID]) {
 										matchLoc = zID;
@@ -1291,7 +1311,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 						{ //With c+j+c+j, the second syllable doesn't trigger a match at all (Must be incrementing wrongly)
 							if (matchLoc==-1)
 								break; //Our rules shouldn't have this problem.
-							if (x<matchLoc)
+							if ((int)x<matchLoc)
 								break; //Don't shift right
 							if (r->blacklisted)
 								break; //Avoid cycles
@@ -1351,7 +1371,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 							if (r->at_letter==zawgyiStr[x] && ((r->match_flags&currMatchFlags)!=0) && !r->blacklisted) {
 								matchLoc = -1;
 								matchLoc = getStage3ID(r->match_flags&currMatchFlags);
-								if (r->type==RULE_ORDER && x<matchLoc)
+								if (r->type==RULE_ORDER && (int)x<matchLoc)
 									continue;
 
 								//Special cases added as we detect them:
@@ -1429,7 +1449,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 			//Is this a soft-stop or a hard stop?
 			bool softStop = (i<length && zawgyiStr[i+1]==0x103A);
 			currMatchFlags &= (S3_CONSONANT_NARROW|S3_CONSONANT_OTHER|S3_CONSONANT_WIDE);
-			for (int x=0; x<S3_TOTAL_FLAGS; x++) {
+			for (size_t x=0; x<S3_TOTAL_FLAGS; x++) {
 				if (softStop && (x==S3_CONSONANT_NARROW || x==S3_CONSONANT_WIDE || x==S3_CONSONANT_OTHER))
 					continue;
 				firstOccurrence[x] = -1;
@@ -1544,7 +1564,7 @@ wstring renderAsZawgyi(const wstring &uniString)
 	for (size_t i=1; i<length; i++) {
 		//Apply stage-2 rules
 		for (size_t ruleID=0; ruleID<reorderPairs.size(); ruleID++) {
-			wchar_t *rule = reorderPairs[ruleID];
+			const wstring& rule = reorderPairs[ruleID];
 			if (zawgyiStr[i]==rule[0] && zawgyiStr[i-1]==rule[1]) {
 				Logger::writeLogLine('Z', tab+tab + L"Order{" + wstring(rule) + L"}");
 
@@ -1904,6 +1924,64 @@ string glue(string str1, string str2, string str3, string str4)
 string glue(wstring str1, wstring str2, wstring str3, wstring str4)
 {
 	return glue(escape_wstr(str1),escape_wstr(str2),escape_wstr(str3),escape_wstr(str4));
+}
+
+
+
+
+wstring sanitize_id(const wstring& str)
+{
+	std::wstring res = str; //Copy out the "const"-ness.
+	//res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim<wchar_t>()));
+	auto is_id_delim = [](wchar_t letter)->bool {
+		  if ((letter==' ')||(letter=='\t')||(letter=='\n')||(letter=='-')||(letter=='_'))
+		   return true; //Remove it
+		  return false; //Don't remove it
+	};
+	res = std::wstring(res.begin(), std::remove_if(res.begin(), res.end(), is_id_delim));
+	loc_to_lower(res); //Operates in-place.
+	return res;
+}
+
+
+
+bool read_bool(const std::wstring& str)
+{
+	std::wstring test = str;
+	loc_to_lower(test);
+	if (test == L"yes" || test==L"true")
+		return true;
+	else if (test==L"no" || test==L"false")
+		return false;
+	else
+		throw std::runtime_error(glue(std::wstring(L"Bad boolean value: \""), str, std::wstring(L"\"")).c_str());
+}
+
+
+int read_int(const std::wstring& str)
+{
+	//Read
+	int resInt;
+	std::wistringstream reader(str);
+	reader >>resInt;
+
+	//Problem?
+	if (reader.fail()) {
+		//TEMP
+		throw std::runtime_error(glue(std::wstring(L"Bad integer value: \""), str, L"\"").c_str());
+	}
+
+	//Done
+	return resInt;
+}
+
+
+
+//Locale-aware "toLower" converter
+void loc_to_lower(wstring& str)
+{
+	std::locale loc(""); //Get native locale
+	std::transform(str.begin(),str.end(),str.begin(),ToLower<wchar_t>(loc));
 }
 
 
