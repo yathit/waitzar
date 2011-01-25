@@ -297,7 +297,7 @@ bool Regex::exec(wchar_t*str){
 		/* The following initialize each matching */
 		match=true;
 		int regIdx=0;int grIdx=0;int matchLen=0;
-		int skipLen=0;
+		//int skipLen=0;
 		
 		/* initialize group parameters */
 		gr.res[resIdx].range[0].start=-1;	
@@ -361,7 +361,7 @@ bool Regex::exec(wchar_t*str){
 		}
 		
 		/* dummy_test(L"ab",L"a"); */
-		if(regIdx!=r.length)
+		if(regIdx!=(int)r.length)
 			match=false;
 		
 		/* dummy_test(L"^[a-z]$",L"zzabcdef"); */
@@ -468,7 +468,8 @@ void Regex::sub(wchar_t*srcStr, const wchar_t* replStr, wchar_t* destStr){
 		
 	}while(srcStr[srcIdx]);
 	
-	*ds=NULL;/* very important :P */
+	//*ds=NULL;/* very important :P */
+	*ds='\0';  //Terminate string
 	
 	cpy(destStr,this->buffer);
 }
