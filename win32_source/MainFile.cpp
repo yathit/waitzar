@@ -127,6 +127,8 @@ using std::pair;
 using std::wstringstream;
 using std::ifstream;
 using std::ofstream;
+using std::min;
+using std::max;
 
 
 

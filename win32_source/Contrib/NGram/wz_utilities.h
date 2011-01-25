@@ -62,8 +62,7 @@ namespace waitzar
 	std::wstring readUTF8File(const std::string& path);
 
 	//Other useful methods
-	std::string escape_wstr(const std::wstring& str);
-	std::string escape_wstr(const std::wstring& str, bool errOnUnicode);
+	std::string escape_wstr(const std::wstring& str, bool errOnUnicode=false);
 	std::string wcs2mbs(const std::wstring& str);
 	std::wstring mbs2wcs(const std::string& str);
 	std::wstring preparse_json(const std::wstring& str);
@@ -95,55 +94,12 @@ namespace waitzar
 
 
 
-	//For stl exceptions...
-	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3, const std::string& str4)
-	{
-		std::stringstream msg;
-		msg <<str1 <<str2 <<str3 <<str4;
-		return msg.str();
-	}
-	static std::string glue(const std::string& str1, const std::string& str2, const std::string& str3)
-	{
-		return glue(str1, str2, str3, "");
-	}
-	static std::string glue(const std::string& str1, const std::string& str2)
-	{
-		return glue(str1, str2, "", "");
-	}
-	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3, const std::wstring& str4)
-	{
-		return glue(waitzar::escape_wstr(str1, false), waitzar::escape_wstr(str2, false), waitzar::escape_wstr(str3, false), waitzar::escape_wstr(str4, false));
-	}
-	static std::string glue(const std::wstring& str1, const std::wstring& str2, const std::wstring& str3)
-	{
-		return glue(str1, str2, str3, L"");
-	}
-	static std::string glue(const std::wstring& str1, const std::wstring& str2)
-	{
-		return glue(str1, str2, L"", L"");
-	}
-
-	
-	//These two functions can be included (with "using") to clear up complaints of "ambiguous" by the compiler. 
-	static long max(const long &a, const int &b) { return std::max<long>(a, b); }
-	static long min(const long &a, const int &b) { return std::min<long>(a,b); }
+	//Various "glue" functions for Error messages
+	std::string glue(std::string str1, std::string str2=std::string(), std::string str3=std::string(), std::string str4=std::string());
+	std::string glue(std::wstring str1, std::wstring str2=std::wstring(), std::wstring str3=std::wstring(), std::wstring str4=std::wstring());
 
 
-	//Helper predicate
-	//TODO: Make private
-	/*template <class T>
-	class is_id_delim : public std::unary_function<T, bool>
-	{
-	public:
-	 bool operator ()(T t) const
-	 {
-	  if ((t==' ')||(t=='\t')||(t=='\n')||(t=='-')||(t=='_'))
-	   return true; //Remove it
-	  return false; //Don't remove it
-	 }
-	};*/
 
-	//Used elsewhere...
 	static std::wstring sanitize_id(const std::wstring& str)
 	{
 		std::wstring res = str; //Copy out the "const"-ness.
@@ -166,7 +122,7 @@ namespace waitzar
 		else if (test==L"no" || test==L"false")
 			return false;
 		else
-			throw std::runtime_error(glue(L"Bad boolean value: \"", str, L"\"").c_str());
+			throw std::runtime_error(glue(std::wstring(L"Bad boolean value: \""), str, std::wstring(L"\"")).c_str());
 	}
 	static int read_int(const std::wstring& str)
 	{
@@ -176,8 +132,10 @@ namespace waitzar
 		reader >>resInt;
 
 		//Problem?
-		if (reader.fail())
-			throw std::runtime_error(glue(L"Bad integer value: \"", str, L"\"").c_str());
+		if (reader.fail()) {
+			//TEMP
+			throw std::runtime_error(glue(std::wstring(L"Bad integer value: \""), str, L"\"").c_str());
+		}
 
 		//Done
 		return resInt;

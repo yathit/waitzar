@@ -1627,12 +1627,6 @@ wstring renderAsZawgyi(const wstring &uniString)
 }
 
 
-
-std::string escape_wstr(const std::wstring& str)
-{
-	return escape_wstr(str, false);
-}
-
 std::string escape_wstr(const std::wstring& str, bool errOnUnicode)
 {
 	std::stringstream res;
@@ -1896,6 +1890,20 @@ size_t count_letter(const std::wstring& str, wchar_t letter)
 			res++;
 	}
 	return res;
+}
+
+
+
+//Implementations of "glue"
+string glue(string str1, string str2, string str3, string str4)
+{
+	std::stringstream msg;
+	msg <<str1 <<str2 <<str3 <<str4;
+	return msg.str();
+}
+string glue(wstring str1, wstring str2, wstring str3, wstring str4)
+{
+	return glue(escape_wstr(str1),escape_wstr(str2),escape_wstr(str3),escape_wstr(str4));
 }
 
 
