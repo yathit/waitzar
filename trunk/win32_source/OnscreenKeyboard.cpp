@@ -53,9 +53,9 @@ OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysF
 	//Init our keys
 	int currY = 0;
 	int currX = 0;
-	int currRow = 0;
-	int currRowID = 0;
-	for (int i=0; i<keys_total; i++) {
+	size_t currRow = 0;
+	size_t currRowID = 0;
+	for (size_t i=0; i<keys_total; i++) {
 		//Get properties
 		int pal = letter_types[i];
 
@@ -205,7 +205,7 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 	drawTitleButtons();
 
 	//Draw all our buttons (we'll just re-draw them when shifted, it saves space)
-	for (int i=0; i<keys_total; i++) {
+	for (size_t i=0; i<keys_total; i++) {
 		drawKey(keys[i], i, false);
 	}
 
@@ -215,7 +215,7 @@ void OnscreenKeyboard::initHelp(void(*OnTitleBtnClick)(unsigned int), void(*OnTi
 	//Subscribe a rectangle for all our keys
 	if (OnTitleBtnClick!=NULL && OnTitleBtnOver!=NULL && OnTitleBtnOut!=NULL) {
 		RECT r;
-		for (int i=0; i<keys_total; i++) {
+		for (size_t i=0; i<keys_total; i++) {
 			//Scratch variables.
 			POINT pos = keys[i].location;
 			PulpCoreImage* img = buttonsRegular[keys[i].letterPalette];
@@ -359,7 +359,7 @@ void OnscreenKeyboard::turnOnHelpMode(bool on, bool skipHelpWin, bool skipMemWin
 	if (!skipHelpWin) {
 		//Re-paint all keys?
 		if (on) {
-			for (int i=0; i<keys_total; i++) {
+			for (size_t i=0; i<keys_total; i++) {
 				drawKey(keys[i], i, keys[i].isHighlighted());
 			}
 			helpWindow->repaintWindow();
@@ -507,7 +507,7 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 		shiftLock = !shiftLock;
 
 		//Repaint
-		for (int i=0; i<keys_total; i++) {
+		for (size_t i=0; i<keys_total; i++) {
 			drawKey(keys[i], i, keys[i].isHighlighted());
 		}
 		helpWindow->repaintWindow();
@@ -516,7 +516,7 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 		shiftLock = false;
 
 		//Repaint
-		for (int i=0; i<keys_total; i++) {
+		for (size_t i=0; i<keys_total; i++) {
 			drawKey(keys[i], i, keys[i].isHighlighted());
 		}
 		helpWindow->repaintWindow();
@@ -539,7 +539,7 @@ void OnscreenKeyboard::highlightVirtKey(unsigned int btnID, bool isHighlighted)
 		return;
 
 	//Don't highlight keys we can't press!
-	unsigned int vkey = keyboard_vk_codes[btnID];
+	//unsigned int vkey = keyboard_vk_codes[btnID];
 	if (!isPressableButton(btnID))
 		return;
 

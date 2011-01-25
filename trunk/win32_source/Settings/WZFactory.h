@@ -203,7 +203,7 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 
 	//Done - This shouldn't matter, though, since the process only
 	//       accesses it once and, fortunately, this is not an external file.
-	UnlockResource(res_handle);
+	//UnlockResource(res_handle);
 	}
 
 	{
@@ -319,7 +319,7 @@ WordBuilder* WZFactory<ModelType>::readModel() {
 
 	//Done - This shouldn't matter, though, since the process only
 	//       accesses it once and, fortunately, this is not an external file.
-	UnlockResource(res_handle);
+	//UnlockResource(res_handle);
 	}
 
 	return model;
@@ -654,7 +654,7 @@ DisplayMethod* WZFactory<ModelType>::getPngDisplayManager(std::wstring langID, s
 		char * file_buff = new char[fileSize];
 		size_t file_buff_size = fread(file_buff, 1, fileSize, fontFile);
 		fclose(fontFile);
-		if (file_buff_size!=fileSize)
+		if ((long)file_buff_size!=fileSize)
 			throw std::runtime_error("PngFont file could not be read to the end of the file.");
 		
 		//Ok, load our font

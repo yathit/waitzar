@@ -6,8 +6,8 @@
 
 #pragma once
 
-#define _UNICODE
-#define UNICODE
+//#define _UNICODE
+//#define UNICODE
 
 //Don't let Visual Studio warn us to use the _s functions
 //#define _CRT_SECURE_NO_WARNINGS
@@ -92,8 +92,8 @@ public:
 	//Helper
 	bool isHighlighted() { return mouseIsOver || kbdIsPressed; }
 };
-const int keys_per_row[] = {14, 14, 13, 12, 8};
-const int keys_total = 14 + 14 + 13 + 12 + 8;
+const unsigned int keys_per_row[] = {14, 14, 13, 12, 8};
+const unsigned int keys_total = 14 + 14 + 13 + 12 + 8;
 
 //What type is each key on the keyboard?
 const int letter_types[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_BACKSPACE, BUTTON_UTILITY, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_UTILITY, BUTTON_CAPSLOCK, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_ENTER, BUTTON_SHIFT_L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, BUTTON_SHIFT_R, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_SPACEBAR, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY, BUTTON_UTILITY};

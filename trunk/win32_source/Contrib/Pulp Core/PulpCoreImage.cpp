@@ -610,9 +610,9 @@ void PulpCoreImage::readTransparency(int length)
 void PulpCoreImage::readAnimation()
 {
 	//Init
-	int numFramesAcross = readShort();
-    int numFramesDown = readShort();
-    bool loop = (readByte()!=0);
+	/*int numFramesAcross = */readShort();
+    /*int numFramesDown = */readShort();
+    /*bool loop = */(readByte()!=0);
     int frames = readShort();
     int* frameSequence = new int[frames];
     int* frameDuration = new int[frames];

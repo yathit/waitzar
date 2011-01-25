@@ -502,7 +502,7 @@ vector< pair<wstring, unsigned int> > RomanInputMethod<ModelType>::getTypedCandi
 			if (model->canTypeShortcut())
 				item.second |= HF_LABELTILDE;
 		}
-		if (model->getCurrSelectedID() == i-model->getFirstWordIndex())
+		if (model->getCurrSelectedID() == (int)i-(int)model->getFirstWordIndex())
 			item.second |= HF_CURRSELECTION;
 		res.push_back(item);
 	}
