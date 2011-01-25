@@ -72,7 +72,7 @@ int StreamManipulator::peekBits(int n)
 			return -1;
 		
 		//Get bits
-		buffer |= (window[window_start] & 0xff | (window[window_start+1] & 0xff) << 8) << bits_in_buffer;
+		buffer |= ((window[window_start] & 0xff) | (window[window_start+1] & 0xff) << 8) << bits_in_buffer;
 		window_start+=2;
 		bits_in_buffer += 16;
     }
