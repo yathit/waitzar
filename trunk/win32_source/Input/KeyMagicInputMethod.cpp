@@ -207,7 +207,7 @@ void KeyMagicInputMethod::loadBinaryRulesFile(const string& binaryFilePath)
 	for (int relID=0; relID<numVariables+numReplacements; relID++) {
 		//Get the actual ID
 		bool isVar = relID<numVariables;
-		int actID = isVar ? relID : relID-numVariables;
+		//int actID = isVar ? relID : relID-numVariables;
 
 		//Read three integers regardless
 		size_t numSwitches = readInt(buffer, pos, file_size);
@@ -359,6 +359,7 @@ void KeyMagicInputMethod::saveBinaryRulesFile(const string& binaryFilePath, cons
 					case KMRT_VARARRAY_SPECIAL:     binStream.push_back(6);   break;
 					case KMRT_VARARRAY_BACKREF:     binStream.push_back(7);   break;
 					case KMRT_KEYCOMBINATION:  binStream.push_back(8);        break;
+					default: throw std::runtime_error("Unknown rule type.");
 				}
 				writeInt(binStream, r.val);
 				writeInt(binStream, r.id);
@@ -505,9 +506,6 @@ void KeyMagicInputMethod::loadTextRulesFile(const string& rulesFilePath)
 				firstComment = false;
 				continue;
 			}
-
-			//For debugging
-			wchar_t currC = datastream[i];
 
 			//Skip \r
 			if (datastream[i]==L'\r')
@@ -842,12 +840,12 @@ Rule KeyMagicInputMethod::parseRule(const std::wstring& ruleStr)
 				}
 			} else {
 				//It's a complex variable.
-				if (bracesStartIndex==ruleStr.length()-1 || ruleStr[ruleStr.length()-1]!=L']')
+				if (bracesStartIndex==(int)ruleStr.length()-1 || ruleStr[ruleStr.length()-1]!=L']')
 					throw std::runtime_error("Invalid variable: bracket isn't closed.");
 				result.str = ruleStr.substr(0, bracesStartIndex);
 				
 				//Could be [*] or [^]; check these first
-				if (bracesStartIndex+1==ruleStr.length()-2 && (ruleStr[bracesStartIndex+1]==L'^' || ruleStr[bracesStartIndex+1]==L'*')) {
+				if (bracesStartIndex+1==(int)ruleStr.length()-2 && (ruleStr[bracesStartIndex+1]==L'^' || ruleStr[bracesStartIndex+1]==L'*')) {
 					result.type = KMRT_VARARRAY_SPECIAL;
 					result.val = ruleStr[bracesStartIndex+1];
 				} else if (ruleStr[bracesStartIndex+1]==L'$') {
@@ -1123,6 +1121,9 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 				currRule.id = switchLookup.find(currRule.str)->second;
 				switchesUsed.push_back(currRule.id);
 				break;
+
+			default:
+				throw std::runtime_error("Unknown rule type.");
 		}
 
 		//Add all rules that consume input.
@@ -1267,7 +1268,8 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 					//Wildcard: ALMOST always move
 					//"\x{21}-\x{7d}\x{ff}-\x{ffff}"
 					case KMRT_WILDCARD:
-						if (((input[dot]>=0x21)&&(input[dot]<=0x7D)) || ((input[dot]>=0xFF)&&(input[dot]<=L'\uFFFF')))
+						//We modify Key Magic's definition slightly: U+FFFE and U+FFFF are not valid, so we stop at U+FFFD
+						if (((input[dot]>=L'\x21') &&(input[dot]<=L'\x7D')) || ((input[dot]>=L'\xFF') &&(input[dot]<=L'\uFFFD')))
 							curr->advance(input[dot], -1);
 						else
 							allow = false;
@@ -1328,7 +1330,7 @@ pair<Candidate, bool> KeyMagicInputMethod::getCandidateMatch(RuleSet& rule, cons
 						allow = false;
 						if (!matchedOneVirtualKey && dot==input.length()-1) {
 							//Move on the VKEY?
-							if (curr->getCurrRule().val==vkeyCode) {
+							if (curr->getCurrRule().val==(int)vkeyCode) {
 								curr->advance(input[dot], -1);
 								if (curr->isDone()) {
 									//Kind of hackish, but it works (for now).

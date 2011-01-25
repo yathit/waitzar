@@ -565,7 +565,7 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 		DWORD foreID = GetWindowThreadProcessId(foreWnd, NULL);
 		if (AttachThreadInput(caretTrackThreadID, foreID, TRUE)) {
 			HWND focusWnd = GetFocus();
-			HWND activeWnd = GetActiveWindow();
+			//HWND activeWnd = GetActiveWindow();
 
 			if (IsWindowVisible(focusWnd)) {
 				POINT mousePos;
@@ -576,7 +576,7 @@ DWORD WINAPI UpdateCaretPosition(LPVOID args)
 
 					int caretHeight = sentenceWindow->getHeight();// SUB_WINDOW_HEIGHT;
 					TEXTMETRICW tm;
-					HFONT currFont = (HFONT)SendMessage(focusWnd, WM_GETFONT, 0, 0);
+					//HFONT currFont = (HFONT)SendMessage(focusWnd, WM_GETFONT, 0, 0);
 					if (mainWindow->getTextMetrics(&tm))
 						caretHeight = tm.tmHeight;
 
@@ -1003,7 +1003,7 @@ void FlashLoadState(map<wstring, vector<wstring> >& lastUsedSettings)
 		if (buff[i]>='0' && buff[i]<='1')
 			version = version*10 + (buff[i]-'0');
 	}
-	if (version!=FLASH_SAVE_VERSION_NUMBER)
+	if (version!=(int)FLASH_SAVE_VERSION_NUMBER)
 		return; //Out-of-date.
 
 	//Now, read each line. Break it down by ":" as well.
@@ -1494,7 +1494,7 @@ bool turnOnAlphaHotkeys(bool on, bool affectLowercase, bool affectUppercase)
 					retVal = false;
 			}
 			if (affectLowercase) {
-				if (!mainWindow->registerHotKey(low_code, NULL, high_code))
+				if (!mainWindow->registerHotKey(low_code, 0, high_code))
 					retVal = false;
 			}
 		} else {
@@ -1571,7 +1571,7 @@ void switchToLanguage(bool toMM) {
 
 	//Turn on/of our main Help hotkey
 	if (toMM)
-		res = mainWindow->registerHotKey(HOTKEY_HELP, NULL, VK_F1) && res;
+		res = mainWindow->registerHotKey(HOTKEY_HELP, 0, VK_F1) && res;
 	else {
 		mainWindow->unregisterHotKey(HOTKEY_HELP);
 	}
@@ -2127,7 +2127,7 @@ void CreateDialogControls(vector<WControl>& pendingItems, HWND hwnd, HFONT dlgFo
 				hicon = CreateGrayscaleBitmap((HBITMAP)hiconOld);
 				DeleteObject(hiconOld);
 			}
-			unsigned int errCode = GetLastError();
+			//unsigned int errCode = GetLastError();
 			SendMessage(ctl, STM_SETIMAGE, (WPARAM)flags2, (LPARAM)hicon);
 
 		}
@@ -3588,10 +3588,10 @@ void createContextMenu()
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_HELP, L"&Help/About");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_SETTINGS, L"&Settings");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_EXIT, L"E&xit");
-	AppendMenu(contextMenuPopup, MF_SEPARATOR, NULL, NULL);
+	AppendMenu(contextMenuPopup, MF_SEPARATOR, 0, NULL);
 	AppendMenu(contextMenuPopup, MF_STRING|MF_CHECKED, IDM_ENGLISH, L"&English (Alt+Shift)");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_MYANMAR, L"&Myanmar (Alt+Shift)");
-	AppendMenu(contextMenuPopup, MF_SEPARATOR, NULL, NULL);
+	AppendMenu(contextMenuPopup, MF_SEPARATOR, 0, NULL);
 	AppendMenu(contextMenuPopup, MF_POPUP|MF_STRING, (UINT_PTR)typingMenu, L"&Typing");
 	AppendMenu(contextMenuPopup, MF_STRING, IDM_LOOKUP, L"&Look Up Word (F1)");
 	if (logLangChange)
@@ -4396,7 +4396,7 @@ bool findAndLoadAllConfigFiles()
 				throw std::runtime_error("Invalid unicode character in WZ_DEFAULT_CFG.");*/
 
 			//Set the config file
-			config.initMainConfig(string(res_data), true);
+			config.initMainConfig(string(res_data, res_size), true);
 
 			//Reclaim memory and system resources.
 			//delete [] res_data;

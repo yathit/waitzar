@@ -214,7 +214,7 @@ void Inflater::setDictionary (char* buffer, int off, int len)
       throw new IllegalStateException();*/
 
     adler->update(buffer, off, len);
-	long addTest = adler->getValue(); //from check below...
+	//long addTest = adler->getValue(); //from check below...
     /*if ((int) addTest != readAdler)
       throw new IllegalArgumentException("Wrong adler checksum");*/
     adler->reset();

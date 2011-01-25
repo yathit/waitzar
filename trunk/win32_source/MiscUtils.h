@@ -71,7 +71,7 @@ bool IsAdmin()
    GENERIC_MAPPING GenericMapping;
 
    PSECURITY_DESCRIPTOR     psdAdmin           = NULL;
-   SID_IDENTIFIER_AUTHORITY SystemSidAuthority = SECURITY_NT_AUTHORITY;
+   SID_IDENTIFIER_AUTHORITY SystemSidAuthority = {SECURITY_NT_AUTHORITY};
 
 
    /*
