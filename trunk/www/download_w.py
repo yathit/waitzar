@@ -35,6 +35,17 @@ class DownloadTemplate(FallbackTemplate):
 				</td>
 			</tr>
 		</table>
+		
+		<br><table align="left" border="0" cellpadding="8" cellspacing="0" class="glwt mt40">
+			<tr>
+				<td width="100" align="center" class="glr"><a class="ninjalink" href="http://waitzar.googlecode.com/svn/trunk/WaitZar%20Hacker%27s%20Guide.pdf">
+					<img src="img/wz_icon_hackers.png" border="0"/>
+					<br><div class="downloadlink linkclr">Hacker's Guide (Currently Incomplete).pdf</div>
+				</a></td>
+				<td valign="top">The WaitZar Hacker's Guide, which covers the intricate inner workings of Wait Zar. Not recommended for the average user.
+				</td>
+			</tr>
+		</table>
 
 		<br><table align="left" border="0" cellpadding="8" cellspacing="0" class="glwt mt40">
 			<tr>
