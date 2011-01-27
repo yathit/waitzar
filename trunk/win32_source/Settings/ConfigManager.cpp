@@ -700,7 +700,13 @@ const Settings& ConfigManager::getSettings()
 		vector<wstring> ctxt;
 		if (this->localConfig.isSet()) {
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
-			this->buildUpConfigTree(this->localConfig.json(), &root);
+
+			//Save local opts!
+			this->buildUpConfigTree(this->localConfig.json(), &root, {
+				[&locallySetOptions](const Node& n) {
+					locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
+				}
+			});
 		}
 		if (this->userConfig.isSet()) {
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
@@ -710,6 +716,21 @@ const Settings& ConfigManager::getSettings()
 
 		//Now walk it and set all settings
 		this->walkConfigTree(this->root, "");
+
+
+
+		//TEST
+		for (auto it=localOpts.begin(); it!=localOpts.end(); it++) {
+			if (locallySetOptions.count(it->first)>0 && locallySetOptions[it->first]==it->second)
+				std::cout <<"Test passed" <<std::endl;
+			else
+				std::cout <<"Test FAILED" <<std::endl;
+		}
+		for (auto it=locallySetOptions.begin(); it!=locallySetOptions.end(); it++) {
+			if (localOpts.count(it->first)==0)
+				std::cout <<"Test FAILED: extra option!" <<std::endl;
+		}
+		//END TEST
 
 
 		//Minor post-processing
@@ -726,7 +747,7 @@ const Settings& ConfigManager::getSettings()
 
 
 
-void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode)
+void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, std::vector<std::function<void (const Node& n)>> OnSetCallbacks)
 {
 	//The root node is a map; get its keys and iterate
 	Value::Members keys = root.getMemberNames();
@@ -744,10 +765,15 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 		const Value* value = &root[*itr];
 		if (value->isObject()) {
 			//Inductive case: Continue reading all options under this type
-			this->buildUpConfigTree(*value, childNode);
+			this->buildUpConfigTree(*value, childNode, OnSetCallbacks);
 		} else if (value->isString()) {
 			//Base case: the "value" is also a string (set the property)
 			childNode->str(sanitize(waitzar::mbs2wcs(value->asString())));
+
+			//Callback
+			for (auto it=OnSetCallbacks.begin(); it!=OnSetCallbacks.end(); it++) {
+				(*it)(*childNode);
+			}
 		} else {
 			throw std::runtime_error("ERROR: Config file options should always be string or hash types.");
 		}
