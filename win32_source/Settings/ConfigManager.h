@@ -128,6 +128,10 @@ public:
 
 
 private:
+	//These two functions replace "readInConfig"
+	void buildUpConfigTree(const Json::Value& root, Node* const currNode);
+	void walkConfigTree(const Node& root, const std::string& TEMP);
+
 	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet);
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
 
@@ -144,6 +148,9 @@ private:
 
 	//Workaround
 	std::string (*getMD5Function)(const std::string&);
+
+	//TEMP
+	Node root;
 
 	//Current working directory
 	std::wstring workingDir;

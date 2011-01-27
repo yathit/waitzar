@@ -13,6 +13,8 @@
 #include <string>
 #include <stdexcept>
 
+#include "NGram/wz_utilities.h"
+
 
 /**
  * A "node" in our javascript tree contains either a
@@ -26,55 +28,67 @@ public:
 	//Constructors
 	Node() {
 	}
-	Node(const std::string& val) {
-		this->setString(val);
+	Node(const std::wstring& val) {
+		this->str(val);
 	}
-	Node(const char* val) {
-		this->setString(val);
+	Node(const wchar_t* val) {
+		this->str(val);
 	}
 
 	//Check properties about this node
 	bool isLeaf() const {
-		return !textValue.empty();
+		return !textValues.empty();
 	}
 	bool isEmpty() const {
-		return textValue.empty() && childList.empty();
+		return textValues.empty() && childList.empty();
 	}
 
 	//Get/Set string value
-	const std::string& getString() const {
-		return textValue;
+	const std::vector<std::wstring>& getStringStack() const {
+		if (textValues.empty())
+			throw std::runtime_error("Cannot call \"getStringStack\" on an empty node.");
+		return textValues;
 	}
-	void setString(const std::string& val) {
-		textValue = val;
+	const std::wstring& str() const {
+		if (textValues.empty())
+			throw std::runtime_error("Cannot call \"getString\" on an empty node.");
+		return textValues[0];
+	}
+	void str(const std::wstring& val) {
+		if (val.empty())
+			throw std::runtime_error("Cannot call \"setString\" on an empty string.");
+		textValues.push_back(val);
 		assertValid();
 	}
 
 	//Get/Set children
-	const std::map<std::string, Node>& getChildNodes() const {
+	const std::map<std::wstring, Node>& getChildNodes() const {
 		return childList;
 	}
-	void addChild(const std::string& key, const Node& val) {
-		childList[key] = val;
-		assertValid();
+	Node& getOrAddChild(const std::wstring& key, const Node& val) {
+		if (childList.count(key)==0) {
+			childList[key] = val;
+			assertValid();
+		}
+		return childList[key];
 	}
 
 	//Used to access child elements
-	Node& operator[] (const std::string& key) {
+	Node& operator[] (const std::wstring& key) {
 		if (childList.count(key)>0)
 			return childList[key];
-		throw std::runtime_error((std::string("Node contains no key: ")+key).c_str());
+		throw std::runtime_error((std::string("Node contains no key: ")+waitzar::escape_wstr(key)).c_str());
     }
 
 
 private:
 	//Data
-	std::map<std::string, Node> childList;
-	std::string textValue;
+	std::map<std::wstring, Node> childList;
+	std::vector<std::wstring> textValues;
 
 	//Helper: throw an exception if we're in an invalid state.
 	void assertValid() const {
-		if (!textValue.empty() && !childList.empty())
+		if (!textValues.empty() && !childList.empty())
 			throw std::runtime_error("Non-leaf node contains value.");
 	}
 };
