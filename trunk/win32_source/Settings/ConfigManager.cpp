@@ -660,6 +660,7 @@ void ConfigManager::generateHotkeyValues(const wstring& srcStr, HotkeyData& hkDa
 const Settings& ConfigManager::getSettings() 
 {
 	//Load if needed
+	root = Node();
 	if (!loadedSettings) {
 		//We need at least one config file to parse.
 		if (this->mainConfig.isEmpty())
@@ -670,12 +671,14 @@ const Settings& ConfigManager::getSettings()
 		{
 		vector<wstring> ctxt;
 		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false, false, NULL);
+		this->buildUpConfigTree(this->mainConfig.json(), &root);
 		}
 
 		//Second: extensions config
 		if (!this->commonConfig.isEmpty()){
 			vector<wstring> ctxt;
 			this->readInConfig(this->commonConfig.json(), this->commonConfig.getFolderPath(), ctxt, false, true, NULL);
+			this->buildUpConfigTree(this->commonConfig.json(), &root);
 		}
 
 		//Parse each language config file.
@@ -685,19 +688,31 @@ const Settings& ConfigManager::getSettings()
 			vector<wstring> ctxt;
 			for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false, false, NULL);
+				this->buildUpConfigTree(it->first.json(), &root);
 				for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
 					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false, false, NULL);
+					this->buildUpConfigTree(it2->json(), &root);
 				}
 			}
 		}
 
 		//Next: local and user configs
 		vector<wstring> ctxt;
-		if (this->localConfig.isSet())
+		if (this->localConfig.isSet()) {
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
-		if (this->userConfig.isSet())
+			this->buildUpConfigTree(this->localConfig.json(), &root);
+		}
+		if (this->userConfig.isSet()) {
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
+			this->buildUpConfigTree(this->userConfig.json(), &root);
+		}
 
+
+		//Now walk it and set all settings
+		this->walkConfigTree(this->root, "");
+
+
+		//Minor post-processing
 		generateHotkeyValues(options.settings.hotkeyStrRaw, options.settings.hotkey);
 
 		//Done
@@ -707,6 +722,69 @@ const Settings& ConfigManager::getSettings()
 	//Return the object
 	return this->options.settings;
 }
+
+
+
+
+void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode)
+{
+	//The root node is a map; get its keys and iterate
+	Value::Members keys = root.getMemberNames();
+	for (auto itr=keys.begin(); itr!=keys.end(); itr++) {
+		//std::cout <<waitzar::escape_wstr(waitzar::mbs2wcs(*itr)) <<std::endl;
+
+		//Key: For each dot-seperated ID, advance the current node
+		Node* childNode = currNode;
+		vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
+		for (auto key=opts.begin(); key!=opts.end(); key++) {
+			childNode = &childNode->getOrAddChild(*key, Node());
+		}
+
+		//Value: Store another child node (and recurse) or make this a leaf node
+		const Value* value = &root[*itr];
+		if (value->isObject()) {
+			//Inductive case: Continue reading all options under this type
+			this->buildUpConfigTree(*value, childNode);
+		} else if (value->isString()) {
+			//Base case: the "value" is also a string (set the property)
+			childNode->str(sanitize(waitzar::mbs2wcs(value->asString())));
+		} else {
+			throw std::runtime_error("ERROR: Config file options should always be string or hash types.");
+		}
+	}
+}
+
+
+void ConfigManager::walkConfigTree(const Node& root, const std::string& TEMP)
+{
+	//TODO: Walk the root, build up options as you go.
+
+	//TEMP: Just print the tree
+	for (auto it=root.getChildNodes().begin(); it!=root.getChildNodes().end(); it++) {
+		std::cout <<TEMP <<waitzar::escape_wstr(it->first) <<" : ";
+		if (it->second.isEmpty())
+			std::cout <<"(empty node)" <<std::endl;
+		else if (it->second.isLeaf()) {
+			std::vector<std::wstring> stack = it->second.getStringStack();
+			if (stack.size()==1)
+				std::cout <<waitzar::escape_wstr(it->second.str()) <<std::endl;
+			else {
+				std::cout <<"[";
+				string comma = "";
+				for (auto it=stack.begin(); it!=stack.end(); it++) {
+					std::cout <<comma <<waitzar::escape_wstr(*it);
+					comma = ", ";
+				}
+				std::cout <<"]" <<std::endl;
+			}
+		} else {
+			std::cout <<"[" <<it->second.getChildNodes().size() <<"]" <<std::endl;
+			walkConfigTree(it->second, TEMP+"   ");
+		}
+	}
+
+}
+
 
 
 
@@ -799,6 +877,7 @@ const std::set<Encoding>& ConfigManager::getEncodings()
 //Note: Context is managed automatically; never copied.
 //Restricted means don't load new languages, etc.
 //optionsSet, if non-null, will save the string set. E.g., "settings.defaultlanguage"=>"myanmar"
+//DEPRECATED
 void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, vector<wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet)
 {
 	//We always operate on maps:
