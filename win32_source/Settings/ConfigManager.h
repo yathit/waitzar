@@ -23,120 +23,14 @@
 
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
+#include "Settings/Node.h"
+#include "Settings/JsonFile.h"
 #include "NGram/BurglishBuilder.h"
 #include "Input/InputMethod.h"
 #include "Extension/Extension.h"
 #include "Extension/JavaScriptConverter.h"
 #include "NGram/wz_utilities.h"
 
-
-
-//Simple class to help us load json files easier
-class JsonFile {
-public:
-	JsonFile(const std::string& path="", bool fileIsStream=false) //Confusing, I know. (TODO: Make a better way of loading a file OR a string)
-	{
-		if (fileIsStream) {
-			//The "path" represents a stream of data
-			this->path = "";
-			this->folderPath = L"";
-			this->text = path;
-			this->hasReadFile = true;
-			this->hasParsed = false;
-		} else {
-			//The "path" represents an actual file path
-			this->path = path;
-			this->folderPath = L"";
-			this->text = "";
-			this->hasReadFile = false;
-			this->hasParsed = false;
-
-			//Set the folder path
-			int fwIndex = path.rfind("/");
-			int bwIndex = path.rfind("\\");
-			int index = std::max<int>(fwIndex, bwIndex);
-			if (index!=-1) {
-				std::wstringstream temp;
-				temp <<path.substr(0, index+1).c_str();
-				folderPath = temp.str();
-			}
-		}
-	}
-	/*JsonFile(const std::wstring& text) //Confusing, I know.
-	{
-		this->path = "";
-		this->folderPath = L"";
-		this->text = waitzar::preparse_json(text);
-		this->hasReadFile = true;
-		this->hasParsed = false;
-	}*/
-	Json::Value json() const
-	{
-		if (!hasParsed) {
-			if (!this->hasReadFile) {
-				//text = waitzar::readUTF8File(path);
-				//text = waitzar::preparse_json(text);
-				text = waitzar::ReadBinaryFile(path);
-				this->hasReadFile = true;
-			}
-
-			//First, try to just read it. If there's an error, then try "read or throw" and get a better error message.
-			Json::Reader reader;
-			if (!reader.parse(text, root)) {
-				/*try {
-					json_spirit::read_or_throw(text, root);	
-				} catch (json_spirit::Error_position ex) {*/
-					//First, try to build a representative line of text (+/-8 chars)
-					/*std::wstring segment;
-					if (text.length()>0) {
-						int amt = 8;
-						int startID = std::max<int>(0, ex.column_ - amt);
-						int endID = std::min<int>(text.length()-1, ex.column_ + amt);
-						segment = text.substr(startID, endID-startID);
-					}*/
-
-					//Now, throw the error.
-					std::stringstream errMsg;
-					errMsg << "Invalid json config file: " << path;
-					errMsg << std::endl << "  Problem: " << reader.getFormatedErrorMessages();
-					//errMsg << std::endl << "  Surrounding Text: ";
-					//errMsg << std::endl << "      " <<"..." << waitzar::escape_wstr(segment, false) <<"...";
-					throw std::runtime_error(errMsg.str().c_str());
-				//}
-			}
-
-			//Save space
-			text = "";
-
-			hasParsed = true;
-		}
-		return root;
-	}
-	bool isEmpty() const
-	{
-		return this->path.empty() && this->text.empty();
-	}
-	bool isSet() const //Should be a better way of automating this... maybe a singleton JSON object to return by default?
-	{
-		return this->path.length() > 0;
-	}
-	const std::wstring& getFolderPath() const
-	{
-		return this->folderPath;
-	}
-	//For map indexing:
-	bool operator<(const JsonFile& j) const
-	{
-		return this->path < j.path;
-	}
-private:
-	std::string path;
-	std::wstring folderPath;
-	mutable std::string text;
-	mutable Json::Value root;
-	mutable bool hasReadFile;
-	mutable bool hasParsed;
-};
 
 //Hotkey wrapper
 struct HotkeyData {
