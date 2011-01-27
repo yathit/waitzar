@@ -55,7 +55,7 @@ public:
 	const std::wstring& str() const {
 		if (textValues.empty())
 			throw std::runtime_error("Cannot call \"getString\" on an empty node.");
-		return textValues[0];
+		return textValues.back();
 	}
 	void str(const std::wstring& val) {
 		if (val.empty())

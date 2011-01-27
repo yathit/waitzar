@@ -129,8 +129,11 @@ public:
 
 private:
 	//These two functions replace "readInConfig"
-	void buildUpConfigTree(const Json::Value& root, Node* const currNode);
+	void buildUpConfigTree(const Json::Value& root, Node* const currNode, std::vector<std::function<void (const Node& n)>> OnSetCallbacks=std::vector<std::function<void (const Node& n)>>());
 	void walkConfigTree(const Node& root, const std::string& TEMP);
+	map<wstring, wstring> locallySetOptions; //TODO: Replace later
+
+
 
 	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet);
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
