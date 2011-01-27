@@ -737,7 +737,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 		Node* childNode = currNode;
 		vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
 		for (auto key=opts.begin(); key!=opts.end(); key++) {
-			childNode = &childNode->getOrAddChild(*key, Node());
+			childNode = &childNode->getOrAddChild(*key);
 		}
 
 		//Value: Store another child node (and recurse) or make this a leaf node
@@ -782,7 +782,6 @@ void ConfigManager::walkConfigTree(const Node& root, const std::string& TEMP)
 			walkConfigTree(it->second, TEMP+"   ");
 		}
 	}
-
 }
 
 

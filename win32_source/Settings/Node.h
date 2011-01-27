@@ -27,11 +27,14 @@ class Node {
 public:
 	//Constructors
 	Node() {
+		this->parent = NULL;
 	}
 	Node(const std::wstring& val) {
+		this->parent = NULL;
 		this->str(val);
 	}
 	Node(const wchar_t* val) {
+		this->parent = NULL;
 		this->str(val);
 	}
 
@@ -65,9 +68,11 @@ public:
 	const std::map<std::wstring, Node>& getChildNodes() const {
 		return childList;
 	}
-	Node& getOrAddChild(const std::wstring& key, const Node& val) {
+	Node& getOrAddChild(const std::wstring& key) {
 		if (childList.count(key)==0) {
-			childList[key] = val;
+			childList[key] = Node();
+			childList[key].parent = this;
+			childList[key].parentKey = key;
 			assertValid();
 		}
 		return childList[key];
@@ -81,10 +86,23 @@ public:
     }
 
 
+	//Helper: Get a fully-qualified key name for this node
+	std::wstring getFullyQualifiedKeyName() const {
+		std::wstring ret;
+		for (const Node* considering=this; considering->parent!=NULL; considering=considering->parent) {
+			ret = considering->parentKey + (!ret.empty()?L".":L"") + ret;
+		}
+		return ret;
+	}
+
 private:
 	//Data
 	std::map<std::wstring, Node> childList;
 	std::vector<std::wstring> textValues;
+
+	//For fast reverse-lookup of a fully-qualified key name
+	Node* parent;
+	std::wstring parentKey;
 
 	//Helper: throw an exception if we're in an invalid state.
 	void assertValid() const {
