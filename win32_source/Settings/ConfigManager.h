@@ -117,11 +117,13 @@ public:
 	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings);
 
 	//Useful
-	static std::wstring sanitize_id(const std::wstring& str);
-	static std::wstring sanitize(const std::wstring& str);
-	static std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
-	static bool read_bool(const std::wstring& str);
-	static int read_int(const std::wstring& str);
+	bool IsProbablyFile(const std::wstring& str);
+	std::wstring purge_filename(const std::wstring& str);
+	std::wstring sanitize_id(const std::wstring& str);
+	std::wstring sanitize_value(const std::wstring& str, const std::wstring& filePath);
+	std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
+	bool read_bool(const std::wstring& str);
+	int read_int(const std::wstring& str);
 
 	//Kind of out of place, but it works
 	void generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData);
@@ -129,7 +131,7 @@ public:
 
 private:
 	//These two functions replace "readInConfig"
-	void buildUpConfigTree(const Json::Value& root, Node* const currNode, std::vector<std::function<void (const Node& n)>> OnSetCallbacks=std::vector<std::function<void (const Node& n)>>());
+	void buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::vector<std::function<void (const Node& n)>> OnSetCallbacks=std::vector<std::function<void (const Node& n)>>());
 	void walkConfigTree(const Node& root, const std::string& TEMP);
 	map<wstring, wstring> locallySetOptions; //TODO: Replace later
 
@@ -156,7 +158,7 @@ private:
 	Node root;
 
 	//Current working directory
-	std::wstring workingDir;
+	//std::wstring workingDir;
 
 	//Have we loaded...?
 	bool loadedSettings;

@@ -73,6 +73,7 @@ namespace waitzar
 	std::string glue(std::wstring str1, std::wstring str2=std::wstring(), std::wstring str3=std::wstring(), std::wstring str4=std::wstring());
 
 	//Functions imported from ConfigManager
+	std::wstring purge_filename(const std::wstring& str);
 	std::wstring sanitize_id(const std::wstring& str);
 	bool read_bool(const std::wstring& str);
 	int read_int(const std::wstring& str);

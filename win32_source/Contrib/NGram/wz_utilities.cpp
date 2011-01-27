@@ -1928,6 +1928,14 @@ string glue(wstring str1, wstring str2, wstring str3, wstring str4)
 
 
 
+wstring purge_filename(const wstring& str)
+{
+	size_t lastSlash = str.rfind(L'\\');
+	if (lastSlash!=wstring::npos && lastSlash!=str.size()-1)
+		return str.substr(lastSlash+1, wstring::npos);
+	return str;
+}
+
 
 wstring sanitize_id(const wstring& str)
 {

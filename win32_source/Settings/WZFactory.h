@@ -81,6 +81,7 @@ public:
 	static void InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);
 
 	//Ugh
+	static std::wstring purge_filename(const std::wstring& str);
 	static std::wstring sanitize_id(const std::wstring& str);
 	static bool read_bool(const std::wstring& str);
 	static int read_int(const std::wstring& str);
@@ -789,7 +790,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 
 	//Now, add general settings
 	res->id = id;
-	res->displayName = options.find(sanitize_id(L"display-name"))->second;
+	res->displayName = purge_filename(options.find(sanitize_id(L"display-name"))->second);
 	res->encoding.id = sanitize_id(options.find(L"encoding")->second);
 
 	res->suppressUppercase = true;
@@ -984,7 +985,7 @@ Encoding WZFactory<ModelType>::makeEncoding(const std::wstring& id, const std::m
 
 	//General Settings
 	res.id = id;
-	res.displayName = options.find(sanitize_id(L"display-name"))->second;
+	res.displayName = purge_filename(options.find(sanitize_id(L"display-name"))->second);
 
 	//Optional settings
 	res.canUseAsOutput = false;
@@ -1004,6 +1005,11 @@ template <class ModelType>
 std::wstring WZFactory<ModelType>::sanitize_id(const std::wstring& str)
 {
 	return waitzar::sanitize_id(str);
+}
+template <class ModelType>
+std::wstring WZFactory<ModelType>::purge_filename(const std::wstring& str)
+{
+	return waitzar::purge_filename(str);
 }
 template <class ModelType>
 bool WZFactory<ModelType>::read_bool(const std::wstring& str)
