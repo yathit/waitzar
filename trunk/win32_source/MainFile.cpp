@@ -205,7 +205,8 @@ HICON mmIcon;
 HICON engIcon;
 
 //Useful file shorthands
-const string cfgDir = "config";
+const string cfgRelDir = "config";
+string cfgDir; //Will be fully-qualified path to config
 const string fs = "\\";
 const string cfgFile = "config.json.txt";
 
@@ -3360,7 +3361,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 		isRoman = true;
 	}
 	if (isRoman /*&& isPulpFontDisplay*/) {
-		currHelpInput = *(FindKeyInSet(config.getInputMethods(), ConfigManager::sanitize_id(L"mywin")));
+		currHelpInput = *(FindKeyInSet(config.getInputMethods(), waitzar::sanitize_id(L"mywin")));
 	}
 	if (logLangChange)
 		Logger::markLogTime('L', L"Help keyboard hack enabled.");
@@ -4204,6 +4205,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 void buildFilePathNames()
 {
+	//Get the current working directory, prepend to cfgDir
+	{
+		char* buffer;
+		if((buffer = _getcwd( NULL, 0)) == NULL)
+			throw std::runtime_error("Could not get current working directory.");
+		else {
+			cfgDir = string(buffer) + fs + cfgRelDir;
+			free(buffer);
+		}
+	}
+
 	//Compounded
 	pathMainConfig = cfgDir + fs + cfgFile;
 	//TODO: Find a nice way to move more of the next function up here.
@@ -4486,8 +4498,8 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 
 		//Now, check for various options
 		const std::wstring& language = testFile.getOption(L"language");
-		const std::wstring& inputMethod = testFile.getOption(ConfigManager::sanitize_id(L"input-method"));
-		const std::wstring& outEncoding = testFile.getOption(ConfigManager::sanitize_id(L"output-encoding"));
+		const std::wstring& inputMethod = testFile.getOption(waitzar::sanitize_id(L"input-method"));
+		const std::wstring& outEncoding = testFile.getOption(waitzar::sanitize_id(L"output-encoding"));
 		if (language.empty())
 			throw std::runtime_error("Invalid test file: missing the \"language\" option.");
 		if (inputMethod.empty())

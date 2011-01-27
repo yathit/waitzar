@@ -28,13 +28,13 @@ ConfigManager::ConfigManager(std::string (*myMD5Function)(const std::string&)){
 	this->getMD5Function = myMD5Function;
 
 	//Save the current working directory
-	char* buffer;
+	/*char* buffer;
 	std::wstringstream txt;
 	if((buffer = _getcwd( NULL, 0)) != NULL) {
 		txt <<buffer;
 		free(buffer);
 	}
-	this->workingDir = txt.str();
+	this->workingDir = txt.str();*/
 }
 
 ConfigManager::~ConfigManager(void){}
@@ -671,14 +671,14 @@ const Settings& ConfigManager::getSettings()
 		{
 		vector<wstring> ctxt;
 		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false, false, NULL);
-		this->buildUpConfigTree(this->mainConfig.json(), &root);
+		this->buildUpConfigTree(this->mainConfig.json(), &root, this->mainConfig.getFolderPath());
 		}
 
 		//Second: extensions config
 		if (!this->commonConfig.isEmpty()){
 			vector<wstring> ctxt;
 			this->readInConfig(this->commonConfig.json(), this->commonConfig.getFolderPath(), ctxt, false, true, NULL);
-			this->buildUpConfigTree(this->commonConfig.json(), &root);
+			this->buildUpConfigTree(this->commonConfig.json(), &root, this->commonConfig.getFolderPath());
 		}
 
 		//Parse each language config file.
@@ -688,10 +688,10 @@ const Settings& ConfigManager::getSettings()
 			vector<wstring> ctxt;
 			for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false, false, NULL);
-				this->buildUpConfigTree(it->first.json(), &root);
+				this->buildUpConfigTree(it->first.json(), &root, it->first.getFolderPath());
 				for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
 					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false, false, NULL);
-					this->buildUpConfigTree(it2->json(), &root);
+					this->buildUpConfigTree(it2->json(), &root, it2->getFolderPath());
 				}
 			}
 		}
@@ -702,7 +702,7 @@ const Settings& ConfigManager::getSettings()
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
 
 			//Save local opts!
-			this->buildUpConfigTree(this->localConfig.json(), &root, {
+			this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(), {
 				[&locallySetOptions](const Node& n) {
 					locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
 				}
@@ -710,7 +710,7 @@ const Settings& ConfigManager::getSettings()
 		}
 		if (this->userConfig.isSet()) {
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
-			this->buildUpConfigTree(this->userConfig.json(), &root);
+			this->buildUpConfigTree(this->userConfig.json(), &root, this->userConfig.getFolderPath());
 		}
 
 
@@ -747,7 +747,7 @@ const Settings& ConfigManager::getSettings()
 
 
 
-void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, std::vector<std::function<void (const Node& n)>> OnSetCallbacks)
+void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::vector<std::function<void (const Node& n)>> OnSetCallbacks)
 {
 	//The root node is a map; get its keys and iterate
 	Value::Members keys = root.getMemberNames();
@@ -765,10 +765,10 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 		const Value* value = &root[*itr];
 		if (value->isObject()) {
 			//Inductive case: Continue reading all options under this type
-			this->buildUpConfigTree(*value, childNode, OnSetCallbacks);
+			this->buildUpConfigTree(*value, childNode, currDirPath, OnSetCallbacks);
 		} else if (value->isString()) {
 			//Base case: the "value" is also a string (set the property)
-			childNode->str(sanitize(waitzar::mbs2wcs(value->asString())));
+			childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
 
 			//Callback
 			for (auto it=OnSetCallbacks.begin(); it!=OnSetCallbacks.end(); it++) {
@@ -926,7 +926,7 @@ void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, v
 			this->readInConfig(value, folderPath, context, restricted, allowDLL, optionsSet);
 		} else if (value.isString()) {
 			//Base case: the "value" is also a string (set the property)
-			wstring val = sanitize(waitzar::mbs2wcs(value.asString()));
+			wstring val = sanitize_value(waitzar::mbs2wcs(value.asString()), folderPath);
 			this->setSingleOption(folderPath, context, val, restricted, allowDLL);
 
 			//Save?
@@ -1023,7 +1023,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 			//Static settings
 			if (name[2] == sanitize_id(L"display-name"))
-				const_cast<Language&>(*lang).displayName = value;
+				const_cast<Language&>(*lang).displayName = purge_filename(value);
 			else if (name[2] == sanitize_id(L"default-output-encoding")) {
 				//We have to handle "lastused" values slightly differently.
 				wstring defOutput = sanitize_id(value);
@@ -1073,7 +1073,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					pair<wstring,wstring> key = pair<wstring,wstring>(langName,inputName);
 					partialInputMethods[key][sanitize_id(name[4])] = value;
 					if (partialInputMethods[key].size()==1) //First option
-						partialInputMethods[key][sanitize_id(L"current-folder")] = folderPath;
+						partialInputMethods[key][sanitize_id(L"current-folder")] = L"";
 				} else if (name[2] == sanitize_id(L"encodings")) {
 					//Encodings
 					wstring encName = name[3];
@@ -1086,7 +1086,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					pair<wstring, wstring> key = pair<wstring, wstring>(langName,encName);
 					partialEncodings[key][sanitize_id(name[4])] = value;
 					if (partialEncodings[key].size()==1) //First option
-						partialEncodings[key][sanitize_id(L"current-folder")] = folderPath;
+						partialEncodings[key][sanitize_id(L"current-folder")] = L"";
 				} else if (name[2] == sanitize_id(L"tranformations")) {
 					//Transformations
 					wstring transName = name[3];
@@ -1099,7 +1099,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					pair<wstring, wstring> key = pair<wstring, wstring>(langName,transName);
 					partialTransformations[key][sanitize_id(name[4])] = value;
 					if (partialTransformations[key].size()==1) //First option
-						partialTransformations[key][sanitize_id(L"current-folder")] = folderPath;
+						partialTransformations[key][sanitize_id(L"current-folder")] = L"";
 				} else if (name[2] == sanitize_id(L"display-methods")) {
 					//Display methods
 					wstring dispMethod = name[3];
@@ -1112,7 +1112,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					pair<wstring, wstring> key = pair<wstring, wstring>(langName,dispMethod);
 					partialDisplayMethods[key][sanitize_id(name[4])] = value;
 					if (partialDisplayMethods[key].size()==1) //First option
-						partialDisplayMethods[key][sanitize_id(L"current-folder")] = folderPath;
+						partialDisplayMethods[key][sanitize_id(L"current-folder")] = L"";
 				} else {
 					//Error
 					throw std::invalid_argument("");
@@ -1142,10 +1142,10 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 			//Now, react to the individual settings
 			if (name[2] == sanitize_id(L"library-file")) {
-				//Must be local
-				if (value.find(L'\\')!=wstring::npos || value.find(L'/')!=wstring::npos)
-					throw std::runtime_error(waitzar::glue(L"DLL path contains a / or \\: ", value).c_str());
-				const_cast<Extension*>(*ext)->libraryFilePath = workingDir + L"\\" + folderPath + value;
+				//Must be local (checked already!)
+				//if (value.find(L'\\')!=wstring::npos || value.find(L'/')!=wstring::npos)
+				//	throw std::runtime_error(waitzar::glue(L"DLL path contains a / or \\: ", value).c_str());
+				const_cast<Extension*>(*ext)->libraryFilePath = value;
 			} else if (name[2] == sanitize_id(L"enabled")) {
 				const_cast<Extension*>(*ext)->enabled = read_bool(value);
 			} else if (name[2] == sanitize_id(L"check-md5")) {
@@ -1172,15 +1172,43 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 
 
+//Take an educated guess as to whether or not this is a file.
+bool ConfigManager::IsProbablyFile(const std::wstring& str)
+{
+	//First, get the right-most "."
+	size_t lastDot = str.rfind(L'.');
+	if (lastDot==wstring::npos)
+		return false;
+
+	//It's a file if there are between 1 and 4 characters after this dot
+	int diff = str.size() - 1 - (int)lastDot;
+	return (diff>=1 && diff<=4);
+}
+
 
 //Remove leading and trailing whitespace
-wstring ConfigManager::sanitize(const wstring& str) 
+wstring ConfigManager::sanitize_value(const wstring& str, const std::wstring& filePath)
 {
+	//First, remove spurious spaces/tabs/newlines
 	size_t firstLetter = str.find_first_not_of(L" \t\n");
 	size_t lastLetter = str.find_last_not_of(L" \t\n");
 	if (firstLetter==wstring::npos||lastLetter==wstring::npos)
 		return L"";
-	return str.substr(firstLetter, lastLetter-firstLetter+1);
+
+	//Next, try to guess if this represents a file
+	wstring res = str.substr(firstLetter, lastLetter-firstLetter+1);
+	if (IsProbablyFile(res)) {
+		//Replace all "/" with "\\"
+		std::replace(res.begin(), res.end(), L'/', L'\\');
+
+		//Ensure it references no sub-directories whatsoever
+		if (res.find(L'\\')!=wstring::npos)
+			throw std::runtime_error("Config files cannot reference files outside their own directories.");
+
+		//Append the directory (and a "\\" if needed)
+		res = filePath + (filePath[filePath.size()-1]==L'\\'?L"":L"\\") + res;
+	}
+	return res;
 }
 
 //Sanitize, then return in lowercase, with '-', '_', and whitespace removed
@@ -1188,6 +1216,14 @@ wstring ConfigManager::sanitize_id(const wstring& str)
 {
 	return waitzar::sanitize_id(str);
 }
+
+
+//Remove a filename if we've added it
+wstring ConfigManager::purge_filename(const wstring& str)
+{
+	return waitzar::purge_filename(str);
+}
+
 
 //Tokenize on a character
 //Inelegant, but it does what I want it to.
