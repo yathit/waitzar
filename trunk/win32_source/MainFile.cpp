@@ -2325,7 +2325,8 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 
 	//Get the language for this panel.
 	currTabLangID = settingsLangIDs[tabID]; //Save for later
-	const Language& lng = *FindKeyInSet(config.getLanguages(), currTabLangID);
+	//const Language& lng = *FindKeyInSet(config.getLanguages(), currTabLangID);
+	const Language& lng = *config.getLanguages().find(currTabLangID);
 
 	//Handle default input/output variables
 	int toSetInID = -2; //-2 = n/a, -1=lastused
@@ -3324,7 +3325,8 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	//Step 1: Set
 	if (!langid.empty()) {
 		//Changing the language changes just about everything.
-		config.activeLanguage = *(FindKeyInSet(config.getLanguages(), langid));
+		//config.activeLanguage = *(FindKeyInSet(config.getLanguages(), langid));
+		config.activeLanguage = *config.getLanguages().find(langid);
 		config.activeDisplayMethods.clear();
 		config.activeDisplayMethods.push_back(*(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethodReg)));
 		config.activeDisplayMethods.push_back(*(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethodSmall)));
@@ -3334,7 +3336,8 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	if (!inputid.empty())
 		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), inputid));
 	if (!outputid.empty())
-		config.activeOutputEncoding = *(FindKeyInSet(config.getEncodings(), outputid));
+		//config.activeOutputEncoding = *(FindKeyInSet(config.getEncodings(), outputid));
+		config.activeOutputEncoding = *config.getEncodings().find(outputid);
 	if (logLangChange)
 		Logger::markLogTime('L', L"LangInOut is set");
 
@@ -4512,12 +4515,14 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 
 		//Set the language, input method, and output encoding.
 		//First check if they exist, though.
-		if (FindKeyInSet(config.getLanguages(), language)==config.getLanguages().end())
+		//if (FindKeyInSet(config.getLanguages(), language)==config.getLanguages().end())
+		if (config.getLanguages().find(language)==config.getLanguages().end())
 			throw std::runtime_error(waitzar::glue(L"Unknown language: \"", language, L"\"").c_str());
 		ChangeLangInputOutput(language, L"", L""); //Need this to get the right input/output ids
 		if (FindKeyInSet(config.getInputMethods(), inputMethod)==config.getInputMethods().end())
 			throw std::runtime_error(waitzar::glue(L"Unknown input method: \"", inputMethod, L"\"").c_str());
-		if (FindKeyInSet(config.getEncodings(), outEncoding)==config.getEncodings().end())
+		//if (FindKeyInSet(config.getEncodings(), outEncoding)==config.getEncodings().end())
+		if (config.getEncodings().find(outEncoding)==config.getEncodings().end())
 			throw std::runtime_error(waitzar::glue(L"Unknown output encoding: \"", outEncoding, L"\"").c_str());
 		ChangeLangInputOutput(language, inputMethod, outEncoding);
 

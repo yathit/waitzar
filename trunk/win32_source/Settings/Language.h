@@ -21,6 +21,10 @@ struct Language {
 	Language(std::wstring id=L"") {
 		this->id = id;
 	}
+	Language(const wchar_t* id) {
+		this->id = id;
+	}
+
 
 	//Simple
 	std::wstring id;
@@ -54,12 +58,13 @@ struct Language {
 	}
 
 	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
+	//No, just do it with temporary classes
+	/*bool operator==(const std::wstring& other) const {
 		return id == other;
 	}
 	bool operator!=(const std::wstring& other) const {
 		return id != other;
-	}
+	}*/
 };
 
 
