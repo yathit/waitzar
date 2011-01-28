@@ -709,11 +709,11 @@ const Settings& ConfigManager::getSettings()
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
 
 			//Save local opts!
-			this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(), {
+			this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(),
 				[&locallySetOptions](const Node& n) {
 					locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
 				}
-			});
+			);
 		}
 		if (this->userConfig.isSet()) {
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
@@ -754,7 +754,7 @@ const Settings& ConfigManager::getSettings()
 
 
 
-void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::vector<std::function<void (const Node& n)>> OnSetCallbacks)
+void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback)
 {
 	//The root node is a map; get its keys and iterate
 	Value::Members keys = root.getMemberNames();
@@ -772,14 +772,16 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 		const Value* value = &root[*itr];
 		if (value->isObject()) {
 			//Inductive case: Continue reading all options under this type
-			this->buildUpConfigTree(*value, childNode, currDirPath, OnSetCallbacks);
+			this->buildUpConfigTree(*value, childNode, currDirPath, OnSetCallback);
 		} else if (value->isString()) {
 			//Base case: the "value" is also a string (set the property)
 			childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
 
 			//Callback
-			for (auto it=OnSetCallbacks.begin(); it!=OnSetCallbacks.end(); it++) {
-				(*it)(*childNode);
+			if (OnSetCallback) {
+			//for (auto it=OnSetCallbacks.begin(); it!=OnSetCallbacks.end(); it++) {
+				//(*it)(*childNode);
+				OnSetCallback(*childNode);
 			}
 		} else {
 			throw std::runtime_error("ERROR: Config file options should always be string or hash types.");
