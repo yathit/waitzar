@@ -21,6 +21,7 @@
 #include "Json CPP/value.h"
 #include "Json CPP/reader.h"
 
+#include "Settings/ConfigTreeContainers.h"
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
 #include "Settings/Node.h"
@@ -131,7 +132,7 @@ public:
 
 private:
 	//These two functions replace "readInConfig"
-	void buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::vector<std::function<void (const Node& n)>> OnSetCallbacks=std::vector<std::function<void (const Node& n)>>());
+	void buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
 	void walkConfigTree(const Node& root, const std::string& TEMP);
 	map<wstring, wstring> locallySetOptions; //TODO: Replace later
 
