@@ -190,42 +190,8 @@ private:
 
 
 //Find and return an item in a Set, indxed only by its wstring
-template <class T> 
-typename std::set<T>::iterator FindKeyInSet(std::set<T>& container, const std::wstring& key)
-{
-	typename std::set<T>::iterator it=container.begin();
-	for (; it!=container.end(); it++)  {
-		if ((*it) == key)
-			break;
-	}
-	return it;
-}
-
-//Same, but for const
-template <class T> 
-typename std::set<T>::const_iterator FindKeyInSet(const std::set<T>& container, const std::wstring& key)
-{
-	typename std::set<T>::const_iterator it=container.begin();
-	for (; it!=container.end(); it++)  {
-		if ((*it) == key)
-			break;
-	}
-	return it;
-}
-
-//Same, but for a set of references.
-template <class T> 
-typename std::set<T*>::iterator FindKeyInSet(std::set<T*>& container, const std::wstring& key)
-{
-	typename std::set<T*>::iterator it=container.begin();
-	for (; it!=container.end(); it++)  {
-		if ((*(*it)) == key)
-			break;
-	}
-	return it;
-}
-
-//Ugh, now THIS as const...
+//   * This is not needed for value-type sets, since we can just construct temporaries
+//   * We don't need a non-const version, because set iterators are always const
 template <class T> 
 typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container, const std::wstring& key)
 {
@@ -236,24 +202,6 @@ typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container
 	}
 	return it;
 }
-
-
-
-//Helper predicate
-/*template <class T> 
-class is_id_delim : public std::unary_function<T, bool>
-{
-public:
- bool operator ()(T t) const
- {
-  if ((t==' ')||(t=='\t')||(t=='\n')||(t=='-')||(t=='_'))
-   return true; //Remove it
-  return false; //Don't remove it
- }
-};*/
-
-
-
 
 
 

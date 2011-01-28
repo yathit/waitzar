@@ -16,6 +16,14 @@ struct Encoding {
 	std::wstring initial;
 	std::wstring imagePath;
 
+	//Basic constructor
+	Encoding(std::wstring id=L"") {
+		this->id = id;
+	}
+	Encoding(const wchar_t* id) {
+		this->id = id;
+	}
+
 	//Allow map comparison 
 	bool operator<(const Encoding& other) const {
 		return id < other.id;
@@ -30,12 +38,13 @@ struct Encoding {
 	}
 
 	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
+	//No, just do it with temporary classes
+	/*bool operator==(const std::wstring& other) const {
 		return id == other;
 	}
 	bool operator!=(const std::wstring& other) const {
 		return id != other;
-	}
+	}*/
 };
 
 

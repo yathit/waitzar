@@ -145,14 +145,15 @@ void ConfigManager::resolvePartialSettings()
 
 	//For each option
 	for (unsigned int i=PART_INPUT; i<=PART_DISP; i++) {
-		std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> >& currMap = i==PART_INPUT ? partialInputMethods : i==PART_ENC ? partialEncodings : i==PART_TRANS ? partialTransformations : partialDisplayMethods;
-		for (std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> >::iterator it=currMap.begin(); it!=currMap.end(); it++) {
+		auto& currMap = i==PART_INPUT ? partialInputMethods : i==PART_ENC ? partialEncodings : i==PART_TRANS ? partialTransformations : partialDisplayMethods;
+		for (auto it=currMap.begin(); it!=currMap.end(); it++) {
 			//Get the language and identifier
 			wstring langName = it->first.first;
 			wstring id = it->first.second;
 
 			//Call the factory method, add it to the current language
-			std::set<Language>::const_iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			//std::set<Language>::const_iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			auto lang = options.languages.find(langName);
 			if (lang==options.languages.end())
 				throw std::runtime_error(glue(L"Language \"", langName , L"\" expected but not found...").c_str());
 
@@ -211,7 +212,8 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	Logger::markLogTime('L', L"Generated list of input/output/display/encodings.");
 
 	//Step 4: Set our current language, input method, etc.
-	activeLanguage = *FindKeyInSet(options.languages, options.settings.defaultLanguage);
+	//activeLanguage = *FindKeyInSet(options.languages, options.settings.defaultLanguage);
+	activeLanguage = *options.languages.find(options.settings.defaultLanguage);
 	activeOutputEncoding = activeLanguage.defaultOutputEncoding;
 	activeInputMethod = *FindKeyInSet(activeLanguage.inputMethods, activeLanguage.defaultInputMethod);
 	activeDisplayMethods.clear();
@@ -245,7 +247,8 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 
 		//Apply it if we have a last-used lang
 		//Also check if the language exists
-		if (lastUsedLang.empty() || FindKeyInSet(options.languages, lastUsedLang)==options.languages.end())
+		//if (lastUsedLang.empty() || FindKeyInSet(options.languages, lastUsedLang)==options.languages.end())
+		if (lastUsedLang.empty() || options.languages.find(lastUsedLang)==options.languages.end())
 			options.settings.defaultLanguage = defaultVal;
 		else
 			options.settings.defaultLanguage = lastUsedLang;
@@ -253,7 +256,8 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 
 	//Validate our settings
 	//TODO: Check the hotkey, later
-	if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end()) {
+	//if (FindKeyInSet(options.languages, options.settings.defaultLanguage)==options.languages.end()) {
+	if (options.languages.find(options.settings.defaultLanguage)==options.languages.end()) {
 		if (getLocalConfigOpt(L"settings.defaultlanguage")==options.settings.defaultLanguage)
 			localConfError = true;
 		throw std::runtime_error(glue(L"Settings references non-existant default language: ", options.settings.defaultLanguage).c_str());
@@ -316,7 +320,8 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 		}
 
 		//TODO: Right now, "unicode" is hard-coded into a lot of places. Is there a better way?
-		std::set<Encoding>::const_iterator uniEnc = FindKeyInSet(lg->encodings, L"unicode");
+		//std::set<Encoding>::const_iterator uniEnc = FindKeyInSet(lg->encodings, L"unicode");
+		auto uniEnc = lg->encodings.find(L"unicode");
 		if (uniEnc==lg->encodings.end())
 			throw std::runtime_error(glue(L"Language \"" , lg->id , L"\" does not include \"unicode\" as an encoding.").c_str());
 		unicodeEncoding = *uniEnc;
@@ -370,7 +375,8 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			if ((*it)->encoding!=L"unicode") {
 				std::pair<Encoding, Encoding> lookup;
 				lookup.first = *(lg->encodings.find((*it)->encoding));
-				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
+				//lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
+				lookup.second = *lg->encodings.find(L"unicode");
 				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
 					throw std::runtime_error(glue(L"No \"transformation\" exists for input method(", (*it)->id, L").").c_str());
 			}
@@ -391,7 +397,8 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			if ((*it)->encoding.id != L"unicode") {
 				std::pair<Encoding, Encoding> lookup;
 				lookup.first = *(lg->encodings.find((*it)->encoding));
-				lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
+				//lookup.second = *FindKeyInSet(lg->encodings, L"unicode");
+				lookup.second = *lg->encodings.find(L"unicode");
 				if (lg->transformationLookup.find(lookup)==lg->transformationLookup.end())
 					throw std::runtime_error(glue(L"No \"transformation\" exists for display method(", (*it)->id, L").").c_str());
 			}
@@ -1013,7 +1020,8 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 			//Get the language id
 			//TODO: Add better error messages using the glue() functions.
 			wstring langName = name[1];
-			std::set<Language>::const_iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			//std::set<Language>::const_iterator lang = FindKeyInSet<Language>(options.languages, langName);
+			auto lang = options.languages.find(langName);
 			if (lang==options.languages.end()) {
 				if(restricted)
 					throw std::runtime_error("Cannot create a new Language in user or system-local config files.");
@@ -1066,6 +1074,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					wstring inputName = name[3];
 
 					//Allowed to add new Input Methods?
+					//auto iM = lang->inputMethods.find(inputName);
 					if (FindKeyInSet(lang->inputMethods, inputName)==lang->inputMethods.end() && restricted)
 						throw std::runtime_error("Cannot create a new Input Method in user or system-local config files.");
 
@@ -1079,7 +1088,8 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					wstring encName = name[3];
 
 					//Allowed to add new Encodings?
-					if (FindKeyInSet(lang->encodings, encName)==lang->encodings.end() && restricted)
+					//if (FindKeyInSet(lang->encodings, encName)==lang->encodings.end() && restricted)
+					if (lang->encodings.find(encName)==lang->encodings.end() && restricted)
 						throw std::runtime_error("Cannot create a new Encoding in user or system-local config files.");
 
 					//Just save all its options. Then, call a Factory method when this is all done
