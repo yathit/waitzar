@@ -65,7 +65,7 @@ public:
 //Debug class
 class AllCfgPerm : public CfgPerm {
 public:
-	AllCfgPerm() : CfgPerm(true, true, true) {}
+	AllCfgPerm() : CfgPerm(true, true, true, true, true) {}
 };
 
 
