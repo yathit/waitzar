@@ -28,7 +28,8 @@
 class TransformNode {
 public:
 	//Constructor
-	TransformNode(const std::wstring& mp=L"", const std::function<TNode& (const Node& src, TNode& dest)>& om=std::function<TNode& (const Node& src, TNode& dest)>()) : matchPattern(mp), OnMatch(om) {
+	TransformNode(const std::wstring& mp=L"",
+			const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& om=std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>()) : matchPattern(mp), OnMatch(om) {
 	}
 
 	//Check properties about this node
@@ -37,7 +38,7 @@ public:
 	}
 
 	//Getters & setters
-	const std::function<TNode& (const Node& src, TNode& dest)>&  getMatchAction() const {
+	const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>&  getMatchAction() const {
 		return OnMatch;
 	}
 
@@ -46,7 +47,7 @@ public:
 	const std::map<std::wstring, TransformNode>& getChildNodes() const {
 		return childrenByName;
 	}
-	void addChild(const std::wstring& key, const std::function<TNode& (const Node& src, TNode& dest)> onMatch) {
+	void addChild(const std::wstring& key, const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)> onMatch) {
 		if (childrenByName.count(key)>0)
 			throw std::runtime_error(waitzar::glue(L"Child already exists for: ", key).c_str());
 		childrenByName[key] = TransformNode(key, onMatch);
@@ -73,7 +74,7 @@ public:
 private:
 	//Const data
 	mutable std::wstring matchPattern; //What we match
-	mutable std::function<TNode& (const Node& src, TNode& dest)> OnMatch; //What happens when we match it (return next node)
+	mutable std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)> OnMatch; //What happens when we match it (return next node)
 
 	//Children
 	//NOTE: The key "*" is special; it represents "always match", and is used for identifiers

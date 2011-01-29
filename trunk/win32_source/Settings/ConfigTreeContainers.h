@@ -41,14 +41,47 @@
 class CfgLoader {};
 
 
+
+//We define permissions here too
+class CfgPerm {
+public:
+	bool chgSettings;
+
+	bool chgLanguage;
+	bool addLanguage;
+
+	bool chgExtension;
+	bool addExtension;
+
+	//All false by default
+	CfgPerm(bool chgSettings=false, bool chgLanguage=false, bool addLanguage=false,
+			bool chgExtension=false, bool addExtension=false) :
+		chgSettings(chgSettings), chgLanguage(chgLanguage), addLanguage(addLanguage),
+		chgExtension(chgExtension), addExtension(addExtension)
+		{}
+};
+
+
+//Debug class
+class AllCfgPerm : public CfgPerm {
+public:
+	AllCfgPerm() : CfgPerm(true, true, true) {}
+};
+
+
+
 //Everthing extends this; makes passing arguments easier.
-class TNode {};
+class TNode {
+private:
+	//Class needs at least one virtual function to be polymorphic (and thus to allow dynamic_cast)
+	virtual void empty(){};
+};
 
 
 class EncNode : public TNode {
 public:
 	//Simple properties
-	const std::wstring id;
+	mutable std::wstring id;
 	bool canUseAsOutput;
 	std::wstring displayName;
 	std::wstring initial;
@@ -75,7 +108,7 @@ public:
 class DispMethNode : public TNode {
 public:
 	//Simple properties
-	const std::wstring id;
+	mutable std::wstring id;
 	int type; //We can make this an enum class later
 
 private:
@@ -101,7 +134,7 @@ public:
 class InMethNode : public TNode {
 public:
 	//Simple properties
-	std::wstring id;
+	mutable std::wstring id;
 	std::wstring displayName;
 	int type; //enum class later
 	bool suppressUppercase;
@@ -133,7 +166,7 @@ public:
 class TransNode : public TNode {
 public:
 	//Simple properties
-	const std::wstring id;
+	mutable std::wstring id;
 	bool hasPriority;
 	int type; //make enum later
 
@@ -161,7 +194,7 @@ public:
 class LangNode : public TNode {
 public:
 	//Simple
-	const std::wstring id;
+	mutable std::wstring id;
 	std::wstring displayName;
 
 private:
@@ -196,7 +229,7 @@ public:
 class ExtendNode : public TNode {
 public:
 	//Struct-like properties
-	const std::wstring id;
+	mutable std::wstring id;
 	std::wstring libraryFilePath;
 	std::wstring libraryFileChecksum;
 	bool enabled;
