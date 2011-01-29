@@ -14,6 +14,8 @@
 #include <stdexcept>
 
 #include "NGram/wz_utilities.h"
+#include "Settings/ConfigTreeContainers.h"
+#include "Settings/Node.h"
 
 
 /**
@@ -26,22 +28,52 @@
 class TransformNode {
 public:
 	//Constructor
-	TransformNode(const std::wstring& matchPattern=L"", std::function<void, (Node& src, TNode& dest)>& onMatch) : matchPattern(matchPattern), OnMatch(onMatch) {
-
+	TransformNode(const std::wstring& mp=L"", const std::function<TNode& (const Node& src, TNode& dest)>& om=std::function<TNode& (const Node& src, TNode& dest)>()) : matchPattern(mp), OnMatch(om) {
 	}
 
 	//Check properties about this node
 	bool isLeaf() const {
-		return 0; //TEMP
+		return childrenByName.empty();
 	}
 
 	//Getters & setters
+	const std::function<TNode& (const Node& src, TNode& dest)>&  getMatchAction() const {
+		return OnMatch;
+	}
+
+
+	//Get/set children
+	const std::map<std::wstring, TransformNode>& getChildNodes() const {
+		return childrenByName;
+	}
+	void addChild(const std::wstring& key, const std::function<TNode& (const Node& src, TNode& dest)> onMatch) {
+		if (childrenByName.count(key)>0)
+			throw std::runtime_error(waitzar::glue(L"Child already exists for: ", key).c_str());
+		childrenByName[key] = TransformNode(key, onMatch);
+	}
+
+
+	//Used to access child elements
+	TransformNode& operator[] (const std::wstring& key) {
+		if (childrenByName.count(key)>0)
+			return childrenByName.find(key)->second;
+		else if (childrenByName.count(L"*")>0)
+			return childrenByName.find(L"*")->second;
+		throw std::runtime_error((std::string("Node contains no key: ")+waitzar::escape_wstr(key)).c_str());
+    }
+	const TransformNode& operator[] (const std::wstring& key) const {
+		if (childrenByName.count(key)>0)
+			return childrenByName.find(key)->second;
+		else if (childrenByName.count(L"*")>0)
+			return childrenByName.find(L"*")->second;
+		throw std::runtime_error((std::string("Node contains no key: ")+waitzar::escape_wstr(key)).c_str());
+    }
 
 
 private:
 	//Const data
-	const std::wstring matchPattern; //What we match
-	const std::function<void, (Node& src, TNode& dest)> OnMatch; //What happens when we match it
+	mutable std::wstring matchPattern; //What we match
+	mutable std::function<TNode& (const Node& src, TNode& dest)> OnMatch; //What happens when we match it (return next node)
 
 	//Children
 	//NOTE: The key "*" is special; it represents "always match", and is used for identifiers

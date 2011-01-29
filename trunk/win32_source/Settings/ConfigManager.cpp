@@ -664,10 +664,28 @@ void ConfigManager::generateHotkeyValues(const wstring& srcStr, HotkeyData& hkDa
 }
 
 
+
+//Bulid the tree of nodes we plan on using for verifying the syntax of the string-map tree
+void ConfigManager::buildVerifyTree() {
+	//Root nodes
+	verifyTree.addChild(L"settings", [](const Node& s, TNode& d)->TNode&{ return d; });
+	verifyTree.addChild(L"languages", [](const Node& s, TNode& d)->TNode&{ return d; });
+	verifyTree.addChild(L"extensions", [](const Node& s, TNode& d)->TNode&{ return d; });
+
+	//Settings
+	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, TNode& d)->TNode&{ return d; });
+}
+
+
 const Settings& ConfigManager::getSettings() 
 {
 	//Load if needed
 	root = Node();
+	troot = TNode();
+	if (verifyTree.isLeaf()) {
+		buildVerifyTree();
+	}
+
 	if (!loadedSettings) {
 		//We need at least one config file to parse.
 		if (this->mainConfig.isEmpty())
@@ -722,7 +740,8 @@ const Settings& ConfigManager::getSettings()
 
 
 		//Now walk it and set all settings
-		this->walkConfigTree(this->root, "");
+		if (!this->root.isEmpty())
+			this->walkConfigTree(this->root, this->troot, this->verifyTree);
 
 
 
@@ -790,32 +809,29 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 }
 
 
-void ConfigManager::walkConfigTree(const Node& root, const std::string& TEMP)
+//Walk the root, build up options as you go.
+void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const TransformNode& verify)
 {
-	//TODO: Walk the root, build up options as you go.
-
-	//TEMP: Just print the tree
-	for (auto it=root.getChildNodes().begin(); it!=root.getChildNodes().end(); it++) {
-		std::cout <<TEMP <<waitzar::escape_wstr(it->first) <<" : ";
+	//Iterate to its children.
+	for (auto it=source.getChildNodes().begin(); it!=source.getChildNodes().end(); it++) {
+		//First, make sure it's non-empty
 		if (it->second.isEmpty())
-			std::cout <<"(empty node)" <<std::endl;
-		else if (it->second.isLeaf()) {
-			std::vector<std::wstring> stack = it->second.getStringStack();
-			if (stack.size()==1)
-				std::cout <<waitzar::escape_wstr(it->second.str()) <<std::endl;
-			else {
-				std::cout <<"[";
-				string comma = "";
-				for (auto it=stack.begin(); it!=stack.end(); it++) {
-					std::cout <<comma <<waitzar::escape_wstr(*it);
-					comma = ", ";
-				}
-				std::cout <<"]" <<std::endl;
-			}
-		} else {
-			std::cout <<"[" <<it->second.getChildNodes().size() <<"]" <<std::endl;
-			walkConfigTree(it->second, TEMP+"   ");
+			throw std::runtime_error(waitzar::glue(L"Node is empty: ", it->second.getFullyQualifiedKeyName()).c_str());
+
+		//Next, get its corresponding "verify" node
+		const TransformNode& nextVerify = verify[it->first];
+
+		//If the node types don't match, it's also an error
+		if (it->second.isLeaf()!=nextVerify.isLeaf()) {
+			wstring message = nextVerify.isLeaf() ? L"Expected leaf node has children: " : L"Expected interior node has no children: ";
+			throw std::runtime_error(waitzar::glue(message, it->second.getFullyQualifiedKeyName()).c_str());
 		}
+
+		//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
+		const std::function<TNode& (const Node& src, TNode& dest)>& matchAction = nextVerify.getMatchAction();
+		TNode& nextTN = matchAction(source, dest);
+		if (!it->second.isLeaf())
+			walkConfigTree(it->second, nextTN, nextVerify);
 	}
 }
 

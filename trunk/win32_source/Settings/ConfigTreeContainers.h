@@ -130,7 +130,7 @@ public:
 
 
 
-class TransformNode : public TNode {
+class TransNode : public TNode {
 public:
 	//Simple properties
 	const std::wstring id;
@@ -151,7 +151,7 @@ private:
 
 public:
 	//Constructor: set the ID here and nowhere else
-	TransformNode(const std::wstring& id=L"") : id(id) {
+	TransNode(const std::wstring& id=L"") : id(id) {
 		this->impl = NULL;
 	}
 };
@@ -177,7 +177,7 @@ private:
 	//Map of pointers by id
 	std::map<std::wstring, InMethNode*>    inputMethods;
 	std::map<std::wstring, EncNode*>       encodings;
-	std::map<std::wstring, TransformNode*> transformations;
+	std::map<std::wstring, TransNode*>     transformations;
 	std::map<std::wstring, DispMethNode*>  displayMethods;
 
 	//For loading

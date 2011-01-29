@@ -22,6 +22,7 @@
 #include "Json CPP/reader.h"
 
 #include "Settings/ConfigTreeContainers.h"
+#include "Settings/TransformNode.h"
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
 #include "Settings/Node.h"
@@ -133,8 +134,12 @@ public:
 private:
 	//These two functions replace "readInConfig"
 	void buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
-	void walkConfigTree(const Node& root, const std::string& TEMP);
+	void walkConfigTree(const Node& source, TNode& dest, const TransformNode& verify);
+	void buildVerifyTree();
 	map<wstring, wstring> locallySetOptions; //TODO: Replace later
+	Node root;
+	TNode troot;
+	TransformNode verifyTree;
 
 
 
@@ -155,8 +160,6 @@ private:
 	//Workaround
 	std::string (*getMD5Function)(const std::string&);
 
-	//TEMP
-	Node root;
 
 	//Current working directory
 	//std::wstring workingDir;
