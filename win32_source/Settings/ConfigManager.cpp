@@ -668,12 +668,47 @@ void ConfigManager::generateHotkeyValues(const wstring& srcStr, HotkeyData& hkDa
 //Bulid the tree of nodes we plan on using for verifying the syntax of the string-map tree
 void ConfigManager::buildVerifyTree() {
 	//Root nodes
-	verifyTree.addChild(L"settings", [](const Node& s, TNode& d)->TNode&{ return d; });
-	verifyTree.addChild(L"languages", [](const Node& s, TNode& d)->TNode&{ return d; });
-	verifyTree.addChild(L"extensions", [](const Node& s, TNode& d)->TNode&{ return d; });
+	verifyTree.addChild(L"settings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		ConfigRoot& curr = dynamic_cast<ConfigRoot&>(d);
+		return curr.settings;
+	});
+	verifyTree.addChild(L"languages", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//We don't have the language ID, so return the same node
+		return d;
+	});
+	verifyTree.addChild(L"extensions", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//We don't have the extension ID, so return the same node
+		return d;
+	});
 
 	//Settings
-	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, TNode& d)->TNode&{ return d; });
+	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		SettingsNode& curr = dynamic_cast<SettingsNode&>(d);
+		curr.hotkeyStrRaw = waitzar::purge_filename(s.str());
+		return curr;
+	});
+	//TODO: More later
+
+
+	//Extensions
+	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		auto& extMap = dynamic_cast<ConfigRoot&>(d).extensions;
+		std::wstring key = s.getKeyInParentMap();
+
+		//Can change?
+		if (!perms.chgExtension)
+			throw std::runtime_error("Can't modify exiting \"extensions\".");
+
+		//Add it if it doesn't exist
+		if (extMap.count(key)==0) {
+			if (!perms.addExtension)
+				throw std::runtime_error("Can't add a new \"extension\".");
+			extMap[key] = ExtendNode(key);
+		}
+
+		//Return it
+		return extMap[key];
+	});
 }
 
 
@@ -746,7 +781,7 @@ const Settings& ConfigManager::getSettings()
 
 
 		//TEST
-		for (auto it=localOpts.begin(); it!=localOpts.end(); it++) {
+/*		for (auto it=localOpts.begin(); it!=localOpts.end(); it++) {
 			if (locallySetOptions.count(it->first)>0 && locallySetOptions[it->first]==it->second)
 				std::cout <<"Test passed" <<std::endl;
 			else
@@ -755,7 +790,7 @@ const Settings& ConfigManager::getSettings()
 		for (auto it=locallySetOptions.begin(); it!=locallySetOptions.end(); it++) {
 			if (localOpts.count(it->first)==0)
 				std::cout <<"Test FAILED: extra option!" <<std::endl;
-		}
+		}*/
 		//END TEST
 
 
@@ -828,8 +863,8 @@ void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const Transf
 		}
 
 		//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
-		const std::function<TNode& (const Node& src, TNode& dest)>& matchAction = nextVerify.getMatchAction();
-		TNode& nextTN = matchAction(source, dest);
+		const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
+		TNode& nextTN = matchAction(source, dest, AllCfgPerm());
 		if (!it->second.isLeaf())
 			walkConfigTree(it->second, nextTN, nextVerify);
 	}

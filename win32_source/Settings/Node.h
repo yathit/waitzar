@@ -95,6 +95,10 @@ public:
 		return ret;
 	}
 
+	std::wstring getKeyInParentMap() const {
+		return parentKey;
+	}
+
 private:
 	//Data
 	std::map<std::wstring, Node> childList;
