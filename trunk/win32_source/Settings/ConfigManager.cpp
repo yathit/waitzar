@@ -692,7 +692,12 @@ void ConfigManager::buildVerifyTree() {
 
 	//Extensions
 	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		std::cout  <<"0" <<std::endl;
+
 		auto& extMap = dynamic_cast<ConfigRoot&>(d).extensions;
+
+		std::cout <<"0.5" <<std::endl;
+
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
@@ -709,6 +714,36 @@ void ConfigManager::buildVerifyTree() {
 		//Return it
 		return extMap[key];
 	});
+
+	//Single extension properties
+	verifyTree[L"extensions"][L"*"].addChild(L"library-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		std::cout <<"1" <<std::endl;
+
+    	//Set it, return same
+		dynamic_cast<ExtendNode&>(d).libraryFilePath = s.str();
+		return d;
+	});
+	verifyTree[L"extensions"][L"*"].addChild(L"enabled", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		std::cout <<"2" <<std::endl;
+
+    	//Set it, return same
+		dynamic_cast<ExtendNode&>(d).enabled = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"extensions"][L"*"].addChild(L"md5-hash", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		std::cout <<"3" <<std::endl;
+
+    	//Set it, return same
+		dynamic_cast<ExtendNode&>(d).libraryFileChecksum = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"extensions"][L"*"].addChild(L"check-md5", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		std::cout <<"4" <<std::endl;
+
+    	//Set it, return same
+		dynamic_cast<ExtendNode&>(d).requireChecksum = waitzar::read_bool(s.str());
+		return d;
+	});
 }
 
 
@@ -716,7 +751,7 @@ const Settings& ConfigManager::getSettings()
 {
 	//Load if needed
 	root = Node();
-	troot = TNode();
+	troot = ConfigRoot();
 	if (verifyTree.isLeaf()) {
 		buildVerifyTree();
 	}

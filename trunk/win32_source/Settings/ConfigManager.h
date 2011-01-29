@@ -138,7 +138,7 @@ private:
 	void buildVerifyTree();
 	map<wstring, wstring> locallySetOptions; //TODO: Replace later
 	Node root;
-	TNode troot;
+	ConfigRoot troot;
 	TransformNode verifyTree;
 
 
