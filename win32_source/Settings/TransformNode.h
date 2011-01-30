@@ -47,7 +47,8 @@ public:
 	const std::map<std::wstring, TransformNode>& getChildNodes() const {
 		return childrenByName;
 	}
-	void addChild(const std::wstring& key, const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)> onMatch) {
+	void addChild(const std::wstring& rkey, const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)> onMatch) {
+		std::wstring key = (rkey==L"*") ? rkey : waitzar::sanitize_id(rkey);
 		if (childrenByName.count(key)>0)
 			throw std::runtime_error(waitzar::glue(L"Child already exists for: ", key).c_str());
 		childrenByName[key] = TransformNode(key, onMatch);
@@ -55,14 +56,16 @@ public:
 
 
 	//Used to access child elements
-	TransformNode& operator[] (const std::wstring& key) {
+	TransformNode& operator[] (const std::wstring& rkey) {
+		std::wstring key = (rkey==L"*") ? rkey : waitzar::sanitize_id(rkey);
 		if (childrenByName.count(key)>0)
 			return childrenByName.find(key)->second;
 		else if (childrenByName.count(L"*")>0)
 			return childrenByName.find(L"*")->second;
 		throw std::runtime_error((std::string("Node contains no key: ")+waitzar::escape_wstr(key)).c_str());
     }
-	const TransformNode& operator[] (const std::wstring& key) const {
+	const TransformNode& operator[] (const std::wstring& rkey) const {
+		std::wstring key = (rkey==L"*") ? rkey : waitzar::sanitize_id(rkey);
 		if (childrenByName.count(key)>0)
 			return childrenByName.find(key)->second;
 		else if (childrenByName.count(L"*")>0)

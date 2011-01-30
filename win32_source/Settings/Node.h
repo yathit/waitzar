@@ -68,7 +68,8 @@ public:
 	const std::map<std::wstring, Node>& getChildNodes() const {
 		return childList;
 	}
-	Node& getOrAddChild(const std::wstring& key) {
+	Node& getOrAddChild(const std::wstring& rkey) {
+		std::wstring key = waitzar::sanitize_id(rkey);
 		if (childList.count(key)==0) {
 			childList[key] = Node();
 			childList[key].parent = this;
@@ -79,7 +80,8 @@ public:
 	}
 
 	//Used to access child elements
-	Node& operator[] (const std::wstring& key) {
+	Node& operator[] (const std::wstring& rkey) {
+		std::wstring key = waitzar::sanitize_id(rkey);
 		if (childList.count(key)>0)
 			return childList[key];
 		throw std::runtime_error((std::string("Node contains no key: ")+waitzar::escape_wstr(key)).c_str());
