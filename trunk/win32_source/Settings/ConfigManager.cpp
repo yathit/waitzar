@@ -633,7 +633,7 @@ void ConfigManager::buildVerifyTree() {
 		return d;
 	});
 	verifyTree[L"extensions"][L"*"].addChild(L"check-md5", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		std::cout <<"4" <<std::endl;
+		std::cout <<"4: " <<waitzar::escape_wstr(s.getKeyInParentMap()) <<std::endl;
 
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).requireChecksum = waitzar::read_bool(s.str());
