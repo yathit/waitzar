@@ -2680,7 +2680,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				bool parsed = false;
 				HotkeyData hkDat;
 				try {
-					config.generateHotkeyValues(hk, hkDat);
+					hkDat = HotkeyData(hk);
+					//config.generateHotkeyValues(hk, hkDat);
 					parsed = true;
 				} catch (std::exception) {} //Do nothing
 

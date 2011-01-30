@@ -558,111 +558,6 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 
 
 
-//Take the raw hotkey string and generate a formatted string + hotkey register combo.
-void ConfigManager::generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData)
-{
-	//Parse the raw string; build up a vector of substrings in reverse
-	vector<wstring> hkSubs;
-	const wstring& src = srcStr;
-	std::wstringstream segment;
-	for (size_t i=0; i<src.size(); i++) {
-		//Skip non-ascii
-		char c = (char)src[i];
-		if (src[i]>0x7F)
-			c = '\0'; //Needed to allow for the final string to be added...
-
-		//Capitalize
-		if (c>='a'&&c<='z')
-			c = (c-'a')+'A';
-
-		//Valid?
-		if((c>='A'&&c<='Z')||(c>='0'&&c<='9'))
-			segment <<c;
-
-		//Done?
-		if ((c=='+'||i==src.size()-1) && !segment.str().empty()) {
-			hkSubs.insert(hkSubs.begin(), segment.str());
-			segment.str(L"");
-		}
-	}
-
-	//Build up the hotkey data: key code
-	hkData.hotkeyID = LANGUAGE_HOTKEY;
-
-	//Enough?
-	if (hkSubs.empty())
-		throw std::runtime_error("Invalid hotkey: empty string");
-
-	//Build up the hotkey data: vk 
-	unsigned int vk = 0;
-	if (hkSubs[0]==L"SPACE")
-		vk = VK_SPACE;
-	else if (hkSubs[0]==L"CTRL")
-		vk = VK_CONTROL;
-	else if (hkSubs[0]==L"SHIFT")
-		vk = VK_SHIFT;
-	else if (hkSubs[0]==L"ALT")
-		vk = VK_MENU; //VK_MENU == VK_ALT
-	else if (hkSubs[0]==L"WIN")
-		throw std::runtime_error("Invalid hotkey: WIN can't be the main hotkey, only a modifier.");
-	else if (hkSubs[0].length()==1) {
-		if ((hkSubs[0][0]>='A'&&hkSubs[0][0]<='Z')||(hkSubs[0][0]>='0'&&hkSubs[0][0]<='9'))
-			vk = hkSubs[0][0];   //Capital letters (or numbers) for vk codes
-		else
-			throw std::runtime_error(waitzar::glue(L"Invalid hotkey letter: ", hkSubs[0]).c_str());
-	} else
-		throw std::runtime_error(waitzar::glue(L"Invalid hotkey letter: ", hkSubs[0]).c_str());
-	hkData.hkVirtKeyCode = vk;
-
-	//Build up the hotkey data: modifiers
-	unsigned int mod = 0;
-	for (size_t i=1; i<hkSubs.size(); i++) {
-		if (hkSubs[i]==L"CTRL")
-			mod |= MOD_CONTROL;
-		else if (hkSubs[i]==L"SHIFT")
-			mod |= MOD_SHIFT;
-		else if (hkSubs[i]==L"ALT")
-			mod |= MOD_ALT;
-		else if (hkSubs[i]==L"WIN")
-			throw std::runtime_error("Invalid hotkey modifier: WIN is reserved for use by the Windows Operating System.");
-		else
-			throw std::runtime_error(waitzar::glue(L"Invalid hotkey modifier: ", hkSubs[i]).c_str());
-	}
-	//Add modifiers for the keys themselves
-	if (vk==VK_SHIFT)
-		mod |= MOD_SHIFT;
-	else if (vk==VK_CONTROL)
-		mod |= MOD_CONTROL;
-	else if (vk==VK_MENU)
-		mod |= MOD_ALT;
-	hkData.hkModifiers = mod;
-
-	//Build up the formatted string (at this point, we know all arguments are correct)
-	wstring fmt = L"";
-	for (int i=hkSubs.size()-1; i>=0; i--) {
-		if (hkSubs[i]==L"CTRL")
-			fmt += L"Ctrl";
-		else if (hkSubs[i]==L"SHIFT")
-			fmt += L"Shift";
-		else if (hkSubs[i]==L"ALT")
-			fmt += L"Alt";
-		else if (hkSubs[i]==L"SPACE")
-			fmt += L"Space";
-		else if (hkSubs[i]==L"WIN")
-			fmt += L"Win";
-		else
-			fmt += hkSubs[i];
-
-		if (i!=0)
-			fmt += L"+";
-	}
-	hkData.hotkeyStrFormatted = fmt;
-
-	//Final check
-	if (((vk>='A'&&vk<='Z')||(vk>='0'&&vk<='9')||vk==VK_SPACE)&&(mod==MOD_SHIFT||mod==0))
-		throw std::runtime_error(waitzar::glue(L"Invalid hotkey: ", fmt, L" --overlaps existing typable letter or space.").c_str());
-}
-
 
 
 //Bulid the tree of nodes we plan on using for verifying the syntax of the string-map tree
@@ -830,7 +725,8 @@ const Settings& ConfigManager::getSettings()
 
 
 		//Minor post-processing
-		generateHotkeyValues(options.settings.hotkeyStrRaw, options.settings.hotkey);
+		options.settings.hotkey = HotkeyData(options.settings.hotkeyStrRaw);
+		//generateHotkeyValues(options.settings.hotkeyStrRaw, options.settings.hotkey);
 
 		//Done
 		loadedSettings = true;

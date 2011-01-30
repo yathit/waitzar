@@ -32,15 +32,8 @@
 #include "Extension/Extension.h"
 #include "Extension/JavaScriptConverter.h"
 #include "NGram/wz_utilities.h"
+#include "Settings/HotkeyData.h"
 
-
-//Hotkey wrapper
-struct HotkeyData {
-	wstring hotkeyStrFormatted;
-	int hotkeyID;
-	unsigned int hkModifiers;
-	unsigned int hkVirtKeyCode;
-};
 
 //Options for our ConfigManager class
 struct Settings {
@@ -128,7 +121,7 @@ public:
 	int read_int(const std::wstring& str);
 
 	//Kind of out of place, but it works
-	void generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData);
+	//void generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData);
 
 
 private:
