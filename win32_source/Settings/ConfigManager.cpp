@@ -47,7 +47,7 @@ ConfigManager::~ConfigManager(void){}
  *   config/config.txt
  *
  * This file usually only contains SETTINGS (not languages, etc.) but for the
- *   purose of brevity, we can actually load the entire configuration (inc.
+ *   purpose of brevity, we can actually load the entire configuration (inc.
  *   languages, keyboards, etc.) here.
  * This is the only config. file that is actually required.
  */
@@ -846,7 +846,7 @@ void ConfigManager::buildVerifyTree() {
 	});
 	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
-		dynamic_cast<TransNode&>(d).type = waitzar::purge_filename(s.str());
+		dynamic_cast<TransNode&>(d).type = waitzar::read_transform_type(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"has-priority", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
@@ -889,7 +889,7 @@ void ConfigManager::buildVerifyTree() {
 	});
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
-		dynamic_cast<InMethNode&>(d).type = waitzar::purge_filename(s.str());
+		dynamic_cast<InMethNode&>(d).type = waitzar::read_input_type(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type-burmese-numerals", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
@@ -927,7 +927,7 @@ void ConfigManager::buildVerifyTree() {
 	});
 	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
-		dynamic_cast<DispMethNode&>(d).type = waitzar::sanitize_id(s.str());
+		dynamic_cast<DispMethNode&>(d).type = waitzar::read_display_type(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"font-face-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{

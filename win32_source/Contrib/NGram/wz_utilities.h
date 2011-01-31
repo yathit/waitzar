@@ -25,6 +25,7 @@
 #include "WordBuilder.h"
 #include "NGram/Logger.h"
 #include "MD5/md5simple.h"
+#include "Settings/Types.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +82,9 @@ namespace waitzar
 	bool read_bool(const std::wstring& str);
 	int read_int(const std::wstring& str);
 	std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
+	INPUT_TYPE read_input_type(const std::wstring& str);
+	DISPLAY_TYPE read_display_type(const std::wstring& str);
+	TRANSFORM_TYPE read_transform_type(const std::wstring& str);
 
 	//Message digest!
 	std::string GetMD5Hash(const std::string& fileName);

@@ -97,6 +97,14 @@ public:
 	static const std::wstring systemDefinedWords;
 	//static const int systemDefinedKeys[];
 
+	//Helper
+	static bool FileExists(const wstring& fileName)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		return (GetFileAttributesEx(fileName.c_str(), GetFileExInfoStandard, &InfoFile)==TRUE);
+	}
+
+
 private:
 	//For loading
 	static HINSTANCE hInst;
@@ -489,12 +497,11 @@ LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring lang
 				disableCache = true;
 			else {
 				binaryName <<waitzar::escape_wstr(localAppPath, true) <<fs <<"WaitZar";
-				WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 
 				//Create the directory if it doesn't exist
 				std::wstringstream temp;
 				temp << binaryName.str().c_str();
-				if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+				if (!FileExists(temp.str()))
 					CreateDirectory(temp.str().c_str(), NULL);
 
 				//Get the name
@@ -712,55 +719,55 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& langID, c
 {
 	InputMethod* res = NULL;
 
-	//Check required settings
-	if (im.type.empty())
-		throw std::runtime_error("Cannot construct input manager: no \"type\"");
+	//Check required settings; type is checked in the "switch" statement
 	if (im.encoding.empty())
 		throw std::runtime_error("Cannot construct input manager: no \"encoding\"");
 	if (im.displayName.empty())
 		throw std::runtime_error("Cannot construct input manager: no \"display-name\"");
 
 	//Make an object based on the type
-	if (waitzar::sanitize_id(im.type)==L"builtin") { //TODO: remove "sanitize_id"
-		if (im.id==L"waitzar") {
-			res = WZFactory<ModelType>::getWaitZarInput(langID, im.extraWordsFile, im.userWordsFile);
-		} else if (im.id==L"mywin") {
-			res = WZFactory<ModelType>::getMywinInput(langID);
-		} else if (im.id==L"burglish") {
-			res = WZFactory<ModelType>::getBurglishInput(langID);
-		} else {
-			throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", im.id).c_str());
-		}
-	} else if (im.type == L"roman") {
-		//Check required wordlist
-		if (im.extraWordsFile.empty())
-			throw std::runtime_error("Cannot construct \"roman\" input manager: no \"wordlist\".");
+	switch (im.type) {
+		case INPUT_TYPE::BUILTIN:
+			if (im.id==L"waitzar") {
+				res = WZFactory<ModelType>::getWaitZarInput(langID, im.extraWordsFile, im.userWordsFile);
+			} else if (im.id==L"mywin") {
+				res = WZFactory<ModelType>::getMywinInput(langID);
+			} else if (im.id==L"burglish") {
+				res = WZFactory<ModelType>::getBurglishInput(langID);
+			} else {
+				throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", im.id).c_str());
+			}
+			break;
+		case INPUT_TYPE::ROMAN:
+			//Check required wordlist
+			if (im.extraWordsFile.empty())
+				throw std::runtime_error("Cannot construct \"roman\" input manager: no \"wordlist\".");
 
-		//TODO: Test in a cleaner way.
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
-		if (GetFileAttributesEx(im.extraWordsFile.c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", im.extraWordsFile).c_str());
+			//Test
+			if (!FileExists(im.extraWordsFile))
+				throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", im.extraWordsFile).c_str());
 
-		//Get it, as a singleton
-		res = WZFactory<ModelType>::getWordlistBasedInput(langID, im.id, waitzar::escape_wstr(im.extraWordsFile));
-	} else if (im.type == L"keymagic") {
-		//Requires a keyboard file
-		if (im.keyboardFile.empty())
-			throw std::runtime_error("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
+			//Get it, as a singleton
+			res = WZFactory<ModelType>::getWordlistBasedInput(langID, im.id, waitzar::escape_wstr(im.extraWordsFile));
+			break;
+		case INPUT_TYPE::KEYBOARD:
+			//Requires a keyboard file
+			if (im.keyboardFile.empty())
+				throw std::runtime_error("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
 
-		//TODO: Test in a cleaner way.
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
-		if (GetFileAttributesEx(im.keyboardFile.c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
-			throw std::runtime_error(waitzar::glue(L"Keyboard file does not exist: ", im.keyboardFile).c_str());
+			//Test
+			if (!FileExists(im.keyboardFile))
+				throw std::runtime_error(waitzar::glue(L"Keyboard file does not exist: ", im.keyboardFile).c_str());
 
-		//Override disabling the cache, keymagic only.
-		if (Logger::isLogging('K'))
-			im.disableCache = true;
+			//Override disabling the cache, keymagic only.
+			if (Logger::isLogging('K'))
+				im.disableCache = true;
 
-		//Get it, as a singleton
-		res = WZFactory<ModelType>::getKeyMagicBasedInput(langID, im.id, waitzar::escape_wstr(im.keyboardFile, false), im.disableCache);
-	} else {
-		throw std::runtime_error(waitzar::glue(L"Invalid type (",im.type, L") for Input Manager: ", im.id).c_str());
+			//Get it, as a singleton
+			res = WZFactory<ModelType>::getKeyMagicBasedInput(langID, im.id, waitzar::escape_wstr(im.keyboardFile, false), im.disableCache);
+			break;
+		default:
+			throw std::runtime_error("Cannot construct input manager: no \"type\"");
 	}
 
 	return res;
@@ -814,11 +821,10 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
 		std::wstring wordlistFile = langConfigDir + options.find(L"wordlist")->second;
 
-		//TODO: Test in a cleaner way.
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		//Test
 		std::wstringstream temp;
 		temp << wordlistFile.c_str();
-		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+		if (!FileExists(temp.str()))
 			throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", wordlistFile).c_str());
 
 		//Get it, as a singleton
@@ -835,11 +841,10 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
 		std::wstring keymagicFile = langConfigDir + options.find(sanitize_id(L"keyboard-file"))->second;
 
-		//TODO: Test in a cleaner way.
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		//Test
 		std::wstringstream temp;
 		temp << keymagicFile.c_str();
-		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+		if (!FileExists(temp.str()))
 			throw std::runtime_error(waitzar::glue(L"Keyboard file does not exist: ", keymagicFile).c_str());
 
 		//Check the cache
@@ -934,12 +939,11 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
 		std::wstring fontFile = (options.count(sanitize_id(L"font-file"))>0) ? langConfigDir + options.find(sanitize_id(L"font-file"))->second : L"";
 
-		//TODO: Test in a cleaner way.
+		//Test
 		if (!fontFile.empty()) {
-			WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 			std::wstringstream temp;
 			temp << fontFile.c_str();
-			if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			if (!FileExists(temp.str()))
 				throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
 		}
 
@@ -959,11 +963,10 @@ DisplayMethod* WZFactory<ModelType>::makeDisplayMethod(const std::wstring& id, c
 		std::wstring langConfigDir = options.find(sanitize_id(L"current-folder"))->second;
 		fontFile = langConfigDir + fontFile;
 
-		//TODO: Test in a cleaner way.
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		//Test
 		std::wstringstream temp;
 		temp << fontFile.c_str();
-		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+		if (!FileExists(temp.str()))
 			throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", fontFile).c_str());
 
 		//Get it, as a singleton

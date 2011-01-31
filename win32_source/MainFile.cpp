@@ -4,82 +4,11 @@
  * Please refer to the end of the file for licensing information
  */
 
-//Defines for Unicode-enabled text.
-//  As far as I know, these must appear _before_ including the windows.h include
-//  so that we get the proper Unicode-enabled source.
-//#define _UNICODE
-//#define UNICODE
 
-
-
-//NOTE: This won't compile unless it's in the main file.... not sure why. :( We'll link it here for now...
-/*#define CRYPTOPP_DEFAULT_NO_DLL
-#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
-#include "CryptoPP/md5.h"
-#include "CryptoPP/hex.h"
-#include "CryptoPP/files.h"*/
-
-
-
-
-//Don't let Visual Studio warn us to use the _s functions
-//#define _CRT_SECURE_NO_WARNINGS
-
-//Ironic that adding compliance now causes headaches compiling under VS2003
-//#define _CRT_NON_CONFORMING_SWPRINTFS
-
-//Define to require a specific version of Windows.
-//efine _WIN32_WINNT 0x0500 //Run on Windows 2000, XP, and Vista (haven't tested NT or the "server"s yet)
-//#define _WIN32_IE 0x0501    //I don't understand why I need this, but the speech balloons won't compile unless I have it.
-//Note that version 0x0501 is needed for "clicking on notification balloons". There's reports of this not working on 
-//   win2k, but so far we don't have any WZ users on that platform. 
-
-//#define _WIN32_WINNT 0x0410 //Run on Windows 98+, fails for KEYBOARD_INPUT
-
-//Slim-down our list of definitions. Would you believe that this causes NO
-//  noticeable size reduction on Windows XP, VS2003? Perhaps it helps
-//  on Vista....
-//Anyway, if you add a new function and get an "undefined" error, comment
-//  the relevant #define out.
-/*#define NOGDICAPMASKS       //- CC_*, LC_*, PC_*, CP_*, TC_*, RC_
-//#define NOKEYSTATES         //- MK_* //Needed for mouse cursors
-#define NOSYSCOMMANDS       //- SC_*
-#define OEMRESOURCE         //- OEM Resource values
-#define NOATOM              //- Atom Manager routines
-#define NOCLIPBOARD         //- Clipboard routines
-//#define NOCOLOR             //- Screen colors
-#define NODRAWTEXT          //- DrawText() and DT_*
-#define NOKERNEL            //- All KERNEL defines and routines
-#define NOMEMMGR            //- GMEM_*, LMEM_*, GHND, LHND, associated routines
-#define NOMETAFILE          //- typedef METAFILEPICT
-#define NOOPENFILE          //- OpenFile(), OemToAnsi, AnsiToOem, and OF_*
-#define NOSCROLL            //- SB_and scrolling routines
-#define NOSERVICE           //- All Service Controller routines, SERVICE_ equates, etc.
-#define NOSOUND             //- Sound driver routines
-//#define NOTEXTMETRIC        //- typedef TEXTMETRIC and associated routines
-#define NOWH                //- SetWindowsHook and WH_*
-//#define NOWINOFFSETS        //- GWL_*, GCL_*, associated routines
-#define NOCOMM              //- COMM driver routines
-#define NOKANJI             //- Kanji support stuff.
-#define NOHELP              //- Help engine interface.
-#define NOPROFILER          //- Profiler interface.
-#define NODEFERWINDOWPOS    //- DeferWindowPos routines
-#define NOMCX               //- Modem Configuration Extensions*/
-
-
-//System includes
-//#define NOMINMAX
-//#include <windows.h>
-//#include <windowsx.h> //For GET_X_LPARAM
-//#include <winuser.h> //For colors
-//#include <Tlhelp32.h> //For getting a list of currently running processes
-//#include <wingdi.h> //For the TEXTINFO stuff
-//#include <shlobj.h> //GetFolderPath
+//MUCH easier way of including Windows
 #include <windows_wz.h>
 
-//#include <urlmon.h> //File downloads
-#include <stdio.h>
-#include <tchar.h>
+//Standard library includes
 #include <string>
 #include <list>
 #include <limits>
@@ -90,10 +19,8 @@
 #include <iomanip>
 #include <stdexcept>
 
-//#undef min
-//#undef max
 
-//Our includes
+//Our project's includes
 #include "NGram/WordBuilder.h"
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
@@ -109,14 +36,13 @@
 #include "Input/RomanInputMethod.h"
 #include "Transform/Self2Self.h"
 #include "NGram/Logger.h"
-//#include "MD5/md5simple.h"
 #include "Curl/curl.h"
-//#include "V8/v8.h"
 
-//VS Includes
+//Resource includes
 #include "resource_ex.h"
 
 
+//Namespace imports
 using namespace waitzar;
 using std::string;
 using std::wstring;
@@ -803,8 +729,8 @@ DWORD WINAPI CheckForNewVersion(LPVOID args)
 			mainWindow->initShellNotifyIconData(nid);
 			nid.uID = STATUS_NID;
 			nid.uFlags = NIF_INFO; //Only update the balloon-related variables are set (szInfo, szInfoTitle, dwInfoFlags, uTimeout)
-			lstrcpy(nid.szInfoTitle, _T("New Version Available"));
-			lstrcpy(nid.szInfo, _T("The current version of WaitZar is out of date.\n\nPlease click here to download the latest version."));
+			lstrcpy(nid.szInfoTitle, L"New Version Available");
+			lstrcpy(nid.szInfo, L"The current version of WaitZar is out of date.\n\nPlease click here to download the latest version.");
 			//nid.uTimeout = 30;  //timeout is invalid as of Vista
 			nid.uVersion = NOTIFYICON_VERSION;
 			nid.dwInfoFlags = NIIF_WARNING; //Can we switch to NIIF_USER if supported?
@@ -904,14 +830,6 @@ HBITMAP CreateGrayscaleBitmap(HBITMAP hBmp)
 
 
 
-bool FileExists(const wstring& fileName)
-{
-	WIN32_FILE_ATTRIBUTE_DATA InfoFile;
-	return (GetFileAttributesEx(fileName.c_str(), GetFileExInfoStandard, &InfoFile)==TRUE);
-}
-
-
-
 
 //DirToCheck should be of searchable form:
 //   c:\x...x
@@ -949,7 +867,7 @@ vector<string> GetConfigSubDirs(std::string dirToCheck, std::string configFileNa
 		newpath <<dirToCheck.c_str();
 		newpath <<"/" <<path.c_str();
 		newpath <<"/" <<configFileName.c_str();
-		if (!FileExists(newpath.str()))
+		if (!WZFactory<waitzar::WordBuilder>::FileExists(newpath.str()))
 			continue;
 
 		resDir.push_back(allDir[i]);
@@ -1065,18 +983,18 @@ void makeFont()
 	//Load our help window font: Keys
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_KEY_FONT), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_KEY_FONT), L"COREFONT");
 		if (!fontRes) {
 			std::wstringstream msg;
-			msg <<L"Couldn't find IDR_HELP_KEY_FONT: " <<IDR_HELP_KEY_FONT << " -> " <<GetLastError();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			msg <<L"Couldn't find IDR_HELP_KEY_FONT: " <<IDR_HELP_KEY_FONT <<L" -> " <<GetLastError();
+			MessageBox(NULL, msg.str().c_str(), L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_KEY_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_KEY_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -1085,8 +1003,8 @@ void makeFont()
 			helpWindow->initPulpCoreImage(helpFntKeys, fontRes, res_handle);
 		} catch (std::exception ex) {
 			wstringstream msg;
-			msg <<"WZ Help Font (keys) didn't load correctly: " <<ex.what();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			msg <<L"WZ Help Font (keys) didn't load correctly: " <<ex.what();
+			MessageBox(NULL, msg.str().c_str(), L"Error", MB_ICONERROR | MB_OK);
 			throw ex;
 		}
 
@@ -1097,16 +1015,16 @@ void makeFont()
 	//Load our help window font: Foreground
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_FORE_FONT), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_FORE_FONT), L"COREFONT");
 		if (!fontRes) {
-			MessageBox(NULL, _T("Couldn't find IDR_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't find IDR_HELP_FORE_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_FORE_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_FORE_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -1116,7 +1034,7 @@ void makeFont()
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Help Font (foreground) didn't load correctly: " <<ex.what();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), L"Error", MB_ICONERROR | MB_OK);
 			throw ex;
 		}
 
@@ -1127,16 +1045,16 @@ void makeFont()
 	//Load our help window font: Background
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_BACK_FONT), _T("COREFONT"));
+		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_BACK_FONT), L"COREFONT");
 		if (!fontRes) {
-			MessageBox(NULL, _T("Couldn't find IDR_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't find IDR_HELP_BACK_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_BACK_FONT"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_BACK_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -1146,7 +1064,7 @@ void makeFont()
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Help Font (background) didn't load correctly: " <<ex.what();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), L"Error", MB_ICONERROR | MB_OK);
 			throw ex;
 		}
 
@@ -1161,16 +1079,16 @@ void makeFont()
 	//Load our help menu's corner image (used for keyboard keys)
 	{
 		//First the resource
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CORNER_IMG), _T("COREFONT"));
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CORNER_IMG), L"COREFONT");
 		if (!imgRes) {
-			MessageBox(NULL, _T("Couldn't find IDR_HELP_CORNER_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't find IDR_HELP_CORNER_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, imgRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_CORNER_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_CORNER_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -1180,7 +1098,7 @@ void makeFont()
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Corner Image File didn't load correctly: " <<ex.what();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), L"Error", MB_ICONERROR | MB_OK);
 			throw ex;
 		}
 
@@ -1192,16 +1110,16 @@ void makeFont()
 	//Load our help menu's "close" image (used because I can't find an anti-aliasing algorithm I like)
 	{
 		//First the resource
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CLOSE_IMG), _T("COREFONT"));
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CLOSE_IMG), L"COREFONT");
 		if (!imgRes) {
-			MessageBox(NULL, _T("Couldn't find IDR_HELP_CLOSE_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't find IDR_HELP_CLOSE_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, imgRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on IDR_HELP_CLOSE_IMG"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_CLOSE_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -1211,7 +1129,7 @@ void makeFont()
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Close Image File didn't load correctly: " <<ex.what();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), L"Error", MB_ICONERROR | MB_OK);
 			throw ex;
 		}
 
@@ -1222,16 +1140,16 @@ void makeFont()
 
 	//Load our page down (color) image, generate the rest.
 	{
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PGDOWN_COLOR), _T("COREFONT"));
+		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PGDOWN_COLOR), L"COREFONT");
 		if (!imgRes) {
-			MessageBox(NULL, _T("Couldn't find IDR_PGDOWN_COLOR"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't find IDR_PGDOWN_COLOR", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(NULL, imgRes);
 		if (!res_handle) {
-			MessageBox(NULL, _T("Couldn't get a handle on IDR_PGDOWN_COLOR"), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, L"Couldn't get a handle on IDR_PGDOWN_COLOR", L"Error", MB_ICONERROR | MB_OK);
 			return;
 		}
 
@@ -1241,7 +1159,7 @@ void makeFont()
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"IDR_PGDOWN_COLOR image didn't load correctly: " <<ex.what();
-			MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, msg.str().c_str(), L"Error", MB_ICONERROR | MB_OK);
 			throw ex;
 		}
 	}
@@ -1361,7 +1279,7 @@ void positionAtCaret()
 		0,
 		&caretTrackThreadID);//Pointer to return the thread's id into
 	if (caretTrackThread==NULL) {
-		MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret."), _T("Warning"), MB_ICONWARNING | MB_OK);
+		MessageBox(NULL, L"WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret.", L"Warning", MB_ICONWARNING | MB_OK);
 		config.overrideSetting(L"track-caret", false);
 	}
 
@@ -1559,7 +1477,7 @@ void switchToLanguage(bool toMM) {
 
 	//Any errors?
 	if (!res)
-		MessageBox(NULL, _T("Some hotkeys could not be set..."), _T("Warning"), MB_ICONERROR | MB_OK);
+		MessageBox(NULL, L"Some hotkeys could not be set...", L"Warning", MB_ICONERROR | MB_OK);
 
 	//Switch to our target language.
 	mmOn = toMM;
@@ -1571,7 +1489,7 @@ void switchToLanguage(bool toMM) {
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
 	nid.uVersion = NOTIFYICON_VERSION; //Win2000+ messages
-	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+	lstrcpy(nid.szTip, L"WaitZar Myanmar Input System"); //Set tool tip text...
 	if (mmOn)
 		nid.hIcon = mmIcon;
 	else
@@ -1580,7 +1498,7 @@ void switchToLanguage(bool toMM) {
 	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) {
 		wstringstream msg;
 		msg <<"Can't switch icon.\nError code: " <<GetLastError();
-		MessageBox(NULL, msg.str().c_str(), _T("Warning"), MB_ICONERROR | MB_OK);
+		MessageBox(NULL, msg.str().c_str(), L"Warning", MB_ICONERROR | MB_OK);
 	}
 
 
@@ -1608,7 +1526,7 @@ void reBlitHelp()
 	if (!helpWindow->repaintWindow()) {
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
-		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, msg.str().c_str(), L"Error!", MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
 	}
 
@@ -1616,7 +1534,7 @@ void reBlitHelp()
 	if (!memoryWindow->repaintWindow()) {
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
-		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, msg.str().c_str(), L"Error!", MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
 	}
 }
@@ -1640,7 +1558,7 @@ void reBlitHelp(RECT blitArea)
 	if (!helpWindow->repaintWindow(blitArea)) {
 		wstringstream msg;
 		msg <<"Help window failed to update: " <<GetLastError();
-		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, msg.str().c_str(), L"Error!", MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
 	}
 
@@ -1648,7 +1566,7 @@ void reBlitHelp(RECT blitArea)
 	if (!memoryWindow->repaintWindow(blitArea)) {
 		wstringstream msg;
 		msg <<"Memory window failed to update: " <<GetLastError();
-		MessageBox(NULL, msg.str().c_str(), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, msg.str().c_str(), L"Error!", MB_ICONEXCLAMATION | MB_OK);
 		delete mainWindow;
 	}
 }
@@ -1683,7 +1601,7 @@ void initCalculate()
 	//TODO: For now, "NULL" is ok, since we're using a bitmapped font. But
 	//      we'll need a valid DC (which hasn't been created yet) to pass in if we load
 	//      user TTF Fonts. Possible solution: create a dummy window and just copy its DC?
-	spaceWidth = mmFont->getStringWidth(_T(" "), NULL);
+	spaceWidth = mmFont->getStringWidth(L" ", NULL);
 	firstLineStart = borderWidth;
 	secondLineStart = firstLineStart + mmFont->getHeight(NULL) + spaceWidth + borderWidth;
 	thirdLineStart = secondLineStart + mmFont->getHeight(NULL) + spaceWidth + borderWidth;
@@ -2009,7 +1927,7 @@ void typeCurrentPhrase(const wstring& stringToType)
 	if(numSent!=number_of_key_events || number_of_key_events==0) {
 		wstringstream msg;
 		msg <<"Couldn't send input, only sent " <<numSent <<" of " <<number_of_key_events <<" events. Error code: " <<GetLastError();
-		MessageBox(NULL, msg.str().c_str(), _T("Error"), MB_OK|MB_ICONERROR);
+		MessageBox(NULL, msg.str().c_str(), L"Error", MB_OK|MB_ICONERROR);
 	}
 
 
@@ -3145,7 +3063,7 @@ void checkAndInitHelpWindow()
 		return;
 
 	//Time to re-size our help window. Might as well center it now, too
-	HWND taskBar = FindWindowW(_T("Shell_TrayWnd"), _T(""));
+	HWND taskBar = FindWindowW(L"Shell_TrayWnd", L"");
 	RECT r;
 	GetClientRect(GetDesktopWindow(), &r);
 	int newX = (r.right-r.left)/2-helpKeyboard->getWidth()/2;
@@ -4146,10 +4064,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			//Cleanup
 			if (!mainWindow->unregisterHotKey(LANGUAGE_HOTKEY))
-				MessageBox(NULL, _T("Main Hotkey remains..."), _T("Warning"), MB_ICONERROR | MB_OK);
+				MessageBox(NULL, L"Main Hotkey remains...", L"Warning", MB_ICONERROR | MB_OK);
 			if (mmOn) {
 				if (!turnOnAlphaHotkeys(false, true, true))
-					MessageBox(NULL, _T("Some hotkeys remain..."), _T("Warning"), MB_ICONERROR | MB_OK);
+					MessageBox(NULL, L"Some hotkeys remain...", L"Warning", MB_ICONERROR | MB_OK);
 			}
 
 			//Remove systray icon
@@ -4302,13 +4220,13 @@ bool findAndLoadAllConfigFiles()
 			//Try to create the folder if it doesn't exist
 			std::wstringstream temp;
 			temp << pathLocalFolder.c_str();
-			if (!FileExists(temp.str()))
+			if (!WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
 				CreateDirectory(temp.str().c_str(), NULL);
 
 			//Does the config FILE exist?
 			temp.str(L"");
 			temp << pathLocalConfig.c_str();
-			if (FileExists(temp.str()))
+			if (WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
 				config.initLocalConfig(pathLocalConfig);
 			else {
 				//Create the file
@@ -4322,7 +4240,7 @@ bool findAndLoadAllConfigFiles()
 			//Does it exist?
 			std::wstringstream temp;
 			temp << pathUserConfig.c_str();
-			if (FileExists(temp.str()))
+			if (WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
 				config.initUserConfig(pathUserConfig);
 			else {
 				//Create the file
@@ -4336,7 +4254,7 @@ bool findAndLoadAllConfigFiles()
 		//  and avoid the warning message box.
 		std::wstringstream temp;
 		temp << cfgDir.c_str();
-		if (!FileExists(temp.str())) {
+		if (!WZFactory<waitzar::WordBuilder>::FileExists(temp.str())) {
 			suppressThisException = true;
 			throw std::runtime_error("No config directory");
 		}
@@ -4373,7 +4291,7 @@ bool findAndLoadAllConfigFiles()
 		//Try one more time, this time with the default config file.
 		try {
 			//Load the resource as a byte array and get its size, etc.
-			HRSRC res = FindResource(hInst, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), _T("Model"));
+			HRSRC res = FindResource(hInst, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), L"Model");
 			if (!res)
 				throw std::runtime_error("Couldn't find resource WZ_DEFAULT_CFG.");
 			HGLOBAL res_handle = LoadResource(NULL, res);
@@ -4521,10 +4439,9 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 
 
 		//Delete the old error file, if it exists
-		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 		std::wstringstream temp;
 		temp <<outFileName.c_str();
-		if (GetFileAttributesEx(temp.str().c_str(), GetFileExInfoStandard, &InfoFile)==TRUE)
+		if (WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
 			remove(waitzar::escape_wstr(outFileName, false).c_str()); //Will only fail if the file doesn't exist anyway.
 
 
@@ -4752,7 +4669,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			TCHAR szCurFileName[1024];
             GetModuleFileName(GetModuleHandle(NULL), szCurFileName, 1023);
 			if (!elevateWaitZar(szCurFileName))
-				MessageBox(NULL, _T("Could not elevate WaitZar. Program will now exit."), _T("Error!"), MB_ICONERROR | MB_OK);
+				MessageBox(NULL, L"Could not elevate WaitZar. Program will now exit.", L"Error!", MB_ICONERROR | MB_OK);
 
 			//Return either way; the current thread must exit.
 			return 0;
@@ -4795,11 +4712,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	nid.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_LOADING), IMAGE_ICON,
                         GetSystemMetrics(SM_CXSMICON),
                         GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR); //"Small Icons" are 16x16
-	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+	lstrcpy(nid.szTip, L"WaitZar Myanmar Input System"); //Set tool tip text...
 
 	//Error checking..
 	if (mmIcon == NULL || engIcon==NULL)
-		MessageBox(NULL, _T("Unable to load Icon!"), _T("Warning"), MB_ICONWARNING | MB_OK);
+		MessageBox(NULL, L"Unable to load Icon!", L"Warning", MB_ICONWARNING | MB_OK);
 
 	Logger::markLogTime('L', L"Icon resources loaded");
 
@@ -4807,10 +4724,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if(!registerInitialHotkey()) {
 		//Check if we're running Wait Zar already
 		if (waitzarAlreadyStarted()) {
-			MessageBox(NULL, _T("Wait Zar is already running. \n\nYou should see an \"ENG\" icon in your system tray; click on that to change the language. \n\nPlease see the Wait Zar User's Guide if you have any questions.  \n\n(If you are certain WaitZar is not actually running, please wait several minutes and then re-start the program.)"), _T("Wait Zar already running..."), MB_ICONINFORMATION | MB_OK);
+			MessageBox(NULL, L"Wait Zar is already running. \n\nYou should see an \"ENG\" icon in your system tray; click on that to change the language. \n\nPlease see the Wait Zar User's Guide if you have any questions.  \n\n(If you are certain WaitZar is not actually running, please wait several minutes and then re-start the program.)", L"Wait Zar already running...", MB_ICONINFORMATION | MB_OK);
 			return 0;
 		}
-		MessageBox(NULL, _T("The main language shortcut could not be set up.\nWait Zar will not function properly, and is shutting down."), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, L"The main language shortcut could not be set up.\nWait Zar will not function properly, and is shutting down.", L"Error!", MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
 	mmOn = false;
@@ -4820,7 +4737,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Support for balloon tooltips
 	if (config.getSettings().balloonStart) {
 		nid.uFlags |= NIF_INFO;
-		lstrcpy(nid.szInfoTitle, _T("Welcome to WaitZar"));
+		lstrcpy(nid.szInfoTitle, L"Welcome to WaitZar");
 		if (testFileName.empty()) {
 			wstringstream msg;
 			msg <<L"Hit " <<config.getSettings().hotkey.hotkeyStrFormatted <<L" to switch to Myanmar.\n\nClick this icon for more options.";
@@ -4857,7 +4774,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Success?
 	if(mainWindow->isInvalid() || sentenceWindow->isInvalid() || helpWindow->isInvalid() || memoryWindow->isInvalid()) {
-		MessageBox(NULL, _T("Window Creation Failed!"), _T("Error!"), MB_ICONEXCLAMATION | MB_OK);
+		MessageBox(NULL, L"Window Creation Failed!", L"Error!", MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
 
@@ -4925,7 +4842,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			CREATE_SUSPENDED,    //Don't start this thread when it's created
 			&keyTrackThreadID);  //Pointer to return the thread's id into
 		if (keyTrackThread==NULL) {
-			MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that WaitZar will not be able to highlight keys as you press them, which is a useful benefit for beginners."), _T("Warning"), MB_ICONWARNING | MB_OK);
+			MessageBox(NULL, L"WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that WaitZar will not be able to highlight keys as you press them, which is a useful benefit for beginners.", L"Warning", MB_ICONWARNING | MB_OK);
 			highlightKeys = false;
 		}
 
@@ -4943,7 +4860,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			CREATE_SUSPENDED,    //Don't start this thread when it's created
 			&checkVersionThreadID);  //Pointer to return the thread's id into
 		if (checkVersionThread==NULL) {
-			MessageBox(NULL, _T("WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it will prevent WaitZar from checking if there are new updates to the software."), _T("Warning"), MB_ICONWARNING | MB_OK);
+			MessageBox(NULL, L"WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it will prevent WaitZar from checking if there are new updates to the software.", L"Warning", MB_ICONWARNING | MB_OK);
 			checkLatestVersion = false;
 		}
 
@@ -4961,7 +4878,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		//model->debugOut(logFile);
 
-		MessageBox(NULL, L"Model saved to output.", _T("Notice"), MB_ICONERROR | MB_OK);
+		MessageBox(NULL, L"Model saved to output.", L"Notice", MB_ICONERROR | MB_OK);
 		return 1;
 	}
 
@@ -4972,7 +4889,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP; //States that the callback message, icon, and size tip are used.
 	nid.uCallbackMessage = UWM_SYSTRAY; //Message to send to our window
 	nid.uVersion = NOTIFYICON_VERSION; //Win2000+ version notifications
-	lstrcpy(nid.szTip, _T("WaitZar Myanmar Input System")); //Set tool tip text...
+	lstrcpy(nid.szTip, L"WaitZar Myanmar Input System"); //Set tool tip text...
 	nid.hIcon = engIcon;
 	if (Shell_NotifyIcon(NIM_MODIFY, &nid) == FALSE) { //Note: If we delete the main window before this line, then calling this will fail  --yet the error MessageBox won't show!
 		wstringstream msg;
