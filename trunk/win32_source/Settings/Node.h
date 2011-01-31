@@ -14,7 +14,6 @@
 #include <stdexcept>
 
 #include "NGram/wz_utilities.h"
-#include "Settings/ConfigTreeContainers.h"
 
 
 /**
@@ -27,19 +26,16 @@
 class Node {
 public:
 	//Constructors
-	Node(const CfgPerm& perm=CfgPerm()) {
+	Node() {
 		this->parent = NULL;
-		this->parentAddedPerm = perm;
 	}
-	Node(const std::wstring& val, const CfgPerm& perm=CfgPerm()) {
+	Node(const std::wstring& val) {
 		this->parent = NULL;
 		this->str(val);
-		this->parentAddedPerm = perm;
 	}
-	Node(const wchar_t* val, const CfgPerm& perm=CfgPerm()) {
+	Node(const wchar_t* val) {
 		this->parent = NULL;
 		this->str(val);
-		this->parentAddedPerm = perm;
 	}
 
 	//Check properties about this node
@@ -61,9 +57,6 @@ public:
 			throw std::runtime_error("Cannot call \"getString\" on an empty node.");
 		return textValues.back();
 	}
-	const CfgPerm& perm() const {
-		return parentAddedPerm;
-	}
 	void str(const std::wstring& val) {
 		if (val.empty())
 			throw std::runtime_error("Cannot call \"setString\" on an empty string.");
@@ -75,10 +68,10 @@ public:
 	const std::map<std::wstring, Node>& getChildNodes() const {
 		return childList;
 	}
-	Node& getOrAddChild(const std::wstring& rkey, const CfgPerm& perm=CfgPerm()) {
+	Node& getOrAddChild(const std::wstring& rkey) {
 		std::wstring key = waitzar::sanitize_id(rkey);
 		if (childList.count(key)==0) {
-			childList[key] = Node(perm);
+			childList[key] = Node();
 			childList[key].parent = this;
 			childList[key].parentKey = key;
 			assertValid();
@@ -116,7 +109,6 @@ private:
 	//For fast reverse-lookup of a fully-qualified key name
 	Node* parent;
 	std::wstring parentKey;
-	CfgPerm parentAddedPerm; //What permissions was this node added with?
 
 	//Helper: throw an exception if we're in an invalid state.
 	void assertValid() const {

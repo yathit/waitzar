@@ -80,40 +80,10 @@ public:
 };
 
 
-//The embedded config file and the main (root) config are allowed to make any changes except extensions
-class PrimaryCfgPerm : public CfgPerm {
+//Debug class
+class AllCfgPerm : public CfgPerm {
 public:
-	PrimaryCfgPerm() : CfgPerm(true, true, true,
-			true, true, true, true,
-			true, true, true, true,
-			false, false) {}
-};
-
-//The language (and subdir) configs can make most changes, but not settings or extensions
-class LangLevelCfgPerm :  public CfgPerm {
-public:
-	LangLevelCfgPerm() : CfgPerm(false, true, true,
-			true, true, true, true,
-			true, true, true, true,
-			false, false) {}
-};
-
-//The extension subdir can only change extensions
-class ExtendCfgPerm :  public CfgPerm {
-public:
-	ExtendCfgPerm() : CfgPerm(false, false, false,
-			false, false, false, false,
-			false, false, false, false,
-			true, true) {}
-};
-
-//The local/user config files can change most things, but not add to them.
-class UserLocalCfgPerm : public CfgPerm {
-public:
-	UserLocalCfgPerm() : CfgPerm(true, true, false,
-			true, false, true, false,
-			true, false, true, false,
-			false, false) {}
+	AllCfgPerm() : CfgPerm(true, true, true, true, true, true, true, true, true, true, true, true, true) {}
 };
 
 
