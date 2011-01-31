@@ -55,16 +55,15 @@ const unsigned int BACKWARDS_BOM = 0xFFFE;
 class WZFactory
 {
 public:
-	WZFactory(void);
-	~WZFactory(void);
-
-
 	//New builders
+	static Extension* makeAndVerifyExtension(const std::wstring& id, ExtendNode& ex);
 	static InputMethod* makeAndVerifyInputMethod(const LangNode& lang, const std::wstring& id, InMethNode& im);
+	static DisplayMethod* makeAndVerifyDisplayMethod(const LangNode& lang, const std::wstring& id, DispMethNode& dm);
+	static Transformation* makeAndVerifyTransformation(ConfigRoot& conf, const LangNode& lang, const std::wstring& id, TransNode& tm);
 
 	//Used to "verify" things which don't need to be built
 	static void verifyEncoding(const std::wstring& id, EncNode& enc);
-	static void verifyLanguage(const std::wstring& id, LangNode& enc);
+	static void verifyLanguage(const std::wstring& id, LangNode& lang);
 
 
 

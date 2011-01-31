@@ -16,15 +16,6 @@ using waitzar::WordBuilder;
 using waitzar::SentenceList;
 
 
-WZFactory::WZFactory(void)
-{
-}
-
-
-WZFactory::~WZFactory(void)
-{
-}
-
 
 //Static initializations
 HINSTANCE WZFactory::hInst = HINSTANCE();
@@ -569,6 +560,36 @@ void WZFactory::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Wind
 
 
 
+Extension* WZFactory::makeAndVerifyExtension(const std::wstring& id, ExtendNode& ex)
+{
+	//Check required settings
+	if (ex.libraryFilePath.empty())
+		throw std::runtime_error("Cannot construct extension: no \"library-file-path\"");
+
+	//Make it
+	if (id == L"javascript") {
+		JavaScriptConverter* res = new JavaScriptConverter(id);
+
+		//TO-DO: Later, pass this node as a reference for the class to use when loading
+		res->libraryFilePath = ex.libraryFilePath;
+		res->libraryFileChecksum = ex.libraryFileChecksum;
+		res->requireChecksum = ex.requireChecksum;
+		res->enabled = ex.enabled;
+
+		res->InitDLL();
+		return res;
+	} else {
+		Extension* res = new Extension(id);
+
+		//TO-do: see above
+
+		res->InitDLL();
+		return res;
+	}
+}
+
+
+
 InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std::wstring& id, InMethNode& im)
 {
 	InputMethod* res = NULL;
@@ -633,6 +654,122 @@ InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std
 
 
 
+DisplayMethod* WZFactory::makeAndVerifyDisplayMethod(const LangNode& lang, const std::wstring& id, DispMethNode& dm)
+{
+	DisplayMethod* res = NULL;
+
+	//Check some required settings
+	if (dm.encoding.empty())
+		throw std::runtime_error("Cannot construct display method: no \"encoding\"");
+
+	//Ensure its encoding exists, etc.
+	if (lang.encodings.count(dm.encoding)==0)
+		throw std::runtime_error(glue(L"Display Method (", id, L") references non-existent encoding: ", dm.encoding).c_str());
+
+	//First, generate an actual object, based on the type.
+	switch (dm.type) {
+		case DISPLAY_TYPE::BUILTIN:
+			//Built-in types are known entirely by our core code
+			if (id==L"zawgyibmp")
+				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_MAIN_FONT);
+			else if (id==L"zawgyibmpsmall")
+				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_SMALL_FONT);
+			else if (id==L"pdkzgwz")
+				res = WZFactory::getPadaukZawgyiTtfDisplay(lang.id, id);
+			else
+				throw std::runtime_error(waitzar::glue(L"Invalid \"built-in\" Display Method: ", id).c_str());
+			break;
+
+		case DISPLAY_TYPE::PNG:
+			//Enforce that a valid font-file is given
+			if (dm.fontFile.empty())
+				throw std::runtime_error("Cannot construct \"png\" display method: no \"font-file\".");
+			if (!FileExists(dm.fontFile))
+				throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", dm.fontFile).c_str());
+
+			//Get it, as a singleton
+			res = WZFactory::getPngDisplayManager(lang.id, id, dm.fontFile);
+			break;
+		case DISPLAY_TYPE::TTF:
+			//Enforce that a font-face-name and point-size are given
+			if (dm.fontFaceName.empty())
+				throw std::runtime_error(waitzar::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
+			if (dm.pointSize==0)
+				throw std::runtime_error("Cannot construct \"ttf\" display method: no \"point-size\".");
+
+			//Ensure that a valid "font-file" was given, or none
+			if (!dm.fontFile.empty() && !FileExists(dm.fontFile))
+				throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", dm.fontFile).c_str());
+
+			//Get it, as a singleton
+			res = WZFactory::getTtfDisplayManager(lang.id, id, dm.fontFile, dm.fontFaceName, dm.pointSize);
+			break;
+		default:
+			throw std::runtime_error("Cannot construct display method: no \"type\"");
+	}
+
+	return res;
+}
+
+
+
+Transformation* WZFactory::makeAndVerifyTransformation(ConfigRoot& conf, const LangNode& lang, const std::wstring& id, TransNode& tm)
+{
+	Transformation* res = NULL;
+
+	//Check some required settings
+	if (tm.fromEncoding.empty())
+		throw std::runtime_error("Cannot construct transformation: no \"from-encoding\"");
+	if (tm.toEncoding.empty())
+		throw std::runtime_error("Cannot construct transformation: no \"to-encoding\"");
+
+	//Ensure we have valid encodings
+	if (lang.encodings.count(tm.fromEncoding)==0)
+		throw std::runtime_error(glue(L"Transformation \"" , id , L"\" references non-existent from-encoding: ", tm.fromEncoding).c_str());
+	if (lang.encodings.count(tm.toEncoding)==0)
+		throw std::runtime_error(glue(L"Transformation \"" , id , L"\" references non-existent to-encoding: ", tm.toEncoding).c_str());
+
+
+	//First, generate an actual object, based on the type.
+	switch (tm.type) {
+		case TRANSFORM_TYPE::BUILTIN:
+			//Built-in types are known entirely by our core code
+			if (id==L"uni2zg")
+				res = new Uni2Zg();
+			else if (id==L"uni2wi")
+				res = new Uni2WinInnwa();
+			else if (id==L"zg2uni")
+				res = new Zg2Uni();
+			else if (id==L"uni2ayar")
+				res = new Uni2Ayar();
+			else if (id==L"ayar2uni")
+				res = new Ayar2Uni();
+			else
+				throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
+			break;
+
+		case TRANSFORM_TYPE::JAVASCRIPT:
+			//Ensure a valid source file
+			if (tm.sourceFile.empty())
+				throw std::runtime_error("Cannot construct transformation: no javascript \"source-file\"");
+			if (!FileExists(tm.sourceFile))
+				throw std::runtime_error("Cannot construct transformation: \"source-file\" references a file that does not exist.");
+
+			//Make sure our interpreter is actually running.
+			if ((conf.extensions.count(L"javascript")==0) || !conf.extensions[L"javascript"].enabled)
+				throw std::runtime_error("Cannot construct a \"javscript\" Transformation: interpreter DLL failed to load.");
+
+			res = new JSTransform(waitzar::escape_wstr(tm.sourceFile, false), *(JavaScriptConverter*)conf.extensions[L"javascript"].impl);
+			break;
+
+		default:
+			throw std::runtime_error("Cannot construct transformation: no \"type\"");
+	}
+
+	return res;
+}
+
+
 
 
 void WZFactory::verifyEncoding(const std::wstring& id, EncNode& enc)
@@ -645,9 +782,27 @@ void WZFactory::verifyEncoding(const std::wstring& id, EncNode& enc)
 
 
 
-void WZFactory::verifyLanguage(const std::wstring& id, LangNode& enc)
+void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang)
 {
+	//Necessary properties
+	if (lang.displayName.empty())
+		throw std::runtime_error("Cannot construct language: no \"display-name\"");
+	if (lang.encodings.count(L"unicode")==0)
+		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" does not include \"unicode\" as an encoding.").c_str());
 
+	//Ensure dependencies are met
+	if (lang.encodings.count(lang.defaultOutputEncoding)==0)
+		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default output encoding: ", lang.defaultOutputEncoding).c_str());
+	if (lang.inputMethods.count(lang.defaultInputMethod)==0)
+		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default input method: ", lang.defaultInputMethod).c_str());
+	if (lang.displayMethods.count(lang.defaultDisplayMethodReg)==0)
+		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default (regular) display method: ", lang.defaultDisplayMethodReg).c_str());
+	if (lang.displayMethods.count(lang.defaultDisplayMethodSmall)==0)
+		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default (small) display method: ", lang.defaultDisplayMethodSmall).c_str());
+	if (!lang.encodings[lang.defaultOutputEncoding].canUseAsOutput)
+		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" uses a default output encoding which does not support output.").c_str());
+	if (lang.displayMethods[lang.defaultDisplayMethodReg].encoding != lang.displayMethods[lang.defaultDisplayMethodSmall].encoding)
+		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" uses two display methods with two different encodings.").c_str());
 }
 
 
