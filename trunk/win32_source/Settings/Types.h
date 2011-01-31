@@ -9,8 +9,31 @@
 
 
 //Global "Types" enum
-//TODO: This is kinda lonely out here...
+//TODO: OLD: Remove!
 enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN, DISPM_TTF, DISPM_PNG, TRANS_JAVASCRIPT};
+
+
+//Enum types for our various configuration classes
+enum class INPUT_TYPE {
+	UNDEFINED,
+	BUILTIN,
+	KEYBOARD,
+	ROMAN,
+};
+
+enum class DISPLAY_TYPE {
+	UNDEFINED,
+	BUILTIN,
+	TTF,
+	PNG,
+};
+
+enum class TRANSFORM_TYPE {
+	UNDEFINED,
+	BUILTIN,
+	JAVASCRIPT,
+};
+
 
 
 #endif //_SETTINGS_TYPES

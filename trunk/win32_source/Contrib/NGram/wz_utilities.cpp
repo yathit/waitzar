@@ -2053,6 +2053,41 @@ wstring sanitize_value(const wstring& str, const std::wstring& filePath)
 }
 
 
+INPUT_TYPE read_input_type(const wstring& str)
+{
+	wstring key = sanitize_id(str);
+	if (key==L"builtin")
+		return INPUT_TYPE::BUILTIN;
+	else if (key==L"keymagic")
+		return INPUT_TYPE::KEYBOARD;
+	else if (key==L"roman")
+		return INPUT_TYPE::ROMAN;
+	throw std::runtime_error(waitzar::glue(L"Unknown \"type\": ", str).c_str());
+}
+
+DISPLAY_TYPE read_display_type(const wstring& str)
+{
+	wstring key = sanitize_id(str);
+	if (key==L"builtin")
+		return DISPLAY_TYPE::BUILTIN;
+	else if (key==L"png")
+		return DISPLAY_TYPE::PNG;
+	else if (key==L"ttf")
+		return DISPLAY_TYPE::TTF;
+	throw std::runtime_error(waitzar::glue(L"Unknown \"type\": ", str).c_str());
+}
+
+
+TRANSFORM_TYPE read_transform_type(const wstring& str)
+{
+	wstring key = sanitize_id(str);
+	if (key==L"builtin")
+		return TRANSFORM_TYPE::BUILTIN;
+	else if (key==L"javascript")
+		return TRANSFORM_TYPE::JAVASCRIPT;
+	throw std::runtime_error(waitzar::glue(L"Unknown \"type\": ", str).c_str());
+}
+
 
 string GetMD5Hash(const std::string& fileName) {
 	//Some variables
@@ -2075,6 +2110,9 @@ string GetMD5Hash(const std::string& fileName) {
 	}
 	return md5Res.str();
 }
+
+
+
 
 
 

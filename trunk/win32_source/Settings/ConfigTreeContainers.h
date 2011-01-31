@@ -37,6 +37,7 @@
 #include "Settings/Language.h"
 #include "Settings/Encoding.h"
 #include "Settings/HotkeyData.h"
+#include "Settings/Types.h"
 
 
 //Fun times!
@@ -99,7 +100,7 @@ class DispMethNode : public TNode {
 public:
 	//Simple properties
 	mutable std::wstring id;
-	std::wstring type; //We can make this an enum class later
+	DISPLAY_TYPE type;
 
 	//Inherited properties
 	int pointSize;
@@ -121,6 +122,7 @@ public:
 	//Constructor: set the ID here and nowhere else
 	DispMethNode(const std::wstring& id=L"") : id(id) {
 		this->impl = NULL;
+		this->type = DISPLAY_TYPE::UNDEFINED;
 	}
 };
 
@@ -131,7 +133,7 @@ public:
 	//Simple properties
 	mutable std::wstring id;
 	std::wstring displayName;
-	std::wstring type; //enum class later
+	INPUT_TYPE type;
 	bool suppressUppercase;
 	bool typeNumeralConglomerates;
 	bool disableCache;
@@ -163,6 +165,7 @@ public:
 		this->disableCache = false;
 		this->typeBurmeseNumbers = true;
 		this->controlKeyStyle = L"chinese";
+		this->type = INPUT_TYPE::UNDEFINED;
 	}
 };
 
@@ -173,7 +176,7 @@ public:
 	//Simple properties
 	mutable std::wstring id;
 	bool hasPriority;
-	std::wstring type; //make enum later
+	TRANSFORM_TYPE type;
 
 	//Derived properties
 	std::wstring sourceFile;
@@ -195,6 +198,7 @@ public:
 	TransNode(const std::wstring& id=L"") : id(id) {
 		this->impl = NULL;
 		this->hasPriority = false;
+		this->type = TRANSFORM_TYPE::UNDEFINED;
 	}
 };
 

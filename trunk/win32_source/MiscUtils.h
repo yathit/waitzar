@@ -29,9 +29,9 @@ bool elevateWaitZar(LPCWSTR wzFileName)
     wzInfo.cbSize = sizeof(SHELLEXECUTEINFO);
 	wzInfo.fMask = 0;
 	wzInfo.hwnd = NULL;
-	wzInfo.lpVerb = _T("runas");
+	wzInfo.lpVerb = L"runas";
 	wzInfo.lpFile = wzFileName;
-	wzInfo.lpParameters = _T("runasadmin"); //Is this necessary?
+	wzInfo.lpParameters = L"runasadmin"; //Is this necessary?
     wzInfo.lpDirectory = NULL;
     wzInfo.nShow = SW_NORMAL;
 
