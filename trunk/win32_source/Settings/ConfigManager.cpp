@@ -557,6 +557,26 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 
 
 
+template <typename T>
+T& ConfigManager::AddOrCh(map<wstring, T>& existing, const Node& node, bool addAllowed, bool chgAllowed) {
+	//Temp
+	wstring key = node.getKeyInParentMap();
+
+	//Can change?
+	if (!chgAllowed)
+		throw std::runtime_error("Can't modify existing item in this set.");
+
+	//Add it if it doesn't exist
+	if (existing.count(key)==0) {
+		if (!addAllowed)
+			throw std::runtime_error("Can't add a new item to this set.");
+		existing[key] = T(key);
+	}
+
+	//Return it
+	return existing[key];
+}
+
 
 
 
@@ -625,22 +645,7 @@ void ConfigManager::buildVerifyTree() {
 
 	//Extensions
 	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		auto& extMap = dynamic_cast<ConfigRoot&>(d).extensions;
-		std::wstring key = s.getKeyInParentMap();
-
-		//Can change?
-		if (!perms.chgExtension)
-			throw std::runtime_error("Can't modify existing \"extensions\".");
-
-		//Add it if it doesn't exist
-		if (extMap.count(key)==0) {
-			if (!perms.addExtension)
-				throw std::runtime_error("Can't add a new \"extension\".");
-			extMap[key] = ExtendNode(key);
-		}
-
-		//Return it
-		return extMap[key];
+		return ConfigManager::AddOrCh(dynamic_cast<ConfigRoot&>(d).extensions, s, perms.addExtension, perms.chgExtension);
 	});
 
 	//Single extension properties
@@ -668,22 +673,7 @@ void ConfigManager::buildVerifyTree() {
 
 	//Languages
 	verifyTree[L"languages"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		auto& langMap = dynamic_cast<ConfigRoot&>(d).languages;
-		std::wstring key = s.getKeyInParentMap();
-
-		//Can change?
-		if (!perms.chgLanguage)
-			throw std::runtime_error("Can't modify existing \"languages\".");
-
-		//Add it if it doesn't exist
-		if (langMap.count(key)==0) {
-			if (!perms.addLanguage)
-				throw std::runtime_error("Can't add a new \"language\".");
-			langMap[key] = LangNode(key);
-		}
-
-		//Return it
-		return langMap[key];
+		return ConfigManager::AddOrCh(dynamic_cast<ConfigRoot&>(d).languages, s, perms.addLanguage, perms.chgLanguage);
 	});
 
 	//Language properties
@@ -735,76 +725,16 @@ void ConfigManager::buildVerifyTree() {
 
 	//Language containers
 	verifyTree[L"languages"][L"*"][L"input-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		auto& imMap = dynamic_cast<LangNode&>(d).inputMethods;
-		std::wstring key = s.getKeyInParentMap();
-
-		//Can change?
-		if (!perms.chgLangInputMeth)
-			throw std::runtime_error("Can't modify existing \"input-method\".");
-
-		//Add it if it doesn't exist
-		if (imMap.count(key)==0) {
-			if (!perms.addLangInputMeth)
-				throw std::runtime_error("Can't add a new \"input-method\".");
-			imMap[key] = InMethNode(key);
-		}
-
-		//Return it
-		return imMap[key];
+		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).inputMethods, s, perms.addLangInputMeth, perms.chgLangInputMeth);
 	});
 	verifyTree[L"languages"][L"*"][L"display-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		auto& dmMap = dynamic_cast<LangNode&>(d).displayMethods;
-		std::wstring key = s.getKeyInParentMap();
-
-		//Can change?
-		if (!perms.chgLangDispMeth)
-			throw std::runtime_error("Can't modify existing \"display-method\".");
-
-		//Add it if it doesn't exist
-		if (dmMap.count(key)==0) {
-			if (!perms.addLangDispMeth)
-				throw std::runtime_error("Can't add a new \"display-method\".");
-			dmMap[key] = DispMethNode(key);
-		}
-
-		//Return it
-		return dmMap[key];
+		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).displayMethods, s, perms.addLangDispMeth, perms.chgLangDispMeth);
 	});
 	verifyTree[L"languages"][L"*"][L"encodings"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		auto& encMap = dynamic_cast<LangNode&>(d).encodings;
-		std::wstring key = s.getKeyInParentMap();
-
-		//Can change?
-		if (!perms.chgLangEncoding)
-			throw std::runtime_error("Can't modify existing \"encoding\".");
-
-		//Add it if it doesn't exist
-		if (encMap.count(key)==0) {
-			if (!perms.addLangEncoding)
-				throw std::runtime_error("Can't add a new \"encoding\".");
-			encMap[key] = EncNode(key);
-		}
-
-		//Return it
-		return encMap[key];
+		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).encodings, s, perms.addLangEncoding, perms.chgLangEncoding);
 	});
 	verifyTree[L"languages"][L"*"][L"transformations"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		auto& transMap = dynamic_cast<LangNode&>(d).transformations;
-		std::wstring key = s.getKeyInParentMap();
-
-		//Can change?
-		if (!perms.chgLangTransform)
-			throw std::runtime_error("Can't modify existing \"transformation\".");
-
-		//Add it if it doesn't exist
-		if (transMap.count(key)==0) {
-			if (!perms.addLangTransform)
-				throw std::runtime_error("Can't add a new \"transformation\".");
-			transMap[key] = TransNode(key);
-		}
-
-		//Return it
-		return transMap[key];
+		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).transformations, s, perms.addLangTransform, perms.chgLangTransform);
 	});
 
 
