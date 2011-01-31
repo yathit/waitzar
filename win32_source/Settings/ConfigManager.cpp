@@ -1054,8 +1054,16 @@ const Settings& ConfigManager::getSettings()
 //Build the tree, then walk it into the existing setup
 void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const Node& n)> OnSetCallback)
 {
-	std::string folderPath = file.getFilePath();
-	std::cout <<"Building: " <<(folderPath.empty()?"<default>":folderPath) <<std::endl;
+	if (Logger::isLogging('C')) {
+		std::wstringstream msg;
+		msg <<L"Building: ";
+		std::string folderPath = file.getFilePath();
+		if (folderPath.empty())
+			msg <<L"<default>";
+		else
+			msg <<folderPath.c_str();
+		Logger::writeLogLine('C',  msg.str());
+	}
 
 	//Better error reporting
 	try {
@@ -1144,7 +1152,7 @@ void ConfigManager::walkConfigTree(Node& source, TNode& dest, const TransformNod
 				throw std::runtime_error(waitzar::glue(message, it->second.getFullyQualifiedKeyName()).c_str());
 			}
 
-			std::cout <<"  Iterate: " <<waitzar::escape_wstr(it->second.getFullyQualifiedKeyName()) <<std::endl;
+			Logger::writeLogLine('C', L"   Walking: " + it->second.getFullyQualifiedKeyName());
 
 			//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
 			const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
