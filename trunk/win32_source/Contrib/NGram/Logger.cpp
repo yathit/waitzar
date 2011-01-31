@@ -10,14 +10,29 @@
 
 
 //Consts:
-const std::string Logger::mainLogFileName = "wz_log.txt";
-const std::string Logger::keymagicLogFileName = "wz_log_keymagic.txt";
-const std::string Logger::uni2ZawgyiLogFileName = "wz_log_uni2zawgyi.txt";
-const std::string Logger::typingLogFileName = "wz_log_typing.txt";
+const std::string Logger::mainLogFileName =        "wz_log.txt";
+const std::string Logger::keymagicLogFileName =    "wz_log_keymagic.txt";
+const std::string Logger::uni2ZawgyiLogFileName =  "wz_log_uni2zawgyi.txt";
+const std::string Logger::typingLogFileName =      "wz_log_typing.txt";
+const std::string Logger::configLogFileName =      "wz_log_config.txt";
+
+//For some reason, if we define these in the header file then our
+// map initializer list can't find them.
+const char Logger::waitzarLogchar =    'L';
+const char Logger::keymagicLogchar =   'K';
+const char Logger::uni2ZawgyiLogchar = 'Z';
+const char Logger::typingLogchar =     'T';
+const char Logger::configLogchar =     'C';
 
 //Variables:
 std::map< char, std::vector<FILETIME> > Logger::filetimeStacks;
-std::map< char, std::string > Logger::filePaths;
+std::map< char, std::string > Logger::filePaths = {
+		{waitzarLogchar, mainLogFileName},
+		{keymagicLogchar, keymagicLogFileName},
+		{typingLogchar, typingLogFileName},
+		{uni2ZawgyiLogchar, uni2ZawgyiLogFileName},
+		{configLogchar, configLogFileName}
+};
 
 //Helper 1
 bool Logger::isLogging(char logLetter)
@@ -29,6 +44,8 @@ bool Logger::isLogging(char logLetter)
 	if (WZ_LOG_UNI2ZAWGYI && (logLetter==uni2ZawgyiLogchar))
 		return true;
 	if (WZ_LOG_TYPING && (logLetter==typingLogchar))
+		return true;
+	if (WZ_LOG_CONFIG && (logLetter==configLogchar))
 		return true;
 	return false;
 }
@@ -51,7 +68,7 @@ void Logger::resetLogFile(char logLetter)
 		filetimeStacks[logLetter].clear();
 
 		//Ensure the file path has been added.
-		filePaths[logLetter] = (logLetter==waitzarLogchar) ? mainLogFileName : (logLetter==keymagicLogchar) ? keymagicLogFileName : (logLetter==typingLogchar) ? typingLogFileName : uni2ZawgyiLogFileName;
+		//filePaths[logLetter] = (logLetter==waitzarLogchar) ? mainLogFileName : (logLetter==keymagicLogchar) ? keymagicLogFileName : (logLetter==typingLogchar) ? typingLogFileName : uni2ZawgyiLogFileName;
 
 		//Reset log file contents
 		std::ofstream log(filePaths[logLetter].c_str(), std::ios::out);

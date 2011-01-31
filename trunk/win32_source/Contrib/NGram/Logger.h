@@ -26,23 +26,28 @@ private:
 
 	//Main log file: constants
 	const static bool WZ_LOG_MAIN = false;
-	const static char waitzarLogchar = 'L';
+	const static char waitzarLogchar;
 	const static std::string mainLogFileName;
 
 	//Keymagic log file: constants
 	const static bool WZ_LOG_KEYMAGIC = false;
-	const static char keymagicLogchar = 'K';
+	const static char keymagicLogchar;
 	const static std::string keymagicLogFileName;
 
 	//Uni2Zawgyi log file: constants
 	const static bool WZ_LOG_UNI2ZAWGYI = false;
-	const static char uni2ZawgyiLogchar = 'Z';
+	const static char uni2ZawgyiLogchar;
 	const static std::string uni2ZawgyiLogFileName;
 
 	//"Typing" log file: constants
 	const static bool WZ_LOG_TYPING = false;
-	const static char typingLogchar = 'T';
+	const static char typingLogchar;
 	const static std::string typingLogFileName;
+
+	//"Config" log file: constants
+	const static bool WZ_LOG_CONFIG = true;
+	const static char configLogchar;
+	const static std::string configLogFileName;
 
 private:
 	//Variables
