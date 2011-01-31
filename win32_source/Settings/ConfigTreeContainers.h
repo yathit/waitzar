@@ -13,15 +13,15 @@
  * Each class declares "CfgLoader" as a friend class, which allows that class to modify
  *    the class's inner workings. Thus, when MainFile gets a Config option from this
  *    tree, there's no risk of accidentally modifying anything.
- * Wherever there is a pointer to another *Node type, do the following:
- *    1) When building, store the ID of the Encoding/Tranform/EtcNode, and a NULL pointer.
- *    2) In a second pass, replace the NULL pointers with the address of the object.
- *    3) Note that adding, say, a new Input Method would require you to scan ALL
- *       things that may reference Input Methods and replace their pointers with updated ones.
- *       This is because adding an item to a map/vector may change its location in memory.
- *       Ideally, we won't add new InputMethods/etc. after loading the tree for the first time.
- *       (Curently we don't). By encapsulating all modifying commands into the CfgLoader, we
- *       minimize the possibility of accidentally invalidating our pointers.
+ * Wherever there is a map or pair with ->second containing another *Node type, do the following:
+ *    1) When building, store the ID of the Encoding/Tranform/EtcNode, and an empty id (invalid class)
+ *    2) In a second pass, for each UNIQUE map/pair->first, initialize the pointer *impl ONCE.
+ *       Then, "copy" this *Node object into each map/pair->second. The default copy constructor
+ *       will ensure that the pointer is copied.
+ *    3) Adding a new item to the tree later will not invalidate any pointers; *Nodes can be moved
+ *       around within maps or copied in pairs without invalidating any references. Note that, if
+ *       we choose to later reclaim memory from these pointers, simply delete the pointer ONCE
+ *       for each UNIQUE map/pair->first.
  * Note: We define the classes in "reverse" order, to resolve dependencies. (The other option is
  *       to put them all into their own header files, which I see no need for).
  */
@@ -36,9 +36,7 @@
 #include "Transform/Transformation.h"
 #include "Settings/Language.h"
 #include "Settings/Encoding.h"
-
-
-class CfgLoader {};
+#include "Settings/ConfigManager.h"
 
 
 
@@ -50,13 +48,33 @@ public:
 	bool chgLanguage;
 	bool addLanguage;
 
+	bool chgLangInputMeth;
+	bool addLangInputMeth;
+
+	bool chgLangDispMeth;
+	bool addLangDispMeth;
+
+	bool chgLangTransform;
+	bool addLangTransform;
+
+	bool chgLangEncoding;
+	bool addLangEncoding;
+
 	bool chgExtension;
 	bool addExtension;
 
 	//All false by default
 	CfgPerm(bool chgSettings=false, bool chgLanguage=false, bool addLanguage=false,
+			bool chgLangInputMeth=false, bool addLangInputMeth=false,
+			bool chgLangDispMeth=false, bool addLangDispMeth=false,
+			bool chgLangTransform=false, bool addLangTransform=false,
+			bool chgLangEncoding=false, bool addLangEncoding=false,
 			bool chgExtension=false, bool addExtension=false) :
 		chgSettings(chgSettings), chgLanguage(chgLanguage), addLanguage(addLanguage),
+		chgLangInputMeth(chgLangInputMeth), addLangInputMeth(addLangInputMeth),
+		chgLangDispMeth(chgLangDispMeth), addLangDispMeth(addLangDispMeth),
+		chgLangTransform(chgLangTransform), addLangTransform(addLangTransform),
+		chgLangEncoding(chgLangEncoding), addLangEncoding(addLangEncoding),
 		chgExtension(chgExtension), addExtension(addExtension)
 		{}
 };
@@ -65,7 +83,7 @@ public:
 //Debug class
 class AllCfgPerm : public CfgPerm {
 public:
-	AllCfgPerm() : CfgPerm(true, true, true, true, true) {}
+	AllCfgPerm() : CfgPerm(true, true, true, true, true, true, true, true, true, true, true, true, true) {}
 };
 
 
@@ -75,6 +93,8 @@ class TNode {
 private:
 	//Class needs at least one virtual function to be polymorphic (and thus to allow dynamic_cast)
 	virtual void empty(){};
+
+	//FYI: In case you're curious, sub-classes don't inherit friends
 };
 
 
@@ -93,7 +113,7 @@ private:
 	Extension* impl;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 
 
 public:
@@ -109,17 +129,23 @@ class DispMethNode : public TNode {
 public:
 	//Simple properties
 	mutable std::wstring id;
-	int type; //We can make this an enum class later
+	std::wstring type; //We can make this an enum class later
+
+	//Inherited properties
+	//TODO
+	//"font-face-name" : "Ayar",
+	//"point-size" : "12",
+	//"font-file" : "ayar31.ttf"
 
 private:
 	//Pointer pairs
-	std::pair<std::wstring, EncNode*> encoding;
+	std::pair<std::wstring, EncNode> encoding;
 
 	//Implementation
 	DisplayMethod* impl;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 
 
 public:
@@ -145,13 +171,13 @@ public:
 
 private:
 	//Pointer-pairs
-	std::pair<std::wstring, EncNode*> encoding;
+	std::pair<std::wstring, EncNode> encoding;
 
 	//Implementation
 	InputMethod* impl;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 
 
 public:
@@ -172,14 +198,14 @@ public:
 
 private:
 	//Pointer pairs
-	std::pair<std::wstring, EncNode*> fromEncoding;
-	std::pair<std::wstring, EncNode*> toEncoding;
+	std::pair<std::wstring, EncNode> fromEncoding;
+	std::pair<std::wstring, EncNode> toEncoding;
 
 	//Implementation
 	Transformation* impl;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 
 
 public:
@@ -201,20 +227,20 @@ private:
 	//Actual
 	Language* impl;
 
-	//Pointer pairs
-	std::pair<std::wstring, EncNode*>      defaultOutputEncoding;
-	std::pair<std::wstring, DispMethNode*> defaultDisplayMethodReg;
-	std::pair<std::wstring, DispMethNode*> defaultDisplayMethodSmall;
-	std::pair<std::wstring, InMethNode*>   defaultInputMethod;
+	//Pairs
+	std::pair<std::wstring, EncNode>      defaultOutputEncoding;
+	std::pair<std::wstring, DispMethNode> defaultDisplayMethodReg;
+	std::pair<std::wstring, DispMethNode> defaultDisplayMethodSmall;
+	std::pair<std::wstring, InMethNode>   defaultInputMethod;
 
 	//Map of pointers by id
-	std::map<std::wstring, InMethNode*>    inputMethods;
-	std::map<std::wstring, EncNode*>       encodings;
-	std::map<std::wstring, TransNode*>     transformations;
-	std::map<std::wstring, DispMethNode*>  displayMethods;
+	std::map<std::wstring, InMethNode>    inputMethods;
+	std::map<std::wstring, EncNode>       encodings;
+	std::map<std::wstring, TransNode>     transformations;
+	std::map<std::wstring, DispMethNode>  displayMethods;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 
 
 public:
@@ -240,7 +266,7 @@ private:
 	Extension* impl;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 
 
 public:
@@ -267,7 +293,7 @@ public:
 	bool hideWhitespaceMarkings;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 };
 
 
@@ -278,7 +304,7 @@ public:
 	std::map<std::wstring, ExtendNode> extensions;
 
 	//For loading
-	friend class CfgLoader;
+	friend class ConfigManager;
 };
 
 

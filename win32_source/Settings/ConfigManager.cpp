@@ -564,8 +564,8 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 void ConfigManager::buildVerifyTree() {
 	//Root nodes
 	verifyTree.addChild(L"settings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		ConfigRoot& curr = dynamic_cast<ConfigRoot&>(d);
-		return curr.settings;
+		//Don't advance on settings yet; it'll lead us to a node collision
+		return d;
 	});
 	verifyTree.addChild(L"languages", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//We don't have the language ID, so return the same node
@@ -587,17 +587,12 @@ void ConfigManager::buildVerifyTree() {
 
 	//Extensions
 	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		std::cout  <<"0" <<std::endl;
-
 		auto& extMap = dynamic_cast<ConfigRoot&>(d).extensions;
-
-		std::cout <<"0.5" <<std::endl;
-
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
 		if (!perms.chgExtension)
-			throw std::runtime_error("Can't modify exiting \"extensions\".");
+			throw std::runtime_error("Can't modify existing \"extensions\".");
 
 		//Add it if it doesn't exist
 		if (extMap.count(key)==0) {
@@ -612,33 +607,182 @@ void ConfigManager::buildVerifyTree() {
 
 	//Single extension properties
 	verifyTree[L"extensions"][L"*"].addChild(L"library-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		std::cout <<"1" <<std::endl;
-
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).libraryFilePath = s.str();
 		return d;
 	});
 	verifyTree[L"extensions"][L"*"].addChild(L"enabled", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		std::cout <<"2" <<std::endl;
-
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).enabled = waitzar::read_bool(s.str());
 		return d;
 	});
 	verifyTree[L"extensions"][L"*"].addChild(L"md5-hash", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		std::cout <<"3" <<std::endl;
-
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).libraryFileChecksum = waitzar::purge_filename(s.str());
 		return d;
 	});
 	verifyTree[L"extensions"][L"*"].addChild(L"check-md5", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		std::cout <<"4: " <<waitzar::escape_wstr(s.getKeyInParentMap()) <<std::endl;
-
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).requireChecksum = waitzar::read_bool(s.str());
 		return d;
 	});
+
+
+	//Languages
+	verifyTree[L"languages"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		auto& langMap = dynamic_cast<ConfigRoot&>(d).languages;
+		std::wstring key = s.getKeyInParentMap();
+
+		//Can change?
+		if (!perms.chgLanguage)
+			throw std::runtime_error("Can't modify existing \"languages\".");
+
+		//Add it if it doesn't exist
+		if (langMap.count(key)==0) {
+			if (!perms.addLanguage)
+				throw std::runtime_error("Can't add a new \"language\".");
+			langMap[key] = LangNode(key);
+		}
+
+		//Return it
+		return langMap[key];
+	});
+
+	//Language properties
+	verifyTree[L"languages"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+    	//Set it, return same
+		dynamic_cast<LangNode&>(d).displayName = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"].addChild(L"default-display-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+    	//Set pointer pair, return node
+		dynamic_cast<LangNode&>(d).defaultDisplayMethodReg.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"].addChild(L"default-display-method-small", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+    	//Set pointer pair, return node
+		dynamic_cast<LangNode&>(d).defaultDisplayMethodSmall.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"].addChild(L"default-output-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+    	//Set pointer pair, return node
+		dynamic_cast<LangNode&>(d).defaultOutputEncoding.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"].addChild(L"default-input-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+    	//Set pointer pair, return node
+		dynamic_cast<LangNode&>(d).defaultInputMethod.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+
+
+	//Language sub-classes
+	verifyTree[L"languages"][L"*"].addChild(L"input-methods", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//We don't have the language ID, so return the same node
+		return d;
+	});
+	verifyTree[L"languages"][L"*"].addChild(L"encodings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//We don't have the language ID, so return the same node
+		return d;
+	});
+	verifyTree[L"languages"][L"*"].addChild(L"transformations", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//We don't have the language ID, so return the same node
+		return d;
+	});
+	verifyTree[L"languages"][L"*"].addChild(L"display-methods", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//We don't have the language ID, so return the same node
+		return d;
+	});
+
+
+	//Language containers
+	verifyTree[L"languages"][L"*"][L"input-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		auto& imMap = dynamic_cast<LangNode&>(d).inputMethods;
+		std::wstring key = s.getKeyInParentMap();
+
+		//Can change?
+		if (!perms.chgLangInputMeth)
+			throw std::runtime_error("Can't modify existing \"input-method\".");
+
+		//Add it if it doesn't exist
+		if (imMap.count(key)==0) {
+			if (!perms.addLangInputMeth)
+				throw std::runtime_error("Can't add a new \"input-method\".");
+			imMap[key] = InMethNode(key);
+		}
+
+		//Return it
+		return imMap[key];
+	});
+	verifyTree[L"languages"][L"*"][L"display-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		auto& dmMap = dynamic_cast<LangNode&>(d).displayMethods;
+		std::wstring key = s.getKeyInParentMap();
+
+		//Can change?
+		if (!perms.chgLangDispMeth)
+			throw std::runtime_error("Can't modify existing \"display-method\".");
+
+		//Add it if it doesn't exist
+		if (dmMap.count(key)==0) {
+			if (!perms.addLangDispMeth)
+				throw std::runtime_error("Can't add a new \"display-method\".");
+			dmMap[key] = DispMethNode(key);
+		}
+
+		//Return it
+		return dmMap[key];
+	});
+	verifyTree[L"languages"][L"*"][L"encodings"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		auto& encMap = dynamic_cast<LangNode&>(d).encodings;
+		std::wstring key = s.getKeyInParentMap();
+
+		//Can change?
+		if (!perms.chgLangEncoding)
+			throw std::runtime_error("Can't modify existing \"encoding\".");
+
+		//Add it if it doesn't exist
+		if (encMap.count(key)==0) {
+			if (!perms.addLangEncoding)
+				throw std::runtime_error("Can't add a new \"encoding\".");
+			encMap[key] = EncNode(key);
+		}
+
+		//Return it
+		return encMap[key];
+	});
+	verifyTree[L"languages"][L"*"][L"transformations"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		auto& transMap = dynamic_cast<LangNode&>(d).transformations;
+		std::wstring key = s.getKeyInParentMap();
+
+		//Can change?
+		if (!perms.chgLangTransform)
+			throw std::runtime_error("Can't modify existing \"transformation\".");
+
+		//Add it if it doesn't exist
+		if (transMap.count(key)==0) {
+			if (!perms.addLangTransform)
+				throw std::runtime_error("Can't add a new \"transformation\".");
+			transMap[key] = TransNode(key);
+		}
+
+		//Return it
+		return transMap[key];
+	});
+
+
+
+	//Display method
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<DispMethNode&>(d).encoding.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<DispMethNode&>(d).type = waitzar::sanitize_id(s.str());
+		return d;
+	});
+
 }
 
 
@@ -795,7 +939,7 @@ void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const Transf
 
 		//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
 		const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
-		TNode& nextTN = matchAction(source, dest, AllCfgPerm());
+		TNode& nextTN = matchAction(it->second, dest, AllCfgPerm());
 		if (!it->second.isLeaf())
 			walkConfigTree(it->second, nextTN, nextVerify);
 	}
