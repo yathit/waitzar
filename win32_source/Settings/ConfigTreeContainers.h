@@ -228,7 +228,7 @@ private:
 
 	//For loading
 	friend class ConfigManager;
-
+	friend class WZFactory;
 
 public:
 	//Constructor: set the ID here and nowhere else

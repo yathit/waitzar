@@ -7,15 +7,13 @@
 
 #include "ConfigManager.h"
 
+using std::map;
 using std::vector;
 using std::pair;
 using std::wstring;
 using std::string;
 
 using Json::Value;
-
-//TODO: Remove this silly "class dependency" in WZFactory.
-using waitzar::WordBuilder;
 
 
 ConfigManager::ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/){
@@ -176,15 +174,15 @@ void ConfigManager::resolvePartialSettings()
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				const_cast<Language&>(*lang).inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second/*, getMD5Function*/));
+				const_cast<Language&>(*lang).inputMethods.insert(WZFactory::makeInputMethod(id, *lang, it->second/*, getMD5Function*/));
 			else if (i==PART_ENC) 
-				const_cast<Language&>(*lang).encodings.insert(WZFactory<waitzar::WordBuilder>::makeEncoding(id, it->second));
+				const_cast<Language&>(*lang).encodings.insert(WZFactory::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) {
 				auto jsIt = FindKeyInSet(options.extensions, L"javascript");
 				JavaScriptConverter* js = (jsIt==options.extensions.end() ? NULL : (JavaScriptConverter*)const_cast<Extension*>(*jsIt));
-				const_cast<Language&>(*lang).transformations.insert(WZFactory<waitzar::WordBuilder>::makeTransformation(id, it->second, js));
+				const_cast<Language&>(*lang).transformations.insert(WZFactory::makeTransformation(id, it->second, js));
 			} else if (i==PART_DISP)
-				const_cast<Language&>(*lang).displayMethods.insert(WZFactory<waitzar::WordBuilder>::makeDisplayMethod(id, *lang, it->second));
+				const_cast<Language&>(*lang).displayMethods.insert(WZFactory::makeDisplayMethod(id, *lang, it->second));
 		}
 
 		//Clear all entries from this map
@@ -209,7 +207,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	Logger::markLogTime('L', L"Read physical files, parsed JSON");
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
-	WZFactory<waitzar::WordBuilder>::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+	WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
 	waitzar::BurglishBuilder::InitStatic();
 	Logger::markLogTime('L', L"Initialized static classes with relevant information.");
 
@@ -461,9 +459,14 @@ const ConfigRoot& ConfigManager::sealConfig()
 
 	//Load all objects using our factory methods
 	for (auto langIt=troot.languages.begin(); langIt!=troot.languages.end(); langIt++) {
+		//Encodings
+		for (auto encIt=langIt->second.encodings.begin(); encIt!=langIt->second.encodings.end(); encIt++) {
+			WZFactory::verifyEncoding(encIt->first, encIt->second);
+		}
+
 		//Input methods
 		for (auto inIt=langIt->second.inputMethods.begin(); inIt!=langIt->second.inputMethods.end(); inIt++) {
-			inIt->second.impl = WZFactory<WordBuilder>::makeInputMethod(langIt->first, inIt->first, inIt->second);
+			inIt->second.impl = WZFactory::makeAndVerifyInputMethod(langIt->second, inIt->first, inIt->second);
 		}
 
 	}
@@ -610,7 +613,7 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 		//Save each option
 		//TODO: Support UTF-8, maybe...
 		string nl = "";
-		for (map<wstring,wstring>::iterator it=localOpts.begin(); it!=localOpts.end(); it++) {
+		for (auto it=localOpts.begin(); it!=localOpts.end(); it++) {
 			cfgFile <<nl <<"    \"" <<waitzar::escape_wstr(it->first, false) <<"\" : \"" <<waitzar::escape_wstr(it->second, false) <<"\"";
 			nl = ",\n";
 		}
