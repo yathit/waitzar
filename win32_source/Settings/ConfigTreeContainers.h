@@ -37,6 +37,7 @@
 #include "Settings/Language.h"
 #include "Settings/Encoding.h"
 #include "Settings/ConfigManager.h"
+#include "Settings/HotkeyData.h"
 
 
 
@@ -310,17 +311,20 @@ public:
 class SettingsNode : public TNode {
 public:
 	//Simple
-	std::wstring hotkeyStrRaw;  //Later replace with HotkeyData;
+	HotkeyData hotkey;
 	bool silenceMywordsErrors;
 	bool balloonStart;
 	bool alwaysElevate;
 	bool trackCaret;
 	bool lockWindows;
 	bool suppressVirtualKeyboard;
-	std::wstring defaultLanguage;
 	std::wstring whitespaceCharacters;
 	std::wstring ignoredCharacters;
 	bool hideWhitespaceMarkings;
+
+private:
+	//Pairs
+	std::pair<std::wstring, LangNode>      defaultLanguage;
 
 	//For loading
 	friend class ConfigManager;

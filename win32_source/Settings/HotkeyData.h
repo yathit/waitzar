@@ -15,12 +15,16 @@
 //Hotkey wrapper
 class HotkeyData {
 public:
-	wstring hotkeyStrFormatted;
+	std::wstring hotkeyStrRaw;
+	std::wstring hotkeyStrFormatted;
 	int hotkeyID;
 	unsigned int hkModifiers;
 	unsigned int hkVirtKeyCode;
 
-	HotkeyData(const wstring& srcStr=L"") {
+	HotkeyData(const std::wstring& srcStr=L"") {
+		//Save raw string
+		this->hotkeyStrRaw = srcStr;
+
 		//Simple case
 		if (srcStr==L"") {
 			hotkeyID = hkModifiers = hkVirtKeyCode = 0;
@@ -28,8 +32,8 @@ public:
 		}
 
 		//Parse the raw string; build up a vector of substrings in reverse
-		vector<wstring> hkSubs;
-		const wstring& src = srcStr;
+		std::vector<std::wstring> hkSubs;
+		const std::wstring& src = srcStr;
 		std::wstringstream segment;
 		for (size_t i=0; i<src.size(); i++) {
 			//Skip non-ascii
@@ -104,7 +108,7 @@ public:
 		this->hkModifiers = mod;
 
 		//Build up the formatted string (at this point, we know all arguments are correct)
-		wstring fmt = L"";
+		std::wstring fmt = L"";
 		for (int i=hkSubs.size()-1; i>=0; i--) {
 			if (hkSubs[i]==L"CTRL")
 				fmt += L"Ctrl";
