@@ -109,7 +109,7 @@
 #include "Input/RomanInputMethod.h"
 #include "Transform/Self2Self.h"
 #include "NGram/Logger.h"
-#include "MD5/md5simple.h"
+//#include "MD5/md5simple.h"
 #include "Curl/curl.h"
 //#include "V8/v8.h"
 
@@ -416,8 +416,8 @@ enum {
 };
 
 //Our configuration
-string getMD5Hash(const std::string& fileName);
-ConfigManager config(getMD5Hash);
+//string getMD5Hash(const std::string& fileName);
+ConfigManager config;//(/*getMD5Hash*/);
 
 
 //These two will take some serious fixing later.
@@ -512,31 +512,7 @@ inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 
 
 //Crypto++ implementation of MD5; we'll pass this as a pointer later.
-string getMD5Hash(const std::string& fileName) {
-	//Some variables
-	const size_t digest_size = 16;
-	md5_state_t state;
-	md5_byte_t digest[digest_size];
 
-	//Get the file's binary data
-	string data = waitzar::ReadBinaryFile(fileName);
-
-	//Run the algorithm on the data
-	md5_init(&state);
-	md5_append(&state, (const md5_byte_t *)data.c_str(), data.size());
-	md5_finish(&state, digest);
-
-	std::stringstream md5Res;
-	md5Res <<std::hex;
-	for (size_t i=0; i<digest_size; i++) {
-		md5Res <<((digest[i]<0x10)?"0":"") <<(unsigned int)(digest[i]);
-	}
-
-	/*CryptoPP::Weak::MD5 hash;
-	CryptoPP::FileSource(fileName.c_str(), true, new
-		CryptoPP::HashFilter(hash,new CryptoPP::HexEncoder(new CryptoPP::StringSink(md5Res),false)));*/
-	return md5Res.str();
-}
 
 //Means of getting a transformation; we'll have to pass this as a functional pointer later,
 //   because of circular dependencies. TODO: Fix this.
@@ -4373,7 +4349,7 @@ bool findAndLoadAllConfigFiles()
 	} catch (std::exception& ex) {
 		//In case of errors, just reset & use the embedded file
 		bool locError = config.localConfigCausedError();
-		config = ConfigManager(getMD5Hash);
+		config = ConfigManager(/*getMD5Hash*/);
 
 		//Delete the local config file if this caused the error
 		if (locError) {
