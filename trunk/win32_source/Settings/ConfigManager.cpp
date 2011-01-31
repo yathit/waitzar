@@ -1149,7 +1149,12 @@ void ConfigManager::walkConfigTree(Node& source, TNode& dest, const TransformNod
 				throw std::runtime_error(waitzar::glue(message, it->second.getFullyQualifiedKeyName()).c_str());
 			}
 
-			Logger::writeLogLine('C', L"   Walking: " + it->second.getFullyQualifiedKeyName());
+			//Log every value reached.
+			if (Logger::isLogging('C')) {
+				Logger::writeLogLine('C', L"   Walking: " + it->second.getFullyQualifiedKeyName());
+				if (it->second.isLeaf())
+					Logger::writeLogLine('C', L"      = " + it->second.str() + (it->second.getStringStack().size()>1?L"  (Override)":L""));
+			}
 
 			//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
 			const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
