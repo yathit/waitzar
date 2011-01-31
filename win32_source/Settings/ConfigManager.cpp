@@ -435,26 +435,8 @@ const ConfigRoot& ConfigManager::sealConfig()
 		return troot;
 
 	//Load all extensions
-	for (auto langIt=troot.extensions.begin(); langIt!=troot.extensions.end(); langIt++) {
-		if (langIt->first == L"javascript") {
-			JavaScriptConverter* ex = new JavaScriptConverter(langIt->first);
-
-			//TO-DO: Later, pass this node as a reference for the class to use when loading
-			ex->libraryFilePath = langIt->second.libraryFilePath;
-			ex->libraryFileChecksum = langIt->second.libraryFileChecksum;
-			ex->requireChecksum = langIt->second.requireChecksum;
-			ex->enabled = langIt->second.enabled;
-
-			ex->InitDLL();
-			langIt->second.impl = ex;
-		} else {
-			Extension* ex = new Extension(langIt->first);
-
-			//TO-do: see above
-
-			ex->InitDLL();
-			langIt->second.impl = ex;
-		}
+	for (auto extIt=troot.extensions.begin(); extIt!=troot.extensions.end(); extIt++) {
+		extIt->second.impl = WZFactory::makeAndVerifyExtension(extIt->first, extIt->second);
 	}
 
 	//Load all objects using our factory methods
@@ -469,6 +451,18 @@ const ConfigRoot& ConfigManager::sealConfig()
 			inIt->second.impl = WZFactory::makeAndVerifyInputMethod(langIt->second, inIt->first, inIt->second);
 		}
 
+		//Display methods
+		for (auto dispIt=langIt->second.displayMethods.begin(); dispIt!=langIt->second.displayMethods.end(); dispIt++) {
+			dispIt->second.impl = WZFactory::makeAndVerifyDisplayMethod(langIt->second, dispIt->first, dispIt->second);
+		}
+
+		//Transformations
+		for (auto trIt=langIt->second.transformations.begin(); trIt!=langIt->second.transformations.end(); trIt++) {
+			trIt->second.impl = WZFactory::makeAndVerifyTransformation(troot, langIt->second, trIt->first, trIt->second);
+		}
+
+		//And finally, verify the language itself
+		WZFactory::verifyLanguage(langIt->first, langIt->second);
 	}
 
 
@@ -757,22 +751,22 @@ void ConfigManager::buildVerifyTree() {
 	});
 	verifyTree[L"languages"][L"*"].addChild(L"default-display-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
     	//Set pointer pair, return node
-		dynamic_cast<LangNode&>(d).defaultDisplayMethodReg.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<LangNode&>(d).defaultDisplayMethodReg = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"].addChild(L"default-display-method-small", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
     	//Set pointer pair, return node
-		dynamic_cast<LangNode&>(d).defaultDisplayMethodSmall.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<LangNode&>(d).defaultDisplayMethodSmall = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"].addChild(L"default-output-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
     	//Set pointer pair, return node
-		dynamic_cast<LangNode&>(d).defaultOutputEncoding.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<LangNode&>(d).defaultOutputEncoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"].addChild(L"default-input-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
     	//Set pointer pair, return node
-		dynamic_cast<LangNode&>(d).defaultInputMethod.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<LangNode&>(d).defaultInputMethod = waitzar::sanitize_id(s.str());
 		return d;
 	});
 
@@ -839,12 +833,12 @@ void ConfigManager::buildVerifyTree() {
 	//Transformations
 	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"from-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
-		dynamic_cast<TransNode&>(d).fromEncoding.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<TransNode&>(d).fromEncoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"to-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
-		dynamic_cast<TransNode&>(d).toEncoding.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<TransNode&>(d).toEncoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
@@ -925,7 +919,7 @@ void ConfigManager::buildVerifyTree() {
 	//Display method
 	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
-		dynamic_cast<DispMethNode&>(d).encoding.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<DispMethNode&>(d).encoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{

@@ -107,10 +107,11 @@ public:
 	std::wstring fontFaceName;
 	std::wstring fontFile;
 
-private:
-	//Pointer pairs
-	std::pair<std::wstring, EncNode> encoding;
+	//Reference value
+	std::wstring encoding;
 
+
+private:
 	//Implementation
 	DisplayMethod* impl;
 
@@ -123,6 +124,7 @@ public:
 	DispMethNode(const std::wstring& id=L"") : id(id) {
 		this->impl = NULL;
 		this->type = DISPLAY_TYPE::UNDEFINED;
+		this->pointSize = 0;
 	}
 };
 
@@ -181,11 +183,11 @@ public:
 	//Derived properties
 	std::wstring sourceFile;
 
-private:
-	//Pointer pairs
-	std::pair<std::wstring, EncNode> fromEncoding;
-	std::pair<std::wstring, EncNode> toEncoding;
+	//Reference values
+	std::wstring fromEncoding;
+	std::wstring toEncoding;
 
+private:
 	//Implementation
 	Transformation* impl;
 
@@ -210,16 +212,13 @@ public:
 	mutable std::wstring id;
 	std::wstring displayName;
 
+	//Reference properties
+	std::wstring   defaultOutputEncoding;
+	std::wstring   defaultDisplayMethodReg;
+	std::wstring   defaultDisplayMethodSmall;
+	std::wstring   defaultInputMethod;
+
 private:
-	//Actual
-	//Language* impl;
-
-	//Pairs
-	std::pair<std::wstring, EncNode>      defaultOutputEncoding;
-	std::pair<std::wstring, DispMethNode> defaultDisplayMethodReg;
-	std::pair<std::wstring, DispMethNode> defaultDisplayMethodSmall;
-	std::pair<std::wstring, InMethNode>   defaultInputMethod;
-
 	//Map of pointers by id
 	std::map<std::wstring, InMethNode>    inputMethods;
 	std::map<std::wstring, EncNode>       encodings;
@@ -254,7 +253,7 @@ private:
 
 	//For loading
 	friend class ConfigManager;
-
+	friend class WZFactory;
 
 public:
 	//Constructor: set the ID here and nowhere else
