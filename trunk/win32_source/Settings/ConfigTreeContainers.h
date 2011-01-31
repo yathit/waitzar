@@ -40,6 +40,22 @@
 #include "Settings/HotkeyData.h"
 
 
+//Fun times!
+class nodeset_exception {
+public:
+	nodeset_exception(const char* what, const wchar_t* key)  {
+		//The "n" functions pad with zero
+		strncpy(what_, what, 1023);
+		wcsncpy(key_, key, 1023);
+	}
+	const char* what() { return what_; }
+	const wchar_t* key() { return key_; }
+private:
+	char what_[1024];
+	wchar_t key_[1024];
+};
+
+
 
 //We define permissions here too
 class CfgPerm {
@@ -151,6 +167,7 @@ public:
 	//Constructor: set the ID here and nowhere else
 	EncNode(const std::wstring& id=L"") : id(id) {
 		this->impl = NULL;
+		this->canUseAsOutput = false;
 	}
 };
 
@@ -163,10 +180,9 @@ public:
 	std::wstring type; //We can make this an enum class later
 
 	//Inherited properties
-	//TODO
-	//"font-face-name" : "Ayar",
-	//"point-size" : "12",
-	//"font-file" : "ayar31.ttf"
+	int pointSize;
+	std::wstring fontFaceName;
+	std::wstring fontFile;
 
 private:
 	//Pointer pairs
@@ -202,6 +218,8 @@ public:
 
 	//Derived properties
 	std::wstring userWordsFile;
+	std::wstring extraWordsFile;
+	std::wstring keyboardFile;
 
 private:
 	//Pointer-pairs
@@ -218,6 +236,11 @@ public:
 	//Constructor: set the ID here and nowhere else
 	InMethNode(const std::wstring& id=L"") : id(id) {
 		this->impl = NULL;
+		this->suppressUppercase = true;
+		this->typeNumeralConglomerates = false;
+		this->disableCache = false;
+		this->typeBurmeseNumbers = true;
+		this->controlKeyStyle = L"chinese";
 	}
 };
 
@@ -228,7 +251,10 @@ public:
 	//Simple properties
 	mutable std::wstring id;
 	bool hasPriority;
-	int type; //make enum later
+	std::wstring type; //make enum later
+
+	//Derived properties
+	std::wstring sourceFile;
 
 private:
 	//Pointer pairs
@@ -246,6 +272,7 @@ public:
 	//Constructor: set the ID here and nowhere else
 	TransNode(const std::wstring& id=L"") : id(id) {
 		this->impl = NULL;
+		this->hasPriority = false;
 	}
 };
 
@@ -307,6 +334,8 @@ public:
 	//Constructor: set the ID here and nowhere else
 	ExtendNode(const std::wstring& id=L"") : id(id) {
 		impl = NULL;
+		this->enabled = false;
+		this->requireChecksum = true;
 	}
 };
 
@@ -331,6 +360,19 @@ private:
 
 	//For loading
 	friend class ConfigManager;
+
+public:
+	SettingsNode() {
+		this->silenceMywordsErrors = false;
+		this->balloonStart = true;
+		this->alwaysElevate = false;
+		this->trackCaret = true;
+		this->lockWindows = true;
+		this->suppressVirtualKeyboard = false;
+		this->whitespaceCharacters = L"\u200B";
+		this->ignoredCharacters = L"\u200B";
+		this->hideWhitespaceMarkings = true;
+	}
 };
 
 

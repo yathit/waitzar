@@ -35,6 +35,8 @@
 #include "Settings/HotkeyData.h"
 
 
+
+
 //Options for our ConfigManager class
 struct Settings {
 	//Simple
