@@ -80,6 +80,7 @@ public:
 			childList[key].parent = this;
 			childList[key].parentKey = key;
 			assertValid();
+			childList[key].setAndPropagateDirty(true);
 		}
 		return childList[key];
 	}
@@ -112,8 +113,8 @@ public:
 	}
 	void setAndPropagateDirty(bool val) {
 		//Nothing
-		if (val==dirty)
-			return;
+		//if (val==dirty)
+		//	return;
 
 		//"Dirty" always propagates up
 		if (val) {

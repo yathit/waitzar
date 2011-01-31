@@ -85,6 +85,10 @@ public:
 	{
 		return this->folderPath;
 	}
+	const std::string& getFilePath() const
+	{
+		return this->path;
+	}
 	//For map indexing:
 	bool operator<(const JsonFile& j) const
 	{

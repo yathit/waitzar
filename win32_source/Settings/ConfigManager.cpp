@@ -832,6 +832,35 @@ void ConfigManager::buildVerifyTree() {
 	});
 
 
+
+	//Transformations
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"from-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<TransNode&>(d).fromEncoding.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"to-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<TransNode&>(d).toEncoding.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<TransNode&>(d).type = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"has-priority", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<TransNode&>(d).hasPriority = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"source-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<TransNode&>(d).sourceFile = s.str();
+		return d;
+	});
+
+
 	//Input method
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
@@ -846,6 +875,16 @@ void ConfigManager::buildVerifyTree() {
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"user-words-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).userWordsFile = s.str();
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"wordlist", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).extraWordsFile = s.str();
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"keyboard-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).keyboardFile = s.str();
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
@@ -889,6 +928,21 @@ void ConfigManager::buildVerifyTree() {
 	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).type = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"font-face-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<DispMethNode&>(d).fontFaceName = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"point-size", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<DispMethNode&>(d).pointSize = waitzar::read_int(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"font-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<DispMethNode&>(d).fontFile = s.str();
 		return d;
 	});
 
@@ -1000,11 +1054,21 @@ const Settings& ConfigManager::getSettings()
 //Build the tree, then walk it into the existing setup
 void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const Node& n)> OnSetCallback)
 {
-	std::string folderPath = waitzar::escape_wstr(file.getFolderPath());
+	std::string folderPath = file.getFilePath();
 	std::cout <<"Building: " <<(folderPath.empty()?"<default>":folderPath) <<std::endl;
 
-	this->buildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
-	this->walkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
+	//Better error reporting
+	try {
+		this->buildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
+		this->walkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
+	} catch (nodeset_exception& ex) {
+		//Bad option; we can catch some of these here.
+		std::wstringstream msg;
+		msg <<L"Error loading file: " <<std::endl <<L"   " <<file.getFilePath().c_str() <<std::endl
+			<<L"...on property:" <<std::endl <<L"   " <<ex.key() <<std::endl
+			<<L"...error was:" <<std::endl <<L"   " <<ex.what() <<std::endl;
+		throw std::runtime_error(waitzar::escape_wstr(msg.str()).c_str());
+	}
 }
 
 
@@ -1013,31 +1077,44 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node& currNode, c
 	//The root node is a map; get its keys and iterate
 	Value::Members keys = root.getMemberNames();
 	for (auto itr=keys.begin(); itr!=keys.end(); itr++) {
-		//Key: For each dot-seperated ID, advance the current node
-		Node* childNode = &currNode;
-		vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
-		for (auto key=opts.begin(); key!=opts.end(); key++) {
-			childNode = &childNode->getOrAddChild(*key);
-		}
-
-		//Value: Store another child node (and recurse) or make this a leaf node
-		const Value* value = &root[*itr];
-		if (value->isObject()) {
-			//Inductive case: Continue reading all options under this type
-			this->buildUpConfigTree(*value, *childNode, currDirPath, OnSetCallback);
-		} else if (value->isString()) {
-			//Base case: the "value" is also a string (set the property)
-			childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
-			childNode->setAndPropagateDirty(true);
-
-			//Callback
-			if (OnSetCallback) {
-			//for (auto it=OnSetCallbacks.begin(); it!=OnSetCallbacks.end(); it++) {
-				//(*it)(*childNode);
-				OnSetCallback(*childNode);
+		try {
+			//Key: For each dot-seperated ID, advance the current node
+			Node* childNode = &currNode;
+			vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
+			for (auto key=opts.begin(); key!=opts.end(); key++) {
+				childNode = &childNode->getOrAddChild(*key);
 			}
-		} else {
-			throw std::runtime_error("ERROR: Config file options should always be string or hash types.");
+
+			//Value: Store another child node (and recurse) or make this a leaf node
+			const Value* value = &root[*itr];
+			if (value->isObject()) {
+				//Inductive case: Continue reading all options under this type
+				this->buildUpConfigTree(*value, *childNode, currDirPath, OnSetCallback);
+			} else if (value->isString()) {
+				//Base case: the "value" is also a string (set the property)
+				childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
+				childNode->setAndPropagateDirty(true);
+
+				//Callback
+				if (OnSetCallback) {
+				//for (auto it=OnSetCallbacks.begin(); it!=OnSetCallbacks.end(); it++) {
+					//(*it)(*childNode);
+					OnSetCallback(*childNode);
+				}
+			} else {
+				throw std::runtime_error("ERROR: Config file options should always be string or hash types.");
+			}
+		} catch (std::exception& ex) {
+			//Gracefully catch
+			wstring fullKey;
+			try {
+				fullKey = currNode.getFullyQualifiedKeyName();
+			} catch (std::exception& ex2) {
+				//NOTE: std::exception() seems to share its "what" variable,
+				//      so we may need to copy it out BEFORE trying to get the "full key"
+				fullKey = L"<undefined>";
+			}
+			throw nodeset_exception(ex.what(), fullKey.c_str());
 		}
 	}
 }
@@ -1049,30 +1126,45 @@ void ConfigManager::walkConfigTree(Node& source, TNode& dest, const TransformNod
 {
 	//Iterate to its children.
 	for (auto it=source.getChildNodes().begin(); it!=source.getChildNodes().end(); it++) {
-		//First, make sure it's non-empty
-		if (it->second.isEmpty())
-			throw std::runtime_error(waitzar::glue(L"Node is empty: ", it->second.getFullyQualifiedKeyName()).c_str());
+		try {
+			//First, make sure it's non-empty
+			if (it->second.isEmpty())
+				throw std::runtime_error(waitzar::glue(L"Node is empty: ", it->second.getFullyQualifiedKeyName()).c_str());
 
-		//Skip clean nodes
-		if (!it->second.isDirty())
-			continue;
+			//Skip clean nodes
+			if (!it->second.isDirty())
+				continue;
 
-		//Next, get its corresponding "verify" node
-		const TransformNode& nextVerify = verify[it->first];
+			//Next, get its corresponding "verify" node
+			const TransformNode& nextVerify = verify[it->first];
 
-		//If the node types don't match, it's also an error
-		if (it->second.isLeaf()!=nextVerify.isLeaf()) {
-			wstring message = nextVerify.isLeaf() ? L"Expected leaf node has children: " : L"Expected interior node has no children: ";
-			throw std::runtime_error(waitzar::glue(message, it->second.getFullyQualifiedKeyName()).c_str());
+			//If the node types don't match, it's also an error
+			if (it->second.isLeaf()!=nextVerify.isLeaf()) {
+				wstring message = nextVerify.isLeaf() ? L"Expected leaf node has children: " : L"Expected interior node has no children: ";
+				throw std::runtime_error(waitzar::glue(message, it->second.getFullyQualifiedKeyName()).c_str());
+			}
+
+			std::cout <<"  Iterate: " <<waitzar::escape_wstr(it->second.getFullyQualifiedKeyName()) <<std::endl;
+
+			//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
+			const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
+			TNode& nextTN = matchAction(it->second, dest, perm);
+			if (!it->second.isLeaf())
+				walkConfigTree(it->second, nextTN, nextVerify, perm);
+			else
+				it->second.setAndPropagateDirty(false); //Clean it; we've read it
+		} catch (std::exception& ex) {
+			//Gracefully catch
+			wstring fullKey;
+			try {
+				fullKey = source.getFullyQualifiedKeyName();
+			} catch (std::exception& ex2) {
+				//NOTE: std::exception() seems to share its "what" variable,
+				//      so we may need to copy it out BEFORE trying to get the "full key"
+				fullKey = L"<undefined>";
+			}
+			throw nodeset_exception(ex.what(), fullKey.c_str());
 		}
-
-		//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
-		const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
-		TNode& nextTN = matchAction(it->second, dest, perm);
-		if (!it->second.isLeaf())
-			walkConfigTree(it->second, nextTN, nextVerify, perm);
-		else
-			it->second.setAndPropagateDirty(false); //Clean it; we've read it
 	}
 }
 
