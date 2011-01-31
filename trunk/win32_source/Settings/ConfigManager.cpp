@@ -564,8 +564,8 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 void ConfigManager::buildVerifyTree() {
 	//Root nodes
 	verifyTree.addChild(L"settings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		//Don't advance on settings yet; it'll lead us to a node collision
-		return d;
+		//Advance
+		return dynamic_cast<ConfigRoot&>(d).settings;
 	});
 	verifyTree.addChild(L"languages", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//We don't have the language ID, so return the same node
@@ -578,11 +578,49 @@ void ConfigManager::buildVerifyTree() {
 
 	//Settings
 	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		SettingsNode& curr = dynamic_cast<SettingsNode&>(d);
-		curr.hotkeyStrRaw = waitzar::purge_filename(s.str());
-		return curr;
+		dynamic_cast<SettingsNode&>(d).hotkey = HotkeyData(waitzar::purge_filename(s.str()));
+		return d;
 	});
-	//TODO: More later
+	verifyTree[L"settings"].addChild(L"silence-mywords-errors" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).silenceMywordsErrors = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"balloon-start" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).balloonStart = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"always-elevate" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).alwaysElevate = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"track-caret" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).trackCaret = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"lock-windows" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).lockWindows = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"suppress-virtual-keyboard" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).suppressVirtualKeyboard = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"default-language" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).defaultLanguage.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"whitespace-characters" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).whitespaceCharacters = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"ignored-characters" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).ignoredCharacters = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"settings"].addChild(L"hide-whitespace-markings" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		dynamic_cast<SettingsNode&>(d).hideWhitespaceMarkings = waitzar::read_bool(s.str());
+		return d;
+	});
 
 
 	//Extensions
@@ -891,6 +929,8 @@ const Settings& ConfigManager::getSettings()
 //Build the tree, then walk it into the existing setup
 void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const Node& n)> OnSetCallback)
 {
+	std::cout <<"Building: " <<waitzar::escape_wstr(file.getFolderPath()) <<std::endl;
+
 	this->buildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
 	this->walkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
 }
