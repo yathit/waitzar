@@ -138,6 +138,9 @@ private:
 	TransformNode verifyTree;
 
 
+	template <typename T>
+	static T& AddOrCh(std::map<std::wstring, T>& existing, const Node& node, bool addAllowed, bool chgAllowed);
+
 
 	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet);
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
