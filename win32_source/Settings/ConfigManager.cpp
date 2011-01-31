@@ -805,14 +805,16 @@ const Settings& ConfigManager::getSettings()
 		{
 		vector<wstring> ctxt;
 		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false, false, NULL);
-		this->buildUpConfigTree(this->mainConfig.json(), &root, this->mainConfig.getFolderPath());
+		this->buildAndWalkConfigTree(this->mainConfig, root, troot, verifyTree, PrimaryCfgPerm());
+		//this->buildUpConfigTree(this->mainConfig.json(), &root, this->mainConfig.getFolderPath(), PrimaryCfgPerm());
 		}
 
 		//Second: extensions config
 		if (!this->commonConfig.isEmpty()){
 			vector<wstring> ctxt;
 			this->readInConfig(this->commonConfig.json(), this->commonConfig.getFolderPath(), ctxt, false, true, NULL);
-			this->buildUpConfigTree(this->commonConfig.json(), &root, this->commonConfig.getFolderPath());
+			this->buildAndWalkConfigTree(this->commonConfig, root, troot, verifyTree, ExtendCfgPerm());
+			//this->buildUpConfigTree(this->commonConfig.json(), &root, this->commonConfig.getFolderPath(), ExtendCfgPerm());
 		}
 
 		//Parse each language config file.
@@ -822,10 +824,12 @@ const Settings& ConfigManager::getSettings()
 			vector<wstring> ctxt;
 			for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false, false, NULL);
-				this->buildUpConfigTree(it->first.json(), &root, it->first.getFolderPath());
+				this->buildAndWalkConfigTree(it->first, root, troot, verifyTree, LangLevelCfgPerm());
+				//this->buildUpConfigTree(it->first.json(), &root, it->first.getFolderPath(), LangLevelCfgPerm());
 				for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
 					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false, false, NULL);
-					this->buildUpConfigTree(it2->json(), &root, it2->getFolderPath());
+					this->buildAndWalkConfigTree(*it2, root, troot, verifyTree, LangLevelCfgPerm());
+					//this->buildUpConfigTree(it2->json(), &root, it2->getFolderPath(), LangLevelCfgPerm());
 				}
 			}
 		}
@@ -836,7 +840,8 @@ const Settings& ConfigManager::getSettings()
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
 
 			//Save local opts!
-			this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(),
+			/*this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(), UserLocalCfgPerm(),*/
+			this->buildAndWalkConfigTree(this->localConfig, root, troot, verifyTree, UserLocalCfgPerm(),
 				[&locallySetOptions](const Node& n) {
 					locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
 				}
@@ -844,13 +849,14 @@ const Settings& ConfigManager::getSettings()
 		}
 		if (this->userConfig.isSet()) {
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
-			this->buildUpConfigTree(this->userConfig.json(), &root, this->userConfig.getFolderPath());
+			this->buildAndWalkConfigTree(this->userConfig, root, troot, verifyTree, UserLocalCfgPerm());
+			//this->buildUpConfigTree(this->userConfig.json(), &root, this->userConfig.getFolderPath(), UserLocalCfgPerm());
 		}
 
 
 		//Now walk it and set all settings
-		if (!this->root.isEmpty())
-			this->walkConfigTree(this->root, this->troot, this->verifyTree);
+		/*if (!this->root.isEmpty())
+			this->walkConfigTree(this->root, this->troot, this->verifyTree);*/
 
 
 
@@ -882,16 +888,21 @@ const Settings& ConfigManager::getSettings()
 
 
 
+//Build the tree, then walk it into the existing setup
+void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const Node& n)> OnSetCallback)
+{
+	this->buildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
+	this->walkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
+}
 
-void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback)
+
+void ConfigManager::buildUpConfigTree(const Json::Value& root, Node& currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback)
 {
 	//The root node is a map; get its keys and iterate
 	Value::Members keys = root.getMemberNames();
 	for (auto itr=keys.begin(); itr!=keys.end(); itr++) {
-		//std::cout <<waitzar::escape_wstr(waitzar::mbs2wcs(*itr)) <<std::endl;
-
 		//Key: For each dot-seperated ID, advance the current node
-		Node* childNode = currNode;
+		Node* childNode = &currNode;
 		vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
 		for (auto key=opts.begin(); key!=opts.end(); key++) {
 			childNode = &childNode->getOrAddChild(*key);
@@ -901,7 +912,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 		const Value* value = &root[*itr];
 		if (value->isObject()) {
 			//Inductive case: Continue reading all options under this type
-			this->buildUpConfigTree(*value, childNode, currDirPath, OnSetCallback);
+			this->buildUpConfigTree(*value, *childNode, currDirPath, OnSetCallback);
 		} else if (value->isString()) {
 			//Base case: the "value" is also a string (set the property)
 			childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
@@ -919,8 +930,9 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 }
 
 
+
 //Walk the root, build up options as you go.
-void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const TransformNode& verify)
+void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm)
 {
 	//Iterate to its children.
 	for (auto it=source.getChildNodes().begin(); it!=source.getChildNodes().end(); it++) {
@@ -939,9 +951,9 @@ void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const Transf
 
 		//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
 		const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
-		TNode& nextTN = matchAction(it->second, dest, AllCfgPerm());
+		TNode& nextTN = matchAction(it->second, dest, perm);
 		if (!it->second.isLeaf())
-			walkConfigTree(it->second, nextTN, nextVerify);
+			walkConfigTree(it->second, nextTN, nextVerify, perm);
 	}
 }
 
