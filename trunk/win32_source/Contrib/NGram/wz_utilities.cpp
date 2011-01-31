@@ -1994,6 +1994,90 @@ void loc_to_lower(wstring& str)
 
 
 
+//Tokenize on a character
+//Inelegant, but it does what I want it to.
+vector<wstring> separate(wstring str, wchar_t delim)
+{
+	vector<wstring> tokens;
+	std::wstringstream curr;
+	for (size_t i=0; i<str.length(); i++) {
+		if (str[i]!=delim)
+			curr << str[i];
+		if (str[i]==delim || i==str.length()-1) {
+			tokens.push_back(curr.str());
+			curr.str(L"");
+		}
+	}
+
+	return tokens;
+}
+
+
+//Take an educated guess as to whether or not this is a file.
+bool IsProbablyFile(const std::wstring& str)
+{
+	//First, get the right-most "."
+	size_t lastDot = str.rfind(L'.');
+	if (lastDot==wstring::npos)
+		return false;
+
+	//It's a file if there are between 1 and 4 characters after this dot
+	int diff = str.size() - 1 - (int)lastDot;
+	return (diff>=1 && diff<=4);
+}
+
+
+//Remove leading and trailing whitespace
+wstring sanitize_value(const wstring& str, const std::wstring& filePath)
+{
+	//First, remove spurious spaces/tabs/newlines
+	size_t firstLetter = str.find_first_not_of(L" \t\n");
+	size_t lastLetter = str.find_last_not_of(L" \t\n");
+	if (firstLetter==wstring::npos||lastLetter==wstring::npos)
+		return L"";
+
+	//Next, try to guess if this represents a file
+	wstring res = str.substr(firstLetter, lastLetter-firstLetter+1);
+	if (IsProbablyFile(res)) {
+		//Replace all "/" with "\\"
+		std::replace(res.begin(), res.end(), L'/', L'\\');
+
+		//Ensure it references no sub-directories whatsoever
+		if (res.find(L'\\')!=wstring::npos)
+			throw std::runtime_error("Config files cannot reference files outside their own directories.");
+
+		//Append the directory (and a "\\" if needed)
+		res = filePath + (filePath[filePath.size()-1]==L'\\'?L"":L"\\") + res;
+	}
+	return res;
+}
+
+
+
+string GetMD5Hash(const std::string& fileName) {
+	//Some variables
+	const size_t digest_size = 16;
+	md5_state_t state;
+	md5_byte_t digest[digest_size];
+
+	//Get the file's binary data
+	string data = waitzar::ReadBinaryFile(fileName);
+
+	//Run the algorithm on the data
+	md5_init(&state);
+	md5_append(&state, (const md5_byte_t *)data.c_str(), data.size());
+	md5_finish(&state, digest);
+
+	std::stringstream md5Res;
+	md5Res <<std::hex;
+	for (size_t i=0; i<digest_size; i++) {
+		md5Res <<((digest[i]<0x10)?"0":"") <<(unsigned int)(digest[i]);
+	}
+	return md5Res.str();
+}
+
+
+
 } //End waitzar namespace
 
 

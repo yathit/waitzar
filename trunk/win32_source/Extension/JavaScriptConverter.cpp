@@ -18,7 +18,7 @@ wchar_t* JavaScriptConverter::large_array = new wchar_t[JavaScriptConverter::MAX
 
 //Load the DLL. Has no effect if the DLL has already been loaded.
 //Sets its own status to "disabled" if an error occurs.
-void JavaScriptConverter::InitDLL(std::string (*MD5Function)(const std::string&))
+void JavaScriptConverter::InitDLL(/*std::string (*MD5Function)(const std::string&)*/)
 {
 	//Return if we don't want to use this module
 	if (!this->enabled)
@@ -30,7 +30,7 @@ void JavaScriptConverter::InitDLL(std::string (*MD5Function)(const std::string&)
 
 	//Check its MD5 hash
 	if (this->requireChecksum) {
-		string checksum = MD5Function(waitzar::escape_wstr(this->libraryFilePath, false));
+		string checksum = waitzar::GetMD5Hash(waitzar::escape_wstr(this->libraryFilePath, false));
 		if (checksum!=waitzar::escape_wstr(this->libraryFileChecksum, false)) {
 			this->enabled = false;
 			return;

@@ -15,6 +15,7 @@
 #include "Input/LetterInputMethod.h"
 #include "Input/keymagic_vkeys.h"
 #include "NGram/Logger.h"
+#include "NGram/wz_utilities.h"
 
 
 //NOTE TO SELF: KMRT_STRING values which appear in sequence COMBINE to form one string
@@ -313,7 +314,7 @@ public:
 	void loadTextRulesFile(const std::string& rulesFilePath);
 	void loadBinaryRulesFile(const std::string& rulesFilePath);
 	void saveBinaryRulesFile(const std::string& rulesFilePath, const std::string& checksum);
-	void loadRulesFile(const std::string& rulesFilePath, const std::string& binaryFilePath, bool disableCache, std::string (*fileMD5Function)(const std::string&));
+	void loadRulesFile(const std::string& rulesFilePath, const std::string& binaryFilePath, bool disableCache/*, std::string (*fileMD5Function)(const std::string&)*/);
 	std::wstring applyRules(const std::wstring& origInput, unsigned int vkeyCode);
 
 	//Additional useful stuff

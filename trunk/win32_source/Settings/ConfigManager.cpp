@@ -12,20 +12,14 @@ using std::pair;
 using std::wstring;
 using std::string;
 
-/*using json_spirit::wValue;
-using json_spirit::wObject;
-using json_spirit::wPair;
-using json_spirit::obj_type;
-using json_spirit::str_type;*/
 using Json::Value;
 
-
-ConfigManager::ConfigManager(std::string (*myMD5Function)(const std::string&)){
+ConfigManager::ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/){
 	this->loadedSettings = false;
 	this->loadedLanguageMainFiles = false;
 	this->loadedLanguageSubFiles = false;
 
-	this->getMD5Function = myMD5Function;
+	//this->getMD5Function = myMD5Function;
 
 	//Save the current working directory
 	/*char* buffer;
@@ -159,7 +153,7 @@ void ConfigManager::resolvePartialSettings()
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				const_cast<Language&>(*lang).inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second, getMD5Function));
+				const_cast<Language&>(*lang).inputMethods.insert(WZFactory<waitzar::WordBuilder>::makeInputMethod(id, *lang, it->second/*, getMD5Function*/));
 			else if (i==PART_ENC) 
 				const_cast<Language&>(*lang).encodings.insert(WZFactory<waitzar::WordBuilder>::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) {
@@ -199,7 +193,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	//Step 1.5; check all DLLs
 	for (auto it=options.extensions.begin(); it!=options.extensions.end(); it++) {
 		if (const_cast<Extension*>(*it)->id==L"javascript")
-			((JavaScriptConverter*)*it)->InitDLL(getMD5Function);
+			((JavaScriptConverter*)*it)->InitDLL(/*getMD5Function*/);
 	}
 
 
@@ -1471,87 +1465,32 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 
 
 
-//Take an educated guess as to whether or not this is a file.
-bool ConfigManager::IsProbablyFile(const std::wstring& str)
-{
-	//First, get the right-most "."
-	size_t lastDot = str.rfind(L'.');
-	if (lastDot==wstring::npos)
-		return false;
-
-	//It's a file if there are between 1 and 4 characters after this dot
-	int diff = str.size() - 1 - (int)lastDot;
-	return (diff>=1 && diff<=4);
-}
-
-
-//Remove leading and trailing whitespace
-wstring ConfigManager::sanitize_value(const wstring& str, const std::wstring& filePath)
-{
-	//First, remove spurious spaces/tabs/newlines
-	size_t firstLetter = str.find_first_not_of(L" \t\n");
-	size_t lastLetter = str.find_last_not_of(L" \t\n");
-	if (firstLetter==wstring::npos||lastLetter==wstring::npos)
-		return L"";
-
-	//Next, try to guess if this represents a file
-	wstring res = str.substr(firstLetter, lastLetter-firstLetter+1);
-	if (IsProbablyFile(res)) {
-		//Replace all "/" with "\\"
-		std::replace(res.begin(), res.end(), L'/', L'\\');
-
-		//Ensure it references no sub-directories whatsoever
-		if (res.find(L'\\')!=wstring::npos)
-			throw std::runtime_error("Config files cannot reference files outside their own directories.");
-
-		//Append the directory (and a "\\" if needed)
-		res = filePath + (filePath[filePath.size()-1]==L'\\'?L"":L"\\") + res;
-	}
-	return res;
-}
-
 //Sanitize, then return in lowercase, with '-', '_', and whitespace removed
-wstring ConfigManager::sanitize_id(const wstring& str) 
+/*wstring ConfigManager::sanitize_id(const wstring& str)
 {
 	return waitzar::sanitize_id(str);
-}
+}*/
 
 
 //Remove a filename if we've added it
-wstring ConfigManager::purge_filename(const wstring& str)
+/*wstring ConfigManager::purge_filename(const wstring& str)
 {
 	return waitzar::purge_filename(str);
-}
+}*/
 
 
-//Tokenize on a character
-//Inelegant, but it does what I want it to.
-vector<wstring> ConfigManager::separate(wstring str, wchar_t delim)
-{
-	vector<wstring> tokens;
-	std::wstringstream curr;
-	for (size_t i=0; i<str.length(); i++) {
-		if (str[i]!=delim)
-			curr << str[i];
-		if (str[i]==delim || i==str.length()-1) {
-			tokens.push_back(curr.str());
-			curr.str(L"");
-		}
-	}
 
-	return tokens;
-}
 
-bool ConfigManager::read_bool(const std::wstring& str)
+/*bool ConfigManager::read_bool(const std::wstring& str)
 {
 	return waitzar::read_bool(str);
-}
+}*/
 
 
-int ConfigManager::read_int(const std::wstring& str)
+/*int ConfigManager::read_int(const std::wstring& str)
 {
 	return waitzar::read_int(str);
-}
+}*/
 
 
 

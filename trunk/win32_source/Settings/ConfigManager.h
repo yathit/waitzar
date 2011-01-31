@@ -71,7 +71,7 @@ struct OptionTree {
 class ConfigManager
 {
 public:
-	ConfigManager(std::string (*myMD5Function)(const std::string&));
+	ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/);
 	~ConfigManager(void);
 
 	//Build our config. manager up slowly
@@ -114,13 +114,13 @@ public:
 	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings);
 
 	//Useful
-	bool IsProbablyFile(const std::wstring& str);
-	std::wstring purge_filename(const std::wstring& str);
-	std::wstring sanitize_id(const std::wstring& str);
-	std::wstring sanitize_value(const std::wstring& str, const std::wstring& filePath);
-	std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
-	bool read_bool(const std::wstring& str);
-	int read_int(const std::wstring& str);
+	//bool IsProbablyFile(const std::wstring& str);
+	//std::wstring purge_filename(const std::wstring& str);
+	//std::wstring sanitize_id(const std::wstring& str);
+	//std::wstring sanitize_value(const std::wstring& str, const std::wstring& filePath);
+	//std::vector<std::wstring> separate(std::wstring str, wchar_t delim);
+	//bool read_bool(const std::wstring& str);
+	//int read_int(const std::wstring& str);
 
 	//Kind of out of place, but it works
 	//void generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData);
@@ -157,7 +157,7 @@ private:
 	JsonFile userConfig;
 
 	//Workaround
-	std::string (*getMD5Function)(const std::string&);
+	//std::string (*getMD5Function)(const std::string&);
 
 
 	//Current working directory

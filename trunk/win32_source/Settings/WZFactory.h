@@ -59,7 +59,7 @@ public:
 	~WZFactory(void);
 
 	//Builders
-	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options, std::string (*fileMD5Function)(const std::string&));
+	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options/*, std::string (*fileMD5Function)(const std::string&)*/);
 	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
 	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
 	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options, const JavaScriptConverter* const jsInterpreter);
@@ -68,7 +68,7 @@ public:
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID, const std::wstring& extraWordsFileName, const std::wstring& userWordsFileName);
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID);
 	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName);
-	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache, std::string (*fileMD5Function)(const std::string&));
+	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache/*, std::string (*fileMD5Function)(const std::string&)*/);
 	static LetterInputMethod* getMywinInput(std::wstring langID);
 
 	//Display method builders
@@ -467,7 +467,7 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory<ModelType>::getBurglishInp
 
 //Get a keymagic input method
 template <class ModelType>
-LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache, std::string (*fileMD5Function)(const std::string&))
+LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache/*, std::string (*fileMD5Function)(const std::string&)*/)
 {
 	wstring fullID = langID + L"." + inputID;
 
@@ -509,7 +509,7 @@ LetterInputMethod* WZFactory<ModelType>::getKeyMagicBasedInput(std::wstring lang
 		//Build our result
 		KeyMagicInputMethod* res = new KeyMagicInputMethod();
 		res->init(WZFactory<ModelType>::mainWindow, WZFactory<ModelType>::sentenceWindow, WZFactory<ModelType>::helpWindow, WZFactory<ModelType>::memoryWindow, WZFactory<ModelType>::systemWordLookup, WZFactory<ModelType>::helpKeyboard, waitzar::WZSystemDefinedWords);
-		res->loadRulesFile(wordlistFileName, binaryName.str(), disableCache, fileMD5Function);
+		res->loadRulesFile(wordlistFileName, binaryName.str(), disableCache/*, fileMD5Function*/);
 		res->disableCache = disableCache;
 
 		WZFactory<ModelType>::cachedLetterInputs[fullID] = res;
@@ -700,7 +700,7 @@ void WZFactory<ModelType>::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, 
 
 
 template <class ModelType>
-InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options, std::string (*fileMD5Function)(const std::string&))
+InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options/*, std::string (*fileMD5Function)(const std::string&)*/)
 {
 	InputMethod* res = NULL;
 
@@ -782,7 +782,7 @@ InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& id, const
 			disableCache = true;
 
 		//Get it, as a singleton
-		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache, fileMD5Function);
+		res = WZFactory<ModelType>::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache/*, fileMD5Function*/);
 		res->type = IME_KEYBOARD;
 	} else {
 		throw std::runtime_error(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());

@@ -76,13 +76,13 @@ vector< pair<wstring, wstring> > KeyMagicInputMethod::convertToRulePairs()
 }
 
 
-void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const string& binaryFilePath, bool disableCache, std::string (*fileMD5Function)(const std::string&))
+void KeyMagicInputMethod::loadRulesFile(const string& rulesFilePath, const string& binaryFilePath, bool disableCache/*, std::string (*fileMD5Function)(const std::string&)*/)
 {
 	//The first thing we need to do is determine whether we're loading the source file (text) or a binary compiled cache
 	// of this file. Then, just pass off the relevant data to whichever function performs the relevant loading.
 	// Finally, we may choose to cache the resultant file.
 	bool reloadSourceText = true;
-	string actualMD5 = fileMD5Function(rulesFilePath);
+	string actualMD5 = waitzar::GetMD5Hash(rulesFilePath);
 	if (!disableCache) {
 		//Does the binary file exist?
 		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
