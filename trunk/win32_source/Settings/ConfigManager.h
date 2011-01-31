@@ -134,7 +134,7 @@ private:
 	void walkConfigTree(Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm);
 	void buildVerifyTree();
 	const ConfigRoot& sealConfig();
-	map<wstring, wstring> locallySetOptions; //TODO: Replace later
+	std::map<std::wstring, std::wstring> locallySetOptions; //TODO: Replace later
 	Node root;
 	ConfigRoot troot;
 	TransformNode verifyTree;
@@ -145,11 +145,11 @@ private:
 	static T& AddOrCh(std::map<std::wstring, T>& existing, const Node& node, bool addAllowed, bool chgAllowed);
 
 
-	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet);
+	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, std::map<std::wstring, std::wstring>* const optionsSet);
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
 
 	void resolvePartialSettings();
-	void generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings);
+	void generateInputsDisplaysOutputs(const std::map<std::wstring, std::vector<std::wstring> >& lastUsedSettings);
 
 private:
 	//Our many config files.
@@ -185,8 +185,8 @@ private:
 
 	//The actual representation
 	OptionTree options;
-	map<wstring, wstring> localOpts;
-	map<wstring, wstring> localOptsBackup;
+	std::map<std::wstring, std::wstring> localOpts;
+	std::map<std::wstring, std::wstring> localOptsBackup;
 	bool localConfError;
 
 	//Cache

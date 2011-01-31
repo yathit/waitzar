@@ -867,7 +867,7 @@ vector<string> GetConfigSubDirs(std::string dirToCheck, std::string configFileNa
 		newpath <<dirToCheck.c_str();
 		newpath <<"/" <<path.c_str();
 		newpath <<"/" <<configFileName.c_str();
-		if (!WZFactory<waitzar::WordBuilder>::FileExists(newpath.str()))
+		if (!WZFactory::FileExists(newpath.str()))
 			continue;
 
 		resDir.push_back(allDir[i]);
@@ -1584,8 +1584,8 @@ void initCalculateHelp()
 
 	//Copy this font for use in the memory box
 	//TODO: Something else.
-	helpFntMemory = (PulpCoreFont*)WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
-	DisplayMethod* zgSmall = WZFactory<WordBuilder>::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
+	helpFntMemory = (PulpCoreFont*)WZFactory::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
+	DisplayMethod* zgSmall = WZFactory::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
 	//= (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 
 	//Make
@@ -3465,7 +3465,7 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 
 void createMyanmarMenuFont()
 {
-	menuFont = (TtfDisplay*)WZFactory<WordBuilder>::getPadaukZawgyiTtfDisplay(L"myanmar", L"pdkzgwz");
+	menuFont = (TtfDisplay*)WZFactory::getPadaukZawgyiTtfDisplay(L"myanmar", L"pdkzgwz");
 }
 
 
@@ -4220,13 +4220,13 @@ bool findAndLoadAllConfigFiles()
 			//Try to create the folder if it doesn't exist
 			std::wstringstream temp;
 			temp << pathLocalFolder.c_str();
-			if (!WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
+			if (!WZFactory::FileExists(temp.str()))
 				CreateDirectory(temp.str().c_str(), NULL);
 
 			//Does the config FILE exist?
 			temp.str(L"");
 			temp << pathLocalConfig.c_str();
-			if (WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
+			if (WZFactory::FileExists(temp.str()))
 				config.initLocalConfig(pathLocalConfig);
 			else {
 				//Create the file
@@ -4240,7 +4240,7 @@ bool findAndLoadAllConfigFiles()
 			//Does it exist?
 			std::wstringstream temp;
 			temp << pathUserConfig.c_str();
-			if (WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
+			if (WZFactory::FileExists(temp.str()))
 				config.initUserConfig(pathUserConfig);
 			else {
 				//Create the file
@@ -4254,7 +4254,7 @@ bool findAndLoadAllConfigFiles()
 		//  and avoid the warning message box.
 		std::wstringstream temp;
 		temp << cfgDir.c_str();
-		if (!WZFactory<waitzar::WordBuilder>::FileExists(temp.str())) {
+		if (!WZFactory::FileExists(temp.str())) {
 			suppressThisException = true;
 			throw std::runtime_error("No config directory");
 		}
@@ -4441,7 +4441,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		//Delete the old error file, if it exists
 		std::wstringstream temp;
 		temp <<outFileName.c_str();
-		if (WZFactory<waitzar::WordBuilder>::FileExists(temp.str()))
+		if (WZFactory::FileExists(temp.str()))
 			remove(waitzar::escape_wstr(outFileName, false).c_str()); //Will only fail if the file doesn't exist anyway.
 
 
