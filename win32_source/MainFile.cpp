@@ -4538,6 +4538,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Init typing log:
 	Logger::resetLogFile('T');
 
+	//Init config log
+	Logger::resetLogFile('C');
+
 	//Init log:
 	Logger::resetLogFile('L');
 	Logger::startLogTimer('L', L"Starting WaitZar {");
