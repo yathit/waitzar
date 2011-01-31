@@ -193,12 +193,15 @@ public:
 	//Simple properties
 	mutable std::wstring id;
 	std::wstring displayName;
-	int type; //enum class later
+	std::wstring type; //enum class later
 	bool suppressUppercase;
 	bool typeNumeralConglomerates;
 	bool disableCache;
 	bool typeBurmeseNumbers;
-	int controlKeyStyle; //enum class later
+	std::wstring controlKeyStyle; //enum class later
+
+	//Derived properties
+	std::wstring userWordsFile;
 
 private:
 	//Pointer-pairs

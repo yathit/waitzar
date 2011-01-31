@@ -38,7 +38,7 @@
 #      }
     },
     
-    "tranformations" : {
+    "transformations" : {
       "ayar2uni" :
       {
         "from-encoding" : "ayar",

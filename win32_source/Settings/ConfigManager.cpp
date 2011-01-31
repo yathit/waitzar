@@ -809,6 +809,77 @@ void ConfigManager::buildVerifyTree() {
 
 
 
+	//Encoding
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<EncNode&>(d).displayName = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"initial", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<EncNode&>(d).initial = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"image", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<EncNode&>(d).imagePath = s.str();
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"use-as-output", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<EncNode&>(d).canUseAsOutput = waitzar::read_bool(s.str());
+		return d;
+	});
+
+
+	//Input method
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).displayName = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).encoding.first = waitzar::sanitize_id(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"user-words-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).userWordsFile = s.str();
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).type = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type-burmese-numerals", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).typeBurmeseNumbers = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"suppress-uppercase", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).suppressUppercase = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"control-keys", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).controlKeyStyle = waitzar::purge_filename(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"numeral-conglomerate", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).typeNumeralConglomerates = waitzar::read_bool(s.str());
+		return d;
+	});
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"disable-cache", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+		//Cast and set
+		dynamic_cast<InMethNode&>(d).disableCache = waitzar::read_bool(s.str());
+		return d;
+	});
+
+
 	//Display method
 	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
@@ -1285,7 +1356,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 					partialEncodings[key][sanitize_id(name[4])] = value;
 					if (partialEncodings[key].size()==1) //First option
 						partialEncodings[key][sanitize_id(L"current-folder")] = L"";
-				} else if (name[2] == sanitize_id(L"tranformations")) {
+				} else if (name[2] == sanitize_id(L"transformations")) {
 					//Transformations
 					wstring transName = name[3];
 

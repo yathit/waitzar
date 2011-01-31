@@ -102,7 +102,7 @@
   # Please see the project wiki for more instructions:
   #   http://code.google.com/p/waitzar/w/list
   # ...or contact help@waitzar.com
-  "tranformations" : 
+  "transformations" : 
   {
     # Convert from Unicode to Zawgyi-One
     "uni2zg" : 
