@@ -14,10 +14,18 @@ using std::string;
 
 using Json::Value;
 
+//TODO: Remove this silly "class dependency" in WZFactory.
+using waitzar::WordBuilder;
+
+
 ConfigManager::ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/){
 	this->loadedSettings = false;
 	this->loadedLanguageMainFiles = false;
 	this->loadedLanguageSubFiles = false;
+
+
+	//Once sealed, you can't load any more files.
+	this->sealed = false;
 
 	//this->getMD5Function = myMD5Function;
 
@@ -45,6 +53,9 @@ ConfigManager::~ConfigManager(void){}
  */
 void ConfigManager::initMainConfig(const std::string& configFile, bool fileIsStream)
 {
+	if (this->sealed)
+		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
+
 	//Save the file, we will load it later when we need it
 	this->mainConfig = JsonFile(configFile, fileIsStream);
 }
@@ -53,6 +64,9 @@ void ConfigManager::initMainConfig(const std::string& configFile, bool fileIsStr
 
 void ConfigManager::initCommonConfig(const std::string& configFile)
 {
+	if (this->sealed)
+		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
+
 	//Save the file, we will load it later when we need it
 	this->commonConfig = JsonFile(configFile, false);
 }
@@ -83,6 +97,9 @@ void ConfigManager::initCommonConfig(const std::string& configFile)
  */
 void ConfigManager::initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles)
 {
+	if (this->sealed)
+		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
+
 	//Convert std::strings to JsonFiles
 	std::vector<JsonFile> cfgs;
 	for (size_t i=0; i<subConfigFiles.size(); i++)
@@ -106,6 +123,9 @@ void ConfigManager::initAddLanguage(const std::string& configFile, const std::ve
  */
 void ConfigManager::initLocalConfig(const std::string& configFile)
 {
+	if (this->sealed)
+		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
+
 	//Save the file, we will load it later when we need it
 	this->localConfig = configFile;
 }
@@ -124,6 +144,9 @@ void ConfigManager::initLocalConfig(const std::string& configFile)
  */
 void ConfigManager::initUserConfig(const std::string& configFile)
 {
+	if (this->sealed)
+		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
+
 	//Save the file, we will load it later when we need it
 	this->userConfig = configFile;
 }
@@ -196,6 +219,8 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 			((JavaScriptConverter*)*it)->InitDLL(/*getMD5Function*/);
 	}
 
+	//TMEP: Needed for our new loader
+	sealConfig();
 
 	//Step 2: Un-cache
 	resolvePartialSettings();
@@ -399,6 +424,57 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 		}
 	}
 }
+
+
+
+//
+// This is the only way to get an instance of TNode from the config manager; use it to load a RuntimeConfig() object
+//
+const ConfigRoot& ConfigManager::sealConfig()
+{
+	//Shortcut; already sealed once
+	if (this->sealed)
+		return troot;
+
+	//Load all extensions
+	for (auto langIt=troot.extensions.begin(); langIt!=troot.extensions.end(); langIt++) {
+		if (langIt->first == L"javascript") {
+			JavaScriptConverter* ex = new JavaScriptConverter(langIt->first);
+
+			//TO-DO: Later, pass this node as a reference for the class to use when loading
+			ex->libraryFilePath = langIt->second.libraryFilePath;
+			ex->libraryFileChecksum = langIt->second.libraryFileChecksum;
+			ex->requireChecksum = langIt->second.requireChecksum;
+			ex->enabled = langIt->second.enabled;
+
+			ex->InitDLL();
+			langIt->second.impl = ex;
+		} else {
+			Extension* ex = new Extension(langIt->first);
+
+			//TO-do: see above
+
+			ex->InitDLL();
+			langIt->second.impl = ex;
+		}
+	}
+
+	//Load all objects using our factory methods
+	for (auto langIt=troot.languages.begin(); langIt!=troot.languages.end(); langIt++) {
+		//Input methods
+		for (auto inIt=langIt->second.inputMethods.begin(); inIt!=langIt->second.inputMethods.end(); inIt++) {
+			inIt->second.impl = WZFactory<WordBuilder>::makeInputMethod(langIt->first, inIt->first, inIt->second);
+		}
+
+	}
+
+
+
+	//Done
+	this->sealed = true;
+	return troot;
+}
+
 
 
 
@@ -793,7 +869,7 @@ void ConfigManager::buildVerifyTree() {
 	});
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
 		//Cast and set
-		dynamic_cast<InMethNode&>(d).encoding.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<InMethNode&>(d).encoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"user-words-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{

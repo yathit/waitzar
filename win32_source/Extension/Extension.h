@@ -33,7 +33,7 @@ public:
 
 
 	//Initializing is predictable
-	virtual void InitDLL(std::string (*MD5Function)(const std::string&)) {}
+	virtual void InitDLL(/*std::string (*MD5Function)(const std::string&)*/) {}
 
 
 	//Allow map comparison
