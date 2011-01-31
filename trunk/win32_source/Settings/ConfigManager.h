@@ -126,7 +126,7 @@ public:
 
 private:
 	//These two functions replace "readInConfig"
-	void buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
+	void buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, const CfgPerm& currPermissions, std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
 	void walkConfigTree(const Node& source, TNode& dest, const TransformNode& verify);
 	void buildVerifyTree();
 	map<wstring, wstring> locallySetOptions; //TODO: Replace later

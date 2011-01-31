@@ -563,21 +563,21 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 //Bulid the tree of nodes we plan on using for verifying the syntax of the string-map tree
 void ConfigManager::buildVerifyTree() {
 	//Root nodes
-	verifyTree.addChild(L"settings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree.addChild(L"settings", [](const Node& s, TNode& d)->TNode&{
 		//Don't advance on settings yet; it'll lead us to a node collision
 		return d;
 	});
-	verifyTree.addChild(L"languages", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree.addChild(L"languages", [](const Node& s, TNode& d)->TNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree.addChild(L"extensions", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree.addChild(L"extensions", [](const Node& s, TNode& d)->TNode&{
 		//We don't have the extension ID, so return the same node
 		return d;
 	});
 
 	//Settings
-	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, TNode& d)->TNode&{
 		SettingsNode& curr = dynamic_cast<SettingsNode&>(d);
 		curr.hotkeyStrRaw = waitzar::purge_filename(s.str());
 		return curr;
@@ -586,17 +586,17 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Extensions
-	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, TNode& d)->TNode&{
 		auto& extMap = dynamic_cast<ConfigRoot&>(d).extensions;
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
-		if (!perms.chgExtension)
+		if (!s.perm().chgExtension)
 			throw std::runtime_error("Can't modify existing \"extensions\".");
 
 		//Add it if it doesn't exist
 		if (extMap.count(key)==0) {
-			if (!perms.addExtension)
+			if (!s.perm().addExtension)
 				throw std::runtime_error("Can't add a new \"extension\".");
 			extMap[key] = ExtendNode(key);
 		}
@@ -606,22 +606,22 @@ void ConfigManager::buildVerifyTree() {
 	});
 
 	//Single extension properties
-	verifyTree[L"extensions"][L"*"].addChild(L"library-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"library-file", [](const Node& s, TNode& d)->TNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).libraryFilePath = s.str();
 		return d;
 	});
-	verifyTree[L"extensions"][L"*"].addChild(L"enabled", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"enabled", [](const Node& s, TNode& d)->TNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).enabled = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"extensions"][L"*"].addChild(L"md5-hash", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"md5-hash", [](const Node& s, TNode& d)->TNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).libraryFileChecksum = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"extensions"][L"*"].addChild(L"check-md5", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"check-md5", [](const Node& s, TNode& d)->TNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).requireChecksum = waitzar::read_bool(s.str());
 		return d;
@@ -629,17 +629,17 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Languages
-	verifyTree[L"languages"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"].addChild(L"*", [](const Node& s, TNode& d)->TNode&{
 		auto& langMap = dynamic_cast<ConfigRoot&>(d).languages;
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
-		if (!perms.chgLanguage)
+		if (!s.perm().chgLanguage)
 			throw std::runtime_error("Can't modify existing \"languages\".");
 
 		//Add it if it doesn't exist
 		if (langMap.count(key)==0) {
-			if (!perms.addLanguage)
+			if (!s.perm().addLanguage)
 				throw std::runtime_error("Can't add a new \"language\".");
 			langMap[key] = LangNode(key);
 		}
@@ -649,27 +649,27 @@ void ConfigManager::buildVerifyTree() {
 	});
 
 	//Language properties
-	verifyTree[L"languages"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d)->TNode&{
     	//Set it, return same
 		dynamic_cast<LangNode&>(d).displayName = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-display-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-display-method", [](const Node& s, TNode& d)->TNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultDisplayMethodReg.first = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-display-method-small", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-display-method-small", [](const Node& s, TNode& d)->TNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultDisplayMethodSmall.first = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-output-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-output-encoding", [](const Node& s, TNode& d)->TNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultOutputEncoding.first = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-input-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-input-method", [](const Node& s, TNode& d)->TNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultInputMethod.first = waitzar::sanitize_id(s.str());
 		return d;
@@ -677,36 +677,36 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Language sub-classes
-	verifyTree[L"languages"][L"*"].addChild(L"input-methods", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"input-methods", [](const Node& s, TNode& d)->TNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"encodings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"encodings", [](const Node& s, TNode& d)->TNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"transformations", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"transformations", [](const Node& s, TNode& d)->TNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"display-methods", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"display-methods", [](const Node& s, TNode& d)->TNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
 
 
 	//Language containers
-	verifyTree[L"languages"][L"*"][L"input-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"].addChild(L"*", [](const Node& s, TNode& d)->TNode&{
 		auto& imMap = dynamic_cast<LangNode&>(d).inputMethods;
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
-		if (!perms.chgLangInputMeth)
+		if (!s.perm().chgLangInputMeth)
 			throw std::runtime_error("Can't modify existing \"input-method\".");
 
 		//Add it if it doesn't exist
 		if (imMap.count(key)==0) {
-			if (!perms.addLangInputMeth)
+			if (!s.perm().addLangInputMeth)
 				throw std::runtime_error("Can't add a new \"input-method\".");
 			imMap[key] = InMethNode(key);
 		}
@@ -714,17 +714,17 @@ void ConfigManager::buildVerifyTree() {
 		//Return it
 		return imMap[key];
 	});
-	verifyTree[L"languages"][L"*"][L"display-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"].addChild(L"*", [](const Node& s, TNode& d)->TNode&{
 		auto& dmMap = dynamic_cast<LangNode&>(d).displayMethods;
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
-		if (!perms.chgLangDispMeth)
+		if (!s.perm().chgLangDispMeth)
 			throw std::runtime_error("Can't modify existing \"display-method\".");
 
 		//Add it if it doesn't exist
 		if (dmMap.count(key)==0) {
-			if (!perms.addLangDispMeth)
+			if (!s.perm().addLangDispMeth)
 				throw std::runtime_error("Can't add a new \"display-method\".");
 			dmMap[key] = DispMethNode(key);
 		}
@@ -732,17 +732,17 @@ void ConfigManager::buildVerifyTree() {
 		//Return it
 		return dmMap[key];
 	});
-	verifyTree[L"languages"][L"*"][L"encodings"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"encodings"].addChild(L"*", [](const Node& s, TNode& d)->TNode&{
 		auto& encMap = dynamic_cast<LangNode&>(d).encodings;
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
-		if (!perms.chgLangEncoding)
+		if (!s.perm().chgLangEncoding)
 			throw std::runtime_error("Can't modify existing \"encoding\".");
 
 		//Add it if it doesn't exist
 		if (encMap.count(key)==0) {
-			if (!perms.addLangEncoding)
+			if (!s.perm().addLangEncoding)
 				throw std::runtime_error("Can't add a new \"encoding\".");
 			encMap[key] = EncNode(key);
 		}
@@ -750,17 +750,17 @@ void ConfigManager::buildVerifyTree() {
 		//Return it
 		return encMap[key];
 	});
-	verifyTree[L"languages"][L"*"][L"transformations"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"transformations"].addChild(L"*", [](const Node& s, TNode& d)->TNode&{
 		auto& transMap = dynamic_cast<LangNode&>(d).transformations;
 		std::wstring key = s.getKeyInParentMap();
 
 		//Can change?
-		if (!perms.chgLangTransform)
+		if (!s.perm().chgLangTransform)
 			throw std::runtime_error("Can't modify existing \"transformation\".");
 
 		//Add it if it doesn't exist
 		if (transMap.count(key)==0) {
-			if (!perms.addLangTransform)
+			if (!s.perm().addLangTransform)
 				throw std::runtime_error("Can't add a new \"transformation\".");
 			transMap[key] = TransNode(key);
 		}
@@ -772,12 +772,12 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Display method
-	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d)->TNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).encoding.first = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d)->TNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).type = waitzar::sanitize_id(s.str());
 		return d;
@@ -805,14 +805,14 @@ const Settings& ConfigManager::getSettings()
 		{
 		vector<wstring> ctxt;
 		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false, false, NULL);
-		this->buildUpConfigTree(this->mainConfig.json(), &root, this->mainConfig.getFolderPath());
+		this->buildUpConfigTree(this->mainConfig.json(), &root, this->mainConfig.getFolderPath(), PrimaryCfgPerm());
 		}
 
 		//Second: extensions config
 		if (!this->commonConfig.isEmpty()){
 			vector<wstring> ctxt;
 			this->readInConfig(this->commonConfig.json(), this->commonConfig.getFolderPath(), ctxt, false, true, NULL);
-			this->buildUpConfigTree(this->commonConfig.json(), &root, this->commonConfig.getFolderPath());
+			this->buildUpConfigTree(this->commonConfig.json(), &root, this->commonConfig.getFolderPath(), ExtendCfgPerm());
 		}
 
 		//Parse each language config file.
@@ -822,10 +822,10 @@ const Settings& ConfigManager::getSettings()
 			vector<wstring> ctxt;
 			for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
 				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false, false, NULL);
-				this->buildUpConfigTree(it->first.json(), &root, it->first.getFolderPath());
+				this->buildUpConfigTree(it->first.json(), &root, it->first.getFolderPath(), LangLevelCfgPerm());
 				for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
 					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false, false, NULL);
-					this->buildUpConfigTree(it2->json(), &root, it2->getFolderPath());
+					this->buildUpConfigTree(it2->json(), &root, it2->getFolderPath(), LangLevelCfgPerm());
 				}
 			}
 		}
@@ -836,7 +836,7 @@ const Settings& ConfigManager::getSettings()
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
 
 			//Save local opts!
-			this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(),
+			this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(), UserLocalCfgPerm(),
 				[&locallySetOptions](const Node& n) {
 					locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
 				}
@@ -844,7 +844,7 @@ const Settings& ConfigManager::getSettings()
 		}
 		if (this->userConfig.isSet()) {
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
-			this->buildUpConfigTree(this->userConfig.json(), &root, this->userConfig.getFolderPath());
+			this->buildUpConfigTree(this->userConfig.json(), &root, this->userConfig.getFolderPath(), UserLocalCfgPerm());
 		}
 
 
@@ -883,7 +883,7 @@ const Settings& ConfigManager::getSettings()
 
 
 
-void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback)
+void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currNode, const std::wstring& currDirPath, const CfgPerm& currPermissions, std::function<void (const Node& n)> OnSetCallback)
 {
 	//The root node is a map; get its keys and iterate
 	Value::Members keys = root.getMemberNames();
@@ -894,14 +894,14 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node* const currN
 		Node* childNode = currNode;
 		vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
 		for (auto key=opts.begin(); key!=opts.end(); key++) {
-			childNode = &childNode->getOrAddChild(*key);
+			childNode = &childNode->getOrAddChild(*key, currPermissions);
 		}
 
 		//Value: Store another child node (and recurse) or make this a leaf node
 		const Value* value = &root[*itr];
 		if (value->isObject()) {
 			//Inductive case: Continue reading all options under this type
-			this->buildUpConfigTree(*value, childNode, currDirPath, OnSetCallback);
+			this->buildUpConfigTree(*value, childNode, currDirPath, currPermissions, OnSetCallback);
 		} else if (value->isString()) {
 			//Base case: the "value" is also a string (set the property)
 			childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
@@ -938,8 +938,8 @@ void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const Transf
 		}
 
 		//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
-		const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
-		TNode& nextTN = matchAction(it->second, dest, AllCfgPerm());
+		const std::function<TNode& (const Node& src, TNode& dest)>& matchAction = nextVerify.getMatchAction();
+		TNode& nextTN = matchAction(it->second, dest);
 		if (!it->second.isLeaf())
 			walkConfigTree(it->second, nextTN, nextVerify);
 	}

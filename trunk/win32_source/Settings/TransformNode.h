@@ -14,7 +14,6 @@
 #include <stdexcept>
 
 #include "NGram/wz_utilities.h"
-#include "Settings/ConfigTreeContainers.h"
 #include "Settings/Node.h"
 
 
@@ -29,7 +28,7 @@ class TransformNode {
 public:
 	//Constructor
 	TransformNode(const std::wstring& mp=L"",
-			const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& om=std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>()) : matchPattern(mp), OnMatch(om) {
+			const std::function<TNode& (const Node& src, TNode& dest)>& om=std::function<TNode& (const Node& src, TNode& dest)>()) : matchPattern(mp), OnMatch(om) {
 	}
 
 	//Check properties about this node
@@ -38,7 +37,7 @@ public:
 	}
 
 	//Getters & setters
-	const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>&  getMatchAction() const {
+	const std::function<TNode& (const Node& src, TNode& dest)>&  getMatchAction() const {
 		return OnMatch;
 	}
 
@@ -47,7 +46,7 @@ public:
 	const std::map<std::wstring, TransformNode>& getChildNodes() const {
 		return childrenByName;
 	}
-	void addChild(const std::wstring& rkey, const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)> onMatch) {
+	void addChild(const std::wstring& rkey, const std::function<TNode& (const Node& src, TNode& dest)> onMatch) {
 		std::wstring key = (rkey==L"*") ? rkey : waitzar::sanitize_id(rkey);
 		if (childrenByName.count(key)>0)
 			throw std::runtime_error(waitzar::glue(L"Child already exists for: ", key).c_str());
@@ -77,7 +76,7 @@ public:
 private:
 	//Const data
 	mutable std::wstring matchPattern; //What we match
-	mutable std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)> OnMatch; //What happens when we match it (return next node)
+	mutable std::function<TNode& (const Node& src, TNode& dest)> OnMatch; //What happens when we match it (return next node)
 
 	//Children
 	//NOTE: The key "*" is special; it represents "always match", and is used for identifiers
