@@ -36,7 +36,6 @@
 #include "Transform/Transformation.h"
 #include "Settings/Language.h"
 #include "Settings/Encoding.h"
-#include "Settings/ConfigManager.h"
 #include "Settings/HotkeyData.h"
 
 
@@ -55,83 +54,6 @@ private:
 	wchar_t key_[1024];
 };
 
-
-
-//We define permissions here too
-class CfgPerm {
-public:
-	bool chgSettings;
-
-	bool chgLanguage;
-	bool addLanguage;
-
-	bool chgLangInputMeth;
-	bool addLangInputMeth;
-
-	bool chgLangDispMeth;
-	bool addLangDispMeth;
-
-	bool chgLangTransform;
-	bool addLangTransform;
-
-	bool chgLangEncoding;
-	bool addLangEncoding;
-
-	bool chgExtension;
-	bool addExtension;
-
-	//All false by default
-	CfgPerm(bool chgSettings=false, bool chgLanguage=false, bool addLanguage=false,
-			bool chgLangInputMeth=false, bool addLangInputMeth=false,
-			bool chgLangDispMeth=false, bool addLangDispMeth=false,
-			bool chgLangTransform=false, bool addLangTransform=false,
-			bool chgLangEncoding=false, bool addLangEncoding=false,
-			bool chgExtension=false, bool addExtension=false) :
-		chgSettings(chgSettings), chgLanguage(chgLanguage), addLanguage(addLanguage),
-		chgLangInputMeth(chgLangInputMeth), addLangInputMeth(addLangInputMeth),
-		chgLangDispMeth(chgLangDispMeth), addLangDispMeth(addLangDispMeth),
-		chgLangTransform(chgLangTransform), addLangTransform(addLangTransform),
-		chgLangEncoding(chgLangEncoding), addLangEncoding(addLangEncoding),
-		chgExtension(chgExtension), addExtension(addExtension)
-		{}
-};
-
-
-//The embedded config file and the main (root) config are allowed to make any changes except extensions
-class PrimaryCfgPerm : public CfgPerm {
-public:
-	PrimaryCfgPerm() : CfgPerm(true, true, true,
-			true, true, true, true,
-			true, true, true, true,
-			false, false) {}
-};
-
-//The language (and subdir) configs can make most changes, but not settings or extensions
-class LangLevelCfgPerm :  public CfgPerm {
-public:
-	LangLevelCfgPerm() : CfgPerm(false, true, true,
-			true, true, true, true,
-			true, true, true, true,
-			false, false) {}
-};
-
-//The extension subdir can only change extensions
-class ExtendCfgPerm :  public CfgPerm {
-public:
-	ExtendCfgPerm() : CfgPerm(false, false, false,
-			false, false, false, false,
-			false, false, false, false,
-			true, true) {}
-};
-
-//The local/user config files can change most things, but not add to them.
-class UserLocalCfgPerm : public CfgPerm {
-public:
-	UserLocalCfgPerm() : CfgPerm(true, true, false,
-			true, false, true, false,
-			true, false, true, false,
-			false, false) {}
-};
 
 
 
@@ -157,7 +79,7 @@ public:
 
 private:
 	//Implementation
-	Extension* impl;
+	//Encoding* impl;
 
 	//For loading
 	friend class ConfigManager;
@@ -166,7 +88,7 @@ private:
 public:
 	//Constructor: set the ID here and nowhere else
 	EncNode(const std::wstring& id=L"") : id(id) {
-		this->impl = NULL;
+		//this->impl = NULL;
 		this->canUseAsOutput = false;
 	}
 };
@@ -221,10 +143,10 @@ public:
 	std::wstring extraWordsFile;
 	std::wstring keyboardFile;
 
-private:
-	//Pointer-pairs
-	std::pair<std::wstring, EncNode> encoding;
+	//Refer-by-name
+	std::wstring encoding;
 
+private:
 	//Implementation
 	InputMethod* impl;
 
@@ -286,7 +208,7 @@ public:
 
 private:
 	//Actual
-	Language* impl;
+	//Language* impl;
 
 	//Pairs
 	std::pair<std::wstring, EncNode>      defaultOutputEncoding;
@@ -307,7 +229,7 @@ private:
 public:
 	//Constructor: set the ID here and nowhere else
 	LangNode(const std::wstring& id=L"") : id(id) {
-		this->impl = NULL;
+		//this->impl = NULL;
 	}
 };
 

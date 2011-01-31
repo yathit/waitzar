@@ -22,6 +22,7 @@
 #include "Json CPP/reader.h"
 
 #include "Settings/ConfigTreeContainers.h"
+#include "Settings/CfgPerm.h"
 #include "Settings/TransformNode.h"
 #include "Settings/WZFactory.h"
 #include "Settings/Language.h"
@@ -111,7 +112,7 @@ public:
 	Encoding unicodeEncoding;
 
 	//Quality control
-	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings);
+	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const std::map<std::wstring, std::vector<std::wstring>>& lastUsedSettings);
 
 	//Useful
 	//bool IsProbablyFile(const std::wstring& str);
@@ -132,10 +133,12 @@ private:
 	void buildUpConfigTree(const Json::Value& root, Node& currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback);
 	void walkConfigTree(Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm);
 	void buildVerifyTree();
+	const ConfigRoot& sealConfig();
 	map<wstring, wstring> locallySetOptions; //TODO: Replace later
 	Node root;
 	ConfigRoot troot;
 	TransformNode verifyTree;
+	bool sealed;
 
 
 	template <typename T>

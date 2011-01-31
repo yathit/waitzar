@@ -15,6 +15,7 @@
 
 #include "NGram/wz_utilities.h"
 #include "Settings/ConfigTreeContainers.h"
+#include "Settings/CfgPerm.h"
 #include "Settings/Node.h"
 
 

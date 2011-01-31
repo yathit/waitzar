@@ -33,6 +33,8 @@
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
 #include "Settings/Language.h"
+#include "Settings/CfgPerm.h"
+#include "Settings/ConfigTreeContainers.h"
 #include "Transform/Zg2Uni.h"
 #include "Transform/Uni2Zg.h"
 #include "Transform/Uni2Ayar.h"
@@ -57,6 +59,11 @@ class WZFactory
 public:
 	WZFactory(void);
 	~WZFactory(void);
+
+
+	//New builders
+	static InputMethod* makeInputMethod(const std::wstring& langID, const std::wstring& id, InMethNode& im);
+
 
 	//Builders
 	static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options/*, std::string (*fileMD5Function)(const std::string&)*/);
@@ -697,6 +704,69 @@ void WZFactory<ModelType>::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, 
 	//TODO: Is this needed here?
 	//WZFactory<ModelType>::getWaitZarInput();
 }
+
+
+
+template <class ModelType>
+InputMethod* WZFactory<ModelType>::makeInputMethod(const std::wstring& langID, const std::wstring& id, InMethNode& im)
+{
+	InputMethod* res = NULL;
+
+	//Check required settings
+	if (im.type.empty())
+		throw std::runtime_error("Cannot construct input manager: no \"type\"");
+	if (im.encoding.empty())
+		throw std::runtime_error("Cannot construct input manager: no \"encoding\"");
+	if (im.displayName.empty())
+		throw std::runtime_error("Cannot construct input manager: no \"display-name\"");
+
+	//Make an object based on the type
+	if (waitzar::sanitize_id(im.type)==L"builtin") { //TODO: remove "sanitize_id"
+		if (im.id==L"waitzar") {
+			res = WZFactory<ModelType>::getWaitZarInput(langID, im.extraWordsFile, im.userWordsFile);
+		} else if (im.id==L"mywin") {
+			res = WZFactory<ModelType>::getMywinInput(langID);
+		} else if (im.id==L"burglish") {
+			res = WZFactory<ModelType>::getBurglishInput(langID);
+		} else {
+			throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", im.id).c_str());
+		}
+	} else if (im.type == L"roman") {
+		//Check required wordlist
+		if (im.extraWordsFile.empty())
+			throw std::runtime_error("Cannot construct \"roman\" input manager: no \"wordlist\".");
+
+		//TODO: Test in a cleaner way.
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		if (GetFileAttributesEx(im.extraWordsFile.c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", im.extraWordsFile).c_str());
+
+		//Get it, as a singleton
+		res = WZFactory<ModelType>::getWordlistBasedInput(langID, im.id, waitzar::escape_wstr(im.extraWordsFile));
+	} else if (im.type == L"keymagic") {
+		//Requires a keyboard file
+		if (im.keyboardFile.empty())
+			throw std::runtime_error("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
+
+		//TODO: Test in a cleaner way.
+		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
+		if (GetFileAttributesEx(im.keyboardFile.c_str(), GetFileExInfoStandard, &InfoFile)==FALSE)
+			throw std::runtime_error(waitzar::glue(L"Keyboard file does not exist: ", im.keyboardFile).c_str());
+
+		//Override disabling the cache, keymagic only.
+		if (Logger::isLogging('K'))
+			im.disableCache = true;
+
+		//Get it, as a singleton
+		res = WZFactory<ModelType>::getKeyMagicBasedInput(langID, im.id, waitzar::escape_wstr(im.keyboardFile, false), im.disableCache);
+	} else {
+		throw std::runtime_error(waitzar::glue(L"Invalid type (",im.type, L") for Input Manager: ", im.id).c_str());
+	}
+
+	return res;
+}
+
+
 
 
 template <class ModelType>
