@@ -929,7 +929,8 @@ const Settings& ConfigManager::getSettings()
 //Build the tree, then walk it into the existing setup
 void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const Node& n)> OnSetCallback)
 {
-	std::cout <<"Building: " <<waitzar::escape_wstr(file.getFolderPath()) <<std::endl;
+	std::string folderPath = waitzar::escape_wstr(file.getFolderPath());
+	std::cout <<"Building: " <<(folderPath.empty()?"<default>":folderPath) <<std::endl;
 
 	this->buildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
 	this->walkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
@@ -956,6 +957,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node& currNode, c
 		} else if (value->isString()) {
 			//Base case: the "value" is also a string (set the property)
 			childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
+			childNode->setAndPropagateDirty(true);
 
 			//Callback
 			if (OnSetCallback) {
@@ -972,13 +974,17 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node& currNode, c
 
 
 //Walk the root, build up options as you go.
-void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm)
+void ConfigManager::walkConfigTree(Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm)
 {
 	//Iterate to its children.
 	for (auto it=source.getChildNodes().begin(); it!=source.getChildNodes().end(); it++) {
 		//First, make sure it's non-empty
 		if (it->second.isEmpty())
 			throw std::runtime_error(waitzar::glue(L"Node is empty: ", it->second.getFullyQualifiedKeyName()).c_str());
+
+		//Skip clean nodes
+		if (!it->second.isDirty())
+			continue;
 
 		//Next, get its corresponding "verify" node
 		const TransformNode& nextVerify = verify[it->first];
@@ -994,6 +1000,8 @@ void ConfigManager::walkConfigTree(const Node& source, TNode& dest, const Transf
 		TNode& nextTN = matchAction(it->second, dest, perm);
 		if (!it->second.isLeaf())
 			walkConfigTree(it->second, nextTN, nextVerify, perm);
+		else
+			it->second.setAndPropagateDirty(false); //Clean it; we've read it
 	}
 }
 

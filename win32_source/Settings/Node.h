@@ -28,14 +28,17 @@ public:
 	//Constructors
 	Node() {
 		this->parent = NULL;
+		this->dirty = true;
 	}
 	Node(const std::wstring& val) {
 		this->parent = NULL;
 		this->str(val);
+		this->dirty = true;
 	}
 	Node(const wchar_t* val) {
 		this->parent = NULL;
 		this->str(val);
+		this->dirty = true;
 	}
 
 	//Check properties about this node
@@ -65,7 +68,9 @@ public:
 	}
 
 	//Get/Set children
-	const std::map<std::wstring, Node>& getChildNodes() const {
+	//NOTE: I'd like to make this const, but that would require making "dirty" mutable,
+	//      which seems like an abuse of the keyword.
+	std::map<std::wstring, Node>& getChildNodes() {
 		return childList;
 	}
 	Node& getOrAddChild(const std::wstring& rkey) {
@@ -101,6 +106,43 @@ public:
 		return parentKey;
 	}
 
+
+	bool isDirty() const {
+		return dirty;
+	}
+	void setAndPropagateDirty(bool val) {
+		//Nothing
+		if (val==dirty)
+			return;
+
+		//"Dirty" always propagates up
+		if (val) {
+			dirty = val;
+			if (parent!=NULL && !parent->dirty)
+				parent->setAndPropagateDirty(val);
+			return;
+		}
+
+		//"Clean" propagates up if all other children are clean
+		if (!val) {
+			dirty = val;
+			if (parent!=NULL) {
+				bool cleanParent = true;
+				auto candidates = parent->getChildNodes();
+				for (auto it=candidates.begin(); it!=candidates.end(); it++) {
+					if (it->second.isDirty()) {
+						cleanParent = false;
+						break;
+					}
+				}
+				if (cleanParent)
+					parent->setAndPropagateDirty(val);
+			}
+			return;
+		}
+	}
+
+
 private:
 	//Data
 	std::map<std::wstring, Node> childList;
@@ -109,6 +151,9 @@ private:
 	//For fast reverse-lookup of a fully-qualified key name
 	Node* parent;
 	std::wstring parentKey;
+
+	//Partial loading requires this
+	bool dirty;
 
 	//Helper: throw an exception if we're in an invalid state.
 	void assertValid() const {
