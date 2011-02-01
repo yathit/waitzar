@@ -34,8 +34,6 @@
 #include "Display/DisplayMethod.h"
 #include "Input/InputMethod.h"
 #include "Transform/Transformation.h"
-#include "Settings/Language.h"
-#include "Settings/Encoding.h"
 #include "Settings/HotkeyData.h"
 #include "Settings/Types.h"
 
@@ -160,7 +158,7 @@ public:
 	bool typeNumeralConglomerates;
 	bool disableCache;
 	bool typeBurmeseNumbers;
-	std::wstring controlKeyStyle; //enum class later
+	CONTROL_KEY_TYPE controlKeyStyle;
 
 	//Derived properties
 	std::wstring userWordsFile;
@@ -186,7 +184,7 @@ public:
 		this->typeNumeralConglomerates = false;
 		this->disableCache = false;
 		this->typeBurmeseNumbers = true;
-		this->controlKeyStyle = L"chinese";
+		this->controlKeyStyle = CONTROL_KEY_TYPE::CHINESE;
 		this->type = INPUT_TYPE::UNDEFINED;
 	}
 

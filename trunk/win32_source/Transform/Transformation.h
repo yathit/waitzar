@@ -8,42 +8,15 @@
 #define _TRANSFORM
 
 #include "Settings/Types.h"
-#include "Settings/Encoding.h"
 #include <string>
 
 class Transformation {
 public:
-	//Struct-like properties
-	std::wstring id;
-	bool hasPriority;
-	Encoding fromEncoding;
-	Encoding toEncoding;
-	TYPES type;
 
 	//Convert from fromEncoding to toEncoding.
 	//  The references allow us to save processing if the source and destination are the same.
 	virtual void convertInPlace(std::wstring& src) const = 0;
 
-	//Allow map comparison 
-	bool operator<(const Transformation& other) const {
-		return id < other.id;
-	}
-
-	//Allow logical equals and not equals
-	bool operator==(const Transformation &other) const {
-		return id == other.id;
-	}
-	bool operator!=(const Transformation &other) const {
-		return id != other.id;
-	}
-
-	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
-		return id == other;
-	}
-	bool operator!=(const std::wstring& other) const {
-		return id != other;
-	}
 };
 
 #endif //_TRANSFORM

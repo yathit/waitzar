@@ -133,11 +133,11 @@ public:
 	int getDefaultHeight();
 
 	//Fonts (even DIB ones like Pulp Core fonts) must be tied to some compatible DC somewhere.
-	void initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor);
+	void initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
 	void initDisplayMethod(DisplayMethod* img, char *data, DWORD size, unsigned int defaultColor);
 
-	void initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, unsigned int defaultColor);
-	void initTtfMethod(DisplayMethod* img, const std::wstring& fontFileName, unsigned int defaultColor);
+	void initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
+	void initTtfMethod(DisplayMethod* img, const std::wstring& fontFileName, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
 
 	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
 	void initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImg);

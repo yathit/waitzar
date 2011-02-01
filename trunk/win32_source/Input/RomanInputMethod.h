@@ -19,11 +19,9 @@ template <class ModelType> //Either WordBuilder or BurglishBuilder, or write you
 class RomanInputMethod : public InputMethod {
 
 public:
-	RomanInputMethod();
-	virtual ~RomanInputMethod();
 
 	//Needed to add Roman-specific stuff
-	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence);
+	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence, const std::wstring& encoding);
 
 	//Abstract implementation - keypresses
 	void handleEsc();
@@ -50,7 +48,7 @@ public:
 	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
 	//Override
-	void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc));
+	void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* (*ConfigGetTransformation)(const std::wstring& fromEnc, const std::wstring& toEnc));
 
 	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID);
 
@@ -71,8 +69,13 @@ private:
 	bool selectCurrWord();
 	bool selectWord(int id);
 
-	//bool typeBurmeseNumbers;
+	//Properties
+	CONTROL_KEY_TYPE controlKeyStyle;
+	bool typeBurmeseNumbers;
+	bool typeNumeralConglomerates;
+	bool suppressUppercase;
 
+	//Saved
 	bool typedStrContainsNoAlpha;
 };
 
@@ -85,32 +88,22 @@ using std::string;
 using std::wstring;
 
 
-template <class ModelType>
-RomanInputMethod<ModelType>::RomanInputMethod()
-{
-}
-
-
-
 //This takes responsibility for the model and sentence memory.
 template <class ModelType>
-void RomanInputMethod<ModelType>::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence)
+void RomanInputMethod<ModelType>::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence, const std::wstring& encoding, CONTROL_KEY_TYPE controlKeyStyle, bool typeBurmeseNumbers, bool typeNumeralConglomerates, bool suppressUppercase)
 {
-	InputMethod::init(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords);
+	InputMethod::init(mainWindow, sentenceWindow, helpWindow, memoryWindow, systemWordLookup, helpKeyboard, systemDefinedWords, encoding, controlKeyStyle, typeBurmeseNumbers, typeNumeralConglomerates, suppressUppercase);
 
 	this->model = model;
 	this->sentence = sentence;
+
+	//Save properties
+	this->controlKeyStyle = controlKeyStyle;
+	this->typeBurmeseNumbers = typeBurmeseNumbers;
+	this->typeNumeralConglomerates = typeNumeralConglomerates;
+	this->suppressUppercase = suppressUppercase;
 }
 
-
-template <class ModelType>
-RomanInputMethod<ModelType>::~RomanInputMethod()
-{
-	if (model!=NULL) 
-		delete model;
-	if (sentence!=NULL) 
-		delete sentence;
-}
 
 
 template <class ModelType>
@@ -194,9 +187,9 @@ void RomanInputMethod<ModelType>::handleTab()
 {
 	if (mainWindow->isVisible()) {
 		//Change the selection, or make a selection (depending on the style)
-		if (controlKeyStyle==CK_CHINESE) 
+		if (controlKeyStyle==CONTROL_KEY_TYPE::CHINESE)
 			handleLeftRight(true, true);
-		else if (controlKeyStyle==CK_JAPANESE)
+		else if (controlKeyStyle==CONTROL_KEY_TYPE::JAPANESE)
 			handleCommit(true);
 	} else {
 		//Move the sentence window cursor
@@ -281,7 +274,7 @@ void RomanInputMethod<ModelType>::handleCommit(bool strongCommit)
 {
 	if (mainWindow->isVisible()) {
 		//The model is visible; react to the control key style.
-		if (!strongCommit && controlKeyStyle==CK_JAPANESE) {
+		if (!strongCommit && controlKeyStyle==CONTROL_KEY_TYPE::JAPANESE) {
 			//Advance
 			handleLeftRight(true, true);
 		} else {
@@ -325,7 +318,7 @@ void RomanInputMethod<ModelType>::handleKeyPress(VirtKey& vkey)
 		//Run this keypress into the model. Accomplish anything?
 		if (!model->typeLetter(vkey.alphanum, suppressUppercase?false:vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
 			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
-			if (controlKeyStyle==CK_CHINESE || typedRomanStr.str().empty())
+			if (controlKeyStyle==CONTROL_KEY_TYPE::CHINESE || typedRomanStr.str().empty())
 				return;
 
 			//Otherwise, try typing the current string directly
@@ -576,7 +569,7 @@ std::pair<int, int> RomanInputMethod<ModelType>::getPagingInfo() const
 
 
 template <class ModelType>
-void RomanInputMethod<ModelType>::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc))
+void RomanInputMethod<ModelType>::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* (*ConfigGetTransformation)(const std::wstring& fromEnc, const std::wstring& toEnc))
 {
 	throw std::runtime_error("Cannot use a Romanized keyboard for a help input method");
 }

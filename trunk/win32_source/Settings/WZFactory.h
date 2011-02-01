@@ -31,7 +31,6 @@
 #include "NGram/BurglishBuilder.h"
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
-#include "Settings/Language.h"
 #include "Settings/CfgPerm.h"
 #include "Settings/ConfigTreeContainers.h"
 #include "Transform/Zg2Uni.h"

@@ -2089,6 +2089,17 @@ TRANSFORM_TYPE read_transform_type(const wstring& str)
 }
 
 
+CONTROL_KEY_TYPE read_control_key_style(const wstring& str)
+{
+	wstring key = sanitize_id(str);
+	if (key==L"chinese")
+		return CONTROL_KEY_TYPE::CHINESE;
+	else if (key==L"japanese")
+		return CONTROL_KEY_TYPE::JAPANESE;
+	throw std::runtime_error(waitzar::glue(L"Unknown \"control-key-style\": ", str).c_str());
+}
+
+
 string GetMD5Hash(const std::string& fileName) {
 	//Some variables
 	const size_t digest_size = 16;

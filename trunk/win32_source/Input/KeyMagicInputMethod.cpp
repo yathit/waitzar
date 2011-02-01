@@ -38,14 +38,6 @@ void KeyMagicInputMethod::writeLogLine(const wstring& logLine)
 
 
 
-KeyMagicInputMethod::KeyMagicInputMethod()
-{
-	KeyMagicInputMethod::clearLogFile();
-}
-
-KeyMagicInputMethod::~KeyMagicInputMethod()
-{
-}
 
 
 const std::wstring KeyMagicInputMethod::emptyStr = L"";
