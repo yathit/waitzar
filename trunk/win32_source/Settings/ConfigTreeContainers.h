@@ -218,13 +218,13 @@ public:
 	std::wstring   defaultDisplayMethodSmall;
 	std::wstring   defaultInputMethod;
 
-private:
 	//Map of pointers by id
 	std::map<std::wstring, InMethNode>    inputMethods;
 	std::map<std::wstring, EncNode>       encodings;
 	std::map<std::wstring, TransNode>     transformations;
 	std::map<std::wstring, DispMethNode>  displayMethods;
 
+private:
 	//For loading
 	friend class ConfigManager;
 	friend class WZFactory;
