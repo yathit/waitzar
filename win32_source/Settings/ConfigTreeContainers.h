@@ -202,6 +202,13 @@ public:
 		this->hasPriority = false;
 		this->type = TRANSFORM_TYPE::UNDEFINED;
 	}
+
+	//Get
+	const Transformation* const getImpl() const {
+		if (impl==NULL)
+			throw std::runtime_error(waitzar::glue(L"Implementation not defined for: ", id).c_str());
+		return impl;
+	}
 };
 
 
@@ -279,10 +286,10 @@ public:
 	std::wstring ignoredCharacters;
 	bool hideWhitespaceMarkings;
 
-private:
-	//Pairs
-	std::pair<std::wstring, LangNode>      defaultLanguage;
+	//Reference values
+	std::wstring      defaultLanguage;
 
+private:
 	//For loading
 	friend class ConfigManager;
 

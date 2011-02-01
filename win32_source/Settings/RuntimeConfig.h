@@ -40,7 +40,35 @@ public:
 	std::wstring activeLanguage;
 	std::wstring activeOutputEncoding;
 	std::wstring activeInputMethod;
-	std::vector<std::wstring> activeDisplayMethods; //Normal, small
+	std::vector<std::wstring> activeDisplayMethods;  //Normal, small
+
+	//"Active" helpers
+	const LangNode& getLanguage(const std::wstring& id) {
+		auto it = config.languages.find(id);
+		if (it==config.languages.end())
+			throw std::runtime_error(waitzar::glue(L"Language is invalid: ", id).c_str());
+		return it->second;
+	}
+	const EncNode& getEncoding(const std::wstring& langID, const std::wstring& encID) {
+		const LangNode& lang = getLanguage(langID);
+		auto it = lang.encodings.find(encID);
+		if (it==lang.encodings.end())
+			throw std::runtime_error(waitzar::glue(L"Encoding is invalid: ", encID, L" for language: ", langID).c_str());
+		return it->second;
+	}
+	const LangNode& getActiveLanguage() {
+		return getLanguage(activeLanguage);
+	}
+	const InMethNode& getActiveInputMethod() {
+		const LangNode& lang = getActiveLanguage();
+		auto it = lang.inputMethods.find(activeInputMethod);
+		if (it==lang.inputMethods.end())
+			throw std::runtime_error(waitzar::glue(L"Active input method is invalid: ", activeInputMethod).c_str());
+		return it->second;
+	}
+	const EncNode& getActiveOutputEncoding() {
+		return getEncoding(activeLanguage, activeOutputEncoding);
+	}
 
 
 private:
@@ -54,6 +82,25 @@ private:
 	std::map<std::wstring, std::vector<DispMethNode>> cachedDisplays;
 	std::map<std::wstring, std::vector<EncNode>> cachedEncodings;
 	std::map<std::wstring, std::map<std::pair<std::wstring, std::wstring>, TransNode>> cachedTransformations;
+
+
+	//
+	// TODO: Currently un-implemented!
+	//
+public:
+	void overrideSetting(const std::wstring& settingName, bool value) {}
+
+
+	// (We might put the "configOpts" stuff into its own class, like "LocalConfigOpts".
+	//  It really doesn't even have to be in RuntimeConfig)
+	void backupLocalConfigOpts() {}
+	void restoreLocalConfigOpts() {}
+	std::wstring getLocalConfigOpt(const std::wstring& key) {return L"";}
+	void clearLocalConfigOpt(const std::wstring& key) {}
+	void setLocalConfigOpt(const std::wstring& key, const std::wstring& val) {}
+	void saveLocalConfigFile(const std::wstring& path, bool emptyFile) {}
+	void saveUserConfigFile(const std::wstring& path, bool emptyFile) {}
+	bool localConfigCausedError() {return false;}
 };
 
 

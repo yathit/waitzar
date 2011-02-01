@@ -79,22 +79,22 @@ public:
 	}
 
 	//Build our config. manager up slowly
-	void initMainConfig(const std::string& configFile, bool fileIsStream=false);
-	void initCommonConfig(const std::string& configFile);
+	//void initMainConfig(const std::string& configFile, bool fileIsStream=false);
+	//void initCommonConfig(const std::string& configFile);
 	//void initMainConfig(const std::wstring& configStream);
-	void initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles);
-	void initLocalConfig(const std::string& configFile);
-	void initUserConfig(const std::string& configFile);
+	//void initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles);
+	//void initLocalConfig(const std::string& configFile);
+	//void initUserConfig(const std::string& configFile);
 
 
 	//Accessible by our outside class
-	const Settings& getSettings();
+	/*const Settings& getSettings();
 	const std::set<Extension*>& getExtensions();
 	const std::set<Language>& getLanguages();
 	const std::set<InputMethod*>& getInputMethods();
 	const std::set<Encoding>& getEncodings();
 	const Transformation* getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const;
-	const std::set<DisplayMethod*>& getDisplayMethods();
+	const std::set<DisplayMethod*>& getDisplayMethods();*/
 	void overrideSetting(const std::wstring& settingName, bool value);
 
 	//Helpful
@@ -130,15 +130,17 @@ public:
 	//void generateHotkeyValues(const wstring& srcStr, HotkeyData& hkData);
 
 
+public:
+	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false, std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
+	const ConfigRoot& sealConfig();
+
 private:
 	//These two functions replace "readInConfig"
-	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false);
 	void buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm=CfgPerm(), std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
 	void buildUpConfigTree(const Json::Value& root, Node& currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback);
 	void walkConfigTree(Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm);
 	void buildVerifyTree();
-	const ConfigRoot& sealConfig();
-	std::map<std::wstring, std::wstring> locallySetOptions; //TODO: Replace later
+	//std::map<std::wstring, std::wstring> locallySetOptions; //TODO: Replace later
 	Node root;
 	ConfigRoot troot;
 	TransformNode verifyTree;
@@ -152,8 +154,8 @@ private:
 	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, std::map<std::wstring, std::wstring>* const optionsSet);
 	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
 
-	void resolvePartialSettings();
-	void generateInputsDisplaysOutputs(const std::map<std::wstring, std::vector<std::wstring> >& lastUsedSettings);
+	//void resolvePartialSettings();
+	//void generateInputsDisplaysOutputs(const std::map<std::wstring, std::vector<std::wstring> >& lastUsedSettings);
 
 private:
 	//Our many config files.
@@ -176,8 +178,8 @@ private:
 	bool loadedLanguageSubFiles;*/
 
 	//Functions for loading some of these.
-	void loadLanguageMainFiles();
-	void loadLanguageSubFiles();
+	//void loadLanguageMainFiles();
+	//void loadLanguageSubFiles();
 
 	//Temporary option caches for constructing complex structures
 	//Will eventually be converted into real InputManager*, etc.

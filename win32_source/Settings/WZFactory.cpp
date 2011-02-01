@@ -782,6 +782,13 @@ void WZFactory::verifyEncoding(const std::wstring& id, EncNode& enc)
 }
 
 
+void WZFactory::verifySettings(ConfigRoot& cfg, SettingsNode& set)
+{
+	//Only one thing here
+	if (cfg.languages.count(set.defaultLanguage)==0)
+		throw std::runtime_error(glue(L"Settings references non-existent default-language: ", set.defaultLanguage).c_str());
+}
+
 
 
 void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang)
