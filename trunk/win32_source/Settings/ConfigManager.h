@@ -73,8 +73,10 @@ struct OptionTree {
 class ConfigManager
 {
 public:
-	ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/);
-	~ConfigManager(void);
+	ConfigManager() {
+		//Once sealed, you can't load any more files.
+		this->sealed = false;
+	}
 
 	//Build our config. manager up slowly
 	void initMainConfig(const std::string& configFile, bool fileIsStream=false);
@@ -130,6 +132,7 @@ public:
 
 private:
 	//These two functions replace "readInConfig"
+	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false);
 	void buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm=CfgPerm(), std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
 	void buildUpConfigTree(const Json::Value& root, Node& currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback);
 	void walkConfigTree(Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm);
@@ -168,9 +171,9 @@ private:
 	//std::wstring workingDir;
 
 	//Have we loaded...?
-	bool loadedSettings;
+	/*bool loadedSettings;
 	bool loadedLanguageMainFiles;
-	bool loadedLanguageSubFiles;
+	bool loadedLanguageSubFiles;*/
 
 	//Functions for loading some of these.
 	void loadLanguageMainFiles();

@@ -47,6 +47,28 @@ RuntimeConfig::RuntimeConfig(const ConfigRoot& config, const map<wstring, wstrin
 }
 
 
+
+void ChangeLangInputOutput(const wstring& langid, const wstring& inputid, const wstring& outputid)
+{
+	//Set based on what we've chosen
+	if (!langid.empty()) {
+		//Changing the language changes just about everything.
+		activeLanguage = langid;
+		activeDisplayMethods = {
+				config.languages.find(langid)->second.defaultDisplayMethodReg,
+				config.languages.find(langid)->second.defaultDisplayMethodSmall
+		};
+		activeInputMethod = config.languages.find(langid)->second.defaultInputMethod;
+		activeOutputEncoding = config.languages.find(langid)->second.defaultOutputEncoding;
+	}
+	if (!inputid.empty())
+		activeInputMethod = config.languages.find(activeLanguage)->second.inputMethods.find(inputid)->second;
+	if (!outputid.empty())
+		activeOutputEncoding = config.languages.find(activeLanguage)->second.inputMethods.find(outputid)->second;
+}
+
+
+
 const SettingsNode& RuntimeConfig::getSettings()
 {
 	return config.settings;

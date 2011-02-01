@@ -16,8 +16,8 @@ using std::string;
 using Json::Value;
 
 
-ConfigManager::ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/){
-	this->loadedSettings = false;
+/*ConfigManager::ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/){
+/*	this->loadedSettings = false;
 	this->loadedLanguageMainFiles = false;
 	this->loadedLanguageSubFiles = false;
 
@@ -35,9 +35,9 @@ ConfigManager::ConfigManager(/*std::string (*myMD5Function)(const std::string&)*
 		free(buffer);
 	}
 	this->workingDir = txt.str();*/
-}
+//}
 
-ConfigManager::~ConfigManager(void){}
+//ConfigManager::~ConfigManager(void){}
 
 
 /**
@@ -126,6 +126,20 @@ void ConfigManager::initLocalConfig(const std::string& configFile)
 
 	//Save the file, we will load it later when we need it
 	this->localConfig = configFile;
+}
+
+
+void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perms, bool fileIsStream)
+{
+	//Can't modify a sealed configuration
+	if (this->sealed)
+		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
+
+	//Get a JsonFile representing this path/stream
+	JsonFile file = JsonFile(cfgFile, fileIsStream);
+
+	//Merge it into the tree
+	buildAndWalkConfigTree(file, root, troot, verifyTree, perms);
 }
 
 
@@ -218,7 +232,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	}
 
 	//TMEP: Needed for our new loader
-	RuntimeConfig(sealConfig(), locallySetOptions);
+	//RuntimeConfig(sealConfig(), locallySetOptions);
 
 
 	//Step 2: Un-cache
