@@ -85,6 +85,7 @@ namespace waitzar
 	INPUT_TYPE read_input_type(const std::wstring& str);
 	DISPLAY_TYPE read_display_type(const std::wstring& str);
 	TRANSFORM_TYPE read_transform_type(const std::wstring& str);
+	CONTROL_KEY_TYPE read_control_key_style(const std::wstring& str);
 
 	//Message digest!
 	std::string GetMD5Hash(const std::string& fileName);

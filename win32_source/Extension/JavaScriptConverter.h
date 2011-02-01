@@ -23,13 +23,8 @@
 
 class JavaScriptConverter : public Extension {
 public:
-	//Basic constructor
-	JavaScriptConverter(std::wstring id=L"") {
-		this->id = id;
-	}
-
 	//Main functionality
-	virtual void InitDLL(/*std::string (*MD5Function)(const std::string&)*/);
+	virtual void InitDLL(bool& enabled, bool requireChecksum, const std::wstring& libraryFilePath, const std::wstring& libraryFileChecksum);
 	std::pair<bool, std::wstring> ConvertString(const std::wstring& jsSource, const std::wstring& input) const;
 
 private:

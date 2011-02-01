@@ -567,25 +567,16 @@ Extension* WZFactory::makeAndVerifyExtension(const std::wstring& id, ExtendNode&
 		throw std::runtime_error("Cannot construct extension: no \"library-file-path\"");
 
 	//Make it
+	Extension* res;
 	if (id == L"javascript") {
-		JavaScriptConverter* res = new JavaScriptConverter(id);
-
-		//TO-DO: Later, pass this node as a reference for the class to use when loading
-		res->libraryFilePath = ex.libraryFilePath;
-		res->libraryFileChecksum = ex.libraryFileChecksum;
-		res->requireChecksum = ex.requireChecksum;
-		res->enabled = ex.enabled;
-
-		res->InitDLL();
-		return res;
+		res = new JavaScriptConverter(id);
 	} else {
-		Extension* res = new Extension(id);
-
-		//TO-do: see above
-
-		res->InitDLL();
-		return res;
+		res = new Extension(id);
 	}
+
+	//Initialize it
+	res->InitDLL(ex.enabled, ex.requireChecksum, ex.libraryFilePath, ex.libraryFileChecksum);
+	return res;
 }
 
 

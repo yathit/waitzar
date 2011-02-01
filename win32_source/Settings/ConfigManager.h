@@ -25,7 +25,6 @@
 #include "Settings/CfgPerm.h"
 #include "Settings/TransformNode.h"
 #include "Settings/WZFactory.h"
-#include "Settings/Language.h"
 #include "Settings/Node.h"
 #include "Settings/JsonFile.h"
 #include "NGram/BurglishBuilder.h"
@@ -40,7 +39,7 @@
 
 
 //Options for our ConfigManager class
-struct Settings {
+/*struct Settings {
 	//Simple
 	std::wstring hotkeyStrRaw;
 	bool silenceMywordsErrors;
@@ -61,7 +60,7 @@ struct OptionTree {
 	Settings settings;
 	std::set<Language> languages;
 	std::set<Extension*> extensions;
-};
+};*/
 
 
 
@@ -95,7 +94,7 @@ public:
 	const std::set<Encoding>& getEncodings();
 	const Transformation* getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const;
 	const std::set<DisplayMethod*>& getDisplayMethods();*/
-	void overrideSetting(const std::wstring& settingName, bool value);
+	//void overrideSetting(const std::wstring& settingName, bool value);
 
 	//Helpful
 	std::wstring getLocalConfigOpt(const std::wstring& key);
@@ -108,11 +107,11 @@ public:
 	void restoreLocalConfigOpts();
 
 	//Control
-	Language activeLanguage;
-	Encoding activeOutputEncoding;
-	InputMethod* activeInputMethod;
-	std::vector<DisplayMethod*> activeDisplayMethods; //Normal, small
-	Encoding unicodeEncoding;
+	//Language activeLanguage;
+	//Encoding activeOutputEncoding;
+	//InputMethod* activeInputMethod;
+	//std::vector<DisplayMethod*> activeDisplayMethods; //Normal, small
+	//Encoding unicodeEncoding;
 
 	//Quality control
 	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const std::map<std::wstring, std::vector<std::wstring>>& lastUsedSettings);
@@ -190,7 +189,7 @@ private:
 	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialDisplayMethods;
 
 	//The actual representation
-	OptionTree options;
+	//OptionTree options;
 	std::map<std::wstring, std::wstring> localOpts;
 	std::map<std::wstring, std::wstring> localOptsBackup;
 	bool localConfError;

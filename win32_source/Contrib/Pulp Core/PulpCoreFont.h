@@ -68,10 +68,10 @@ public:
 	PulpCoreFont();
 
 	//Initializers
-	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor);
+	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor);
 	void init(PulpCoreFont* copyFrom, HDC currDC, unsigned int defaultColor);
 	void init(char *data, DWORD size, HDC currDC, unsigned int defaultColor);
-	void init(const std::wstring& fileName, HDC currDC, unsigned int defaultColor, int devLogPixelsY)  {throw std::runtime_error("Error: At the moment, PulpCore fonts must be loaded manually.");}
+	void init(const std::wstring& fileName, const std::wstring& fontFaceName, int pointSize, HDC currDC, unsigned int defaultColor, int devLogPixelsY)  {throw std::runtime_error("Error: At the moment, PulpCore fonts must be loaded manually.");}
 
 	//Drawing functionality
 	void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);

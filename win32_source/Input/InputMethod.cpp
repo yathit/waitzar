@@ -6,15 +6,8 @@
 
 #include "InputMethod.h"
 
-InputMethod::InputMethod()
-{
-}
 
-InputMethod::~InputMethod()
-{
-}
-
-void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords)
+void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, const std::wstring& encoding, CONTROL_KEY_TYPE controlKeyStyle, bool typeBurmeseNumbers, bool typeNumeralConglomerates, bool suppressUppercase)
 {
 	//Init
 	providingHelpFor = NULL;
@@ -31,6 +24,7 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 	this->systemWordLookup = systemWordLookup;
 	this->systemDefinedWords = systemDefinedWords;
 	this->helpKeyboard = helpKeyboard;
+	this->encoding = encoding;
 
 	//Index ZWS; -1 means "not found"
 	this->zwsID = -1;

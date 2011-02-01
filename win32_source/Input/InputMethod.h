@@ -13,14 +13,10 @@
 #include "Hotkeys.h"
 #include "OnscreenKeyboard.h"
 #include "Settings/Types.h"
-#include "Settings/Encoding.h"
 #include "NGram/wz_utilities.h"
 #include "Transform/Transformation.h"
 #include "Input/VirtKey.h"
 
-
-
-enum CONTROL_KEY_STYLES {CK_CHINESE, CK_JAPANESE};
 
 //Hilite styles
 enum HILITE_FLAGS {HF_NOTHING=0, HF_PATSINT=1, HF_CURRSELECTION=2, HF_LABELTILDE=4};
@@ -30,44 +26,12 @@ enum HILITE_FLAGS {HF_NOTHING=0, HF_PATSINT=1, HF_CURRSELECTION=2, HF_LABELTILDE
 //Expected interface: "Input Method"
 class InputMethod {
 public:
-	InputMethod();
-	virtual ~InputMethod();
 
 	//Cascading init
-	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords);
+	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, const std::wstring& encoding, CONTROL_KEY_TYPE controlKeyStyle, bool typeBurmeseNumbers, bool typeNumeralConglomerates, bool suppressUppercase);
 
-	//Allow map comparison 
-	bool operator<(const InputMethod& other) const {
-		return id < other.id;
-	}
-
-	//Allow logical equals and not equals
-	bool operator==(const InputMethod &other) const {
-		return id == other.id;
-	}
-	bool operator!=(const InputMethod &other) const {
-		return id != other.id;
-	}
-
-	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
-		return id == other;
-	}
-	bool operator!=(const std::wstring& other) const {
-		return id != other;
-	}
 
 public:
-	//Struct-like properties
-	std::wstring id;
-	std::wstring displayName;
-	std::wstring encoding;
-	TYPES type;
-	bool suppressUppercase;
-	bool typeNumeralConglomerates;
-	bool disableCache;
-	bool typeBurmeseNumbers;
-	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality
 	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)> ConfigGetTransformation = std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)>());
@@ -119,6 +83,9 @@ protected:
 
 	//For now... may move later
 	OnscreenKeyboard *helpKeyboard;
+
+	//Parent property
+	std::wstring encoding;
 
 	//Helper typing control
 	InputMethod* providingHelpFor;

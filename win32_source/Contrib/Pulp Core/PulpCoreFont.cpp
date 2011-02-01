@@ -56,7 +56,7 @@ void PulpCoreFont::init(PulpCoreFont *copyFrom, HDC currDC, unsigned int default
 /**
  * Create a PulpCoreFont.
  */
-void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor) 
+void PulpCoreFont::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor)
 {
 	PulpCoreImage::init(resource, dataHandle, currDC);
 

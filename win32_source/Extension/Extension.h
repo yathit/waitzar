@@ -11,6 +11,7 @@
 #include <string>
 
 
+
 //This class is meant to be sub-classed by various DLL wrappers.
 //  Sub-classes will need to add functionality; the DLLs themselves
 //  are too varied for me to declare a generalized virtual method.
@@ -18,44 +19,10 @@
 
 class Extension {
 public:
-	//Struct-like properties
-	std::wstring id;
-	std::wstring libraryFilePath;
-	std::wstring libraryFileChecksum;
-	bool enabled;
-	bool requireChecksum;
-
-
-	//Basic constructor
-	Extension(std::wstring id=L"") {
-		this->id = id;
-	}
-
 
 	//Initializing is predictable
-	virtual void InitDLL(/*std::string (*MD5Function)(const std::string&)*/) {}
+	virtual void InitDLL(bool& enabled, bool requireChecksum, const std::wstring& libraryFilePath, const std::wstring& libraryFileChecksum) = 0;
 
-
-	//Allow map comparison
-	bool operator<(const Extension& other) const {
-		return id < other.id;
-	}
-
-	//Allow logical equals and not equals
-	bool operator==(const Extension &other) const {
-		return id == other.id;
-	}
-	bool operator!=(const Extension &other) const {
-		return id != other.id;
-	}
-
-	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
-		return id == other;
-	}
-	bool operator!=(const std::wstring& other) const {
-		return id != other;
-	}
 };
 
 

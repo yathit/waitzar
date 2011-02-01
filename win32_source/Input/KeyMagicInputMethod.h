@@ -307,8 +307,9 @@ public:
 class KeyMagicInputMethod : public LetterInputMethod {
 
 public:
-	KeyMagicInputMethod();
-	virtual ~KeyMagicInputMethod();
+	KeyMagicInputMethod() {
+		KeyMagicInputMethod::clearLogFile();
+	}
 
 	//Key functionality
 	void loadTextRulesFile(const std::string& rulesFilePath);

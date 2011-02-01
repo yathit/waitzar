@@ -9,44 +9,14 @@
 
 #include <windows_wz.h>
 #include <string>
-#include "Settings/Types.h"
-#include "Settings/Encoding.h"
 
 class DisplayMethod {
 public:
-	virtual ~DisplayMethod(){}
-
-	//Struct-like properties
-	std::wstring id;
-	Encoding encoding;
-	TYPES type;
-
-	//Allow map comparison 
-	bool operator<(const DisplayMethod& other) const {
-		return id < other.id;
-	}
-
-	//Allow logical equals and not equals
-	bool operator==(const DisplayMethod &other) const {
-		return id == other.id;
-	}
-	bool operator!=(const DisplayMethod &other) const {
-		return id != other.id;
-	}
-
-	//Allow eq/neq on strings, too
-	bool operator==(const std::wstring& other) const {
-		return id == other;
-	}
-	bool operator!=(const std::wstring& other) const {
-		return id != other;
-	}
-
 
 	//Initialization
 	virtual void init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor) = 0;
-	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor) = 0;
-	virtual void init(const std::wstring& fileName, HDC currDC, unsigned int defaultColor, int devLogPixelsY) = 0;
+	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor) = 0;
+	virtual void init(const std::wstring& fileName, const std::wstring& fontFaceName, int pointSize, HDC currDC, unsigned int defaultColor, int devLogPixelsY) = 0;
 
 	//Functionality
 	virtual void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos, const std::wstring& filterStr, size_t filterLetterWidth) = 0;

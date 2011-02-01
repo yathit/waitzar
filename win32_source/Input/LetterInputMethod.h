@@ -16,11 +16,6 @@
 class LetterInputMethod : public InputMethod {
 
 public:
-	LetterInputMethod();
-	
-	//Destructor
-	virtual ~LetterInputMethod();
-
 
 	//Abstract implementation - keypresses
 	void handleEsc();

@@ -13,15 +13,6 @@ using std::wstring;
 
 
 
-LetterInputMethod::LetterInputMethod()
-{
-}
-
-LetterInputMethod::~LetterInputMethod()
-{
-}
-
-
 
 
 void LetterInputMethod::handleEsc()

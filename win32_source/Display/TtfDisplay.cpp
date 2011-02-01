@@ -43,7 +43,7 @@ void TtfDisplay::init(char *data, unsigned long size, HDC currDC, unsigned int d
 	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
-void TtfDisplay::init(const wstring& fileName,  HDC currDC, unsigned int defaultColor, int devLogPixelsY)
+void TtfDisplay::init(const wstring& fileName, const wstring& fontFaceName, int pointSize,  HDC currDC, unsigned int defaultColor, int devLogPixelsY)
 {
 	//Save
 	if (currDC != NULL)
@@ -57,12 +57,12 @@ void TtfDisplay::init(const wstring& fileName,  HDC currDC, unsigned int default
 	}
 
 	//Now, add the logical font
-	this->initLogicalFont(devLogPixelsY);
+	this->initLogicalFont(devLogPixelsY, pointSize, fontFaceName);
 	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
 
-void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLogPixelsY, unsigned int defaultColor)
+void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor)
 {
 	//Save
 	if (currDC != NULL)
@@ -88,7 +88,7 @@ void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, int devLog
 
 
 
-void TtfDisplay::initLogicalFont(int devLogPixelsY)
+void TtfDisplay::initLogicalFont(int devLogPixelsY, int pointSize, const wstring& fontFaceName)
 {
 	//Create the Font
 	LOGFONT lf;

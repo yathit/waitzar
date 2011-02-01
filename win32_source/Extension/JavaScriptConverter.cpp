@@ -18,10 +18,10 @@ wchar_t* JavaScriptConverter::large_array = new wchar_t[JavaScriptConverter::MAX
 
 //Load the DLL. Has no effect if the DLL has already been loaded.
 //Sets its own status to "disabled" if an error occurs.
-void JavaScriptConverter::InitDLL(/*std::string (*MD5Function)(const std::string&)*/)
+void JavaScriptConverter::InitDLL(bool& enabled, bool requireChecksum, const std::wstring& libraryFilePath, const std::wstring& libraryFileChecksum)
 {
 	//Return if we don't want to use this module
-	if (!this->enabled)
+	if (!enabled)
 		return;
 
 	//Return if we've already loaded a javascript DLL
@@ -29,18 +29,18 @@ void JavaScriptConverter::InitDLL(/*std::string (*MD5Function)(const std::string
 		return;
 
 	//Check its MD5 hash
-	if (this->requireChecksum) {
-		string checksum = waitzar::GetMD5Hash(waitzar::escape_wstr(this->libraryFilePath, false));
-		if (checksum!=waitzar::escape_wstr(this->libraryFileChecksum, false)) {
-			this->enabled = false;
+	if (requireChecksum) {
+		string checksum = waitzar::GetMD5Hash(waitzar::escape_wstr(libraryFilePath, false));
+		if (checksum!=waitzar::escape_wstr(libraryFileChecksum, false)) {
+			enabled = false;
 			return;
 		}
 	}
 
 	//Load the module. Return and disable when in error
-	JavaScriptConverter::module = LoadLibrary(this->libraryFilePath.c_str());
+	JavaScriptConverter::module = LoadLibrary(libraryFilePath.c_str());
 	if (JavaScriptConverter::module==NULL) {
-		this->enabled = false;
+		enabled = false;
 		return;
 	}
 
@@ -49,7 +49,7 @@ void JavaScriptConverter::InitDLL(/*std::string (*MD5Function)(const std::string
 	if (fproc==NULL) {
 		FreeLibrary(JavaScriptConverter::module);
 		JavaScriptConverter::module = NULL;
-		this->enabled = false;
+		enabled = false;
 		return;
 	}
 

@@ -517,7 +517,7 @@ const ConfigRoot& ConfigManager::sealConfig()
 
 //Right now, this is only used to turn "track caret" off. 
 // We need to merge this with standard code later.
-void ConfigManager::overrideSetting(const wstring& settingName, bool value)
+/*void ConfigManager::overrideSetting(const wstring& settingName, bool value)
 {
 	wstring settingPure = sanitize_id(settingName);
 
@@ -540,7 +540,7 @@ void ConfigManager::overrideSetting(const wstring& settingName, bool value)
 		options.settings.lockWindows = value;
 	else
 		throw std::runtime_error(waitzar::glue(L"Cannot override setting: ", settingName).c_str());
-}
+}*/
 
 
 void ConfigManager::backupLocalConfigOpts()
@@ -923,7 +923,7 @@ void ConfigManager::buildVerifyTree() {
 	});
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"control-keys", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
-		dynamic_cast<InMethNode&>(d).controlKeyStyle = waitzar::purge_filename(s.str());
+		dynamic_cast<InMethNode&>(d).controlKeyStyle = waitzar::read_control_key_style(s.str());
 		return d;
 	});
 	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"numeral-conglomerate", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{

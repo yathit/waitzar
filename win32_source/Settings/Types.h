@@ -4,13 +4,14 @@
  * Please refer to the end of the file for licensing information
  */
 
-#ifndef _SETTINGS_TYPES
-#define _SETTINGS_TYPES
+#pragma once
 
 
-//Global "Types" enum
-//TODO: OLD: Remove!
-enum TYPES {BUILTIN, IME_KEYBOARD, IME_ROMAN, DISPM_TTF, DISPM_PNG, TRANS_JAVASCRIPT};
+//For our keyboards
+enum class CONTROL_KEY_TYPE {
+	CHINESE,
+	JAPANESE,
+};
 
 
 //Enum types for our various configuration classes
@@ -34,9 +35,6 @@ enum class TRANSFORM_TYPE {
 	JAVASCRIPT,
 };
 
-
-
-#endif //_SETTINGS_TYPES
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
