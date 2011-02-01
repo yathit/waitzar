@@ -59,7 +59,9 @@ private:
 
 
 //Everthing extends this; makes passing arguments easier.
-class TNode {
+//  A "Ghost" is easy to describe by looking at it (properties), but has no substance (implementation).
+//  Plus, it's much better than the previous name: "TNode"
+class GhostNode {
 private:
 	//Class needs at least one virtual function to be polymorphic (and thus to allow dynamic_cast)
 	virtual void empty(){};
@@ -68,7 +70,7 @@ private:
 };
 
 
-class EncNode : public TNode {
+class EncNode : public GhostNode {
 public:
 	//Simple properties
 	mutable std::wstring id;
@@ -96,7 +98,7 @@ public:
 
 
 
-class DispMethNode : public TNode {
+class DispMethNode : public GhostNode {
 public:
 	//Simple properties
 	mutable std::wstring id;
@@ -126,11 +128,18 @@ public:
 		this->type = DISPLAY_TYPE::UNDEFINED;
 		this->pointSize = 0;
 	}
+
+	//Get
+	const DisplayMethod* const getImpl() const {
+		if (impl==NULL)
+			throw std::runtime_error(waitzar::glue(L"Implementation not defined for: ", id).c_str());
+		return impl;
+	}
 };
 
 
 
-class InMethNode : public TNode {
+class InMethNode : public GhostNode {
 public:
 	//Simple properties
 	mutable std::wstring id;
@@ -169,11 +178,18 @@ public:
 		this->controlKeyStyle = L"chinese";
 		this->type = INPUT_TYPE::UNDEFINED;
 	}
+
+	//Get
+	const InputMethod* const getImpl() const {
+		if (impl==NULL)
+			throw std::runtime_error(waitzar::glue(L"Implementation not defined for: ", id).c_str());
+		return impl;
+	}
 };
 
 
 
-class TransNode : public TNode {
+class TransNode : public GhostNode {
 public:
 	//Simple properties
 	mutable std::wstring id;
@@ -213,7 +229,7 @@ public:
 
 
 
-class LangNode : public TNode {
+class LangNode : public GhostNode {
 public:
 	//Simple
 	mutable std::wstring id;
@@ -245,7 +261,7 @@ public:
 
 
 
-class ExtendNode : public TNode {
+class ExtendNode : public GhostNode {
 public:
 	//Struct-like properties
 	mutable std::wstring id;
@@ -265,14 +281,21 @@ private:
 public:
 	//Constructor: set the ID here and nowhere else
 	ExtendNode(const std::wstring& id=L"") : id(id) {
-		impl = NULL;
+		this->impl = NULL;
 		this->enabled = false;
 		this->requireChecksum = true;
+	}
+
+	//Get
+	const Extension* const getImpl() const {
+		if (impl==NULL)
+			throw std::runtime_error(waitzar::glue(L"Implementation not defined for: ", id).c_str());
+		return impl;
 	}
 };
 
 
-class SettingsNode : public TNode {
+class SettingsNode : public GhostNode {
 public:
 	//Simple
 	HotkeyData hotkey;
@@ -308,7 +331,7 @@ public:
 };
 
 
-class ConfigRoot : public TNode {
+class ConfigRoot : public GhostNode {
 public:
 	SettingsNode settings;
 	std::map<std::wstring, LangNode> languages;

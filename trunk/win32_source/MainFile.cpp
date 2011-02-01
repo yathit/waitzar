@@ -444,7 +444,7 @@ inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 //Means of getting a transformation; we'll have to pass this as a functional pointer later,
 //   because of circular dependencies. TODO: Fix this.
 const TransNode& ConfigGetTransformation(const Encoding& fromEnc, const Encoding& toEnc) {
-	return config.getTransformation(config.activeLanguage, fromEnc.id, toEnc.id);
+	return config.getTransformation(config.getActiveLanguage().id, fromEnc.id, toEnc.id);
 }
 
 
@@ -951,10 +951,10 @@ void FlashSaveState()
 		//Write a version number
 		outStr <<FLASH_SAVE_VERSION_NUMBER <<L"\n";
 		for (auto it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
-			if (it->id==config.activeLanguage) {
-				outStr <<config.activeLanguage <<L"!" <<config.activeInputMethod <<L":"; //Use a "!" to mean "default"
-				outStr <<config.activeOutputEncoding <<L":" <<config.activeDisplayMethods[0] <<L":";
-				outStr <<config.activeDisplayMethods[1] <<L"\n";
+			if (it->id==config.getActiveLanguage().id) {
+				outStr <<config.getActiveLanguage().id <<L"!" <<config.getActiveInputMethod().id <<L":"; //Use a "!" to mean "default"
+				outStr <<config.getActiveOutputEncoding().id <<L":" <<config.getActiveDisplayMethods()[0].id <<L":";
+				outStr <<config.getActiveDisplayMethods()[1].id <<L"\n";
 			} else {
 				outStr <<it->id <<L":" <<it->defaultInputMethod <<L":" <<it->defaultOutputEncoding <<L":";
 				outStr <<it->defaultDisplayMethodReg <<L":" <<it->defaultDisplayMethodSmall <<L"\n";

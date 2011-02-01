@@ -25,24 +25,55 @@ public:
 	RuntimeConfig(const ConfigRoot& config=ConfigRoot(), const std::map<std::wstring, std::wstring>& localOpts=std::map<std::wstring, std::wstring>());
 
 	//Get from active properties
-	const SettingsNode& getSettings();
+/*	const SettingsNode& getSettings();
 	const std::vector<ExtendNode>& getExtensions();
 	const std::vector<LangNode>& getLanguages();
 	const std::vector<InMethNode>& getInputMethods();
 	const std::vector<DispMethNode>& getDisplayMethods();
 	const std::vector<EncNode>& getEncodings();
-	const TransNode& getTransformation(const std::wstring& lang, std::wstring fromEnc, std::wstring toEnc);
+	const TransNode& getTransformation(const std::wstring& lang, std::wstring fromEnc, std::wstring toEnc);*/
 
 	//Helper
-	void ChangeLangInputOutput(const std::wstring& langid, const std::wstring& inputid, const std::wstring& outputid);
+	//void ChangeLangInputOutput(const std::wstring& langid, const std::wstring& inputid, const std::wstring& outputid);
 
-	//Control what "active" means
-	std::wstring activeLanguage;
-	std::wstring activeOutputEncoding;
-	std::wstring activeInputMethod;
-	std::vector<std::wstring> activeDisplayMethods;  //Normal, small
 
-	//"Active" helpers
+
+	//Actual functions
+	const SettingsNode& getSettings();
+	const std::vector<ExtendNode>& getExtensions();
+	const std::vector<LangNode>& getLanguages();
+
+	//Language-specific variants
+	const std::vector<InMethNode>& getInputMethods(const std::wstring& langID);
+	const std::vector<DispMethNode>& getDisplayMethods(const std::wstring& langID);
+	const std::vector<EncNode>& getEncodings(const std::wstring& langID);
+	const TransNode& getTransformation(const std::wstring& langID, std::wstring fromEnc, std::wstring toEnc);
+
+	//"Active" variants
+	const std::vector<InMethNode>& getActiveInputMethods() { return getInputMethods(activeLanguage); }
+	const std::vector<DispMethNode>& getActiveDisplayMethods() { return getDisplayMethods(activeLanguage); }
+	const std::vector<EncNode>& getActiveEncodings() { return getEncodings(activeLanguage); }
+	const TransNode& getActiveTransformation(std::wstring fromEnc, std::wstring toEnc) { return getTransformation(activeLanguage, fromEnc, toEnc); }
+
+	//Directs
+	const LangNode& getLanguage(const std::wstring& langID);
+	const InMethNode& getInputMethod(const std::wstring& langID, const std::wstring& inmethID);
+	const std::pair<DispMethNode, DispMethNode>& getDisplayMethodPair(const std::wstring& langID, const std::wstring& dispmeth1, const std::wstring& dispmeth2);
+	const EncNode& getEncoding(const std::wstring& langID, const std::wstring& encID);
+
+	//"Active" directs
+	const LangNode& getActiveLanguage() { return getLanguage(activeLanguage); }
+	const InMethNode& getActiveInputMethod() { return getInputMethod(activeLanguage, activeInputMethod); }
+	const std::pair<DispMethNode, DispMethNode>& getDisplayMethodPair() { return getDisplayMethodPair(activeLanguage, activeDisplayMethod.first, activeDisplayMethod.second); }
+	const EncNode& getActiveOutputEncoding() { return getEncoding(activeLanguage, activeOutputEncoding); }
+
+	//Finally, setters
+	void setActiveLanguage(const std::wstring& id);
+	void setActiveInputMethod(const std::wstring& id);
+	void setActiveOutputEncoding(const std::wstring& id);
+
+
+	/*//"Active" helpers
 	const LangNode& getLanguage(const std::wstring& id) {
 		auto it = config.languages.find(id);
 		if (it==config.languages.end())
@@ -68,12 +99,18 @@ public:
 	}
 	const EncNode& getActiveOutputEncoding() {
 		return getEncoding(activeLanguage, activeOutputEncoding);
-	}
+	}*/
 
 
 private:
 	//Stored data
 	ConfigRoot config;
+
+	//Control what "active" means
+	std::wstring activeLanguage;
+	std::wstring activeOutputEncoding;
+	std::wstring activeInputMethod;
+	std::pair<std::wstring, std::wstring> activeDisplayMethod;  //Normal, small
 
 	//Cached values
 	std::vector<ExtendNode> cachedExtensions;
