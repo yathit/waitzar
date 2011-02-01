@@ -672,88 +672,88 @@ T& ConfigManager::AddOrCh(map<wstring, T>& existing, const Node& node, bool addA
 //Bulid the tree of nodes we plan on using for verifying the syntax of the string-map tree
 void ConfigManager::buildVerifyTree() {
 	//Root nodes
-	verifyTree.addChild(L"settings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree.addChild(L"settings", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Advance
 		return dynamic_cast<ConfigRoot&>(d).settings;
 	});
-	verifyTree.addChild(L"languages", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree.addChild(L"languages", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree.addChild(L"extensions", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree.addChild(L"extensions", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//We don't have the extension ID, so return the same node
 		return d;
 	});
 
 	//Settings
-	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"hotkey" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).hotkey = HotkeyData(waitzar::purge_filename(s.str()));
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"silence-mywords-errors" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"silence-mywords-errors" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).silenceMywordsErrors = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"balloon-start" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"balloon-start" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).balloonStart = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"always-elevate" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"always-elevate" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).alwaysElevate = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"track-caret" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"track-caret" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).trackCaret = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"lock-windows" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"lock-windows" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).lockWindows = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"suppress-virtual-keyboard" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"suppress-virtual-keyboard" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).suppressVirtualKeyboard = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"default-language" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"default-language" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).defaultLanguage = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"whitespace-characters" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"whitespace-characters" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).whitespaceCharacters = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"ignored-characters" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"ignored-characters" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).ignoredCharacters = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"settings"].addChild(L"hide-whitespace-markings" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"settings"].addChild(L"hide-whitespace-markings" , [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		dynamic_cast<SettingsNode&>(d).hideWhitespaceMarkings = waitzar::read_bool(s.str());
 		return d;
 	});
 
 
 	//Extensions
-	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"].addChild(L"*", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		return ConfigManager::AddOrCh(dynamic_cast<ConfigRoot&>(d).extensions, s, perms.addExtension, perms.chgExtension);
 	});
 
 	//Single extension properties
-	verifyTree[L"extensions"][L"*"].addChild(L"library-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"library-file", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).libraryFilePath = s.str();
 		return d;
 	});
-	verifyTree[L"extensions"][L"*"].addChild(L"enabled", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"enabled", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).enabled = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"extensions"][L"*"].addChild(L"md5-hash", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"md5-hash", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).libraryFileChecksum = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"extensions"][L"*"].addChild(L"check-md5", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"extensions"][L"*"].addChild(L"check-md5", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set it, return same
 		dynamic_cast<ExtendNode&>(d).requireChecksum = waitzar::read_bool(s.str());
 		return d;
@@ -761,32 +761,32 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Languages
-	verifyTree[L"languages"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"].addChild(L"*", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		return ConfigManager::AddOrCh(dynamic_cast<ConfigRoot&>(d).languages, s, perms.addLanguage, perms.chgLanguage);
 	});
 
 	//Language properties
-	verifyTree[L"languages"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"display-name", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set it, return same
 		dynamic_cast<LangNode&>(d).displayName = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-display-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-display-method", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultDisplayMethodReg = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-display-method-small", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-display-method-small", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultDisplayMethodSmall = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-output-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-output-encoding", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultOutputEncoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"default-input-method", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"default-input-method", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set pointer pair, return node
 		dynamic_cast<LangNode&>(d).defaultInputMethod = waitzar::sanitize_id(s.str());
 		return d;
@@ -794,57 +794,57 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Language sub-classes
-	verifyTree[L"languages"][L"*"].addChild(L"input-methods", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"input-methods", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"encodings", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"encodings", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"transformations", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"transformations", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
-	verifyTree[L"languages"][L"*"].addChild(L"display-methods", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"].addChild(L"display-methods", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//We don't have the language ID, so return the same node
 		return d;
 	});
 
 
 	//Language containers
-	verifyTree[L"languages"][L"*"][L"input-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"].addChild(L"*", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).inputMethods, s, perms.addLangInputMeth, perms.chgLangInputMeth);
 	});
-	verifyTree[L"languages"][L"*"][L"display-methods"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"].addChild(L"*", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).displayMethods, s, perms.addLangDispMeth, perms.chgLangDispMeth);
 	});
-	verifyTree[L"languages"][L"*"][L"encodings"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"encodings"].addChild(L"*", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).encodings, s, perms.addLangEncoding, perms.chgLangEncoding);
 	});
-	verifyTree[L"languages"][L"*"][L"transformations"].addChild(L"*", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"transformations"].addChild(L"*", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		return ConfigManager::AddOrCh(dynamic_cast<LangNode&>(d).transformations, s, perms.addLangTransform, perms.chgLangTransform);
 	});
 
 
 
 	//Encoding
-	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"display-name", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<EncNode&>(d).displayName = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"initial", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"initial", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<EncNode&>(d).initial = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"image", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"image", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<EncNode&>(d).imagePath = s.str();
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"use-as-output", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"encodings"][L"*"].addChild(L"use-as-output", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<EncNode&>(d).canUseAsOutput = waitzar::read_bool(s.str());
 		return d;
@@ -853,27 +853,27 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Transformations
-	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"from-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"from-encoding", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<TransNode&>(d).fromEncoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"to-encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"to-encoding", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<TransNode&>(d).toEncoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"type", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<TransNode&>(d).type = waitzar::read_transform_type(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"has-priority", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"has-priority", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<TransNode&>(d).hasPriority = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"source-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"transformations"][L"*"].addChild(L"source-file", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<TransNode&>(d).sourceFile = s.str();
 		return d;
@@ -881,57 +881,57 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Input method
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"display-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"display-name", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).displayName = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"encoding", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).encoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"user-words-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"user-words-file", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).userWordsFile = s.str();
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"wordlist", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"wordlist", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).extraWordsFile = s.str();
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"keyboard-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"keyboard-file", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).keyboardFile = s.str();
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).type = waitzar::read_input_type(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type-burmese-numerals", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"type-burmese-numerals", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).typeBurmeseNumbers = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"suppress-uppercase", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"suppress-uppercase", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).suppressUppercase = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"control-keys", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"control-keys", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).controlKeyStyle = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"numeral-conglomerate", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"numeral-conglomerate", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).typeNumeralConglomerates = waitzar::read_bool(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"disable-cache", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"input-methods"][L"*"].addChild(L"disable-cache", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<InMethNode&>(d).disableCache = waitzar::read_bool(s.str());
 		return d;
@@ -939,27 +939,27 @@ void ConfigManager::buildVerifyTree() {
 
 
 	//Display method
-	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"encoding", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"encoding", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).encoding = waitzar::sanitize_id(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"type", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).type = waitzar::read_display_type(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"font-face-name", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"font-face-name", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).fontFaceName = waitzar::purge_filename(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"point-size", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"point-size", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).pointSize = waitzar::read_int(s.str());
 		return d;
 	});
-	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"font-file", [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
+	verifyTree[L"languages"][L"*"][L"display-methods"][L"*"].addChild(L"font-file", [](const Node& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
 		//Cast and set
 		dynamic_cast<DispMethNode&>(d).fontFile = s.str();
 		return d;
@@ -1051,7 +1051,7 @@ void ConfigManager::buildVerifyTree() {
 
 
 //Build the tree, then walk it into the existing setup
-void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, TNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const Node& n)> OnSetCallback)
+void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const Node& n)> OnSetCallback)
 {
 	if (Logger::isLogging('C')) {
 		std::wstringstream msg;
@@ -1129,7 +1129,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, Node& currNode, c
 
 
 //Walk the root, build up options as you go.
-void ConfigManager::walkConfigTree(Node& source, TNode& dest, const TransformNode& verify, const CfgPerm& perm)
+void ConfigManager::walkConfigTree(Node& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm)
 {
 	//Iterate to its children.
 	for (auto it=source.getChildNodes().begin(); it!=source.getChildNodes().end(); it++) {
@@ -1159,8 +1159,8 @@ void ConfigManager::walkConfigTree(Node& source, TNode& dest, const TransformNod
 			}
 
 			//Get and apply the "match" function. Once all 3 points line up, call "walkConfigTree" if appropriate
-			const std::function<TNode& (const Node& src, TNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
-			TNode& nextTN = matchAction(it->second, dest, perm);
+			const std::function<GhostNode& (const Node& src, GhostNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
+			GhostNode& nextTN = matchAction(it->second, dest, perm);
 			if (!it->second.isLeaf())
 				walkConfigTree(it->second, nextTN, nextVerify, perm);
 			else

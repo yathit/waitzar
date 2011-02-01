@@ -56,26 +56,82 @@ RuntimeConfig::RuntimeConfig(const ConfigRoot& config, const map<wstring, wstrin
 }
 
 
-
-void RuntimeConfig::ChangeLangInputOutput(const wstring& langid, const wstring& inputid, const wstring& outputid)
+void RuntimeConfig::setActiveLanguage(const std::wstring& id)
 {
-	//Set based on what we've chosen
-	if (!langid.empty()) {
-		//Changing the language changes just about everything.
-		activeLanguage = langid;
-		activeDisplayMethods = {
-				config.languages.find(langid)->second.defaultDisplayMethodReg,
-				config.languages.find(langid)->second.defaultDisplayMethodSmall
-		};
-		activeInputMethod = config.languages.find(langid)->second.defaultInputMethod;
-		activeOutputEncoding = config.languages.find(langid)->second.defaultOutputEncoding;
-	}
+	if (id.empty())
+		return;
 
-	if (!inputid.empty())
-		activeInputMethod = config.languages.find(activeLanguage)->second.inputMethods.find(inputid)->second;
-	if (!outputid.empty())
-		activeOutputEncoding = config.languages.find(activeLanguage)->second.inputMethods.find(outputid)->second;
+	//Changing the language changes just about everything.
+	activeLanguage = id;
+	activeDisplayMethods = {
+			getActiveLanguage().defaultDisplayMethodReg,
+			getActiveLanguage().defaultDisplayMethodSmall,
+	};
+	setActiveInputMethod(getActiveLanguage().defaultInputMethod);
+	setActiveOutputMethod(getActiveLanguage().defaultOutputEncoding);
 }
+
+
+void RuntimeConfig::setActiveInputMethod(const std::wstring& id)
+{
+	if (id.empty())
+		return;
+
+	activeInputMethod = getInputMethod(activeLanguage, id).id;
+}
+
+void RuntimeConfig::setActiveOutputEncoding(const std::wstring& id)
+{
+	if (id.empty())
+		return;
+
+	activeOutputEncoding = getEncoding(activeLanguage, id).id;
+}
+
+
+
+const LangNode& RuntimeConfig::getLanguage(const std::wstring& langID)
+{
+	auto it = config.languages.find(langID);
+	if (it==config.languages.end())
+		throw std::runtime_error(waitzar::glue(L"Language is invalid: ", langID).c_str());
+	return it->second;
+}
+
+
+const InMethNode& RuntimeConfig::getInputMethod(const std::wstring& langID, const std::wstring& inmethID)
+{
+	const LangNode& lang = getLanguage(langID);
+	auto it = lang.inputMethods.find(inmethID);
+	if (it==lang.inputMethods.end())
+		throw std::runtime_error(waitzar::glue(L"Input Method is invalid: ", inmethID, L" for language: ", langID).c_str());
+	return it->second;
+}
+
+
+const std::pair<DispMethNode, DispMethNode>& RuntimeConfig::getDisplayMethodPair(const std::wstring& langID, const std::wstring& dispmeth1, const std::wstring& dispmeth2)
+{
+	const LangNode& lang = getLanguage(langID);
+	auto it1 = lang.displayMethods.find(dispmeth1);
+	auto it2 = lang.displayMethods.find(dispmeth2);
+	if (it1==lang.displayMethods.end())
+		throw std::runtime_error(waitzar::glue(L"Display Method is invalid: ", dispmeth1, L" for language: ", langID).c_str());
+	if (it2==lang.displayMethods.end())
+		throw std::runtime_error(waitzar::glue(L"Display Method is invalid: ", dispmeth2, L" for language: ", langID).c_str());
+
+	return std::pair<DispMethNode, DispMethNode>(it1->second, it2->second);
+}
+
+
+const EncNode& RuntimeConfig::getEncoding(const std::wstring& langID, const std::wstring& encID)
+{
+	const LangNode& lang = getLanguage(langID);
+	auto it = lang.encodings.find(encID);
+	if (it==lang.encodings.end())
+		throw std::runtime_error(waitzar::glue(L"Encoding is invalid: ", encID, L" for language: ", langID).c_str());
+	return it->second;
+}
+
 
 
 
@@ -113,13 +169,13 @@ const vector<LangNode>& RuntimeConfig::getLanguages()
 	return cachedLangauges;
 }
 
-const vector<InMethNode>& RuntimeConfig::getInputMethods()
+const vector<InMethNode>& RuntimeConfig::getInputMethods(const wstring& langID)
 {
 	//Retrieve
-	auto imMap = cachedInputs.find(activeLanguage);
-	auto inMethMap = config.languages.find(activeLanguage);
+	auto imMap = cachedInputs.find(langID);
+	auto inMethMap = config.languages.find(langID);
 	if (imMap==cachedInputs.end() || inMethMap==config.languages.end())
-		throw std::runtime_error(waitzar::glue(L"Language Input Methods not mapped: ", activeLanguage).c_str());
+		throw std::runtime_error(waitzar::glue(L"Language Input Methods not mapped: ", langID).c_str());
 
 	//Rebuild
 	if (imMap->second.empty()) {
@@ -133,13 +189,13 @@ const vector<InMethNode>& RuntimeConfig::getInputMethods()
 	return imMap->second;
 }
 
-const vector<DispMethNode>& RuntimeConfig::getDisplayMethods()
+const vector<DispMethNode>& RuntimeConfig::getDisplayMethods(const wstring& langID)
 {
 	//Retrieve
-	auto dmMap = cachedDisplays.find(activeLanguage);
-	auto langMap = config.languages.find(activeLanguage);
+	auto dmMap = cachedDisplays.find(langID);
+	auto langMap = config.languages.find(langID);
 	if (dmMap==cachedDisplays.end() || langMap==config.languages.end())
-		throw std::runtime_error(waitzar::glue(L"Language Display Methods not mapped: ", activeLanguage).c_str());
+		throw std::runtime_error(waitzar::glue(L"Language Display Methods not mapped: ", langID).c_str());
 
 	//Rebuild
 	if (dmMap->second.empty()) {
@@ -155,13 +211,13 @@ const vector<DispMethNode>& RuntimeConfig::getDisplayMethods()
 }
 
 
-const vector<EncNode>& RuntimeConfig::getEncodings()
+const vector<EncNode>& RuntimeConfig::getEncodings(const wstring& langID)
 {
 	//Retrieve
-	auto enMap = cachedEncodings.find(activeLanguage);
-	auto langIt = config.languages.find(activeLanguage);
+	auto enMap = cachedEncodings.find(langID);
+	auto langIt = config.languages.find(langID);
 	if (enMap==cachedEncodings.end() || langIt==config.languages.end())
-		throw std::runtime_error(waitzar::glue(L"Language Encodings not mapped: ", activeLanguage).c_str());
+		throw std::runtime_error(waitzar::glue(L"Language Encodings not mapped: ", langID).c_str());
 
 	//Rebuild
 	if (enMap->second.empty()) {
@@ -176,7 +232,7 @@ const vector<EncNode>& RuntimeConfig::getEncodings()
 }
 
 
-const TransNode& RuntimeConfig::getTransformation(const wstring& lang, wstring fromEnc, wstring toEnc)
+const TransNode& RuntimeConfig::getTransformation(const wstring& langID, wstring fromEnc, wstring toEnc)
 {
 	//self2self is _always_ uni2uni
 	if (fromEnc == toEnc) {
@@ -185,10 +241,10 @@ const TransNode& RuntimeConfig::getTransformation(const wstring& lang, wstring f
 	}
 
 	//Retrieve
-	auto transIt = cachedTransformations.find(activeLanguage);
-	auto langIt = config.languages.find(activeLanguage);
+	auto transIt = cachedTransformations.find(langID);
+	auto langIt = config.languages.find(langID);
 	if (transIt==cachedTransformations.end() || langIt==config.languages.end())
-		throw std::runtime_error(waitzar::glue(L"Language Transformations not mapped: ", activeLanguage).c_str());
+		throw std::runtime_error(waitzar::glue(L"Language Transformations not mapped: ", langID).c_str());
 
 	//Rebuild
 	if (transIt->second.empty()) {
