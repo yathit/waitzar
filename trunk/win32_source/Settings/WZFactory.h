@@ -64,6 +64,7 @@ public:
 	//Used to "verify" things which don't need to be built
 	static void verifyEncoding(const std::wstring& id, EncNode& enc);
 	static void verifyLanguage(const std::wstring& id, LangNode& lang);
+	static void verifySettings(ConfigRoot& cfg, SettingsNode& set);
 
 
 

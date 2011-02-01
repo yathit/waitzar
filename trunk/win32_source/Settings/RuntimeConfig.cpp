@@ -44,11 +44,20 @@ RuntimeConfig::RuntimeConfig(const ConfigRoot& config, const map<wstring, wstrin
 			getTransformation(activeLanguage, trIt->second.fromEncoding, trIt->second.toEncoding);
 		}
 	}
+
+	//Finally, set all strings
+	activeLanguage = config.settings.defaultLanguage;
+	activeInputMethod = getActiveLanguage().defaultInputMethod;
+	activeOutputEncoding = getActiveLanguage().defaultOutputEncoding;
+	activeDisplayMethods = {
+		getActiveLanguage().defaultDisplayMethodReg,
+		getActiveLanguage().defaultDisplayMethodSmall
+	};
 }
 
 
 
-void ChangeLangInputOutput(const wstring& langid, const wstring& inputid, const wstring& outputid)
+void RuntimeConfig::ChangeLangInputOutput(const wstring& langid, const wstring& inputid, const wstring& outputid)
 {
 	//Set based on what we've chosen
 	if (!langid.empty()) {
@@ -61,6 +70,7 @@ void ChangeLangInputOutput(const wstring& langid, const wstring& inputid, const 
 		activeInputMethod = config.languages.find(langid)->second.defaultInputMethod;
 		activeOutputEncoding = config.languages.find(langid)->second.defaultOutputEncoding;
 	}
+
 	if (!inputid.empty())
 		activeInputMethod = config.languages.find(activeLanguage)->second.inputMethods.find(inputid)->second;
 	if (!outputid.empty())
@@ -138,6 +148,7 @@ const vector<DispMethNode>& RuntimeConfig::getDisplayMethods()
 				return pair.second;
 			});
 	}
+
 
 	//Return
 	return dmMap->second;

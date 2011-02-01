@@ -16,8 +16,8 @@ using std::string;
 using Json::Value;
 
 
-/*ConfigManager::ConfigManager(/*std::string (*myMD5Function)(const std::string&)*/){
-/*	this->loadedSettings = false;
+/*ConfigManager::ConfigManager(){
+	this->loadedSettings = false;
 	this->loadedLanguageMainFiles = false;
 	this->loadedLanguageSubFiles = false;
 
@@ -28,14 +28,8 @@ using Json::Value;
 	//this->getMD5Function = myMD5Function;
 
 	//Save the current working directory
-	/*char* buffer;
-	std::wstringstream txt;
-	if((buffer = _getcwd( NULL, 0)) != NULL) {
-		txt <<buffer;
-		free(buffer);
-	}
-	this->workingDir = txt.str();*/
-//}
+
+}*/
 
 //ConfigManager::~ConfigManager(void){}
 
@@ -49,25 +43,25 @@ using Json::Value;
  *   languages, keyboards, etc.) here.
  * This is the only config. file that is actually required.
  */
-void ConfigManager::initMainConfig(const std::string& configFile, bool fileIsStream)
+/*void ConfigManager::initMainConfig(const std::string& configFile, bool fileIsStream)
 {
 	if (this->sealed)
 		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
 
 	//Save the file, we will load it later when we need it
 	this->mainConfig = JsonFile(configFile, fileIsStream);
-}
+}*/
 
 
 
-void ConfigManager::initCommonConfig(const std::string& configFile)
+/*void ConfigManager::initCommonConfig(const std::string& configFile)
 {
 	if (this->sealed)
 		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
 
 	//Save the file, we will load it later when we need it
 	this->commonConfig = JsonFile(configFile, false);
-}
+}*/
 
 
 /*void ConfigManager::initMainConfig(const std::wstring& configStream)
@@ -93,7 +87,7 @@ void ConfigManager::initCommonConfig(const std::string& configFile)
  *   one directory.
  * These files are optional, but heavily encouraged in all distributions except the Web Demo.
  */
-void ConfigManager::initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles)
+/*void ConfigManager::initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles)
 {
 	if (this->sealed)
 		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
@@ -105,7 +99,7 @@ void ConfigManager::initAddLanguage(const std::string& configFile, const std::ve
 
 	//Save the file, we will load it later when we need it
 	this->langConfigs[JsonFile(configFile)] = cfgs;
-}
+}*/
 
 
 /**
@@ -119,17 +113,17 @@ void ConfigManager::initAddLanguage(const std::string& configFile, const std::ve
  * WaitZar's GUI config window will alter this file. Loading it is optional, but it's generally a good idea
  *  (otherwise, users' settings won't get loaded when they exit and re-load WaitZar).
  */
-void ConfigManager::initLocalConfig(const std::string& configFile)
+/*void ConfigManager::initLocalConfig(const std::string& configFile)
 {
 	if (this->sealed)
 		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
 
 	//Save the file, we will load it later when we need it
 	this->localConfig = configFile;
-}
+}*/
 
 
-void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perms, bool fileIsStream)
+void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perms, bool fileIsStream, std::function<void (const Node& n)> OnSetCallback)
 {
 	//Can't modify a sealed configuration
 	if (this->sealed)
@@ -139,7 +133,7 @@ void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perm
 	JsonFile file = JsonFile(cfgFile, fileIsStream);
 
 	//Merge it into the tree
-	buildAndWalkConfigTree(file, root, troot, verifyTree, perms);
+	buildAndWalkConfigTree(file, root, troot, verifyTree, perms, OnSetCallback);
 }
 
 
@@ -154,17 +148,17 @@ void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perm
  *   options, but are really only intended only to contain settings overrides (not language overrides, etc.)
  * This is the file that users will tweak on their own. It is HIGHLY recommended to load this file, if it exists.
  */
-void ConfigManager::initUserConfig(const std::string& configFile)
+/*void ConfigManager::initUserConfig(const std::string& configFile)
 {
 	if (this->sealed)
 		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
 
 	//Save the file, we will load it later when we need it
 	this->userConfig = configFile;
-}
+}*/
 
 
-void ConfigManager::resolvePartialSettings()
+/*void ConfigManager::resolvePartialSettings()
 {
 	//TODO: Make this cleaner
 	unsigned int PART_INPUT = 0;
@@ -188,7 +182,7 @@ void ConfigManager::resolvePartialSettings()
 
 			//TODO: Streamline 
 			if (i==PART_INPUT)
-				const_cast<Language&>(*lang).inputMethods.insert(WZFactory::makeInputMethod(id, *lang, it->second/*, getMD5Function*/));
+				const_cast<Language&>(*lang).inputMethods.insert(WZFactory::makeInputMethod(id, *lang, it->second));
 			else if (i==PART_ENC) 
 				const_cast<Language&>(*lang).encodings.insert(WZFactory::makeEncoding(id, it->second));
 			else if (i==PART_TRANS) {
@@ -202,7 +196,7 @@ void ConfigManager::resolvePartialSettings()
 		//Clear all entries from this map
 		currMap.clear();
 	}
-}
+}*/
 
 
 //Make our model worrrrrrrrk......
@@ -210,15 +204,19 @@ void ConfigManager::resolvePartialSettings()
 //        We can't use references, since those might be in validated if we somehow resized the container).
 void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings) 
 {
+	//
+	// TODO: We need to init static information somewhere... but where?
+	//
+
 	//Step 1: Read
-	localConfError = false;
-	getSettings();
+	//localConfError = false;
+/*	getSettings();
 	getExtensions();
 	getLanguages();
 	getEncodings();
 	getInputMethods();
 	getDisplayMethods();
-	Logger::markLogTime('L', L"Read physical files, parsed JSON");
+	Logger::markLogTime('L', L"Read physical files, parsed JSON");*/
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
 	WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
@@ -226,26 +224,26 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	Logger::markLogTime('L', L"Initialized static classes with relevant information.");
 
 	//Step 1.5; check all DLLs
-	for (auto it=options.extensions.begin(); it!=options.extensions.end(); it++) {
+	/*for (auto it=options.extensions.begin(); it!=options.extensions.end(); it++) {
 		if (const_cast<Extension*>(*it)->id==L"javascript")
-			((JavaScriptConverter*)*it)->InitDLL(/*getMD5Function*/);
-	}
+			((JavaScriptConverter*)*it)->InitDLL();
+	}*/
 
 	//TMEP: Needed for our new loader
 	//RuntimeConfig(sealConfig(), locallySetOptions);
 
 
 	//Step 2: Un-cache
-	resolvePartialSettings();
-	Logger::markLogTime('L', L"Resolved partial settings.");
+	/*resolvePartialSettings();
+	Logger::markLogTime('L', L"Resolved partial settings.");*/
 
 	//Step 3: Make it useful
-	generateInputsDisplaysOutputs(lastUsedSettings);
-	Logger::markLogTime('L', L"Generated list of input/output/display/encodings.");
+	/*generateInputsDisplaysOutputs(lastUsedSettings);
+	Logger::markLogTime('L', L"Generated list of input/output/display/encodings.");*/
 
 	//Step 4: Set our current language, input method, etc.
 	//activeLanguage = *FindKeyInSet(options.languages, options.settings.defaultLanguage);
-	activeLanguage = *options.languages.find(options.settings.defaultLanguage);
+	/*activeLanguage = *options.languages.find(options.settings.defaultLanguage);
 	activeOutputEncoding = activeLanguage.defaultOutputEncoding;
 	activeInputMethod = *FindKeyInSet(activeLanguage.inputMethods, activeLanguage.defaultInputMethod);
 	activeDisplayMethods.clear();
@@ -253,7 +251,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodSmall));
 	if (activeDisplayMethods[0]->encoding != activeDisplayMethods[1]->encoding)
 		throw std::runtime_error("Error: \"small\" and \"regular\" sized display methods have different encodings");
-	Logger::markLogTime('L', L"Set \"active\" input/output/display/encodings.");
+	Logger::markLogTime('L', L"Set \"active\" input/output/display/encodings.");*/
 }
 
 
@@ -262,7 +260,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 //     sure the right encodings (and transformations) exist for each.
 //Then, build fast-to-lookup data structures for actual use in WZ.
 //   lastUsedSettings = languageid -> [lastInput, lastOutput, lastDispBig, lastDispSmall]
-void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings) 
+/*void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstring> >& lastUsedSettings)
 {
 	//Cache our self2self lookup
 	self2self = new Self2Self();
@@ -436,7 +434,7 @@ void ConfigManager::generateInputsDisplaysOutputs(const map<wstring, vector<wstr
 			}
 		}
 	}
-}
+}*/
 
 
 
@@ -487,6 +485,8 @@ const ConfigRoot& ConfigManager::sealConfig()
 		WZFactory::verifyLanguage(langIt->first, langIt->second);
 	}
 
+	//Also verify the settings themselves
+	WZFactory::verifySettings(troot, troot.settings);
 
 
 	//Done
@@ -497,7 +497,7 @@ const ConfigRoot& ConfigManager::sealConfig()
 
 
 
-const Transformation* ConfigManager::getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const
+/*const Transformation* ConfigManager::getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const
 {
 	//Self to self?
 	if (fromEnc==toEnc)
@@ -511,7 +511,7 @@ const Transformation* ConfigManager::getTransformation(const Language& lang, con
 
 	//Done
 	return found->second;
-}
+}*/
 
 
 
@@ -715,7 +715,7 @@ void ConfigManager::buildVerifyTree() {
 		return d;
 	});
 	verifyTree[L"settings"].addChild(L"default-language" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
-		dynamic_cast<SettingsNode&>(d).defaultLanguage.first = waitzar::sanitize_id(s.str());
+		dynamic_cast<SettingsNode&>(d).defaultLanguage = waitzar::sanitize_id(s.str());
 		return d;
 	});
 	verifyTree[L"settings"].addChild(L"whitespace-characters" , [](const Node& s, TNode& d, const CfgPerm& perms)->TNode&{
@@ -968,7 +968,7 @@ void ConfigManager::buildVerifyTree() {
 }
 
 
-const Settings& ConfigManager::getSettings() 
+/*const Settings& ConfigManager::getSettings()
 {
 	//Load if needed
 	root = Node();
@@ -1022,12 +1022,8 @@ const Settings& ConfigManager::getSettings()
 			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
 
 			//Save local opts!
-			/*this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(), UserLocalCfgPerm(),*/
-			this->buildAndWalkConfigTree(this->localConfig, root, troot, verifyTree, UserLocalCfgPerm(),
-				[&locallySetOptions](const Node& n) {
-					locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
-				}
-			);
+			//this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(), UserLocalCfgPerm(),
+			this->buildAndWalkConfigTree(this->localConfig, root, troot, verifyTree, UserLocalCfgPerm());
 		}
 		if (this->userConfig.isSet()) {
 			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
@@ -1037,23 +1033,7 @@ const Settings& ConfigManager::getSettings()
 
 
 		//Now walk it and set all settings
-		/*if (!this->root.isEmpty())
-			this->walkConfigTree(this->root, this->troot, this->verifyTree);*/
 
-
-
-		//TEST
-/*		for (auto it=localOpts.begin(); it!=localOpts.end(); it++) {
-			if (locallySetOptions.count(it->first)>0 && locallySetOptions[it->first]==it->second)
-				std::cout <<"Test passed" <<std::endl;
-			else
-				std::cout <<"Test FAILED" <<std::endl;
-		}
-		for (auto it=locallySetOptions.begin(); it!=locallySetOptions.end(); it++) {
-			if (localOpts.count(it->first)==0)
-				std::cout <<"Test FAILED: extra option!" <<std::endl;
-		}*/
-		//END TEST
 
 
 		//Minor post-processing
@@ -1066,7 +1046,7 @@ const Settings& ConfigManager::getSettings()
 
 	//Return the object
 	return this->options.settings;
-}
+}*/
 
 
 
@@ -1203,7 +1183,7 @@ void ConfigManager::walkConfigTree(Node& source, TNode& dest, const TransformNod
 
 
 
-void ConfigManager::loadLanguageMainFiles()
+/*void ConfigManager::loadLanguageMainFiles()
 {
 	//Main config file must be read by now
 	if (!this->loadedSettings)
@@ -1211,10 +1191,10 @@ void ConfigManager::loadLanguageMainFiles()
 
 	//Done
 	loadedLanguageMainFiles = true;
-}
+}*/
 
 
-void ConfigManager::loadLanguageSubFiles()
+/*void ConfigManager::loadLanguageSubFiles()
 {
 	//Main config file must be read by now
 	if (!this->loadedSettings)
@@ -1222,10 +1202,10 @@ void ConfigManager::loadLanguageSubFiles()
 
 	//Done
 	loadedLanguageSubFiles = true;
-}
+}*/
 
 
-const std::set<Language>& ConfigManager::getLanguages()  
+/*const std::set<Language>& ConfigManager::getLanguages()
 {
 	//Languages can ONLY be defined in top-level language directories.
 	//  So we don't need to load user-defined plugins yet. 
@@ -1236,18 +1216,18 @@ const std::set<Language>& ConfigManager::getLanguages()
 		this->loadLanguageSubFiles();
 
 	return this->options.languages;
-}
+}*/
 
-const std::set<Extension*>& ConfigManager::getExtensions()
+/*const std::set<Extension*>& ConfigManager::getExtensions()
 {
 	//Main config file must be read by now
 	if (!this->loadedSettings)
 		throw std::runtime_error("Must load settings before language main files.");
 
 	return this->options.extensions;
-}
+}*/
 
-const std::set<InputMethod*>& ConfigManager::getInputMethods()
+/*const std::set<InputMethod*>& ConfigManager::getInputMethods()
 {
 	//Languages can ONLY be defined in top-level language directories.
 	//  So we don't need to load user-defined plugins yet. 
@@ -1284,7 +1264,7 @@ const std::set<Encoding>& ConfigManager::getEncodings()
 		this->loadLanguageSubFiles();
 
 	return this->activeLanguage.encodings;
-}
+}*/
 
 
 

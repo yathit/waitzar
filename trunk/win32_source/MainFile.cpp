@@ -443,8 +443,8 @@ inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 
 //Means of getting a transformation; we'll have to pass this as a functional pointer later,
 //   because of circular dependencies. TODO: Fix this.
-const Transformation* ConfigGetTransformation(const Encoding& fromEnc, const Encoding& toEnc) {
-	return config.getTransformation(config.activeLanguage, fromEnc, toEnc);
+const TransNode& ConfigGetTransformation(const Encoding& fromEnc, const Encoding& toEnc) {
+	return config.getTransformation(config.activeLanguage, fromEnc.id, toEnc.id);
 }
 
 
@@ -950,13 +950,13 @@ void FlashSaveState()
 	try {
 		//Write a version number
 		outStr <<FLASH_SAVE_VERSION_NUMBER <<L"\n";
-		for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
-			if (it->id==config.activeLanguage.id) {
-				outStr <<config.activeLanguage.id <<L"!" <<config.activeInputMethod->id <<L":"; //Use a "!" to mean "default"
-				outStr <<config.activeOutputEncoding.id <<L":" <<config.activeDisplayMethods[0]->id <<L":";
-				outStr <<config.activeDisplayMethods[1]->id <<L"\n";
+		for (auto it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
+			if (it->id==config.activeLanguage) {
+				outStr <<config.activeLanguage <<L"!" <<config.activeInputMethod <<L":"; //Use a "!" to mean "default"
+				outStr <<config.activeOutputEncoding <<L":" <<config.activeDisplayMethods[0] <<L":";
+				outStr <<config.activeDisplayMethods[1] <<L"\n";
 			} else {
-				outStr <<it->id <<L":" <<it->defaultInputMethod <<L":" <<it->defaultOutputEncoding.id <<L":";
+				outStr <<it->id <<L":" <<it->defaultInputMethod <<L":" <<it->defaultOutputEncoding <<L":";
 				outStr <<it->defaultDisplayMethodReg <<L":" <<it->defaultDisplayMethodSmall <<L"\n";
 			}
 		}
@@ -1750,7 +1750,7 @@ void recalculate()
 	sentenceWindow->drawLineTo(cursorPosX-1, sentenceWindow->getClientHeight()-borderWidth-1);
 
 	//Update the sentence window's clickable region for the current encoding rectangle
-	wstring currEncStr = config.activeOutputEncoding.initial;
+	wstring currEncStr = config.getActiveOutputEncoding().initial;
 	int encStrWidth = mainWindow->getStringWidth(mmFontSmall, currEncStr);
 	RECT rNew;
 	rNew.left = sentenceWindow->getClientWidth()-encStrWidth-3;
@@ -2221,7 +2221,7 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	//Get the language for this panel.
 	currTabLangID = settingsLangIDs[tabID]; //Save for later
 	//const Language& lng = *FindKeyInSet(config.getLanguages(), currTabLangID);
-	const Language& lng = *config.getLanguages().find(currTabLangID);
+	const LangNode& lng = config.getLanguage(currTabLangID);
 
 	//Handle default input/output variables
 	int toSetInID = -2; //-2 = n/a, -1=lastused
@@ -2243,19 +2243,19 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)L"(Last Used)");
 	SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)L"(Last Used)");
 	size_t count = 0;
-	for (std::set<InputMethod*>::const_iterator it2=lng.inputMethods.begin(); it2!=lng.inputMethods.end(); it2++) {
-		SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)(*it2)->displayName.c_str());
-		settingsInputMethodsIDs.push_back((*it2)->id); //Needed in case the set re-orders.
-		if (!defIn.empty() && defIn==(*it2)->id)
+	for (auto it2=lng.inputMethods.begin(); it2!=lng.inputMethods.end(); it2++) {
+		SendMessage(ctlA, CB_ADDSTRING, 0, (LPARAM)it2->second.displayName.c_str());
+		settingsInputMethodsIDs.push_back(it2->first); //Needed in case the set re-orders.
+		if (!defIn.empty() && defIn==it2->first)
 			toSetInID = count;
 		count++;
 	}
 	count = 0;
-	for (std::set<Encoding>::const_iterator it2=lng.encodings.begin(); it2!=lng.encodings.end(); it2++) {
-		if (it2->canUseAsOutput) {
-			SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)it2->displayName.c_str());
-			settingsOutputEncodingsIDs.push_back(it2->id); //Needed in case the set reorders.
-			if (!defOut.empty() && defOut==it2->id)
+	for (auto it2=lng.encodings.begin(); it2!=lng.encodings.end(); it2++) {
+		if (it2->second.canUseAsOutput) {
+			SendMessage(ctlB, CB_ADDSTRING, 0, (LPARAM)it2->second.displayName.c_str());
+			settingsOutputEncodingsIDs.push_back(it2->first); //Needed in case the set reorders.
+			if (!defOut.empty() && defOut==it2->first)
 				toSetOutID = count;
 			count++;
 		}
@@ -2548,12 +2548,12 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			size_t defTabID = 0;
 			settingsLangIDs.clear();
 			HWND hwTabMain = GetDlgItem(hwnd, IDC_SETTINGS_MAINTAB);
-			for (std::set<Language>::const_iterator it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
+			for (auto it=config.getLanguages().begin(); it!=config.getLanguages().end(); it++) {
 				wchar_t name[512];
 				wcscpy(name, it->displayName.c_str());
 				tci.pszText = name;
 				int tabPageID = TabCtrl_InsertItem(hwTabMain, TabCtrl_GetItemCount(hwTabMain), &tci);
-				if (it->id == config.activeLanguage.id)
+				if (it->id == config.activeLanguage)
 					defTabID = tabPageID;
 
 				//Save its id, in case the Set somehow re-orders them.
@@ -2617,7 +2617,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ctl = GetDlgItem(hwnd, IDC_SETTINGS_LANGCOMBO);
 			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"N/A");
 			SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)L"(Last Used)");
-			for (std::set<Language>::const_iterator it2=config.getLanguages().begin(); it2!=config.getLanguages().end(); it2++) {
+			for (auto it2=config.getLanguages().begin(); it2!=config.getLanguages().end(); it2++) {
 				SendMessage(ctl, CB_ADDSTRING, 0, (LPARAM)it2->displayName.c_str());
 				if (!defLang.empty() && it2->id==defLang)
 					toSetID = count;
@@ -3129,13 +3129,13 @@ void toggleHelpMode(bool toggleTo)
 			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
 
 		//Reset our input2uni transformer (others shouldn't need changing).
-		input2Uni = config.getTransformation(config.activeLanguage, currHelpInput->encoding, config.unicodeEncoding);
+		input2Uni = config.getTransformation(config.activeLanguage, currHelpInput->encoding.id, L"unicode").getImpl();
 
 		//Get an encoding switcher for the reverse-roman lookup
 		//const Transformation* uni2Roman = config.getTransformation(config.activeLanguage, config.unicodeEncoding, currTypeInput->encoding);
 
 		//Switch inputs, set as helper
-		currHelpInput->treatAsHelpKeyboard(currTypeInput, config.unicodeEncoding, ConfigGetTransformation);
+		currHelpInput->treatAsHelpKeyboard(currTypeInput, config.getEncoding(config.activeLanguage, L"unicode"), ConfigGetTransformation);
 		currInput = currHelpInput;
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
@@ -3163,7 +3163,7 @@ void toggleHelpMode(bool toggleTo)
 			helpKeyboard->addMemoryEntry(checkEntry.second, checkEntry.first);
 
 		//Reset our input2uni transformer (others shouldn't need changing).
-		input2Uni = config.getTransformation(config.activeLanguage, currInput->encoding, config.unicodeEncoding);
+		input2Uni = config.getTransformation(config.activeLanguage, currInput->encoding.id, L"unicode").getImpl();
 
 		//Turn off help keys
 		turnOnHelpKeys(false);
@@ -3219,30 +3219,12 @@ bool logLangChange = false; //Only set once.
 void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 {
 	//Step 1: Set
-	if (!langid.empty()) {
-		//Changing the language changes just about everything.
-		//config.activeLanguage = *(FindKeyInSet(config.getLanguages(), langid));
-		config.activeLanguage = *config.getLanguages().find(langid);
-		config.activeDisplayMethods.clear();
-		config.activeDisplayMethods.push_back(*(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethodReg)));
-		config.activeDisplayMethods.push_back(*(FindKeyInSet(config.getDisplayMethods(), config.activeLanguage.defaultDisplayMethodSmall)));
-		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), config.activeLanguage.defaultInputMethod));
-		config.activeOutputEncoding = config.activeLanguage.defaultOutputEncoding;
-	}
-	if (!inputid.empty())
-		config.activeInputMethod = *(FindKeyInSet(config.getInputMethods(), inputid));
-	if (!outputid.empty())
-		//config.activeOutputEncoding = *(FindKeyInSet(config.getEncodings(), outputid));
-		config.activeOutputEncoding = *config.getEncodings().find(outputid);
-	//TODO: Take the above stuff from "RuntimeConfig"'s method; it's easier
-
-
-
+	config.ChangeLangInputOutput(langid, inputid, outputid);
 	if (logLangChange)
 		Logger::markLogTime('L', L"LangInOut is set");
 
 	//Step 2: Read
-	currInput = config.activeInputMethod;
+	currInput = config.getActiveInputMethod().getImpl();
 	currTypeInput = currInput;
 	currHelpInput = NULL;
 	mmFont = config.activeDisplayMethods[0];
@@ -3620,11 +3602,11 @@ void updateContextMenuState()
 		//What are we checking against?
 		wstring idToCheck;
 		if (customMenuItems[i].type==WZMI_LANG)
-			idToCheck = config.activeLanguage.id;
+			idToCheck = config.activeLanguage;
 		else if (customMenuItems[i].type==WZMI_INPUT)
-			idToCheck = config.activeInputMethod->id;
+			idToCheck = config.activeInputMethod;
 		else if (customMenuItems[i].type==WZMI_OUTPUT)
-			idToCheck = config.activeOutputEncoding.id;
+			idToCheck = config.activeOutputEncoding;
 		else
 			continue;
 
@@ -3643,7 +3625,7 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 	{
 	std::wstringstream msg;
 	msg << "WaitZar has encountered an error with the current Input Method.\nThe input method \"";
-	msg <<config.activeInputMethod->displayName;
+	msg <<config.getActiveInputMethod().displayName;
 	msg <<"\" has been disabled; you must switch the Language or restart WaitZar to re-enable it.\n\nDetails:\n";
 	msg << ex.what();
 	MessageBox((mainWindow->isVisible()||sentenceWindow->isVisible())?currHwnd:NULL, msg.str().c_str(), L"WaitZar IM Runtime Error", MB_ICONWARNING | MB_OK);
@@ -4150,6 +4132,7 @@ bool findAndLoadAllConfigFiles()
 {
 	//Our "Config Manager" is used for loading files
 	ConfigManager cfgMgr;
+	map<wstring, wstring> locallySetOptions;
 
 	//Find all config files
 	bool suppressThisException = false;
@@ -4240,7 +4223,11 @@ bool findAndLoadAllConfigFiles()
 			temp.str(L"");
 			temp << pathLocalConfig.c_str();
 			if (WZFactory::FileExists(temp.str())) {
-				cfgMgr.mergeInConfigFile(pathLocalConfig, UserLocalCfgPerm());
+				cfgMgr.mergeInConfigFile(pathLocalConfig, UserLocalCfgPerm(), false,
+					[&locallySetOptions](const Node& n) {
+						locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
+					}
+				);
 				//config.initLocalConfig(pathLocalConfig);
 			} else {
 				//Create the file
@@ -4277,7 +4264,8 @@ bool findAndLoadAllConfigFiles()
 		//Final test: make sure all config files work
 		Logger::startLogTimer('L', L"Reading & validating config files");
 		//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-		config = RuntimeConfig(configMgr.sealConfig(), configMgr.locallySetOptions);
+		cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
+		config = RuntimeConfig(cfgMgr.sealConfig(), locallySetOptions);
 
 		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
@@ -4286,6 +4274,7 @@ bool findAndLoadAllConfigFiles()
 		bool locError = config.localConfigCausedError();
 		//config = ConfigManager(/*getMD5Hash*/);
 		cfgMgr = ConfigManager();
+		locallSetOptions.clear();
 
 		//Delete the local config file if this caused the error
 		if (locError) {
@@ -4335,7 +4324,8 @@ bool findAndLoadAllConfigFiles()
 
 			//One more test.
 			//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-			config = RuntimeConfig(configMgr.sealConfig(), configMgr.locallySetOptions);
+			cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
+			config = RuntimeConfig(cfgMgr.sealConfig(), locallySetOptions);
 
 			Logger::markLogTime('L', L"Config files validated: DEFAULT is taking over");
 		} catch (std::exception& ex2) {
