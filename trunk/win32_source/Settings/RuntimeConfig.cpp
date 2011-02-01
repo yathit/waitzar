@@ -36,23 +36,16 @@ RuntimeConfig::RuntimeConfig(const ConfigRoot& config, const map<wstring, wstrin
 	getSettings();
 	getExtensions();
 	for (auto it=config.languages.begin(); it!=config.languages.end(); it++) {
-		activeLanguage = it->first;
-		getEncodings();
-		getInputMethods();
-		getDisplayMethods();
+		getEncodings(it->first);
+		getInputMethods(it->first);
+		getDisplayMethods(it->first);
 		for (auto trIt=it->second.transformations.begin(); trIt!=it->second.transformations.end(); trIt++) {
-			getTransformation(activeLanguage, trIt->second.fromEncoding, trIt->second.toEncoding);
+			getTransformation(it->first, trIt->second.fromEncoding, trIt->second.toEncoding);
 		}
 	}
 
 	//Finally, set all strings
-	activeLanguage = config.settings.defaultLanguage;
-	activeInputMethod = getActiveLanguage().defaultInputMethod;
-	activeOutputEncoding = getActiveLanguage().defaultOutputEncoding;
-	activeDisplayMethods = {
-		getActiveLanguage().defaultDisplayMethodReg,
-		getActiveLanguage().defaultDisplayMethodSmall
-	};
+	setActiveLanguage(config.settings.defaultLanguage);
 }
 
 
@@ -61,14 +54,15 @@ void RuntimeConfig::setActiveLanguage(const std::wstring& id)
 	if (id.empty())
 		return;
 
+
 	//Changing the language changes just about everything.
 	activeLanguage = id;
-	activeDisplayMethods = {
+	activeDisplayMethod = {
 			getActiveLanguage().defaultDisplayMethodReg,
 			getActiveLanguage().defaultDisplayMethodSmall,
 	};
 	setActiveInputMethod(getActiveLanguage().defaultInputMethod);
-	setActiveOutputMethod(getActiveLanguage().defaultOutputEncoding);
+	setActiveOutputEncoding(getActiveLanguage().defaultOutputEncoding);
 }
 
 
@@ -109,7 +103,7 @@ const InMethNode& RuntimeConfig::getInputMethod(const std::wstring& langID, cons
 }
 
 
-const std::pair<DispMethNode, DispMethNode>& RuntimeConfig::getDisplayMethodPair(const std::wstring& langID, const std::wstring& dispmeth1, const std::wstring& dispmeth2)
+std::pair<DispMethNode, DispMethNode> RuntimeConfig::getDisplayMethodPair(const std::wstring& langID, const std::wstring& dispmeth1, const std::wstring& dispmeth2)
 {
 	const LangNode& lang = getLanguage(langID);
 	auto it1 = lang.displayMethods.find(dispmeth1);
@@ -153,6 +147,7 @@ const vector<ExtendNode>& RuntimeConfig::getExtensions()
 	//Return
 	return cachedExtensions;
 }
+
 
 
 const vector<LangNode>& RuntimeConfig::getLanguages()

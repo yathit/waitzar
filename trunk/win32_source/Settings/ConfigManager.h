@@ -151,8 +151,8 @@ private:
 	static T& AddOrCh(std::map<std::wstring, T>& existing, const Node& node, bool addAllowed, bool chgAllowed);
 
 
-	void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, std::map<std::wstring, std::wstring>* const optionsSet);
-	void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
+	//void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, std::map<std::wstring, std::wstring>* const optionsSet);
+	//void setSingleOption(const std::wstring& folderPath, const std::vector<std::wstring>& name, const std::wstring& value, bool restricted, bool allowDLL);
 
 	//void resolvePartialSettings();
 	//void generateInputsDisplaysOutputs(const std::map<std::wstring, std::vector<std::wstring> >& lastUsedSettings);
@@ -204,7 +204,7 @@ private:
 //Find and return an item in a Set, indxed only by its wstring
 //   * This is not needed for value-type sets, since we can just construct temporaries
 //   * We don't need a non-const version, because set iterators are always const
-template <class T> 
+/*template <class T>
 typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container, const std::wstring& key)
 {
 	typename std::set<T*>::const_iterator it=container.begin();
@@ -213,7 +213,7 @@ typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container
 			break;
 	}
 	return it;
-}
+}*/
 
 
 

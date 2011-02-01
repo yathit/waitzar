@@ -909,7 +909,7 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const Language& 
 	//Now, add general settings
 	res->id = id;
 	res->displayName = purge_filename(options.find(sanitize_id(L"display-name"))->second);
-	res->encoding.id = sanitize_id(options.find(L"encoding")->second);
+	res->encoding = sanitize_id(options.find(L"encoding")->second);
 
 	res->suppressUppercase = true;
 	if (options.count(sanitize_id(L"suppress-uppercase"))>0)

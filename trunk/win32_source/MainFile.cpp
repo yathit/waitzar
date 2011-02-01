@@ -149,11 +149,11 @@ string pathUserConfig;       //Path to the user's config.json.txt file in his "M
 void createContextMenu();
 
 //More globals  --  full program customization happens here
-InputMethod*       currInput;     //Which of the two next inputs are currently in use?
-InputMethod*       currTypeInput;
-InputMethod*       currHelpInput; //NULL means disable help
-DisplayMethod *mmFont;
-DisplayMethod *mmFontSmall;
+InputMethod*       currInput = NULL;     //Which of the two next inputs are currently in use?
+InputMethod*       currTypeInput = NULL;
+InputMethod*       currHelpInput = NULL; //NULL means disable help
+DisplayMethod *mmFont = NULL;
+DisplayMethod *mmFontSmall = NULL;
 const Transformation*    input2Uni;
 const Transformation*    uni2Output;
 const Transformation*    uni2Disp;
@@ -443,8 +443,8 @@ inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 
 //Means of getting a transformation; we'll have to pass this as a functional pointer later,
 //   because of circular dependencies. TODO: Fix this.
-const TransNode& ConfigGetTransformation(const Encoding& fromEnc, const Encoding& toEnc) {
-	return config.getTransformation(config.getActiveLanguage().id, fromEnc.id, toEnc.id);
+const Transformation* ConfigGetTransformation(const wstring& fromEnc, const wstring& toEnc) {
+	return config.getActiveTransformation(fromEnc, toEnc).getImpl();
 }
 
 
@@ -2553,7 +2553,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				wcscpy(name, it->displayName.c_str());
 				tci.pszText = name;
 				int tabPageID = TabCtrl_InsertItem(hwTabMain, TabCtrl_GetItemCount(hwTabMain), &tci);
-				if (it->id == config.activeLanguage)
+				if (it->id == config.getActiveLanguage().id)
 					defTabID = tabPageID;
 
 				//Save its id, in case the Set somehow re-orders them.
@@ -3129,13 +3129,13 @@ void toggleHelpMode(bool toggleTo)
 			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
 
 		//Reset our input2uni transformer (others shouldn't need changing).
-		input2Uni = config.getTransformation(config.activeLanguage, currHelpInput->encoding.id, L"unicode").getImpl();
+		input2Uni = config.getActiveTransformation(currHelpInput->encoding, L"unicode").getImpl();
 
 		//Get an encoding switcher for the reverse-roman lookup
 		//const Transformation* uni2Roman = config.getTransformation(config.activeLanguage, config.unicodeEncoding, currTypeInput->encoding);
 
 		//Switch inputs, set as helper
-		currHelpInput->treatAsHelpKeyboard(currTypeInput, config.getEncoding(config.activeLanguage, L"unicode"), ConfigGetTransformation);
+		currHelpInput->treatAsHelpKeyboard(currTypeInput, ConfigGetTransformation);
 		currInput = currHelpInput;
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
@@ -3163,7 +3163,7 @@ void toggleHelpMode(bool toggleTo)
 			helpKeyboard->addMemoryEntry(checkEntry.second, checkEntry.first);
 
 		//Reset our input2uni transformer (others shouldn't need changing).
-		input2Uni = config.getTransformation(config.activeLanguage, currInput->encoding.id, L"unicode").getImpl();
+		input2Uni = config.getActiveTransformation(currInput->encoding, L"unicode").getImpl();
 
 		//Turn off help keys
 		turnOnHelpKeys(false);
@@ -3219,7 +3219,9 @@ bool logLangChange = false; //Only set once.
 void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 {
 	//Step 1: Set
-	config.ChangeLangInputOutput(langid, inputid, outputid);
+	config.setActiveLanguage(langid);
+	config.setActiveInputMethod(inputid);
+	config.setActiveOutputEncoding(outputid);
 	if (logLangChange)
 		Logger::markLogTime('L', L"LangInOut is set");
 
@@ -3227,11 +3229,11 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	currInput = config.getActiveInputMethod().getImpl();
 	currTypeInput = currInput;
 	currHelpInput = NULL;
-	mmFont = config.activeDisplayMethods[0];
-	mmFontSmall = config.activeDisplayMethods[1];
-	input2Uni = config.getTransformation(config.activeLanguage, config.activeInputMethod->encoding, config.unicodeEncoding);
-	uni2Output = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeOutputEncoding);
-	uni2Disp = config.getTransformation(config.activeLanguage, config.unicodeEncoding, config.activeDisplayMethods[0]->encoding);
+	mmFont = config.getActiveDisplayMethodPair().first.getImpl();
+	mmFontSmall = config.getActiveDisplayMethodPair().second.getImpl();
+	input2Uni = config.getActiveTransformation(config.getActiveInputMethod().encoding, L"unicode").getImpl();
+	uni2Output = config.getActiveTransformation(L"unicode", config.getActiveOutputEncoding().id).getImpl();
+	uni2Disp = config.getActiveTransformation(L"unicode", config.getActiveDisplayMethodPair().first.encoding).getImpl();
 	if (logLangChange)
 		Logger::markLogTime('L', L"Cached entries saved");
 
@@ -3241,12 +3243,12 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	//bool isPulpFontDisplay = (mmFontSmall->type==DISPM_PNG||mmFontSmall->type==BUILTIN);
 	try {
 		//Intentionally try to cause an exception
-		currInput->treatAsHelpKeyboard(NULL, config.unicodeEncoding, NULL);
+		currInput->treatAsHelpKeyboard(NULL);
 	} catch (std::exception ex) {
 		isRoman = true;
 	}
 	if (isRoman /*&& isPulpFontDisplay*/) {
-		currHelpInput = *(FindKeyInSet(config.getInputMethods(), waitzar::sanitize_id(L"mywin")));
+		currHelpInput = config.getInputMethod(config.getActiveLanguage().id, L"mywin").getImpl();
 	}
 	if (logLangChange)
 		Logger::markLogTime('L', L"Help keyboard hack enabled.");
@@ -3499,7 +3501,7 @@ void createContextMenu()
 		currDynamicCmd++; //Maintain easy access
 
 		//Add each language as a MI
-		for (std::set<Language>::const_iterator it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++)
+		for (auto it = config.getLanguages().begin(); it!=config.getLanguages().end(); it++)
 			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_LANG, it->id, it->displayName));
 
 		if (logLangChange)
@@ -3511,8 +3513,8 @@ void createContextMenu()
 		currDynamicCmd++; //Maintain easy access
 
 		//Add each input method as an MI
-		for (std::set<InputMethod*>::const_iterator it = config.getInputMethods().begin(); it!=config.getInputMethods().end(); it++)
-			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_INPUT, (*it)->id, (*it)->displayName));
+		for (auto it = config.getActiveInputMethods().begin(); it!=config.getActiveInputMethods().end(); it++)
+			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_INPUT, it->id, it->displayName));
 
 		if (logLangChange)
 			Logger::markLogTime('L', L"Re-built sub-menu: input methods");
@@ -3523,7 +3525,7 @@ void createContextMenu()
 		currDynamicCmd++; //Maintain easy access
 
 		//Add each encoding as an MI
-		for (std::set<Encoding>::const_iterator it = config.getEncodings().begin(); it!=config.getEncodings().end(); it++) {
+		for (auto it = config.getActiveEncodings().begin(); it!=config.getActiveEncodings().end(); it++) {
 			if (!it->canUseAsOutput)
 				continue;
 			myMenuItems.push_back(WZMenuItem(currDynamicCmd++, WZMI_OUTPUT, it->id, it->displayName));
@@ -3602,11 +3604,11 @@ void updateContextMenuState()
 		//What are we checking against?
 		wstring idToCheck;
 		if (customMenuItems[i].type==WZMI_LANG)
-			idToCheck = config.activeLanguage;
+			idToCheck = config.getActiveLanguage().id;
 		else if (customMenuItems[i].type==WZMI_INPUT)
-			idToCheck = config.activeInputMethod;
+			idToCheck = config.getActiveInputMethod().id;
 		else if (customMenuItems[i].type==WZMI_OUTPUT)
-			idToCheck = config.activeOutputEncoding;
+			idToCheck = config.getActiveOutputEncoding().id;
 		else
 			continue;
 
@@ -3636,13 +3638,14 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 	for (size_t i=0; i<totalMenuItems; i++) {
 		if (customMenuItems[i].type!=WZMI_INPUT)
 			continue;
-		if (customMenuItems[i].id != config.activeInputMethod->id)
+		if (customMenuItems[i].id != config.getActiveInputMethod().id)
 			continue;
 		customMenuItems[i].disabled = true;
 	}
 
 	//Finally, switch the input to WaitZar.
-	if (FindKeyInSet(config.activeLanguage.inputMethods, L"waitzar")==config.activeLanguage.inputMethods.end())
+	auto vec = config.getActiveInputMethods();
+	if (std::find(vec.begin(), vec.end(), L"waitzar")==vec.end())
 		ChangeLangInputOutput(L"myanmar", L"waitzar", L""); //Removes our blacklisted item, but at least we're back in MM
 	else
 		ChangeLangInputOutput(L"", L"waitzar", L"");
@@ -3654,10 +3657,10 @@ void disableCurrentInput(HWND currHwnd, const std::exception& ex)
 void OnEncodingChangeClick(unsigned int regionID)
 {
 	//Retrieve the current language, increment by one
-	size_t customMenuStartID = 2 + config.getLanguages().size() + 2 + config.getInputMethods().size() + 2;
+	size_t customMenuStartID = 2 + config.getLanguages().size() + 2 + config.getActiveInputMethods().size() + 2;
 	for (size_t i=customMenuStartID; i<totalMenuItems; i++) {
 		WZMenuItem currItem = customMenuItems[i];
-		if (currItem.id == config.activeOutputEncoding.id) {
+		if (currItem.id == config.getActiveOutputEncoding().id) {
 			//Increment
 			size_t newID = i+1;
 			if (newID >= totalMenuItems)
@@ -4274,7 +4277,7 @@ bool findAndLoadAllConfigFiles()
 		bool locError = config.localConfigCausedError();
 		//config = ConfigManager(/*getMD5Hash*/);
 		cfgMgr = ConfigManager();
-		locallSetOptions.clear();
+		locallySetOptions.clear();
 
 		//Delete the local config file if this caused the error
 		if (locError) {
@@ -4422,15 +4425,23 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 		//Set the language, input method, and output encoding.
 		//First check if they exist, though.
 		//if (FindKeyInSet(config.getLanguages(), language)==config.getLanguages().end())
-		if (config.getLanguages().find(language)==config.getLanguages().end())
-			throw std::runtime_error(waitzar::glue(L"Unknown language: \"", language, L"\"").c_str());
-		ChangeLangInputOutput(language, L"", L""); //Need this to get the right input/output ids
-		if (FindKeyInSet(config.getInputMethods(), inputMethod)==config.getInputMethods().end())
-			throw std::runtime_error(waitzar::glue(L"Unknown input method: \"", inputMethod, L"\"").c_str());
-		//if (FindKeyInSet(config.getEncodings(), outEncoding)==config.getEncodings().end())
-		if (config.getEncodings().find(outEncoding)==config.getEncodings().end())
-			throw std::runtime_error(waitzar::glue(L"Unknown output encoding: \"", outEncoding, L"\"").c_str());
-		ChangeLangInputOutput(language, inputMethod, outEncoding);
+		{
+			auto vec = config.getLanguages();
+			if (std::find(vec.begin(), vec.end(), language)==vec.end())
+				throw std::runtime_error(waitzar::glue(L"Unknown language: \"", language, L"\"").c_str());
+			ChangeLangInputOutput(language, L"", L""); //Need this to get the right input/output ids
+		}
+		{
+			auto vec = config.getActiveInputMethods();
+			if (std::find(vec.begin(), vec.end(), inputMethod)==vec.end())
+				throw std::runtime_error(waitzar::glue(L"Unknown input method: \"", inputMethod, L"\"").c_str());
+		}
+		{
+			auto vec = config.getEncodings(config.getActiveLanguage().id);
+			if (std::find(vec.begin(), vec.end(), outEncoding)==vec.end())
+				throw std::runtime_error(waitzar::glue(L"Unknown output encoding: \"", outEncoding, L"\"").c_str());
+			ChangeLangInputOutput(language, inputMethod, outEncoding);
+		}
 
 		//Construct the output file name
 		size_t lastSlash = string::npos;
@@ -4816,15 +4827,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Set defaults
 	Logger::startLogTimer('L', L"Starting default language");
 	logLangChange = true;
-	ChangeLangInputOutput(config.activeLanguage.id, config.activeInputMethod->id, config.activeOutputEncoding.id);
+	ChangeLangInputOutput(config.getActiveLanguage().id, config.getActiveInputMethod().id, config.getActiveOutputEncoding().id);
 	logLangChange = false;
 	Logger::endLogTimer('L');
 	Logger::markLogTime('L', L"Default language set");
-
-
-	//Testing mywords?
-	/*if (currTest == mywords)
-		GetSystemTimeAsFileTime(&startTime);*/
 
 
 	//Logging mywords?

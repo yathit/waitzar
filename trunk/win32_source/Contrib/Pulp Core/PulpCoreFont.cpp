@@ -240,7 +240,7 @@ void PulpCoreFont::drawString(HDC bufferDC, const wstring &str, int xPos, int yP
 }
 
 
-int PulpCoreFont::getCharIndex(wchar_t ch)
+int PulpCoreFont::getCharIndex(wchar_t ch) const
 {
 	//Special-case (not in WZ)
 	if (uppercaseOnly && ch>='a' &&ch<= 'z')
@@ -257,7 +257,7 @@ int PulpCoreFont::getCharIndex(wchar_t ch)
 }
 
 
-bool PulpCoreFont::charIsOutOfRange(wchar_t ch)
+bool PulpCoreFont::charIsOutOfRange(wchar_t ch) const
 {
 	//Special-case (not in WZ)
 	if (uppercaseOnly && ch>='a' &&ch<= 'z')
@@ -300,7 +300,7 @@ void PulpCoreFont::drawString(HDC bufferDC, const string &str, int xPos, int yPo
     }
 }
 
-int PulpCoreFont::getCharIndex(char ch)
+int PulpCoreFont::getCharIndex(char ch) const
 {
 	//Special-case (not in WZ)
 	if (uppercaseOnly && ch>='a' &&ch<= 'z')
@@ -315,7 +315,7 @@ int PulpCoreFont::getCharIndex(char ch)
 
 
 
-int PulpCoreFont::getKerning(int leftIndex, int rightIndex)
+int PulpCoreFont::getKerning(int leftIndex, int rightIndex) const
 {
 	// Future versions of this method might handle kerning pairs, like "WA" and "Yo"
 	if (tracking!=0 && (shouldIgnoreTracking(rightIndex) || shouldIgnoreTracking(leftIndex)))
@@ -326,7 +326,7 @@ int PulpCoreFont::getKerning(int leftIndex, int rightIndex)
 
 
 
-bool PulpCoreFont::shouldIgnoreTracking(int index)
+bool PulpCoreFont::shouldIgnoreTracking(int index) const
 {
 	int width = (charPositions[index+1] - charPositions[index]);
 	int lsb = bearingLeft[index];
@@ -343,19 +343,19 @@ int PulpCoreFont::getCharWidth(char letter)
 	return charPositions[index+1] - pos;
 }
 
-int PulpCoreFont::getHeight(HDC currDC)
+int PulpCoreFont::getHeight(HDC currDC) const
 {
 	return PulpCoreImage::getHeight();
 }
 
 
-int PulpCoreFont::getStringWidth(const wstring &str, HDC currDC, const std::wstring& filterStr, size_t filterLetterWidth)
+int PulpCoreFont::getStringWidth(const wstring &str, HDC currDC, const std::wstring& filterStr, size_t filterLetterWidth) const
 {
 	return getStringWidth(str, 0, str.length(), filterStr, filterLetterWidth);
 }
 
 
-int PulpCoreFont::getStringWidth(const wstring &str, int start, int end, const std::wstring& filterStr, size_t filterLetterWidth)
+int PulpCoreFont::getStringWidth(const wstring &str, int start, int end, const std::wstring& filterStr, size_t filterLetterWidth) const
 {
         if (end <= start) {
             return 0;

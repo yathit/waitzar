@@ -102,7 +102,7 @@ public:
 
 	//Basic properties
 	int getWidth();
-	int getHeight();
+	int getHeight() const;
 
 protected:
 	//Data regarding the image

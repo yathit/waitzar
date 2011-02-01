@@ -24,20 +24,6 @@ class RuntimeConfig {
 public:
 	RuntimeConfig(const ConfigRoot& config=ConfigRoot(), const std::map<std::wstring, std::wstring>& localOpts=std::map<std::wstring, std::wstring>());
 
-	//Get from active properties
-/*	const SettingsNode& getSettings();
-	const std::vector<ExtendNode>& getExtensions();
-	const std::vector<LangNode>& getLanguages();
-	const std::vector<InMethNode>& getInputMethods();
-	const std::vector<DispMethNode>& getDisplayMethods();
-	const std::vector<EncNode>& getEncodings();
-	const TransNode& getTransformation(const std::wstring& lang, std::wstring fromEnc, std::wstring toEnc);*/
-
-	//Helper
-	//void ChangeLangInputOutput(const std::wstring& langid, const std::wstring& inputid, const std::wstring& outputid);
-
-
-
 	//Actual functions
 	const SettingsNode& getSettings();
 	const std::vector<ExtendNode>& getExtensions();
@@ -58,48 +44,19 @@ public:
 	//Directs
 	const LangNode& getLanguage(const std::wstring& langID);
 	const InMethNode& getInputMethod(const std::wstring& langID, const std::wstring& inmethID);
-	const std::pair<DispMethNode, DispMethNode>& getDisplayMethodPair(const std::wstring& langID, const std::wstring& dispmeth1, const std::wstring& dispmeth2);
+	std::pair<DispMethNode, DispMethNode> getDisplayMethodPair(const std::wstring& langID, const std::wstring& dispmeth1, const std::wstring& dispmeth2);
 	const EncNode& getEncoding(const std::wstring& langID, const std::wstring& encID);
 
 	//"Active" directs
 	const LangNode& getActiveLanguage() { return getLanguage(activeLanguage); }
 	const InMethNode& getActiveInputMethod() { return getInputMethod(activeLanguage, activeInputMethod); }
-	const std::pair<DispMethNode, DispMethNode>& getDisplayMethodPair() { return getDisplayMethodPair(activeLanguage, activeDisplayMethod.first, activeDisplayMethod.second); }
+	std::pair<DispMethNode, DispMethNode> getActiveDisplayMethodPair() { return getDisplayMethodPair(activeLanguage, activeDisplayMethod.first, activeDisplayMethod.second); }
 	const EncNode& getActiveOutputEncoding() { return getEncoding(activeLanguage, activeOutputEncoding); }
 
 	//Finally, setters
 	void setActiveLanguage(const std::wstring& id);
 	void setActiveInputMethod(const std::wstring& id);
 	void setActiveOutputEncoding(const std::wstring& id);
-
-
-	/*//"Active" helpers
-	const LangNode& getLanguage(const std::wstring& id) {
-		auto it = config.languages.find(id);
-		if (it==config.languages.end())
-			throw std::runtime_error(waitzar::glue(L"Language is invalid: ", id).c_str());
-		return it->second;
-	}
-	const EncNode& getEncoding(const std::wstring& langID, const std::wstring& encID) {
-		const LangNode& lang = getLanguage(langID);
-		auto it = lang.encodings.find(encID);
-		if (it==lang.encodings.end())
-			throw std::runtime_error(waitzar::glue(L"Encoding is invalid: ", encID, L" for language: ", langID).c_str());
-		return it->second;
-	}
-	const LangNode& getActiveLanguage() {
-		return getLanguage(activeLanguage);
-	}
-	const InMethNode& getActiveInputMethod() {
-		const LangNode& lang = getActiveLanguage();
-		auto it = lang.inputMethods.find(activeInputMethod);
-		if (it==lang.inputMethods.end())
-			throw std::runtime_error(waitzar::glue(L"Active input method is invalid: ", activeInputMethod).c_str());
-		return it->second;
-	}
-	const EncNode& getActiveOutputEncoding() {
-		return getEncoding(activeLanguage, activeOutputEncoding);
-	}*/
 
 
 private:
