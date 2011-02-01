@@ -218,7 +218,8 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	}
 
 	//TMEP: Needed for our new loader
-	sealConfig();
+	RuntimeConfig(sealConfig(), locallySetOptions);
+
 
 	//Step 2: Un-cache
 	resolvePartialSettings();
@@ -441,6 +442,13 @@ const ConfigRoot& ConfigManager::sealConfig()
 
 	//Load all objects using our factory methods
 	for (auto langIt=troot.languages.begin(); langIt!=troot.languages.end(); langIt++) {
+		//First, add a "self2self" transformation
+		langIt->second.transformations[L"self2self"] = TransNode(L"self2self");
+		langIt->second.transformations[L"self2self"].fromEncoding = L"unicode";
+		langIt->second.transformations[L"self2self"].toEncoding = L"unicode";
+		langIt->second.transformations[L"self2self"].type = TRANSFORM_TYPE::BUILTIN;
+		langIt->second.transformations[L"self2self"].hasPriority = true;
+
 		//Encodings
 		for (auto encIt=langIt->second.encodings.begin(); encIt!=langIt->second.encodings.end(); encIt++) {
 			WZFactory::verifyEncoding(encIt->first, encIt->second);

@@ -734,7 +734,9 @@ Transformation* WZFactory::makeAndVerifyTransformation(ConfigRoot& conf, const L
 	switch (tm.type) {
 		case TRANSFORM_TYPE::BUILTIN:
 			//Built-in types are known entirely by our core code
-			if (id==L"uni2zg")
+			if (id==L"self2self")
+				res = new Self2Self();
+			else if (id==L"uni2zg")
 				res = new Uni2Zg();
 			else if (id==L"uni2wi")
 				res = new Uni2WinInnwa();

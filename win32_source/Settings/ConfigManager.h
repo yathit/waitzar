@@ -34,6 +34,7 @@
 #include "Extension/JavaScriptConverter.h"
 #include "NGram/wz_utilities.h"
 #include "Settings/HotkeyData.h"
+#include "Settings/RuntimeConfig.h"
 
 
 
