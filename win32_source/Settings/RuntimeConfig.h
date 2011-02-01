@@ -33,6 +33,9 @@ public:
 	const std::vector<EncNode>& getEncodings();
 	const TransNode& getTransformation(const std::wstring& lang, std::wstring fromEnc, std::wstring toEnc);
 
+	//Helper
+	void ChangeLangInputOutput(const std::wstring& langid, const std::wstring& inputid, const std::wstring& outputid);
+
 	//Control what "active" means
 	std::wstring activeLanguage;
 	std::wstring activeOutputEncoding;
