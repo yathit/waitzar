@@ -45,18 +45,18 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 }
 
 
-void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc))
+void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)> ConfigGetTransformation)
 {
 	this->providingHelpFor = providingHelpFor;
 
-	if (ConfigGetTransformation!=NULL) {
+	if (ConfigGetTransformation) {
 		//Get a set of encoding transformations for the reverse lookup
-		this->myenc2Uni = ConfigGetTransformation(this->encoding, uniEnc);
-		this->uni2Romanenc = ConfigGetTransformation(uniEnc, providingHelpFor->encoding);
+		this->myenc2Uni = ConfigGetTransformation(this->encoding, L"unicode");
+		this->uni2Romanenc = ConfigGetTransformation(L"unicode", providingHelpFor->encoding);
 
 		//Get a set of encoding transformations for returning the Roman Input Method's encoding
-		this->uni2Myenc = ConfigGetTransformation(uniEnc, this->encoding);
-		this->romanenc2Uni = ConfigGetTransformation(providingHelpFor->encoding, uniEnc);
+		this->uni2Myenc = ConfigGetTransformation(L"unicode", this->encoding);
+		this->romanenc2Uni = ConfigGetTransformation(providingHelpFor->encoding, L"unicode");
 	}
 }
 

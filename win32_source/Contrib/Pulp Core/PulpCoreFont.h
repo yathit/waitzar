@@ -79,10 +79,10 @@ public:
 	void drawChar(HDC bufferDC, char letter, int xPos, int yPos);
 	
 	//Other useful metrics
-	int getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
-	int getStringWidth(const std::wstring &str, int start, int length, const std::wstring& filterStr=L"", size_t filterLetterWidth=0);
+	int getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr=L"", size_t filterLetterWidth=0) const;
+	int getStringWidth(const std::wstring &str, int start, int length, const std::wstring& filterStr=L"", size_t filterLetterWidth=0) const;
 	int getCharWidth(char letter);
-	int getHeight(HDC currDC);
+	int getHeight(HDC currDC) const;
 
 	//Overriding
 	void tintSelf(UINT rgbColor);
@@ -102,13 +102,13 @@ private:
 	//Internal Methods
 	void readChunk(int chunkType, int length, HDC currDC);
 	void fontSet();
-	int getCharIndex(wchar_t ch);
-	int getCharIndex(char ch);
-	bool charIsOutOfRange(wchar_t ch);
+	int getCharIndex(wchar_t ch) const;
+	int getCharIndex(char ch) const;
+	bool charIsOutOfRange(wchar_t ch) const;
 	//int getKerning(TCHAR left, TCHAR right);
 	//int getKerning(char left, char right);
-	int getKerning(int leftIndex, int rightIndex);
-	bool shouldIgnoreTracking(int index);
+	int getKerning(int leftIndex, int rightIndex) const;
+	bool shouldIgnoreTracking(int index) const;
 
 	//Added
 	void tintLetter(int letterID, unsigned int color);

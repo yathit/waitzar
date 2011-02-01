@@ -61,7 +61,7 @@ public:
 	//Struct-like properties
 	std::wstring id;
 	std::wstring displayName;
-	Encoding encoding;
+	std::wstring encoding;
 	TYPES type;
 	bool suppressUppercase;
 	bool typeNumeralConglomerates;
@@ -70,7 +70,7 @@ public:
 	CONTROL_KEY_STYLES controlKeyStyle;
 
 	//Useful functionality
-	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Encoding& uniEnc, const Transformation* (*ConfigGetTransformation)(const Encoding& fromEnc, const Encoding& toEnc));
+	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)> ConfigGetTransformation = std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)>());
 	bool isHelpInput();
 	void forceViewChanged();
 	bool getAndClearViewChanged();

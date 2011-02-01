@@ -180,7 +180,7 @@ void TtfDisplay::drawChar(HDC bufferDC, char letter, int xPos, int yPos)
 }
 
 
-int TtfDisplay::getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr, size_t filterLetterWidth)
+int TtfDisplay::getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr, size_t filterLetterWidth) const
 {
 	//Save
 	if (currDC!=NULL)
@@ -210,7 +210,7 @@ int TtfDisplay::getStringWidth(const std::wstring &str, HDC currDC, const std::w
 	return textSize.cx + countZWS*filterLetterWidth;
 }
 
-int TtfDisplay::getHeight(HDC currDC)
+int TtfDisplay::getHeight(HDC currDC) const
 {
 	//Save
 	if (currDC!=NULL)

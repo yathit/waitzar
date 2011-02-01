@@ -52,8 +52,8 @@ public:
 	virtual void drawString(HDC bufferDC, const std::wstring &str, int xPos, int yPos, const std::wstring& filterStr, size_t filterLetterWidth) = 0;
 	virtual void drawString(HDC bufferDC, const std::string &str, int xPos, int yPos) = 0;
 	virtual void drawChar(HDC bufferDC, char letter, int xPos, int yPos) = 0;
-	virtual int getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr=L"", size_t filterLetterWidth=0) = 0;
-	virtual int getHeight(HDC currDC) = 0;
+	virtual int getStringWidth(const std::wstring &str, HDC currDC, const std::wstring& filterStr=L"", size_t filterLetterWidth=0) const = 0;
+	virtual int getHeight(HDC currDC) const = 0;
 	virtual void setColor(unsigned int red, unsigned int green, unsigned int blue) { 
 		this->currColorRGB = RGB(red, green, blue); 
 		this->currColor = ((red*0x10000) + (green*0x100) + blue)&0xFFFFFF;

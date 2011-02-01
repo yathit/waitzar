@@ -62,6 +62,19 @@ private:
 //  A "Ghost" is easy to describe by looking at it (properties), but has no substance (implementation).
 //  Plus, it's much better than the previous name: "TNode"
 class GhostNode {
+public:
+	mutable std::wstring id;
+
+	GhostNode(const std::wstring& id=L"") : id(id) {}
+
+	//Logical equals
+	bool operator==(const GhostNode& other) const {
+		return id == other.id;
+	}
+	bool operator==(const std::wstring& other) const {
+		return id == other;
+	}
+
 private:
 	//Class needs at least one virtual function to be polymorphic (and thus to allow dynamic_cast)
 	virtual void empty(){};
@@ -73,7 +86,6 @@ private:
 class EncNode : public GhostNode {
 public:
 	//Simple properties
-	mutable std::wstring id;
 	bool canUseAsOutput;
 	std::wstring displayName;
 	std::wstring initial;
@@ -90,7 +102,7 @@ private:
 
 public:
 	//Constructor: set the ID here and nowhere else
-	EncNode(const std::wstring& id=L"") : id(id) {
+	EncNode(const std::wstring& id=L"") : GhostNode(id) {
 		//this->impl = NULL;
 		this->canUseAsOutput = false;
 	}
@@ -101,7 +113,6 @@ public:
 class DispMethNode : public GhostNode {
 public:
 	//Simple properties
-	mutable std::wstring id;
 	DISPLAY_TYPE type;
 
 	//Inherited properties
@@ -123,18 +134,19 @@ private:
 
 public:
 	//Constructor: set the ID here and nowhere else
-	DispMethNode(const std::wstring& id=L"") : id(id) {
+	DispMethNode(const std::wstring& id=L"") : GhostNode(id) {
 		this->impl = NULL;
 		this->type = DISPLAY_TYPE::UNDEFINED;
 		this->pointSize = 0;
 	}
 
 	//Get
-	const DisplayMethod* const getImpl() const {
+	DisplayMethod* const getImpl() const {
 		if (impl==NULL)
 			throw std::runtime_error(waitzar::glue(L"Implementation not defined for: ", id).c_str());
 		return impl;
 	}
+
 };
 
 
@@ -142,7 +154,6 @@ public:
 class InMethNode : public GhostNode {
 public:
 	//Simple properties
-	mutable std::wstring id;
 	std::wstring displayName;
 	INPUT_TYPE type;
 	bool suppressUppercase;
@@ -169,7 +180,7 @@ private:
 
 public:
 	//Constructor: set the ID here and nowhere else
-	InMethNode(const std::wstring& id=L"") : id(id) {
+	InMethNode(const std::wstring& id=L"") : GhostNode(id) {
 		this->impl = NULL;
 		this->suppressUppercase = true;
 		this->typeNumeralConglomerates = false;
@@ -180,7 +191,7 @@ public:
 	}
 
 	//Get
-	const InputMethod* const getImpl() const {
+	InputMethod* const getImpl() const {
 		if (impl==NULL)
 			throw std::runtime_error(waitzar::glue(L"Implementation not defined for: ", id).c_str());
 		return impl;
@@ -192,7 +203,6 @@ public:
 class TransNode : public GhostNode {
 public:
 	//Simple properties
-	mutable std::wstring id;
 	bool hasPriority;
 	TRANSFORM_TYPE type;
 
@@ -213,7 +223,7 @@ private:
 
 public:
 	//Constructor: set the ID here and nowhere else
-	TransNode(const std::wstring& id=L"") : id(id) {
+	TransNode(const std::wstring& id=L"") : GhostNode(id) {
 		this->impl = NULL;
 		this->hasPriority = false;
 		this->type = TRANSFORM_TYPE::UNDEFINED;
@@ -232,7 +242,6 @@ public:
 class LangNode : public GhostNode {
 public:
 	//Simple
-	mutable std::wstring id;
 	std::wstring displayName;
 
 	//Reference properties
@@ -254,7 +263,7 @@ private:
 
 public:
 	//Constructor: set the ID here and nowhere else
-	LangNode(const std::wstring& id=L"") : id(id) {
+	LangNode(const std::wstring& id=L"") : GhostNode(id) {
 		//this->impl = NULL;
 	}
 };
@@ -264,7 +273,6 @@ public:
 class ExtendNode : public GhostNode {
 public:
 	//Struct-like properties
-	mutable std::wstring id;
 	std::wstring libraryFilePath;
 	std::wstring libraryFileChecksum;
 	bool enabled;
@@ -280,7 +288,7 @@ private:
 
 public:
 	//Constructor: set the ID here and nowhere else
-	ExtendNode(const std::wstring& id=L"") : id(id) {
+	ExtendNode(const std::wstring& id=L"") : GhostNode(id) {
 		this->impl = NULL;
 		this->enabled = false;
 		this->requireChecksum = true;

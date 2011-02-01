@@ -1273,7 +1273,7 @@ const std::set<Encoding>& ConfigManager::getEncodings()
 //Restricted means don't load new languages, etc.
 //optionsSet, if non-null, will save the string set. E.g., "settings.defaultlanguage"=>"myanmar"
 //DEPRECATED
-void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, vector<wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet)
+/*void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, vector<wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet)
 {
 	//We always operate on maps:
 	//json_spirit::Value_type t = root.type();
@@ -1317,10 +1317,10 @@ void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, v
 			numToRemove--;
 		}
 	}
-}
+}*/
 
 
-void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstring>& name, const std::wstring& value, bool restricted, bool allowDLL)
+/*void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstring>& name, const std::wstring& value, bool restricted, bool allowDLL)
 {
 	//Read each "context" setting from left to right. Context settings are separated by periods. 
 	//   Note: There are much faster/better ways of doing this, but for now we'll keep all the code
@@ -1542,36 +1542,7 @@ void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstr
 		throw std::runtime_error(std::string("Invalid option: \"" + waitzar::escape_wstr(nameStr.str()) + "\", with value: \"" + waitzar::escape_wstr(value) + "\"").c_str());
 	}
 }
-
-
-
-//Sanitize, then return in lowercase, with '-', '_', and whitespace removed
-/*wstring ConfigManager::sanitize_id(const wstring& str)
-{
-	return waitzar::sanitize_id(str);
-}*/
-
-
-//Remove a filename if we've added it
-/*wstring ConfigManager::purge_filename(const wstring& str)
-{
-	return waitzar::purge_filename(str);
-}*/
-
-
-
-
-/*bool ConfigManager::read_bool(const std::wstring& str)
-{
-	return waitzar::read_bool(str);
-}*/
-
-
-/*int ConfigManager::read_int(const std::wstring& str)
-{
-	return waitzar::read_int(str);
-}*/
-
+*/
 
 
 

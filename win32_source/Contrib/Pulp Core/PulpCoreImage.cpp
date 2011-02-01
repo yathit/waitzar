@@ -905,7 +905,7 @@ int PulpCoreImage::getWidth()
 	return width;
 }
 
-int PulpCoreImage::getHeight()
+int PulpCoreImage::getHeight() const
 {
 	return height;
 }

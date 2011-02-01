@@ -772,7 +772,7 @@ bool MyWin32Window::drawImage(PulpCoreImage* img, int x, int y, unsigned int cro
 	return true;
 }
 
-unsigned int MyWin32Window::getStringWidth(DisplayMethod* font, const std::wstring& str, const std::wstring& filterStr, size_t filterLetterWidth)
+unsigned int MyWin32Window::getStringWidth(const DisplayMethod* font, const std::wstring& str, const std::wstring& filterStr, size_t filterLetterWidth)
 {
 	return font->getStringWidth(str, underDC, filterStr, filterLetterWidth);
 }
