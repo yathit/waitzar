@@ -98,14 +98,14 @@ public:
 	//void overrideSetting(const std::wstring& settingName, bool value);
 
 	//Helpful
-	std::wstring getLocalConfigOpt(const std::wstring& key);
+	/*std::wstring getLocalConfigOpt(const std::wstring& key);
 	void clearLocalConfigOpt(const std::wstring& key);
 	void setLocalConfigOpt(const std::wstring& key, const std::wstring& val);
 	void saveLocalConfigFile(const std::wstring& path, bool emptyFile);
 	void saveUserConfigFile(const std::wstring& path, bool emptyFile);
 	bool localConfigCausedError();
 	void backupLocalConfigOpts();
-	void restoreLocalConfigOpts();
+	void restoreLocalConfigOpts();*/
 
 	//Control
 	//Language activeLanguage;
@@ -154,13 +154,13 @@ private:
 	//void resolvePartialSettings();
 	//void generateInputsDisplaysOutputs(const std::map<std::wstring, std::vector<std::wstring> >& lastUsedSettings);
 
-private:
+//private:
 	//Our many config files.
-	JsonFile mainConfig;
+	/*JsonFile mainConfig;
 	JsonFile commonConfig;
 	std::map<JsonFile , std::vector<JsonFile> > langConfigs;
 	JsonFile localConfig;
-	JsonFile userConfig;
+	JsonFile userConfig;*/
 
 	//Workaround
 	//std::string (*getMD5Function)(const std::string&);
@@ -181,19 +181,19 @@ private:
 	//Temporary option caches for constructing complex structures
 	//Will eventually be converted into real InputManager*, etc.
 	//Store as <lang_name,item_name>, for fast lookup.
-	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialInputMethods;
+	/*std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialInputMethods;
 	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialEncodings;
 	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialTransformations;
-	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialDisplayMethods;
+	std::map<std::pair<std::wstring,std::wstring>, std::map<std::wstring, std::wstring> > partialDisplayMethods;*/
 
 	//The actual representation
 	//OptionTree options;
-	std::map<std::wstring, std::wstring> localOpts;
-	std::map<std::wstring, std::wstring> localOptsBackup;
-	bool localConfError;
+	//std::map<std::wstring, std::wstring> localOpts;
+	//std::map<std::wstring, std::wstring> localOptsBackup;
+	//bool localConfError;
 
 	//Cache
-	Transformation* self2self;
+	//Transformation* self2self;
 };
 
 
