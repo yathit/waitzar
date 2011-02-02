@@ -16,12 +16,8 @@
 #include <string>
 #include <stdexcept>
 
-//#define _UNICODE
-//#define UNICODE
-//#include <shlobj.h> //GetFolderPath
 #include "windows_wz.h"
-
-//#include "resource.h"
+#include "resource.h"
 
 #include "Input/RomanInputMethod.h"
 #include "Input/LetterInputMethod.h"
@@ -31,7 +27,7 @@
 #include "NGram/BurglishBuilder.h"
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
-#include "Settings/CfgPerm.h"
+//#include "Settings/CfgPerm.h"
 #include "Settings/ConfigTreeContainers.h"
 #include "Transform/Zg2Uni.h"
 #include "Transform/Uni2Zg.h"
@@ -40,7 +36,7 @@
 #include "Transform/Uni2WinInnwa.h"
 #include "Transform/Self2Self.h"
 #include "Transform/JSTransform.h"
-#include "resource.h"
+
 
 
 //Grr... notepad...
