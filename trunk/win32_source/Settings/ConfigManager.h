@@ -33,32 +33,6 @@
 
 
 
-//Options for our ConfigManager class
-/*struct Settings {
-	//Simple
-	std::wstring hotkeyStrRaw;
-	bool silenceMywordsErrors;
-	bool balloonStart;
-	bool alwaysElevate;
-	bool trackCaret;
-	bool lockWindows;
-	bool suppressVirtualKeyboard;
-	std::wstring defaultLanguage;
-	std::wstring whitespaceCharacters;
-	std::wstring ignoredCharacters;
-	bool hideWhitespaceMarkings;
-
-	//Derived
-	HotkeyData hotkey;
-};
-struct OptionTree {
-	Settings settings;
-	std::set<Language> languages;
-	std::set<Extension*> extensions;
-};*/
-
-
-
 /**
  * This class exists for managing configuration options automatically. It is also
  *  the main access point for WaitZar into the SpiritJSON library, without requiring 
@@ -76,15 +50,6 @@ public:
 	//Much better as static methods!
 	static void SaveLocalConfigFile(const std::wstring& path, const std::map<std::wstring, std::wstring>& properties=std::map<std::wstring, std::wstring>());
 	static void SaveUserConfigFile(const std::wstring& path);
-
-
-	//Build our config. manager up slowly
-	//void initMainConfig(const std::string& configFile, bool fileIsStream=false);
-	//void initCommonConfig(const std::string& configFile);
-	//void initMainConfig(const std::wstring& configStream);
-	//void initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles);
-	//void initLocalConfig(const std::string& configFile);
-	//void initUserConfig(const std::string& configFile);
 
 
 	//Accessible by our outside class
@@ -115,7 +80,7 @@ public:
 	//Encoding unicodeEncoding;
 
 	//Quality control
-	void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const std::map<std::wstring, std::vector<std::wstring>>& lastUsedSettings);
+	//void validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const std::map<std::wstring, std::vector<std::wstring>>& lastUsedSettings);
 
 	//Useful
 	//bool IsProbablyFile(const std::wstring& str);

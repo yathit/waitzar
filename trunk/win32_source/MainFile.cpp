@@ -4290,7 +4290,7 @@ bool findAndLoadAllConfigFiles()
 		//Final test: make sure all config files work
 		Logger::startLogTimer('L', L"Reading & validating config files");
 		//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-		cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
+		//cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 		config = RuntimeConfig(cfgMgr.sealConfig(errorFunc));
 
 		Logger::endLogTimer('L');
@@ -4350,7 +4350,7 @@ bool findAndLoadAllConfigFiles()
 
 			//One more test.
 			//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-			cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
+			//cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 			config = RuntimeConfig(cfgMgr.sealConfig());
 
 			Logger::markLogTime('L', L"Config files validated: DEFAULT is taking over");
@@ -4689,6 +4689,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	changeEncRegionHandle = sentenceWindow->subscribeRect(r, OnEncodingChangeClick);
 
 	Logger::markLogTime('L', L"Windows Initialized");
+
+	//Load static settings
+	WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+	waitzar::BurglishBuilder::InitStatic();  //NOTE: BurglishBuilder can throw a SINGLE exception, but it's highly unlikely...
+	Logger::markLogTime('L', L"Initialized static classes with relevant information.");
 
 	//Find all config files, load.
 	Logger::startLogTimer('L', L"Detecting & loading config files");
