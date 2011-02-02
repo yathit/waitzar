@@ -543,7 +543,7 @@ const ConfigRoot& ConfigManager::sealConfig()
 }*/
 
 
-void ConfigManager::backupLocalConfigOpts()
+/*void ConfigManager::backupLocalConfigOpts()
 {
 	localOptsBackup.clear();
 	localOptsBackup.insert(localOpts.begin(), localOpts.end());
@@ -580,11 +580,11 @@ void ConfigManager::setLocalConfigOpt(const wstring& key, const wstring& val)
 bool ConfigManager::localConfigCausedError()
 {
 	return localConfError;
-}
+}*/
 
 
 
-void ConfigManager::saveUserConfigFile(const std::wstring& path, bool emptyFile) 
+/*void ConfigManager::saveUserConfigFile(const std::wstring& path, bool emptyFile)
 {
 	//Create the file
 	std::ofstream cfgFile;
@@ -643,7 +643,7 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 	cfgFile.flush();
 	cfgFile.close();
 }
-
+*/
 
 
 
