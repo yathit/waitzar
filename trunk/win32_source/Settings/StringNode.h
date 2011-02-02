@@ -23,19 +23,19 @@
  * Note that this class is only included in ConfigManager.h, so we define the
  *   entire thing in the header. (Include guards are there just in case).
  */
-class Node {
+class StringNode {
 public:
 	//Constructors
-	Node() {
+	StringNode() {
 		this->parent = NULL;
 		this->dirty = true;
 	}
-	Node(const std::wstring& val) {
+	StringNode(const std::wstring& val) {
 		this->parent = NULL;
 		this->str(val);
 		this->dirty = true;
 	}
-	Node(const wchar_t* val) {
+	StringNode(const wchar_t* val) {
 		this->parent = NULL;
 		this->str(val);
 		this->dirty = true;
@@ -70,13 +70,13 @@ public:
 	//Get/Set children
 	//NOTE: I'd like to make this const, but that would require making "dirty" mutable,
 	//      which seems like an abuse of the keyword.
-	std::map<std::wstring, Node>& getChildNodes() {
+	std::map<std::wstring, StringNode>& getChildNodes() {
 		return childList;
 	}
-	Node& getOrAddChild(const std::wstring& rkey) {
+	StringNode& getOrAddChild(const std::wstring& rkey) {
 		std::wstring key = waitzar::sanitize_id(rkey);
 		if (childList.count(key)==0) {
-			childList[key] = Node();
+			childList[key] = StringNode();
 			childList[key].parent = this;
 			childList[key].parentKey = key;
 			assertValid();
@@ -86,7 +86,7 @@ public:
 	}
 
 	//Used to access child elements
-	Node& operator[] (const std::wstring& rkey) {
+	StringNode& operator[] (const std::wstring& rkey) {
 		std::wstring key = waitzar::sanitize_id(rkey);
 		if (childList.count(key)>0)
 			return childList[key];
@@ -97,7 +97,7 @@ public:
 	//Helper: Get a fully-qualified key name for this node
 	std::wstring getFullyQualifiedKeyName() const {
 		std::wstring ret;
-		for (const Node* considering=this; considering->parent!=NULL; considering=considering->parent) {
+		for (const StringNode* considering=this; considering->parent!=NULL; considering=considering->parent) {
 			ret = considering->parentKey + (!ret.empty()?L".":L"") + ret;
 		}
 		return ret;
@@ -146,11 +146,11 @@ public:
 
 private:
 	//Data
-	std::map<std::wstring, Node> childList;
+	std::map<std::wstring, StringNode> childList;
 	std::vector<std::wstring> textValues;
 
 	//For fast reverse-lookup of a fully-qualified key name
-	Node* parent;
+	StringNode* parent;
 	std::wstring parentKey;
 
 	//Partial loading requires this
