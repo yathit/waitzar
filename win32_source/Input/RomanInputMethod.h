@@ -21,7 +21,7 @@ class RomanInputMethod : public InputMethod {
 public:
 
 	//Needed to add Roman-specific stuff
-	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence, const std::wstring& encoding);
+	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, ModelType* model, waitzar::SentenceList<ModelType>* sentence, const std::wstring& encoding, CONTROL_KEY_TYPE controlKeyStyle, bool typeBurmeseNumbers, bool typeNumeralConglomerates, bool suppressUppercase);
 
 	//Abstract implementation - keypresses
 	void handleEsc();

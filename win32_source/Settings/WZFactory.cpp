@@ -252,7 +252,7 @@ std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> WZFactory::c
 std::map<std::wstring, DisplayMethod*> WZFactory::cachedDisplayMethods;
 std::map<std::wstring, LetterInputMethod*> WZFactory::cachedLetterInputs;
 
-RomanInputMethod<waitzar::WordBuilder>* WZFactory::getWaitZarInput(wstring langID, const wstring& extraWordsFileName, const wstring& userWordsFileName)
+RomanInputMethod<waitzar::WordBuilder>* WZFactory::getWaitZarInput(wstring langID, const wstring& extraWordsFileName, const wstring& userWordsFileName, InMethNode& node)
 {
 	wstring fullID = langID + L"." + L"waitzar";
 
@@ -279,7 +279,7 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory::getWaitZarInput(wstring langI
 
 		//Create, init
 		WZFactory::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
-		WZFactory::cachedWBInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence);
+		WZFactory::cachedWBInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 	}
 
 	return WZFactory::cachedWBInputs[fullID];
@@ -287,7 +287,7 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory::getWaitZarInput(wstring langI
 
 
 
-LetterInputMethod* WZFactory::getMywinInput(std::wstring langID)
+LetterInputMethod* WZFactory::getMywinInput(std::wstring langID, InMethNode& node)
 {
 	wstring fullID = langID + L"." + L"mywin";
 
@@ -295,7 +295,7 @@ LetterInputMethod* WZFactory::getMywinInput(std::wstring langID)
 	if (WZFactory::cachedLetterInputs.count(fullID)==0) {
 		//Create, init
 		WZFactory::cachedLetterInputs[fullID] = new LetterInputMethod();
-		WZFactory::cachedLetterInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords);
+		WZFactory::cachedLetterInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 	}
 
 	return WZFactory::cachedLetterInputs[fullID];
@@ -304,7 +304,7 @@ LetterInputMethod* WZFactory::getMywinInput(std::wstring langID)
 
 
 
-RomanInputMethod<waitzar::BurglishBuilder>* WZFactory::getBurglishInput(wstring langID)
+RomanInputMethod<waitzar::BurglishBuilder>* WZFactory::getBurglishInput(wstring langID, InMethNode& node)
 {
 	wstring fullID = langID + L"." + L"burglish";
 
@@ -318,7 +318,7 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory::getBurglishInput(wstring 
 
 		//Create, init
 		WZFactory::cachedBGInputs[fullID] = new RomanInputMethod<waitzar::BurglishBuilder>();
-		WZFactory::cachedBGInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence);
+		WZFactory::cachedBGInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 	}
 
 	return WZFactory::cachedBGInputs[fullID];
@@ -327,7 +327,7 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory::getBurglishInput(wstring 
 
 //Get a keymagic input method
 
-LetterInputMethod* WZFactory::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache/*, std::string (*fileMD5Function)(const std::string&)*/)
+LetterInputMethod* WZFactory::getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache, InMethNode& node)
 {
 	wstring fullID = langID + L"." + inputID;
 
@@ -367,9 +367,9 @@ LetterInputMethod* WZFactory::getKeyMagicBasedInput(std::wstring langID, std::ws
 
 		//Build our result
 		KeyMagicInputMethod* res = new KeyMagicInputMethod();
-		res->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords);
+		res->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 		res->loadRulesFile(wordlistFileName, binaryName.str(), disableCache/*, fileMD5Function*/);
-		res->disableCache = disableCache;
+		//res->disableCache = disableCache;
 
 		WZFactory::cachedLetterInputs[fullID] = res;
 	}
@@ -381,7 +381,7 @@ LetterInputMethod* WZFactory::getKeyMagicBasedInput(std::wstring langID, std::ws
 
 //Build a model up from scratch.
 
-RomanInputMethod<WordBuilder>* WZFactory::getWordlistBasedInput(wstring langID, wstring inputID, string wordlistFileName)
+RomanInputMethod<WordBuilder>* WZFactory::getWordlistBasedInput(wstring langID, wstring inputID, string wordlistFileName, InMethNode& node)
 {
 	wstring fullID = langID + L"." + inputID;
 
@@ -404,7 +404,7 @@ RomanInputMethod<WordBuilder>* WZFactory::getWordlistBasedInput(wstring langID, 
 
 		//Now, build the romanisation method and return
 		WZFactory::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
-		WZFactory::cachedWBInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence);
+		WZFactory::cachedWBInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 	}
 
 	return WZFactory::cachedWBInputs[fullID];
@@ -413,7 +413,7 @@ RomanInputMethod<WordBuilder>* WZFactory::getWordlistBasedInput(wstring langID, 
 
 
 
-DisplayMethod* WZFactory::getZawgyiPngDisplay(std::wstring langID, std::wstring dispID, unsigned int dispResourceID)
+DisplayMethod* WZFactory::getZawgyiPngDisplay(std::wstring langID, std::wstring dispID, unsigned int dispResourceID, DispMethNode& node)
 {
 	wstring fullID = langID + L"." + dispID;
 
@@ -431,7 +431,7 @@ DisplayMethod* WZFactory::getZawgyiPngDisplay(std::wstring langID, std::wstring 
 
 		//Create, init
 		WZFactory::cachedDisplayMethods[fullID] = new PulpCoreFont();
-		mainWindow->initDisplayMethod(WZFactory::cachedDisplayMethods[fullID], fontRes, res_handle, 0x000000);
+		mainWindow->initDisplayMethod(WZFactory::cachedDisplayMethods[fullID], fontRes, res_handle, node.fontFaceName, node.pointSize, 0x000000);
 	}
 
 	return WZFactory::cachedDisplayMethods[fullID];
@@ -448,8 +448,8 @@ DisplayMethod* WZFactory::getPadaukZawgyiTtfDisplay(std::wstring langID, std::ws
 	if (WZFactory::cachedDisplayMethods.count(fullID)==0) {
 		//Init our internal font
 		TtfDisplay* res = new TtfDisplay();
-		res->fontFaceName = L"PdkZgWz";
-		res->pointSize = 10;
+//		res->fontFaceName = L"PdkZgWz";
+//		res->pointSize = 10;
 
 		//Get the Padauk embedded resource
 		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), L"MODEL");
@@ -461,7 +461,7 @@ DisplayMethod* WZFactory::getPadaukZawgyiTtfDisplay(std::wstring langID, std::ws
 
 		//Save, init
 		WZFactory::cachedDisplayMethods[fullID] = res;
-		mainWindow->initTtfMethod(WZFactory::cachedDisplayMethods[fullID], fontRes, res_handle, 0x000000);
+		mainWindow->initTtfMethod(WZFactory::cachedDisplayMethods[fullID], fontRes, res_handle, L"PdkZgWz", 10, 0x000000);
 	}
 
 	return WZFactory::cachedDisplayMethods[fullID];
@@ -479,12 +479,12 @@ DisplayMethod* WZFactory::getTtfDisplayManager(std::wstring langID, std::wstring
 	if (WZFactory::cachedDisplayMethods.count(fullID)==0) {
 		//Init our internal font
 		TtfDisplay* res = new TtfDisplay();
-		res->fontFaceName = fontFaceName;
-		res->pointSize = pointSize;
+		//res->fontFaceName = fontFaceName;
+		//res->pointSize = pointSize;
 
 		//Save, init
 		WZFactory::cachedDisplayMethods[fullID] = res;
-		mainWindow->initTtfMethod(WZFactory::cachedDisplayMethods[fullID], fontFileName, 0x000000);
+		mainWindow->initTtfMethod(WZFactory::cachedDisplayMethods[fullID], fontFileName, fontFaceName, pointSize, 0x000000);
 	}
 
 	return WZFactory::cachedDisplayMethods[fullID];
@@ -569,9 +569,10 @@ Extension* WZFactory::makeAndVerifyExtension(const std::wstring& id, ExtendNode&
 	//Make it
 	Extension* res;
 	if (id == L"javascript") {
-		res = new JavaScriptConverter(id);
+		res = new JavaScriptConverter();
 	} else {
-		res = new Extension(id);
+		throw std::runtime_error(waitzar::glue(L"Unknown extension: ", id).c_str());
+		//res = new Extension();
 	}
 
 	//Initialize it
@@ -599,11 +600,11 @@ InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std
 	switch (im.type) {
 		case INPUT_TYPE::BUILTIN:
 			if (im.id==L"waitzar") {
-				res = WZFactory::getWaitZarInput(lang.id, im.extraWordsFile, im.userWordsFile);
+				res = WZFactory::getWaitZarInput(lang.id, im.extraWordsFile, im.userWordsFile, im);
 			} else if (im.id==L"mywin") {
-				res = WZFactory::getMywinInput(lang.id);
+				res = WZFactory::getMywinInput(lang.id, im);
 			} else if (im.id==L"burglish") {
-				res = WZFactory::getBurglishInput(lang.id);
+				res = WZFactory::getBurglishInput(lang.id, im);
 			} else {
 				throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", im.id).c_str());
 			}
@@ -618,7 +619,7 @@ InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std
 				throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", im.extraWordsFile).c_str());
 
 			//Get it, as a singleton
-			res = WZFactory::getWordlistBasedInput(lang.id, im.id, waitzar::escape_wstr(im.extraWordsFile));
+			res = WZFactory::getWordlistBasedInput(lang.id, im.id, waitzar::escape_wstr(im.extraWordsFile), im);
 			break;
 		case INPUT_TYPE::KEYBOARD:
 			//Requires a keyboard file
@@ -634,7 +635,7 @@ InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std
 				im.disableCache = true;
 
 			//Get it, as a singleton
-			res = WZFactory::getKeyMagicBasedInput(lang.id, im.id, waitzar::escape_wstr(im.keyboardFile, false), im.disableCache);
+			res = WZFactory::getKeyMagicBasedInput(lang.id, im.id, waitzar::escape_wstr(im.keyboardFile, false), im.disableCache, im);
 			break;
 		default:
 			throw std::runtime_error("Cannot construct input manager: no \"type\"");
@@ -662,9 +663,9 @@ DisplayMethod* WZFactory::makeAndVerifyDisplayMethod(const LangNode& lang, const
 		case DISPLAY_TYPE::BUILTIN:
 			//Built-in types are known entirely by our core code
 			if (id==L"zawgyibmp")
-				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_MAIN_FONT);
+				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_MAIN_FONT, dm);
 			else if (id==L"zawgyibmpsmall")
-				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_SMALL_FONT);
+				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_SMALL_FONT, dm);
 			else if (id==L"pdkzgwz")
 				res = WZFactory::getPadaukZawgyiTtfDisplay(lang.id, id);
 			else
@@ -811,7 +812,7 @@ void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang)
 
 
 
-InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options/*, std::string (*fileMD5Function)(const std::string&)*/)
+/*InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options)
 {
 	InputMethod* res = NULL;
 
@@ -891,7 +892,7 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const Language& 
 			disableCache = true;
 
 		//Get it, as a singleton
-		res = WZFactory::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache/*, fileMD5Function*/);
+		res = WZFactory::getKeyMagicBasedInput(language.id, id, waitzar::escape_wstr(keymagicFile, false), disableCache);
 		res->type = IME_KEYBOARD;
 	} else {
 		throw std::runtime_error(waitzar::glue(L"Invalid type (",options.find(L"type")->second, L") for Input Manager: ", id).c_str());
@@ -929,11 +930,11 @@ InputMethod* WZFactory::makeInputMethod(const std::wstring& id, const Language& 
 
 	//Return our resultant IM
 	return res;
-}
+}*/
 
 
 
-DisplayMethod* WZFactory::makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options)
+/*DisplayMethod* WZFactory::makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options)
 {
 	DisplayMethod* res = NULL;
 
@@ -1016,11 +1017,11 @@ DisplayMethod* WZFactory::makeDisplayMethod(const std::wstring& id, const Langua
 
 	//Return our resultant DM
 	return res;
-}
+}*/
 
 
 
-Transformation* WZFactory::makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options, const JavaScriptConverter* const jsInterpreter)
+/*Transformation* WZFactory::makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options, const JavaScriptConverter* const jsInterpreter)
 {
 	Transformation* res = NULL;
 
@@ -1078,11 +1079,11 @@ Transformation* WZFactory::makeTransformation(const std::wstring& id, const std:
 
 	//Return our resultant Transformation
 	return res;
-}
+}*/
 
 
 
-Encoding WZFactory::makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
+/*Encoding WZFactory::makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options)
 {
 	Encoding res;
 
@@ -1105,11 +1106,11 @@ Encoding WZFactory::makeEncoding(const std::wstring& id, const std::map<std::wst
 
 	//Return our resultant DM
 	return res;
-}
+}*/
 
 //Move these later
 
-std::wstring WZFactory::sanitize_id(const std::wstring& str)
+/*std::wstring WZFactory::sanitize_id(const std::wstring& str)
 {
 	return waitzar::sanitize_id(str);
 }
@@ -1127,7 +1128,7 @@ bool WZFactory::read_bool(const std::wstring& str)
 int WZFactory::read_int(const std::wstring& str)
 {
 	return waitzar::read_int(str);
-}
+}*/
 
 
 

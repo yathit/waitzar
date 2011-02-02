@@ -13,8 +13,8 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 	providingHelpFor = NULL;
 	viewChanged = false;
 	requestToTypeSentence = false;
-	myenc2Uni = NULL;
-	uni2Romanenc = NULL;
+	//myenc2Uni = NULL;
+	//uni2Romanenc = NULL;
 
 	//Save
 	this->mainWindow = mainWindow;
@@ -25,6 +25,7 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 	this->systemDefinedWords = systemDefinedWords;
 	this->helpKeyboard = helpKeyboard;
 	this->encoding = encoding;
+	this->suppressUppercase = suppressUppercase;
 
 	//Index ZWS; -1 means "not found"
 	this->zwsID = -1;
@@ -39,11 +40,12 @@ void InputMethod::init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow,
 }
 
 
-void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)> ConfigGetTransformation)
+void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)> ConfigGetAndTransformSrc)
 {
 	this->providingHelpFor = providingHelpFor;
 
-	if (ConfigGetTransformation) {
+	this->ConfigGetAndTransformText = ConfigGetAndTransformSrc;
+	/*if (ConfigGetTransformation) {
 		//Get a set of encoding transformations for the reverse lookup
 		this->myenc2Uni = ConfigGetTransformation(this->encoding, L"unicode");
 		this->uni2Romanenc = ConfigGetTransformation(L"unicode", providingHelpFor->encoding);
@@ -51,7 +53,7 @@ void InputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, std::functi
 		//Get a set of encoding transformations for returning the Roman Input Method's encoding
 		this->uni2Myenc = ConfigGetTransformation(L"unicode", this->encoding);
 		this->romanenc2Uni = ConfigGetTransformation(providingHelpFor->encoding, L"unicode");
-	}
+	}*/
 }
 
 bool InputMethod::isHelpInput()
