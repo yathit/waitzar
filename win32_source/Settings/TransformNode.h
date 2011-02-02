@@ -16,7 +16,7 @@
 #include "NGram/wz_utilities.h"
 #include "Settings/ConfigTreeContainers.h"
 #include "Settings/CfgPerm.h"
-#include "Settings/Node.h"
+#include "Settings/StringNode.h"
 
 
 /**
@@ -30,7 +30,7 @@ class TransformNode {
 public:
 	//Constructor
 	TransformNode(const std::wstring& mp=L"",
-			const std::function<GhostNode& (const Node& src, GhostNode& dest, const CfgPerm& perms)>& om=std::function<GhostNode& (const Node& src, GhostNode& dest, const CfgPerm& perms)>()) : matchPattern(mp), OnMatch(om) {
+			const std::function<GhostNode& (const StringNode& src, GhostNode& dest, const CfgPerm& perms)>& om=std::function<GhostNode& (const StringNode& src, GhostNode& dest, const CfgPerm& perms)>()) : matchPattern(mp), OnMatch(om) {
 	}
 
 	//Check properties about this node
@@ -39,7 +39,7 @@ public:
 	}
 
 	//Getters & setters
-	const std::function<GhostNode& (const Node& src, GhostNode& dest, const CfgPerm& perms)>&  getMatchAction() const {
+	const std::function<GhostNode& (const StringNode& src, GhostNode& dest, const CfgPerm& perms)>&  getMatchAction() const {
 		return OnMatch;
 	}
 
@@ -48,7 +48,7 @@ public:
 	const std::map<std::wstring, TransformNode>& getChildNodes() const {
 		return childrenByName;
 	}
-	void addChild(const std::wstring& rkey, const std::function<GhostNode& (const Node& src, GhostNode& dest, const CfgPerm& perms)> onMatch) {
+	void addChild(const std::wstring& rkey, const std::function<GhostNode& (const StringNode& src, GhostNode& dest, const CfgPerm& perms)> onMatch) {
 		std::wstring key = (rkey==L"*") ? rkey : waitzar::sanitize_id(rkey);
 		if (childrenByName.count(key)>0)
 			throw std::runtime_error(waitzar::glue(L"Child already exists for: ", key).c_str());
@@ -78,7 +78,7 @@ public:
 private:
 	//Const data
 	mutable std::wstring matchPattern; //What we match
-	mutable std::function<GhostNode& (const Node& src, GhostNode& dest, const CfgPerm& perms)> OnMatch; //What happens when we match it (return next node)
+	mutable std::function<GhostNode& (const StringNode& src, GhostNode& dest, const CfgPerm& perms)> OnMatch; //What happens when we match it (return next node)
 
 	//Children
 	//NOTE: The key "*" is special; it represents "always match", and is used for identifiers

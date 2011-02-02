@@ -25,7 +25,7 @@
 #include "Settings/CfgPerm.h"
 #include "Settings/TransformNode.h"
 #include "Settings/WZFactory.h"
-#include "Settings/Node.h"
+#include "Settings/StringNode.h"
 #include "Settings/JsonFile.h"
 #include "NGram/BurglishBuilder.h"
 #include "Input/InputMethod.h"
@@ -34,6 +34,7 @@
 #include "NGram/wz_utilities.h"
 #include "Settings/HotkeyData.h"
 #include "Settings/RuntimeConfig.h"
+#include "Settings/ConfigTreeWalker.h"
 
 
 
@@ -130,24 +131,21 @@ public:
 
 
 public:
-	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false, std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
+	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false, std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>());
 	const ConfigRoot& sealConfig();
 
 private:
 	//These two functions replace "readInConfig"
-	void buildAndWalkConfigTree(const JsonFile& file, Node& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm=CfgPerm(), std::function<void (const Node& n)> OnSetCallback=std::function<void (const Node& n)>());
-	void buildUpConfigTree(const Json::Value& root, Node& currNode, const std::wstring& currDirPath, std::function<void (const Node& n)> OnSetCallback);
-	void walkConfigTree(Node& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm);
-	void buildVerifyTree();
+	void buildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm=CfgPerm(), std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>());
+	void buildUpConfigTree(const Json::Value& root, StringNode& currNode, const std::wstring& currDirPath, std::function<void (const StringNode& n)> OnSetCallback);
+	void walkConfigTree(StringNode& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm);
+	//void buildVerifyTree();
 	//std::map<std::wstring, std::wstring> locallySetOptions; //TODO: Replace later
-	Node root;
+	StringNode root;
 	ConfigRoot troot;
-	TransformNode verifyTree;
+	//TransformNode verifyTree;
 	bool sealed;
 
-
-	template <typename T>
-	static T& AddOrCh(std::map<std::wstring, T>& existing, const Node& node, bool addAllowed, bool chgAllowed);
 
 
 	//void readInConfig(const Json::Value& root, const std::wstring& folderPath, std::vector<std::wstring> &context, bool restricted, bool allowDLL, std::map<std::wstring, std::wstring>* const optionsSet);

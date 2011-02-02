@@ -4230,7 +4230,7 @@ bool findAndLoadAllConfigFiles()
 			temp << pathLocalConfig.c_str();
 			if (WZFactory::FileExists(temp.str())) {
 				cfgMgr.mergeInConfigFile(pathLocalConfig, UserLocalCfgPerm(), false,
-					[&locallySetOptions](const Node& n) {
+					[&locallySetOptions](const StringNode& n) {
 						locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
 					}
 				);
