@@ -97,7 +97,7 @@ public:
 
 
 	//Not sure what to do about this...
-	bool localConfigCausedError() {return false;}
+	//bool localConfigCausedError() {return false;}
 };
 
 

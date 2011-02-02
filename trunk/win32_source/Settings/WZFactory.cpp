@@ -560,85 +560,104 @@ void WZFactory::InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Wind
 
 
 
+
+//
+// TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
+//
 Extension* WZFactory::makeAndVerifyExtension(const std::wstring& id, ExtendNode& ex)
 {
-	//Check required settings
-	if (ex.libraryFilePath.empty())
-		throw std::runtime_error("Cannot construct extension: no \"library-file-path\"");
-
-	//Make it
 	Extension* res;
-	if (id == L"javascript") {
-		res = new JavaScriptConverter();
-	} else {
-		throw std::runtime_error(waitzar::glue(L"Unknown extension: ", id).c_str());
-		//res = new Extension();
-	}
+	try {
+		//Check required settings
+		if (ex.libraryFilePath.empty())
+			throw std::runtime_error("Cannot construct extension: no \"library-file-path\"");
 
-	//Initialize it
-	res->InitDLL(ex.enabled, ex.requireChecksum, ex.libraryFilePath, ex.libraryFileChecksum);
+		//Make it
+		if (id == L"javascript") {
+			res = new JavaScriptConverter();
+		} else {
+			throw std::runtime_error(waitzar::glue(L"Unknown extension: ", id).c_str());
+			//res = new Extension();
+		}
+
+		//Initialize it
+		res->InitDLL(ex.enabled, ex.requireChecksum, ex.libraryFilePath, ex.libraryFileChecksum);
+
+	} catch (std::exception& ex) {
+		//Pack all exceptions into nodeset_exceptions
+		throw nodeset_exception(ex.what(), id.c_str());
+	}
 	return res;
 }
 
 
 
+
+//
+// TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
+//
 InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std::wstring& id, InMethNode& im)
 {
 	InputMethod* res = NULL;
 
-	//Check required settings; type is checked in the "switch" statement
-	if (im.encoding.empty())
-		throw std::runtime_error("Cannot construct input manager: no \"encoding\"");
-	if (im.displayName.empty())
-		throw std::runtime_error("Cannot construct input manager: no \"display-name\"");
+	try {
+		//Check required settings; type is checked in the "switch" statement
+		if (im.encoding.empty())
+			throw std::runtime_error("Cannot construct input manager: no \"encoding\"");
+		if (im.displayName.empty())
+			throw std::runtime_error("Cannot construct input manager: no \"display-name\"");
 
-	//Ensure that referenced encodings/etc. exist
-	if (lang.encodings.count(im.encoding)==0)
-		throw std::runtime_error(waitzar::glue(L"Input method \"" , id , L"\" references non-existent encoding: ", im.encoding).c_str());
+		//Ensure that referenced encodings/etc. exist
+		if (lang.encodings.count(im.encoding)==0)
+			throw nodeset_exception(waitzar::glue(L"Input method \"" , id , L"\" references non-existent encoding: ", im.encoding).c_str(), wstring(L"languages."+lang.id+L".inputmethods."+id+L".encoding").c_str());
 
-	//Make an object based on the type
-	switch (im.type) {
-		case INPUT_TYPE::BUILTIN:
-			if (im.id==L"waitzar") {
-				res = WZFactory::getWaitZarInput(lang.id, im.extraWordsFile, im.userWordsFile, im);
-			} else if (im.id==L"mywin") {
-				res = WZFactory::getMywinInput(lang.id, im);
-			} else if (im.id==L"burglish") {
-				res = WZFactory::getBurglishInput(lang.id, im);
-			} else {
-				throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", im.id).c_str());
-			}
-			break;
-		case INPUT_TYPE::ROMAN:
-			//Check required wordlist
-			if (im.extraWordsFile.empty())
-				throw std::runtime_error("Cannot construct \"roman\" input manager: no \"wordlist\".");
+		//Make an object based on the type
+		switch (im.type) {
+			case INPUT_TYPE::BUILTIN:
+				if (im.id==L"waitzar") {
+					res = WZFactory::getWaitZarInput(lang.id, im.extraWordsFile, im.userWordsFile, im);
+				} else if (im.id==L"mywin") {
+					res = WZFactory::getMywinInput(lang.id, im);
+				} else if (im.id==L"burglish") {
+					res = WZFactory::getBurglishInput(lang.id, im);
+				} else {
+					throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Input Manager: ", im.id).c_str());
+				}
+				break;
+			case INPUT_TYPE::ROMAN:
+				//Check required wordlist
+				if (im.extraWordsFile.empty())
+					throw std::runtime_error("Cannot construct \"roman\" input manager: no \"wordlist\".");
 
-			//Test
-			if (!FileExists(im.extraWordsFile))
-				throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", im.extraWordsFile).c_str());
+				//Test
+				if (!FileExists(im.extraWordsFile))
+					throw std::runtime_error(waitzar::glue(L"Wordlist file does not exist: ", im.extraWordsFile).c_str());
 
-			//Get it, as a singleton
-			res = WZFactory::getWordlistBasedInput(lang.id, im.id, waitzar::escape_wstr(im.extraWordsFile), im);
-			break;
-		case INPUT_TYPE::KEYBOARD:
-			//Requires a keyboard file
-			if (im.keyboardFile.empty())
-				throw std::runtime_error("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
+				//Get it, as a singleton
+				res = WZFactory::getWordlistBasedInput(lang.id, im.id, waitzar::escape_wstr(im.extraWordsFile), im);
+				break;
+			case INPUT_TYPE::KEYBOARD:
+				//Requires a keyboard file
+				if (im.keyboardFile.empty())
+					throw std::runtime_error("Cannot construct \"keymagic\" input manager: no \"keyboard-file\".");
 
-			//Test
-			if (!FileExists(im.keyboardFile))
-				throw std::runtime_error(waitzar::glue(L"Keyboard file does not exist: ", im.keyboardFile).c_str());
+				//Test
+				if (!FileExists(im.keyboardFile))
+					throw std::runtime_error(waitzar::glue(L"Keyboard file does not exist: ", im.keyboardFile).c_str());
 
-			//Override disabling the cache, keymagic only.
-			if (Logger::isLogging('K'))
-				im.disableCache = true;
+				//Override disabling the cache, keymagic only.
+				if (Logger::isLogging('K'))
+					im.disableCache = true;
 
-			//Get it, as a singleton
-			res = WZFactory::getKeyMagicBasedInput(lang.id, im.id, waitzar::escape_wstr(im.keyboardFile, false), im.disableCache, im);
-			break;
-		default:
-			throw std::runtime_error("Cannot construct input manager: no \"type\"");
+				//Get it, as a singleton
+				res = WZFactory::getKeyMagicBasedInput(lang.id, im.id, waitzar::escape_wstr(im.keyboardFile, false), im.disableCache, im);
+				break;
+			default:
+				throw std::runtime_error("Cannot construct input manager: no \"type\"");
+		}
+	} catch (std::exception& ex) {
+		//Pack all exceptions into nodeset_exceptions
+		throw nodeset_exception(ex.what(), id.c_str());
 	}
 
 	return res;
@@ -646,58 +665,67 @@ InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std
 
 
 
+
+//
+// TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
+//
 DisplayMethod* WZFactory::makeAndVerifyDisplayMethod(const LangNode& lang, const std::wstring& id, DispMethNode& dm)
 {
 	DisplayMethod* res = NULL;
 
-	//Check some required settings
-	if (dm.encoding.empty())
-		throw std::runtime_error("Cannot construct display method: no \"encoding\"");
+	try {
+		//Check some required settings
+		if (dm.encoding.empty())
+			throw std::runtime_error("Cannot construct display method: no \"encoding\"");
 
-	//Ensure its encoding exists, etc.
-	if (lang.encodings.count(dm.encoding)==0)
-		throw std::runtime_error(glue(L"Display Method (", id, L") references non-existent encoding: ", dm.encoding).c_str());
+		//Ensure its encoding exists, etc.
+		if (lang.encodings.count(dm.encoding)==0)
+			throw nodeset_exception(glue(L"Display Method (", id, L") references non-existent encoding: ", dm.encoding).c_str(), wstring(L"languages."+lang.id+L".displaymethods."+id+L".encoding").c_str());
 
-	//First, generate an actual object, based on the type.
-	switch (dm.type) {
-		case DISPLAY_TYPE::BUILTIN:
-			//Built-in types are known entirely by our core code
-			if (id==L"zawgyibmp")
-				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_MAIN_FONT, dm);
-			else if (id==L"zawgyibmpsmall")
-				res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_SMALL_FONT, dm);
-			else if (id==L"pdkzgwz")
-				res = WZFactory::getPadaukZawgyiTtfDisplay(lang.id, id);
-			else
-				throw std::runtime_error(waitzar::glue(L"Invalid \"built-in\" Display Method: ", id).c_str());
-			break;
+		//First, generate an actual object, based on the type.
+		switch (dm.type) {
+			case DISPLAY_TYPE::BUILTIN:
+				//Built-in types are known entirely by our core code
+				if (id==L"zawgyibmp")
+					res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_MAIN_FONT, dm);
+				else if (id==L"zawgyibmpsmall")
+					res = WZFactory::getZawgyiPngDisplay(lang.id, id, IDR_SMALL_FONT, dm);
+				else if (id==L"pdkzgwz")
+					res = WZFactory::getPadaukZawgyiTtfDisplay(lang.id, id);
+				else
+					throw std::runtime_error(waitzar::glue(L"Invalid \"built-in\" Display Method: ", id).c_str());
+				break;
 
-		case DISPLAY_TYPE::PNG:
-			//Enforce that a valid font-file is given
-			if (dm.fontFile.empty())
-				throw std::runtime_error("Cannot construct \"png\" display method: no \"font-file\".");
-			if (!FileExists(dm.fontFile))
-				throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", dm.fontFile).c_str());
+			case DISPLAY_TYPE::PNG:
+				//Enforce that a valid font-file is given
+				if (dm.fontFile.empty())
+					throw std::runtime_error("Cannot construct \"png\" display method: no \"font-file\".");
+				if (!FileExists(dm.fontFile))
+					throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", dm.fontFile).c_str());
 
-			//Get it, as a singleton
-			res = WZFactory::getPngDisplayManager(lang.id, id, dm.fontFile);
-			break;
-		case DISPLAY_TYPE::TTF:
-			//Enforce that a font-face-name and point-size are given
-			if (dm.fontFaceName.empty())
-				throw std::runtime_error(waitzar::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
-			if (dm.pointSize==0)
-				throw std::runtime_error("Cannot construct \"ttf\" display method: no \"point-size\".");
+				//Get it, as a singleton
+				res = WZFactory::getPngDisplayManager(lang.id, id, dm.fontFile);
+				break;
+			case DISPLAY_TYPE::TTF:
+				//Enforce that a font-face-name and point-size are given
+				if (dm.fontFaceName.empty())
+					throw std::runtime_error(waitzar::glue(L"Cannot construct \"ttf\" display method: no \"font-face-name\" for: ", id).c_str());
+				if (dm.pointSize==0)
+					throw std::runtime_error("Cannot construct \"ttf\" display method: no \"point-size\".");
 
-			//Ensure that a valid "font-file" was given, or none
-			if (!dm.fontFile.empty() && !FileExists(dm.fontFile))
-				throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", dm.fontFile).c_str());
+				//Ensure that a valid "font-file" was given, or none
+				if (!dm.fontFile.empty() && !FileExists(dm.fontFile))
+					throw std::runtime_error(waitzar::glue(L"Font file file does not exist: ", dm.fontFile).c_str());
 
-			//Get it, as a singleton
-			res = WZFactory::getTtfDisplayManager(lang.id, id, dm.fontFile, dm.fontFaceName, dm.pointSize);
-			break;
-		default:
-			throw std::runtime_error("Cannot construct display method: no \"type\"");
+				//Get it, as a singleton
+				res = WZFactory::getTtfDisplayManager(lang.id, id, dm.fontFile, dm.fontFaceName, dm.pointSize);
+				break;
+			default:
+				throw std::runtime_error("Cannot construct display method: no \"type\"");
+		}
+	} catch (std::exception& ex) {
+		//Pack all exceptions into nodeset_exceptions
+		throw nodeset_exception(ex.what(), id.c_str());
 	}
 
 	return res;
@@ -705,105 +733,129 @@ DisplayMethod* WZFactory::makeAndVerifyDisplayMethod(const LangNode& lang, const
 
 
 
+
+//
+// TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
+//
 Transformation* WZFactory::makeAndVerifyTransformation(ConfigRoot& conf, const LangNode& lang, const std::wstring& id, TransNode& tm)
 {
 	Transformation* res = NULL;
 
-	//Check some required settings
-	if (tm.fromEncoding.empty())
-		throw std::runtime_error("Cannot construct transformation: no \"from-encoding\"");
-	if (tm.toEncoding.empty())
-		throw std::runtime_error("Cannot construct transformation: no \"to-encoding\"");
+	try {
+		//Check some required settings
+		if (tm.fromEncoding.empty())
+			throw std::runtime_error("Cannot construct transformation: no \"from-encoding\"");
+		if (tm.toEncoding.empty())
+			throw std::runtime_error("Cannot construct transformation: no \"to-encoding\"");
 
-	//Ensure we have valid encodings
-	if (lang.encodings.count(tm.fromEncoding)==0)
-		throw std::runtime_error(glue(L"Transformation \"" , id , L"\" references non-existent from-encoding: ", tm.fromEncoding).c_str());
-	if (lang.encodings.count(tm.toEncoding)==0)
-		throw std::runtime_error(glue(L"Transformation \"" , id , L"\" references non-existent to-encoding: ", tm.toEncoding).c_str());
+		//Ensure we have valid encodings
+		if (lang.encodings.count(tm.fromEncoding)==0)
+			throw nodeset_exception(glue(L"Transformation \"" , id , L"\" references non-existent from-encoding: ", tm.fromEncoding).c_str(), wstring(L"languages."+lang.id+L".transformations."+id+L".fromencoding").c_str());
+		if (lang.encodings.count(tm.toEncoding)==0)
+			throw nodeset_exception(glue(L"Transformation \"" , id , L"\" references non-existent to-encoding: ", tm.toEncoding).c_str(), wstring(L"languages."+lang.id+L".transformations."+id+L".toencoding").c_str());
 
 
-	//First, generate an actual object, based on the type.
-	switch (tm.type) {
-		case TRANSFORM_TYPE::BUILTIN:
-			//Built-in types are known entirely by our core code
-			if (id==L"self2self")
-				res = new Self2Self();
-			else if (id==L"uni2zg")
-				res = new Uni2Zg();
-			else if (id==L"uni2wi")
-				res = new Uni2WinInnwa();
-			else if (id==L"zg2uni")
-				res = new Zg2Uni();
-			else if (id==L"uni2ayar")
-				res = new Uni2Ayar();
-			else if (id==L"ayar2uni")
-				res = new Ayar2Uni();
-			else
-				throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
-			break;
+		//First, generate an actual object, based on the type.
+		switch (tm.type) {
+			case TRANSFORM_TYPE::BUILTIN:
+				//Built-in types are known entirely by our core code
+				if (id==L"self2self")
+					res = new Self2Self();
+				else if (id==L"uni2zg")
+					res = new Uni2Zg();
+				else if (id==L"uni2wi")
+					res = new Uni2WinInnwa();
+				else if (id==L"zg2uni")
+					res = new Zg2Uni();
+				else if (id==L"uni2ayar")
+					res = new Uni2Ayar();
+				else if (id==L"ayar2uni")
+					res = new Ayar2Uni();
+				else
+					throw std::runtime_error(waitzar::glue(L"Invalid \"builtin\" Transformation: ", id).c_str());
+				break;
 
-		case TRANSFORM_TYPE::JAVASCRIPT:
-			//Ensure a valid source file
-			if (tm.sourceFile.empty())
-				throw std::runtime_error("Cannot construct transformation: no javascript \"source-file\"");
-			if (!FileExists(tm.sourceFile))
-				throw std::runtime_error("Cannot construct transformation: \"source-file\" references a file that does not exist.");
+			case TRANSFORM_TYPE::JAVASCRIPT:
+				//Ensure a valid source file
+				if (tm.sourceFile.empty())
+					throw std::runtime_error("Cannot construct transformation: no javascript \"source-file\"");
+				if (!FileExists(tm.sourceFile))
+					throw std::runtime_error("Cannot construct transformation: \"source-file\" references a file that does not exist.");
 
-			//Make sure our interpreter is actually running.
-			if ((conf.extensions.count(L"javascript")==0) || !conf.extensions[L"javascript"].enabled)
-				throw std::runtime_error("Cannot construct a \"javscript\" Transformation: interpreter DLL failed to load.");
+				//Make sure our interpreter is actually running.
+				if ((conf.extensions.count(L"javascript")==0) || !conf.extensions[L"javascript"].enabled)
+					throw std::runtime_error("Cannot construct a \"javscript\" Transformation: interpreter DLL failed to load.");
 
-			res = new JSTransform(waitzar::escape_wstr(tm.sourceFile, false), *(JavaScriptConverter*)conf.extensions[L"javascript"].impl);
-			break;
+				res = new JSTransform(waitzar::escape_wstr(tm.sourceFile, false), *(JavaScriptConverter*)conf.extensions[L"javascript"].impl);
+				break;
 
-		default:
-			throw std::runtime_error("Cannot construct transformation: no \"type\"");
+			default:
+				throw std::runtime_error("Cannot construct transformation: no \"type\"");
+		}
+	} catch (std::exception& ex) {
+		//Pack all exceptions into nodeset_exceptions
+		throw nodeset_exception(ex.what(), id.c_str());
 	}
 
 	return res;
 }
-
 
 
 
 void WZFactory::verifyEncoding(const std::wstring& id, EncNode& enc)
 {
-	//Necessary properties
-	if (enc.displayName.empty())
-		throw std::runtime_error("Cannot construct encoding: no \"display-name\"");
+	try {
+		//Necessary properties
+		if (enc.displayName.empty())
+			throw std::runtime_error("Cannot construct encoding: no \"display-name\"");
+	} catch (std::exception& ex) {
+		//Pack all exceptions into nodeset_exceptions
+		throw nodeset_exception(ex.what(), id.c_str());
+	}
 }
 
 
+//
+// TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
+//
 void WZFactory::verifySettings(ConfigRoot& cfg, SettingsNode& set)
 {
 	//Only one thing here
 	if (cfg.languages.count(set.defaultLanguage)==0)
-		throw std::runtime_error(glue(L"Settings references non-existent default-language: ", set.defaultLanguage).c_str());
+		throw nodeset_exception(glue(L"Settings references non-existent default-language: ", set.defaultLanguage).c_str(), L"settings.defaultlanguage");
 }
 
 
 
+//
+// TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
+//
 void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang)
 {
-	//Necessary properties
-	if (lang.displayName.empty())
-		throw std::runtime_error("Cannot construct language: no \"display-name\"");
-	if (lang.encodings.count(L"unicode")==0)
-		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" does not include \"unicode\" as an encoding.").c_str());
+	try {
+		//Necessary properties
+		if (lang.displayName.empty())
+			throw std::runtime_error("Cannot construct language: no \"display-name\"");
+		if (lang.encodings.count(L"unicode")==0)
+			throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" does not include \"unicode\" as an encoding.").c_str());
 
-	//Ensure dependencies are met
-	if (lang.encodings.count(lang.defaultOutputEncoding)==0)
-		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default output encoding: ", lang.defaultOutputEncoding).c_str());
-	if (lang.inputMethods.count(lang.defaultInputMethod)==0)
-		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default input method: ", lang.defaultInputMethod).c_str());
-	if (lang.displayMethods.count(lang.defaultDisplayMethodReg)==0)
-		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default (regular) display method: ", lang.defaultDisplayMethodReg).c_str());
-	if (lang.displayMethods.count(lang.defaultDisplayMethodSmall)==0)
-		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" references non-existant default (small) display method: ", lang.defaultDisplayMethodSmall).c_str());
-	if (!lang.encodings[lang.defaultOutputEncoding].canUseAsOutput)
-		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" uses a default output encoding which does not support output.").c_str());
-	if (lang.displayMethods[lang.defaultDisplayMethodReg].encoding != lang.displayMethods[lang.defaultDisplayMethodSmall].encoding)
-		throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" uses two display methods with two different encodings.").c_str());
+		//Ensure dependencies are met
+		if (lang.encodings.count(lang.defaultOutputEncoding)==0)
+			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default output encoding: ", lang.defaultOutputEncoding).c_str(), wstring(L"languages."+lang.id+L".defaultoutputencoding").c_str());
+		if (lang.inputMethods.count(lang.defaultInputMethod)==0)
+			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default input method: ", lang.defaultInputMethod).c_str(), wstring(L"languages."+lang.id+L".defaultinputmethod").c_str());
+		if (lang.displayMethods.count(lang.defaultDisplayMethodReg)==0)
+			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default (regular) display method: ", lang.defaultDisplayMethodReg).c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethod").c_str());
+		if (lang.displayMethods.count(lang.defaultDisplayMethodSmall)==0)
+			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default (small) display method: ", lang.defaultDisplayMethodSmall).c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethodsmall").c_str());
+		if (!lang.encodings[lang.defaultOutputEncoding].canUseAsOutput)
+			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" uses a default output encoding which does not support output.").c_str(), wstring(L"languages."+lang.id+L".defaultoutputencoding").c_str());
+		if (lang.displayMethods[lang.defaultDisplayMethodReg].encoding != lang.displayMethods[lang.defaultDisplayMethodSmall].encoding)
+			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" uses two display methods with two different encodings.").c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethod").c_str());
+	} catch (std::exception& ex) {
+		//Pack all exceptions into nodeset_exceptions
+		throw nodeset_exception(ex.what(), id.c_str());
+	}
 }
 
 

@@ -23,6 +23,7 @@
 #include "Settings/WZFactory.h"
 #include "Settings/ConfigTreeWalker.h"
 #include "Settings/ConfigTreeContainers.h"
+#include "Settings/Types.h"
 #include "Settings/CfgPerm.h"
 #include "Settings/TransformNode.h"
 #include "Settings/StringNode.h"
@@ -130,12 +131,12 @@ public:
 
 
 public:
-	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false, std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>());
-	const ConfigRoot& sealConfig();
+	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false, std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>(), std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
+	const ConfigRoot& sealConfig(std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
 
 private:
 	//These two functions replace "readInConfig"
-	void buildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm=CfgPerm(), std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>());
+	void buildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError);
 	void buildUpConfigTree(const Json::Value& root, StringNode& currNode, const std::wstring& currDirPath, std::function<void (const StringNode& n)> OnSetCallback);
 	void walkConfigTree(StringNode& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm);
 	//void buildVerifyTree();
