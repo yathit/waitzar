@@ -6,11 +6,6 @@
 
 #pragma once
 
-//Don't let Visual Studio warn us to use the _s functions
-//#define _CRT_SECURE_NO_WARNINGS
-
-//Ironic that adding compliance now causes headaches compiling under VS2003
-//#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <map>
 #include <string>
@@ -27,7 +22,6 @@
 #include "NGram/BurglishBuilder.h"
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
-//#include "Settings/CfgPerm.h"
 #include "Settings/ConfigTreeContainers.h"
 #include "Settings/Types.h"
 #include "Transform/Zg2Uni.h"
@@ -63,13 +57,6 @@ public:
 	static void verifySettings(ConfigRoot& cfg, SettingsNode& set);
 
 
-
-	//Builders
-	/*static InputMethod* makeInputMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
-	static Encoding makeEncoding(const std::wstring& id, const std::map<std::wstring, std::wstring>& options);
-	static DisplayMethod* makeDisplayMethod(const std::wstring& id, const Language& language, const std::map<std::wstring, std::wstring>& options);
-	static Transformation* makeTransformation(const std::wstring& id, const std::map<std::wstring, std::wstring>& options, const JavaScriptConverter* const jsInterpreter);*/
-
 	//More specific builders/instances
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID, const std::wstring& extraWordsFileName, const std::wstring& userWordsFileName, InMethNode& node);
 	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID, InMethNode& node);
@@ -86,19 +73,11 @@ public:
 	//Init; load all special builders at least once
 	static void InitAll(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard);
 
-	//Ugh
-	/*static std::wstring purge_filename(const std::wstring& str);
-	static std::wstring sanitize_id(const std::wstring& str);
-	static bool read_bool(const std::wstring& str);
-	static int read_int(const std::wstring& str);*/
-
 	//Parallel data structures for constructing systemWordLookup
 	static const std::wstring systemDefinedWords;
-	//static const int systemDefinedKeys[];
 
 	//Helper
-	static bool FileExists(const wstring& fileName)
-	{
+	static bool FileExists(const wstring& fileName) {
 		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 		return (GetFileAttributesEx(fileName.c_str(), GetFileExInfoStandard, &InfoFile)==TRUE);
 	}

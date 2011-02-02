@@ -32,64 +32,6 @@ void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perm
 
 
 
-
-//Make our model worrrrrrrrk......
-// (Note: We also need to replace all of our placeholder encodings with the real thing.
-//        We can't use references, since those might be in validated if we somehow resized the container).
-//void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings)
-//{
-	//
-	// TODO: We need to init static information somewhere... but where?
-	//
-
-	//Step 1: Read
-	//localConfError = false;
-/*	getSettings();
-	getExtensions();
-	getLanguages();
-	getEncodings();
-	getInputMethods();
-	getDisplayMethods();
-	Logger::markLogTime('L', L"Read physical files, parsed JSON");*/
-
-	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
-	//WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
-	//waitzar::BurglishBuilder::InitStatic();
-	//Logger::markLogTime('L', L"Initialized static classes with relevant information.");
-
-	//Step 1.5; check all DLLs
-	/*for (auto it=options.extensions.begin(); it!=options.extensions.end(); it++) {
-		if (const_cast<Extension*>(*it)->id==L"javascript")
-			((JavaScriptConverter*)*it)->InitDLL();
-	}*/
-
-	//TMEP: Needed for our new loader
-	//RuntimeConfig(sealConfig(), locallySetOptions);
-
-
-	//Step 2: Un-cache
-	/*resolvePartialSettings();
-	Logger::markLogTime('L', L"Resolved partial settings.");*/
-
-	//Step 3: Make it useful
-	/*generateInputsDisplaysOutputs(lastUsedSettings);
-	Logger::markLogTime('L', L"Generated list of input/output/display/encodings.");*/
-
-	//Step 4: Set our current language, input method, etc.
-	//activeLanguage = *FindKeyInSet(options.languages, options.settings.defaultLanguage);
-	/*activeLanguage = *options.languages.find(options.settings.defaultLanguage);
-	activeOutputEncoding = activeLanguage.defaultOutputEncoding;
-	activeInputMethod = *FindKeyInSet(activeLanguage.inputMethods, activeLanguage.defaultInputMethod);
-	activeDisplayMethods.clear();
-	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodReg));
-	activeDisplayMethods.push_back(*FindKeyInSet(activeLanguage.displayMethods, activeLanguage.defaultDisplayMethodSmall));
-	if (activeDisplayMethods[0]->encoding != activeDisplayMethods[1]->encoding)
-		throw std::runtime_error("Error: \"small\" and \"regular\" sized display methods have different encodings");
-	Logger::markLogTime('L', L"Set \"active\" input/output/display/encodings.");*/
-//}
-
-
-
 //Validate all Input Managers, Display Managers, Outputs, and Transformations; make
 //     sure the right encodings (and transformations) exist for each.
 //Then, build fast-to-lookup data structures for actual use in WZ.
@@ -346,25 +288,6 @@ const ConfigRoot& ConfigManager::sealConfig(std::function<void (const std::wstri
 
 
 
-
-/*const Transformation* ConfigManager::getTransformation(const Language& lang, const Encoding& fromEnc, const Encoding& toEnc) const
-{
-	//Self to self?
-	if (fromEnc==toEnc)
-		return self2self;
-
-	//Lookup
-	std::pair<Encoding, Encoding> lookup(fromEnc, toEnc);
-	std::map< std::pair<Encoding, Encoding>, Transformation* >::const_iterator found = lang.transformationLookup.find(lookup);
-	if (found==lang.transformationLookup.end())
-		throw std::runtime_error(glue(L"Error! An unvalidated transformation exists in the configuration model: ", fromEnc.id, L"->", toEnc.id).c_str());
-
-	//Done
-	return found->second;
-}*/
-
-
-
 //Right now, this is only used to turn "track caret" off. 
 // We need to merge this with standard code later.
 /*void ConfigManager::overrideSetting(const wstring& settingName, bool value)
@@ -393,44 +316,6 @@ const ConfigRoot& ConfigManager::sealConfig(std::function<void (const std::wstri
 }*/
 
 
-/*void ConfigManager::backupLocalConfigOpts()
-{
-	localOptsBackup.clear();
-	localOptsBackup.insert(localOpts.begin(), localOpts.end());
-}
-
-
-void ConfigManager::restoreLocalConfigOpts()
-{
-	localOpts.clear();
-	localOpts.insert(localOptsBackup.begin(), localOptsBackup.end());
-}
-
-
-wstring ConfigManager::getLocalConfigOpt(const wstring& key)
-{
-	if (localOpts.count(key)>0)
-		return localOpts[key];
-	return L"";
-}
-
-
-void ConfigManager::clearLocalConfigOpt(const wstring& key)
-{
-	localOpts.erase(key);
-}
-
-
-void ConfigManager::setLocalConfigOpt(const wstring& key, const wstring& val)
-{
-	localOpts[key] = val;
-}
-
-
-bool ConfigManager::localConfigCausedError()
-{
-	return localConfError;
-}*/
 
 
 
@@ -472,19 +357,14 @@ void ConfigManager::SaveLocalConfigFile(const std::wstring& path, const std::map
 		<< "# or \"My Documents\" folder." <<std::endl
 		<< "{" <<std::endl;
 
-	//Empty?
-	//if (emptyFile) {
-	//	cfgFile << std::endl;
-	//} else {
-		//Save each option
-		//TODO: Support UTF-8, maybe...
-		string nl = "";
-		for (auto it=properties.begin(); it!=properties.end(); it++) {
-			cfgFile <<nl <<"    \"" <<waitzar::escape_wstr(it->first, false) <<"\" : \"" <<waitzar::escape_wstr(it->second, false) <<"\"";
-			nl = ",\n";
-		}
-		cfgFile << std::endl;
-	//}
+	//Save each option
+	//TODO: Support UTF-8, maybe...
+	string nl = "";
+	for (auto it=properties.begin(); it!=properties.end(); it++) {
+		cfgFile <<nl <<"    \"" <<waitzar::escape_wstr(it->first, false) <<"\" : \"" <<waitzar::escape_wstr(it->second, false) <<"\"";
+		nl = ",\n";
+	}
+	cfgFile << std::endl;
 		
 	//Done
 	cfgFile << "}" <<std::endl;
@@ -494,90 +374,6 @@ void ConfigManager::SaveLocalConfigFile(const std::wstring& path, const std::map
 	cfgFile.close();
 }
 
-
-
-
-
-
-/*const Settings& ConfigManager::getSettings()
-{
-	//Load if needed
-	root = Node();
-	troot = ConfigRoot();
-	if (verifyTree.isLeaf()) {
-		buildVerifyTree();
-	}
-
-	if (!loadedSettings) {
-		//We need at least one config file to parse.
-		if (this->mainConfig.isEmpty())
-			throw std::runtime_error("No main config file defined.");
-
-		//Parse each config file in turn.
-		//First: main config
-		{
-		vector<wstring> ctxt;
-		this->readInConfig(this->mainConfig.json(), this->mainConfig.getFolderPath(), ctxt, false, false, NULL);
-		this->buildAndWalkConfigTree(this->mainConfig, root, troot, verifyTree, PrimaryCfgPerm());
-		//this->buildUpConfigTree(this->mainConfig.json(), &root, this->mainConfig.getFolderPath(), PrimaryCfgPerm());
-		}
-
-		//Second: extensions config
-		if (!this->commonConfig.isEmpty()){
-			vector<wstring> ctxt;
-			this->readInConfig(this->commonConfig.json(), this->commonConfig.getFolderPath(), ctxt, false, true, NULL);
-			this->buildAndWalkConfigTree(this->commonConfig, root, troot, verifyTree, ExtendCfgPerm());
-			//this->buildUpConfigTree(this->commonConfig.json(), &root, this->commonConfig.getFolderPath(), ExtendCfgPerm());
-		}
-
-		//Parse each language config file.
-		// (Note: This will all have to be moved out eventually.... we can't put this into loadLanguageMainFiles() because
-		//   the local/user configs might expect certain languages to be loaded.)
-		{
-			vector<wstring> ctxt;
-			for (std::map<JsonFile , std::vector<JsonFile> >::const_iterator it = langConfigs.begin(); it!=langConfigs.end(); it++) {
-				this->readInConfig(it->first.json(), it->first.getFolderPath(), ctxt, false, false, NULL);
-				this->buildAndWalkConfigTree(it->first, root, troot, verifyTree, LangLevelCfgPerm());
-				//this->buildUpConfigTree(it->first.json(), &root, it->first.getFolderPath(), LangLevelCfgPerm());
-				for (std::vector<JsonFile>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-					this->readInConfig(it2->json(), it2->getFolderPath(), ctxt, false, false, NULL);
-					this->buildAndWalkConfigTree(*it2, root, troot, verifyTree, LangLevelCfgPerm());
-					//this->buildUpConfigTree(it2->json(), &root, it2->getFolderPath(), LangLevelCfgPerm());
-				}
-			}
-		}
-
-		//Next: local and user configs
-		vector<wstring> ctxt;
-		if (this->localConfig.isSet()) {
-			this->readInConfig(this->localConfig.json(), this->localConfig.getFolderPath(), ctxt, true, false, &localOpts);
-
-			//Save local opts!
-			//this->buildUpConfigTree(this->localConfig.json(), &root, this->localConfig.getFolderPath(), UserLocalCfgPerm(),
-			this->buildAndWalkConfigTree(this->localConfig, root, troot, verifyTree, UserLocalCfgPerm());
-		}
-		if (this->userConfig.isSet()) {
-			this->readInConfig(this->userConfig.json(), this->userConfig.getFolderPath(), ctxt, true, false, NULL);
-			this->buildAndWalkConfigTree(this->userConfig, root, troot, verifyTree, UserLocalCfgPerm());
-			//this->buildUpConfigTree(this->userConfig.json(), &root, this->userConfig.getFolderPath(), UserLocalCfgPerm());
-		}
-
-
-		//Now walk it and set all settings
-
-
-
-		//Minor post-processing
-		options.settings.hotkey = HotkeyData(options.settings.hotkeyStrRaw);
-		//generateHotkeyValues(options.settings.hotkeyStrRaw, options.settings.hotkey);
-
-		//Done
-		loadedSettings = true;
-	}
-
-	//Return the object
-	return this->options.settings;
-}*/
 
 
 
@@ -717,145 +513,6 @@ void ConfigManager::walkConfigTree(StringNode& source, GhostNode& dest, const Tr
 		}
 	}
 }
-
-
-
-
-/*void ConfigManager::loadLanguageMainFiles()
-{
-	//Main config file must be read by now
-	if (!this->loadedSettings)
-		throw std::runtime_error("Must load settings before language main files.");
-
-	//Done
-	loadedLanguageMainFiles = true;
-}*/
-
-
-/*void ConfigManager::loadLanguageSubFiles()
-{
-	//Main config file must be read by now
-	if (!this->loadedSettings)
-		throw std::runtime_error("Must load settings before language sub files.");
-
-	//Done
-	loadedLanguageSubFiles = true;
-}*/
-
-
-/*const std::set<Language>& ConfigManager::getLanguages()
-{
-	//Languages can ONLY be defined in top-level language directories.
-	//  So we don't need to load user-defined plugins yet. 
-	//TODO: Why 2 flags?
-	if (!this->loadedLanguageMainFiles)
-		this->loadLanguageMainFiles();
-	if (!this->loadedLanguageSubFiles)
-		this->loadLanguageSubFiles();
-
-	return this->options.languages;
-}*/
-
-/*const std::set<Extension*>& ConfigManager::getExtensions()
-{
-	//Main config file must be read by now
-	if (!this->loadedSettings)
-		throw std::runtime_error("Must load settings before language main files.");
-
-	return this->options.extensions;
-}*/
-
-/*const std::set<InputMethod*>& ConfigManager::getInputMethods()
-{
-	//Languages can ONLY be defined in top-level language directories.
-	//  So we don't need to load user-defined plugins yet. 
-	//TODO: Why 2 flags?
-	if (!this->loadedLanguageMainFiles)
-		this->loadLanguageMainFiles();
-	if (!this->loadedLanguageSubFiles)
-		this->loadLanguageSubFiles();
-
-	return this->activeLanguage.inputMethods;
-}
-
-const std::set<DisplayMethod*>& ConfigManager::getDisplayMethods()
-{
-	//Languages can ONLY be defined in top-level language directories.
-	//  So we don't need to load user-defined plugins yet. 
-	//TODO: Why 2 flags?
-	if (!this->loadedLanguageMainFiles)
-		this->loadLanguageMainFiles();
-	if (!this->loadedLanguageSubFiles)
-		this->loadLanguageSubFiles();
-
-	return this->activeLanguage.displayMethods;
-}
-
-const std::set<Encoding>& ConfigManager::getEncodings()
-{
-	//Languages can ONLY be defined in top-level language directories.
-	//  So we don't need to load user-defined plugins yet. 
-	//TODO: Why 2 flags?
-	if (!this->loadedLanguageMainFiles)
-		this->loadLanguageMainFiles();
-	if (!this->loadedLanguageSubFiles)
-		this->loadLanguageSubFiles();
-
-	return this->activeLanguage.encodings;
-}*/
-
-
-
-
-//Note: Context is managed automatically; never copied.
-//Restricted means don't load new languages, etc.
-//optionsSet, if non-null, will save the string set. E.g., "settings.defaultlanguage"=>"myanmar"
-//DEPRECATED
-/*void ConfigManager::readInConfig(const Value& root, const wstring& folderPath, vector<wstring> &context, bool restricted, bool allowDLL, map<wstring, wstring>* const optionsSet)
-{
-	//We always operate on maps:
-	//json_spirit::Value_type t = root.type();
-	//wObject currPairs = root.get_value<wObject>();
-	//for (auto &itr : currPairs) {
-	Value::Members keys = root.getMemberNames();
-	for (auto itr=keys.begin(); itr!=keys.end(); itr++) {
- 		//Append to the context
-		int numToRemove = 0;
-		{
-		vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
-		context.insert(context.end(), opts.begin(), opts.end());
-		numToRemove = opts.size();
-		}
-
-		//React to this option/category
-		Value value = root[*itr];
-		if (value.isObject()) {
-			//Inductive case: Continue reading all options under this type
-			this->readInConfig(value, folderPath, context, restricted, allowDLL, optionsSet);
-		} else if (value.isString()) {
-			//Base case: the "value" is also a string (set the property)
-			wstring val = sanitize_value(waitzar::mbs2wcs(value.asString()), folderPath);
-			this->setSingleOption(folderPath, context, val, restricted, allowDLL);
-
-			//Save?
-			if (optionsSet!=NULL) {
-				wstring key = L"";
-				for (size_t i=0; i<context.size(); i++) {
-					key += context[i] + (i<context.size()-1?L".":L"");
-				}
-				(*optionsSet)[key] = val;
-			}
-		} else {
-			throw std::runtime_error("ERROR: Config file options should always be string or hash types.");
-		}
-
-		//Remove, get ready for the next option
-		while (numToRemove>0) {
-			context.pop_back();
-			numToRemove--;
-		}
-	}
-}*/
 
 
 /*void ConfigManager::setSingleOption(const wstring& folderPath, const vector<wstring>& name, const std::wstring& value, bool restricted, bool allowDLL)
