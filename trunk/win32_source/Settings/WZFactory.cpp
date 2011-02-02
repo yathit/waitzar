@@ -611,6 +611,20 @@ InputMethod* WZFactory::makeAndVerifyInputMethod(const LangNode& lang, const std
 		if (lang.encodings.count(im.encoding)==0)
 			throw nodeset_exception(waitzar::glue(L"Input method \"" , id , L"\" references non-existent encoding: ", im.encoding).c_str(), wstring(L"languages."+lang.id+L".inputmethods."+id+L".encoding").c_str());
 
+		//Ensure that at least one transformation exists
+		if (im.encoding!=L"unicode") {
+			//Sadly, our lookup has not been built yet, so we must manually scan every transformation
+			bool transFound = false;
+			for (auto it=lang.transformations.begin(); it!=lang.transformations.end(); it++) {
+				if (it->second.fromEncoding==im.encoding && it->second.toEncoding==L"unicode") {
+					transFound = true;
+					break;
+				}
+			}
+			if (!transFound)
+				throw nodeset_exception(waitzar::glue(L"Input method \"" , id , L"\" uses an encoding with no corresponding transformation: ", im.encoding).c_str(), wstring(L"languages."+lang.id+L".inputmethods."+id+L".encoding").c_str());
+		}
+
 		//Make an object based on the type
 		switch (im.type) {
 			case INPUT_TYPE::BUILTIN:
@@ -681,6 +695,20 @@ DisplayMethod* WZFactory::makeAndVerifyDisplayMethod(const LangNode& lang, const
 		//Ensure its encoding exists, etc.
 		if (lang.encodings.count(dm.encoding)==0)
 			throw nodeset_exception(glue(L"Display Method (", id, L") references non-existent encoding: ", dm.encoding).c_str(), wstring(L"languages."+lang.id+L".displaymethods."+id+L".encoding").c_str());
+
+		//Ensure that at least one transformation exists
+		if (dm.encoding!=L"unicode") {
+			//Sadly, our lookup has not been built yet, so we must manually scan every transformation
+			bool transFound = false;
+			for (auto it=lang.transformations.begin(); it!=lang.transformations.end(); it++) {
+				if (it->second.fromEncoding==L"unicode" && it->second.toEncoding==dm.encoding) {
+					transFound = true;
+					break;
+				}
+			}
+			if (!transFound)
+				throw nodeset_exception(waitzar::glue(L"Display method \"" , id , L"\" uses an encoding with no corresponding transformation: ", dm.encoding).c_str(), wstring(L"languages."+lang.id+L".inputmethods."+id+L".encoding").c_str());
+		}
 
 		//First, generate an actual object, based on the type.
 		switch (dm.type) {

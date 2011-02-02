@@ -301,6 +301,11 @@ const ConfigRoot& ConfigManager::sealConfig(std::function<void (const std::wstri
 				WZFactory::verifyEncoding(encIt->first, encIt->second);
 			}
 
+			//Transformations
+			for (auto trIt=langIt->second.transformations.begin(); trIt!=langIt->second.transformations.end(); trIt++) {
+				trIt->second.impl = WZFactory::makeAndVerifyTransformation(troot, langIt->second, trIt->first, trIt->second);
+			}
+
 			//Input methods
 			for (auto inIt=langIt->second.inputMethods.begin(); inIt!=langIt->second.inputMethods.end(); inIt++) {
 				inIt->second.impl = WZFactory::makeAndVerifyInputMethod(langIt->second, inIt->first, inIt->second);
@@ -309,11 +314,6 @@ const ConfigRoot& ConfigManager::sealConfig(std::function<void (const std::wstri
 			//Display methods
 			for (auto dispIt=langIt->second.displayMethods.begin(); dispIt!=langIt->second.displayMethods.end(); dispIt++) {
 				dispIt->second.impl = WZFactory::makeAndVerifyDisplayMethod(langIt->second, dispIt->first, dispIt->second);
-			}
-
-			//Transformations
-			for (auto trIt=langIt->second.transformations.begin(); trIt!=langIt->second.transformations.end(); trIt++) {
-				trIt->second.impl = WZFactory::makeAndVerifyTransformation(troot, langIt->second, trIt->first, trIt->second);
 			}
 
 			//And finally, verify the language itself
