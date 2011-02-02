@@ -27,6 +27,7 @@
 #include "Pulp Core/PulpCoreFont.h"
 #include "Hyperlinks/Hyperlinks.h"
 #include "Settings/ConfigManager.h"
+#include "Settings/OptionStack.h"
 #include "OnscreenKeyboard.h"
 #include "MyWin32Window.h"
 #include "Hotkeys.h"
@@ -56,6 +57,9 @@ using std::ofstream;
 using std::min;
 using std::max;
 
+
+//Helper
+OptionStack locallySetOptions;
 
 
 //Versioning information & lookup
@@ -2229,8 +2233,8 @@ void UpdateSettingsTab(HWND dlgHwnd, int tabID)
 	//Handle default input/output variables
 	int toSetInID = -2; //-2 = n/a, -1=lastused
 	int toSetOutID = -2; //-2 = n/a, -1=lastused
-	wstring defIn = config.getLocalConfigOpt(L"languages." + lng.id + L".defaultinputmethod");
-	wstring defOut = config.getLocalConfigOpt(L"languages." + lng.id + L".defaultoutputencoding");
+	wstring defIn = locallySetOptions.getOption(L"languages." + lng.id + L".defaultinputmethod");
+	wstring defOut = locallySetOptions.getOption(L"languages." + lng.id + L".defaultoutputencoding");
 	if (defIn==L"lastused") {
 		defIn = L"";
 		toSetInID = -1;
@@ -2570,7 +2574,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 			//Parse the saved hotkey value
-			wstring hk = config.getLocalConfigOpt(L"settings.hotkey");
+			wstring hk = locallySetOptions.getOption(L"settings.hotkey");
 			size_t hkModID = 0;
 			size_t hkKeyID = 0;
 			if (!hk.empty()) {
@@ -2609,7 +2613,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			//Get the default-language flash-save option; will be "" if none.
 			int toSetID = -2; //-2 = n/a, -1=lastused
-			wstring defLang = config.getLocalConfigOpt(L"settings.defaultlanguage");
+			wstring defLang = locallySetOptions.getOption(L"settings.defaultlanguage");
 			if (defLang==L"lastused") {
 				defLang = L"";
 				toSetID = -1;
@@ -2634,7 +2638,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			UpdateSettingsTab(hwnd, defTabID);
 
 			//Save the current settings so we can revert if needed.
-			config.backupLocalConfigOpts();
+			locallySetOptions.backup();
+			//config.backupLocalConfigOpts();
 
 			break;
 		}
@@ -2737,14 +2742,15 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				case IDOK: 
 				{
+					locallySetOptions.persist();
 					std::wstringstream temp;
 					temp << pathLocalConfig.c_str();
-					config.saveLocalConfigFile(temp.str(), false);
+					ConfigManager::SaveLocalConfigFile(temp.str(), locallySetOptions.getOptions());
 					EndDialog(hwnd, IDOK);
 					break;
 				}
 				case IDCANCEL:
-					config.restoreLocalConfigOpts();
+					locallySetOptions.restore();
 					EndDialog(hwnd, IDCANCEL);
 					break;
 
@@ -2781,11 +2787,11 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							int adjID = ((int)cmbSelID)-2;
 							wstring key = L"settings.defaultlanguage";
 							if (adjID==-2)
-								config.clearLocalConfigOpt(key);
+								locallySetOptions.clearOption(key);
 							else if (adjID==-1)
-								config.setLocalConfigOpt(key, L"lastused");
+								locallySetOptions.setOption(key, L"lastused");
 							else
-								config.setLocalConfigOpt(key, settingsLangIDs[adjID]);
+								locallySetOptions.setOption(key, settingsLangIDs[adjID]);
 						}
 					}
 					break;
@@ -2800,11 +2806,11 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							int adjID = ((int)cmbSelID)-2;
 							wstring key = L"languages." + currTabLangID + L".defaultinputmethod";
 							if (adjID==-2)
-								config.clearLocalConfigOpt(key);
+								locallySetOptions.clearOption(key);
 							else if (adjID==-1)
-								config.setLocalConfigOpt(key, L"lastused");
+								locallySetOptions.setOption(key, L"lastused");
 							else
-								config.setLocalConfigOpt(key, settingsInputMethodsIDs[adjID]);
+								locallySetOptions.setOption(key, settingsInputMethodsIDs[adjID]);
 						}
 					}
 					break;
@@ -2819,11 +2825,11 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							int adjID = ((int)cmbSelID)-2;
 							wstring key = L"languages." + currTabLangID + L".defaultoutputencoding";
 							if (adjID==-2)
-								config.clearLocalConfigOpt(key);
+								locallySetOptions.clearOption(key);
 							else if (adjID==-1)
-								config.setLocalConfigOpt(key, L"lastused");
+								locallySetOptions.setOption(key, L"lastused");
 							else
-								config.setLocalConfigOpt(key, settingsOutputEncodingsIDs[adjID]);
+								locallySetOptions.setOption(key, settingsOutputEncodingsIDs[adjID]);
 						}
 					}
 					break;
@@ -2835,7 +2841,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (HIWORD(wParam)==CBN_SELCHANGE) {
 						//Assume a reset by default (safer)
 						wstring key = L"settings.hotkey";
-						config.clearLocalConfigOpt(key);
+						locallySetOptions.clearOption(key);
 
 						//Get the current selection
 						HWND ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKCOMBO1);
@@ -2862,7 +2868,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								} else {
 									//Set the key
 									wstring combinedStr = (modAdjID==0 ? L"" : modStr+L"+") + keyStr;
-									config.setLocalConfigOpt(key, combinedStr);
+									locallySetOptions.setOption(key, combinedStr);
 									ctl = GetDlgItem(hwnd, IDC_SETTINGS_HKNOTE);
 									ShowWindow(ctl, SW_SHOW);
 								}
@@ -2875,7 +2881,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_CLOSE:
-			config.restoreLocalConfigOpts();
+			locallySetOptions.restore();
 			EndDialog(hwnd, IDCANCEL);
 			break;
 		default:
@@ -4138,7 +4144,7 @@ bool findAndLoadAllConfigFiles()
 {
 	//Our "Config Manager" is used for loading files
 	ConfigManager cfgMgr;
-	map<wstring, wstring> locallySetOptions;
+	locallySetOptions = OptionStack(1);
 
 	//Find all config files
 	bool suppressThisException = false;
@@ -4231,13 +4237,13 @@ bool findAndLoadAllConfigFiles()
 			if (WZFactory::FileExists(temp.str())) {
 				cfgMgr.mergeInConfigFile(pathLocalConfig, UserLocalCfgPerm(), false,
 					[&locallySetOptions](const StringNode& n) {
-						locallySetOptions[n.getFullyQualifiedKeyName()] = n.str();
+						locallySetOptions.setOption(n.getFullyQualifiedKeyName(), n.str());
 					}
 				);
 				//config.initLocalConfig(pathLocalConfig);
 			} else {
 				//Create the file
-				config.saveLocalConfigFile(temp.str(), true);
+				ConfigManager::SaveLocalConfigFile(temp.str());
 			}
 		}
 
@@ -4252,7 +4258,7 @@ bool findAndLoadAllConfigFiles()
 				cfgMgr.mergeInConfigFile(pathUserConfig, UserLocalCfgPerm());
 			} else {
 				//Create the file
-				config.saveUserConfigFile(temp.str(), true);
+				ConfigManager::SaveUserConfigFile(temp.str());
 			}
 		}
 
@@ -4271,7 +4277,7 @@ bool findAndLoadAllConfigFiles()
 		Logger::startLogTimer('L', L"Reading & validating config files");
 		//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 		cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-		config = RuntimeConfig(cfgMgr.sealConfig(), locallySetOptions);
+		config = RuntimeConfig(cfgMgr.sealConfig());
 
 		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
@@ -4280,13 +4286,13 @@ bool findAndLoadAllConfigFiles()
 		bool locError = config.localConfigCausedError();
 		//config = ConfigManager(/*getMD5Hash*/);
 		cfgMgr = ConfigManager();
-		locallySetOptions.clear();
+		locallySetOptions = OptionStack(1);
 
 		//Delete the local config file if this caused the error
 		if (locError) {
 			std::wstringstream temp;
 			temp << pathLocalConfig.c_str();
-			config.saveLocalConfigFile(temp.str(), true);
+			ConfigManager::SaveLocalConfigFile(temp.str());
 		}
 
 		//Inform the user, UNLESS they set the magic number...
@@ -4331,7 +4337,7 @@ bool findAndLoadAllConfigFiles()
 			//One more test.
 			//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 			cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-			config = RuntimeConfig(cfgMgr.sealConfig(), locallySetOptions);
+			config = RuntimeConfig(cfgMgr.sealConfig());
 
 			Logger::markLogTime('L', L"Config files validated: DEFAULT is taking over");
 		} catch (std::exception& ex2) {

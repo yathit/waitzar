@@ -584,7 +584,7 @@ bool ConfigManager::localConfigCausedError()
 
 
 
-/*void ConfigManager::saveUserConfigFile(const std::wstring& path, bool emptyFile)
+void ConfigManager::SaveUserConfigFile(const std::wstring& path)
 {
 	//Create the file
 	std::ofstream cfgFile;
@@ -609,7 +609,7 @@ bool ConfigManager::localConfigCausedError()
 }
 
 
-void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile)
+void ConfigManager::SaveLocalConfigFile(const std::wstring& path, const std::map<std::wstring, std::wstring>& properties)
 {
 	//Open the file
 	std::ofstream cfgFile;
@@ -623,18 +623,18 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 		<< "{" <<std::endl;
 
 	//Empty?
-	if (emptyFile) {
-		cfgFile << std::endl;
-	} else {
+	//if (emptyFile) {
+	//	cfgFile << std::endl;
+	//} else {
 		//Save each option
 		//TODO: Support UTF-8, maybe...
 		string nl = "";
-		for (auto it=localOpts.begin(); it!=localOpts.end(); it++) {
+		for (auto it=properties.begin(); it!=properties.end(); it++) {
 			cfgFile <<nl <<"    \"" <<waitzar::escape_wstr(it->first, false) <<"\" : \"" <<waitzar::escape_wstr(it->second, false) <<"\"";
 			nl = ",\n";
 		}
 		cfgFile << std::endl;
-	}
+	//}
 		
 	//Done
 	cfgFile << "}" <<std::endl;
@@ -643,7 +643,7 @@ void ConfigManager::saveLocalConfigFile(const std::wstring& path, bool emptyFile
 	cfgFile.flush();
 	cfgFile.close();
 }
-*/
+
 
 
 

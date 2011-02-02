@@ -15,7 +15,7 @@ using std::wstring;
 /**
  * Load
  */
-RuntimeConfig::RuntimeConfig(const ConfigRoot& config, const map<wstring, wstring>& localOpts)
+RuntimeConfig::RuntimeConfig(const ConfigRoot& config)
 {
 	//Do nothing if no languages
 	if (config.languages.empty())

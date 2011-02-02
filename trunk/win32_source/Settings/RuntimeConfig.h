@@ -22,7 +22,7 @@
  */
 class RuntimeConfig {
 public:
-	RuntimeConfig(const ConfigRoot& config=ConfigRoot(), const std::map<std::wstring, std::wstring>& localOpts=std::map<std::wstring, std::wstring>());
+	RuntimeConfig(const ConfigRoot& config=ConfigRoot());
 
 	//Actual functions
 	const SettingsNode& getSettings();
@@ -87,13 +87,16 @@ public:
 
 	// (We might put the "configOpts" stuff into its own class, like "LocalConfigOpts".
 	//  It really doesn't even have to be in RuntimeConfig)
-	void backupLocalConfigOpts() {}
-	void restoreLocalConfigOpts() {}
-	std::wstring getLocalConfigOpt(const std::wstring& key) {return L"";}
-	void clearLocalConfigOpt(const std::wstring& key) {}
-	void setLocalConfigOpt(const std::wstring& key, const std::wstring& val) {}
-	void saveLocalConfigFile(const std::wstring& path, bool emptyFile) {}
-	void saveUserConfigFile(const std::wstring& path, bool emptyFile) {}
+	//void backupLocalConfigOpts() {}
+	//void restoreLocalConfigOpts() {}
+	//std::wstring getLocalConfigOpt(const std::wstring& key) {return L"";}
+	//void clearLocalConfigOpt(const std::wstring& key) {}
+	//void setLocalConfigOpt(const std::wstring& key, const std::wstring& val) {}
+	//void saveLocalConfigFile(const std::wstring& path, bool emptyFile) {}
+	//void saveUserConfigFile(const std::wstring& path, bool emptyFile) {}
+
+
+	//Not sure what to do about this...
 	bool localConfigCausedError() {return false;}
 };
 
