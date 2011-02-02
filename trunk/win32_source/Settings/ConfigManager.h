@@ -4,10 +4,9 @@
  * Please refer to the end of the file for licensing information
  */
 
-#ifndef _CONFIGMANAGER
-#define _CONFIGMANAGER
+#pragma once
 
-#include "windows_wz.h"
+//#include "windows_wz.h"
 
 #include <vector>
 #include <set>
@@ -19,23 +18,17 @@
 #include <stdexcept>
 
 #include "Json CPP/value.h"
-#include "Json CPP/reader.h"
+//#include "Json CPP/reader.h"
 
+#include "Settings/WZFactory.h"
+#include "Settings/ConfigTreeWalker.h"
 #include "Settings/ConfigTreeContainers.h"
 #include "Settings/CfgPerm.h"
 #include "Settings/TransformNode.h"
-#include "Settings/WZFactory.h"
 #include "Settings/StringNode.h"
 #include "Settings/JsonFile.h"
-#include "NGram/BurglishBuilder.h"
-#include "Input/InputMethod.h"
-#include "Extension/Extension.h"
-#include "Extension/JavaScriptConverter.h"
 #include "NGram/wz_utilities.h"
-#include "Settings/HotkeyData.h"
-#include "Settings/RuntimeConfig.h"
-#include "Settings/ConfigTreeWalker.h"
-
+#include "NGram/BurglishBuilder.h"
 
 
 
@@ -221,7 +214,6 @@ typename std::set<T*>::const_iterator FindKeyInSet(const std::set<T*>& container
 
 
 
-#endif //_CONFIGMANAGER
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

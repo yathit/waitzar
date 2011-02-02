@@ -768,7 +768,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, StringNode& currN
 		try {
 			//Key: For each dot-seperated ID, advance the current node
 			StringNode* childNode = &currNode;
-			vector<wstring> opts = separate(sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
+			vector<wstring> opts = waitzar::separate(waitzar::sanitize_id(waitzar::mbs2wcs(*itr)), L'.');
 			for (auto key=opts.begin(); key!=opts.end(); key++) {
 				childNode = &childNode->getOrAddChild(*key);
 			}
@@ -780,7 +780,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, StringNode& currN
 				this->buildUpConfigTree(*value, *childNode, currDirPath, OnSetCallback);
 			} else if (value->isString()) {
 				//Base case: the "value" is also a string (set the property)
-				childNode->str(sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
+				childNode->str(waitzar::sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
 				childNode->setAndPropagateDirty(true);
 
 				//Callback
