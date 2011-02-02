@@ -16,10 +16,14 @@
 class Self2Self : public Transformation
 {
 public:
-	Self2Self();
+	Self2Self() {
+
+	}
 
 	//Convert
-	void convertInPlace(std::wstring& src) const;
+	void convertInPlace(std::wstring& src) const {
+		//No change needed
+	}
 };
 
 

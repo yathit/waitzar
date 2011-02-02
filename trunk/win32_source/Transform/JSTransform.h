@@ -19,10 +19,23 @@
 class JSTransform : public Transformation
 {
 public:
-	JSTransform(const std::string& jsSourcePath, const JavaScriptConverter& jsInterpreter);
+	JSTransform(const std::string& jsSourcePath, const JavaScriptConverter& jsInterpreter) {
+		this->sourceCode = waitzar::readUTF8File(jsSourcePath);
+		this->jsInterpreter = jsInterpreter;
+	}
 
 	//Convert
-	void convertInPlace(std::wstring& src) const;
+	void convertInPlace(std::wstring& src) const {
+		//Do nothing if empty
+		if (src.empty())
+			return;
+
+		//Else, call our DLL
+		std::pair<bool, std::wstring> res = jsInterpreter.ConvertString(this->sourceCode, src);
+		src = res.second;
+		if (!res.first)
+			throw std::runtime_error(waitzar::glue(L"JavaScript error: ", src).c_str());
+	}
 
 private:
 	std::wstring sourceCode;
