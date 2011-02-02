@@ -34,7 +34,7 @@ public:
 public:
 
 	//Useful functionality
-	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)> ConfigGetTransformation = std::function<const Transformation* (const std::wstring& fromEnc, const std::wstring& toEnc)>());
+	virtual void treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)> ConfigGetAndTransformSrc = std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)>());
 	bool isHelpInput();
 	void forceViewChanged();
 	bool getAndClearViewChanged();
@@ -74,6 +74,11 @@ protected:
 	std::pair <std::string, std::wstring> mostRecentRomanizationCheck;
 
 
+//Todo: Fix redundancy...
+public:
+	const std::wstring& getEncoding() { return encoding; }
+
+
 protected:
 	//Window control
 	MyWin32Window* mainWindow;
@@ -89,14 +94,17 @@ protected:
 
 	//Helper typing control
 	InputMethod* providingHelpFor;
-	const Transformation* myenc2Uni;
+	std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)> ConfigGetAndTransformText;
+	/*const Transformation* myenc2Uni;
 	const Transformation* uni2Myenc;
 	const Transformation* uni2Romanenc;
-	const Transformation* romanenc2Uni;
+	const Transformation* romanenc2Uni;*/
 
 	//Repaint after this?
 	bool viewChanged;
 	bool requestToTypeSentence;
+
+	bool suppressUppercase;
 
 	//Helpful placeholders (in case we need to change them)
 	wchar_t zwsAlpha;

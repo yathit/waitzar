@@ -154,9 +154,9 @@ InputMethod*       currTypeInput = NULL;
 InputMethod*       currHelpInput = NULL; //NULL means disable help
 DisplayMethod *mmFont = NULL;
 DisplayMethod *mmFontSmall = NULL;
-const Transformation*    input2Uni;
-const Transformation*    uni2Output;
-const Transformation*    uni2Disp;
+const TransNode*    input2Uni;
+const TransNode*    uni2Output;
+const TransNode*    uni2Disp;
 
 //Cache our popup menu
 HMENU contextMenu;
@@ -443,8 +443,8 @@ inline long min (const long &a, const int &b) { return min<long>(a,b); }*/
 
 //Means of getting a transformation; we'll have to pass this as a functional pointer later,
 //   because of circular dependencies. TODO: Fix this.
-const Transformation* ConfigGetTransformation(const wstring& fromEnc, const wstring& toEnc) {
-	return config.getActiveTransformation(fromEnc, toEnc).getImpl();
+void ConfigGetAndTransformText(const wstring& fromEnc, const wstring& toEnc, wstring& src) {
+	config.getActiveTransformation(fromEnc, toEnc).getImpl()->convertInPlace(src);
 }
 
 
@@ -1584,9 +1584,12 @@ void initCalculateHelp()
 		delete helpKeyboard;
 
 	//Copy this font for use in the memory box
-	//TODO: Something else.
-	helpFntMemory = (PulpCoreFont*)WZFactory::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
-	DisplayMethod* zgSmall = WZFactory::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT);
+	//NOTE: These values aren't used! Find a better way to create these fonts.
+	DispMethNode dm;
+	dm.fontFaceName = L"unknown";
+	dm.pointSize = 1;
+	helpFntMemory = (PulpCoreFont*)WZFactory::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT, dm);
+	DisplayMethod* zgSmall = WZFactory::getZawgyiPngDisplay(L"myanmar", L"zawgibmpsmall", IDR_SMALL_FONT, dm);
 	//= (PulpCoreFont*)mmFontSmall;//new PulpCoreFont();
 
 	//Make
@@ -1643,11 +1646,11 @@ void recalculate()
 {
 	//Convert the current input string to the internal encoding, and then convert it to the display encoding.
 	//  We can short-circuit this if the output and display encodings are the same.
-	bool noEncChange = (mmFont->encoding==currInput->encoding);
+	bool noEncChange = (uni2Disp->toEncoding==currInput->getEncoding());
 	std::wstring dispRomanStr = currInput->getTypedRomanString(false);
 	if (!noEncChange) {
-		input2Uni->convertInPlace(dispRomanStr);
-		uni2Disp->convertInPlace(dispRomanStr);
+		input2Uni->getImpl()->convertInPlace(dispRomanStr);
+		uni2Disp->getImpl()->convertInPlace(dispRomanStr);
 	}
 
 	//TODO: The typed sentence string might have a highlight, which changes things slightly.
@@ -1662,8 +1665,8 @@ void recalculate()
 		for (vector<wstring>::iterator i=inputSentenceStr.begin(); i!=inputSentenceStr.end(); i++) {
 			wstring candidate = *i;
 			if (!noEncChange) {
-				input2Uni->convertInPlace(candidate);
-				uni2Disp->convertInPlace(candidate);
+				input2Uni->getImpl()->convertInPlace(candidate);
+				uni2Disp->getImpl()->convertInPlace(candidate);
 			}
 			dispSentenceStr.push_back(candidate);
 		}
@@ -1681,8 +1684,8 @@ void recalculate()
 	if (!noEncChange) {
 		for (size_t i=0; i<dispCandidateStrs.size(); i++) {
 			if (!noEncChange) {
-				input2Uni->convertInPlace(dispCandidateStrs[i].first);
-				uni2Disp->convertInPlace(dispCandidateStrs[i].first);
+				input2Uni->getImpl()->convertInPlace(dispCandidateStrs[i].first);
+				uni2Disp->getImpl()->convertInPlace(dispCandidateStrs[i].first);
 			}
 		}
 	}
@@ -1894,11 +1897,11 @@ void typeCurrentPhrase(const wstring& stringToType)
 	SetActiveWindow(fore); //This probably won't do anything, since we're not attached to this window's message queue.
 
 	//Convert to the right encoding
-	bool noEncChange = (uni2Output->toEncoding==currInput->encoding);
+	bool noEncChange = (uni2Output->toEncoding==currInput->getEncoding());
 	wstring keyStrokes = stringToType;
 	if (!noEncChange) {
-		input2Uni->convertInPlace(keyStrokes);
-		uni2Output->convertInPlace(keyStrokes);
+		input2Uni->getImpl()->convertInPlace(keyStrokes);
+		uni2Output->getImpl()->convertInPlace(keyStrokes);
 	}
 
 	//Remove ZWS --must do this AFTER converting, or helpful semantic information is lost.
@@ -3129,13 +3132,13 @@ void toggleHelpMode(bool toggleTo)
 			mainWindow->showMessageBox(L"Could not turn on the shift/control hotkeys.", L"Error", MB_ICONERROR | MB_OK);
 
 		//Reset our input2uni transformer (others shouldn't need changing).
-		input2Uni = config.getActiveTransformation(currHelpInput->encoding, L"unicode").getImpl();
+		input2Uni = &config.getActiveTransformation(currHelpInput->getEncoding(), L"unicode");
 
 		//Get an encoding switcher for the reverse-roman lookup
 		//const Transformation* uni2Roman = config.getTransformation(config.activeLanguage, config.unicodeEncoding, currTypeInput->encoding);
 
 		//Switch inputs, set as helper
-		currHelpInput->treatAsHelpKeyboard(currTypeInput, ConfigGetTransformation);
+		currHelpInput->treatAsHelpKeyboard(currTypeInput, ConfigGetAndTransformText);
 		currInput = currHelpInput;
 
 		//Clear our current word (not the sentence, though, and keep the trigrams)
@@ -3163,7 +3166,7 @@ void toggleHelpMode(bool toggleTo)
 			helpKeyboard->addMemoryEntry(checkEntry.second, checkEntry.first);
 
 		//Reset our input2uni transformer (others shouldn't need changing).
-		input2Uni = config.getActiveTransformation(currInput->encoding, L"unicode").getImpl();
+		input2Uni = &config.getActiveTransformation(currInput->getEncoding(), L"unicode");
 
 		//Turn off help keys
 		turnOnHelpKeys(false);
@@ -3231,9 +3234,9 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	currHelpInput = NULL;
 	mmFont = config.getActiveDisplayMethodPair().first.getImpl();
 	mmFontSmall = config.getActiveDisplayMethodPair().second.getImpl();
-	input2Uni = config.getActiveTransformation(config.getActiveInputMethod().encoding, L"unicode").getImpl();
-	uni2Output = config.getActiveTransformation(L"unicode", config.getActiveOutputEncoding().id).getImpl();
-	uni2Disp = config.getActiveTransformation(L"unicode", config.getActiveDisplayMethodPair().first.encoding).getImpl();
+	input2Uni = &config.getActiveTransformation(config.getActiveInputMethod().encoding, L"unicode");
+	uni2Output = &config.getActiveTransformation(L"unicode", config.getActiveOutputEncoding().id);
+	uni2Disp = &config.getActiveTransformation(L"unicode", config.getActiveDisplayMethodPair().first.encoding);
 	if (logLangChange)
 		Logger::markLogTime('L', L"Cached entries saved");
 
@@ -4486,11 +4489,11 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 			}
 
 			//Retrieve the output, in the correct encoding.
-			bool noEncChange = (uni2Output->toEncoding==currInput->encoding);
+			bool noEncChange = (uni2Output->toEncoding==currInput->getEncoding());
 			wstring resOut = waitzar::removeZWS(currInput->getTypedSentenceStrings()[3], config.getSettings().ignoredCharacters);
 			if (!noEncChange) {
-				input2Uni->convertInPlace(resOut);
-				uni2Output->convertInPlace(resOut);
+				input2Uni->getImpl()->convertInPlace(resOut);
+				uni2Output->getImpl()->convertInPlace(resOut);
 			}
 
 			//Now, compare

@@ -143,11 +143,14 @@ void LetterInputMethod::handleCommit(bool strongCommit)
 			requestToTypeSentence = true;
 	} else {
 		//We need to first convert this string to the target Roman method's encoding.
-		bool noEncChange = (uni2Romanenc->toEncoding==myenc2Uni->fromEncoding);
+		//bool noEncChange = (uni2Romanenc->toEncoding==myenc2Uni->fromEncoding);
+		bool noEncChange = (providingHelpFor->getEncoding()==this->encoding);
 		wstring myanmar = typedCandidateStr.str();
 		if (!noEncChange) {
-			myenc2Uni->convertInPlace(myanmar);
-			uni2Romanenc->convertInPlace(myanmar);
+			//myenc2Uni->convertInPlace(myanmar);
+			//uni2Romanenc->convertInPlace(myanmar);
+			ConfigGetAndTransformText(this->encoding, L"unicode", myanmar);
+			ConfigGetAndTransformText(L"unicode", providingHelpFor->getEncoding(), myanmar);
 		}
 
 		//Get its romanization, if it exists.
@@ -265,11 +268,14 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 void LetterInputMethod::updateRomanHelpString()
 {
 	//We need to first convert this string to the target Roman method's encoding.
-	bool noEncChange = (myenc2Uni->fromEncoding==uni2Romanenc->toEncoding);
+	//bool noEncChange = (myenc2Uni->fromEncoding==uni2Romanenc->toEncoding);
+	bool noEncChange = (this->encoding==providingHelpFor->getEncoding());
 	wstring myanmar = typedCandidateStr.str();
 	if (!noEncChange) {
-		myenc2Uni->convertInPlace(myanmar);
-		uni2Romanenc->convertInPlace(myanmar);
+		//myenc2Uni->convertInPlace(myanmar);
+		//uni2Romanenc->convertInPlace(myanmar);
+		ConfigGetAndTransformText(this->encoding, L"unicode", myanmar);
+		ConfigGetAndTransformText(L"unicode", providingHelpFor->getEncoding(), myanmar);
 	}
 
 	//Check each romanisation
@@ -287,7 +293,8 @@ vector<wstring> LetterInputMethod::getTypedSentenceStrings()
 	//Special case: don't overwrite the sentence string if we're just showing help.
 	if (this->isHelpInput()) {
 		//Easy
-		bool noEncChange = (romanenc2Uni->fromEncoding==uni2Myenc->toEncoding);
+		//bool noEncChange = (romanenc2Uni->fromEncoding==uni2Myenc->toEncoding);
+		bool noEncChange = (providingHelpFor->getEncoding()==this->encoding);
 		if (noEncChange)
 			return providingHelpFor->getTypedSentenceStrings();
 
@@ -298,8 +305,10 @@ vector<wstring> LetterInputMethod::getTypedSentenceStrings()
 			for (vector<wstring>::iterator i=romanRes.begin(); i!=romanRes.end(); i++) {
 				//Convert & add
 				wstring candidate = *i;
-				romanenc2Uni->convertInPlace(candidate);
-				uni2Myenc->convertInPlace(candidate);
+				//romanenc2Uni->convertInPlace(candidate);
+				//uni2Myenc->convertInPlace(candidate);
+				ConfigGetAndTransformText(providingHelpFor->getEncoding(), L"unicode", candidate);
+				ConfigGetAndTransformText(L"unicode", this->encoding, candidate);
 				res.push_back(candidate);
 			}
 		}

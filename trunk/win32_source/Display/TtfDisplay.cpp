@@ -82,7 +82,7 @@ void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std:
 	//UnlockResource(dataHandle);
 
 	//Now, add the logical font
-	this->initLogicalFont(devLogPixelsY);
+	this->initLogicalFont(devLogPixelsY, pointSize, fontFaceName);
 	this->greenPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 }
 
