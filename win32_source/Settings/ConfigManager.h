@@ -78,6 +78,12 @@ public:
 		this->sealed = false;
 	}
 
+
+	//Much better as static methods!
+	static void SaveLocalConfigFile(const std::wstring& path, const std::map<std::wstring, std::wstring>& properties=std::map<std::wstring, std::wstring>());
+	static void SaveUserConfigFile(const std::wstring& path);
+
+
 	//Build our config. manager up slowly
 	//void initMainConfig(const std::string& configFile, bool fileIsStream=false);
 	//void initCommonConfig(const std::string& configFile);
