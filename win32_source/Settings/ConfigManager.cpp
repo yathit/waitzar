@@ -16,112 +16,6 @@ using std::string;
 using Json::Value;
 
 
-/*ConfigManager::ConfigManager(){
-	this->loadedSettings = false;
-	this->loadedLanguageMainFiles = false;
-	this->loadedLanguageSubFiles = false;
-
-
-	//Once sealed, you can't load any more files.
-	this->sealed = false;
-
-	//this->getMD5Function = myMD5Function;
-
-	//Save the current working directory
-
-}*/
-
-//ConfigManager::~ConfigManager(void){}
-
-
-/**
- * Load our maing config file:
- *   config/config.txt
- *
- * This file usually only contains SETTINGS (not languages, etc.) but for the
- *   purpose of brevity, we can actually load the entire configuration (inc.
- *   languages, keyboards, etc.) here.
- * This is the only config. file that is actually required.
- */
-/*void ConfigManager::initMainConfig(const std::string& configFile, bool fileIsStream)
-{
-	if (this->sealed)
-		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
-
-	//Save the file, we will load it later when we need it
-	this->mainConfig = JsonFile(configFile, fileIsStream);
-}*/
-
-
-
-/*void ConfigManager::initCommonConfig(const std::string& configFile)
-{
-	if (this->sealed)
-		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
-
-	//Save the file, we will load it later when we need it
-	this->commonConfig = JsonFile(configFile, false);
-}*/
-
-
-/*void ConfigManager::initMainConfig(const std::wstring& configStream)
-{
-	//Save a copy of the string so that we can reclaim it later
-	this->mainConfig = JsonFile(configStream);
-}*/
-
-
-/**
- * Load all config files for a language:
- *   config/Myanmar/
- *                 config.txt
- *                 ZgInput/config.txt
- *                 StdTransformers/config.txt
- *                 Burglish/config.txt
- *   ...etc.
- *
- * These files may not contain general SETTINGS. The first config file (directly in the Language
- *   folder) must contain basic language information (like the id). All other config files must be in
- *   immediate sub-directories; beyond that, the structure is arbitrary. For example, we load "Burglish"
- *   and "Zawgyi Input" in separate folders, but we load a series of "Standard Transformers" all from
- *   one directory.
- * These files are optional, but heavily encouraged in all distributions except the Web Demo.
- */
-/*void ConfigManager::initAddLanguage(const std::string& configFile, const std::vector<std::string>& subConfigFiles)
-{
-	if (this->sealed)
-		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
-
-	//Convert std::strings to JsonFiles
-	std::vector<JsonFile> cfgs;
-	for (size_t i=0; i<subConfigFiles.size(); i++)
-		cfgs.push_back(subConfigFiles[i]);
-
-	//Save the file, we will load it later when we need it
-	this->langConfigs[JsonFile(configFile)] = cfgs;
-}*/
-
-
-/**
- * Load the application-maintained settings override file:
- *   %USERPROFILE%\AppData\Local\WaitZar\config.override.txt
- *   (actually, calls SHGetKnownFolderPath(FOLDERID_LocalAppData) \ WaitZar\config.override.json.txt)
- *
- * This json config file contains one single array of name-value pairs. The names are fully-qualified:
- *   "language.myanmar.defaultdisplayencoding" = "zawgyi-one", for example. These override all 
- *   WaitZar config options where applicable.
- * WaitZar's GUI config window will alter this file. Loading it is optional, but it's generally a good idea
- *  (otherwise, users' settings won't get loaded when they exit and re-load WaitZar).
- */
-/*void ConfigManager::initLocalConfig(const std::string& configFile)
-{
-	if (this->sealed)
-		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
-
-	//Save the file, we will load it later when we need it
-	this->localConfig = configFile;
-}*/
-
 
 void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perms, bool fileIsStream, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError)
 {
@@ -137,73 +31,13 @@ void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perm
 }
 
 
-/**
- * Load the user-maintained settings override file:
- *   %USERPROFILE%\Documents\waitzar.config.txt
- *   (actually, calls SHGetKnownFolderPath(FOLDERID_Documents) \ waitzar.config.json.txt)
- *
- * This json config file contains one single array of name-value pairs. The names are fully-qualified:
- *   "settings.showballoon" = "false", for example. These override all of WaitZar's config options, 
- *   AND they override the settings in LocalConfig (see initAddLocalConfig). They can contain any
- *   options, but are really only intended only to contain settings overrides (not language overrides, etc.)
- * This is the file that users will tweak on their own. It is HIGHLY recommended to load this file, if it exists.
- */
-/*void ConfigManager::initUserConfig(const std::string& configFile)
-{
-	if (this->sealed)
-		throw std::runtime_error("Can't add to ConfigManager; instance has been sealed.");
-
-	//Save the file, we will load it later when we need it
-	this->userConfig = configFile;
-}*/
-
-
-/*void ConfigManager::resolvePartialSettings()
-{
-	//TODO: Make this cleaner
-	unsigned int PART_INPUT = 0;
-	unsigned int PART_ENC = 1;
-	unsigned int PART_TRANS = 2;
-	unsigned int PART_DISP = 3;
-
-	//For each option
-	for (unsigned int i=PART_INPUT; i<=PART_DISP; i++) {
-		auto& currMap = i==PART_INPUT ? partialInputMethods : i==PART_ENC ? partialEncodings : i==PART_TRANS ? partialTransformations : partialDisplayMethods;
-		for (auto it=currMap.begin(); it!=currMap.end(); it++) {
-			//Get the language and identifier
-			wstring langName = it->first.first;
-			wstring id = it->first.second;
-
-			//Call the factory method, add it to the current language
-			//std::set<Language>::const_iterator lang = FindKeyInSet<Language>(options.languages, langName);
-			auto lang = options.languages.find(langName);
-			if (lang==options.languages.end())
-				throw std::runtime_error(glue(L"Language \"", langName , L"\" expected but not found...").c_str());
-
-			//TODO: Streamline 
-			if (i==PART_INPUT)
-				const_cast<Language&>(*lang).inputMethods.insert(WZFactory::makeInputMethod(id, *lang, it->second));
-			else if (i==PART_ENC) 
-				const_cast<Language&>(*lang).encodings.insert(WZFactory::makeEncoding(id, it->second));
-			else if (i==PART_TRANS) {
-				auto jsIt = FindKeyInSet(options.extensions, L"javascript");
-				JavaScriptConverter* js = (jsIt==options.extensions.end() ? NULL : (JavaScriptConverter*)const_cast<Extension*>(*jsIt));
-				const_cast<Language&>(*lang).transformations.insert(WZFactory::makeTransformation(id, it->second, js));
-			} else if (i==PART_DISP)
-				const_cast<Language&>(*lang).displayMethods.insert(WZFactory::makeDisplayMethod(id, *lang, it->second));
-		}
-
-		//Clear all entries from this map
-		currMap.clear();
-	}
-}*/
 
 
 //Make our model worrrrrrrrk......
 // (Note: We also need to replace all of our placeholder encodings with the real thing.
 //        We can't use references, since those might be in validated if we somehow resized the container).
-void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings) 
-{
+//void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow, MyWin32Window* memoryWindow, OnscreenKeyboard* helpKeyboard, const map<wstring, vector<wstring> >& lastUsedSettings)
+//{
 	//
 	// TODO: We need to init static information somewhere... but where?
 	//
@@ -219,9 +53,9 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	Logger::markLogTime('L', L"Read physical files, parsed JSON");*/
 
 	//TODO: Add more tests here. We don't want the settings to explode when the user tries to access new options. 
-	WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
-	waitzar::BurglishBuilder::InitStatic();
-	Logger::markLogTime('L', L"Initialized static classes with relevant information.");
+	//WZFactory::InitAll(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard);
+	//waitzar::BurglishBuilder::InitStatic();
+	//Logger::markLogTime('L', L"Initialized static classes with relevant information.");
 
 	//Step 1.5; check all DLLs
 	/*for (auto it=options.extensions.begin(); it!=options.extensions.end(); it++) {
@@ -252,7 +86,7 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 	if (activeDisplayMethods[0]->encoding != activeDisplayMethods[1]->encoding)
 		throw std::runtime_error("Error: \"small\" and \"regular\" sized display methods have different encodings");
 	Logger::markLogTime('L', L"Set \"active\" input/output/display/encodings.");*/
-}
+//}
 
 
 
