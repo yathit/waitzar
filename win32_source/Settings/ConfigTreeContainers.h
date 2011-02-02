@@ -38,23 +38,6 @@
 #include "Settings/Types.h"
 
 
-//Fun times!
-class nodeset_exception {
-public:
-	nodeset_exception(const char* what, const wchar_t* key)  {
-		//The "n" functions pad with zero
-		strncpy(what_, what, 1023);
-		wcsncpy(key_, key, 1023);
-	}
-	const char* what() { return what_; }
-	const wchar_t* key() { return key_; }
-private:
-	char what_[1024];
-	wchar_t key_[1024];
-};
-
-
-
 
 //Everthing extends this; makes passing arguments easier.
 //  A "Ghost" is easy to describe by looking at it (properties), but has no substance (implementation).

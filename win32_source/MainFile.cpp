@@ -4150,6 +4150,7 @@ bool findAndLoadAllConfigFiles()
 	locallySetOptions = OptionStack(1);
 
 	//Find all config files
+	bool localConfigError = false;
 	bool suppressThisException = false;
 	map<wstring, vector<wstring> > lastUsedSettings;
 	try {
@@ -4224,6 +4225,11 @@ bool findAndLoadAllConfigFiles()
 
 		//TODO: Add SHGetKnownFolderPath() if on Vista, keep SHGetFolderPath if on XP or less.
 
+		//Our "on error" callback is requried in two places
+		auto errorFunc = [&locallySetOptions, &localConfigError](const wstring& key) {
+			if (!locallySetOptions.getOption(key).empty())
+				localConfigError = true;
+		};
 
 
 		//Now, load the local config file
@@ -4239,9 +4245,14 @@ bool findAndLoadAllConfigFiles()
 			temp << pathLocalConfig.c_str();
 			if (WZFactory::FileExists(temp.str())) {
 				cfgMgr.mergeInConfigFile(pathLocalConfig, UserLocalCfgPerm(), false,
+					//On option set
 					[&locallySetOptions](const StringNode& n) {
+						std::cout <<"Option: " <<waitzar::escape_wstr(n.getFullyQualifiedKeyName()) <<std::endl;
+
 						locallySetOptions.setOption(n.getFullyQualifiedKeyName(), n.str());
-					}
+					},
+					//On error
+					errorFunc
 				);
 				//config.initLocalConfig(pathLocalConfig);
 			} else {
@@ -4280,19 +4291,19 @@ bool findAndLoadAllConfigFiles()
 		Logger::startLogTimer('L', L"Reading & validating config files");
 		//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 		cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-		config = RuntimeConfig(cfgMgr.sealConfig());
+		config = RuntimeConfig(cfgMgr.sealConfig(errorFunc));
 
 		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
 	} catch (std::exception& ex) {
 		//In case of errors, just reset & use the embedded file
-		bool locError = config.localConfigCausedError();
+		//bool locError = config.localConfigCausedError();
 		//config = ConfigManager(/*getMD5Hash*/);
 		cfgMgr = ConfigManager();
 		locallySetOptions = OptionStack(1);
 
 		//Delete the local config file if this caused the error
-		if (locError) {
+		if (localConfigError) {
 			std::wstringstream temp;
 			temp << pathLocalConfig.c_str();
 			ConfigManager::SaveLocalConfigFile(temp.str());
@@ -4302,7 +4313,7 @@ bool findAndLoadAllConfigFiles()
 		if (!suppressThisException) {
 			std::wstringstream msg;
 			msg << "Error loading one of your config files.\nWaitZar will use the default configuration.\n";
-			if (locError)
+			if (localConfigError)
 				msg << "WaitZar has deleted an invalid setting in the LOCAL config cache. Try restarting WaitZar to see if this fixed the problem.\n";
 			msg << "\nDetails:\n";
 			msg << ex.what();

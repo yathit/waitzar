@@ -123,7 +123,7 @@ using Json::Value;
 }*/
 
 
-void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perms, bool fileIsStream, std::function<void (const StringNode& n)> OnSetCallback)
+void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perms, bool fileIsStream, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError)
 {
 	//Can't modify a sealed configuration
 	if (this->sealed)
@@ -133,7 +133,7 @@ void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perm
 	JsonFile file = JsonFile(cfgFile, fileIsStream);
 
 	//Merge it into the tree
-	buildAndWalkConfigTree(file, root, troot, ConfigTreeWalker::GetWalkerRoot(), perms, OnSetCallback);
+	buildAndWalkConfigTree(file, root, troot, ConfigTreeWalker::GetWalkerRoot(), perms, OnSetCallback, OnError);
 }
 
 
@@ -441,52 +441,68 @@ void ConfigManager::validate(HINSTANCE& hInst, MyWin32Window* mainWindow, MyWin3
 //
 // This is the only way to get an instance of TNode from the config manager; use it to load a RuntimeConfig() object
 //
-const ConfigRoot& ConfigManager::sealConfig()
+const ConfigRoot& ConfigManager::sealConfig(std::function<void (const std::wstring& k)> OnError)
 {
 	//Shortcut; already sealed once
 	if (this->sealed)
 		return troot;
 
 	//Load all extensions
-	for (auto extIt=troot.extensions.begin(); extIt!=troot.extensions.end(); extIt++) {
-		extIt->second.impl = WZFactory::makeAndVerifyExtension(extIt->first, extIt->second);
+	try {
+		for (auto extIt=troot.extensions.begin(); extIt!=troot.extensions.end(); extIt++) {
+			extIt->second.impl = WZFactory::makeAndVerifyExtension(extIt->first, extIt->second);
+		}
+
+		//Load all objects using our factory methods
+		for (auto langIt=troot.languages.begin(); langIt!=troot.languages.end(); langIt++) {
+			//First, add a "self2self" transformation
+			langIt->second.transformations[L"self2self"] = TransNode(L"self2self");
+			langIt->second.transformations[L"self2self"].fromEncoding = L"unicode";
+			langIt->second.transformations[L"self2self"].toEncoding = L"unicode";
+			langIt->second.transformations[L"self2self"].type = TRANSFORM_TYPE::BUILTIN;
+			langIt->second.transformations[L"self2self"].hasPriority = true;
+
+			//Encodings
+			for (auto encIt=langIt->second.encodings.begin(); encIt!=langIt->second.encodings.end(); encIt++) {
+				WZFactory::verifyEncoding(encIt->first, encIt->second);
+			}
+
+			//Input methods
+			for (auto inIt=langIt->second.inputMethods.begin(); inIt!=langIt->second.inputMethods.end(); inIt++) {
+				inIt->second.impl = WZFactory::makeAndVerifyInputMethod(langIt->second, inIt->first, inIt->second);
+			}
+
+			//Display methods
+			for (auto dispIt=langIt->second.displayMethods.begin(); dispIt!=langIt->second.displayMethods.end(); dispIt++) {
+				dispIt->second.impl = WZFactory::makeAndVerifyDisplayMethod(langIt->second, dispIt->first, dispIt->second);
+			}
+
+			//Transformations
+			for (auto trIt=langIt->second.transformations.begin(); trIt!=langIt->second.transformations.end(); trIt++) {
+				trIt->second.impl = WZFactory::makeAndVerifyTransformation(troot, langIt->second, trIt->first, trIt->second);
+			}
+
+			//And finally, verify the language itself
+			WZFactory::verifyLanguage(langIt->first, langIt->second);
+		}
+
+		//Also verify the settings themselves
+		WZFactory::verifySettings(troot, troot.settings);
+	} catch (nodeset_exception& ex) {
+		//User action
+		if (OnError) {
+			try {
+				OnError(wstring(ex.key()));
+			} catch (...) {}
+		}
+
+		//Bad option; we can catch some of these here.
+		std::wstringstream msg;
+		msg <<L"Error sealing config tree:" <<std::endl
+			<<L"...on property:" <<std::endl <<L"   " <<ex.key() <<std::endl
+			<<L"...error was:" <<std::endl <<L"   " <<ex.what() <<std::endl;
+		throw std::runtime_error(waitzar::escape_wstr(msg.str()).c_str());
 	}
-
-	//Load all objects using our factory methods
-	for (auto langIt=troot.languages.begin(); langIt!=troot.languages.end(); langIt++) {
-		//First, add a "self2self" transformation
-		langIt->second.transformations[L"self2self"] = TransNode(L"self2self");
-		langIt->second.transformations[L"self2self"].fromEncoding = L"unicode";
-		langIt->second.transformations[L"self2self"].toEncoding = L"unicode";
-		langIt->second.transformations[L"self2self"].type = TRANSFORM_TYPE::BUILTIN;
-		langIt->second.transformations[L"self2self"].hasPriority = true;
-
-		//Encodings
-		for (auto encIt=langIt->second.encodings.begin(); encIt!=langIt->second.encodings.end(); encIt++) {
-			WZFactory::verifyEncoding(encIt->first, encIt->second);
-		}
-
-		//Input methods
-		for (auto inIt=langIt->second.inputMethods.begin(); inIt!=langIt->second.inputMethods.end(); inIt++) {
-			inIt->second.impl = WZFactory::makeAndVerifyInputMethod(langIt->second, inIt->first, inIt->second);
-		}
-
-		//Display methods
-		for (auto dispIt=langIt->second.displayMethods.begin(); dispIt!=langIt->second.displayMethods.end(); dispIt++) {
-			dispIt->second.impl = WZFactory::makeAndVerifyDisplayMethod(langIt->second, dispIt->first, dispIt->second);
-		}
-
-		//Transformations
-		for (auto trIt=langIt->second.transformations.begin(); trIt!=langIt->second.transformations.end(); trIt++) {
-			trIt->second.impl = WZFactory::makeAndVerifyTransformation(troot, langIt->second, trIt->first, trIt->second);
-		}
-
-		//And finally, verify the language itself
-		WZFactory::verifyLanguage(langIt->first, langIt->second);
-	}
-
-	//Also verify the settings themselves
-	WZFactory::verifySettings(troot, troot.settings);
 
 
 	//Done
@@ -732,7 +748,7 @@ void ConfigManager::SaveLocalConfigFile(const std::wstring& path, const std::map
 
 
 //Build the tree, then walk it into the existing setup
-void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const StringNode& n)> OnSetCallback)
+void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError)
 {
 	if (Logger::isLogging('C')) {
 		std::wstringstream msg;
@@ -750,6 +766,13 @@ void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, StringNode& roo
 		this->buildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
 		this->walkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
 	} catch (nodeset_exception& ex) {
+		//User action
+		if (OnError) {
+			try {
+				OnError(wstring(ex.key()));
+			} catch (...) {}
+		}
+
 		//Bad option; we can catch some of these here.
 		std::wstringstream msg;
 		msg <<L"Error loading file: " <<std::endl <<L"   " <<file.getFilePath().c_str() <<std::endl

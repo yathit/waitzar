@@ -29,6 +29,7 @@
 #include "NGram/wz_utilities.h"
 //#include "Settings/CfgPerm.h"
 #include "Settings/ConfigTreeContainers.h"
+#include "Settings/Types.h"
 #include "Transform/Zg2Uni.h"
 #include "Transform/Uni2Zg.h"
 #include "Transform/Uni2Ayar.h"
