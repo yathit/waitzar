@@ -151,12 +151,16 @@ void ConfigTreeWalker::buildVerifyTree()
 	});
 	verifyTree[L"languages"][L"*"].addChild(L"default-output-encoding", [](const StringNode& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set pointer pair, return node
-		dynamic_cast<LangNode&>(d).defaultOutputEncoding = waitzar::sanitize_id(s.str());
+		auto& lang = dynamic_cast<LangNode&>(d);
+		lang.defaultOutputEncoding = waitzar::sanitize_id(s.str());
+		lang.defaultOutEncStack = s.getStringStack();
 		return d;
 	});
 	verifyTree[L"languages"][L"*"].addChild(L"default-input-method", [](const StringNode& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
     	//Set pointer pair, return node
-		dynamic_cast<LangNode&>(d).defaultInputMethod = waitzar::sanitize_id(s.str());
+		auto& lang = dynamic_cast<LangNode&>(d);
+		lang.defaultInputMethod = waitzar::sanitize_id(s.str());
+		lang.defaultInMethStack = s.getStringStack();
 		return d;
 	});
 

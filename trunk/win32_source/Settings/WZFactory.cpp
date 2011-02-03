@@ -887,7 +887,7 @@ void WZFactory::verifySettings(ConfigRoot& cfg, SettingsNode& set, const std::ws
 //
 // TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
 //
-void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang)
+void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang, const std::wstring& lastUsedInMethID, const std::wstring& lastUsedOutEncID)
 {
 	try {
 		//Necessary properties
@@ -895,6 +895,30 @@ void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang)
 			throw std::runtime_error("Cannot construct language: no \"display-name\"");
 		if (lang.encodings.count(L"unicode")==0)
 			throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" does not include \"unicode\" as an encoding.").c_str());
+
+		//Deal with "last-used" input method
+		if (lang.defaultInputMethod==L"lastused") {
+			//First, try to set it to the last used language (which may not exist)
+			wstring backupDefIM = WZFactory::MatchAvoidBackwards(lang.defaultInMethStack, L"lastused");
+			if (!lastUsedInMethID.empty() && lang.inputMethods.count(lastUsedInMethID)>0)
+				lang.defaultInputMethod = lastUsedInMethID;
+			else if (!backupDefIM.empty())
+				lang.defaultInputMethod = backupDefIM;
+			else
+				throw nodeset_exception("Language chooses default-input-method of \"last-used\" without specifying a backup.", wstring(L"languages."+lang.id+L".defaultinputmethod").c_str());
+		}
+
+		//Deal with "last-used" display method
+		if (lang.defaultOutputEncoding==L"lastused") {
+			//First, try to set it to the last used language (which may not exist)
+			wstring backupDefOE = WZFactory::MatchAvoidBackwards(lang.defaultOutEncStack, L"lastused");
+			if (!lastUsedOutEncID.empty() && lang.encodings.count(lastUsedOutEncID)>0)
+				lang.defaultOutputEncoding = lastUsedOutEncID;
+			else if (!backupDefOE.empty())
+				lang.defaultOutputEncoding = backupDefOE;
+			else
+				throw nodeset_exception("Language chooses default-output-encoding of \"last-used\" without specifying a backup.", wstring(L"languages."+lang.id+L".defaultoutputencoding").c_str());
+		}
 
 		//Ensure dependencies are met
 		if (lang.encodings.count(lang.defaultOutputEncoding)==0)
