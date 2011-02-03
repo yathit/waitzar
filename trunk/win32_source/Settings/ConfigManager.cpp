@@ -17,6 +17,27 @@ using Json::Value;
 
 
 
+/**
+ * Currently this only allows us to override something in the settings department. Theoretically,
+ *    we could easily extend it to most other settings, provided that:
+ *      1) Our "permissions" never allows us to ADD an item (this would mess up references)
+ *      2) We re-validate things like existing/default encodings, and re-build, say, KeyboardInputMethods if their keyboard files change.
+ *      3) We are very careful acout "last used"
+ */
+void ConfigManager::OverrideSingleSetting(RuntimeConfig& currConfig, const std::wstring& name, const std::wstring& value)
+{
+	//Make a "json file" using a stream, with this option as the only key
+	string key = "{\"" + waitzar::escape_wstr(name) + "\":\"" + waitzar::escape_wstr(value) + "\"}";
+	JsonFile f(key, true);
+	StringNode str;
+
+	//Walk!
+	BuildAndWalkConfigTree(f, str, currConfig.config, ConfigTreeWalker::GetWalkerRoot(), OverrideSettingCfgPerm());
+
+}
+
+
+
 void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perms, bool fileIsStream, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError)
 {
 	//Can't modify a sealed configuration
@@ -27,7 +48,7 @@ void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perm
 	JsonFile file = JsonFile(cfgFile, fileIsStream);
 
 	//Merge it into the tree
-	buildAndWalkConfigTree(file, root, troot, ConfigTreeWalker::GetWalkerRoot(), perms, OnSetCallback, OnError);
+	BuildAndWalkConfigTree(file, root, troot, ConfigTreeWalker::GetWalkerRoot(), perms, OnSetCallback, OnError);
 }
 
 
@@ -378,7 +399,7 @@ void ConfigManager::SaveLocalConfigFile(const std::wstring& path, const std::map
 
 
 //Build the tree, then walk it into the existing setup
-void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError)
+void ConfigManager::BuildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError)
 {
 	if (Logger::isLogging('C')) {
 		std::wstringstream msg;
@@ -393,8 +414,8 @@ void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, StringNode& roo
 
 	//Better error reporting
 	try {
-		this->buildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
-		this->walkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
+		BuildUpConfigTree(file.json(), rootNode, file.getFolderPath(), OnSetCallback);
+		WalkConfigTree(rootNode, rootTNode, rootVerifyNode, perm);
 	} catch (nodeset_exception& ex) {
 		//User action
 		if (OnError) {
@@ -413,7 +434,7 @@ void ConfigManager::buildAndWalkConfigTree(const JsonFile& file, StringNode& roo
 }
 
 
-void ConfigManager::buildUpConfigTree(const Json::Value& root, StringNode& currNode, const std::wstring& currDirPath, std::function<void (const StringNode& n)> OnSetCallback)
+void ConfigManager::BuildUpConfigTree(const Json::Value& root, StringNode& currNode, const std::wstring& currDirPath, std::function<void (const StringNode& n)> OnSetCallback)
 {
 	//The root node is a map; get its keys and iterate
 	Value::Members keys = root.getMemberNames();
@@ -430,7 +451,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, StringNode& currN
 			const Value* value = &root[*itr];
 			if (value->isObject()) {
 				//Inductive case: Continue reading all options under this type
-				this->buildUpConfigTree(*value, *childNode, currDirPath, OnSetCallback);
+				BuildUpConfigTree(*value, *childNode, currDirPath, OnSetCallback);
 			} else if (value->isString()) {
 				//Base case: the "value" is also a string (set the property)
 				childNode->str(waitzar::sanitize_value(waitzar::mbs2wcs(value->asString()), currDirPath));
@@ -463,7 +484,7 @@ void ConfigManager::buildUpConfigTree(const Json::Value& root, StringNode& currN
 
 
 //Walk the root, build up options as you go.
-void ConfigManager::walkConfigTree(StringNode& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm)
+void ConfigManager::WalkConfigTree(StringNode& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm)
 {
 	//Iterate to its children.
 	for (auto it=source.getChildNodes().begin(); it!=source.getChildNodes().end(); it++) {
@@ -496,7 +517,7 @@ void ConfigManager::walkConfigTree(StringNode& source, GhostNode& dest, const Tr
 			const std::function<GhostNode& (const StringNode& src, GhostNode& dest, const CfgPerm& perms)>& matchAction = nextVerify.getMatchAction();
 			GhostNode& nextTN = matchAction(it->second, dest, perm);
 			if (!it->second.isLeaf())
-				walkConfigTree(it->second, nextTN, nextVerify, perm);
+				WalkConfigTree(it->second, nextTN, nextVerify, perm);
 			else
 				it->second.setAndPropagateDirty(false); //Clean it; we've read it
 		} catch (std::exception& ex) {

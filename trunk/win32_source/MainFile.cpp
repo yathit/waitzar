@@ -1288,7 +1288,13 @@ void positionAtCaret()
 		&caretTrackThreadID);//Pointer to return the thread's id into
 	if (caretTrackThread==NULL) {
 		MessageBox(NULL, L"WaitZar could not create a helper thread. \nThis will not affect normal operation; however, it means that we can't track the caret.", L"Warning", MB_ICONWARNING | MB_OK);
-		config.overrideSetting(L"track-caret", false);
+		try {
+			ConfigManager::OverrideSingleSetting(config, L"settings.track-caret", L"false");
+		} catch (std::exception& ex) {  //How to recover from this error?
+			std::wstringstream msg;
+			msg <<L"ERROR calling OverrideSingleSetting: " <<ex.what();
+			Logger::writeLogLine('C', msg.str());
+		}
 	}
 
 	//Wait for it.
