@@ -81,7 +81,9 @@ void ConfigTreeWalker::buildVerifyTree()
 		return d;
 	});
 	verifyTree[L"settings"].addChild(L"default-language" , [](const StringNode& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{
-		dynamic_cast<SettingsNode&>(d).defaultLanguage = waitzar::sanitize_id(s.str());
+		auto& set = dynamic_cast<SettingsNode&>(d);
+		set.defaultLanguage = waitzar::sanitize_id(s.str());
+		set.defaultLanguageStack = s.getStringStack();
 		return d;
 	});
 	verifyTree[L"settings"].addChild(L"whitespace-characters" , [](const StringNode& s, GhostNode& d, const CfgPerm& perms)->GhostNode&{

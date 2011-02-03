@@ -4297,7 +4297,7 @@ bool findAndLoadAllConfigFiles()
 		Logger::startLogTimer('L', L"Reading & validating config files");
 		//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 		//cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-		config = RuntimeConfig(cfgMgr.sealConfig(errorFunc));
+		config = RuntimeConfig(cfgMgr.sealConfig(lastUsedSettings, errorFunc));
 
 		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
@@ -4357,7 +4357,7 @@ bool findAndLoadAllConfigFiles()
 			//One more test.
 			//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 			//cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-			config = RuntimeConfig(cfgMgr.sealConfig());
+			config = RuntimeConfig(cfgMgr.sealConfig(lastUsedSettings));
 
 			Logger::markLogTime('L', L"Config files validated: DEFAULT is taking over");
 		} catch (std::exception& ex2) {
