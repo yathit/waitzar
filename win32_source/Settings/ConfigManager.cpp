@@ -284,7 +284,7 @@ const ConfigRoot& ConfigManager::sealConfig(const map<wstring, vector<wstring> >
 			}
 
 			//And finally, verify the language itself
-			WZFactory::verifyLanguage(langIt->first, langIt->second);
+			WZFactory::verifyLanguage(langIt->first, langIt->second, WZFactory::InterpretFlashSave(lastUsedSettings, langIt->first, 0), WZFactory::InterpretFlashSave(lastUsedSettings, langIt->first, 1));
 		}
 
 		//Also verify the settings themselves

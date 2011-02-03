@@ -238,9 +238,14 @@ public:
 	std::map<std::wstring, DispMethNode>  displayMethods;
 
 private:
+	//For dealing with "lastused"
+	std::vector<std::wstring> defaultInMethStack;
+	std::vector<std::wstring> defaultOutEncStack;
+
 	//For loading
 	friend class ConfigManager;
 	friend class WZFactory;
+	friend class ConfigTreeWalker;
 
 public:
 	//Constructor: set the ID here and nowhere else
