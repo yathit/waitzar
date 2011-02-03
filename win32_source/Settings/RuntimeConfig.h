@@ -77,12 +77,15 @@ private:
 	std::map<std::wstring, std::vector<EncNode>> cachedEncodings;
 	std::map<std::wstring, std::map<std::pair<std::wstring, std::wstring>, TransNode>> cachedTransformations;
 
+	//ConfigManager is everyone's friend! But no-one invites him over for Christmas. :(
+	friend class ConfigManager;
+
 
 	//
 	// TODO: Currently un-implemented!
 	//
 public:
-	void overrideSetting(const std::wstring& settingName, bool value) {}
+	//void overrideSetting(const std::wstring& settingName, bool value) {}
 
 
 	// (We might put the "configOpts" stuff into its own class, like "LocalConfigOpts".

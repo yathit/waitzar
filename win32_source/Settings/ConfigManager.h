@@ -18,6 +18,7 @@
 #include "Json CPP/value.h"
 
 #include "Settings/WZFactory.h"
+#include "Settings/RuntimeConfig.h"
 #include "Settings/ConfigTreeWalker.h"
 #include "Settings/ConfigTreeContainers.h"
 #include "Settings/Types.h"
@@ -46,6 +47,7 @@ public:
 	//Means of building up a configuration, and then gettings its "Config" root node
 	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false, std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>(), std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
 	const ConfigRoot& sealConfig(std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
+	static void OverrideSingleSetting(RuntimeConfig& currConfig, const std::wstring& name, const std::wstring& value);
 
 	//Static helpers for loading/saving the "automated" config files.
 	static void SaveLocalConfigFile(const std::wstring& path, const std::map<std::wstring, std::wstring>& properties=std::map<std::wstring, std::wstring>());
@@ -55,9 +57,9 @@ public:
 private:
 	//Internal methods used for parsing a javascript tree and merging it into the config tree piece-wise.
 	//  The first method calls the second two, and manages error messages automatically.
-	void buildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const StringNode& n)> OnSetCallback, std::function<void (const std::wstring& k)> OnError);
-	void buildUpConfigTree(const Json::Value& root, StringNode& currNode, const std::wstring& currDirPath, std::function<void (const StringNode& n)> OnSetCallback);
-	void walkConfigTree(StringNode& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm);
+	static void BuildAndWalkConfigTree(const JsonFile& file, StringNode& rootNode, GhostNode& rootTNode, const TransformNode& rootVerifyNode, const CfgPerm& perm, std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>(), std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
+	static void BuildUpConfigTree(const Json::Value& root, StringNode& currNode, const std::wstring& currDirPath, std::function<void (const StringNode& n)> OnSetCallback);
+	static void WalkConfigTree(StringNode& source, GhostNode& dest, const TransformNode& verify, const CfgPerm& perm);
 
 	//Internal storage data.
 	StringNode root;

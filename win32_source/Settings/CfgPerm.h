@@ -84,6 +84,16 @@ public:
 };
 
 
+//When we override, we can only affect "settings.*"
+class OverrideSettingCfgPerm : public CfgPerm {
+public:
+	OverrideSettingCfgPerm() : CfgPerm(true, false, false,
+			false, false, false, false,
+			false, false, false, false,
+			false, false) {}
+};
+
+
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
