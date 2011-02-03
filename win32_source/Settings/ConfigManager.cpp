@@ -26,6 +26,10 @@ using Json::Value;
  */
 void ConfigManager::OverrideSingleSetting(RuntimeConfig& currConfig, const std::wstring& name, const std::wstring& value)
 {
+	//Temp
+	if (value==L"lastused")
+		throw std::runtime_error("Cannot call OverrideSingleSetting with \"last-used\" as the value");
+
 	//Make a "json file" using a stream, with this option as the only key
 	string key = "{\"" + waitzar::escape_wstr(name) + "\":\"" + waitzar::escape_wstr(value) + "\"}";
 	JsonFile f(key, true);
@@ -238,7 +242,7 @@ void ConfigManager::mergeInConfigFile(const string& cfgFile, const CfgPerm& perm
 //
 // This is the only way to get an instance of TNode from the config manager; use it to load a RuntimeConfig() object
 //
-const ConfigRoot& ConfigManager::sealConfig(std::function<void (const std::wstring& k)> OnError)
+const ConfigRoot& ConfigManager::sealConfig(const map<wstring, vector<wstring> >& lastUsedSettings, std::function<void (const std::wstring& k)> OnError)
 {
 	//Shortcut; already sealed once
 	if (this->sealed)
@@ -284,7 +288,7 @@ const ConfigRoot& ConfigManager::sealConfig(std::function<void (const std::wstri
 		}
 
 		//Also verify the settings themselves
-		WZFactory::verifySettings(troot, troot.settings);
+		WZFactory::verifySettings(troot, troot.settings, WZFactory::InterpretFlashSave(lastUsedSettings, L"language.default", 0));
 	} catch (nodeset_exception& ex) {
 		//User action
 		if (OnError) {

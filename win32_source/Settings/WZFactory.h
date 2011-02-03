@@ -54,8 +54,11 @@ public:
 	//Used to "verify" things which don't need to be built
 	static void verifyEncoding(const std::wstring& id, EncNode& enc);
 	static void verifyLanguage(const std::wstring& id, LangNode& lang);
-	static void verifySettings(ConfigRoot& cfg, SettingsNode& set);
+	static void verifySettings(ConfigRoot& cfg, SettingsNode& set, const std::wstring& lastUsedLangID);
 
+	//Helper for that crazy Flash-save format
+	static std::wstring InterpretFlashSave(const std::map<std::wstring, std::vector<std::wstring> >& flashSave, const std::wstring& langID, size_t resIndex);
+	static std::wstring MatchAvoidBackwards(const std::vector<std::wstring>& vec, const std::wstring& avoidStr);
 
 	//More specific builders/instances
 	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID, const std::wstring& extraWordsFileName, const std::wstring& userWordsFileName, InMethNode& node);

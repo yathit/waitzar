@@ -46,7 +46,7 @@ public:
 
 	//Means of building up a configuration, and then gettings its "Config" root node
 	void mergeInConfigFile(const std::string& cfgFile, const CfgPerm& perms, bool fileIsStream=false, std::function<void (const StringNode& n)> OnSetCallback=std::function<void (const StringNode& n)>(), std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
-	const ConfigRoot& sealConfig(std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
+	const ConfigRoot& sealConfig(const std::map<std::wstring, std::vector<std::wstring> >& lastUsedSettings, std::function<void (const std::wstring& k)> OnError=std::function<void (const std::wstring& k)>());
 	static void OverrideSingleSetting(RuntimeConfig& currConfig, const std::wstring& name, const std::wstring& value);
 
 	//Static helpers for loading/saving the "automated" config files.

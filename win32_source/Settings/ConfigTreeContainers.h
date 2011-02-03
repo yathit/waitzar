@@ -302,8 +302,13 @@ public:
 	std::wstring      defaultLanguage;
 
 private:
+	//For dealing with "lastused"
+	std::vector<std::wstring> defaultLanguageStack;
+
 	//For loading
 	friend class ConfigManager;
+	friend class ConfigTreeWalker;
+	friend class WZFactory;
 
 public:
 	SettingsNode() {

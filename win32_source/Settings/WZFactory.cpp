@@ -839,12 +839,45 @@ void WZFactory::verifyEncoding(const std::wstring& id, EncNode& enc)
 }
 
 
+/**
+ * Don't ask.
+ */
+wstring WZFactory::InterpretFlashSave(const map<wstring, vector<wstring> >& flashSave, const std::wstring& langID, size_t resIndex)
+{
+	auto res = flashSave.find(langID);
+	if (res==flashSave.end())
+		return L"";
+	return res->second[resIndex];
+}
+wstring WZFactory::MatchAvoidBackwards(const vector<wstring>& vec, const wstring& avoidStr)
+{
+	for (auto it=vec.rbegin(); it!=vec.rend(); it++) {
+		if (*it != avoidStr)
+			return *it;
+	}
+	return L"";
+}
+
+
+
 //
 // TODO: A lot of our nodeset_exceptions are forced; we should really build them automatically.
 //
-void WZFactory::verifySettings(ConfigRoot& cfg, SettingsNode& set)
+void WZFactory::verifySettings(ConfigRoot& cfg, SettingsNode& set, const std::wstring& lastUsedLangID)
 {
-	//Only one thing here
+	//Deal with "last-used" languages
+	if (set.defaultLanguage==L"lastused") {
+		//First, try to set it to the last used language (which may not exist)
+		wstring backupDefLang = WZFactory::MatchAvoidBackwards(set.defaultLanguageStack, L"lastused");
+		if (!lastUsedLangID.empty() && cfg.languages.count(lastUsedLangID)>0)
+			set.defaultLanguage = lastUsedLangID;
+		else if (!backupDefLang.empty())
+			set.defaultLanguage = backupDefLang;
+		else
+			throw nodeset_exception("Settings chooses default-language of \"last-used\" without specifying a backup.", L"settings.defaultlanguage");
+	}
+
+	//Verify our default language
 	if (cfg.languages.count(set.defaultLanguage)==0)
 		throw nodeset_exception(glue(L"Settings references non-existent default-language: ", set.defaultLanguage).c_str(), L"settings.defaultlanguage");
 }
