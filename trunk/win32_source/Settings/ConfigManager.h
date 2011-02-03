@@ -32,9 +32,7 @@
 
 
 /**
- * This class exists for managing configuration options automatically. It is also
- *  the main access point for WaitZar into the SpiritJSON library, without requiring 
- *  us to link against Boost.
+ * This class exists for managing configuration options automatically.
  */
 class ConfigManager
 {

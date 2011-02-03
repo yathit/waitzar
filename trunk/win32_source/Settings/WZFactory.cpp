@@ -64,9 +64,6 @@ WordBuilder* WZFactory::readModel() {
 	//Save our "model"
 	model = new WordBuilder(res_data, res_size, false);
 
-	//Done - This shouldn't matter, though, since the process only
-	//       accesses it once and, fortunately, this is not an external file.
-	//UnlockResource(res_handle);
 	}
 
 	{
@@ -155,24 +152,6 @@ WordBuilder* WZFactory::readModel() {
 			if (!model->addShortcut(pre, curr, post)) {
 				throw std::runtime_error(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
-				/*if (isLogging) {
-					for (size_t q=0; q<model->getLastError().size(); q++)
-						fprintf(logFile, "%c", model->getLastError()[q]);
-					fprintf(logFile, "\n  pre: ");
-					for (unsigned int x=0; x<wcslen(pre); x++)
-						fprintf(logFile, "U+%x ", pre[x]);
-					fprintf(logFile, "\n");
-
-					fprintf(logFile, "  curr: ");
-					for (unsigned int x=0; x<wcslen(curr); x++)
-						fprintf(logFile, "U+%x ", curr[x]);
-					fprintf(logFile, "\n");
-
-					fprintf(logFile, "  post: ");
-					for (unsigned int x=0; x<wcslen(post); x++)
-						fprintf(logFile, "U+%x ", post[x]);
-					fprintf(logFile, "\n\n");
-				}*/
 			}
 		}
 	}
@@ -448,8 +427,6 @@ DisplayMethod* WZFactory::getPadaukZawgyiTtfDisplay(std::wstring langID, std::ws
 	if (WZFactory::cachedDisplayMethods.count(fullID)==0) {
 		//Init our internal font
 		TtfDisplay* res = new TtfDisplay();
-//		res->fontFaceName = L"PdkZgWz";
-//		res->pointSize = 10;
 
 		//Get the Padauk embedded resource
 		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), L"MODEL");

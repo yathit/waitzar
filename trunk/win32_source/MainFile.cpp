@@ -4174,7 +4174,6 @@ bool findAndLoadAllConfigFiles()
 
 		//Set the main config file
 		cfgMgr.mergeInConfigFile(pathMainConfig, PrimaryCfgPerm());
-		//config.initMainConfig(pathMainConfig);
 
 		//Browse for all language directories, add them
 		vector<string> langFolderNames = GetConfigSubDirs(cfgDir, cfgFile);
@@ -4182,22 +4181,13 @@ bool findAndLoadAllConfigFiles()
 			//Get the main language config file
 			string langCfgDir;
 			string langCfgFile;
-			//vector<string> langModuleCfgFiles;
 			std::stringstream errorMsg;
-			//try {
-				langCfgDir = cfgDir + fs + *fold;
-				langCfgFile = langCfgDir + fs + cfgFile;
-			/*} catch (std::exception ex) {
-				//NOTE: This catch statement won't catch non-unicode names anymore; we just silently ignore them.
-				//      We should find a nicer way of re-enabling this.
-				errorMsg << "Error loading config file for language: " <<*fold;
-				errorMsg << std::endl << "Details: " << std::endl << ex.what();
-			}*/
+			langCfgDir = cfgDir + fs + *fold;
+			langCfgFile = langCfgDir + fs + cfgFile;
 
 			//Handle "Common" here; it's a directory for DLLs, not languages.
 			if (*fold == "Common") {
 				cfgMgr.mergeInConfigFile(langCfgFile, ExtendCfgPerm());
-				//config.initCommonConfig(langCfgFile);
 				continue;
 			} else {
 				cfgMgr.mergeInConfigFile(langCfgFile, LangLevelCfgPerm());
@@ -4206,25 +4196,12 @@ bool findAndLoadAllConfigFiles()
 			//Now, get the sub-config files
 			vector<string> modFolders = GetConfigSubDirs(langCfgDir, cfgFile);
 			for (vector<string>::iterator mod = modFolders.begin(); mod!=modFolders.end(); mod++) {
-				//try {
-					string modCfgFile = langCfgDir + fs + *mod + fs + cfgFile;
-					//langModuleCfgFiles.push_back(modCfgFile);
-					cfgMgr.mergeInConfigFile(modCfgFile, LangLevelCfgPerm());
-				/*} catch (std::exception ex) {
-					//NOTE: This statement also won't catch...
-					errorMsg << "Error loading config file for language: " <<*fold;
-					errorMsg << std::endl << "and module: " <<*mod;
-					errorMsg << std::endl << "Details: " << std::endl << ex.what();
-					break;
-				}*/
+				string modCfgFile = langCfgDir + fs + *mod + fs + cfgFile;
+				cfgMgr.mergeInConfigFile(modCfgFile, LangLevelCfgPerm());
 			}
 
 			//Handle errors:
 			//TODO: Better. (Check, e.g., Unicode directory names.)
-			//if (inError)
-			//	throw std::runtime_error(errorMsg.str().c_str());
-
-			//config.initAddLanguage(langCfgFile, langModuleCfgFiles);
 		}
 
 
@@ -4295,16 +4272,12 @@ bool findAndLoadAllConfigFiles()
 
 		//Final test: make sure all config files work
 		Logger::startLogTimer('L', L"Reading & validating config files");
-		//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-		//cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 		config = RuntimeConfig(cfgMgr.sealConfig(lastUsedSettings, errorFunc));
 
 		Logger::endLogTimer('L');
 		Logger::markLogTime('L', L"Config files validated");
 	} catch (std::exception& ex) {
 		//In case of errors, just reset & use the embedded file
-		//bool locError = config.localConfigCausedError();
-		//config = ConfigManager(/*getMD5Hash*/);
 		cfgMgr = ConfigManager();
 		locallySetOptions = OptionStack(1);
 
@@ -4339,24 +4312,12 @@ bool findAndLoadAllConfigFiles()
 			char* res_data = (char*)LockResource(res_handle);
 			DWORD res_size = SizeofResource(NULL, res);
 
-			//Convert the byte array to unicode
-			/*wchar_t *uniData = new wchar_t[res_size];
-			if (mymbstowcs(uniData, res_data, res_size)==0)
-				throw std::runtime_error("Invalid unicode character in WZ_DEFAULT_CFG.");*/
-
 			//Set the config file
 			//config.initMainConfig(string(res_data, res_size), true);
 			cfgMgr.mergeInConfigFile(string(res_data, res_size), PrimaryCfgPerm(), true);
-
-			//Reclaim memory and system resources.
-			//delete [] res_data;
-			//delete [] uniData;
-			//UnlockResource(res_handle);
 			Logger::markLogTime('L', L"Config files loaded: DEFAULT is taking over");
 
 			//One more test.
-			//config.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
-			//cfgMgr.validate(hInst, mainWindow, sentenceWindow, helpWindow, memoryWindow, helpKeyboard, lastUsedSettings);
 			config = RuntimeConfig(cfgMgr.sealConfig(lastUsedSettings));
 
 			Logger::markLogTime('L', L"Config files validated: DEFAULT is taking over");
