@@ -1,10 +1,17 @@
-﻿# Settings common to all programs (mostly regarding DLLs)
+# Settings common to all programs (mostly regarding DLLs)
 {"extensions" : {
   "javascript" : 
   {
     "library-file" : "v8_wz.dll",
     "enabled" : "yes",
     "md5-hash" : "6cc7c73271e31f5d4ad48bcacd27a4eb",
+    "check-md5" : "yes"
+  },
+  "curl" : 
+  {
+    "library-file" : "curl_wz.dll",
+    "enabled" : "yes",
+    "md5-hash" : "ea108c410ad24fbeabbcbdb9111057f8",
     "check-md5" : "yes"
   }
 }}

@@ -5,9 +5,11 @@
  */
 
 #include <sstream>
+#include <string>
+#include <vector>
 
 
-#include <iostream> //todo: Remove
+//#include <iostream> //todo: Remove
 
 
 #include "curl.h"
@@ -18,9 +20,13 @@
  */
 
 
+//Export the C-style function without decorating it
+extern "C" {
+
+
 //Curl callback function
 std::ostringstream buffer;
-size_t curl_writeback(void *data, size_t elemSize, size_t numElem)
+static size_t curl_writeback(void *data, size_t elemSize, size_t numElem)
 {
 	//Write to the stream
 	buffer.write((const char*)data, numElem*elemSize);
@@ -29,8 +35,72 @@ size_t curl_writeback(void *data, size_t elemSize, size_t numElem)
 	return numElem*elemSize;
 }
 
-//Export the C-style function without decorating it
-extern "C" {
+
+
+bool CheckVersion(const std::string& fileTxt, const char* latestVersionStr)
+{
+	//If empty, no new version
+	if (fileTxt.empty())
+		return false;
+
+	//Second, open the file and parse it line-by-line
+	//std::ifstream txtFile(pathLocalLastSavedVersionInfo.c_str(), std::ios::in|std::ios::binary);
+	//if (txtFile.fail())
+	//	return 0;
+
+	//Get the size, rewind
+	//txtFile.seekg(0, std::ios::end);
+	//int file_size = txtFile.tellg();
+	//txtFile.seekg(0, std::ios::beg);
+	//if (file_size==-1)
+	//	return 0;
+
+	//Load the entire file at once to minimize file I/O
+	//unsigned char* buffer = new unsigned char [file_size];
+	//txtFile.read((char*)(&buffer[0]), file_size);
+	//txtFile.close();
+
+	//Now, loop
+	std::vector<std::string> lines;
+	std::stringstream currLine;
+	for (size_t i=0; i<fileTxt.size(); i++) {
+		//Skip \r, space
+		if (fileTxt[i]=='\r' || fileTxt[i]==' ')
+			continue;
+
+		//If we encounter a '#', skip to the end of the line
+		if (fileTxt[i]=='#') {
+			while (fileTxt[i]!='\n' && i<fileTxt.size())
+				i++;
+		}
+
+		//If we're at the end of the line, add an entry
+		if (fileTxt[i]=='\n' || i==(fileTxt.size()-1)) {
+			if (!currLine.str().empty()) {
+				lines.push_back(currLine.str());
+				currLine.str("");
+			}
+		} else {
+			//Otherwise, just add the letter
+			currLine <<fileTxt[i];
+		}
+	}
+
+	//Finally, check. For now, we only fail if our item is in the list but not in the first position.
+	//  This makes it easier to whitelist, say, a "long-term" support version later.
+	int ourIndex = -1;
+	std::string verString = std::string(latestVersionStr);
+	for (size_t i=0; i<lines.size(); i++) {
+		if (lines[i] == verString) {
+			ourIndex = i;
+			break;
+		}
+	}
+
+	return ourIndex>0;
+}
+
+
 
 //The function our DLL will use to handle data conversion
 // NOTE: We use char* here because we're using the same compiler for WZ and Curl, so we know the data types will alias.
@@ -66,11 +136,7 @@ __declspec(dllexport) bool IsNewVersionAvailable(const char* fileURL, const char
 		curl_global_cleanup();
 
 		//Finally, if "buffer" is not empty, process it
-		if (!buffer.str().empty()) {
-			//TODO
-			std::cout <<"File:" <<std::endl <<buffer.str() <<std::endl;
-
-		}
+		return CheckVersion(buffer.str(), latestVersionStr);
 	} catch (...) {} //Exceptions should not cross DLL boundaries.
 
 	//Return false in case of error
@@ -84,7 +150,7 @@ __declspec(dllexport) bool IsNewVersionAvailable(const char* fileURL, const char
 // Test code: uncomment to use
 //
 
-int main(int argc, char* argv[]) {
+/*int main(int argc, char* argv[]) {
 	const char* url = "http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt";
 	const char* currVer = "1.7";
 	bool isNew = IsNewVersionAvailable(url, currVer);
@@ -94,7 +160,7 @@ int main(int argc, char* argv[]) {
 	else
 		std::cout <<"Using latest version" <<std::endl;
 
-}
+}*/
 
 
 
