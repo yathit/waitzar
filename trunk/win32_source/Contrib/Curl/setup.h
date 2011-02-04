@@ -136,7 +136,7 @@
 
 /*
  * Set up internal curl_off_t formatting string directives for
- * exclusive use with libcurl's internal *printf functions.
+ * exclusive use with libcurl's internal *print"${ProjDirPath}/../"f functions.
  */
 
 #ifdef FORMAT_OFF_T
