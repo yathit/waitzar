@@ -40,7 +40,6 @@
 #include "Input/KeyMagicInputMethod.h"
 #include "Transform/Self2Self.h"
 #include "NGram/Logger.h"
-#include "Curl/curl.h"
 
 //Resource includes
 #include "resource_ex.h"
@@ -599,7 +598,7 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 
 
 //Callback function for curl
-FILE* curlfilestream = NULL;
+/*FILE* curlfilestream = NULL;
 static size_t curl_writeback(void *buffer, size_t size, size_t nmemb)
 {
 	//Open file? 
@@ -611,7 +610,7 @@ static size_t curl_writeback(void *buffer, size_t size, size_t nmemb)
 
 	//Write file
 	return fwrite(buffer, size, nmemb, curlfilestream);
-}
+}*/
 
 
 
@@ -626,109 +625,16 @@ DWORD WINAPI CheckForNewVersion(LPVOID args)
 		//Wait a bit before checking
 		Sleep(10 * 1000);  //10 seconds
 
-		//First, try to download the URL into a local file.
-		bool filedownloadsuccess = false;
-		curlfilestream = NULL;
-		{
-			//Init curl; get the curl object
-			curl_global_init(CURL_GLOBAL_DEFAULT);
-			CURL* curl = curl_easy_init();
-			if (curl) {
-				//Option: Url to download
-				curl_easy_setopt(curl, CURLOPT_URL, "http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt");
-				//Option: callback function for writing data
-				curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writeback);
-				//Option: debug output
-				curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 
-				//Call curl
-				CURLcode resCode = curl_easy_perform(curl);
-
-				//Cleanup
-				curl_easy_cleanup(curl);
-
-				//React
-				if (resCode == CURLE_OK) 
-					filedownloadsuccess = true;
-			}
-
-			//Always clean up/close file
-			if(curlfilestream)
-				fclose(curlfilestream); /* close the local file */ 
-
-			//Cleaup curl globally
-			curl_global_cleanup();
-		}
-		if (!filedownloadsuccess)
+		//Try to get our libcurl extension; check if we need to update.
+		auto it = std::find(config.getExtensions().begin(), config.getExtensions().end(), L"curl");
+		if (it==config.getExtensions().end())
+			return 0;
+		const HttpVersionChecker* checker = dynamic_cast<const HttpVersionChecker*>(it->getImpl());
+		if (!checker->IsUpdateAvailable(waitzar::escape_wstr(WZ_VERSION_MAIN)))
 			return 0;
 
-		/*wstringstream temp;
-		temp <<pathLocalLastSavedVersionInfo.c_str();
-		if (URLDownloadToFile(NULL, L"", temp.str().c_str(), 0, NULL)!=S_OK)
-			return 0;*/
-
-		//Second, open the file and parse it line-by-line
-		std::ifstream txtFile(pathLocalLastSavedVersionInfo.c_str(), std::ios::in|std::ios::binary);
-		if (txtFile.fail())
-			return 0;
-
-		//Get the size, rewind
-		txtFile.seekg(0, std::ios::end);
-		int file_size = txtFile.tellg();
-		txtFile.seekg(0, std::ios::beg);
-		if (file_size==-1)
-			return 0;
-
-		//Load the entire file at once to minimize file I/O
-		unsigned char* buffer = new unsigned char [file_size];
-		txtFile.read((char*)(&buffer[0]), file_size);
-		txtFile.close();
-
-		//Now, loop
-		vector<string> lines;
-		std::stringstream currLine;
-		for (size_t i=0; i<(size_t)file_size; i++) {
-			//Skip \r, space
-			if (buffer[i]=='\r' || buffer[i]==' ')
-				continue;
-
-			//If we encounter a '#', skip to the end of the line
-			if (buffer[i]=='#') {
-				while (buffer[i]!='\n' && i<(size_t)file_size)
-					i++;
-			}
-
-			//If we're at the end of the line, add an entry
-			if (buffer[i]=='\n' || i==((size_t)file_size)-1) {
-				if (!currLine.str().empty()) {
-					lines.push_back(currLine.str());
-					currLine.str("");
-				}
-			} else {
-				//Otherwise, just add the letter
-				currLine <<buffer[i];
-			}
-		}
-
-		//Finally, check. For now, we only fail if our item is in the list but not in the first position.
-		//  This makes it easier to whitelist, say, a "long-term" support version later.
-		int ourIndex = -1;
-		string verString = waitzar::escape_wstr(WZ_VERSION_MAIN, false);
-		for (size_t i=0; i<lines.size(); i++) {
-			if (lines[i] == verString) {
-				ourIndex = i;
-				break;
-			}
-		}
-		newVersionAvailable = ourIndex>0;
-
-	} catch (std::exception ex) {
-		//Silently fail on exceptions
-		newVersionAvailable = false;
-	}
-
-	//What to do if there's a new version available
-	if (newVersionAvailable) {
+		//What to do if there's a new version available
 		try {
 			//Add a balloon tooltip to our systray icon.
 			//Note that multiple messages will stack, so we can just add this message and it 
@@ -744,8 +650,7 @@ DWORD WINAPI CheckForNewVersion(LPVOID args)
 			nid.dwInfoFlags = NIIF_WARNING; //Can we switch to NIIF_USER if supported?
 			Shell_NotifyIcon(NIM_MODIFY, &nid);
 		} catch (std::exception ex) {} // Fail silently.
-	}
-
+	} catch (...) {} //Always fail silently.
 
 	return 0;
 }

@@ -548,6 +548,8 @@ Extension* WZFactory::makeAndVerifyExtension(const std::wstring& id, ExtendNode&
 		//Make it
 		if (id == L"javascript") {
 			res = new JavaScriptConverter();
+		} else if (id == L"curl") {
+			res = new HttpVersionChecker();
 		} else {
 			throw std::runtime_error(waitzar::glue(L"Unknown extension: ", id).c_str());
 			//res = new Extension();
