@@ -18,6 +18,8 @@
 #include "Input/LetterInputMethod.h"
 #include "Input/KeyMagicInputMethod.h"
 #include "Display/TtfDisplay.h"
+#include "Extension/HttpVersionChecker.h"
+#include "Extension/JavaScriptConverter.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/BurglishBuilder.h"
 #include "NGram/SentenceList.h"
