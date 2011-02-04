@@ -4,6 +4,12 @@
  * Please refer to the end of the file for licensing information
  */
 
+#include <sstream>
+
+
+#include <iostream> //todo: Remove
+
+
 #include "curl.h"
 
 
@@ -11,46 +17,64 @@
  * This file provides an interface into the "libcurl" library, so that we can load it as an extension.
  */
 
+
+//Curl callback function
+std::ostringstream buffer;
+size_t curl_writeback(void *data, size_t elemSize, size_t numElem)
+{
+	//Write to the stream
+	buffer.write((const char*)data, numElem*elemSize);
+	if (buffer.bad())
+		return -1; //Failed
+	return numElem*elemSize;
+}
+
 //Export the C-style function without decorating it
 extern "C" {
 
-
 //The function our DLL will use to handle data conversion
-//TODO: Later we might consider keeping the context in place, and loading source scripts once only
-//      (but how to deal with memory leaks or bad scripts?)
-__declspec(dllexport) void IsNewVersionAvailable(uint8_t* fileURL, uint8_t* latestVersionStr)
+// NOTE: We use char* here because we're using the same compiler for WZ and Curl, so we know the data types will alias.
+__declspec(dllexport) bool IsNewVersionAvailable(const char* fileURL, const char* latestVersionStr)
 {
-	//Init curl; get the curl object
-	curl_global_init(CURL_GLOBAL_DEFAULT);
-	CURL* curl = curl_easy_init();
-	bool filedownloadsuccess = false;
-	if (curl) {
-		//Option: Url to download
-		curl_easy_setopt(curl, CURLOPT_URL, "http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt");
-		//Option: callback function for writing data
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writeback);
-		//Option: debug output
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+	try {
+		//Init curl; get the curl object
+		buffer.str(""); //Reset our stream
+		curl_global_init(CURL_GLOBAL_DEFAULT);
+		CURL* curl = curl_easy_init();
+		if (curl) {
+			//Option: Url to download
+			curl_easy_setopt(curl, CURLOPT_URL, fileURL);
+			//Option: callback function for writing data
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writeback);
+			//Option: debug output
+			curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+			//Option: Some servers don't like requests that are made without a user-agent field, so we provide one
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
-		//Call curl
-		CURLcode resCode = curl_easy_perform(curl);
+			//Call curl
+			CURLcode resCode = curl_easy_perform(curl);
 
-		//Cleanup
-		curl_easy_cleanup(curl);
+			//Cleanup
+			curl_easy_cleanup(curl);
 
-		//React
-		if (resCode == CURLE_OK)
-			filedownloadsuccess = true;
-	}
+			//React
+			if (resCode != CURLE_OK)
+				buffer.str(""); //Reset our stream
+		}
 
-	//Always clean up/close file
-	if(curlfilestream)
-		fclose(curlfilestream); /* close the local file */
+		//Cleaup curl globally
+		curl_global_cleanup();
 
-	//Cleaup curl globally
-	curl_global_cleanup();
+		//Finally, if "buffer" is not empty, process it
+		if (!buffer.str().empty()) {
+			//TODO
+			std::cout <<"File:" <<std::endl <<buffer.str() <<std::endl;
 
+		}
+	} catch (...) {} //Exceptions should not cross DLL boundaries.
 
+	//Return false in case of error
+	return false;
 }
 
 }
@@ -61,6 +85,14 @@ __declspec(dllexport) void IsNewVersionAvailable(uint8_t* fileURL, uint8_t* late
 //
 
 int main(int argc, char* argv[]) {
+	const char* url = "http://waitzar.googlecode.com/svn/trunk/win32_source/waitzar_versions.txt";
+	const char* currVer = "1.7";
+	bool isNew = IsNewVersionAvailable(url, currVer);
+
+	if (isNew)
+		std::cout <<"Newer version available!" <<std::endl;
+	else
+		std::cout <<"Using latest version" <<std::endl;
 
 }
 
