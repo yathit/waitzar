@@ -12,6 +12,186 @@ namespace waitzar
 
 
 
+SentenceList::SentenceList ()
+{
+	this->clear();
+}
+
+
+SentenceList::~SentenceList()
+{
+}
+
+
+
+void SentenceList::clear()
+{
+	prevTypedWords.clear();
+	cursor = prevTypedWords.begin();
+	cursorIndex = -1;
+}
+
+
+void SentenceList::insert(int val)
+{
+	prevTypedWords.insert(cursor, val);
+	cursorIndex++;
+}
+
+
+int SentenceList::getCursorIndex() const
+{
+	return cursorIndex;
+}
+
+
+size_t SentenceList::size() const
+{
+	return prevTypedWords.size();
+}
+
+
+bool SentenceList::moveCursorRight(int amt, bool allowSameIndex, LookupEngine &model)
+{
+	//Any words?
+	if (prevTypedWords.size()==0)
+		return false;
+
+	//Are we in bounds?
+	int newCursorIndex = cursorIndex + amt;
+	newCursor = cursor;
+	while (amt!=0) {
+		if (amt>0 && newCursor!=prevTypedWords.end()) {
+			newCursor++;
+			amt--;
+		} else if (amt<0 && newCursor!=prevTypedWords.begin()) {
+			newCursor--;
+			amt++;
+		} else {
+			//Ignore this update
+			return false;
+		}
+	}
+
+	//Did we make any change?
+	if (newCursor==cursor && !allowSameIndex)
+		return false;
+
+	//Update our model
+	cursor = newCursor;
+	cursorIndex = newCursorIndex;
+
+	//Set the trigram
+	this->updateTrigrams(model);
+
+	//Success indicator
+	return true;
+}
+
+
+
+bool SentenceList::moveCursorRight(int amt, LookupEngine &model)
+{
+	return this->moveCursorRight(amt, false, model);
+}
+
+
+
+bool SentenceList::deleteNext()
+{
+	//No words?
+	if (prevTypedWords.size()==0)
+		return false;
+
+	//At end?
+	if (cursor == prevTypedWords.end())
+		return false;
+
+	//Ok, delete it. No need to advance the cursor
+	cursor = prevTypedWords.erase(cursor);
+	return true;
+}
+
+
+
+bool SentenceList::deletePrev(LookupEngine &model)
+{
+	//No words?
+	if (prevTypedWords.size()==0)
+		return false;
+
+	//At beginning?
+	if (cursor == prevTypedWords.begin())
+		return false;
+
+	//Ok, delete it, update the cursor.
+	cursor--;
+	cursorIndex--;
+	cursor = prevTypedWords.erase(cursor);
+
+	//Update the trigrams...
+	this->updateTrigrams(model);
+	return true;
+}
+
+
+
+std::wstring SentenceList::getPrevTypedWord(LookupEngine &model, const std::vector<std::wstring>& userDefinedWords) const
+{
+	std::wstring prevWord = L"";
+	std::list<int>::const_iterator it=this->begin();
+	for (int currID=0; currID<=this->getCursorIndex(); currID++) {
+		if (*it>=0)
+			prevWord = model.getWordString(*it);
+		else {
+			int adjID = -1 - (*it);
+			size_t sysSize = waitzar::WZSystemDefinedWords.size();
+			if (adjID < (int)sysSize) {
+				prevWord = std::wstring(1, waitzar::WZSystemDefinedWords[adjID]);
+			} else {
+				adjID -= sysSize;
+				prevWord = userDefinedWords[adjID];
+			}
+		}
+		it++;
+	}
+	return prevWord;
+}
+
+
+
+
+void SentenceList::updateTrigrams(LookupEngine &model)
+{
+	std::vector<unsigned int> trigrams;
+	std::list<int>::iterator considered = cursor;
+	while (considered!=prevTypedWords.begin() && trigrams.size()<3) {
+		considered--;
+
+		if (*considered<0)
+			break;
+
+		trigrams.push_back(*considered);
+	}
+	model.insertTrigram(trigrams);
+}
+
+
+
+
+//Iterate
+
+std::list<int>::const_iterator SentenceList::begin() const
+{
+	return prevTypedWords.begin();
+}
+
+std::list<int>::const_iterator SentenceList::end() const
+{
+	return prevTypedWords.end();
+}
+
+
 
 } //End waitzar namespace
 

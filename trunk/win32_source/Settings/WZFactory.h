@@ -63,9 +63,9 @@ public:
 	static std::wstring MatchAvoidBackwards(const std::vector<std::wstring>& vec, const std::wstring& avoidStr);
 
 	//More specific builders/instances
-	static RomanInputMethod<waitzar::WordBuilder>* getWaitZarInput(std::wstring langID, const std::wstring& extraWordsFileName, const std::wstring& userWordsFileName, InMethNode& node);
-	static RomanInputMethod<waitzar::BurglishBuilder>* getBurglishInput(std::wstring langID, InMethNode& node);
-	static RomanInputMethod<waitzar::WordBuilder>* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, InMethNode& node);
+	static RomanInputMethod* getWaitZarInput(std::wstring langID, const std::wstring& extraWordsFileName, const std::wstring& userWordsFileName, InMethNode& node);
+	static RomanInputMethod* getBurglishInput(std::wstring langID, InMethNode& node);
+	static RomanInputMethod* getWordlistBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, InMethNode& node);
 	static LetterInputMethod* getKeyMagicBasedInput(std::wstring langID, std::wstring inputID, std::string wordlistFileName, bool disableCache, InMethNode& node);
 	static LetterInputMethod* getMywinInput(std::wstring langID, InMethNode& node);
 
@@ -82,7 +82,7 @@ public:
 	static const std::wstring systemDefinedWords;
 
 	//Helper
-	static bool FileExists(const wstring& fileName) {
+	static bool FileExists(const std::wstring& fileName) {
 		WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 		return (GetFileAttributesEx(fileName.c_str(), GetFileExInfoStandard, &InfoFile)==TRUE);
 	}
@@ -102,8 +102,8 @@ private:
 
 	//Instance Mappings, to save memory
 	//Ugh.... templates are exploding!
-	static std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> cachedWBInputs;
-	static std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> cachedBGInputs;
+	static std::map<std::wstring, RomanInputMethod*> cachedWBInputs;
+	static std::map<std::wstring, RomanInputMethod*> cachedBGInputs;
 	static std::map<std::wstring, LetterInputMethod*> cachedLetterInputs;
 	static std::map<std::wstring, DisplayMethod*> cachedDisplayMethods;
 
