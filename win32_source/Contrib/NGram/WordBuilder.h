@@ -27,6 +27,7 @@
 #include <limits>
 #include <stdexcept>
 #include "Burglish/fontconv.h"
+#include "NGram/LookupEngine.h"
 
 
 namespace waitzar
@@ -47,7 +48,7 @@ enum ENCODING {
  *    "Before you start using UTF-8 under Linux make sure the distribution has glibc 2.2
  *     and XFree86 4.0 or newer versions. Earlier versions lack UTF-8 locale support and ISO10646-1 X11 fonts." ibm.com
  */
-class WordBuilder
+class WordBuilder : public LookupEngine
 {
 public:
 	WordBuilder(char * model_buff, size_t model_buff_size, bool allowAnyChar);

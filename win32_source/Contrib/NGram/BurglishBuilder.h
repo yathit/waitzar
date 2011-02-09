@@ -13,6 +13,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "NGram/LookupEngine.h"
 #include "Input/burglish_data.h"
 #include "Json CPP/value.h"
 #include "Json CPP/reader.h"
@@ -21,10 +22,10 @@ namespace waitzar
 {
 
 /* 
- * This class is for templatized replacement of WordBuilder.
+ * Lookup words using the Burglish method
  */
 
-class BurglishBuilder
+class BurglishBuilder : public LookupEngine
 {
 public:
 	//Basic

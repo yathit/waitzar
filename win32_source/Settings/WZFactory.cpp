@@ -226,12 +226,12 @@ void WZFactory::addWordsToModel(WordBuilder* model, string userWordsFileName) {
 
 
 
-std::map<std::wstring, RomanInputMethod<waitzar::WordBuilder>*> WZFactory::cachedWBInputs;
-std::map<std::wstring, RomanInputMethod<waitzar::BurglishBuilder>*> WZFactory::cachedBGInputs;
+std::map<std::wstring, RomanInputMethod*> WZFactory::cachedWBInputs;
+std::map<std::wstring, RomanInputMethod*> WZFactory::cachedBGInputs;
 std::map<std::wstring, DisplayMethod*> WZFactory::cachedDisplayMethods;
 std::map<std::wstring, LetterInputMethod*> WZFactory::cachedLetterInputs;
 
-RomanInputMethod<waitzar::WordBuilder>* WZFactory::getWaitZarInput(wstring langID, const wstring& extraWordsFileName, const wstring& userWordsFileName, InMethNode& node)
+RomanInputMethod* WZFactory::getWaitZarInput(wstring langID, const wstring& extraWordsFileName, const wstring& userWordsFileName, InMethNode& node)
 {
 	wstring fullID = langID + L"." + L"waitzar";
 
@@ -241,7 +241,7 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory::getWaitZarInput(wstring langI
 		//NOTE: These resources will not be reclaimed, but since they're
 		//      contained within a singleton class, I don't see a problem.
 		WordBuilder* model = WZFactory::readModel();
-		SentenceList<waitzar::WordBuilder>* sentence = new SentenceList<waitzar::WordBuilder>();
+		SentenceList* sentence = new SentenceList();
 
 		//Add extra words
 		WZFactory::addWordsToModel(model, waitzar::escape_wstr(extraWordsFileName, false));
@@ -257,7 +257,7 @@ RomanInputMethod<waitzar::WordBuilder>* WZFactory::getWaitZarInput(wstring langI
 		model->reverseLookupWord(0);
 
 		//Create, init
-		WZFactory::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
+		WZFactory::cachedWBInputs[fullID] = new RomanInputMethod();
 		WZFactory::cachedWBInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 	}
 
@@ -283,7 +283,7 @@ LetterInputMethod* WZFactory::getMywinInput(std::wstring langID, InMethNode& nod
 
 
 
-RomanInputMethod<waitzar::BurglishBuilder>* WZFactory::getBurglishInput(wstring langID, InMethNode& node)
+RomanInputMethod* WZFactory::getBurglishInput(wstring langID, InMethNode& node)
 {
 	wstring fullID = langID + L"." + L"burglish";
 
@@ -293,10 +293,10 @@ RomanInputMethod<waitzar::BurglishBuilder>* WZFactory::getBurglishInput(wstring 
 		//NOTE: These resources will not be reclaimed, but since they're
 		//      contained within a singleton class, I don't see a problem.
 		waitzar::BurglishBuilder* model = new waitzar::BurglishBuilder();
-		SentenceList<waitzar::BurglishBuilder>* sentence = new SentenceList<waitzar::BurglishBuilder>();
+		SentenceList* sentence = new SentenceList();
 
 		//Create, init
-		WZFactory::cachedBGInputs[fullID] = new RomanInputMethod<waitzar::BurglishBuilder>();
+		WZFactory::cachedBGInputs[fullID] = new RomanInputMethod();
 		WZFactory::cachedBGInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 	}
 
@@ -360,7 +360,7 @@ LetterInputMethod* WZFactory::getKeyMagicBasedInput(std::wstring langID, std::ws
 
 //Build a model up from scratch.
 
-RomanInputMethod<WordBuilder>* WZFactory::getWordlistBasedInput(wstring langID, wstring inputID, string wordlistFileName, InMethNode& node)
+RomanInputMethod* WZFactory::getWordlistBasedInput(wstring langID, wstring inputID, string wordlistFileName, InMethNode& node)
 {
 	wstring fullID = langID + L"." + inputID;
 
@@ -369,7 +369,7 @@ RomanInputMethod<WordBuilder>* WZFactory::getWordlistBasedInput(wstring langID, 
 		vector< vector<unsigned int> > nexus;
 		nexus.push_back(vector<unsigned int>());
 		WordBuilder* model = new WordBuilder(vector<wstring>(), nexus, vector< vector<unsigned int> >());
-		SentenceList<waitzar::WordBuilder>* sentence = new SentenceList<waitzar::WordBuilder>();
+		SentenceList* sentence = new SentenceList();
 
 		//Add user words (there's ONLY user words here)
 		WZFactory::addWordsToModel(model, wordlistFileName);
@@ -382,7 +382,7 @@ RomanInputMethod<WordBuilder>* WZFactory::getWordlistBasedInput(wstring langID, 
 			throw std::runtime_error(waitzar::escape_wstr(model->getLastError(), false).c_str());
 
 		//Now, build the romanisation method and return
-		WZFactory::cachedWBInputs[fullID] = new RomanInputMethod<waitzar::WordBuilder>();
+		WZFactory::cachedWBInputs[fullID] = new RomanInputMethod();
 		WZFactory::cachedWBInputs[fullID]->init(WZFactory::mainWindow, WZFactory::sentenceWindow, WZFactory::helpWindow, WZFactory::memoryWindow, WZFactory::systemWordLookup, WZFactory::helpKeyboard, waitzar::WZSystemDefinedWords, model, sentence, node.encoding, node.controlKeyStyle, node.typeBurmeseNumbers, node.typeNumeralConglomerates, node.suppressUppercase);
 	}
 
@@ -669,7 +669,7 @@ DisplayMethod* WZFactory::makeAndVerifyDisplayMethod(const LangNode& lang, const
 
 		//Ensure its encoding exists, etc.
 		if (lang.encodings.count(dm.encoding)==0)
-			throw nodeset_exception(glue(L"Display Method (", id, L") references non-existent encoding: ", dm.encoding).c_str(), wstring(L"languages."+lang.id+L".displaymethods."+id+L".encoding").c_str());
+			throw nodeset_exception(waitzar::glue(L"Display Method (", id, L") references non-existent encoding: ", dm.encoding).c_str(), wstring(L"languages."+lang.id+L".displaymethods."+id+L".encoding").c_str());
 
 		//Ensure that at least one transformation exists
 		if (dm.encoding!=L"unicode") {
@@ -753,9 +753,9 @@ Transformation* WZFactory::makeAndVerifyTransformation(ConfigRoot& conf, const L
 
 		//Ensure we have valid encodings
 		if (lang.encodings.count(tm.fromEncoding)==0)
-			throw nodeset_exception(glue(L"Transformation \"" , id , L"\" references non-existent from-encoding: ", tm.fromEncoding).c_str(), wstring(L"languages."+lang.id+L".transformations."+id+L".fromencoding").c_str());
+			throw nodeset_exception(waitzar::glue(L"Transformation \"" , id , L"\" references non-existent from-encoding: ", tm.fromEncoding).c_str(), wstring(L"languages."+lang.id+L".transformations."+id+L".fromencoding").c_str());
 		if (lang.encodings.count(tm.toEncoding)==0)
-			throw nodeset_exception(glue(L"Transformation \"" , id , L"\" references non-existent to-encoding: ", tm.toEncoding).c_str(), wstring(L"languages."+lang.id+L".transformations."+id+L".toencoding").c_str());
+			throw nodeset_exception(waitzar::glue(L"Transformation \"" , id , L"\" references non-existent to-encoding: ", tm.toEncoding).c_str(), wstring(L"languages."+lang.id+L".transformations."+id+L".toencoding").c_str());
 
 
 		//First, generate an actual object, based on the type.
@@ -858,7 +858,7 @@ void WZFactory::verifySettings(ConfigRoot& cfg, SettingsNode& set, const std::ws
 
 	//Verify our default language
 	if (cfg.languages.count(set.defaultLanguage)==0)
-		throw nodeset_exception(glue(L"Settings references non-existent default-language: ", set.defaultLanguage).c_str(), L"settings.defaultlanguage");
+		throw nodeset_exception(waitzar::glue(L"Settings references non-existent default-language: ", set.defaultLanguage).c_str(), L"settings.defaultlanguage");
 }
 
 
@@ -873,7 +873,7 @@ void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang, const std
 		if (lang.displayName.empty())
 			throw std::runtime_error("Cannot construct language: no \"display-name\"");
 		if (lang.encodings.count(L"unicode")==0)
-			throw std::runtime_error(glue(L"Language \"" , lang.id , L"\" does not include \"unicode\" as an encoding.").c_str());
+			throw std::runtime_error(waitzar::glue(L"Language \"" , lang.id , L"\" does not include \"unicode\" as an encoding.").c_str());
 
 		//Deal with "last-used" input method
 		if (lang.defaultInputMethod==L"lastused") {
@@ -901,17 +901,17 @@ void WZFactory::verifyLanguage(const std::wstring& id, LangNode& lang, const std
 
 		//Ensure dependencies are met
 		if (lang.encodings.count(lang.defaultOutputEncoding)==0)
-			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default output encoding: ", lang.defaultOutputEncoding).c_str(), wstring(L"languages."+lang.id+L".defaultoutputencoding").c_str());
+			throw nodeset_exception(waitzar::glue(L"Language \"" , lang.id , L"\" references non-existant default output encoding: ", lang.defaultOutputEncoding).c_str(), wstring(L"languages."+lang.id+L".defaultoutputencoding").c_str());
 		if (lang.inputMethods.count(lang.defaultInputMethod)==0)
-			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default input method: ", lang.defaultInputMethod).c_str(), wstring(L"languages."+lang.id+L".defaultinputmethod").c_str());
+			throw nodeset_exception(waitzar::glue(L"Language \"" , lang.id , L"\" references non-existant default input method: ", lang.defaultInputMethod).c_str(), wstring(L"languages."+lang.id+L".defaultinputmethod").c_str());
 		if (lang.displayMethods.count(lang.defaultDisplayMethodReg)==0)
-			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default (regular) display method: ", lang.defaultDisplayMethodReg).c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethod").c_str());
+			throw nodeset_exception(waitzar::glue(L"Language \"" , lang.id , L"\" references non-existant default (regular) display method: ", lang.defaultDisplayMethodReg).c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethod").c_str());
 		if (lang.displayMethods.count(lang.defaultDisplayMethodSmall)==0)
-			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" references non-existant default (small) display method: ", lang.defaultDisplayMethodSmall).c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethodsmall").c_str());
+			throw nodeset_exception(waitzar::glue(L"Language \"" , lang.id , L"\" references non-existant default (small) display method: ", lang.defaultDisplayMethodSmall).c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethodsmall").c_str());
 		if (!lang.encodings[lang.defaultOutputEncoding].canUseAsOutput)
-			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" uses a default output encoding which does not support output.").c_str(), wstring(L"languages."+lang.id+L".defaultoutputencoding").c_str());
+			throw nodeset_exception(waitzar::glue(L"Language \"" , lang.id , L"\" uses a default output encoding which does not support output.").c_str(), wstring(L"languages."+lang.id+L".defaultoutputencoding").c_str());
 		if (lang.displayMethods[lang.defaultDisplayMethodReg].encoding != lang.displayMethods[lang.defaultDisplayMethodSmall].encoding)
-			throw nodeset_exception(glue(L"Language \"" , lang.id , L"\" uses two display methods with two different encodings.").c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethod").c_str());
+			throw nodeset_exception(waitzar::glue(L"Language \"" , lang.id , L"\" uses two display methods with two different encodings.").c_str(), wstring(L"languages."+lang.id+L".defaultdisplaymethod").c_str());
 	} catch (std::exception& ex) {
 		//Pack all exceptions into nodeset_exceptions
 		throw nodeset_exception(ex.what(), id.c_str());
