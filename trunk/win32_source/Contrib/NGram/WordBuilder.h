@@ -14,10 +14,10 @@
 //#define _CRT_NON_CONFORMING_SWPRINTFS
 
 //Necessary libraries
-#include <wchar.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h> //strtol
+//#include <wchar.h>
+//#include <string.h>
+//#include <stdio.h>
+//#include <stdlib.h> //strtol
 #include <vector>
 #include <algorithm>
 #include <string>
