@@ -7,10 +7,6 @@
 #ifndef _INPUT_VIRT_KEY
 #define _INPUT_VIRT_KEY
 
-//Include windows libraries
-#define _UNICODE
-#define UNICODE
-
 #include <windows_wz.h>
 
 //System includes
