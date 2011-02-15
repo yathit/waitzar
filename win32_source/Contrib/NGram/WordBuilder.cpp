@@ -10,6 +10,7 @@
 //I prefer to only shorthand STL components I use a lot, 
 // rather than the whole namespace.
 using std::string;
+using std::wstring;
 using std::wstringstream;
 using std::wstring;
 using std::vector;
@@ -149,11 +150,13 @@ void WordBuilder::loadModel(const char* modelFilePath, vector<string> userWordsF
 		  readLine(uniBuffer, currPosition, numUniChars, true, true, false, !this->restrictToMyanmar, true, false, false, false, name, value);
 
 	    //Make sure both name and value are non-empty
-	    if (strlen(value)==0 || wcslen(name)==0)
+		wstring wname = wstring(name);
+		string wvalue = string(value);
+	    if (wvalue.empty() || wname.empty())
 	      continue;
 	    
 	    //Add this romanization
-	    if (!this->addRomanization(name, value, true)) {
+	    if (!this->addRomanization(wname, wvalue, true)) {
 	      printf("Error adding Romanisation");
 	    }
 	  }
@@ -639,16 +642,17 @@ bool WordBuilder::typeLetter(char letter, bool isUpper, const std::wstring& prev
 			return false;
 		} else {
 			//Start at "aung" if we haven't already typed "a"
-			char test[5];
-			strcpy(test, "aung");
+			string test = "aung";
+			//strcpy(test, "aung");
 			if (pastNexus.size()==1 && jumpToNexus(pastNexus[pastNexus.size()-1], 'a')==(int)currNexus) {
-				strcpy(test, "ung");
+				//strcpy(test, "ung");
+				test = "ung";
 			}
-			size_t stLen = strlen(test);
+			//size_t stLen = strlen(test);
 
 			//Ok, can we get ALL the way there?
 			nextNexus = currNexus;
-			for (size_t i=0; i<stLen; i++) {
+			for (size_t i=0; i<test.size(); i++) {
 				nextNexus = jumpToNexus(nextNexus, test[i]);
 				if (nextNexus==-1)
 					break;
@@ -1330,12 +1334,13 @@ bool WordBuilder::addRomanization(const wstring &myanmar, const string &roman, b
 
 //Return 0: error
 // This follows RFC 3629's recommendations, although it is not strictly compliant.
-size_t mymbstowcs(wchar_t *dest, const char *src, size_t maxCount)
+size_t mymbstowcs(wchar_t *dest, const char *srcPtr, size_t maxCount)
 {
 	size_t lenStr = maxCount;
 	size_t destIndex = 0;
+	const string src = string(srcPtr);
 	if (lenStr==0) {
-		lenStr = strlen(src);
+		lenStr = src.size();
 	}
 	for (unsigned int i=0; i<lenStr; i++) {
 		unsigned short curr = (src[i]&0xFF);
