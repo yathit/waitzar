@@ -175,10 +175,10 @@ pair<wstring, bool> LetterInputMethod::appendTypedLetter(const std::wstring& pre
 {
 	//Nothing to do? NOTE: We need to eventually abstract the mywin functionality from the helpKeyboard. 
 	//    For now, though, it will cause no error (KeyMagic overrides this method.)
-	char modAlpha = vkey.alphanum;
+	char modAlpha = vkey.alphanum();
 	if (modAlpha>='a' && modAlpha<='z' && vkey.modShift)
 		modAlpha = (modAlpha-'a') + 'A';
-	wstring nextBit = helpKeyboard->typeLetter(vkey.vkCode, modAlpha, vkey.modShift);
+	wstring nextBit = helpKeyboard->typeLetter(vkey.vkCode(), modAlpha, vkey.modShift);
 	if (nextBit.empty())
 		return pair<wstring, bool>(prevStr, false);
 
@@ -228,7 +228,7 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 {
 	//Convert locale
 	//TODO: Centralize this elsewhere
-	vkey.stripLocale();
+	vkey.considerByScancode();
 
 	//Delegate our combination algorithm
 	wstring curr = typedSentenceStr.str();
@@ -256,7 +256,7 @@ void LetterInputMethod::handleKeyPress(VirtKey& vkey)
 	} else {
 		//Un-Convert locale
 		//TODO: Centralize this elsewhere
-		vkey.considerLocale();
+		vkey.considerByLocale();
 
 		//Check for system keys
 		InputMethod::handleKeyPress(vkey);

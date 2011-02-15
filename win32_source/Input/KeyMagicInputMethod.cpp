@@ -1545,7 +1545,7 @@ void KeyMagicInputMethod::handleKeyPress(VirtKey& vkey)
 pair<wstring, bool> KeyMagicInputMethod::appendTypedLetter(const wstring& prevStr, VirtKey& vkey)
 {
 	//Append, apply rules
-	char c = vkey.alphanum;
+	char c = vkey.alphanum();
 	if (c>='a' && c<='z' && vkey.modShift) 
 		c = (c-'a') + 'A';
 

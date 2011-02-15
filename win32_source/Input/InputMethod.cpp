@@ -95,7 +95,7 @@ void InputMethod::handleKeyPress(VirtKey& vkey)
 {
 	//Convert locale
 	//TODO: Centralize this elsewhere
-	vkey.stripLocale();
+	vkey.considerByScancode();
 
 	//Get an adjusted numcode.
 	//int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : (wParam>=HOTKEY_NUM0 && wParam<=HOTKEY_NUM9) ? HOTKEY_NUM0 : -1;
@@ -106,7 +106,7 @@ void InputMethod::handleKeyPress(VirtKey& vkey)
 		//wchar_t letter = '\0'; //Any defaults are fine.
 		int numberValue = 0; //Any defaults are fine.
 		for (size_t i=0; i<systemWordLookup.size(); i++) {
-			if (systemWordLookup[i].first==vkey.alphanum) {
+			if (systemWordLookup[i].first==vkey.alphanum()) {
 				//This represents a negative offset
 				numberValue = -1-i;
 				//letter = systemWordLookup[i].second;
@@ -119,7 +119,7 @@ void InputMethod::handleKeyPress(VirtKey& vkey)
 		}
 
 		//Try to type this word; we now have its numCode and letter.
-		this->appendToSentence(vkey.alphanum, numberValue);
+		this->appendToSentence(vkey.alphanum(), numberValue);
 	}
 }
 

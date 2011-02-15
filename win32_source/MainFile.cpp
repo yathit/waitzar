@@ -546,10 +546,10 @@ DWORD WINAPI TrackHotkeyReleases(LPVOID args)
 			for (std::list< std::pair<unsigned int, VirtKey> >::iterator keyItr = hotkeysDown.begin(); keyItr != hotkeysDown.end();) {
 				//Create a version of this vkey in the current keyboard layout
 				VirtKey translated(keyItr->second);
-				translated.considerLocale();
+				translated.considerByLocale();
 
 				//Get the state of this key
-				SHORT keyState = GetAsyncKeyState(helpKeyboard->getVirtualKeyID(translated.vkCode, translated.alphanum, translated.modShift)); //We need to use CAPITAL letters for virtual keys. Gah!
+				SHORT keyState = GetAsyncKeyState(helpKeyboard->getVirtualKeyID(translated.vkCode(), translated.alphanum(), translated.modShift)); //We need to use CAPITAL letters for virtual keys. Gah!
 
 				if ((keyState & 0x8000)==0) {
 					//Send a hotkey_up event to our window (mimic the wparam used by WM_HOTKEY)
@@ -2862,7 +2862,7 @@ void handleNewHighlights(unsigned int hotkeyCode, VirtKey& vkey)
 			mainWindow->postMessage(WM_HOTKEY, HOTKEY_VIRT_RSHIFT, MAKELPARAM(MOD_SHIFT, VK_RSHIFT));
 	} else {
 		//Is this a valid key? If so, highlight it and repaint the help window
-		if (helpKeyboard->highlightKey(vkey.vkCode, vkey.alphanum, vkey.modShift, true)) {
+		if (helpKeyboard->highlightKey(vkey.vkCode(), vkey.alphanum(), vkey.modShift, true)) {
 			reBlitHelp();
 
 			//CRITICAL SECTION
@@ -2923,12 +2923,12 @@ void OnHelpTitleBtnClick(unsigned int btnID)
 	//Feed this virtual key through the current keyboard
 	//For now, we skip non-alpha keys
 	VirtKey vk = VirtKey(helpKeyboard->getLastClickedVKey());
-	if (vk.vkCode != 0) {
-		if (vk.vkCode==VK_BACK) {
+	if (vk.vkCode() != 0) {
+		if (vk.vkCode()==VK_BACK) {
 			currInput->handleBackspace(vk);
-		} else if (vk.vkCode!=VK_LSHIFT && vk.vkCode!=VK_RSHIFT) { //Skip Shift, but still update the keyboard
+		} else if (vk.vkCode()!=VK_LSHIFT && vk.vkCode()!=VK_RSHIFT) { //Skip Shift, but still update the keyboard
 			//We need to anticipate that currInput will try to strip the encoding
-			vk.considerLocale();
+			vk.considerByLocale();
 			currInput->handleKeyPress(vk);
 		}
 		checkAllHotkeysAndWindows();
@@ -3257,7 +3257,7 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 			if (helpKeyboard->isHelpEnabled() && highlightKeys) {
 				//Convert:
 				VirtKey vk2(vkey);
-				vk2.stripLocale();
+				vk2.considerByScancode();
 
 				//Highlight our virtual keyboard
 				handleNewHighlights(hotkeyCode, vk2);
@@ -3613,7 +3613,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//vk.stripLocale(); We don't need to strip the locale, since the ACTUAL en_US id was sent.
 
 			//Update our virtual keyboard
-			if (helpKeyboard->highlightKey(vk.vkCode, vk.alphanum, vk.modShift, false))
+			if (helpKeyboard->highlightKey(vk.vkCode(), vk.alphanum(), vk.modShift, false))
 				reBlitHelp();
 
 			break;
@@ -3646,7 +3646,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			if (Logger::isLogging('T')) {
 				wstringstream msg;
-				msg <<L"   VirtKey: " <<vk.alphanum <<L"  " <<std::hex <<vk.vkCode <<std::dec;
+				msg <<L"   VirtKey: " <<vk.alphanum() <<L"  " <<std::hex <<vk.vkCode() <<std::dec;
 				msg <<L"   (" <<(vk.modShift?L"1":L"0") <<L"," <<(vk.modAlt?L"1":L"0") <<L"," <<(vk.modCtrl?L"1":L"0") <<L")";
 				Logger::writeLogLine('T', msg.str());
 			}
@@ -3654,7 +3654,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//NOTE: We have to mangle this a bit (with shift) if the virtual
 			//      keyboard is showing and Shift has been pressed.
 			if (helpKeyboard->isHelpEnabled() && helpKeyboard->isShiftLocked()) {
-				vk = VirtKey(vk.vkCode, true, vk.modAlt, vk.modCtrl);
+				vk = VirtKey(vk.vkCode(), true, vk.modAlt, vk.modCtrl);
 			}
 
 
@@ -4375,7 +4375,7 @@ bool checkUserSpecifiedRegressionTests(wstring testFileName)
 					throw std::runtime_error("Error: Cannot type unicode sequences as input.");
 				char c = (wc&0x7F);
 				VirtKey vk(c);
-				if (vk.vkCode==0)
+				if (vk.vkCode()==0)
 					throw std::runtime_error(waitzar::glue("Error: Unknown input letter: ", string(1, c)).c_str());
 				currInput->handleKeyPress(vk);
 			}

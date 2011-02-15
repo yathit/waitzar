@@ -22,8 +22,12 @@
 //Class unified virtual key presses for virtual/physical/etc. hotkeys.
 //   Masks the "scan code" property by simply generating a new key if instructed to.
 class VirtKey {
-//Static methods
-private: //Internal?
+
+
+//////////////////////////////////////////////
+//Static methods for dealing with the locale
+//////////////////////////////////////////////
+private:
 	//Change the locale for all future VKeys
 	static void SetCurrLocale(HKL newLocale);
 
@@ -33,8 +37,15 @@ private: //Internal?
 	//Double-check that the locale is up-to-date.
 	static void updateLocale();
 
+	//Given a valid VK_* code and set of modifiers, generate the alphanum value.
+	// Named very obtusely to imply that this function should rarely be used.
+	//  (it'd be manually inlined, except I use it in two places.)
+	static char RetrieveAlphanumFromVkcodeAndModifiers(unsigned int vkCode, bool modShift, bool modAlt, bool modCtrl);
 
-//Static data
+
+//////////////////////////////////////////////
+//Static data for the locale-handling methods
+//////////////////////////////////////////////
 private:
 	//Lookup table: converting from physical scan-codes to VK_* codes in the en-US locale
 	//NOTE: Both scancodes and VK_* codes are UINTs. 
@@ -55,31 +66,22 @@ private:
 	//Does this locale contain all possible vkeys we might need to type?
 	static bool currLocaleInsufficient;
 
-public:
 	//Handy lookup for the "en-US" locale.
 	static const HKL en_usLocale;
 
 
-//Public methods
+
+//////////////////////////////////////////////
+//Constructors, converters, and "consider" methods
+//////////////////////////////////////////////
 public:
-	//Simple constructor
-	VirtKey(unsigned int vkCode, char alphanum, bool modShift, bool modAlt, bool modCtrl) 
-		: vkCode(vkCode), alphanum(alphanum), modShift(modShift), modAlt(modAlt), modCtrl(modCtrl) {}
-
-	//Copy constructor (note: just use the default copy constructor)
-
-	//Construct from an lParam (presumably a WM_HOTKEY message)
+	//Construct from an lParam (presumably a WM_HOTKEY message, but 0 also works for a "null" VirtKey)
 	VirtKey(LPARAM wmHotkeyLParam);
 
+	//Construct from a vkCode and modifiers. It's assumed that these are in the current locale.
+	//TODO: Trace calls to this constructor and see if it's ever used in scancode mode)
 	VirtKey(unsigned int vkCode, bool modShift, bool modAlt, bool modCtrl);
 
-	//Constructor: extrapolate "shfit" and vk values from the "alphanum" parameter. 
-	VirtKey(char alphanum);
-
-
-	//
-	//Generally useful methods:
-	//
 	
 	//Represent as a key magic integer.
 	unsigned int toKeyMagicVal();
@@ -87,28 +89,39 @@ public:
 	//Convert back into a Windows message.
 	LPARAM toLParam();
 
-	//Convert this VKey to the en-US locale.
-	//We do NOT convert "control"-style keys, like VK_BACK, since this will likely just confuse the user.
-	//  TODO: Double-check if this is a good idea or not...
-	void stripLocale();
+	//vkCode() and alphanum() will return based on the scancode value of the key pressed.
+	void considerByScancode() {
+		vkCode_p = &vkCodeByScancode;
+		alphanum_p = &alphanumByScancode;
+	}
 
-	//Convert from en-US to whatever the current locale is.
-	void considerLocale();
+	//vkCode() and alphanum() will return based on the locale-dependent value of the key pressed.
+	void considerByLocale() {
+		vkCode_p = &vkCodeByLocale;
+		alphanum_p = &alphanumByLocale;
+	}
 
 
-//Private helper methods
+//////////////////////////////////////////////
+//Private data and helper methods
+//////////////////////////////////////////////
 private:
-	//Given a valid VK_* code and set of modifiers, generate the alphanum value.
-	// Named very obtusely to imply that this function should rarely be used. 
-	//  (it'd be manually inlined, except I use it in two places.)
-	void constructAlphanumFromVkcodeAndModifiers();
+	//Hiden data
+	unsigned int* vkCode_p;
+	char* alphanum_p;
+
+	//Helper
+	void buildScancodeEntries();
 
 
-
-//Accessible properties of the virtual key
+//////////////////////////////////////////////
+//Publicly-accessible properties and functions affected by "consider"
+//////////////////////////////////////////////
 public:
-	//The virtual key code of the this keypress. Guaranteed.
-	unsigned int vkCode;
+	//The virtual key code of the this keypress. Guaranteed. Affected by locale
+	unsigned int vkCodeByScancode;
+	unsigned int vkCodeByLocale;
+	unsigned int vkCode() { return *vkCode_p; }
 
 	//The alpha-numeric value of this keypress. (Also: ascii value for some additional, common keys)
 	//  Guaranteed to be 'a'-'z' for [a-zA-Z].
@@ -119,9 +132,12 @@ public:
 	//  Guaranteed to be ';', ':', '\'', '"', for the other second-row keys.
 	//  Guaranteed to be ',', '<', '.', '>', '/', '?', for the other third-row keys.
 	//  Guaranteed to be '\0' for anything else.
-	char alphanum; 
+	// Affected by locale.
+	char alphanumByScancode;
+	char alphanumByLocale;
+	char alphanum() { return *alphanum_p; }
 
-	//Modifiers. Guaranteed
+	//Modifiers. Guaranteed. Not affected by locale.
 	bool modShift;
 	bool modAlt;
 	bool modCtrl;
