@@ -13,10 +13,68 @@ using std::map;
 HKL VirtKey::currLocale = NULL;//MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
 bool VirtKey::currLocaleInsufficient = false;
 const HKL VirtKey::en_usLocale = LoadKeyboardLayout(L"00000409", 0); //Should represent the "default layout"
-map<unsigned int, unsigned int> VirtKey::scancode2VirtKey;
 map<unsigned int, unsigned int> VirtKey::localevkey2Scancode;
 map<unsigned int, unsigned int> VirtKey::scancode2CurrLocale;
 map<unsigned int, unsigned int> VirtKey::enusvkey2Scancode;
+
+
+//Initialize our en-us lookup table directly.
+map<unsigned int, unsigned int> VirtKey::scancode2VirtKey = {
+	//Row 1, Tilde  through Plus
+	{0x29, VK_OEM_3},
+	{0x02, '1'},
+	{0x03, '2'},
+	{0x04, '3'},
+	{0x05, '4'},
+	{0x06, '5'},
+	{0x07, '6'},
+	{0x08, '7'},
+	{0x09, '8'},
+	{0x0A, '9'},
+	{0x0B, '0'},
+	{0x0C, VK_OEM_MINUS},
+	{0x0D, VK_OEM_PLUS},
+
+	//Row 2, 'Q' through Back-Slash
+	{0x10, 'Q'},
+	{0x11, 'W'},
+	{0x12, 'E'},
+	{0x13, 'R'},
+	{0x14, 'T'},
+	{0x15, 'Y'},
+	{0x16, 'U'},
+	{0x17, 'I'},
+	{0x18, 'O'},
+	{0x19, 'P'},
+	{0x1A, VK_OEM_4},
+	{0x1B, VK_OEM_6},
+	{0x2B, VK_OEM_5},
+
+	//Row 3, 'A' through Single Quote
+	{0x1E, 'A'},
+	{0x1F, 'S'},
+	{0x20, 'D'},
+	{0x21, 'F'},
+	{0x22, 'G'},
+	{0x23, 'H'},
+	{0x24, 'J'},
+	{0x25, 'K'},
+	{0x26, 'L'},
+	{0x27, VK_OEM_1},
+	{0x28, VK_OEM_7},
+
+	//Row 4, 'Z' through Forward Slash
+	{0x2C, 'Z'},
+	{0x2D, 'X'},
+	{0x2E, 'C'},
+	{0x2F, 'V'},
+	{0x30, 'B'},
+	{0x31, 'N'},
+	{0x32, 'M'},
+	{0x33, VK_OEM_COMMA},
+	{0x34, VK_OEM_PERIOD},
+	{0x35, VK_OEM_2},
+};
 
 
 //Do we contain enough keys to type this locale? (Always true for en_US)
@@ -29,68 +87,11 @@ bool VirtKey::IsCurrLocaleInsufficient()
 //Convert from currLocale to en_US
 void VirtKey::SetCurrLocale(HKL newLocale)
 {
-	//Only occurs once: initialize the en-us lookup table:
-	//We only add "single-case" (virtual key) values.
-	if (VirtKey::scancode2VirtKey.empty()) {
-		//Row 1, Tilde  through Plus
-		VirtKey::scancode2VirtKey[0x29] = VK_OEM_3;
-		VirtKey::scancode2VirtKey[0x02] =  '1';
-		VirtKey::scancode2VirtKey[0x03] =  '2';
-		VirtKey::scancode2VirtKey[0x04] =  '3';
-		VirtKey::scancode2VirtKey[0x05] =  '4';
-		VirtKey::scancode2VirtKey[0x06] =  '5';
-		VirtKey::scancode2VirtKey[0x07] =  '6';
-		VirtKey::scancode2VirtKey[0x08] =  '7';
-		VirtKey::scancode2VirtKey[0x09] =  '8';
-		VirtKey::scancode2VirtKey[0x0A] =  '9';
-		VirtKey::scancode2VirtKey[0x0B] =  '0';
-		VirtKey::scancode2VirtKey[0x0C] =  VK_OEM_MINUS;
-		VirtKey::scancode2VirtKey[0x0D] =  VK_OEM_PLUS;
-
-		//Row 2, 'Q' through Back-Slash
-		VirtKey::scancode2VirtKey[0x10] = 'Q';
-		VirtKey::scancode2VirtKey[0x11] =  'W';
-		VirtKey::scancode2VirtKey[0x12] =  'E';
-		VirtKey::scancode2VirtKey[0x13] =  'R';
-		VirtKey::scancode2VirtKey[0x14] =  'T';
-		VirtKey::scancode2VirtKey[0x15] =  'Y';
-		VirtKey::scancode2VirtKey[0x16] =  'U';
-		VirtKey::scancode2VirtKey[0x17] =  'I';
-		VirtKey::scancode2VirtKey[0x18] =  'O';
-		VirtKey::scancode2VirtKey[0x19] =  'P';
-		VirtKey::scancode2VirtKey[0x1A] =  VK_OEM_4;
-		VirtKey::scancode2VirtKey[0x1B] =  VK_OEM_6;
-		VirtKey::scancode2VirtKey[0x2B] =  VK_OEM_5;
-
-		//Row 3, 'A' through Single Quote
-		VirtKey::scancode2VirtKey[0x1E] = 'A';
-		VirtKey::scancode2VirtKey[0x1F] =  'S';
-		VirtKey::scancode2VirtKey[0x20] =  'D';
-		VirtKey::scancode2VirtKey[0x21] =  'F';
-		VirtKey::scancode2VirtKey[0x22] =  'G';
-		VirtKey::scancode2VirtKey[0x23] =  'H';
-		VirtKey::scancode2VirtKey[0x24] =  'J';
-		VirtKey::scancode2VirtKey[0x25] =  'K';
-		VirtKey::scancode2VirtKey[0x26] =  'L';
-		VirtKey::scancode2VirtKey[0x27] =  VK_OEM_1;
-		VirtKey::scancode2VirtKey[0x28] =  VK_OEM_7;
-
-		//Row 4, 'Z' through Forward Slash
-		VirtKey::scancode2VirtKey[0x2C] = 'Z';
-		VirtKey::scancode2VirtKey[0x2D] =  'X';
-		VirtKey::scancode2VirtKey[0x2E] =  'C';
-		VirtKey::scancode2VirtKey[0x2F] =  'V';
-		VirtKey::scancode2VirtKey[0x30] =  'B';
-		VirtKey::scancode2VirtKey[0x31] =  'N';
-		VirtKey::scancode2VirtKey[0x32] =  'M';
-		VirtKey::scancode2VirtKey[0x33] =  VK_OEM_COMMA;
-		VirtKey::scancode2VirtKey[0x34] =  VK_OEM_PERIOD;
-		VirtKey::scancode2VirtKey[0x35] =  VK_OEM_2;		
-	}
-
-	//Now push these keys in reverse:
-	for (map<unsigned int, unsigned int>::iterator it=VirtKey::scancode2VirtKey.begin(); it!=VirtKey::scancode2VirtKey.end(); it++) {
-		VirtKey::enusvkey2Scancode[it->second] = it->first;
+	//Initialize our us-2-scancode lookup
+	if (VirtKey::enusvkey2Scancode.empty()) {
+		for (map<unsigned int, unsigned int>::iterator it=VirtKey::scancode2VirtKey.begin(); it!=VirtKey::scancode2VirtKey.end(); it++) {
+			VirtKey::enusvkey2Scancode[it->second] = it->first;
+		}
 	}
 	
 
