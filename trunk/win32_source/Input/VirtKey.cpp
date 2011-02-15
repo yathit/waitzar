@@ -108,10 +108,6 @@ void VirtKey::SetCurrLocale(HKL newLocale)
 	if (VirtKey::currLocale != VirtKey::en_usLocale) {
 		VirtKey::localevkey2Scancode.clear();
 
-		//Load the locale
-		//NOTE: We can just use the HKL entry returned by GetKeyboardLayout()
-		//HKL nonUSLayout = LoadKeyboardLayout(test, KLF_NOTELLSHELL);
-
 		//Reset the keys if this layout exists.
 		if (VirtKey::currLocale!=NULL) {
 			for (map<unsigned int, unsigned int>::iterator mapval=VirtKey::scancode2VirtKey.begin(); mapval!=VirtKey::scancode2VirtKey.end(); mapval++) {
@@ -135,182 +131,123 @@ void VirtKey::SetCurrLocale(HKL newLocale)
 VirtKey::VirtKey(LPARAM wmHotkeyLParam) 
 {
 	//Easy
-	vkCode = HIWORD(wmHotkeyLParam);
+	vkCodeByLocale = HIWORD(wmHotkeyLParam);
 	modShift = (LOWORD(wmHotkeyLParam)&MOD_SHIFT) != 0;
 	modCtrl = (LOWORD(wmHotkeyLParam)&MOD_CONTROL) != 0;
 	modAlt = (LOWORD(wmHotkeyLParam)&MOD_ALT) != 0;
 
 	//Make the alphanum
-	constructAlphanumFromVkcodeAndModifiers();
+	alphanumByLocale = VirtKey::RetrieveAlphanumFromVkcodeAndModifiers(vkCodeByLocale, modShift, modAlt, modCtrl);
+
+	//Remove the locale
+	buildScancodeEntries();
+
+	//Set to default
+	considerByLocale();
 }
 
-VirtKey::VirtKey(unsigned int vkCode, bool modShift, bool modAlt, bool modCtrl) : vkCode(vkCode), modShift(modShift), modAlt(modAlt), modCtrl(modCtrl)
+VirtKey::VirtKey(unsigned int vkCode, bool modShift, bool modAlt, bool modCtrl) : vkCodeByLocale(vkCode), modShift(modShift), modAlt(modAlt), modCtrl(modCtrl)
 {
 	//Make the alphanum
-	constructAlphanumFromVkcodeAndModifiers();
+	alphanumByLocale = VirtKey::RetrieveAlphanumFromVkcodeAndModifiers(vkCodeByLocale, modShift, modAlt, modCtrl);
+
+	//Remove the locale
+	buildScancodeEntries();
+
+	//Set to default
+	considerByLocale();
 }
 
+
+
+void VirtKey::buildScancodeEntries()
+{
+	//Make sure our locale is up-to-date.
+	VirtKey::updateLocale();
+
+	//No change if currently in en_US; avoid spurious errors
+	if (VirtKey::currLocale==VirtKey::en_usLocale) {
+		vkCodeByScancode = vkCodeByLocale;
+		alphanumByScancode = alphanumByLocale;
+		return;
+	}
+
+	//Only vkcode and alphanum change; the modifiers remain. Vkcode must be changed first.
+	// Abort the conversion whenever we encounter trouble.
+	map<unsigned int, unsigned int>::iterator it1 = VirtKey::localevkey2Scancode.find(vkCodeByLocale);
+	if (it1==VirtKey::localevkey2Scancode.end())
+		return;
+	map<unsigned int, unsigned int>::iterator it2 = VirtKey::scancode2VirtKey.find(it1->second);
+	if (it2==VirtKey::scancode2VirtKey.end())
+		return;
+	vkCodeByScancode = it2->second;
+
+	//Now, re-generate the alphanum (unless nothing changed).
+	if (vkCodeByScancode == vkCodeByLocale)
+		alphanumByScancode = alphanumByLocale;
+	else
+		alphanumByScancode = VirtKey::RetrieveAlphanumFromVkcodeAndModifiers(vkCodeByScancode, modShift, modAlt, modCtrl);
+}
+
+
 //Helper method for the above-detailed constructor
-void VirtKey::constructAlphanumFromVkcodeAndModifiers()
+char VirtKey::RetrieveAlphanumFromVkcodeAndModifiers(unsigned int vkCode, bool modShift, bool modAlt, bool modCtrl)
 {
 	//Alphanum: letters & numbers & some symbols
 	if (vkCode>='a' && vkCode<='z')
-		alphanum = vkCode;
+		return vkCode;
 	else if (vkCode>='A' && vkCode<='Z') 
-		alphanum = (vkCode-'A')+'a';
+		return (vkCode-'A')+'a';
 	else if (vkCode>='0' && vkCode<='9' && !modShift)
-		alphanum = vkCode;
+		return vkCode;
 	else if (vkCode>=VK_NUMPAD0 && vkCode<=VK_NUMPAD9)
-		alphanum = (vkCode-VK_NUMPAD0)+'0';
+		return (vkCode-VK_NUMPAD0)+'0';
 	else {
 		switch (vkCode) {
 			case '1':
-				alphanum = '!';  break;
+				return '!';  break;
 			case '2':
-				alphanum = '@';  break;
+				return '@';  break;
 			case '3':
-				alphanum = '#';  break;
+				return '#';  break;
 			case '4':
-				alphanum = '$';  break;
+				return '$';  break;
 			case '5':
-				alphanum = '%';  break;
+				return '%';  break;
 			case '6':
-				alphanum = '^';  break;
+				return '^';  break;
 			case '7':
-				alphanum = '&';  break;
+				return '&';  break;
 			case '8':
-				alphanum = '*';  break;
+				return '*';  break;
 			case '9':
-				alphanum = '(';  break;
+				return '(';  break;
 			case '0':
-				alphanum = ')';  break;
+				return ')';  break;
 			case VK_OEM_3:
-				alphanum = modShift ? '~' : '`';  break;
+				return modShift ? '~' : '`';  break;
 			case VK_OEM_MINUS:
-				alphanum = modShift ? '_' : '-';  break;
+				return modShift ? '_' : '-';  break;
 			case VK_OEM_PLUS:
-				alphanum = modShift ? '+' : '=';  break;
+				return modShift ? '+' : '=';  break;
 			case VK_OEM_4:
-				alphanum = modShift ? '{' : '[';  break;
+				return modShift ? '{' : '[';  break;
 			case VK_OEM_6:
-				alphanum = modShift ? '}' : ']';  break;
+				return modShift ? '}' : ']';  break;
 			case VK_OEM_5:
-				alphanum = modShift ? '|' : '\\';  break;
+				return modShift ? '|' : '\\';  break;
 			case VK_OEM_1:
-				alphanum = modShift ? ':' : ';';  break;
+				return modShift ? ':' : ';';  break;
 			case VK_OEM_7:
-				alphanum = modShift ? '"' : '\'';  break;
+				return modShift ? '"' : '\'';  break;
 			case VK_OEM_COMMA:
-				alphanum = modShift ? '<' : ',';  break;
+				return modShift ? '<' : ',';  break;
 			case VK_OEM_PERIOD:
-				alphanum = modShift ? '>' : '.';  break;
+				return modShift ? '>' : '.';  break;
 			case VK_OEM_2:
-				alphanum = modShift ? '?' : '/';  break;
+				return modShift ? '?' : '/';  break;
 			default:
-				alphanum = '\0';
-		}
-	}
-}
-
-
-//Constructor: extrapolate "shfit" and vk values from the "alphanum" parameter. 
-VirtKey::VirtKey(char alphanum) : vkCode(0), alphanum(alphanum), modShift(false), modAlt(false), modCtrl(false)
-{
-	//Primary goal: figure out the vkCode. It remains at "0" if there was any error.
-	if (alphanum>='a' && alphanum<='z') {
-		vkCode = alphanum;
-	} else if (alphanum>='A' && alphanum<='Z') {
-		vkCode = (alphanum-'A')+'a';
-		modShift = true;
-	} else if (alphanum>='0' && alphanum<='9') {
-		//We can represent these as number keys or NUMPAD vkeys. We'll choose the former.
-		vkCode = alphanum;
-	} else {
-		switch (alphanum) {
-			case '!':
-				vkCode = '1';
-				modShift = true;
-				break;
-			case '@':
-				vkCode = '2';
-				modShift = true;
-				break;
-			case '#':
-				vkCode = '3';
-				modShift = true;
-				break;
-			case '$':
-				vkCode = '4';
-				modShift = true;
-				break;
-			case '%':
-				vkCode = '5';
-				modShift = true;
-				break;
-			case '^':
-				vkCode = '6';
-				modShift = true;
-				break;
-			case '&':
-				vkCode = '7';
-				modShift = true;
-				break;
-			case '*':
-				vkCode = '8';
-				modShift = true;
-				break;
-			case '(':
-				vkCode = '9';
-				modShift = true;
-				break;
-			case ')':
-				vkCode = '0';
-				modShift = true;
-				break;
-			case '~':  modShift = true; //Fall-through
-			case '`':
-				vkCode = VK_OEM_3;
-				break;
-			case '_':  modShift = true; //Fall-through
-			case '-':
-				vkCode = VK_OEM_MINUS;
-				break;
-			case '+':  modShift = true; //Fall-through
-			case '=':
-				vkCode = VK_OEM_PLUS;
-				break;
-			case '{':  modShift = true; //Fall-through
-			case '[':
-				vkCode = VK_OEM_4;
-				break;
-			case '}':  modShift = true; //Fall-through
-			case ']':
-				vkCode = VK_OEM_6;
-				break;
-			case '|':  modShift = true; //Fall-through
-			case '\\':
-				vkCode = VK_OEM_5;
-				break;
-			case ':':  modShift = true; //Fall-through
-			case ';':
-				vkCode = VK_OEM_1;
-				break;
-			case '"':  modShift = true; //Fall-through
-			case '\'':
-				vkCode = VK_OEM_7;
-				break;
-			case '<':  modShift = true; //Fall-through
-			case ',':
-				vkCode = VK_OEM_COMMA;
-				break;
-			case '>':  modShift = true; //Fall-through
-			case '.':
-				vkCode = VK_OEM_PERIOD;
-				break;
-		case '?':  modShift = true; //Fall-through
-			case '/':
-				vkCode = VK_OEM_2;
-				break;
+				return '\0';
 		}
 	}
 }
@@ -325,8 +262,8 @@ VirtKey::VirtKey(char alphanum) : vkCode(0), alphanum(alphanum), modShift(false)
 unsigned int VirtKey::toKeyMagicVal() 
 {
 	//Some Japanese keyboards can generate very large keycode values. Ignore these for now.
-	unsigned int ret = (vkCode & KM_VKMOD_MASK);
-	if (ret != vkCode)
+	unsigned int ret = (vkCode() & KM_VKMOD_MASK);
+	if (ret != vkCode())
 		return 0;
 
 	//Deal with the fact that letters are upper-case in KeyMagic VK codes.
@@ -349,7 +286,7 @@ unsigned int VirtKey::toKeyMagicVal()
 //Represent as a Windows message
 LPARAM VirtKey::toLParam() 
 {
-	return MAKELPARAM((modShift?MOD_SHIFT:0)|(modAlt?MOD_ALT:0)|(modCtrl?MOD_CONTROL:0), vkCode);
+	return MAKELPARAM((modShift?MOD_SHIFT:0)|(modAlt?MOD_ALT:0)|(modCtrl?MOD_CONTROL:0), vkCode());
 }
 
 
@@ -382,63 +319,6 @@ void VirtKey::updateLocale()
 			VirtKey::SetCurrLocale(newLocale);
 	}
 }
-
-
-
-//Convert this virtual key into its equivalent in the en_US locale.
-//  Will not change the virtual key if it has no en_US equivalent (e.g., accented letters in French),
-//    since this might be useful for keyboard layotu designers.
-void VirtKey::stripLocale()
-{
-	//Make sure our locale is up-to-date.
-	VirtKey::updateLocale();
-
-	//No change if currently in en_US; avoid spurious errors
-	if (VirtKey::currLocale==VirtKey::en_usLocale)
-		return;
-
-	//Only vkcode and alphanum change; the modifiers remain. Vkcode must be changed first.
-	// Abort the conversion whenever we encounter trouble.
-	unsigned int oldVKCode = vkCode;
-	map<unsigned int, unsigned int>::iterator it1 = VirtKey::localevkey2Scancode.find(vkCode);
-	if (it1==VirtKey::localevkey2Scancode.end())
-		return;
-	map<unsigned int, unsigned int>::iterator it2 = VirtKey::scancode2VirtKey.find(it1->second);
-	if (it2==VirtKey::scancode2VirtKey.end())
-		return;
-	vkCode = it2->second;
-
-	//Now, re-generate the alphanum (unless nothing changed).
-	if (vkCode != oldVKCode) 
-		constructAlphanumFromVkcodeAndModifiers();
-}
-
-
-void VirtKey::considerLocale()
-{
-	//Make sure our locale is up-to-date.
-	VirtKey::updateLocale();
-
-	//No change if currently in en_US; avoid spurious errors
-	if (VirtKey::currLocale==VirtKey::en_usLocale)
-		return;
-
-	//Only vkcode and alphanum change; the modifiers remain. Vkcode must be changed first.
-	// Abort the conversion whenever we encounter trouble.
-	unsigned int oldVKCode = vkCode;
-	map<unsigned int, unsigned int>::iterator it1 = VirtKey::enusvkey2Scancode.find(vkCode);
-	if (it1==VirtKey::enusvkey2Scancode.end())
-		return;
-	map<unsigned int, unsigned int>::iterator it2 = VirtKey::scancode2CurrLocale.find(it1->second);
-	if (it2==VirtKey::scancode2CurrLocale.end())
-		return;
-	vkCode = it2->second;
-
-	//Now, re-generate the alphanum (unless nothing changed).
-	if (vkCode != oldVKCode) 
-		constructAlphanumFromVkcodeAndModifiers();
-}
-
 
 
 

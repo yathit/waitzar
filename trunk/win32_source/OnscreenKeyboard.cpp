@@ -13,7 +13,7 @@ using std::pair;
 
 
 //Our main goal is to figure out the width/height
-OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg) : lastClickedButton(0, '\0', false, false, false)
+OnscreenKeyboard::OnscreenKeyboard(DisplayMethod *titleFont, PulpCoreFont *keysFont, PulpCoreFont *foreFont, PulpCoreFont *shiftFont, PulpCoreFont *memoryFont, PulpCoreImage *cornerImg, PulpCoreImage *closeImg) : lastClickedButton(0)
 {
 	//Save for later
 	this->titleFont = titleFont;
@@ -503,7 +503,7 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 	lastClickedButton = VirtKey(keyboard_vk_codes[btnID], this->isShifted(), false, false);
 
 	//Special case: handle shift (toggle)
-	if (lastClickedButton.vkCode==VK_LSHIFT || lastClickedButton.vkCode==VK_RSHIFT) {
+	if (lastClickedButton.vkCode()==VK_LSHIFT || lastClickedButton.vkCode()==VK_RSHIFT) {
 		shiftLock = !shiftLock;
 
 		//Repaint
@@ -528,7 +528,7 @@ void OnscreenKeyboard::clickButton(unsigned int btnID)
 	//       2) Have the main loop call "requestToType(helpKeyboard->getLastClickedVKey()" on the current input method
 	//       3) Finally, handle all edge cases as they should be.
 	if (!isPressableButton(btnID))
-		lastClickedButton = VirtKey(0, '\0', false, false, false);
+		lastClickedButton = VirtKey(0);
 }
 
 

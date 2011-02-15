@@ -139,14 +139,14 @@ void RomanInputMethod::handleUpDown(bool isDown)
 void RomanInputMethod::handleNumber(VirtKey& vkey)
 {
 	//Special case: conglomerate numbers
-	if ((vkey.alphanum>='0'&&vkey.alphanum<='9') && typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
-	 if (model->typeLetter(vkey.alphanum, vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
-		 typedRomanStr <<vkey.alphanum;
+	if ((vkey.alphanum()>='0'&&vkey.alphanum()<='9') && typeNumeralConglomerates && typeBurmeseNumbers && typedStrContainsNoAlpha) {
+	 if (model->typeLetter(vkey.alphanum(), vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
+		 typedRomanStr <<vkey.alphanum();
 		 viewChanged = true;
 	 }
 	} else if (mainWindow->isVisible()) {
 		//Convert 1..0 to 0..9
-		int numMinOne = vkey.alphanum - '0' - 1;
+		int numMinOne = vkey.alphanum() - '0' - 1;
 		if (numMinOne<0)
 			numMinOne = 9;
 
@@ -155,7 +155,7 @@ void RomanInputMethod::handleNumber(VirtKey& vkey)
 
 		//Mangle a bit more as usual...
 		//if (wParam==HOTKEY_COMBINE || wParam==HOTKEY_SHIFT_COMBINE)
-		if (vkey.alphanum=='`' || vkey.alphanum=='~') //TODO: Find a better way to do this later. (Not crucial.)
+		if (vkey.alphanum()=='`' || vkey.alphanum()=='~') //TODO: Find a better way to do this later. (Not crucial.)
 			numMinOne = -1;
 
 		//Select this numbered word
@@ -163,14 +163,14 @@ void RomanInputMethod::handleNumber(VirtKey& vkey)
 			typedRomanStr.str(L"");
 			viewChanged = true;
 		}
-	} else if (vkey.alphanum=='`' || vkey.alphanum=='~') {
+	} else if (vkey.alphanum()=='`' || vkey.alphanum()=='~') {
 		//Check for system keys
 		InputMethod::handleKeyPress(vkey);
 	} else {
 		//Main window is not visible and we are typing 0-9. But what about BurmeseNumerals?
 		if (typeBurmeseNumbers) {
 			//Type this number --ask the model for the number directly, to avoid crashing Burglish.
-			sentence->insert(model->getSingleDigitID(vkey.alphanum - '0'));
+			sentence->insert(model->getSingleDigitID(vkey.alphanum() - '0'));
 			sentence->moveCursorRight(0, true, *model);
 		} else /*if (sentenceWindow->isVisible())*/ {
 			//As long as the numbers 0-9 are in the "system key" list (they are) then we can just pass this off.
@@ -239,10 +239,10 @@ void RomanInputMethod::handleKeyPress(VirtKey& vkey)
 {
 	//Handle regular letter-presses (as lowercase)
 	//NOTE: ONLY handle letters
-	wchar_t alpha = vkey.alphanum;
+	wchar_t alpha = vkey.alphanum();
 	if ((alpha>='a' && alpha<='z') || alpha==';') {
 		//Run this keypress into the model. Accomplish anything?
-		if (!model->typeLetter(vkey.alphanum, suppressUppercase?false:vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
+		if (!model->typeLetter(vkey.alphanum(), suppressUppercase?false:vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords))) {
 			//That's the end of the story if we're typing Chinese-style; or if there's no roman string.
 			if (controlKeyStyle==CONTROL_KEY_TYPE::CHINESE || typedRomanStr.str().empty())
 				return;
@@ -252,7 +252,7 @@ void RomanInputMethod::handleKeyPress(VirtKey& vkey)
 			viewChanged = true;
 
 			//Nothing left on the new string?
-			if (!model->typeLetter(vkey.alphanum, suppressUppercase?false:vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords)))
+			if (!model->typeLetter(vkey.alphanum(), suppressUppercase?false:vkey.modShift, sentence->getPrevTypedWord(*model, userDefinedWords)))
 				return;
 		}
 
