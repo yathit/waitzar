@@ -90,6 +90,77 @@ std::pair <std::string, std::wstring> InputMethod::getAndClearMostRecentRomaniza
 
 
 
+//Handle things our MainFile used to handle
+//Return true if "processed"
+bool InputMethod::handleVKey(VirtKey& vkey)
+{
+	//First, handle things that we know are locale-dependent.
+	switch (vkey.vkCodeByLocale) {
+		case VK_ESCAPE:
+			//Close the window, exit help mode
+			this->handleEsc();
+			return true;
+
+		case VK_BACK:
+			//Back up
+			this->handleBackspace(vkey);
+			return true;
+
+		case VK_DELETE:
+			//Delete a phrase
+			this->handleDelete();
+			return true;
+
+		case VK_RIGHT:
+			//Advance the cursor, pick a word
+			this->handleLeftRight(true, false);
+			return true;
+
+		case VK_LEFT:
+			//Move the cursor back, pick a word
+			this->handleLeftRight(false, false);
+			return true;
+
+		case VK_DOWN:
+		case VK_NEXT: //Pagedown
+			//Page
+			this->handleUpDown(true);
+			return true;
+
+		case VK_UP:
+		case VK_PRIOR: //Pageup
+			//Page
+			this->handleUpDown(false);
+			return true;
+
+		case VK_RETURN:// case HOTKEY_SHIFT_ENTER:
+			//Handle word selection
+			this->handleCommit(true);
+			return true;
+
+		case VK_TAB: //case HOTKEY_SHIFT_TAB:
+			//Tab generally behaves as a right-arow.
+			this->handleTab();
+			return true;
+
+		case VK_SPACE: //case HOTKEY_SHIFT_SPACE:
+			//Handle word selection, cursor advancing
+			if (vkey.modShift && !this->isHelpInput()) //ZWS override
+				this->typeZWS();
+			else
+				this->handleCommit(false);
+			return true;
+		default:
+			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
+			// otherwise numbers won't work.
+			this->handleKeyPress(vkey);
+			return true;
+	}
+	return false;
+}
+
+
+
 //Handle system keys
 void InputMethod::handleKeyPress(VirtKey& vkey)
 {

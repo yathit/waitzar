@@ -41,6 +41,9 @@ public:
 	bool getAndClearRequestToTypeSentence();
 	std::pair <std::string, std::wstring> getAndClearMostRecentRomanizationCheck();
 
+	//Central dispatch
+	virtual bool handleVKey(VirtKey& vkey);
+
 	//Keypress handlers (abstract virtual)
 	virtual void handleEsc() = 0;
 	virtual void handleBackspace(VirtKey& vkey) = 0;

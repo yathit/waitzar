@@ -22,6 +22,9 @@ public:
 	//Needed to add Roman-specific stuff
 	virtual void init(MyWin32Window* mainWindow, MyWin32Window* sentenceWindow, MyWin32Window* helpWindow,MyWin32Window* memoryWindow, const std::vector< std::pair <int, unsigned short> > &systemWordLookup, OnscreenKeyboard *helpKeyboard, std::wstring systemDefinedWords, LookupEngine* model, waitzar::SentenceList* sentence, const std::wstring& encoding, CONTROL_KEY_TYPE controlKeyStyle, bool typeBurmeseNumbers, bool typeNumeralConglomerates, bool suppressUppercase);
 
+	//Override dispatch
+	bool handleVKey(VirtKey& vkey);
+
 	//Abstract implementation - keypresses
 	void handleEsc();
 	void handleBackspace(VirtKey& vkey);

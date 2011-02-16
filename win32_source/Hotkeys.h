@@ -217,7 +217,7 @@ const Hotkey HelpHotkeys[] = {
 
 const Hotkey ControlHotkeys[] = {
 	//Main control keys for the sentence window
-	{HOTKEY_SPACE,   false, HOTKEY_SPACE},
+	{HOTKEY_SPACE,   false, VK_SPACE},
 	{HOTKEY_ENTER,   false, VK_RETURN},
 	{HOTKEY_LEFT,    false, VK_LEFT},
 	{HOTKEY_ESC,     false, VK_ESCAPE},
