@@ -186,31 +186,6 @@ bool helpIsCached;
 
 
 
-void DoV8Tests()
-{
-	/*using namespace v8;
-
-	//Make a new, stack-allocated handle scope and a context
-	//  Then, enter that context for compiling/running the test script
-	HandleScope hs;
-	Persistent<Context> context = Context::New();
-	Context::Scope ctScope(context);
-
-	//Source code string, compile to a script, run it.
-	Handle<String> source = String::New("'Hello'.replace(/l?o/, 'lo there!');");
-	Handle<Script> script = Script::Compile(source);
-	Handle<Value> result = script->Run();
-
-	//Done with the persistent context; dispose
-	context.Dispose();
-
-	//Temp: Print ASCII result
-	String::AsciiValue ascii(result);
-	wstringstream res;
-	res <<*ascii;
-	MessageBox(NULL, res.str().c_str(), L"Javascript run!", MB_OK);*/
-}
-
 
 
 
@@ -3237,23 +3212,24 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 
 
 
-bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
+void dispatchHotkeysToInputMethod(WPARAM hotkeyCode, VirtKey& vkey)
 {
 	switch (hotkeyCode) {
 		case LANGUAGE_HOTKEY:
 			//Switch language
 			switchToLanguage(!mmOn);
-			return true;
+			break;
 
 		case HOTKEY_HELP:
 			//What to do if our user hits "F1".
-			if (/*!allowNonBurmeseLetters &&*/ currHelpInput!=NULL) {
+			if (currHelpInput!=NULL) {
 				toggleHelpMode(!helpKeyboard->isHelpEnabled());
 				checkAllHotkeysAndWindows();
 			}
-			return true;
+			break;
 
 		default:
+			//First, handle our highlighting.
 			if (helpKeyboard->isHelpEnabled() && highlightKeys) {
 				//Convert:
 				VirtKey vk2(vkey);
@@ -3261,18 +3237,15 @@ bool handleMetaHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 
 				//Highlight our virtual keyboard
 				handleNewHighlights(hotkeyCode, vk2);
-
-				//Doesn't consume a keypress
-				return false;
 			}
-	}
 
-	//Else, not processed
-	return false;
+			//Then, let the InputMethod handle it
+			currInput->handleVKey(vkey);
+	}
 }
 
 
-bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
+/*bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 {
 	//First, is this an upper-case letter?
 	//bool isUpper = (wParam>='A' && wParam<='Z');
@@ -3280,99 +3253,12 @@ bool handleUserHotkeys(WPARAM hotkeyCode, VirtKey& vkey)
 	//Handle user input; anything that updates a non-specific "model".
 	//  TODO: Put code for "help" keyboard functionality HERE; DON'T put it into
 	//        LetterInputMethod.h
-	switch (hotkeyCode) {
-		case HOTKEY_ESC:
-			//Close the window, exit help mode
-			currInput->handleEsc();
-			return true;
 
-		case HOTKEY_BACK:
-			//Back up
-			currInput->handleBackspace(vkey);
-			return true;
-
-		case HOTKEY_DELETE:
-			//Delete a phrase
-			currInput->handleDelete();
-			return true;
-
-		case HOTKEY_RIGHT:
-			//Advance the cursor, pick a word
-			currInput->handleLeftRight(true, false);
-			return true;
-
-		case HOTKEY_LEFT:
-			//Move the cursor back, pick a word
-			currInput->handleLeftRight(false, false);
-			return true;
-
-		case HOTKEY_DOWN:
-		case HOTKEY_PAGEDOWN:
-			//Page
-			currInput->handleUpDown(true);
-			return true;
-
-		case HOTKEY_UP:
-		case HOTKEY_PAGEUP:
-			//Page
-			currInput->handleUpDown(false);
-			return true;
-
-		case HOTKEY_COMMA: case HOTKEY_PERIOD:
-			//Handle stops
-			currInput->handleStop(hotkeyCode==HOTKEY_PERIOD, vkey);
-			return true;
-
-		case HOTKEY_ENTER: case HOTKEY_SHIFT_ENTER:
-			//Handle word selection
-			currInput->handleCommit(true);
-			return true;
-
-		case HOTKEY_TAB: case HOTKEY_SHIFT_TAB:
-			//Tab generally behaves as a right-arow.
-			currInput->handleTab();
-			return true;
-
-		case HOTKEY_SPACE: case HOTKEY_SHIFT_SPACE:
-			//Handle word selection, cursor advancing
-			if (hotkeyCode==HOTKEY_SHIFT_SPACE && !currInput->isHelpInput()) //ZWS override
-				currInput->typeZWS();
-			else
-				currInput->handleCommit(false);
-			return true;
-
-		case HOTKEY_0: case HOTKEY_NUM0:
-		case HOTKEY_1: case HOTKEY_NUM1:
-		case HOTKEY_2: case HOTKEY_NUM2:
-		case HOTKEY_3: case HOTKEY_NUM3:
-		case HOTKEY_4: case HOTKEY_NUM4:
-		case HOTKEY_5: case HOTKEY_NUM5:
-		case HOTKEY_6: case HOTKEY_NUM6:
-		case HOTKEY_7: case HOTKEY_NUM7:
-		case HOTKEY_8: case HOTKEY_NUM8:
-		case HOTKEY_9: case HOTKEY_NUM9:
-		case HOTKEY_COMBINE: case HOTKEY_SHIFT_COMBINE:
-		{
-			//Handle numbers and combiners; pick a word, type a letter, combine/stack letters.
-			//numCode = 0 through 9 for numbers, undefined for combiners
-			//int base = (wParam>=HOTKEY_0 && wParam<=HOTKEY_9) ? HOTKEY_0 : HOTKEY_NUM0;
-			//int numberValue = vkey.alphanum - '0';
-
-			//Handle key press; letter-based keyboard should just pass this on through
-			currInput->handleNumber(vkey);
-			return true;
-		}
-
-		default:
-			//Tricky here: we need to put the "system key" nonsense into the "handleKeyPress"  function
-			// otherwise numbers won't work.
-			currInput->handleKeyPress(vkey);
-			return true;
 	}
 
 	//Else, not processed
 	return false;
-}
+}*/
 
 
 void createMyanmarMenuFont()
@@ -3662,13 +3548,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// switching into help mode, etc.
 			//Then, handle all "dynamic" commands; those which change depending on the
 			// current IM or mode.
-			if (handleMetaHotkeys(wParam, vk)) {
+			//if (handleMetaHotkeys(wParam, vk)) {
 				//Make sure our hotkeys are set
 				//TODO: Remove specific hotkey calls from toggleHelp() and other meta functions...
 				//checkAllHotkeysAndWindows();
 
-				Logger::writeLogLine('T', L"   Meta hotkey handled.");
-			} else {
+			//	Logger::writeLogLine('T', L"   Meta hotkey handled.");
+			//} else {
 				//Set flags for the current state of the Input Manager. We will
 				// check these against the exit state to see what has changed,
 				// and thus what needs to be updated.
@@ -3678,7 +3564,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				//Process the message
 				try {
-					handleUserHotkeys(wParam, vk);
+					dispatchHotkeysToInputMethod(wParam, vk);
 				} catch (std::exception& ex) {
 					if (!showingKeyInputPopup) {
 						//Properly handle hotkeys
@@ -3729,7 +3615,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//Feedback Check 2: Do we need to repaint the window?
 				if (currInput->getAndClearViewChanged())
 					recalculate();
-			}
+			//}
 
 			Logger::writeLogLine('T', L"   Done with hotkey.");
 			break;
@@ -4476,10 +4362,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//Save for later; if we try retrieving it, we'll just get a bunch of conversion
 	//  warnings. Plus, the hInstance should never change.
 	hInst = hInstance;
-
-
-	//TEMP
-	DoV8Tests();
 
 
 	//Parse the command line

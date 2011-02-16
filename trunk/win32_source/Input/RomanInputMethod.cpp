@@ -40,6 +40,27 @@ std::pair<int, std::string> RomanInputMethod::lookupWord(std::wstring typedWord)
 
 
 
+bool RomanInputMethod::handleVKey(VirtKey& vkey)
+{
+	//Override a few dispatches
+	if (vkey.alphanumByLocale==',' || vkey.alphanumByLocale=='.') {
+		//Handle stops
+		this->handleStop(vkey.alphanumByLocale=='.', vkey);
+		return true;
+	} else if (vkey.alphanumByLocale>='0' && vkey.alphanumByLocale<='9') {
+		//Handle numbers and combiners; pick a word, type a letter, combine/stack letters.
+		//Handle key press; letter-based keyboard should just pass this on through
+		this->handleNumber(vkey);
+		return true;
+	} else {
+		//Default: Let InputMethod handle it.
+		return InputMethod::handleVKey(vkey);
+	}
+	return false;
+}
+
+
+
 
 void RomanInputMethod::handleEsc()
 {
