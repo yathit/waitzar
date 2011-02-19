@@ -26,7 +26,7 @@ As you can see, the format was haphazard and required a good deal of explaining.
 Assuming that we use JSON (which is all but certain, since the format is very flexible _and_ we have a small parser for it), the definitions are easy:
 
 {{{
-#Note that definitions (words) are still identified by ID
+#Note that definitions (words) can still be identified by ID
 { 
   "words" : ["၁", "၂", ..., "ကို"]
 }
@@ -35,7 +35,7 @@ Assuming that we use JSON (which is all but certain, since the format is very fl
 There are no restrictions on what words may be stored in a dictionary.
 
 
-= New Format: Node Tree =
+= New Format: Lookup Table =
 
 Two facts are clear about the Wait Zar romanization. First, there was never any slowdown due to our decision to store node lookups in an array instead of a map. Given the average length of a syllable and the number of available letters in the English alphabet, I'd expect this to be true for any language. (The JSON Spirit author notes that a typical PC begins to favor maps after 500 elements, which requires syllables 20 letters long where _each_ of the 24 English letters is equally likely at any point in the word. I'll happily reconsider if you show me a language that fits this criteria and want to implement in Wait Zar.) Second, nodes only ever had a single parent, so the integer index for each node could easily be replaced by a pointer of some kind without increasing the memory used at run-time; i.e., we could just build a map of maps of maps... if we wanted to.
 
@@ -113,7 +113,154 @@ This is actually pretty easy on the eyes, and since models are always generated 
 }
 }}}
 
-Each node with a "~" will ALWAYS have at least one entry, so we aren't wasting any space. Note that we can't replace word IDs with actual words because (#1) prefix entries index words multiple times and (#2) a word can appear under different romanizations and should still be considered the "same" word.
+Each node with a "~" will ALWAYS have at least one entry, so we aren't wasting any space. Note that we can't replace word IDs with actual words because (#1) prefix entries index words multiple times and (#2) a word can appear under different romanizations and should still be considered the "same" word. (Or, rather, we can't do it lightly, without a lot of thought.) Imposing a total order on words is impossible when hash tables are involved, so any clever tricks with total ordering won't help eliminate the need for a word list.
+
+
+
+= New Format: Prefix Entries =
+
+Ok, we're definitely getting somewhere. What about prefix lookups? Here I think we can be clever: note that prefix lookups are always invoked for romanizations, not the actual words. So, how about a hash table?
+
+{{{
+{
+  "ngrams" : {
+    "kote" : [
+        [100 , [200, 100]],
+        [200 , [100, 200]],
+        [300 , [100, 200]]
+    ] ,
+    ...
+  }
+}
+}}}
+
+Here, we say that looking up "kote" will reoder if a 100, 200, or 300 precedes it. Unfortunately, the syntax gets messy for n-grams with n>1, like so:
+
+{{{
+{
+  "ngrams" : {
+    "kote" : [
+        [[100,200,300] , [200, 100]],
+        [[200] , [100, 200]],
+        [[100] , [100, 200]]
+    ] ,
+    ...
+  }
+}
+}}}
+
+We can't use an array as the index in a hash table, so we'd have to search through each array to find the _most_ matching one. This is a problem for "100", since it matches both "100" and "100,200,300". Moreover, in the array "100,200,300", does 100 represent the first word in the n-gram or the last? Our decision to use word IDs is slowly killing us.
+
+Let's consider: what happens if we use the actual words as prefix entries. (We still use word IDs for "our" definitions, so the node lookup doesn't change.) Well, the format suddenly becomes a lot simpler, thanks in part to hash lookups. While we're at it, let's nest n-grams for easier semantics:
+
+{{{
+{
+  "ngrams" : {
+    "kote" : {
+      "ကို" : {
+         "၁" : {...},
+         "၂" : {...},
+         "~" : [100, 200]
+      }
+    } ,
+    ...
+  }
+}
+}}}
+
+So "kote" with "ကို" preceding it orders 100 before 200, unless "၁" or "၂" is also preceding it. It's pretty understandable, and not too verbose, since it only lists relationships that actually exist. 
+
+
+= "Aung" shortcut =
+
+First, here's an easy cop-out:
+
+{{{
+{
+  "shortcuts" : [
+    {"ag" : "ung"},
+    {"g" : "aung"}
+  ]
+}
+}}}
+
+We list "ag" first to pick up the times when a "g" is completing "aung" directly ("a"+"g", "ka"+"g"), and "g" second to catch all other cases where "g" is adding the "aung" in its entirety (e.g., "kaung", "maung"). 
+
+This is a cop-out because it _should_ be in a hash table, but requires an array for total ordering. Moreover, it doesn't capture the semantics that "g" does nothing if the model already defines a mapping for "g". 
+
+We can manually insert "g" into the nexus list in all places where "aung" would match, but that won't work with our prefix lookup since the romanization string wouldn't actually be "aung". We could add a special symbol, "!" to fix that:
+
+{{{
+{
+  "lookup" : {
+    "a" : {
+        "b" : {...},
+        "c" : {...},
+        "~" : [100,200,110],
+        "!" : ["g", "ung"]    #"g" appends "ung" if nothing matches
+    } ,
+    "k" : {
+        "o" : {...},
+        "~" : [12],
+        "!" : ["g", "aung"]   #"g" appends "aung" if nothing matches
+    }
+  }
+}
+}}}
+
+Semantically this is fine, but it disorganizes our model. Besides being messy, consider what would happen if someone added, e.g., "xaung" to the model afterwards (using the wordlist). You'd have to detect that "xg" should now have a "!" entry, as should "xag". Alternatively, you could put a "!" entry in every single nexus node, but that would be needlessly space-inefficient.
+
+No, what's needed is some kind of "rule" that tells the system how to proceed when matching otherwise fails --like a "default" switch handler, or a "last chance" kind of recovery method. The ideal case is a regex which acts on the entire word:
+
+{{{
+{
+  #Not a cop-out, because it represents exactly what we mean.
+  "lastchance" : [
+    "/^(.*)a?g$/$1aung/"
+  ]
+}
+}}}
+
+Currently, however, it only needs to be strong enough for Burmese, as complex patterns for other languages can be added later (after C++0x is fully standardized with built-in regexes). So how about this:
+
+{{{
+{
+  #Tiny cop-out, but justifiable.
+  "lastchance" : [
+    "a?g=aung"
+  ]
+}
+}}}
+
+Here, we accept only letters and "?", which means "optional". The entire match is replaced with the RHS of the equals, and matching only succeeds at the end of the string. (So, "agk" doesn't expand to "aungk", which is true for all words in WZ currently. Maybe some pat-sint words have this property...?) Also, the "=" syntax can be detected and expanded into a full regex without losing backwards compatibility, so we're not removing the possibility of leveraging regexes later.
+
+
+= Easy Pat-Sint =
+
+Actually, there's more to the model than these 3 sections. "Pat-sint" shortcuts really show the old format's weakness, as can be seen from a snippet of the "easypatsint" file:
+
+{{{
+#### --stacked ဍ
+  #ဘဏ် + ဍာ = ဘဏ္ဍာ    #Can't type component
+  #သဏ် + ဍာန် = သဏ္ဍာန် #Can't type component
+  #သဏ် + ဍန် = သဏ္ဍန်   #Can't type component
+  #ဒဏ် + ဍာ = ဒဏ္ဍာ     #Can't type component
+  ကဏ် + ဍ = ကဏ္ဍ  
+
+#### --္ဘ
+  ကမ် + ဘာ့ = ကမ္ဘာ့
+  #ကမ် + ဘ = ကမ္ဘ    #NEXUS collision
+  ကမ် + ဘာ = ကမ္ဘာ
+  ကမ် + ဘော = ကမ္ဘော
+}}}
+
+The "can't type component" warnings mean that either the left-hand-side or the right-hand-side can't be typed. There is no way of re-enabling commented lines, so if "ဍာန်" suddenly became (somehow) type-able, then "သဏ္ဍာန်" would not magically appear as a shortcut. The "nexus collision" error means that the "ba" (ဘ) in "kamba" has the same romanization as "ba" (ဘာ့). This is such a messy error, because if we were to change the romanization of "ဘာ့" to, say, "ba." (which is how it would look in Romabama), then our nexus collision would disappear --maybe leading to a valid parse tree or maybe appearing elsewhere as an error. The point is, such a system is untenable. 
+
+(more later)
+
+
+
+
 
 
 
