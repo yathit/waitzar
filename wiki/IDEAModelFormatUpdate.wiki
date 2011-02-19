@@ -1,0 +1,19 @@
+#summary Can we modernize the model format without sacrificing efficiency?
+#labels Phase-Design
+
+= Introduction =
+
+The old model format was written back when I knew little about C++. (It was implemented using a massive double array of pointers, to much shuddering.) Later, I removed the pointers, but kept things like word IDs, since I was worried about using maps for jump lists, etc. Now, I think we can store data in memory in a way that is even simpler; for example, using a map of words-to-prefixes to avoid a whole bunch of array entries.
+
+Throughout this process, the "binary-ish" style of the model hasn't been updated. I'd like to use the JSON parser (capitalizing on the full power of JSON, including numbers and arrays) to read model files, in the interest of robustness, code reuse, etc. So, this page will attempt to review both the new storage format (on disk) and its representation in memory.
+
+
+= Old Storage Format =
+
+The old storage format went something like this:
+  * Several sections, each labeled with a "#ID: XXXX", where "ID" was "DEFINE", "MAP", or "SEGMENT", and "XXXX" was the number of entries (lines, usually, except in "DEFINE") in that section. Extra comments caused parse errors. 
+  * DEFINE contained several lines, each of the form "XXX[AA,BB-CC-DD,...,ZZ]", where "XXX" was the ID of the first word on that line (used only when manually debugging the file), and each element in the array was a word in the dictionary, separated by commas. If a word had multiple letters, these were separated by dashes. Each line contained 50 definitions. Oh, and "AA" actually meant "\u10AA", since Myanmar was assumed (and Unicode 5.2 hadn't been invented yet).
+  * MAP looked something like this: "{L:DDD,L:DDD,...}". Here, "L" was a single character representing a "move" one could make from that node and "DDD" was the ID (non-hex!) of the next map node to jump to. If the letter was "~", then the ID was actually the ID of the PREFIX entry to jump to.
+  * PREFIX lines were even more convoluted: "{AAA:BBB,CCC:DDD}[XXX,YYY,ZZZ]". The first bracketed list was a hash lookup; if a word with ID "AAA" was in the current n-gram then prefix id "BBB" was jumped to. This process continued until no more trigrams existed/matched, at which point the "XXX", "YYY", id words represented definitions matched at that prefix id. (All numbers are non-hex). However! when adding words, one was required to start at the _last_ matching prefix and add all words in that prefix and _each_ prefix preceding that match until all words had been added. This allowed for trigrams to re-order matched words. 
+
+As you can see, the format was haphazard and required a good deal of explaining. There's nothing wrong with it _per se_, and it had the benefit of being usable in any language with simple arrays --no need for hash tables, pointers, or even array resizing. That said, I think a more portable solution is in order, especially since this format can be abused (e.g., adding a definition that is ONLY in the list if the appropriate trigram matches, which is not what WZ intended). 
