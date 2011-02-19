@@ -256,13 +256,90 @@ Actually, there's more to the model than these 3 sections. "Pat-sint" shortcuts 
 
 The "can't type component" warnings mean that either the left-hand-side or the right-hand-side can't be typed. There is no way of re-enabling commented lines, so if "ဍာန်" suddenly became (somehow) type-able, then "သဏ္ဍာန်" would not magically appear as a shortcut. The "nexus collision" error means that the "ba" (ဘ) in "kamba" has the same romanization as "ba" (ဘာ့). This is such a messy error, because if we were to change the romanization of "ဘာ့" to, say, "ba." (which is how it would look in Romabama), then our nexus collision would disappear --maybe leading to a valid parse tree or maybe appearing elsewhere as an error. The point is, such a system is untenable. 
 
-(more later)
+To represent pat-sint shortcuts better, let's first observe that the "previous word" of a pat-sint pair can refer to various different combinations depending on the next candidate. The problem is, the first word of a pair is indexed by Myanmar word, while the second is indexed by romanization (since we type "ကမ်" and then "BA", not "ကမ်" and then "ဘာ့" or "ဘ". So we've got a clear conflict of interests.
+   * Either we make a list of {"ကမ်" : {"ဘ" : "ကမ္ဘ", "ဘာ့" : "ကမ္ဘာ့", ...}, ...}, and when the user types "ba" we take each _candidate_ for "ba" and check if it exists as an entry in the hashmap for "ကမ်", thus complicating lookup...
+   * ...or, we define a new "shortcut" character like "?" and add an entry for "ကမ်" in the nexus of "ba", with ["ကမ္ဘ", "ကမ္ဘာ့"], etc., and we lose flexibility in maintaining this lookup list....
+   * ...or, we define a myanmar/roman mapping lookup of {"ကမ်" : {"ba" : ["ကမ္ဘ", "ကမ္ဘာ့", ...], ...}, ...}, and have to edit this list on every romanization change. 
+
+The problem is that the current "X" + "Y" = "Z" format really defines the mappings perfectly, but falls apart when romanization comes into play, since either "X" or "Y" may not actually have a romanization. Options 2 and 3 hide the nature of pat-sint words and allow errors to creep in to the model whenever an update is performed, so we're left with option 1. Expanded, it looks like this:
+
+{{{
+{
+  "shortcuts" : {
+    "ကမ်" : {
+      "ဘ" : "ကမ္ဘ",
+      "ဘာ့" : "ကမ္ဘာ့",
+      "ဘော" : "ကမ္ဘော"
+    },
+    ...
+  }
+}
+}}}
+
+The matching process will now have to scan through every potential candidate, since this list contains no romanization information, but it's the simplest solution that doesn't wildly distort the semantics. It also supports the ability to produce a "no frills" (myanmar = roman) model simply by lopping off the tail end of a model file ("shortcuts", "lastchance", and "ngrams", that is). In other words, a beginner writing a model for, say, Chinese could safely ignore these sections.
 
 
+= Putting it Together =
+
+Here's a prototypical config file for a few small words. Yay, hand-written models!
+
+{{{
+#Demonstration model
+{
+  #Words our model supports: "ko", "kaung", "kan", "ba", "kamBa"
+  "words" : [
+    "ကို", "ကိုယ်",
+    "ကောင်း", "ကောင်",
+    "ကမ်", 
+    "ဘ", "ဘာ့",
+    "ကမ္ဘာ", "ကမ္ဘာ့"
+  ],
 
 
+  #How to type these words
+  "lookup" : #Later
+
+  #Prefixes: "ko" after "kan" chooses the 2nd option unless "ba"
+  "ngrams" : {
+    "ko" : {
+      "ကမ်" : {
+         "ဘ" : {
+           "~" : [0, 1]
+           },
+         "~" : [1, 0]
+      }
+    } ,
+    ...
+  },
+
+  #Repair function: "g" as "(a)ung"
+  "lastchance" : [
+    "a?g=aung"
+  ],
+
+  #Easy pat-sint: "kan" + "ba" = "kamba"
+  "shortcuts" : {
+    "ကမ်" : {
+      "ဘ" : "ကမ္ဘ",
+      "ဘာ့" : "ကမ္ဘာ့"
+    }
+  }
+}}}
 
 
+= Observations =
 
+Some observations:
 
+  * The new model doesn't make any of the "hard" concepts (n-grams, pat-sint (if you're not Burmese)) any easier to understand, but that's to be expected.
+  * The model requires a *LOT* less to be explained. However, a few things still need explaining:
+    * The "lastchance" syntax.
+    * The fact that you can't use multiple letters in the "lookup" tree.
+    * The use of "~" to mean "here's our match" in the lookup tree.
+    * Indexing words by ID.
+    * How "ngram" reordering works.
+  * The model can store non-active information (e.g., pat-sint words whose components can't be typed) which may become active later (e.g., a "mywords" file that contains those components). The model can potentially store all pat-sint words now as combinations. 
+  * The model will almost definitely take up more space than the previous one. How much space, exactly, remains to be seen.
+    * The "automated" parts of the model file (words, prefixed, nexi) do not seem to require much more information to store. (Prefixes should require less). The "manual" parts (pat-sint, aung shortcut) hopefully won't be a problem since they are added manually.
 
+Overall, I like the new format. Time to get coding! First up is a script for converting our existing model file to the new json format, next is a set of C++ classes for holding the result, third is a simply mapper from JSON to this new format. 
