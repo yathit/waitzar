@@ -389,3 +389,33 @@ The script to convert old model files will most likely be in Python, which has d
 }}}
 
 There are a whole bunch of options for pretty-printing and terse-printing.
+
+There's a problem with prefixes. It's very common for a word to have ONLY a unigram, which leads to the overly-verbose syntax:
+
+{{{
+  "yan": {
+    "ဂ": {
+      "~": [1937]
+    },
+    ...
+}}}
+
+We want something more like this:
+
+{{{
+  "yan": {
+    "ဂ": [1937],
+    ...
+}}}
+
+...with the "full" syntax only required for items with multiple children. Another option is to sacrifice some semantic clarity and have only a single layer of depth:
+
+{{{
+  "pyaw": {
+    "တော့": [1334,1305],
+    "တော့-ဆက်" : [1305],
+    "တွေ" : [1334,1305],
+    ...
+}}}
+
+...here we use a "-" to signify multiple prefixes. Then, when searching for ['prefix1', 'prefix2', 'prefix3'], we try matching 'prefix1-prefix2-prefix3', then 'prefix1-prefix2', then 'prefix1'. The "n" in "n-gram model" rarely gets to the size where this becomes unwieldy. I think we'll do it!
