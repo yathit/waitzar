@@ -297,7 +297,35 @@ Here's a prototypical config file for a few small words. Yay, hand-written model
 
 
   #How to type these words
-  "lookup" : #Later
+  "lookup" : {
+    "b" : {
+      "a" : {
+        "~" : [5, 6]
+       }
+    },
+    "k" : {
+      "o" : {
+        "~" : [0, 1]
+      },
+      "a" : {
+        "u" : {
+          "n" : {
+            "g" : {
+              "~" : [2, 3]
+            }
+          }
+        },
+        "n" : {
+          "~" : [4]
+        },
+        "m" : {
+          "b" : {
+            "a" : [7, 8]
+          }
+        }
+      }
+    }
+  },
 
   #Prefixes: "ko" after "kan" chooses the 2nd option unless "ba"
   "ngrams" : {
@@ -308,8 +336,7 @@ Here's a prototypical config file for a few small words. Yay, hand-written model
            },
          "~" : [1, 0]
       }
-    } ,
-    ...
+    }
   },
 
   #Repair function: "g" as "(a)ung"
@@ -342,4 +369,4 @@ Some observations:
   * The model will almost definitely take up more space than the previous one. How much space, exactly, remains to be seen.
     * The "automated" parts of the model file (words, prefixed, nexi) do not seem to require much more information to store. (Prefixes should require less). The "manual" parts (pat-sint, aung shortcut) hopefully won't be a problem since they are added manually.
 
-Overall, I like the new format. Time to get coding! First up is a script for converting our existing model file to the new json format, next is a set of C++ classes for holding the result, third is a simply mapper from JSON to this new format. 
+Overall, I like the new format. Time to get coding! First up is a script for converting our existing model file to the new json format, next is a set of C++ classes for holding the result, third is a simple mapper from JSON to this new format. 
