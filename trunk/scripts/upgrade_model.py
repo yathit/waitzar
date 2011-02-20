@@ -17,12 +17,75 @@ def saveUtf8File(path, stream):
 	f.write(stream)
 	f.close()
 
+
+def extraPrettyPrint(myStr, tab):
+	truncate = True
+	res = u''
+	for line in myStr:
+		x = line.lstrip()
+		if not truncate:
+			tabs = len(line) - len(x) + 1
+			res += u'\n' + tabs*tab
+		truncate = True
+		res += x
+		x = line.strip()
+		if x[-1]==u',' and (x[-2]<u'0' or x[-2]>u'9'):
+			truncate = False
+	return res
+
+def getBetterFormat(jsonStruct):
+	tab = u'\t'
+	
+	#Words: Break every 50
+	wordStr = json.dumps(jsonStruct['words'], ensure_ascii=False, separators=(',',':')).split(',')
+	betterStr = [','.join(wordStr[i:i+50]) for i in range(0, len(wordStr), 50)]
+	res = u'{\n' + tab + u'"words":'
+	newTab = u''
+	for line in betterStr:
+		res += newTab + line + u',\n'
+		newTab = tab*2
+	
+	#Lookup: pretty-print, then remove any line that doesn't end with a comma (or ends with a comma after a digit)
+	lookupStr = json.dumps(jsonStruct['lookup'], ensure_ascii=False, sort_keys=True, indent=1, separators=(',',':')).split('\n')
+	res += u'\n' + tab + u'"lookup":'
+	res += extraPrettyPrint(lookupStr, tab)
+	res += ','
+		
+	#N-Grams: same as lookup
+	if jsonStruct['ngrams']:
+		ngramStr = json.dumps(jsonStruct['ngrams'], ensure_ascii=False, sort_keys=True, indent=1, separators=(',',':')).split('\n')
+		res += u'\n\n' + tab + u'"ngrams":'
+		res += extraPrettyPrint(ngramStr, tab)
+		res += ','
+	
+	#Last-chance is minimal
+	if jsonStruct['lastchance']:
+		res += u'\n\n' + tab + u'"lastchance":' + json.dumps(jsonStruct['lastchance'], ensure_ascii=False, separators=(',',':'))
+		res += ','
+		
+	#Shortcuts actually look good pretty-printed; just make sure we use OUR tabs instead of theirs
+	if jsonStruct['shortcuts']:
+		shortcutsStr = json.dumps(jsonStruct['shortcuts'], ensure_ascii=False, sort_keys=True, indent=1, separators=(',',':')).split('\n')
+		res += u'\n\n' + tab + u'"shortcuts":'
+		for line in shortcutsStr:
+			x = line.lstrip()
+			tabs = len(line) - len(x) + 1
+			res += tabs*tab + x + u'\n'
+		res += ','
+	
+	res = res[:-1] + '}'  #Remove the last (illegal) comma, insert a closing brace
+	return res
+
+
 def saveModels(jsonStruct):
 	#Terse
 	saveUtf8File('new_model_terse.txt', json.dumps(jsonStruct, ensure_ascii=False, separators=(',',':')))
   
 	#Pretty-print
 	saveUtf8File('new_model_spaced.txt', json.dumps(jsonStruct, ensure_ascii=False, sort_keys=True, indent=2))
+	
+	#Try again
+	saveUtf8File('new_model_format.txt', getBetterFormat(jsonStruct))
   
   
   
