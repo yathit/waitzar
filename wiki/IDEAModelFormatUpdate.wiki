@@ -370,3 +370,22 @@ Some observations:
     * The "automated" parts of the model file (words, prefixed, nexi) do not seem to require much more information to store. (Prefixes should require less). The "manual" parts (pat-sint, aung shortcut) hopefully won't be a problem since they are added manually.
 
 Overall, I like the new format. Time to get coding! First up is a script for converting our existing model file to the new json format, next is a set of C++ classes for holding the result, third is a simple mapper from JSON to this new format. 
+
+
+= Implementation Notes =
+
+The script to convert old model files will most likely be in Python, which has decent (a) Unicode support and (b) json support. For example, here's how to save a file with Unicode literals:
+
+{{{
+  #Random init stuff
+  import json
+  import codecs
+  test = {'hi' : u'\u1000'}  #Use [] for arrays, {} for objects
+
+  #Save
+  f = codecs.open('out.txt', encoding='utf-8', mode='w')
+  f.write(json.dumps(test, ensure_ascii=False))
+  f.close()
+}}}
+
+There are a whole bunch of options for pretty-printing and terse-printing.
