@@ -22,6 +22,14 @@
 namespace waitzar
 {
 
+//Helper class
+class Nexus {
+	std::string moveOn;
+	std::vector<Node> moveTo;
+
+	std::vector<unsigned int> matchedWords;
+};
+
 
 
 /**
@@ -78,6 +86,9 @@ private:
 	std::vector<std::wstring> lastChanceRegexes;
 	std::map<std::string, std::map<std::wstring, std::vector<std::unsigned int>>> ngrams;
 	std::map<std::wstring, std::map<std::wstring, std::wstring>> shortcuts;
+
+	//Build helper
+	static void buildLookupRecursively(Json::Value& currObj, Nexus& currNode);
 
 
 	//State of a search
