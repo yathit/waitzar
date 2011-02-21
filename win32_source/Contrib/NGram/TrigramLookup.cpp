@@ -57,17 +57,73 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 
 	//OPTIONAL: n-grams prefix lookups
 	if (std::find(rootKeys.begin(), rootKeys.end(), "ngrams")!=rootKeys.end()) {
+		Json::Value ngramObj = fileRoot["ngrams"];
+		if (!ngramObj.isObject())
+			throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" is not an object.");
+		auto romanKeys = ngramObj.getMemberNames();
+		for (auto romanIt=romanKeys.begin(); romanIt!=romanKeys.end(); romanIt++) {
+			if (romanIt->empty())
+				throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" contains an empty romanized key.");
+			Json::Value matchesObj = ngramObj[*romanIt];
+			if (!matchesObj.isObject())
+				throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" contains a non-object ngram.");
+			auto ngramKeys = matchesObj.getMemberNames();
+			for (auto mmIt=ngramKeys.begin(); mmIt!=ngramKeys.end(); mmIt++) {
+				if (mmIt->empty())
+					throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" contains an empty ngram key.");
+				Json::Value mmResultObj = matchesObj[*mmIt];
+				if (!mmResultObj.isArray())
+					throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" contains a non-array ngram value.");
+				vector<unsigned int> reorder;
+				for (auto it=mmResultObj.begin(); it!=mmResultObj.end(); mmResultObj++) {
+					if (!it->isUint())
+						throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" referenes a non-integral reordering.");
+					reorder.push_back(it->asUInt());
+				}
 
+				//Add it
+				ngrams[*romanIt][waitzar::mbs2wcs(*mmIt)] = reorder;
+			}
+		}
 	}
 
 	//OPTIONAL: Last-chance recovery regexes
 	if (std::find(rootKeys.begin(), rootKeys.end(), "lastchance")!=rootKeys.end()) {
-
+		Json::Value lcObj = fileRoot["lastchance"];
+		if (!lcObj.isArray())
+			throw std::runtime_error("Can't parse TrigramLookup model: \"lastchance\" is not an array.");
+		for (auto it=lcObj.begin(); it!=lcObj.end(); it++) {
+			if (!it->isString())
+				throw std::runtime_error("Can't parse TrigramLookup model: \"lastchance\" contains a non-string entry.");
+			wstring recover = waitzar::mbs2wcs(it->asString());
+			lastChanceRegexes.push_back(recover);
+		}
 	}
 
 	//OPTIONAL: Pat-sint shortcuts
 	if (std::find(rootKeys.begin(), rootKeys.end(), "shortcuts")!=rootKeys.end()) {
+		Json::Value shortcutObj = fileRoot["shortcuts"];
+		if (!shortcutObj.isObject())
+			throw std::runtime_error("Can't parse TrigramLookup model: \"shortcuts\" is not an object.");
+		auto baseKeys = shortcutObj.getMemberNames();
+		for (auto baseIt=baseKeys.begin(); baseIt!=baseKeys.end(); baseIt++) {
+			if (baseIt->empty())
+				throw std::runtime_error("Can't parse TrigramLookup model: \"shortcuts\" contains an empty base key.");
+			Json::Value matchesObj = shortcutObj[*baseIt];
+			if (!matchesObj.isObject())
+				throw std::runtime_error("Can't parse TrigramLookup model: \"shortcuts\" contains a non-object base matcher.");
+			auto stackedKeys = matchesObj.getMemberNames();
+			for (auto stackedIt=stackedKeys.begin(); stackedIt!=stackedKeys.end(); stackedIt++) {
+				if (stackedIt->empty())
+					throw std::runtime_error("Can't parse TrigramLookup model: \"shortcuts\" contains an empty stacked key.");
+				Json::Value mmResultObj = matchesObj[*stackedIt];
+				if (!mmResultObj.isString())
+					throw std::runtime_error("Can't parse TrigramLookup model: \"shortcuts\" contains a non-string result value.");
 
+				//Add it
+				shortcuts[waitzar::mbs2wcs(*baseIt)][waitzar::mbs2wcs(*stackedIt)] = waitzar::mbs2wcs(mmResultObj->asString());
+			}
+		}
 	}
 }
 
