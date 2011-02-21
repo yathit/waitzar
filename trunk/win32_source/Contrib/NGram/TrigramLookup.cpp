@@ -7,7 +7,9 @@
 #include "TrigramLookup.h"
 
 
+using std::wstring;
 using std::string;
+using std::vector;
 using std::map;
 
 
@@ -33,7 +35,7 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 	auto rootKeys = fileRoot.getMemberNames();
 	if (std::find(rootKeys.begin(), rootKeys.end(), "words")==rootKeys.end())
 		throw std::runtime_error("Can't parse TrigramLookup model: no \"words\" entry.");
-	auto dictObj = fileRoot["words"];
+	Json::Value dictObj = fileRoot["words"];
 	if (!dictObj.isArray())
 		throw std::runtime_error("Can't parse TrigramLookup model: \"words\" is not an array.");
 	for (auto it=dictObj.begin(); it!=dictObj.end(); it++) {
@@ -46,6 +48,62 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 	}
 
 	//REQUIRED: Lookup table
+	if (std::find(rootKeys.begin(), rootKeys.end(), "lookup")==rootKeys.end())
+		throw std::runtime_error("Can't parse TrigramLookup model: no \"lookup\" entry.");
+	Json::Value lookupObj = fileRoot["lookup"];
+	if (!lookupObj.isObject())
+		throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" is not an object.");
+	buildLookupRecursively(lookupObj, lookup);
+
+	//OPTIONAL: n-grams prefix lookups
+	if (std::find(rootKeys.begin(), rootKeys.end(), "ngrams")!=rootKeys.end()) {
+
+	}
+
+	//OPTIONAL: Last-chance recovery regexes
+	if (std::find(rootKeys.begin(), rootKeys.end(), "lastchance")!=rootKeys.end()) {
+
+	}
+
+	//OPTIONAL: Pat-sint shortcuts
+	if (std::find(rootKeys.begin(), rootKeys.end(), "shortcuts")!=rootKeys.end()) {
+
+	}
+}
+
+
+void TrigramLookup::buildLookupRecursively(Json::Value& currObj, Nexus& currNode)
+{
+	auto keys = currObj.getMemberNames();
+	for (auto it=keys.begin(); it!=keys.end(); it++) {
+		//Enforce single-character key property
+		string key = *it;
+		if (key.size()!=1)
+			throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a key of length != 1");
+
+		//React to key value
+		Json::Value nextObj = currObj[key];
+		if (key == "~") {
+			//Append all current matches
+			if (!nextObj.isArray())
+				throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-array value set.");
+			for (auto wordID=nextObj.begin(); wordID!=nextObj.end(); nextObj++) {
+				if (!wordID->isUInt())
+					throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-integral value.");
+				currNode.matchedWords.push_back(nextObj.asUInt());
+			}
+		} else {
+			//Append the key, and a blank node for it
+			currNode.moveOn += key;
+			moveTo.push_back(Node());
+
+			//Recurse
+			if (!nextObj.isObject())
+				throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-object entry.");
+			buildLookupRecursively(nextObj, moveTo[moveTo.size()-1]);
+		}
+	}
+
 
 
 }
