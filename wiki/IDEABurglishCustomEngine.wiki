@@ -1,5 +1,5 @@
 #summary How to implement Burglish in code.
-#labels Phase-Design
+#labels Phase-Design,Deprecated
 
 = Introduction =
 
