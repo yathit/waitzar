@@ -15,6 +15,7 @@
 #include <stdexcept>
 
 #include "NGram/wz_utilities.h"
+#include "Json CPP/json.h"
 
 
 
@@ -71,13 +72,13 @@ public:
 
 
 private:
-	//Primary data
-	std::vector< std::wstring > dictionary;
-	std::vector< std::vector<unsigned int> > nexus;
-	std::vector< std::vector<unsigned int> > prefix;
+	//Primary data, converted from JSON
+	std::vector<std::wstring> words;
+	Nexus lookup;
+	std::vector<std::wstring> lastChanceRegexes;
+	std::map<std::string, std::map<std::wstring, std::vector<std::unsigned int>>> ngrams;
+	std::map<std::wstring, std::map<std::wstring, std::wstring>> shortcuts;
 
-	//Secondary data
-	std::map<unsigned int, std::map<unsigned int, unsigned int> > shortcuts;
 
 	//State of a search
 	std::string parenStr;

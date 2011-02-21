@@ -16,210 +16,38 @@ using std::map;
 //      We might consider using JSON for this; not sure how it'll work on Linux.
 TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffer)
 {
-	//Init a few parameters
-	currNexus = 0;
-	lastTypedLetter = '\0';
+	//Get the actual, wide-character stream
+	wstring buffer = stringIsBuffer ? waitzar::mbs2wcs(modelBufferOrFile) : waitzar::readUTF8File(modelBufferOrFile);
 
-	//Read the file into a buffer
-	std::string buffer = stringIsBuffer ? modelBufferOrFile : waitzar::ReadBinaryFile(modelBufferOrFile);
-
-	//Loop variables
-	unsigned short lastCommentedNumber;
-	unsigned short mode = 0;
-	std::wstringstream currWord;
-	vector<unsigned int> newArr;
-
-	//Process the buffer
-	for (size_t currLineStart=0; currLineStart < buffer.size();) {
-		//Step 3-A: left-trim whitespace
-		while (buffer[currLineStart]==' ' || buffer[currLineStart]=='\t')
-			currLineStart++;
-		if (currLineStart >= buffer.size()) break; //NOTE: Re-write the loop later to fix this
-
-		//Step 3-B: Deal with coments and empty lines
-		if (buffer[currLineStart] == '\n') {
-			//Step 3-B-i: Skip comments
-			currLineStart++;
-			continue;
-		} else if (buffer[currLineStart] == '#') {
-			//Step 3-B-ii: Handle comments (find the number which is commented out)
-			mode++;
-			lastCommentedNumber = 0;
-			for (;;) {
-				char curr = buffer[currLineStart++];
-				if (curr == '\n')
-					break;
-				else if (curr >= '0' && curr <= '9') {
-					lastCommentedNumber *= 10;
-					lastCommentedNumber += (curr-'0');
-				}
-			}
-
-			//Step 3-B-iii: use this number to initialize our data structures
-			//Avoid un-necessary resizing by reserving space in our vector.
-			switch (mode) {
-				case 1: //Words
-					dictionary.reserve(lastCommentedNumber);
-					break;
-				case 2: //Nexi
-					nexus.reserve(lastCommentedNumber);
-					break;
-				case 3: //Prefixes
-					prefix.reserve(lastCommentedNumber);
-					break;
-			}
-			continue;
-		}
-
-		//Step 3-C: Act differently based on the mode we're in
-		switch (mode) {
-			case 1: //Words
-			{
-				//Skip until the first number inside the bracket
-				while (buffer[currLineStart] != '[')
-					currLineStart++;
-				currLineStart++;
-
-				//Keep reading until the terminating bracket.
-				//  Each "word" is of the form DD(-DD)*,
-				currWord.str(L"");
-				for(;;) {
-					//Read a "pair", add this letter
-					unsigned int currLetter = 0x1000;
-					currLetter |= (toHex(model_buff[currLineStart++])<<4);
-					currLetter |= (toHex(model_buff[currLineStart++]));
-					newWord << (wchar_t)currLetter;
-
-					//Continue?
-					char nextChar = buffer[currLineStart++];
-					if (nextChar == ',' || nextChar == ']') {
-						//Add this word to the dictionary (copy semantics)
-						dictionary.push_back(newWord.str());
-						newWord.str(L"");
-
-						//Continue?
-						if (nextChar == ']')
-							break;
-					}
-				}
-
-				break;
-			}
-			case 2: //Mappings (nexi)
-			{
-				//Skip until the first letter inside the bracket
-				while (buffer[currLineStart] != '{')
-					currLineStart++;
-				currLineStart++;
-
-				//A new hashtable for this entry.
-				newArr.clear();
-				while (buffer[currLineStart] != '}') {
-					//Read a hashed mapping: character
-					int nextInt = 0;
-					char nextChar = 0;
-					while (buffer[currLineStart] != ':')
-						nextChar = buffer[currLineStart++];
-					currLineStart++;
-
-					//Read a hashed mapping: number
-					while (buffer[currLineStart] != ',' && buffer[currLineStart] != '}') {
-						nextInt *= 10;
-						nextInt += (buffer[currLineStart++] - '0');
-					}
-
-					//Add that entry to the hash
-					newArr.push_back(((nextInt<<8) | (0xFF&nextChar)));
-
-					//Continue?
-					if (buffer[currLineStart] == ',')
-						currLineStart++;
-				}
-
-				//Push-back copies and shrinks the array.
-				nexus.push_back(newArr);
-
-				break;
-			}
-			case 3: //Prefixes (mapped)
-			{
-				//Skip until the first letter inside the bracket
-				while (buffer[currLineStart] != '{')
-					currLineStart++;
-				currLineStart++;
-
-				//A new hashtable for this entry.
-				newArr.clear();
-				//Reserve a spot for our "halfway" marker
-				newArr.push_back(0);
-				while (buffer[currLineStart] != '}') {
-					//Read a hashed mapping: number
-					unsigned int nextVal = 0;
-					while (buffer[currLineStart] != ':') {
-						nextVal *= 10;
-						nextVal += (buffer[currLineStart++] - '0');
-					}
-					currLineStart++;
-
-					//Store: key
-					newArr.push_back(nextVal);
-
-					//Read a hashed mapping: number
-					nextVal = 0;
-					while (buffer[currLineStart] != ',' && buffer[currLineStart] != '}') {
-						nextVal *= 10;
-						nextVal += (buffer[currLineStart++] - '0');
-					}
-					//Store: val
-					newArr.push_back(nextVal);
-
-					//Continue
-					if (buffer[currLineStart] == ',')
-						currLineStart++;
-				}
-
-				//Used to mark our "halfway" boundary.
-				lastCommentedNumber = newArr.size()-1; //-1 for the first placeholder value
-
-				//Skip until the first letter inside the square bracket
-				while (buffer[currLineStart] != '[')
-					currLineStart++;
-				currLineStart++;
-
-				//Add a new vector for these
-				while (buffer[currLineStart] != ']') {
-					//Read a hashed mapping: number
-					unsigned int nextVal = 0;
-					while (buffer[currLineStart] != ',' && buffer[currLineStart] != ']') {
-						nextVal *= 10;
-						nextVal += (model_buff[currLineStart++] - '0');
-					}
-
-					//Add it
-					newArr.push_back(nextVal);
-
-					//Continue
-					if (buffer[currLineStart] == ',')
-						currLineStart++;
-				}
-
-				//Set the halfway marker to the number of PAIRS
-				newArr[0] = lastCommentedNumber/2;
-
-				//Copy and shrink & store
-				prefix.push_back(newArr);
-
-				break;
-			}
-			default:
-				throw std::runtime_error("Too many comments in model file.");
-		}
-
-		//Right-trim
-		while (buffer[currLineStart] != '\n')
-			currLineStart++;
-		currLineStart++;
+	//Now, read it into a json object
+	Json::Value fileRoot;
+	{
+		Json::Reader reader;
+		if (!reader.parse(waitzar::wcs2mbs(buffer), fileRoot))
+			throw std::runtime_error("Can't parse TrigramLookup model file/stream!");
+		if (!fileRoot.isObject())
+			throw std::runtime_error("Can't parse TrigramLookup model: JSON root is not an object!");
 	}
+
+	//REQUIRED: Word list
+	auto rootKeys = fileRoot.getMemberNames();
+	if (std::find(rootKeys.begin(), rootKeys.end(), "words")==rootKeys.end())
+		throw std::runtime_error("Can't parse TrigramLookup model: no \"words\" entry.");
+	auto dictObj = fileRoot["words"];
+	if (!dictObj.isArray())
+		throw std::runtime_error("Can't parse TrigramLookup model: \"words\" is not an array.");
+	for (auto it=dictObj.begin(); it!=dictObj.end(); it++) {
+		if (!it->isString())
+			throw std::runtime_error("Can't parse TrigramLookup model: \"words\" contains a non-string entry.");
+		wstring word = waitzar::mbs2wcs(it->asString());
+		words.push_back(word);
+		//TEMP
+		//std::cout <<waitzar::escape_wstr(word) <<std::endl;
+	}
+
+	//REQUIRED: Lookup table
+
+
 }
 
 
