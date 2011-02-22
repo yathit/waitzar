@@ -142,22 +142,7 @@ namespace {
 
 
 //A nice helper function for loading an internal resource as a string
-std::string LoadAndReadInternalResource(const std::wstring& resourceID, const std::wstring& resourceType)
-{
-	//A NULL hModule should search "the module used to create the current process", which is fine for WZ
-	HRSRC res = FindResource(NULL, resourceID.c_str(), resourceType.c_str());
-	if (!res) {
-		throw std::runtime_error(std::string("Couldn't find resource: " + esc(resourceID) + " of type: " + esc(resourceType)).c_str());
-	}
-	HGLOBAL res_handle = LoadResource(NULL, res);
-	if (!res_handle)
-		throw std::runtime_error(std::string("Couldn't get a handle on resource: " + esc(resourceID) + " of type: " + esc(resourceType)).c_str());
-	char* res_data = (char*)LockResource(res_handle);
-	DWORD res_size = SizeofResource(NULL, res);
-
-	//res_size is needed in case the character array contains \0 in a non-terminal location.
-	return std::string(res_data, res_size);  //Hooray move constructors
-}
+std::string LoadAndReadInternalResource(unsigned int resourceID, const std::wstring& resourceType);
 
 
 

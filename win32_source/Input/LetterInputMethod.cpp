@@ -363,6 +363,15 @@ void LetterInputMethod::reset(bool resetCandidates, bool resetRoman, bool resetS
 }
 
 
+void LetterInputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)> ConfigGetAndTransformSrc)
+{
+	this->providingHelpFor = providingHelpFor;
+
+	this->ConfigGetAndTransformText = ConfigGetAndTransformSrc;
+}
+
+
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

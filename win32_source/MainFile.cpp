@@ -433,6 +433,37 @@ void ConfigGetAndTransformText(const wstring& fromEnc, const wstring& toEnc, wst
 
 
 
+
+//Implementation of windows_wz function. (We REALLY need to put this in a better place)
+std::string LoadAndReadInternalResource(unsigned int resourceID, const std::wstring& resourceType)
+{
+	//A NULL hModule should search "the module used to create the current process", which is fine for WZ
+	HRSRC res = FindResource(NULL, MAKEINTRESOURCE(resourceID), resourceType.c_str());
+	if (!res) {
+		std::stringstream msg;
+		msg <<"Couldn't find resource: " <<resourceID <<" of type: " <<esc(resourceType);
+		throw std::runtime_error(msg.str().c_str());
+	}
+	HGLOBAL res_handle = LoadResource(NULL, res);
+	if (!res_handle) {
+		std::stringstream msg;
+		msg <<"Couldn't get a handle on resource: " <<resourceID <<" of type: " <<esc(resourceType);
+		throw std::runtime_error(msg.str().c_str());
+	}
+	char* res_data = (char*)LockResource(res_handle);
+	DWORD res_size = SizeofResource(NULL, res);
+
+	//res_size is needed in case the character array contains \0 in a non-terminal location.
+	return std::string(res_data, res_size);  //Hooray move constructors
+}
+
+
+
+
+
+
+
+
 /**
  * This thread is our locus-of-control for carets
  * It should probably always be run synchronously, to prevent another window from
@@ -866,7 +897,7 @@ void makeFont()
 	//Load our help window font: Keys
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_KEY_FONT), L"COREFONT");
+		/*HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_KEY_FONT), L"COREFONT");
 		if (!fontRes) {
 			std::wstringstream msg;
 			msg <<L"Couldn't find IDR_HELP_KEY_FONT: " <<IDR_HELP_KEY_FONT <<L" -> " <<GetLastError();
@@ -879,11 +910,12 @@ void makeFont()
 		if (!res_handle) {
 			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_KEY_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
-		}
+		}*/
 
 		helpFntKeys = new PulpCoreFont();
 		try {
-			helpWindow->initPulpCoreImage(helpFntKeys, fontRes, res_handle);
+			string helpFntBuffer = LoadAndReadInternalResource(IDR_HELP_KEY_FONT, L"COREFONT");
+			helpWindow->initPulpCoreImage(helpFntKeys, helpFntBuffer);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<L"WZ Help Font (keys) didn't load correctly: " <<ex.what();
@@ -898,7 +930,7 @@ void makeFont()
 	//Load our help window font: Foreground
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_FORE_FONT), L"COREFONT");
+		/*HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_FORE_FONT), L"COREFONT");
 		if (!fontRes) {
 			MessageBox(NULL, L"Couldn't find IDR_HELP_FORE_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
@@ -909,11 +941,12 @@ void makeFont()
 		if (!res_handle) {
 			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_FORE_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
-		}
+		}*/
 
 		helpFntFore = new PulpCoreFont();
 		try {
-			helpWindow->initPulpCoreImage(helpFntFore, fontRes, res_handle);
+			string helpFntBuffer = LoadAndReadInternalResource(IDR_HELP_FORE_FONT, L"COREFONT");
+			helpWindow->initPulpCoreImage(helpFntFore, helpFntBuffer);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Help Font (foreground) didn't load correctly: " <<ex.what();
@@ -928,7 +961,7 @@ void makeFont()
 	//Load our help window font: Background
 	{
 		//First the resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_BACK_FONT), L"COREFONT");
+		/*HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_BACK_FONT), L"COREFONT");
 		if (!fontRes) {
 			MessageBox(NULL, L"Couldn't find IDR_HELP_BACK_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
@@ -939,11 +972,12 @@ void makeFont()
 		if (!res_handle) {
 			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_BACK_FONT", L"Error", MB_ICONERROR | MB_OK);
 			return;
-		}
+		}*/
 
 		helpFntBack = new PulpCoreFont();
 		try {
-			helpWindow->initPulpCoreImage(helpFntBack, fontRes, res_handle);
+			string helpFntBuffer = LoadAndReadInternalResource(IDR_HELP_BACK_FONT, L"COREFONT");
+			helpWindow->initPulpCoreImage(helpFntBack, helpFntBuffer);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Help Font (background) didn't load correctly: " <<ex.what();
@@ -954,15 +988,13 @@ void makeFont()
 		//Tint to default
 		helpFntBack->tintSelf(COLOR_HELPFNT_BACK);
 
-		//Unlock this resource for later use.
-		//UnlockResource(res_handle);
 	}
 
 
 	//Load our help menu's corner image (used for keyboard keys)
 	{
 		//First the resource
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CORNER_IMG), L"COREFONT");
+		/*HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CORNER_IMG), L"COREFONT");
 		if (!imgRes) {
 			MessageBox(NULL, L"Couldn't find IDR_HELP_CORNER_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
@@ -973,11 +1005,12 @@ void makeFont()
 		if (!res_handle) {
 			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_CORNER_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
-		}
+		}*/
 
 		helpCornerImg = new PulpCoreImage();
 		try {
-			helpWindow->initPulpCoreImage(helpCornerImg, imgRes, res_handle);
+			string helpFntBuffer = LoadAndReadInternalResource(IDR_HELP_CORNER_IMG, L"COREFONT");
+			helpWindow->initPulpCoreImage(helpCornerImg, helpFntBuffer);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Corner Image File didn't load correctly: " <<ex.what();
@@ -985,15 +1018,13 @@ void makeFont()
 			throw ex;
 		}
 
-		//Unlock this resource for later use.
-		//UnlockResource(res_handle);
 	}
 
 
 	//Load our help menu's "close" image (used because I can't find an anti-aliasing algorithm I like)
 	{
 		//First the resource
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CLOSE_IMG), L"COREFONT");
+		/*HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_HELP_CLOSE_IMG), L"COREFONT");
 		if (!imgRes) {
 			MessageBox(NULL, L"Couldn't find IDR_HELP_CLOSE_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
@@ -1004,11 +1035,12 @@ void makeFont()
 		if (!res_handle) {
 			MessageBox(NULL, L"Couldn't get a handle on IDR_HELP_CLOSE_IMG", L"Error", MB_ICONERROR | MB_OK);
 			return;
-		}
+		}*/
 
 		helpCloseImg = new PulpCoreImage();
 		try {
-			helpWindow->initPulpCoreImage(helpCloseImg, imgRes, res_handle);
+			string helpFntBuffer = LoadAndReadInternalResource(IDR_HELP_CLOSE_IMG, L"COREFONT");
+			helpWindow->initPulpCoreImage(helpCloseImg, helpFntBuffer);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"WZ Close Image File didn't load correctly: " <<ex.what();
@@ -1016,14 +1048,12 @@ void makeFont()
 			throw ex;
 		}
 
-		//Unlock this resource for later use.
-		//UnlockResource(res_handle);
 	}
 
 
 	//Load our page down (color) image, generate the rest.
 	{
-		HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PGDOWN_COLOR), L"COREFONT");
+		/*HRSRC imgRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PGDOWN_COLOR), L"COREFONT");
 		if (!imgRes) {
 			MessageBox(NULL, L"Couldn't find IDR_PGDOWN_COLOR", L"Error", MB_ICONERROR | MB_OK);
 			return;
@@ -1034,11 +1064,12 @@ void makeFont()
 		if (!res_handle) {
 			MessageBox(NULL, L"Couldn't get a handle on IDR_PGDOWN_COLOR", L"Error", MB_ICONERROR | MB_OK);
 			return;
-		}
+		}*/
 
 		pageImages[0] = new PulpCoreImage();
 		try {
-			mainWindow->initPulpCoreImage(pageImages[0], imgRes, res_handle);
+			string helpFntBuffer = LoadAndReadInternalResource(IDR_PGDOWN_COLOR, L"COREFONT");
+			mainWindow->initPulpCoreImage(pageImages[0], helpFntBuffer);
 		} catch (std::exception ex) {
 			wstringstream msg;
 			msg <<"IDR_PGDOWN_COLOR image didn't load correctly: " <<ex.what();
@@ -3137,7 +3168,7 @@ void ChangeLangInputOutput(wstring langid, wstring inputid, wstring outputid)
 	try {
 		//Intentionally try to cause an exception
 		currInput->treatAsHelpKeyboard(NULL);
-	} catch (std::exception ex) {
+	} catch (std::exception& ex) {
 		isRoman = true;
 	}
 	if (isRoman /*&& isPulpFontDisplay*/) {
@@ -4090,7 +4121,7 @@ bool findAndLoadAllConfigFiles()
 		try {
 			//Load the resource as a byte array and get its size, etc.
 			// Set the single config file to this buffer
-			string defaultConfigSrc = LoadAndReadInternalResource(MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), L"Model");
+			string defaultConfigSrc = LoadAndReadInternalResource(IDR_DEFAULT_CONFIG, L"Model");
 			cfgMgr.mergeInConfigFile(defaultConfigSrc, PrimaryCfgPerm(), true);
 			Logger::markLogTime('L', L"Config files loaded: DEFAULT is taking over");
 

@@ -50,7 +50,7 @@ public:
 	void reset(bool resetCandidates, bool resetRoman, bool resetSentence, bool performFullReset);
 
 	//Override
-	void treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* (*ConfigGetTransformation)(const std::wstring& fromEnc, const std::wstring& toEnc));
+	void treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)> ConfigGetAndTransformSrc = std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)>());
 
 	void typeHelpWord(std::string roman, std::wstring myanmar, int currStrDictID);
 

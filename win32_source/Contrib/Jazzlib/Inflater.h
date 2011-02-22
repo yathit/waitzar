@@ -103,8 +103,8 @@ public:
 	void reset();
 	void setDictionary(char* buffer, int buf_length);
 	void setDictionary (char* buffer, int off, int len);
-	void setInput(char* buf, int buf_length);
-	void setInput(char* buf, int off, int len);
+	void setInput(const char* buf, int buf_length);
+	void setInput(const char* buf, int off, int len);
 	bool decodeHeader();
 	bool decodeDict();
 	bool decodeHuffman();

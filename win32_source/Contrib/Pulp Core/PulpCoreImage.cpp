@@ -394,7 +394,7 @@ void PulpCoreImage::rotateSelf90DegreesClockwise()
 /**
  * Specific resource initializer
  */
-void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
+void PulpCoreImage::init(const char *data, DWORD size, HDC currDC)
 {
 	//Init
 	//this->error = FALSE;
@@ -462,14 +462,14 @@ void PulpCoreImage::init(char *data, DWORD size, HDC currDC)
 /**
  * Resource initializer
  */
-void PulpCoreImage::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC)
+void PulpCoreImage::init(const std::string& buffer, HDC currDC)
 {
 	//Get raw data
-    res_data = (char*)LockResource(dataHandle);
-    res_size = SizeofResource(NULL, resource);
+    //res_data = (char*)LockResource(dataHandle);
+    //res_size = SizeofResource(NULL, resource);
 
 	//Loop through and read this data
-	this->init(res_data, res_size, currDC);
+	this->init(buffer.c_str(), buffer.size(), currDC);
 
 	//Unlock this resource for later use
 	//Apparently not needed anymore? Odd...

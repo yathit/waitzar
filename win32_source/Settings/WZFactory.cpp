@@ -399,18 +399,19 @@ DisplayMethod* WZFactory::getZawgyiPngDisplay(std::wstring langID, std::wstring 
 	//Singleton init
 	if (WZFactory::cachedDisplayMethods.count(fullID)==0) {
 		//Load our internal font
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(dispResourceID), L"COREFONT");
+		/*HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(dispResourceID), L"COREFONT");
 		if (!fontRes)
 			throw std::runtime_error("Couldn't find IDR_(MAIN|SMALL)_FONT");
 
 		//Get a handle from this resource.
 		HGLOBAL res_handle = LoadResource(hInst, fontRes);
 		if (!res_handle)
-			throw std::runtime_error("Couldn't get a handle on IDR_(MAIN|SMALL)_FONT");
+			throw std::runtime_error("Couldn't get a handle on IDR_(MAIN|SMALL)_FONT");*/
 
 		//Create, init
+		string buffer = LoadAndReadInternalResource(dispResourceID, L"COREFONT");
 		WZFactory::cachedDisplayMethods[fullID] = new PulpCoreFont();
-		mainWindow->initDisplayMethod(WZFactory::cachedDisplayMethods[fullID], fontRes, res_handle, node.fontFaceName, node.pointSize, 0x000000);
+		mainWindow->initDisplayMethod(WZFactory::cachedDisplayMethods[fullID], buffer, node.fontFaceName, node.pointSize, 0x000000);
 	}
 
 	return WZFactory::cachedDisplayMethods[fullID];
@@ -429,16 +430,17 @@ DisplayMethod* WZFactory::getPadaukZawgyiTtfDisplay(std::wstring langID, std::ws
 		TtfDisplay* res = new TtfDisplay();
 
 		//Get the Padauk embedded resource
-		HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), L"MODEL");
+		/*HRSRC fontRes = FindResource(hInst, MAKEINTRESOURCE(IDR_PADAUK_ZG), L"MODEL");
 		if (!fontRes)
 			throw std::runtime_error("Couldn't find IDR_PADAUK_ZG");
 		HGLOBAL res_handle = LoadResource(NULL, fontRes);
 		if (!res_handle)
-			throw std::runtime_error("Couldn't get a handle on IDR_PADAUK_ZG");
+			throw std::runtime_error("Couldn't get a handle on IDR_PADAUK_ZG");*/
 
 		//Save, init
 		WZFactory::cachedDisplayMethods[fullID] = res;
-		mainWindow->initTtfMethod(WZFactory::cachedDisplayMethods[fullID], fontRes, res_handle, L"PdkZgWz", 10, 0x000000);
+		string buffer = LoadAndReadInternalResource(IDR_PADAUK_ZG, L"MODEL");
+		mainWindow->initTtfMethod(WZFactory::cachedDisplayMethods[fullID], buffer, L"PdkZgWz", 10, 0x000000);
 	}
 
 	return WZFactory::cachedDisplayMethods[fullID];

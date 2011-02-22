@@ -25,7 +25,7 @@ public:
 	void init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor);
 
 	//Initialization: Load an embedded font resource
-	void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor);
+	void init(const std::string& buffer, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor);
 
 	//Custom: load a local TTF file
 	void init(const std::wstring& fileName, const std::wstring& fontFaceName, int pointSize, HDC currDC, unsigned int defaultColor, int devLogPixelsY);

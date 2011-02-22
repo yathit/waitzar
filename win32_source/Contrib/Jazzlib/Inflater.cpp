@@ -223,13 +223,13 @@ void Inflater::setDictionary (char* buffer, int off, int len)
 }
 
 
-void Inflater::setInput(char* buf, int buf_length)
+void Inflater::setInput(const char* buf, int buf_length)
 {
 	setInput (buf, 0, buf_length);
 }
 
 
-void Inflater::setInput(char* buf, int off, int len)
+void Inflater::setInput(const char* buf, int off, int len)
 {
     input->setInput (buf, off, len);
     totalIn += len;

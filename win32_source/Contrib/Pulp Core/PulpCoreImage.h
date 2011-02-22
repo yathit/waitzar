@@ -67,9 +67,9 @@ public:
 	PulpCoreImage();
 
 	//Initializer, copy initializer
-	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC);
+	virtual void init(const std::string& buffer, HDC currDC);
 	virtual void init(PulpCoreImage *copyFrom, HDC currDC);
-	virtual void init(char *data, DWORD size, HDC currDC);
+	virtual void init(const char *data, DWORD size, HDC currDC);
 
 	//Make a blank image
 	virtual void init(int width, int height, int bkgrdARGB, HDC currDC, HDC &thisDC, HBITMAP &thisBmp);
@@ -125,7 +125,7 @@ protected:
 
 	//Used by the primary constructor to hold resource-related information.
 	DWORD currPos;
-	char* res_data;
+	const char* res_data;
 	DWORD res_size;
 
 	//Error tracking

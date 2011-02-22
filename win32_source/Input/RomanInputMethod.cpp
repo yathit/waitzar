@@ -516,7 +516,7 @@ std::pair<int, int> RomanInputMethod::getPagingInfo() const
 
 
 
-void RomanInputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, const Transformation* (*ConfigGetTransformation)(const std::wstring& fromEnc, const std::wstring& toEnc))
+void RomanInputMethod::treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)> ConfigGetAndTransformSrc)
 {
 	throw std::runtime_error("Cannot use a Romanized keyboard for a help input method");
 }

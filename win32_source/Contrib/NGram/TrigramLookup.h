@@ -29,6 +29,15 @@ public:
 	std::vector<Nexus> moveTo;
 
 	std::vector<unsigned int> matchedWords;
+
+	int getMoveID(char c) {
+		size_t x = 0;
+		for (; x<moveOn.size(); x++) {
+			if (moveOn[x]==c)
+				return x;
+		}
+		return -1;
+	}
 };
 
 
@@ -80,7 +89,10 @@ public:
 
 
 	//TODO:
-	void reset() {}
+	void reset() {
+		currLookup = &lookup;
+		typedRoman = "";
+	}
 
 
 
@@ -95,16 +107,20 @@ private:
 	//Build helper
 	static void buildLookupRecursively(Json::Value& currObj, Nexus& currNode);
 
-
 	//State of a search
+	std::string typedRoman;
+	Nexus* currLookup;
+
+
+	//State of a search: OLD
 	std::string parenStr;
 	unsigned int currNexus;
 	wchar_t lastTypedLetter;
 
 	//Internal functions
 	void resolveWords(void);
-	int jumpToNexus(int fromNexus, char jumpChar) const;
-	int jumpToPrefix(int fromPrefix, int jumpID) const;
+	//int jumpToNexus(int fromNexus, char jumpChar) const;
+	//int jumpToPrefix(int fromPrefix, int jumpID) const;
 
 
 };
