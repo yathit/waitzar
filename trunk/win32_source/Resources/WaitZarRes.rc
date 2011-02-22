@@ -36,6 +36,7 @@ IDR_WAITZAR_MODEL       MODEL          "Myanmar.model"
 IDR_WAITZAR_EASYPS      MODEL          "easypatsint.txt"
 IDR_DEFAULT_CONFIG      MODEL          "default-config.json.txt"
 IDR_PADAUK_ZG           MODEL          "pdkzg.ttf"
+IDR_WAITZAR_NEWMODEL    MODEL          "WZModel.json.txt"
 
 //Pulp Core Fonts -- Essential
 IDR_MAIN_FONT           COREFONT       "waitzar.font.png"
