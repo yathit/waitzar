@@ -133,13 +133,13 @@ public:
 	int getDefaultHeight();
 
 	//Fonts (even DIB ones like Pulp Core fonts) must be tied to some compatible DC somewhere.
-	void initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
+	void initDisplayMethod(DisplayMethod* img, const std::string& buffer, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
 	void initDisplayMethod(DisplayMethod* img, char *data, DWORD size, unsigned int defaultColor);
 
-	void initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
+	void initTtfMethod(DisplayMethod* img, const std::string& buffer, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
 	void initTtfMethod(DisplayMethod* img, const std::wstring& fontFileName, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor);
 
-	void initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle);
+	void initPulpCoreImage(PulpCoreImage* img, const std::string& buffer);
 	void initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImg);
 	void initPulpCoreImage(PulpCoreFont* font, PulpCoreFont* copyFromFont, unsigned int defaultColor); //Needed for a tiny fluke w/ OOP in C++
 	void initPulpCoreImage(PulpCoreImage* img, int width, int height, int bkgrdARGB);

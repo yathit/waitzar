@@ -62,19 +62,19 @@ void TtfDisplay::init(const wstring& fileName, const wstring& fontFaceName, int 
 }
 
 
-void TtfDisplay::init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor)
+void TtfDisplay::init(const std::string& buffer, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor)
 {
 	//Save
 	if (currDC != NULL)
 		lastKnownGoodHDC = currDC;
 
 	//Get raw data
-	void* data = LockResource(dataHandle);
-	size_t len = SizeofResource(NULL, resource);
+	/*void* data = LockResource(dataHandle);
+	size_t len = SizeofResource(NULL, resource);*/
 
 	//Add the font resource
 	DWORD nFonts;
-	fontHandle = AddFontMemResourceEx(data, len, 0, &nFonts);
+	fontHandle = AddFontMemResourceEx(const_cast<char*>(buffer.c_str()), buffer.size(), 0, &nFonts);
 	if(!fontHandle)
 		throw std::runtime_error("Embedded font could not be loaded.");
 

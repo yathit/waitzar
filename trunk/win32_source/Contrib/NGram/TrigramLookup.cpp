@@ -174,9 +174,14 @@ void TrigramLookup::buildLookupRecursively(Json::Value& currObj, Nexus& currNode
 //TODO: We might consider using a map<int, int> to lookup word IDs. Have to check the space requirements.
 bool TrigramLookup::addRomanizationToModel(const string& roman, const wstring& myanmar, bool errorOnDuplicates)
 {
-	//Step 1: Do we need to add it?
-	if (std::find(dictionary.begin(), dictionary.end(), myanmar)==dictionary.end())
-		dictionary.push_back(myanmar);
+	//Step 1: Do we need to add it? (Also, retrieve its ID)
+	size_t currWordID = 0;
+	for (; currWordID<words.size(); currWordID++) {
+		if (words[currWordID] == myanmar)
+			break;
+	}
+	if (currWordID==words.size())
+		words.push_back(myanmar);
 
 	//Update the reverse lookup?
 	//TODO:
@@ -186,66 +191,21 @@ bool TrigramLookup::addRomanizationToModel(const string& roman, const wstring& m
 	//}
 
 	//Step 2: Update the nexus path to this romanization
-	size_t currNodeID = 0;
-	for (size_t rmID=0; rmID<roman.length(); rmID++) {
-		//Does a path exist from our current node to the next step?
-		size_t nextNexusID;
-		for (nextNexusID=0; nextNexusID<nexus[currNodeID].size(); nextNexusID++) {
-			if (((nexus[currNodeID][nextNexusID])&0xFF) == roman[rmID]) {
-				break;
-			}
-		}
-		if (nextNexusID==nexus[currNodeID].size()) {
-			//First step: make a blank nexus entry at the END of this list
-			if (nexus.size() == std::numeric_limits<size_t>::max())
-				throw std::runtime_error("Too many custom nexi in model file.");
-			nexus.push_back(vector<unsigned int>());
-
-			//Now, link to this from the current nexus list.
-			nexus[currNodeID].push_back(((nexus.size()-1)<<8) | (0xFF&roman[rmID]));
+	Nexus* currNode = &lookup;
+	for (auto ch=roman.begin(); ch!=roman.end(); ch++) {
+		//Add a path if needed
+		if (currNode->getMoveID(*ch)==-1) {
+			currNode->moveOn = currNode->moveOn + string(1, *ch);
+			currNode->moveTo.push_back(Nexus());
 		}
 
-		currNodeID = ((nexus[currNodeID][nextNexusID])>>8);
+		//Advance
+		currNode = &currNode->moveTo[currNode->getMoveID(*ch)];
 	}
 
-
-	//Final task: add (just the first) prefix entry.
-	size_t currPrefixID;
-	for (currPrefixID=0; currPrefixID<nexus[currNodeID].size(); currPrefixID++) {
-		if (((nexus[currNodeID][currPrefixID])&0xFF) == '~') {
-			break;
-		}
-	}
-	if (currPrefixID == nexus[currNodeID].size()) {
-		//We need to add a prefix entry
-		if (prefix.size() == std::numeric_limits<size_t>::max())
-			throw std::runtime_error("Too many custom prefixes in model file.");
-		prefix.push_back(vector<unsigned int>(1, 0));
-
-		//Now, point the nexus to this entry
-		nexus[currNodeID].push_back((unsigned int) (((prefix.size()-1)<<8) | ('~')));
-	}
-
-	//Translate
-	currPrefixID = (nexus[currNodeID][currPrefixID])>>8;
-
-	//Does our prefix entry contain this dictionary word?
-	vector<unsigned int>::iterator currWord = prefix[currPrefixID].begin();
-	std::advance(currWord, prefix[currPrefixID][0]*2+1);
-	for (; currWord!=prefix[currPrefixID].end(); currWord++) {
-		if (*currWord == dictID) {
-			if (!ignoreDuplicates) {
-				wstringstream msg;
-				msg << "Word is already in dictionary at ID: " << (*currWord);
-				throw std::runtime_error(waitzar::escape_wstr(msg.str()));
-			} else {
-				return true;
-			}
-		}
-	}
-
-	//Ok, copy it over
-	prefix[currPrefixID].push_back(dictID);
+	//Step 3: Add this word's ID
+	if (std::find(currNode->matchedWords.begin(), currNode->matchedWords.end(), currWordID)==currNode->matchedWords.end())
+		currNode->matchedWords.push_back(currWordID);
 
 	return true;
 
@@ -254,68 +214,8 @@ bool TrigramLookup::addRomanizationToModel(const string& roman, const wstring& m
 
 bool TrigramLookup::addShortcut(const wstring& baseWord, const wstring& toStack, const wstring& resultStacked)
 {
-	//Make sure all 3 words exist in the dictionary
-	// NOTE: Technically, toStack need not be in the dictionary. However, we need to know
-	//       how to spell it, at least, which would mean a kludge if the word wasn't catalogued.
-	unsigned int baseWordID = getWordID(baseWord);
-	unsigned int toStackID = getWordID(toStack);
-	unsigned int resultStackedID = getWordID(resultStacked);
-	unsigned int invalidID = dictionary.size();
-	if (baseWordID==invalidID || toStackID==invalidID || resultStackedID==invalidID) {
-		wstringstream msg;
-		msg <<"pre/post/curr word does not exist in the dictionary (" <<baseWordID
-			<<", " <<toStackID <<", " <<resultStackedID <<" : " <<invalidID <<")";
-		throw std::runtime_error(waitzar::escape_wstr(msg.str()));
-	}
-
-	//For now (assuming no collisions, which is a bit broad of us) we need to say that from
-	//  any given nexus that has toStackID in the base set, we set an "if,then" clause;
-	//  namely, if baseWordID is the previous trigram entry, then resultStacked is the word of choice.
-	//There aren't many pat-sint words, so an ordered list of some sort (or, I guess, a map) should do the
-	// trick.
-	for (unsigned int toStackNexusID=0; toStackNexusID<nexus.size(); toStackNexusID++) {
-		//Is this nexus ID valid?
-		vector<unsigned int> &thisNexus = nexus[toStackNexusID];
-		unsigned int prefixID = 0;
-		bool considerThisNexus = false;
-		for (unsigned int x=0; x<thisNexus.size(); x++) {
-			//Is this the resolving letter?
-			char letter = (char)(0xFF&thisNexus[x]);
-			if (letter!='~')
-				continue;
-
-			//Ok, save it
-			prefixID = (thisNexus[x]>>8);
-			considerThisNexus = true;
-			break;
-		}
-		if (considerThisNexus) {
-			//Now, test this prefix to see if its base pair contains our word in question.
-			considerThisNexus = false;
-			vector<unsigned int>::iterator prefWord = prefix[prefixID].begin();
-			std::advance(prefWord, prefix[prefixID][0]*2+1);
-			for (; prefWord!=prefix[prefixID].end(); prefWord++) {
-				if (*prefWord == toStackID) {
-					considerThisNexus = true;
-					break;
-				}
-			}
-		}
-		if (!considerThisNexus)
-			continue;
-
-
-		//A new entry should be added by using the [] syntax
-		if (shortcuts[toStackNexusID].count(baseWordID)>0) {
-			//Some word's already claimed this nexus.
-			wstringstream msg;
-			msg <<"Nexus & prefix already in use: " <<toStackNexusID <<" " <<baseWordID;
-			throw std::runtime_error(waitzar::escape_wstr(msg.str()));
-		}
-
-		//Add this nexus
-		shortcuts[toStackNexusID][baseWordID] = resultStackedID;
-	}
+	//Add/Get
+	shortcuts[baseWord][toStack] = resultStacked;
 
 	return true;
 }
@@ -328,37 +228,23 @@ bool TrigramLookup::continueLookup(const string& roman)
 	if (roman.empty())
 		return false;
 
-	//Is this letter meaningful?
-	int nextNexus = jumpToNexus(this->currNexus, letter);
-	if (nextNexus == -1) {
-		//There's a special case: if we are evaluating "g", it might be a shortcut for "aung"
-		if (letter!='g') {
-			return false;
-		} else {
-			//Start at "aung" if we haven't already typed "a"
-			string test = (lastTypedLetter=='a') ? "ung" : "aung";
+	//Apply to each letter
+	for (auto ch=roman.begin(); ch!=roman.end(); ch++) {
+		//Does an entry exist?
+		int id = currLookup->getMoveID(*ch);
+		if (id==-1)
+			return false;  //TODO: Try our "lastchance" shortcuts; make sure "typedRoman" is updated correctly!
 
-			//Ok, can we get ALL the way there?
-			nextNexus = currNexus;
-			for (size_t i=0; i<test.size(); i++) {
-				nextNexus = jumpToNexus(nextNexus, test[i]);
-				if (nextNexus==-1)
-					break;
-			}
+		//Append
+		typedRoman += string(1, *ch);
 
-			//Did it work?
-			if (nextNexus==-1)
-				return false;
-		}
+		//Jump
+		currLookup = &currLookup->moveTo[id];
 	}
 
-	//Save the path to this point and continue
-	//pastNexus.push_back(currNexus);
-	currNexus = nextNexus;
-
-	//Update the external state of the WordBuilder
-	this->resolveWords();
-	lastTypedLetter = roman[roman.length-1];
+	//TODO:
+	//We might update our "matched" words here, just to make it easier to quickly return an array.
+	//But, actually, "updateTrigrams" would change this anway....
 
 	//Success
 	return true;
@@ -369,7 +255,7 @@ bool TrigramLookup::continueLookup(const string& roman)
  * Given a "fromNexus", find the link leading out on character "jumpChar" and take it.
  *   Returns -1 if no such nexus could be found.
  */
-int WordBuilder::jumpToNexus(int fromNexus, char jumpChar) const
+/*int WordBuilder::jumpToNexus(int fromNexus, char jumpChar) const
 {
 	for (unsigned int i=0; i<this->nexus[fromNexus].size(); i++) {
 		if ( (this->nexus[fromNexus][i]&0xFF) == jumpChar )
@@ -387,7 +273,7 @@ int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID) const
 			return this->prefix[fromPrefix][i*2+2];
 	}
 	return -1;
-}
+}*/
 
 
 
@@ -397,8 +283,12 @@ int WordBuilder::jumpToPrefix(int fromPrefix, int jumpID) const
  */
 void TrigramLookup::resolveWords()
 {
+	//TODO: We might "resolve" on a trigram, or keep a "dirty" bit and resolve, etc.
+	//      In other words, ther's a lot to consider.
+
+
 	//Init
-	parenStr.clear();
+	/*parenStr.clear();
 
 	//If there are no words possible, can we jump to a point that doesn't diverge?
 	int speculativeNexusID = currNexus;
@@ -473,7 +363,7 @@ void TrigramLookup::resolveWords()
 		}
 	}
 
-	this->currSelectedAbsoluteID = firstRegularWordIndex; //Start at relative ID "0"
+	this->currSelectedAbsoluteID = firstRegularWordIndex; //Start at relative ID "0"*/
 }
 
 

@@ -46,6 +46,8 @@ public:
 
 	std::pair<int, std::string> lookupWord(std::wstring typedWord);
 
+	void treatAsHelpKeyboard(InputMethod* providingHelpFor, std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)> ConfigGetAndTransformSrc = std::function<void (const std::wstring& fromEnc, const std::wstring& toEnc, std::wstring& src)>());
+
 protected:
 	std::wstringstream typedSentenceStr;
 	std::wstringstream typedCandidateStr;

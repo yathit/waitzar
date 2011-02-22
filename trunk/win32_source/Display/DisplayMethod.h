@@ -15,7 +15,7 @@ public:
 
 	//Initialization
 	virtual void init(char *data, unsigned long size, HDC currDC, unsigned int defaultColor) = 0;
-	virtual void init(HRSRC resource, HGLOBAL dataHandle, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor) = 0;
+	virtual void init(const std::string& buffer, HDC currDC, const std::wstring& fontFaceName, int pointSize, int devLogPixelsY, unsigned int defaultColor) = 0;
 	virtual void init(const std::wstring& fileName, const std::wstring& fontFaceName, int pointSize, HDC currDC, unsigned int defaultColor, int devLogPixelsY) = 0;
 
 	//Functionality

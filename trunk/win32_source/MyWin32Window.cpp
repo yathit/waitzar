@@ -678,9 +678,9 @@ bool MyWin32Window::postMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	return true;
 }
 
-void MyWin32Window::initDisplayMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor)
+void MyWin32Window::initDisplayMethod(DisplayMethod* img, const std::string& buffer, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor)
 {
-	img->init(resource, dataHandle, topDC, fontFaceName, pointSize, deviceLogPixelsY, defaultColor);
+	img->init(buffer, topDC, fontFaceName, pointSize, deviceLogPixelsY, defaultColor);
 }
 
 void MyWin32Window::initDisplayMethod(DisplayMethod* img, char *data, DWORD size, unsigned int defaultColor)
@@ -688,9 +688,9 @@ void MyWin32Window::initDisplayMethod(DisplayMethod* img, char *data, DWORD size
 	img->init(data, size, topDC, defaultColor);
 }
 
-void MyWin32Window::initTtfMethod(DisplayMethod* img, HRSRC resource, HGLOBAL dataHandle, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor)
+void MyWin32Window::initTtfMethod(DisplayMethod* img, const std::string& buffer, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor)
 {
-	img->init(resource, dataHandle, topDC, fontFaceName, pointSize, deviceLogPixelsY, defaultColor);
+	img->init(buffer, topDC, fontFaceName, pointSize, deviceLogPixelsY, defaultColor);
 }
 
 void MyWin32Window::initTtfMethod(DisplayMethod* img, const std::wstring& fontFileName, const std::wstring& fontFaceName, int pointSize, unsigned int defaultColor)
@@ -699,9 +699,9 @@ void MyWin32Window::initTtfMethod(DisplayMethod* img, const std::wstring& fontFi
 }
 
 
-void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, HRSRC resource, HGLOBAL dataHandle)
+void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, const std::string& buffer)
 {
-	img->init(resource, dataHandle, topDC);
+	img->init(buffer, topDC);
 }
 
 void MyWin32Window::initPulpCoreImage(PulpCoreImage* img, PulpCoreImage* copyFromImage)

@@ -25,7 +25,7 @@
 /**
  * Clean-room implementation of System.arraycopy() from the JRE
  */
-void copyArray(char* source, int srcPos, char* dest, int destPos, int length)
+void copyArray(const char* source, int srcPos, char* dest, int destPos, int length)
 {
 	for (int i=0; i<length; i++) {
 		dest[destPos+i] = source[srcPos+i];
@@ -195,7 +195,7 @@ void StreamManipulator::reset()
 /**
  *
  */
-void StreamManipulator::setInput(char* buf, int off, int len)
+void StreamManipulator::setInput(const char* buf, int off, int len)
 {
 	/*
     if (window_start < window_end)
