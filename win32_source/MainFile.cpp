@@ -185,11 +185,6 @@ bool helpIsCached;
 
 
 
-
-
-
-
-
 //Hotkey & modifier strings
 vector<wstring> settingsHKModifiers;
 vector<wstring> settingsHKKeys;
@@ -4094,18 +4089,9 @@ bool findAndLoadAllConfigFiles()
 		//Try one more time, this time with the default config file.
 		try {
 			//Load the resource as a byte array and get its size, etc.
-			HRSRC res = FindResource(hInst, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), L"Model");
-			if (!res)
-				throw std::runtime_error("Couldn't find resource WZ_DEFAULT_CFG.");
-			HGLOBAL res_handle = LoadResource(NULL, res);
-			if (!res_handle)
-				throw std::runtime_error("Couldn't get a handle on WZ_DEFAULT_CFG.");
-			char* res_data = (char*)LockResource(res_handle);
-			DWORD res_size = SizeofResource(NULL, res);
-
-			//Set the config file
-			//config.initMainConfig(string(res_data, res_size), true);
-			cfgMgr.mergeInConfigFile(string(res_data, res_size), PrimaryCfgPerm(), true);
+			// Set the single config file to this buffer
+			string defaultConfigSrc = LoadAndReadInternalResource(MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), L"Model");
+			cfgMgr.mergeInConfigFile(defaultConfigSrc, PrimaryCfgPerm(), true);
 			Logger::markLogTime('L', L"Config files loaded: DEFAULT is taking over");
 
 			//One more test.

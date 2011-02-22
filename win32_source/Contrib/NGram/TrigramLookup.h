@@ -24,8 +24,9 @@ namespace waitzar
 
 //Helper class
 class Nexus {
+public:
 	std::string moveOn;
-	std::vector<Node> moveTo;
+	std::vector<Nexus> moveTo;
 
 	std::vector<unsigned int> matchedWords;
 };
@@ -78,13 +79,17 @@ public:
 	const std::string& reverseLookupWord(const std::wstring& myanmar);
 
 
+	//TODO:
+	void reset() {}
+
+
 
 private:
 	//Primary data, converted from JSON
 	std::vector<std::wstring> words;
 	Nexus lookup;
 	std::vector<std::wstring> lastChanceRegexes;
-	std::map<std::string, std::map<std::wstring, std::vector<std::unsigned int>>> ngrams;
+	std::map<std::string, std::map<std::wstring, std::vector<unsigned int>>> ngrams;
 	std::map<std::wstring, std::map<std::wstring, std::wstring>> shortcuts;
 
 	//Build helper
