@@ -13,6 +13,10 @@ using std::vector;
 using std::map;
 
 
+namespace waitzar
+{
+
+
 
 //TODO: Make our binary format more uniform, so that we only need to branch when storing data (not when loading it).
 //      We might consider using JSON for this; not sure how it'll work on Linux.
@@ -39,9 +43,10 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 	if (!dictObj.isArray())
 		throw std::runtime_error("Can't parse TrigramLookup model: \"words\" is not an array.");
 	for (auto it=dictObj.begin(); it!=dictObj.end(); it++) {
-		if (!it->isString())
+	//for (size_t i=0; i<dictObj.size(); i++) {
+		if (!(*it).isString())
 			throw std::runtime_error("Can't parse TrigramLookup model: \"words\" contains a non-string entry.");
-		wstring word = waitzar::mbs2wcs(it->asString());
+		wstring word = waitzar::mbs2wcs((*it).asString());
 		words.push_back(word);
 		//TEMP
 		//std::cout <<waitzar::escape_wstr(word) <<std::endl;
@@ -75,10 +80,10 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 				if (!mmResultObj.isArray())
 					throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" contains a non-array ngram value.");
 				vector<unsigned int> reorder;
-				for (auto it=mmResultObj.begin(); it!=mmResultObj.end(); mmResultObj++) {
-					if (!it->isUint())
+				for (auto it=mmResultObj.begin(); it!=mmResultObj.end(); it++) {
+					if (!(*it).isUInt())
 						throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" referenes a non-integral reordering.");
-					reorder.push_back(it->asUInt());
+					reorder.push_back((*it).asUInt());
 				}
 
 				//Add it
@@ -93,9 +98,9 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 		if (!lcObj.isArray())
 			throw std::runtime_error("Can't parse TrigramLookup model: \"lastchance\" is not an array.");
 		for (auto it=lcObj.begin(); it!=lcObj.end(); it++) {
-			if (!it->isString())
+			if (!(*it).isString())
 				throw std::runtime_error("Can't parse TrigramLookup model: \"lastchance\" contains a non-string entry.");
-			wstring recover = waitzar::mbs2wcs(it->asString());
+			wstring recover = waitzar::mbs2wcs((*it).asString());
 			lastChanceRegexes.push_back(recover);
 		}
 	}
@@ -121,7 +126,7 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 					throw std::runtime_error("Can't parse TrigramLookup model: \"shortcuts\" contains a non-string result value.");
 
 				//Add it
-				shortcuts[waitzar::mbs2wcs(*baseIt)][waitzar::mbs2wcs(*stackedIt)] = waitzar::mbs2wcs(mmResultObj->asString());
+				shortcuts[waitzar::mbs2wcs(*baseIt)][waitzar::mbs2wcs(*stackedIt)] = waitzar::mbs2wcs(mmResultObj.asString());
 			}
 		}
 	}
@@ -143,20 +148,20 @@ void TrigramLookup::buildLookupRecursively(Json::Value& currObj, Nexus& currNode
 			//Append all current matches
 			if (!nextObj.isArray())
 				throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-array value set.");
-			for (auto wordID=nextObj.begin(); wordID!=nextObj.end(); nextObj++) {
-				if (!wordID->isUInt())
+			for (auto wordID=nextObj.begin(); wordID!=nextObj.end(); wordID++) {
+				if (!(*wordID).isUInt())
 					throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-integral value.");
-				currNode.matchedWords.push_back(nextObj.asUInt());
+				currNode.matchedWords.push_back((*wordID).asUInt());
 			}
 		} else {
 			//Append the key, and a blank node for it
 			currNode.moveOn += key;
-			moveTo.push_back(Node());
+			currNode.moveTo.push_back(Nexus());
 
 			//Recurse
 			if (!nextObj.isObject())
 				throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-object entry.");
-			buildLookupRecursively(nextObj, moveTo[moveTo.size()-1]);
+			buildLookupRecursively(nextObj, currNode.moveTo[currNode.moveTo.size()-1]);
 		}
 	}
 
@@ -472,7 +477,7 @@ void TrigramLookup::resolveWords()
 }
 
 
-
+} //End waitzar namespace
 
 
 

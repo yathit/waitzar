@@ -5,8 +5,7 @@
  */
 
 
-#ifndef HEADER_WINDOWS_WZ_H_
-#define HEADER_WINDOWS_WZ_H_
+#pragma once
 
 /**
  * This file exists as a "safe" way of including windows.h in the Wait Zar project.
@@ -18,6 +17,10 @@
  * So just include this file where you'd otherwise include windows.h
  */
 
+//Used at one point
+#include <string>
+#include <sstream>
+#include <stdexcept>
 
 
 /////////////////////////////////////
@@ -121,9 +124,42 @@
 
 
 
+namespace {
+	//Helper; somewhat copied from wz_utilities; we can't have windows_wz depend on any other WZ code.
+	std::string esc(const std::wstring& src) {
+		std::stringstream res;
+		for (auto c=src.begin(); c!=src.end(); c++) {
+			if (*c < 0x7F)
+				res << static_cast<char>(*c);
+			else
+				res <<"\\u" << std::hex << *c << std::dec;
+		}
+		return res.str();
+	}
+}
 
 
-#endif /* HEADER_WINDOWS_WZ_H_ */
+
+
+//A nice helper function for loading an internal resource as a string
+std::string LoadAndReadInternalResource(const std::wstring& resourceID, const std::wstring& resourceType)
+{
+	//A NULL hModule should search "the module used to create the current process", which is fine for WZ
+	HRSRC res = FindResource(NULL, resourceID.c_str(), resourceType.c_str());
+	if (!res) {
+		throw std::runtime_error(std::string("Couldn't find resource: " + esc(resourceID) + " of type: " + esc(resourceType)).c_str());
+	}
+	HGLOBAL res_handle = LoadResource(NULL, res);
+	if (!res_handle)
+		throw std::runtime_error(std::string("Couldn't get a handle on resource: " + esc(resourceID) + " of type: " + esc(resourceType)).c_str());
+	char* res_data = (char*)LockResource(res_handle);
+	DWORD res_size = SizeofResource(NULL, res);
+
+	//res_size is needed in case the character array contains \0 in a non-terminal location.
+	return std::string(res_data, res_size);  //Hooray move constructors
+}
+
+
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");

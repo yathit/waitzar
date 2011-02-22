@@ -1,7 +1,7 @@
 //
 // Resource header file; see WaitZarRes.rc for implementation.
 // This file is now maintained entirely by hand.
-// 
+//
 // WARNING: It seems that the resource compiler ONLY understands preprocessor directives.
 //          Using enums, const ints, or anything else will cause the resource to fail to load.
 //
@@ -25,6 +25,7 @@
 #define IDR_WAITZAR_EASYPS     202
 #define IDR_DEFAULT_CONFIG     203
 #define IDR_PADAUK_ZG          204
+#define IDR_WAITZAR_NEWMODEL   205
 
 //Pulp Core Font Files (main)
 #define IDR_MAIN_FONT          301
