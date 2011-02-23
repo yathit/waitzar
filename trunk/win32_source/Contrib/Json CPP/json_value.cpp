@@ -121,11 +121,12 @@ static struct DummyValueAllocatorInitializer {
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 #ifdef JSON_VALUE_USE_INTERNAL_MAP
-# include "json_internalarray.inl"
-# include "json_internalmap.inl"
+#error JSON_VALUE_USE_INTERNAL_MAP is not currently supported.
+//# include "json_internalarray.inl"
+//# include "json_internalmap.inl"
 #endif // JSON_VALUE_USE_INTERNAL_MAP
 
-# include "json_valueiterator.inl"
+//#include "json_valueiterator.cpp"
 
 
 // //////////////////////////////////////////////////////////////////
