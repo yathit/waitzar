@@ -20,7 +20,9 @@
 #include <stdexcept>
 
 
+
 //Our project's includes
+#include "NGram/TrigramLookup.h"
 #include "NGram/WordBuilder.h"
 #include "NGram/SentenceList.h"
 #include "NGram/wz_utilities.h"
@@ -4613,15 +4615,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 
-	//Check if the current version is up-to-date.
-	//TODO: Thread this call.
-	//CheckCurrentVersion();
+
+	//TEST
+	TrigramLookup x(LoadAndReadInternalResource(IDR_WAITZAR_NEWMODEL, L"Model"), true);
+	std::cout <<"Success." <<std::endl;
+	return 0;
+	//END TEST
 
 
-
-	//Set the locale to the current system locale.
-	//VirtKey::SetCurrLocale(LOWORD(GetKeyboardLayout(0)));
-	//TODO: Check IsCurrLocaleInsufficient() and show a balloon (or something) if this is the case.
 
 	//Set defaults
 	Logger::startLogTimer('L', L"Starting default language");

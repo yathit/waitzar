@@ -81,7 +81,7 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 					throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" contains a non-array ngram value.");
 				vector<unsigned int> reorder;
 				for (auto it=mmResultObj.begin(); it!=mmResultObj.end(); it++) {
-					if (!(*it).isUInt())
+					if (!(*it).isIntegral())
 						throw std::runtime_error("Can't parse TrigramLookup model: \"ngrams\" referenes a non-integral reordering.");
 					reorder.push_back((*it).asUInt());
 				}
@@ -149,7 +149,7 @@ void TrigramLookup::buildLookupRecursively(Json::Value& currObj, Nexus& currNode
 			if (!nextObj.isArray())
 				throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-array value set.");
 			for (auto wordID=nextObj.begin(); wordID!=nextObj.end(); wordID++) {
-				if (!(*wordID).isUInt())
+				if (!(*wordID).isIntegral())
 					throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-integral value.");
 				currNode.matchedWords.push_back((*wordID).asUInt());
 			}
