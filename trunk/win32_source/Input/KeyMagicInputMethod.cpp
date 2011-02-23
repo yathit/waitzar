@@ -1114,8 +1114,8 @@ vector<Rule> KeyMagicInputMethod::createRuleVector(const vector<Rule>& rules, co
 				switchesUsed.push_back(currRule.id);
 				break;
 
-			default:
-				throw std::runtime_error("Unknown rule type.");
+			//default:
+			//	throw std::runtime_error("Unknown rule type.");
 		}
 
 		//Add all rules that consume input.
