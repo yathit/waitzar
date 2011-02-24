@@ -103,9 +103,10 @@ private:
 	std::vector<std::wstring> lastChanceRegexes;
 	std::map<std::string, std::map<std::wstring, std::vector<unsigned int>>> ngrams;
 	std::map<std::wstring, std::map<std::wstring, std::wstring>> shortcuts;
+	std::map<std::wstring, std::wstring> revLookup;
 
 	//Build helper
-	static void buildLookupRecursively(Json::Value& currObj, Nexus& currNode);
+	static void buildLookupRecursively(std::string roman, Json::Value& currObj, Nexus& currNode);
 
 	//State of a search
 	std::string typedRoman;
