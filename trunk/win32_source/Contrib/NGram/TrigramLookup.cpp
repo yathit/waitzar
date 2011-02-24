@@ -48,8 +48,6 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 			throw std::runtime_error("Can't parse TrigramLookup model: \"words\" contains a non-string entry.");
 		wstring word = waitzar::mbs2wcs((*it).asString());
 		words.push_back(word);
-		//TEMP
-		//std::cout <<waitzar::escape_wstr(word) <<std::endl;
 	}
 
 	//REQUIRED: Lookup table
@@ -58,7 +56,7 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 	Json::Value lookupObj = fileRoot["lookup"];
 	if (!lookupObj.isObject())
 		throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" is not an object.");
-	buildLookupRecursively(lookupObj, lookup);
+	buildLookupRecursively("", lookupObj, lookup);
 
 	//OPTIONAL: n-grams prefix lookups
 	if (std::find(rootKeys.begin(), rootKeys.end(), "ngrams")!=rootKeys.end()) {
@@ -133,7 +131,7 @@ TrigramLookup::TrigramLookup(const string& modelBufferOrFile, bool stringIsBuffe
 }
 
 
-void TrigramLookup::buildLookupRecursively(Json::Value& currObj, Nexus& currNode)
+void TrigramLookup::buildLookupRecursively(string roman, Json::Value& currObj, Nexus& currNode)
 {
 	auto keys = currObj.getMemberNames();
 	for (auto it=keys.begin(); it!=keys.end(); it++) {
@@ -152,6 +150,11 @@ void TrigramLookup::buildLookupRecursively(Json::Value& currObj, Nexus& currNode
 				if (!(*wordID).isIntegral())
 					throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-integral value.");
 				currNode.matchedWords.push_back((*wordID).asUInt());
+
+				//Update the reverse lookup
+				wstring myanmar = words[(*wordID).asUInt()];
+				if (revLookup.count(myanmar)==0)
+					revLookup[myanmar] =  roman;
 			}
 		} else {
 			//Append the key, and a blank node for it
@@ -161,7 +164,7 @@ void TrigramLookup::buildLookupRecursively(Json::Value& currObj, Nexus& currNode
 			//Recurse
 			if (!nextObj.isObject())
 				throw std::runtime_error("Can't parse TrigramLookup model: \"lookup\" contains a non-object entry.");
-			buildLookupRecursively(nextObj, currNode.moveTo[currNode.moveTo.size()-1]);
+			buildLookupRecursively(roman+key, nextObj, currNode.moveTo[currNode.moveTo.size()-1]);
 		}
 	}
 
@@ -184,11 +187,8 @@ bool TrigramLookup::addRomanizationToModel(const string& roman, const wstring& m
 		words.push_back(myanmar);
 
 	//Update the reverse lookup?
-	//TODO:
-	//if (revLookupOn) {
-	//	revLookup.push_back(string());
-	//	addReverseLookupItem(revLookup.size()-1, roman);
-	//}
+	if (revLookup.count(myanmar)==0)
+		revLookup[myanmar] =  roman;
 
 	//Step 2: Update the nexus path to this romanization
 	Nexus* currNode = &lookup;
