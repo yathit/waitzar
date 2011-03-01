@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <set>
 #include <vector>
 #include <stdexcept>
 
@@ -77,21 +78,37 @@ public:
 	}
 
 	//Retrieving words
-	const std::vector<std::wstring>& getMatchedWords();
-	size_t getMatchedDefaultIndex();
+	const std::vector<std::wstring>& getMatchedWords() {
+		rebuildCachedResults();
+		return cachedMatchedWords;
+	}
+	size_t getMatchedDefaultIndex() {
+		rebuildCachedResults();
+		return cachedStartID;
+	}
 	const std::string& getMatchedParenString() {
-		return parenStr;
+		rebuildCachedResults();
+		return cachedParenStr;
 	}
 
 	//Additional useful methods
-	size_t getTotalDefinedNonShortcutWords();
-	const std::string& reverseLookupWord(const std::wstring& myanmar);
+	size_t getTotalDefinedNonShortcutWords() {
+		return words.size();
+	}
+	std::string reverseLookupWord(const std::wstring& myanmar) {
+		auto it = revLookup.find(myanmar);
+		if (it!=revLookup.end())
+			return it->second;
+		return "";
+	}
 
 
 	//TODO:
 	void reset() {
 		currLookup = &lookup;
+		currNgram = NULL;
 		typedRoman = "";
+		cacheDirty = true;
 	}
 
 
@@ -103,27 +120,26 @@ private:
 	std::vector<std::wstring> lastChanceRegexes;
 	std::map<std::string, std::map<std::wstring, std::vector<unsigned int>>> ngrams;
 	std::map<std::wstring, std::map<std::wstring, std::wstring>> shortcuts;
-	std::map<std::wstring, std::wstring> revLookup;
+	std::map<std::wstring, std::string> revLookup;
 
 	//Build helper
-	static void buildLookupRecursively(std::string roman, Json::Value& currObj, Nexus& currNode);
+	void buildLookupRecursively(std::string roman, Json::Value& currObj, Nexus& currNode);
 
 	//State of a search
 	std::string typedRoman;
 	Nexus* currLookup;
+	std::vector<unsigned int>* currNgram;
 
 
-	//State of a search: OLD
-	std::string parenStr;
-	unsigned int currNexus;
-	wchar_t lastTypedLetter;
+	//Cached results
+	std::string cachedParenStr;
+	std::vector<std::wstring> cachedMatchedWords;
+	unsigned int cachedStartID;
+	bool cacheDirty;
+
 
 	//Internal functions
-	void resolveWords(void);
-	//int jumpToNexus(int fromNexus, char jumpChar) const;
-	//int jumpToPrefix(int fromPrefix, int jumpID) const;
-
-
+	void rebuildCachedResults();
 };
 
 

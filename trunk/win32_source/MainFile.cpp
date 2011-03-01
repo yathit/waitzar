@@ -4617,8 +4617,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	//TEST
-	TrigramLookup x(LoadAndReadInternalResource(IDR_WAITZAR_NEWMODEL, L"Model"), true);
-	std::cout <<"Success." <<std::endl;
+	TrigramLookup model(LoadAndReadInternalResource(IDR_WAITZAR_NEWMODEL, L"Model"), true);
+	model.startLookup("singa");
+	std::cout <<"Matches" <<std::endl;
+	auto words = model.getMatchedWords();
+	for (auto it=words.begin(); it!=words.end(); it++)
+		std::cout <<"  " <<waitzar::escape_wstr(*it) <<std::endl;
+	std::cout <<"Paren: " <<model.getMatchedParenString() <<std::endl;
+	std::cout <<"Index: " <<model.getMatchedDefaultIndex() <<std::endl;
+
 	return 0;
 	//END TEST
 
