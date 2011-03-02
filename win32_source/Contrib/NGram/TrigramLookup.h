@@ -140,6 +140,9 @@ private:
 
 	//Internal functions
 	void rebuildCachedResults();
+	std::string getAltString(const std::string& orig, const std::string& pattern);
+	Nexus* walkRomanizedString(const std::string& roman);
+
 };
 
 
