@@ -4625,6 +4625,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		std::cout <<"  " <<waitzar::escape_wstr(*it) <<std::endl;
 	std::cout <<"Paren: " <<model.getMatchedParenString() <<std::endl;
 	std::cout <<"Index: " <<model.getMatchedDefaultIndex() <<std::endl;
+	model.startLookup("aung");
+	std::cout <<"aung: " <<model.getMatchedWords().size() <<std::endl;
+	model.startLookup("ag");
+	std::cout <<"ag: " <<model.getMatchedWords().size() <<std::endl;
+	model.startLookup("kaung");
+	std::cout <<"kaung: " <<model.getMatchedWords().size() <<std::endl;
+	model.startLookup("kg");
+	std::cout <<"kg: " <<model.getMatchedWords().size() <<std::endl;
+	model.startLookup("kag");
+	std::cout <<"kag: " <<model.getMatchedWords().size() <<std::endl;
 
 	return 0;
 	//END TEST

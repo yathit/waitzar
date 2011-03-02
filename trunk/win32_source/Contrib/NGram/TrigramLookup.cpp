@@ -172,9 +172,7 @@ void TrigramLookup::buildLookupRecursively(string roman, Json::Value& currObj, N
 
 }
 
-
-
-//TODO: We might consider using a map<int, int> to lookup word IDs. Have to check the space requirements.
+//Add a word from a non-model file.
 bool TrigramLookup::addRomanizationToModel(const string& roman, const wstring& myanmar, bool errorOnDuplicates)
 {
 	//Step 1: Do we need to add it? (Also, retrieve its ID)
@@ -221,6 +219,72 @@ bool TrigramLookup::addShortcut(const wstring& baseWord, const wstring& toStack,
 }
 
 
+//TODO: We might merge this with "continueLookup" somehow.
+Nexus* TrigramLookup::walkRomanizedString(const std::string& roman)
+{
+	if (roman.empty())
+		return false;
+
+	Nexus* retNexus = &lookup;
+	for (auto ch=roman.begin(); ch!=roman.end(); ch++) {
+		//Does an entry exist?
+		int id = retNexus->getMoveID(*ch);
+		if (id==-1)
+			return NULL;
+
+		//Jump to that entry
+		retNexus = &retNexus->moveTo[id];
+	}
+
+	//Done
+	return retNexus;
+}
+
+
+//Apply a pattern.
+string TrigramLookup::getAltString(const string& orig, const string& pattern)
+{
+	//Avoid weird behavior.
+	if (orig.empty() || pattern.empty())
+		return "";
+
+	//Now, break the regex apart. (TODO: We can cache this in the "init" phase, and throw an exception on error)
+	size_t eqID = pattern.find(L'=');
+	if (eqID==string::npos || eqID==0 || eqID==pattern.size()-1)
+		return "";
+	string lhs = pattern.substr(0, eqID);
+	string rhs = pattern.substr(eqID+1, pattern.size());
+
+	//Now, attempt to apply it.
+	// We match from right-to-left starting at the end of the string. Each character consumes
+	//   a single character in the original string, except "?" which makes the next character
+	//   optional (in the greedy sense of the word).
+	int dotID = orig.size()-1; //dotID can go negative, we just can't match anything at that point.
+	for (auto it=lhs.rbegin(); it!=lhs.rend(); it++) {
+		bool optional = false;
+		if (*it == '?') {
+			optional = true;
+			it++;
+			if (it==lhs.rend() || *it == '?')
+				return ""; //Can't have '??' or trailing '?'
+		}
+
+		if (dotID>=0 && orig[dotID] == *it) {
+			dotID--;
+		} else if (!optional)
+			return ""; //No match.
+	}
+
+	//Should never happen, but...
+	if (dotID<-1)
+		return "";
+
+	//Done! Now substitute
+	string prefix = orig.substr(0, dotID+1);
+	return prefix + rhs;
+}
+
+
 
 bool TrigramLookup::continueLookup(const string& roman)
 {
@@ -232,14 +296,26 @@ bool TrigramLookup::continueLookup(const string& roman)
 	for (auto ch=roman.begin(); ch!=roman.end(); ch++) {
 		//Does an entry exist?
 		int id = currLookup->getMoveID(*ch);
-		if (id==-1)
-			return false;  //TODO: Try our "lastchance" shortcuts; make sure "typedRoman" is updated correctly!
+		Nexus* nextNexus = NULL;
+		if (id!=-1)
+			nextNexus = &currLookup->moveTo[id];
+		else {
+			//Last-chance matches.
+			for (auto it=lastChanceRegexes.begin(); it!=lastChanceRegexes.end() && nextNexus==NULL; it++) {
+				string altString = getAltString(typedRoman+string(1, *ch), waitzar::escape_wstr(*it));
+				nextNexus = walkRomanizedString(altString);
+			}
+		}
+
+		//Can't move?
+		if (nextNexus==NULL)
+			return false;
+
+		//Jump
+		currLookup = nextNexus;
 
 		//Append
 		typedRoman += string(1, *ch);
-
-		//Jump
-		currLookup = &currLookup->moveTo[id];
 	}
 
 	//Reset trigrams, cache
@@ -285,6 +361,7 @@ void TrigramLookup::rebuildCachedResults()
 	//      I think we can just make 2 arrays (1 p.s., the other regular, and just add them)
 
 	//Add prefixes
+	cachedMatchedWords.clear();
 	std::set<unsigned int> normalWordIDs;
 	if (currNgram!=NULL) {
 		for (auto it=currNgram->begin(); it!=currNgram->end(); it++) {
