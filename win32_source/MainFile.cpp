@@ -4635,6 +4635,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::cout <<"kg: " <<model.getMatchedWords().size() <<std::endl;
 	model.startLookup("kag");
 	std::cout <<"kag: " <<model.getMatchedWords().size() <<std::endl;
+	model.startLookup("sing");
+	std::cout <<"sing: " <<model.getMatchedParenString() <<std::endl;
+	model.continueLookup("a");
+	std::cout <<"+a: " <<model.getMatchedParenString() <<std::endl;
+	model.startLookup("singa");
+	std::cout <<"singa: " <<model.getMatchedParenString() <<std::endl;
 
 	return 0;
 	//END TEST
