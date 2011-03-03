@@ -106,6 +106,7 @@ public:
 	//TODO:
 	void reset() {
 		currLookup = &lookup;
+		actualLookup = NULL;
 		currNgram = NULL;
 		typedRoman = "";
 		cacheDirty = true;
@@ -128,6 +129,7 @@ private:
 	//State of a search
 	std::string typedRoman;
 	Nexus* currLookup;
+	Nexus* actualLookup;  //Where we left off for "shortcut" words, or NULL.
 	std::vector<unsigned int>* currNgram;
 
 

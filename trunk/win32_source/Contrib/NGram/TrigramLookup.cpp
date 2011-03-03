@@ -292,7 +292,14 @@ bool TrigramLookup::continueLookup(const string& roman)
 	if (roman.empty())
 		return false;
 
+	//Where were we _exactly_ ?
+	if (actualLookup!=NULL) {
+		currLookup = actualLookup;
+		actualLookup = NULL;
+	}
+
 	//Apply to each letter
+	bool found = true;
 	for (auto ch=roman.begin(); ch!=roman.end(); ch++) {
 		//Does an entry exist?
 		int id = currLookup->getMoveID(*ch);
@@ -308,8 +315,10 @@ bool TrigramLookup::continueLookup(const string& roman)
 		}
 
 		//Can't move?
-		if (nextNexus==NULL)
-			return false;
+		if (nextNexus==NULL) {
+			found = false;
+			break;
+		}
 
 		//Jump
 		currLookup = nextNexus;
@@ -322,8 +331,24 @@ bool TrigramLookup::continueLookup(const string& roman)
 	currNgram = NULL;
 	cacheDirty = true;
 
+	//Perform a "skip ahead"
+	//Paren string
+	cachedParenStr = "(";
+	Nexus* parenLookup = currLookup;
+	while (parenLookup->moveOn.size()==1) {
+		cachedParenStr += parenLookup->moveOn;
+		parenLookup = &parenLookup->moveTo[0];
+	}
+	if (parenLookup->moveOn.empty() && !parenLookup->matchedWords.empty()) {
+		cachedParenStr += ")";
+		actualLookup = currLookup;
+		currLookup = parenLookup;
+	} else {
+		cachedParenStr = "";
+	}
+
 	//Success
-	return true;
+	return found;
 }
 
 
@@ -337,22 +362,6 @@ void TrigramLookup::rebuildCachedResults()
 	//Only once
 	if (!cacheDirty)
 		return;
-
-	std::cout <<"<<<Building cache" <<std::endl;
-
-	//Paren string
-	cachedParenStr = "(";
-	Nexus* parenLookup = currLookup;
-	while (parenLookup->moveOn.size()==1) {
-		cachedParenStr += parenLookup->moveOn;
-		parenLookup = &parenLookup->moveTo[0];
-	}
-	if (parenLookup->moveOn.empty() && !parenLookup->matchedWords.empty())
-		cachedParenStr += ")";
-	else {
-		cachedParenStr = "";
-		parenLookup = currLookup;
-	}
 
 	//Matched words
 	vector<wstring> shortcutWords;
