@@ -329,6 +329,7 @@ bool TrigramLookup::continueLookup(const string& roman)
 
 	//Reset trigrams, cache
 	currNgram = NULL;
+	currShortcutLookup = NULL;
 	cacheDirty = true;
 
 	//Perform a "skip ahead"
@@ -355,6 +356,13 @@ bool TrigramLookup::continueLookup(const string& roman)
 
 bool TrigramLookup::moveLookupOnTrigram(const std::wstring& ultimate, const std::wstring& penultimate, const std::wstring& antepenultimate)
 {
+	//Chain to pat-sint
+	resolvePatSint(ultimate);
+
+	//Reset
+	currNgram = NULL;
+	cacheDirty = true;
+
 	//Jump
 	auto pairs = ngrams.find(typedRoman);
 	if (pairs==ngrams.end())
@@ -386,6 +394,19 @@ bool TrigramLookup::moveLookupOnTrigram(const std::wstring& ultimate, const std:
 
 
 
+void TrigramLookup::resolvePatSint(const wstring& prevWord)
+{
+	currShortcutLookup = NULL;
+
+	//Retrieve this entry from the shortcut table
+	auto options = shortcuts.find(prevWord);
+	if (options!=shortcuts.end())
+		currShortcutLookup = &(options->second);
+}
+
+
+
+
 /**
  * Based on the current nexus, what letters are valid moves, and what words
  *   should we present to the user?
@@ -395,12 +416,6 @@ void TrigramLookup::rebuildCachedResults()
 	//Only once
 	if (!cacheDirty)
 		return;
-
-	//Matched words
-	vector<wstring> shortcutWords;
-
-	//TODO: Matched Words & Start ID need to be aware of shortcuts
-	//      I think we can just make 2 arrays (1 p.s., the other regular, and just add them)
 
 	//Add prefixes
 	cachedMatchedWords.clear();
@@ -417,6 +432,17 @@ void TrigramLookup::rebuildCachedResults()
 		if (normalWordIDs.count(*it)>0)
 			continue;
 		cachedMatchedWords.push_back(words[*it]);
+	}
+
+	//Build up shortcut words
+	vector<wstring> shortcutWords;
+	if (currShortcutLookup!=NULL) {
+		for (auto it=cachedMatchedWords.begin(); it!=cachedMatchedWords.end(); it++) {
+			auto pat = currShortcutLookup->find(*it);
+			if (pat!=currShortcutLookup->end()) {
+				shortcutWords.push_back(pat->second);
+			}
+		}
 	}
 
 	//Matched+Shortcuts, StartID

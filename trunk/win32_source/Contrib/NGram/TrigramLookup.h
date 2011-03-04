@@ -108,6 +108,7 @@ public:
 		currLookup = &lookup;
 		actualLookup = NULL;
 		currNgram = NULL;
+		currShortcutLookup = NULL;
 		typedRoman = "";
 		cacheDirty = true;
 	}
@@ -131,6 +132,7 @@ private:
 	Nexus* currLookup;
 	Nexus* actualLookup;  //Where we left off for "shortcut" words, or NULL.
 	std::vector<unsigned int>* currNgram;
+	std::map<std::wstring, std::wstring>* currShortcutLookup;
 
 
 	//Cached results
@@ -144,6 +146,7 @@ private:
 	void rebuildCachedResults();
 	std::string getAltString(const std::string& orig, const std::string& pattern);
 	Nexus* walkRomanizedString(const std::string& roman);
+	void resolvePatSint(const std::wstring& prevWord);
 
 };
 
