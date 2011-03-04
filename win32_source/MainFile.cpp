@@ -4618,44 +4618,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//TEST
 	TrigramLookup model(LoadAndReadInternalResource(IDR_WAITZAR_NEWMODEL, L"Model"), true);
-	model.startLookup("sat");
-	std::cout <<"sat  ";
+	model.startLookup("ba");
+	model.moveLookupOnTrigram(L"\u1000\u1019\u1039");
+	std::cout <<"kam-ba  ";
 	auto words = model.getMatchedWords();
 	for (auto it=words.begin(); it!=words.end(); it++)
 		std::cout <<"," <<waitzar::escape_wstr(*it);
-	std::cout <<std::endl;
-
-	model.startLookup("sat");
-	model.moveLookupOnTrigram(L"\u1000");
-	std::cout <<"sat(1)  ";
-	words = model.getMatchedWords();
-	for (auto it=words.begin(); it!=words.end(); it++)
-		std::cout <<"," <<waitzar::escape_wstr(*it);
-	std::cout <<std::endl;
-
-	model.startLookup("sat");
-	model.moveLookupOnTrigram(L"\u1000", L"\u101C\u1032");
-	std::cout <<"sat(12)  ";
-	words = model.getMatchedWords();
-	for (auto it=words.begin(); it!=words.end(); it++)
-		std::cout <<"," <<waitzar::escape_wstr(*it);
-	std::cout <<std::endl;
-
-	model.startLookup("sat");
-	model.moveLookupOnTrigram(L"\u1000", L"\u101C\u1030");
-	std::cout <<"sat(1x)  ";
-	words = model.getMatchedWords();
-	for (auto it=words.begin(); it!=words.end(); it++)
-		std::cout <<"," <<waitzar::escape_wstr(*it);
-	std::cout <<std::endl;
-
-	model.startLookup("sat");
-	model.moveLookupOnTrigram(L"\u1001");
-	std::cout <<"sat(x)  ";
-	words = model.getMatchedWords();
-	for (auto it=words.begin(); it!=words.end(); it++)
-		std::cout <<"," <<waitzar::escape_wstr(*it);
-	std::cout <<std::endl;
+	std::cout <<std::endl <<"  start-id: " <<model.getMatchedDefaultIndex() <<std::endl;
 
 	return 0;
 	//END TEST
