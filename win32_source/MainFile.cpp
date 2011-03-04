@@ -4618,29 +4618,44 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//TEST
 	TrigramLookup model(LoadAndReadInternalResource(IDR_WAITZAR_NEWMODEL, L"Model"), true);
-	model.startLookup("singa");
-	std::cout <<"Matches" <<std::endl;
+	model.startLookup("sat");
+	std::cout <<"sat  ";
 	auto words = model.getMatchedWords();
 	for (auto it=words.begin(); it!=words.end(); it++)
-		std::cout <<"  " <<waitzar::escape_wstr(*it) <<std::endl;
-	std::cout <<"Paren: " <<model.getMatchedParenString() <<std::endl;
-	std::cout <<"Index: " <<model.getMatchedDefaultIndex() <<std::endl;
-	model.startLookup("aung");
-	std::cout <<"aung: " <<model.getMatchedWords().size() <<std::endl;
-	model.startLookup("ag");
-	std::cout <<"ag: " <<model.getMatchedWords().size() <<std::endl;
-	model.startLookup("kaung");
-	std::cout <<"kaung: " <<model.getMatchedWords().size() <<std::endl;
-	model.startLookup("kg");
-	std::cout <<"kg: " <<model.getMatchedWords().size() <<std::endl;
-	model.startLookup("kag");
-	std::cout <<"kag: " <<model.getMatchedWords().size() <<std::endl;
-	model.startLookup("sing");
-	std::cout <<"sing: " <<model.getMatchedParenString() <<std::endl;
-	model.continueLookup("a");
-	std::cout <<"+a: " <<model.getMatchedParenString() <<std::endl;
-	model.startLookup("singa");
-	std::cout <<"singa: " <<model.getMatchedParenString() <<std::endl;
+		std::cout <<"," <<waitzar::escape_wstr(*it);
+	std::cout <<std::endl;
+
+	model.startLookup("sat");
+	model.moveLookupOnTrigram(L"\u1000");
+	std::cout <<"sat(1)  ";
+	words = model.getMatchedWords();
+	for (auto it=words.begin(); it!=words.end(); it++)
+		std::cout <<"," <<waitzar::escape_wstr(*it);
+	std::cout <<std::endl;
+
+	model.startLookup("sat");
+	model.moveLookupOnTrigram(L"\u1000", L"\u101C\u1032");
+	std::cout <<"sat(12)  ";
+	words = model.getMatchedWords();
+	for (auto it=words.begin(); it!=words.end(); it++)
+		std::cout <<"," <<waitzar::escape_wstr(*it);
+	std::cout <<std::endl;
+
+	model.startLookup("sat");
+	model.moveLookupOnTrigram(L"\u1000", L"\u101C\u1030");
+	std::cout <<"sat(1x)  ";
+	words = model.getMatchedWords();
+	for (auto it=words.begin(); it!=words.end(); it++)
+		std::cout <<"," <<waitzar::escape_wstr(*it);
+	std::cout <<std::endl;
+
+	model.startLookup("sat");
+	model.moveLookupOnTrigram(L"\u1001");
+	std::cout <<"sat(x)  ";
+	words = model.getMatchedWords();
+	for (auto it=words.begin(); it!=words.end(); it++)
+		std::cout <<"," <<waitzar::escape_wstr(*it);
+	std::cout <<std::endl;
 
 	return 0;
 	//END TEST

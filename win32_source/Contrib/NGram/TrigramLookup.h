@@ -68,7 +68,7 @@ public:
 			return false;
 		return startLookup(currRoman.substr(0, currRoman.size()-1));
 	}*/
-	bool moveLookupOnTrigram(const std::wstring& ultimate, const std::wstring& penultimate, const std::wstring& antepenultimate);
+	bool moveLookupOnTrigram(const std::wstring& ultimate, const std::wstring& penultimate=L"", const std::wstring& antepenultimate=L"");
 	bool moveLookupOnTrigram(const std::vector<std::wstring>& lastThreeWords) {
 		return moveLookupOnTrigram(
 			lastThreeWords.size()>0 ? lastThreeWords[0] : L"",
