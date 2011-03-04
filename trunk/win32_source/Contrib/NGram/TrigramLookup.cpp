@@ -353,6 +353,39 @@ bool TrigramLookup::continueLookup(const string& roman)
 
 
 
+bool TrigramLookup::moveLookupOnTrigram(const std::wstring& ultimate, const std::wstring& penultimate, const std::wstring& antepenultimate)
+{
+	//Jump
+	auto pairs = ngrams.find(typedRoman);
+	if (pairs==ngrams.end())
+		return false;
+
+	//Make a list of candidates to try
+	vector<wstring> attempts;
+	if (!ultimate.empty()) {
+		if (!penultimate.empty()) {
+			if (!antepenultimate.empty())
+				attempts.push_back(ultimate+L"/"+penultimate+L"/"+antepenultimate);
+			attempts.push_back(ultimate+L"/"+penultimate);
+		}
+		attempts.push_back(ultimate);
+	}
+
+	//Try each candidate
+	for (auto it=attempts.begin(); it!=attempts.end(); it++) {
+		auto match = pairs->second.find(*it);
+		if (match!=pairs->second.end()) {
+			currNgram = &(match->second);
+			return true;
+		}
+	}
+
+	//Nothing matched.
+	return false;
+}
+
+
+
 /**
  * Based on the current nexus, what letters are valid moves, and what words
  *   should we present to the user?
