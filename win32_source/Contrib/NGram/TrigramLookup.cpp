@@ -398,6 +398,9 @@ void TrigramLookup::resolvePatSint(const wstring& prevWord)
 {
 	currShortcutLookup = NULL;
 
+	if (prevWord.empty())
+		return;
+
 	//Retrieve this entry from the shortcut table
 	auto options = shortcuts.find(prevWord);
 	if (options!=shortcuts.end())
