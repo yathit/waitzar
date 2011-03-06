@@ -23,44 +23,20 @@
 namespace waitzar
 {
 
-//Helper class
-class Nexus {
-public:
-	std::string moveOn;
-	std::vector<Nexus> moveTo;
-
-	std::vector<unsigned int> matchedWords;
-
-	int getMoveID(char c) {
-		//Convert to lowercase
-		if (c>='A'&&c<='Z')
-			c = (c-'A')+'a';
-
-		//Search
-		size_t x = 0;
-		for (; x<moveOn.size(); x++) {
-			if (moveOn[x]==c)
-				return x;
-		}
-		return -1;
-	}
-};
-
 
 
 /**
- * This class replaces WordBuilder with something more focused: it only deals with
- *    loading our binary model file and looking up candidates. Selection of these
- *    candidates is handled separately.
+ * This class replaces BurglishBuilder with something more focused (it only deals with word generation, not selection)
+ *    while at the same time being more generic (it can load models besides Burglish).
  */
-class TrigramLookup {
+class GenerativeLookup {
 public:
-	//Construct from an in-memory stream or a *.model file.
-	TrigramLookup(const std::string& modelBufferOrFile, bool stringIsBuffer=false);
+	//Construct from an in-memory stream or a series of *.json files.
+	GenerativeLookup(const std::string& onsetsJson, const std::string& rhymesJson, const std::string& specialsJson, bool isStream=false);
 
 	//Adding words to the model
-	bool addRomanizationToModel(const std::string& roman, const std::wstring& myanmar, bool errorOnDuplicates=false);
-	bool addShortcut(const std::wstring& baseWord, const std::wstring& toStack, const std::wstring& resultStacked);
+	//bool addRomanizationToModel(const std::string& roman, const std::wstring& myanmar, bool errorOnDuplicates=false);
+	//bool addShortcut(const std::wstring& baseWord, const std::wstring& toStack, const std::wstring& resultStacked);
 
 	//Moving within the model
 	bool continueLookup(const std::string& roman);
@@ -97,47 +73,45 @@ public:
 	}
 
 	//Additional useful methods
-	size_t getTotalDefinedNonShortcutWords() {
+	/*size_t getTotalDefinedNonShortcutWords() {
 		return words.size();
-	}
-	std::string reverseLookupWord(const std::wstring& myanmar) {
+	}*/
+	std::string reverseLookupWord(const std::wstring& myanmar) ;/*{
 		auto it = revLookup.find(myanmar);
 		if (it!=revLookup.end())
 			return it->second;
 		return "";
-	}
+	}*/
 
 
 	//TODO:
 	void reset() {
-		currLookup = &lookup;
+/*		currLookup = &lookup;
 		actualLookup = NULL;
 		currNgram = NULL;
 		currShortcutLookup = NULL;
+		cacheDirty = true;*/
+
 		typedRoman = "";
-		cacheDirty = true;
 	}
 
 
 
 private:
 	//Primary data, converted from JSON
-	std::vector<std::wstring> words;
-	Nexus lookup;
-	std::vector<std::wstring> lastChanceRegexes;
-	std::map<std::string, std::map<std::wstring, std::vector<unsigned int>>> ngrams;
-	std::map<std::wstring, std::map<std::wstring, std::wstring>> shortcuts;
-	std::map<std::wstring, std::string> revLookup;
+	std::map<std::wstring, std::wstring> onsetPairs;
+	std::map<std::wstring, std::wstring> rhymePairs;
+	std::map<std::wstring, std::wstring> specialWords;
 
 	//Build helper
-	void buildLookupRecursively(std::string roman, Json::Value& currObj, Nexus& currNode);
+	//void buildLookupRecursively(std::string roman, Json::Value& currObj, Nexus& currNode);
 
 	//State of a search
 	std::string typedRoman;
-	Nexus* currLookup;
+	/*Nexus* currLookup;
 	Nexus* actualLookup;  //Where we left off for "shortcut" words, or NULL.
 	std::vector<unsigned int>* currNgram;
-	std::map<std::wstring, std::wstring>* currShortcutLookup;
+	std::map<std::wstring, std::wstring>* currShortcutLookup;*/
 
 
 	//Cached results
@@ -149,12 +123,11 @@ private:
 
 	//Internal functions
 	void rebuildCachedResults();
-	std::string getAltString(const std::string& orig, const std::string& pattern);
-	Nexus* walkRomanizedString(const std::string& roman);
-	void resolvePatSint(const std::wstring& prevWord);
+	//std::string getAltString(const std::string& orig, const std::string& pattern);
+	//Nexus* walkRomanizedString(const std::string& roman);
+	//void resolvePatSint(const std::wstring& prevWord);
 
 };
-
 
 
 
