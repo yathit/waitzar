@@ -1,0 +1,105 @@
+/**
+ * The Key Magic Pre-Parser PEG syntax file.
+ *  This file knows no Key Magic semantics, except options and anything needed to remove spaces properly.
+ */
+
+file = 
+      options?
+      val:line+   { return val.join('\n'); }
+
+space = 
+      [ \t\r]
+
+sp_ = 
+      space*
+
+options = sp_ 
+      '/*' sp_
+         (option / (!'*/' .))* 
+      '*/' sp
+
+option = 
+      '@' name:option_name sp_ '=' sp_ value:option_value sp_ { options[name] = value; }
+
+option_name =
+      val:char+  { return val.join(''); }
+
+char =
+      [a-zA-Z_]
+
+digit = 
+      [0-9]
+
+charnum = 
+      char / digit
+
+symbol = 
+      digit / [*^]
+
+option_value =
+      ('"' val:[^"]* '"') { return val.join(''); }
+    / ("'" val:[^']* "'") { return val.join(''); }
+
+skipnl = 
+      '\\' sp_ '\n'
+
+sp = 
+      (skipnl / space / comment)*
+
+comment = 
+      ('/*' (!'*/' .)* '*/') 
+    / ('//' (!'\n' .)* '\n')
+
+line = 
+      blankline sp v1:item v2:items* sp v3:('=>'/'=') sp v4:item v5:items* blankline    { return v1 + v2.join('') + v3 + v4 + v5.join('') + '\n'; }
+
+blankline =
+      (sp '\n')*
+
+items = 
+      sp '+' sp val:item sp { return '+' + val; }
+
+item = 
+      keyword
+    / variable
+    / string
+    / virtkey
+
+keyword =
+      'null' / 'NULL' / 'ANY' / vkcode / uni
+      
+variable =
+      '$' v1:charnum+ v2:var_suffix?   { return '$' + v1.join('') + v2; }
+
+var_suffix =
+      '[' v1:'$'? v2:symbol+ ']'   { return '[' + v1 + v2.join('') + ']'; }
+      
+uni = 
+      v1:[uU] v2:hex v3:hex v4:hex v5:hex  { return v1 + v2 + v3 + v4 + v5; }
+
+hex = 
+      [a-fA-F0-9]
+
+vkcode = 
+      pre:'VK_' post:[a-zA-Z0-9_]   { return pre + pos; }
+
+virtkey = 
+      '<' sp mods:mod* sp code:vkcode sp '>' { return '<' + mods.join('') + code + '>'; }
+
+mod = 
+      val:vkcode sp '&' sp   { return val + '&'; }
+
+q1 = "'"
+q2 = '"'
+bs = '\\'
+
+string = 
+      (q1  val:((!q1 strchar)*)  q1) { return "'" + val.join('') + "'"; }
+    / (q2  val:(!q2 strchar)*  q2) { return '"' + val.join('') + '"'; }
+
+strchar =
+      (v1:bs v2:esc) { return v1 + v2; }
+    / .
+      
+esc =
+      bs / q1 / q2 / uni 

@@ -13,15 +13,15 @@
 
 <br><b>Sample Input File:</b>
 <br><button onclick="parse();" type="button">Parse</button>
-<br><textarea name="scrSource" id="scrSource" cols=150 rows=30 style="border:1px solid #333333;">
+<br><textarea name="scrSource" id="scrSource" cols=75 rows=30 style="border:1px solid #333333;">
 /*
- * @Name = Myanmar3std
- * @FontFamily = Myanmar3
- * @Description = Unoffical Myanmar3 layout
+ * @Name = 'Myanmar3std'
+ * @FontFamily = 'Myanmar3'
+ * @Description = 'Unoffical Myanmar3 layout'
  *
- * @track_capslocks = false
- * @eat_all_unused_keys = false
- * @US_layout_based = true
+ * @track_capslocks = 'false'
+ * @eat_all_unused_keys = 'false'
+ * @US_layout_based = 'true'
  */
 
 $baseK = 'qwert' + \
@@ -48,7 +48,7 @@ $baseU = u1006 + u1010 + u1014 + u1019 + u1021 + \
 		u1050 + u100E + \
 		u101D + u1023 + u104E + u1024 + u104C + u1025 + u104D
 
-$addK = ',.]}&lt;&gt;:'
+$addK = ',.]}&lt;&&gt;:'
 $addU = u002C + u002E + u1029 + u102A + u104A + u104B + u1002
 
 $numK = '1234567890'
@@ -112,61 +112,61 @@ $secondDiaU = u102D + u1036 + u1037 + u102F
 $stackK = 'F'
 $stackU = u1039
 
-$vowelEK ==>gt; $filler + $vowelEU
-$stackK ==>gt; $stackU
-$filler + u1031 + $baseK[*] ==>gt; $baseU[$3] + u1031
-u1031 + u1039 + $baseK[*] ==>gt; u1039 + $baseU[$3] + u1031
-u1031 + $mediaK[*] ==>gt; $mediaU[$2] + u1031
+$vowelEK =&gt; $filler + $vowelEU
+$stackK =&gt; $stackU
+$filler + u1031 + $baseK[*] =&gt; $baseU[$3] + u1031
+u1031 + u1039 + $baseK[*] =&gt; u1039 + $baseU[$3] + u1031
+u1031 + $mediaK[*] =&gt; $mediaU[$2] + u1031
 
-$addK[*]==>gt; $addU[$1]
-$numK[*] ==>gt; $numU[$1]
-$baseK[*] ==>gt; $baseU[$1]
-$aftereK[*] ==>gt; $aftereU[$1]
-$asatK ==>gt; $asatU
+$addK[*]=&gt; $addU[$1]
+$numK[*] =&gt; $numU[$1]
+$baseK[*] =&gt; $baseU[$1]
+$aftereK[*] =&gt; $aftereU[$1]
+$asatK =&gt; $asatU
 
-u101E + u103C + u1031 + u102C + $asatK[*] ==>gt; u102A
-u1025 + 'D' ==>gt; u1026
-$ldiaU[*] + $udia1K[*] ==>gt; $udia1U[$2] + $1
-$udia2U[*] + $ldiaK[*] ==>gt; $ldiaU[$2] + $1
-$udia2U[*] + $udia1K[*] ==>gt; $udia1U[$2] + $1
-u1037 + $udia1K[*] ==>gt; $udia1U[$2] + $1
-u1037 + $udia2K[*] ==>gt; $udia2U[$2] + $1
-u1037 + $ldiaK[*] ==>gt; $ldiaU[$2] + $1
-u1036 + 'J'==>gt; u1032 + u1036
-u1037 + $aaK[*] ==>gt; $aaU[$2] + $1
-u1038 + $lDotK[*] ==>gt; $lDotU[$2] + $1
-//u103A + 'h' ==>gt; u1037 + u103A
+u101E + u103C + u1031 + u102C + $asatK[*] =&gt; u102A
+u1025 + 'D' =&gt; u1026
+$ldiaU[*] + $udia1K[*] =&gt; $udia1U[$2] + $1
+$udia2U[*] + $ldiaK[*] =&gt; $ldiaU[$2] + $1
+$udia2U[*] + $udia1K[*] =&gt; $udia1U[$2] + $1
+u1037 + $udia1K[*] =&gt; $udia1U[$2] + $1
+u1037 + $udia2K[*] =&gt; $udia2U[$2] + $1
+u1037 + $ldiaK[*] =&gt; $ldiaU[$2] + $1
+u1036 + 'J'=&gt; u1032 + u1036
+u1037 + $aaK[*] =&gt; $aaU[$2] + $1
+u1038 + $lDotK[*] =&gt; $lDotU[$2] + $1
+//u103A + 'h' =&gt; u1037 + u103A
 
-$ldiaK[*] ==>gt; $ldiaU[$1]
-$udia1K[*] ==>gt; $udia1U[$1]
-$udia2K[*] ==>gt; $udia2U[$1]
+$ldiaK[*] =&gt; $ldiaU[$1]
+$udia1K[*] =&gt; $udia1U[$1]
+$udia2K[*] =&gt; $udia2U[$1]
 
-$wDiaU[*] + $yDiaK[*] ==>gt; $yDiaU[$2] + $1
-$hDiaU[*] + $yDiaK[*] ==>gt; $yDiaU[$2] + $1
-$wDiaU[*] + $rDiaK[*] ==>gt; $rDiaU[$2] + $1
-$hDiaU[*] + $rDiaK[*] ==>gt; $rDiaU[$2] + $1
-$hDiaU[*] + $wDiaK[*] ==>gt; $wDiaU[$2] + $1
+$wDiaU[*] + $yDiaK[*] =&gt; $yDiaU[$2] + $1
+$hDiaU[*] + $yDiaK[*] =&gt; $yDiaU[$2] + $1
+$wDiaU[*] + $rDiaK[*] =&gt; $rDiaU[$2] + $1
+$hDiaU[*] + $rDiaK[*] =&gt; $rDiaU[$2] + $1
+$hDiaU[*] + $wDiaK[*] =&gt; $wDiaU[$2] + $1
 
-$wDiaU[*] + $hDiaU[*] + $yDiaK[*] ==>gt; $yDiaU[$3] + $1 + $2
-$wDiaU[*] + $hDiaU[*] + $rDiaK[*] ==>gt; $rDiaU[$3] + $1 + $2
+$wDiaU[*] + $hDiaU[*] + $yDiaK[*] =&gt; $yDiaU[$3] + $1 + $2
+$wDiaU[*] + $hDiaU[*] + $rDiaK[*] =&gt; $rDiaU[$3] + $1 + $2
 
-$wDiaU[*] + u1031 + $yDiaK[*] ==>gt; $yDiaU[$3] + $1 + $2
-$hDiaU[*] + u1031 + $yDiaK[*] ==>gt; $yDiaU[$3] + $1 + $2
-$wDiaU[*] + u1031 + $rDiaK[*] ==>gt; $rDiaU[$3] + $1 + $2
-$hDiaU[*] + u1031 + $rDiaK[*] ==>gt; $rDiaU[$3] + $1 + $2
-$hDiaU[*] + u1031 + $wDiaK[*] ==>gt; $wDiaU[$3] + $1 + $2
+$wDiaU[*] + u1031 + $yDiaK[*] =&gt; $yDiaU[$3] + $1 + $2
+$hDiaU[*] + u1031 + $yDiaK[*] =&gt; $yDiaU[$3] + $1 + $2
+$wDiaU[*] + u1031 + $rDiaK[*] =&gt; $rDiaU[$3] + $1 + $2
+$hDiaU[*] + u1031 + $rDiaK[*] =&gt; $rDiaU[$3] + $1 + $2
+$hDiaU[*] + u1031 + $wDiaK[*] =&gt; $wDiaU[$3] + $1 + $2
 
-$wDiaU[*] + $hDiaU[*] + u1031 + $yDiaK[*] ==>gt; $yDiaU[$4] + $1 + $2 + $3
-$wDiaU[*] + $hDiaU[*] + u1031 + $rDiaK[*] ==>gt; $rDiaU[$4] + $1 + $2 + $3
+$wDiaU[*] + $hDiaU[*] + u1031 + $yDiaK[*] =&gt; $yDiaU[$4] + $1 + $2 + $3
+$wDiaU[*] + $hDiaU[*] + u1031 + $rDiaK[*] =&gt; $rDiaU[$4] + $1 + $2 + $3
 
-$mediaK[*] ==>gt; $mediaU[$1]
+$mediaK[*] =&gt; $mediaU[$1]
 
-//u200B + u1031 + < VK_BACK > ==>gt; NULL
-//$baseU[*] + u1031 + < VK_BACK > ==>gt; $filler + u1031
-//$mediaU[*] + u1031 + < VK_BACK >==>gt; u1031
+//u200B + u1031 + < VK_BACK > =&gt; NULL
+//$baseU[*] + u1031 + < VK_BACK > =&gt; $filler + u1031
+//$mediaU[*] + u1031 + < VK_BACK >=&gt; u1031
 
-//u1039 + $consU[*] + u1031 + < VK_BACK > ==>gt; u1039 + $filler + u1031
-//u1039 + $consU[*] + < VK_BACK > ==>gt; NULL
+//u1039 + $consU[*] + u1031 + < VK_BACK > =&gt; u1039 + $filler + u1031
+//u1039 + $consU[*] + < VK_BACK > =&gt; NULL
 
 
 //Some re-ordering rules borrowed from Zawgyi
@@ -180,104 +180,106 @@ $asat = U103A
 $yayit = U103C
 //BEGIN: Rules that involve typing ya-yit after the consonant
 //NOTE: We don't catch all of them...
-//$specLower[*] + $specLower[*] + $upperVowel[*] + $lowerVowel[*] + $dotAbove[*] + $dotBelow[*] + $yayit ==>gt;
-U103E + $upperVowel[*] + $dotAbove[*] + U103D ==>gt; $4 + $1 + $2 + $3
-$specLower + $upperVowel[*] + $dotAbove[*] + $specLower ==>gt; $1 + $4 + $2 + $3
-U103E + $dotAbove[*] + U103D + $yayit ==>gt; $4 + $3 + $1 + $2
-$specLower[*] + $dotAbove[*] + $specLower[*] + $yayit ==>gt; $4 + $1 + $3 + $2
-U103E + $dotAbove[*] + U103D ==>gt;$3 + $1 + $2
-$specLower[*] + $dotAbove[*] + $specLower[*] ==>gt;$1 + $3 + $2
-U103E + U103D + $upperVowel[*] + $dotAbove[*] + $yayit ==>gt; $5 + $2 + $1 + $3 + $4
-$specLower[*] + $specLower[*] + $upperVowel[*] + $dotAbove[*] + $yayit ==>gt; $5 + $1 + $2 + $3 + $4
-U103E + U103D + $upperVowel[*] + $yayit ==>gt; $4 + $2 + $1 + $3
-$specLower[*] + $specLower[*] + $upperVowel[*] + $yayit ==>gt; $4 + $1 + $2 + $3
-U103E + U103D + $dotAbove[*] + $yayit ==>gt; $4 + $2 + $1 + $3
-$specLower[*] + $specLower[*] + $dotAbove[*] + $yayit ==>gt; $4 + $1 + $2 + $3
-$specLower[*] + $upperVowel[*] + $dotAbove[*] + $yayit ==>gt; $4 + $1 + $2 + $3
-$upperVowel[*] + $dotAbove[*] + $specLower[*] + $yayit ==>gt; $4 + $3 + $1 + $2
-$upperVowel[*] + $specLower[*] + $dotAbove[*] + $yayit ==>gt; $4 + $2 + $1 + $3
-$upperVowel[*] + $dotAbove[*] + $yayit ==>gt; $3 + $1 + $2
-$upperVowel[*] + $specLower[*] + $yayit ==>gt; $3 + $2 + $1
-$specLower[*] + $upperVowel[*] + $yayit ==>gt; $3 + $1 + $2
-U103E + U103D + $yayit ==>gt; $3 + $2 + $1
-$specLower[*] + $specLower[*] + $yayit ==>gt; $3 + $1 + $2
-$specLower[*] + $yayit ==>gt; $2 + $1
-$upperVowel[*] + $yayit ==>gt; $2 + $1
+//$specLower[*] + $specLower[*] + $upperVowel[*] + $lowerVowel[*] + $dotAbove[*] + $dotBelow[*] + $yayit =&gt;
+U103E + $upperVowel[*] + $dotAbove[*] + U103D =&gt; $4 + $1 + $2 + $3
+$specLower + $upperVowel[*] + $dotAbove[*] + $specLower =&gt; $1 + $4 + $2 + $3
+U103E + $dotAbove[*] + U103D + $yayit =&gt; $4 + $3 + $1 + $2
+$specLower[*] + $dotAbove[*] + $specLower[*] + $yayit =&gt; $4 + $1 + $3 + $2
+U103E + $dotAbove[*] + U103D =&gt;$3 + $1 + $2
+$specLower[*] + $dotAbove[*] + $specLower[*] =&gt;$1 + $3 + $2
+U103E + U103D + $upperVowel[*] + $dotAbove[*] + $yayit =&gt; $5 + $2 + $1 + $3 + $4
+$specLower[*] + $specLower[*] + $upperVowel[*] + $dotAbove[*] + $yayit =&gt; $5 + $1 + $2 + $3 + $4
+U103E + U103D + $upperVowel[*] + $yayit =&gt; $4 + $2 + $1 + $3
+$specLower[*] + $specLower[*] + $upperVowel[*] + $yayit =&gt; $4 + $1 + $2 + $3
+U103E + U103D + $dotAbove[*] + $yayit =&gt; $4 + $2 + $1 + $3
+$specLower[*] + $specLower[*] + $dotAbove[*] + $yayit =&gt; $4 + $1 + $2 + $3
+$specLower[*] + $upperVowel[*] + $dotAbove[*] + $yayit =&gt; $4 + $1 + $2 + $3
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + $yayit =&gt; $4 + $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] + $yayit =&gt; $4 + $2 + $1 + $3
+$upperVowel[*] + $dotAbove[*] + $yayit =&gt; $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + $yayit =&gt; $3 + $2 + $1
+$specLower[*] + $upperVowel[*] + $yayit =&gt; $3 + $1 + $2
+U103E + U103D + $yayit =&gt; $3 + $2 + $1
+$specLower[*] + $specLower[*] + $yayit =&gt; $3 + $1 + $2
+$specLower[*] + $yayit =&gt; $2 + $1
+$upperVowel[*] + $yayit =&gt; $2 + $1
 //END
 
 //Fix a few more cases of U103B
 //NOTE: Ensure U103D + U103E is enforced whenever it's not set to last
-$upperVowel[*] + $dotAbove[*] + $specLower[*] + U103B ==>gt; $4 + $3 + $1 + $2
-$specLower[*] + $upperVowel[*] + $dotAbove[*] + U103B ==>gt; $4 + $1 + $2 + $3
-$upperVowel[*] + U103E + U103D + U103B ==>gt; $4 + $3 + $2 + $1
-$upperVowel[*] + $specLower[*] + $specLower[*] + U103B ==>gt; $4 + $2 + $3 + $1
-U103E + U103D + $upperVowel[*] + U103B ==>gt; $4 + $2 + $1 + $3
-$specLower[*] + $specLower[*] + $upperVowel[*] + U103B ==>gt; $4 + $1 + $2 + $3
-$upperVowel[*] + U103B + U103E + U103D ==>gt; $2 + $4 + $3 + $1
-$upperVowel[*] + U103B + $specLower[*] + $specLower[*] ==>gt; $2 + $3 + $4 + $1
-U103E + $upperVowel[*] + U103D + U103B ==>gt; $4 + $3 + $1 + $2
-$specLower[*] + $upperVowel[*] + $specLower[*] + U103B ==>gt; $4 + $1 + $3 + $2
-U103E + $upperVowel[*] + U103B + U103D ==>gt; $3 + $4 + $1 + $2
-$specLower[*] + $upperVowel[*] + U103B + $specLower[*] ==>gt; $3 + $1 + $4 + $2
-$upperVowel[*] + U103E + U103B + U103D ==>gt; $3 + $4 + $2 + $1
-$upperVowel[*] + $specLower[*] + U103B + $specLower[*] ==>gt; $3 + $2 + $4 + $1
-$upperVowel[*] + $dotAbove[*] + U103B ==>gt; $3 + $1 + $2
-$upperVowel[*] + $specLower[*] + U103B ==>gt; $3 + $2 + $1
-$specLower[*] + $upperVowel[*] + U103B ==>gt; $3 + $1 + $2
-$dotAbove[*] + $specLower[*] + U103B ==>gt; $3 + $2 + $1
-$specLower[*] + $dotAbove[*] + U103B ==>gt; $3 + $1 + $2
-U103E + U103D + U103B ==>gt; $3 + $2 + $1
-$specLower[*] + $specLower[*] + U103B ==>gt; $3 + $1 + $2
-$specLower[*] + U103B ==>gt; $2 + $1
-$upperVowel[*] + U103B ==>gt; $2 + $1
-$dotAbove[*] + U103B ==>gt; $2 + $1
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + U103B =&gt; $4 + $3 + $1 + $2
+$specLower[*] + $upperVowel[*] + $dotAbove[*] + U103B =&gt; $4 + $1 + $2 + $3
+$upperVowel[*] + U103E + U103D + U103B =&gt; $4 + $3 + $2 + $1
+$upperVowel[*] + $specLower[*] + $specLower[*] + U103B =&gt; $4 + $2 + $3 + $1
+U103E + U103D + $upperVowel[*] + U103B =&gt; $4 + $2 + $1 + $3
+$specLower[*] + $specLower[*] + $upperVowel[*] + U103B =&gt; $4 + $1 + $2 + $3
+$upperVowel[*] + U103B + U103E + U103D =&gt; $2 + $4 + $3 + $1
+$upperVowel[*] + U103B + $specLower[*] + $specLower[*] =&gt; $2 + $3 + $4 + $1
+U103E + $upperVowel[*] + U103D + U103B =&gt; $4 + $3 + $1 + $2
+$specLower[*] + $upperVowel[*] + $specLower[*] + U103B =&gt; $4 + $1 + $3 + $2
+U103E + $upperVowel[*] + U103B + U103D =&gt; $3 + $4 + $1 + $2
+$specLower[*] + $upperVowel[*] + U103B + $specLower[*] =&gt; $3 + $1 + $4 + $2
+$upperVowel[*] + U103E + U103B + U103D =&gt; $3 + $4 + $2 + $1
+$upperVowel[*] + $specLower[*] + U103B + $specLower[*] =&gt; $3 + $2 + $4 + $1
+$upperVowel[*] + $dotAbove[*] + U103B =&gt; $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + U103B =&gt; $3 + $2 + $1
+$specLower[*] + $upperVowel[*] + U103B =&gt; $3 + $1 + $2
+$dotAbove[*] + $specLower[*] + U103B =&gt; $3 + $2 + $1
+$specLower[*] + $dotAbove[*] + U103B =&gt; $3 + $1 + $2
+U103E + U103D + U103B =&gt; $3 + $2 + $1
+$specLower[*] + $specLower[*] + U103B =&gt; $3 + $1 + $2
+$specLower[*] + U103B =&gt; $2 + $1
+$upperVowel[*] + U103B =&gt; $2 + $1
+$dotAbove[*] + U103B =&gt; $2 + $1
 
 //Fix bad normalization all in a row
 //Step 1: Get upper vowel in place
 $threeVowels = $lowerVowel + $dotAbove + $dotBelow
-$threeVowels[*] + $upperVowel[*] + $threeVowels[*] + $threeVowels[*] ==>gt; $2 + $1 + $3 + $4
-$threeVowels[*] + $threeVowels[*] + $upperVowel[*] + $threeVowels[*] ==>gt; $3 + $1 + $2 + $4
-$threeVowels[*] + $threeVowels[*] + $threeVowels[*] + $upperVowel[*] ==>gt; $4 + $1 + $2 + $3
-$threeVowels[*] + $upperVowel[*] + $threeVowels[*] ==>gt; $2 + $1 + $3
-$threeVowels[*] + $threeVowels[*] + $upperVowel[*] ==>gt; $3 + $1 + $2
-$threeVowels[*] + $upperVowel[*] ==>gt; $2 + $1
+$threeVowels[*] + $upperVowel[*] + $threeVowels[*] + $threeVowels[*] =&gt; $2 + $1 + $3 + $4
+$threeVowels[*] + $threeVowels[*] + $upperVowel[*] + $threeVowels[*] =&gt; $3 + $1 + $2 + $4
+$threeVowels[*] + $threeVowels[*] + $threeVowels[*] + $upperVowel[*] =&gt; $4 + $1 + $2 + $3
+$threeVowels[*] + $upperVowel[*] + $threeVowels[*] =&gt; $2 + $1 + $3
+$threeVowels[*] + $threeVowels[*] + $upperVowel[*] =&gt; $3 + $1 + $2
+$threeVowels[*] + $upperVowel[*] =&gt; $2 + $1
 
 //Step 2: Get lower vowel into place
 $twoVowels = $dotAbove + $dotBelow
-$twoVowels[*] + $lowerVowel[*] + $twoVowels[*] ==>gt; $2 + $1 + $3
-$twoVowels[*] + $twoVowels[*] + $lowerVowel[*] ==>gt; $3 + $1 + $2
-$twoVowels[*] + $lowerVowel[*] ==>gt; $2 + $1
+$twoVowels[*] + $lowerVowel[*] + $twoVowels[*] =&gt; $2 + $1 + $3
+$twoVowels[*] + $twoVowels[*] + $lowerVowel[*] =&gt; $3 + $1 + $2
+$twoVowels[*] + $lowerVowel[*] =&gt; $2 + $1
 
 //Step 3: Get dot above into place
 $oneVowel = $dotBelow
-$oneVowel + $dotAbove  ==>gt; $2 + $1
+$oneVowel + $dotAbove  =&gt; $2 + $1
 
 //Fix asat and dot below
-$asat[*] + $dotBelow[*] ==>gt; $2 + $1
+$asat[*] + $dotBelow[*] =&gt; $2 + $1
 
 //Now, there's one more possibility: an $upperVowel could be competing with $specLower
 //(AND upper vowels might have a dot.)
-$dotAbove[*] + $upperVowel[*] + $specLower[*] + $specLower[*] ==>gt; $3 + $4 + $2 + $1
-$upperVowel[*] + $dotAbove[*] + $specLower[*] + $specLower[*] ==>gt; $3 + $4 + $1 + $2
-$upperVowel[*] + $specLower[*] + $dotAbove[*] + $specLower[*] ==>gt; $2 + $4 + $1 + $3
-$upperVowel[*] + $specLower[*] + $specLower[*] + $dotAbove[*] ==>gt; $2 + $3 + $1 + $4
-$dotAbove[*] + $upperVowel[*] + $specLower[*] ==>gt; $3 + $2 + $1
-$dotAbove[*] + $specLower[*] + $upperVowel[*] ==>gt; $2 + $3 + $1
-$upperVowel[*] + $dotAbove[*] + $specLower[*] ==>gt; $3 + $1 + $2
-$upperVowel[*] + $specLower[*] + $dotAbove[*] ==>gt; $2 + $1 + $3
-$upperVowel[*] + $specLower[*] + $lowerVowel[*] ==>gt; $2 + $1 + $3
-$upperVowel[*] + $specLower[*] + $specLower[*] ==>gt; $2 + $3 + $1
-U103E + $upperVowel[*] + U103D ==>gt; $3 + $1 + $2
-$upperVowel[*] + $specLower[*] ==>gt; $2 + $1
+$dotAbove[*] + $upperVowel[*] + $specLower[*] + $specLower[*] =&gt; $3 + $4 + $2 + $1
+$upperVowel[*] + $dotAbove[*] + $specLower[*] + $specLower[*] =&gt; $3 + $4 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] + $specLower[*] =&gt; $2 + $4 + $1 + $3
+$upperVowel[*] + $specLower[*] + $specLower[*] + $dotAbove[*] =&gt; $2 + $3 + $1 + $4
+$dotAbove[*] + $upperVowel[*] + $specLower[*] =&gt; $3 + $2 + $1
+$dotAbove[*] + $specLower[*] + $upperVowel[*] =&gt; $2 + $3 + $1
+$upperVowel[*] + $dotAbove[*] + $specLower[*] =&gt; $3 + $1 + $2
+$upperVowel[*] + $specLower[*] + $dotAbove[*] =&gt; $2 + $1 + $3
+$upperVowel[*] + $specLower[*] + $lowerVowel[*] =&gt; $2 + $1 + $3
+$upperVowel[*] + $specLower[*] + $specLower[*] =&gt; $2 + $3 + $1
+U103E + $upperVowel[*] + U103D =&gt; $3 + $1 + $2
+$upperVowel[*] + $specLower[*] =&gt; $2 + $1
 
 
 
 //Minor cleanup; hope this won't loop much
 // (we expand the search a few times to avoid pointless looping)
-$filler + $filler + $filler + $filler + $filler ==>gt; $1
-$filler + $filler + $filler + $filler ==>gt; $1
-$filler + $filler + $filler ==>gt; $1
-$filler + $filler ==>gt; $1
+$filler + $filler + $filler + $filler + $filler =&gt; $1
+$filler + $filler + $filler + $filler =&gt; $1
+$filler + $filler + $filler =&gt; $1
+$filler + $filler =&gt; $1
+</textarea>
+<textarea name="preParse" id="preParse" cols=75 rows=30 style="border:1px solid #000099;">
 </textarea>
 </form>
 

@@ -11,7 +11,23 @@ function getParserSource() {
    //Create and send request; return text
    request.open("GET", "keymagic.peg", false);
    request.send(null);
-   return request.responseText; //+0x04;
+   return request.responseText; 
+}
+
+function getPreParserSource() {
+   //Get request object
+   var ua = navigator.userAgent.toLowerCase();
+   if (!window.ActiveXObject)
+     request = new XMLHttpRequest();
+   else if (ua.indexOf('msie 5') == -1)
+     request = new ActiveXObject("Msxml2.XMLHTTP");
+   else
+     request = new ActiveXObject("Microsoft.XMLHTTP");
+  
+   //Create and send request; return text
+   request.open("GET", "keymagic_pre.peg", false);
+   request.send(null);
+   return request.responseText; 
 }
 
 
@@ -25,6 +41,13 @@ function Prim(type, value, id) {
   };
 }
 
+
+//Some high-level containers
+options = new Array();
+variables = new Array();
+rules = new Array();
+switches = new Array();
+  
 
 VIRT_KEY_CODES = {
   'VK_BACK' : 0x0008,
@@ -147,12 +170,25 @@ function VKey(type, mods, key) {
 }
 
 
+//Simple pre-parser
+//  No semantic knowledge whatsoever (except for options)
+function preParseText(sampleSrc) {
+  //Clear options array
+  options.length = 0;
+  
+  //Run our pre-parser
+  var parseSrc = getPreParserSource();
+  var parser = PEG.buildParser(parseSrc);
+  return parser.parse(sampleSrc);
+}
+
+
+
 function parseText(sampleSrc) {
-  //Some high-level containers
-  options = new Array();
-  variables = new Array();
-  rules = new Array();
-  switches = new Array();
+  //Clear the other arrays
+  variables.length = 0;
+  rules.length = 0;
+  switches.length = 0;
 
   //Create the parser
   var parseSrc = getParserSource();
@@ -217,10 +253,13 @@ function parseText(sampleSrc) {
 
 function parse() {
   document.getElementById('result').innerHTML = '(<i>Processing...</i>)';
+  document.getElementById('preParse').value = '';
   try {
-    parseText(document.getElementById('scrSource').value);
+    var preParsed = preParseText(document.getElementById('scrSource').value);
+    document.getElementById('preParse').value = preParsed;
+    parseText(preParsed);
   } catch (err) {
-    document.getElementById('result').innerHTML = '<b>ERROR</b>: ' + err;
+    document.getElementById('result').innerHTML = '<b>ERROR[Line: ' + err.line + ',Col: ' + err.column + ']</b>: ' + err;
     return;
   }
   document.getElementById('result').innerHTML = '<b>Done</b>';
