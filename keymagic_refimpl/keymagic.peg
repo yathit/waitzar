@@ -4,7 +4,7 @@
  */
 
 file = 
-      proposition+ { alert('done'); return ''; }
+      proposition+
 
 digit = 
       [0-9]
@@ -74,16 +74,17 @@ virt_key_unit =
       vk_mod / vk_code 
       
 vk_mod = 
-      'VK_CTRL' / 'VK_SHIFT' / 'VK_ALT' 
+      'VK_SHIFT' 
+    / 'VK_ALT'  / 'VK_MENU' { return 'VK_ALT'; }
+    / 'VK_CTRL' / 'VK_CONTROL' { return 'VK_CTRL'; }
 
 
 switch = 
-      '(' (q1 val:charnum+ q1)      { return val.join(''); }
-        / (q2 val:charnum+ q2) ')'  { return val.join(''); }
+      '(' val:((q1 charnum+ q1)/val:(q2 charnum+ q2)) ')'  { return val[1].join(''); }
         
         
 var_element =
-      key:var_name  '['  v1:(!'0' digit) vN:digit*  ']'  { value=parseInt(v1+vN.join('')); return {'name':key,'id':value} }
+      key:var_name  '['  v1:(!'0' v:digit{return v;}) vN:digit*  ']'  { value=parseInt(v1+vN.join('')); return {'name':key,'id':value} }
 
 
 
@@ -94,13 +95,13 @@ virt_key_press =
       '<' mods:vk_mod_item* val:virt_key_unit '>'   { return new VKey('VIRT_KEY', mods, val); }
       
 vk_mod_item =
-      val:vk_mod '&'  { return val.join(''); }
+      val:vk_mod '&'  { return val; }
       
 rule_lhs =
       lhsN:rule_lhs_item_opt* lhs1:(rule_lhs_item/virt_key_press)   { return lhsN.concat([lhs1]); }
       
 rule_lhs_item_opt = 
-      rule_lhs_item '+'
+      val:rule_lhs_item '+' { return val; }
       
 
 rule_lhs_item =
@@ -118,7 +119,7 @@ rule_rhs =
       rhs1:rule_rhs_item rhsN:rule_rhs_item_opt*    { return [rhs1].concat(rhsN); }
       
 rule_rhs_item_opt = 
-      '+' rule_rhs_item
+      '+' val:rule_rhs_item { return val; }
 
 rule_rhs_item = 
       val:backref       { return new Prim('BACKREF', '', val); }
@@ -126,17 +127,16 @@ rule_rhs_item =
     / var_item
 
 backref = 
-      '$' v1:(!'0' digit) vN:digit*   { return parseInt(v1+vN.join('')); }
+      '$' v1:(!'0' v:digit{return v;}) vN:digit*   { return parseInt(v1+vN.join('')); }
       
 wild_backref = 
-      key:var_name '[' '$' v1:(!'0' digit) vN:digit* ']' { value=parseInt(v1+vN.join('')); return {'name':key,'id':value} }
+      key:var_name '[' '$' v1:(!'0' v:digit{return v;}) vN:digit* ']' { value=parseInt(v1+vN.join('')); return {'name':key,'id':value} }
       
 
 
 //Listed last (it's long)
 vk_code = 
-      'VK_BACK' 
-	/ 'VK_TAB' 
+      'VK_TAB' 
 	/ 'VK_RETURN' {return 'VK_ENTER';} / 'VK_ENTER' 
 	/ 'VK_SHIFT' 
 	/ 'VK_CONTROL' {return 'VK_CTRL';} / 'VK_CTRL' 
@@ -232,3 +232,5 @@ vk_code =
 	/ 'VK_OEM_7' {return 'VK_QUOTE';} / 'VK_QUOTE' 
 	/ 'VK_OEM_8' {return 'VK_EXCM';} / 'VK_EXCM' 
 	/ 'VK_OEM_102' {return 'VK_LESSTHEN';} / 'VK_LESSTHEN' 
+	/ 'VK_BACK'
+
