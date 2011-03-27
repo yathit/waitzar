@@ -1,3 +1,8 @@
+/**
+ * The Key Magic PEG syntax file.
+ *  This file assumes that the source has been pre-parsed to remove comments and spaces.
+ */
+
 file = 
       (options / sp) 
       (proposition / blankline)+ 
