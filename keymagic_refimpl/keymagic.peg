@@ -1,31 +1,31 @@
 start = 
-      (options / spacing) 
+      (options / sp) 
       (proposition / blankline)+ 
       //EOF  //NOTE: Not needed?
 
-options = opt_spacing 
-      '/*' opt_spacing
+options = sp_ 
+      '/*' sp_
          (option / (!'*/' .))* 
-      '*/' opt_spacing 
+      '*/' sp_ 
 
 space = 
       [ \t\r]
 
-opt_spacing = 
-      (space / '\n')*
+sp_ = 
+      space*
 
-spacing = 
+sp = 
       (skipnl / space / comment)*
 
 skipnl = 
-      '\\' [ \t\r]* '\n'
+      '\\' space* '\n'
 
 comment = 
       ('/*' (!'*/' .)* '*/') 
     / ('//' (!'\n' .)* '\n')
 
 option = 
-      '@' name:option_name opt_spacing '=' opt_spacing value:option_value opt_spacing { options[name.join('')] = value.join(''); }
+      '@' name:option_name sp_ '=' sp_ value:option_value sp_ { options[name.join('')] = value.join(''); }
 
 option_name =
       char+
@@ -38,7 +38,7 @@ char =
       [a-zA-Z_]
 
 blankline =
-      spacing '\n'
+      sp '\n'
 
 
 //TEMP
