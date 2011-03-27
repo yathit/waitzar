@@ -51,7 +51,7 @@ comment =
     / ('//' (!'\n' .)* '\n')
 
 line = 
-      blankline sp lhs1:item lhs2:more_items* sp arrow:('=>'/'=') sp rhs1:item rhs2:more_items* blankline    { return lhs1 + lhs2.join('') + arrow + rhs1 + rhs2.join('') + '\n'; }
+    blankline sp lhs1:item lhs2:more_items* sp arrow:('=>'/'=') sp rhs1:item rhs2:more_items* blankline    { return lhs1 + lhs2.join('') + arrow + rhs1 + rhs2.join('') + '\n'; }
 
 blankline =
       (sp '\n')*
@@ -81,7 +81,7 @@ hex =
       [a-fA-F0-9]
 
 vkcode = 
-      pre:'VK_' post:[a-zA-Z0-9_]   { return pre + pos; }
+      pre:'VK_' post:[a-zA-Z0-9_]+   { return pre + post.join(''); }
 
 virtkey = 
       '<' sp mods:mod* sp code:vkcode sp '>' { return '<' + mods.join('') + code + '>'; }

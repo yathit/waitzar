@@ -151,18 +151,18 @@ VIRT_KEY_CODES = {
 
 
 function VKey(type, mods, key) {
-  this.type = type;
-  this.modShift = this.find(mods, 'VK_SHIFT') 
-  this.modAlt = this.find(mods, 'VK_ALT') 
-  this.modCtrl = this.find(mods, 'VK_CTRL') 
-  this.vkCode = VIRT_KEY_CODES[key];
-
   this.find = function(arr, item) {
     for (var i=0; i<arr.length; i++) {
       if (arr[i] == item) { return true; }
     }
     return false;
   }
+
+  this.type = type;
+  this.modShift = this.find(mods, 'VK_SHIFT') 
+  this.modAlt = this.find(mods, 'VK_ALT') 
+  this.modCtrl = this.find(mods, 'VK_CTRL') 
+  this.vkCode = VIRT_KEY_CODES[key];
   
   this.toString = function() {
     return '(' + this.type + ',' + this.modShift + ',' + this.modAlt + ',' + this.modCtrl + ',' + this.vkCode + ')';
@@ -195,7 +195,6 @@ function parseText(sampleSrc) {
   var parser = PEG.buildParser(parseSrc);
   parser.parse(sampleSrc);
 
-
   //Quick debug: options
   var msg = "options[";
   var comma = "";
@@ -206,7 +205,7 @@ function parseText(sampleSrc) {
   msg += ']\n';
   
   //Quick debug: switches
-  var msg = "switches[";
+  msg += "switches[";
   var comma = "";
   for(var key in switches) {
     msg += (comma + key);
@@ -232,14 +231,16 @@ function parseText(sampleSrc) {
   msg += "rules[\n";
   for(var i=0; i<rules.length; i++) {
     var prod_list = rules[i].lhs;
-    for(var i=0; i<prod_list.length; i++) {
-      msg += (comma + prod_list[i].toString());
+    comma = ''
+    for(var x=0; x<prod_list.length; x++) {
+      msg += (comma + prod_list[x].toString());
       comma = ', '
     }
     msg += ' => ';
     prod_list = rules[i].rhs;
-    for(var i=0; i<prod_list.length; i++) {
-      msg += (comma + prod_list[i].toString());
+    comma = ''
+    for(var x=0; x<prod_list.length; x++) {
+      msg += (comma + prod_list[x].toString());
       comma = ', '
     }
     msg += '\n';
@@ -247,13 +248,14 @@ function parseText(sampleSrc) {
   msg += ']\n';
   
   //Alert debug
-  alert(msg);
+  document.getElementById('parseTree').value = msg;
 }
 
 
 function parse() {
   document.getElementById('result').innerHTML = '(<i>Processing...</i>)';
   document.getElementById('preParse').value = '';
+  document.getElementById('parseTree').value = '';
   try {
     var preParsed = preParseText(document.getElementById('scrSource').value);
     document.getElementById('preParse').value = preParsed;
