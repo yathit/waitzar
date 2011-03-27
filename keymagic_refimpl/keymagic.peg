@@ -69,7 +69,7 @@ var_item =
     / val:uni_letter     { return new Prim('STRING', val, -1); }
     / null               { return new Prim('STRING', '', -1); }
     / val:var_name       { return new Prim('VAR_NAME', val, -1); }
-    / val:virt_key_unit  { return new Prim('VIRT_KEY', val, -1); }   //TODO: We need a different constructor for virtKeys
+    / val:virt_key_unit  { return new VKey('VIRT_KEY', [], val); }
     / val:switch         { switches[val]=false; return new Prim('SWITCH', val, -1); }
     / val:var_element    { return new Prim('VAR_ELEMENT', val.name, val.id); }
 
@@ -106,8 +106,8 @@ vk_mod =
 
 
 switch = 
-      '(' (q1 charnum+ q1) 
-        / (q2 charnum+ q2) ')'
+      '(' (q1 val:charnum+ q1)      { return val.join(''); }
+        / (q2 val:charnum+ q2) ')'  { return val.join(''); }
         
         
 var_element =
@@ -115,22 +115,62 @@ var_element =
 
 
 
+rule = 
+      lhs:rule_lhs sp '=>' sp  rhs:rule_rhs { rules.push({'lhs':lhs,'rhs':rhs}); }
 
-//TEMP
-rule = [^\n]*
+virt_key_press = 
+      '<' mods:vk_mod* sp val:virt_key_unit sp '>'   { return new VKey('VIRT_KEY', mods, val); }
+      
+vk_mod =
+      sp val:vk_mod sp '&'  { return val.join(''); }
+      
+rule_lhs =
+      lhsN:rule_lhs_item_opt* lhs1:(rule_lhs_item/virt_key_press)   { return lhsN.concat([lhs1]); }
+      
+rule_lhs_item_opt = 
+      rule_lhs_item sp '+' sp
+      
 
+rule_lhs_item =
+      var_item
+    / wild          { return new Prim('WILD', '', -1); }
+    / wild_var
+    
+wild = 'ANY'
+    
+wild_var = 
+      (val:var_name '[*]')   { return new Prim('WILD_VAR_ALL', val, -1); }
+    / (val:var_name '[^]')   { return new Prim('WILD_VAR_NONE', val, -1); }
+    
+rule_rhs =
+      rhs1:rule_rhs_item rhsN:rule_rhs_item_opt*    { return [rhs1].concat(rhsN); }
+      
+rule_rhs_item_opt = 
+      sp '+' sp rule_rhs_item
+
+rule_rhs_item = 
+      var_item
+    / val:backref       { return new Prim('BACKREF', '', val); }
+    / val:wild_backref  { return new Prim('WILD_BACKREF', val.name, val.id); }
+
+backref = 
+      '$' v1:(!'0' digit) vN:digit*   { return parseInt(v1+vN.join('')); }
+      
+wild_backref = 
+      key:var_name '[' '$' v1:(!'0' digit) vN:digit* ']' { value=parseInt(v1+vN.join('')); return {'name':key,'id':value} }
+      
 
 
 //Listed last (it's long)
 vk_code = 
       'VK_BACK' 
 	/ 'VK_TAB' 
-	/ 'VK_RETURN' / 'VK_ENTER' 
+	/ 'VK_RETURN' {return 'VK_ENTER';} / 'VK_ENTER' 
 	/ 'VK_SHIFT' 
-	/ 'VK_CONTROL' / 'VK_CTRL' 
-	/ 'VK_ALT' / 'VK_MENU' 
+	/ 'VK_CONTROL' {return 'VK_CTRL';} / 'VK_CTRL' 
+	/ 'VK_ALT' / 'VK_MENU' {return 'VK_ALT';}
 	/ 'VK_PAUSE' 
-	/ 'VK_CAPITAL' / 'VK_CAPSLOCK' 
+	/ 'VK_CAPITAL' {return 'VK_CAPSLOCK';} / 'VK_CAPSLOCK' 
 	/ 'VK_KANJI' 
 	/ 'VK_ESCAPE' 
 	/ 'VK_SPACE' 
@@ -203,20 +243,20 @@ vk_code =
 	/ 'VK_F12' 
 	/ 'VK_LSHIFT' 
 	/ 'VK_RSHIFT' 
-	/ 'VK_LCONTROL' / 'VK_LCTRL' 
-	/ 'VK_RCONTROL' / 'VK_RCTRL' 
-	/ 'VK_LMENU' / 'VK_LALT' 
-	/ 'VK_RMENU' / 'VK_RALT' 
-	/ 'VK_OEM_1' / 'VK_COLON' 
+	/ 'VK_LCONTROL' {return 'VK_LCTRL';} / 'VK_LCTRL' 
+	/ 'VK_RCONTROL' {return 'VK_RCTRL';} / 'VK_RCTRL' 
+	/ 'VK_LMENU' {return 'VK_LALT';} / 'VK_LALT' 
+	/ 'VK_RMENU' {return 'VK_RALT';} / 'VK_RALT' 
+	/ 'VK_OEM_1' {return 'VK_COLON';} / 'VK_COLON' 
 	/ 'VK_OEM_PLUS' 
 	/ 'VK_OEM_COMMA' 
 	/ 'VK_OEM_MINUS' 
 	/ 'VK_OEM_PERIOD' 
-	/ 'VK_OEM_2' / 'VK_QUESTION' 
-	/ 'VK_OEM_3' / 'VK_CFLEX' 
-	/ 'VK_OEM_4' / 'VK_LBRACKET' 
-	/ 'VK_OEM_5' / 'VK_BACKSLASH' 
-	/ 'VK_OEM_6' / 'VK_RBRACKET' 
-	/ 'VK_OEM_7' / 'VK_QUOTE' 
-	/ 'VK_OEM_8' / 'VK_EXCM' 
-	/ 'VK_OEM_102' / 'VK_LESSTHEN' 
+	/ 'VK_OEM_2' {return 'VK_QUESTION';} / 'VK_QUESTION' 
+	/ 'VK_OEM_3' {return 'VK_CFLEX';} / 'VK_CFLEX' 
+	/ 'VK_OEM_4' {return 'VK_LBRACKET';} / 'VK_LBRACKET' 
+	/ 'VK_OEM_5' {return 'VK_BACKSLASH';} / 'VK_BACKSLASH' 
+	/ 'VK_OEM_6' {return 'VK_RBRACKET';} / 'VK_RBRACKET' 
+	/ 'VK_OEM_7' {return 'VK_QUOTE';} / 'VK_QUOTE' 
+	/ 'VK_OEM_8' {return 'VK_EXCM';} / 'VK_EXCM' 
+	/ 'VK_OEM_102' {return 'VK_LESSTHEN';} / 'VK_LESSTHEN' 
