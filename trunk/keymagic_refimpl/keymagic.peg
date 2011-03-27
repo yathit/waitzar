@@ -1,0 +1,45 @@
+start = 
+      (options / spacing) 
+      (proposition / blankline)+ 
+      //EOF  //NOTE: Not needed?
+
+options = opt_spacing 
+      '/*' opt_spacing
+         (option / (!'*/' .))* 
+      '*/' opt_spacing 
+
+space = 
+      [ \t\r]
+
+opt_spacing = 
+      (space / '\n')*
+
+spacing = 
+      (skipnl / space / comment)*
+
+skipnl = 
+      '\\' [ \t\r]* '\n'
+
+comment = 
+      ('/*' (!'*/' .)* '*/') 
+    / ('//' (!'\n' .)* '\n')
+
+option = 
+      '@' name:option_name opt_spacing '=' opt_spacing value:option_value opt_spacing { options[name.join('')] = value.join(''); }
+
+option_name =
+      char+
+
+option_value =
+      ('"' val:[^"]* '"') { return val; }
+    / ("'" val:[^']* "'") { return val; }
+
+char =
+      [a-zA-Z_]
+
+blankline =
+      spacing '\n'
+
+
+//TEMP
+proposition = .
