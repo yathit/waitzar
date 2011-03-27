@@ -4,70 +4,31 @@
  */
 
 file = 
-      (options / sp) 
-      (proposition / blankline)+ 
-      EOF?  //Simulated with 0x04
-      
-//TO-DO: Test
-EOF = '\x04'
+      proposition+ { alert('done'); return ''; }
 
-options = sp_ 
-      '/*' sp_
-         (option / (!'*/' .))* 
-      '*/' sp_ 
-
-space = 
-      [ \t\r]
-
-sp_ = 
-      space*
-
-sp = 
-      (skipnl / space / comment)*
-
-skipnl = 
-      '\\' sp_ '\n'
-
-comment = 
-      ('/*' (!'*/' .)* '*/') 
-    / ('//' (!'\n' .)* '\n')
-    
-blankline =
-      sp '\n'
-
-option = 
-      '@' name:option_name sp_ '=' sp_ value:option_value sp_ { options[name] = value; }
-
-option_name =
-      val:char+  { return val.join(''); }
-
-option_value =
-      ('"' val:[^"]* '"') { return val.join(''); }
-    / ("'" val:[^']* "'") { return val.join(''); }
+digit = 
+      [0-9]
 
 char =
       [a-zA-Z_]
+      
+charnum =
+      char / digit
 
 proposition = 
-      sp variable / rule  sp '\n'
+      (variable/rule) '\n'
 
 variable = 
-      key:var_name sp '=' sp value:var_item_list sp   { variables[key] = value; }
+      key:var_name  '=' value:var_item_list   { variables[key] = value; }
 
 var_name = 
       '$'  val:charnum+   { return val.join(''); }
-
-charnum =
-      char / digit
-      
-digit = 
-      [0-9]
       
 var_item_list = 
       v1:var_item vN:var_item_opt*   { return [v1].concat(vN); }
       
 var_item_opt = 
-      sp '+' sp val:var_item  { return val; }
+      '+' val:var_item  { return val; }
 
 var_item = 
       val:string         { return new Prim('STRING', val, -1); }
@@ -86,9 +47,15 @@ q1 = "'"
 q2 = '"'
 bs = '\\'
       
-string =
-      (q1  val:(!q1 strchar)*  q1) { return val.join(''); }
-    / (q2  val:(!q2 strchar)*  q2) { return val.join(''); }
+string = 
+      (q1  val:str1  q1) { return "'" + val.join('') + "'"; }
+    / (q2  val:str2  q2) { return '"' + val.join('') + '"'; }
+
+str1 =     
+      (!q1 v:strchar { return v; })*
+
+str2 =
+      (!q2 v:strchar { return v; })*
 
 strchar =
       (bs esc) / . 
@@ -121,25 +88,25 @@ var_element =
 
 
 rule = 
-      lhs:rule_lhs sp '=>' sp  rhs:rule_rhs { rules.push({'lhs':lhs,'rhs':rhs}); }
+      lhs:rule_lhs '=>'  rhs:rule_rhs { rules.push({'lhs':lhs,'rhs':rhs}); }
 
 virt_key_press = 
-      '<' mods:vk_mod* sp val:virt_key_unit sp '>'   { return new VKey('VIRT_KEY', mods, val); }
+      '<' mods:vk_mod_item* val:virt_key_unit '>'   { return new VKey('VIRT_KEY', mods, val); }
       
-vk_mod =
-      sp val:vk_mod sp '&'  { return val.join(''); }
+vk_mod_item =
+      val:vk_mod '&'  { return val.join(''); }
       
 rule_lhs =
       lhsN:rule_lhs_item_opt* lhs1:(rule_lhs_item/virt_key_press)   { return lhsN.concat([lhs1]); }
       
 rule_lhs_item_opt = 
-      rule_lhs_item sp '+' sp
+      rule_lhs_item '+'
       
 
 rule_lhs_item =
-      var_item
+      wild_var
+    / var_item
     / wild          { return new Prim('WILD', '', -1); }
-    / wild_var
     
 wild = 'ANY'
     
@@ -151,12 +118,12 @@ rule_rhs =
       rhs1:rule_rhs_item rhsN:rule_rhs_item_opt*    { return [rhs1].concat(rhsN); }
       
 rule_rhs_item_opt = 
-      sp '+' sp rule_rhs_item
+      '+' rule_rhs_item
 
 rule_rhs_item = 
-      var_item
-    / val:backref       { return new Prim('BACKREF', '', val); }
+      val:backref       { return new Prim('BACKREF', '', val); }
     / val:wild_backref  { return new Prim('WILD_BACKREF', val.name, val.id); }
+    / var_item
 
 backref = 
       '$' v1:(!'0' digit) vN:digit*   { return parseInt(v1+vN.join('')); }

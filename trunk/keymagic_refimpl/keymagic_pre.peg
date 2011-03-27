@@ -5,7 +5,7 @@
 
 file = 
       options?
-      val:line+   { return val.join('\n'); }
+      val:line+   { return val.join(''); }
 
 space = 
       [ \t\r]
@@ -51,12 +51,12 @@ comment =
     / ('//' (!'\n' .)* '\n')
 
 line = 
-      blankline sp v1:item v2:items* sp v3:('=>'/'=') sp v4:item v5:items* blankline    { return v1 + v2.join('') + v3 + v4 + v5.join('') + '\n'; }
+      blankline sp lhs1:item lhs2:more_items* sp arrow:('=>'/'=') sp rhs1:item rhs2:more_items* blankline    { return lhs1 + lhs2.join('') + arrow + rhs1 + rhs2.join('') + '\n'; }
 
 blankline =
       (sp '\n')*
 
-items = 
+more_items = 
       sp '+' sp val:item sp { return '+' + val; }
 
 item = 
@@ -93,9 +93,19 @@ q1 = "'"
 q2 = '"'
 bs = '\\'
 
+//Switches are represented as strings, for now.
 string = 
-      (q1  val:((!q1 strchar)*)  q1) { return "'" + val.join('') + "'"; }
-    / (q2  val:(!q2 strchar)*  q2) { return '"' + val.join('') + '"'; }
+      l:'('? val:str_val r:')'? { return l + val + r; }
+
+str_val =
+      (q1  val:str1  q1) { return "'" + val.join('') + "'"; }
+    / (q2  val:str2  q2) { return '"' + val.join('') + '"'; }
+
+str1 =     
+      (!q1 v:strchar { return v; })*
+
+str2 =
+      (!q2 v:strchar { return v; })*
 
 strchar =
       (v1:bs v2:esc) { return v1 + v2; }
