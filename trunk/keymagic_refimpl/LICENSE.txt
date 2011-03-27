@@ -1,0 +1,9 @@
+The following files fall under the license restrictions specified in LICENSE-PEG.txt:
+   lib/compiler.js
+   lib/metagrammar.js
+   lib/metagrammar.pegjs
+
+All remaining files are provided under the same license as the WaitZar project 
+ (currently, Apache 2). 
+
+
