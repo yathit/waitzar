@@ -43,7 +43,7 @@ skipnl =
       '\\' ws '\n'
 
 ignore = 
-      (skipnl / [ \t\r])* 
+      (skipnl / comment / [ \t\r])* 
 
 comment = 
       ('/*' (!'*/' .)* '*/')  { return ''; }
