@@ -14,7 +14,7 @@ ws =
 options = 
       blanklines
       '/*'
-      (option / (!'*/' .))* 
+      ((&'@' option)/(!'*/' .))*
       '*/' 
 
 option = 
@@ -43,7 +43,7 @@ skipnl =
       '\\' ws '\n'
 
 ignore = 
-      (skipnl / [ \t\r])*
+      (skipnl / [ \t\r])* 
 
 comment = 
       ('/*' (!'*/' .)* '*/')  { return ''; }
@@ -51,15 +51,15 @@ comment =
 
 line_or_comment = 
       blanklines
-      (comment / line)
+      val:(comment/line) { return val; }
 
 line = 
-    ignore lhs1:item  lhs2:more_items* 
+    lhs1:item  lhs2:more_items* 
     ignore arrow:('=>'/'=')  
     ignore rhs1:item rhs2:more_items*    { return lhs1 + lhs2.join('') + arrow + rhs1 + rhs2.join('') + '\n'; }
 
 blanklines =
-      (ignore '\n'?)*
+      [ \t\r\n]*
 
 more_items = 
       ignore '+' ignore val:item ignore { return '+' + val; }
@@ -71,10 +71,10 @@ item =
     / virtkey
 
 keyword =
-      'null' / 'NULL' / 'ANY' / vkcode / uni
+      val:charnum+  { return val.join(''); }
       
 variable =
-      '$' v1:charnum+ v2:var_suffix?   { return '$' + v1.join('') + v2; }
+      '$' v1:keyword v2:var_suffix?  { return '$' + v1 + v2; }
 
 var_suffix =
       '[' v1:'$'? v2:symbol+ ']'   { return '[' + v1 + v2.join('') + ']'; }
@@ -89,10 +89,10 @@ vkcode =
       pre:'VK_' post:[a-zA-Z0-9_]+   { return pre + post.join(''); }
 
 virtkey = 
-      '<' ignore mods:mod* ignore code:vkcode ignore '>' { return '<' + mods.join('') + code + '>'; }
+      '<' ignore mods:mod* ignore code:keyword ignore '>' { return '<' + mods.join('') + code + '>'; }
 
 mod = 
-      val:vkcode ignore '&' ignore   { return val + '&'; }
+      val:keyword ignore '&' ignore   { return val + '&'; }
 
 q1 = "'"
 q2 = '"'
@@ -117,4 +117,4 @@ strchar =
     / .
       
 esc =
-      bs / q1 / q2 / uni 
+      bs / q1 / q2 / uni
