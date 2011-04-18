@@ -59,7 +59,7 @@ var dirConvert = {
   '\u00AC' : '\u1081\u102F',
   '\u007D' : '\u1015',
   '\u007A' : '\u107D',
-  '\u0079' : '\u109B',
+  '\u0079' : '\u1015',
   '\u004B' : '\u102F',
   '\u004C' : '\u1030',
   '\u004D' : '\u1081\u103D',
@@ -203,7 +203,7 @@ var output_norm = [
 
   //Medial Y, R, W, H
   '\u103B\u105E\u105F',
-  '\u+103C',
+  '\u103C',
   '\u103D\u1082',
   '\u103E\u1060',
 
@@ -316,7 +316,7 @@ function convert(source) {
       }
     } else if (in_id==-1 || out_id==-1) {
       //Error!
-      unknown = 'Error: input and output conflict for: ' + letter;
+      unknown = '*** ' + letter + '  ' + in_id + ' ' + out_id
       return '';
     } else {
       //A match exists; add it to output_norm. But first, check if this will make us 'go backwards'
