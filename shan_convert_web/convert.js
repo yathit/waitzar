@@ -16,7 +16,7 @@ var dirConvert = {
   '\u002C' : '\u1087',
   '\u002E' : '\u1089',
   '\u0042' : '\u103B',
-  '\u0043' : '\u1001',
+  '\u0043' : '\u1076',  
   '\u0044' : '\u102E',
   '\u0045' : '\u107C',
   '\u0046' : '\u103C',
@@ -245,11 +245,20 @@ var output_norm = [
   //(No reduplication)
 ];
 
+
+function find_letter(str, letter) {
+  for (var i=0; i<str.length; i++) {
+    if (str[i]==letter) { return i; }
+  }
+  return -1;
+}
+
+
 //Match one of these arrays, return an id:
 function match_arr(arr, letter) {
   for (id in arr) {
     var entry = arr[id];
-    if (entry.search(letter) != -1) {
+    if (find_letter(entry, letter) != -1) {
       return id;
     }
   }
@@ -300,7 +309,7 @@ function convert(source) {
     
     //Get its corresponding entry IDs in input_norm and output_norm
     var in_id = match_arr(input_norm, letter);
-    var out_id = match_arr(output_norm, letter);    
+    var out_id = match_arr(output_norm, letter);
     if (in_id==-1 && out_id==-1) {
       //No match; flush the input
       final_result += flush(norm_out);
