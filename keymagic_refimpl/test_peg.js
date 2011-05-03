@@ -47,6 +47,9 @@ options = new Array();
 variables = new Array();
 rules = new Array();
 switches = new Array();
+
+//Constructs for the model
+RULES = new Array();
   
 
 VIRT_KEY_CODES = {
@@ -164,6 +167,10 @@ function VKey(type, mods, key) {
   this.modCtrl = this.find(mods, 'VK_CTRL') 
   this.vkCode = VIRT_KEY_CODES[key];
   
+  //For compatibility with "Prim"
+  this.value = this;
+  this.id = -1;
+  
   this.toString = function() {
     return '(' + this.type + ',' + this.modShift + ',' + this.modAlt + ',' + this.modCtrl + ',' + this.vkCode + ')';
   };
@@ -252,6 +259,71 @@ function parseText(sampleSrc) {
 }
 
 
+function ensure(test) {
+  if (!test) { throw "Ensure failed"; }
+}
+
+
+var always = '';  //TODO: lambad
+var nothing = ''; //TODO: lambad
+function make_state(prim, side) {
+  //TODO: Requires lambda functions
+}
+
+
+function build_state_tree(token_list, side, reverse) {
+  ensure(side=='rhs' || side=='lhs');
+  ensure(token_list.length > 0);
+
+  elems = new Array();
+  elems.length = token_list.length;
+  for (var i=0;i<token_list.length; i++) {
+    var t_id = i
+	if (reverse) { t_id = token_list.length - i - 1; }
+	
+    //Translate this token into a primitive and then a state
+    var elem = make_state(token_list[t_id], side)
+    if (elem == null) { return null }  //Silently fail
+    elems[i] = elem
+	
+    //Hook the previous state into this one
+    if (i>0) {
+      var prev = find_final_state(elems[i-1])
+      prev.transitions = elem.transitions
+    }
+  }
+  
+  return elems[0];
+};
+
+
+
+function Rule(token) {
+  this.start = combine_halves(
+    build_state_tree(token.lhs, 'lhs', true),
+    build_state_tree(token.rhs, 'rhs', false)
+  );
+  this.VkPress = get_primary_vkey(token.lhs, null, true)
+
+  this.combine_halves = function(lhs, rhs) {
+    
+  };
+  
+  this.get_primary_vkey = function(prims, res, allowed) {
+    
+  };
+}
+
+
+function buildRulesArray() {
+  RULES.length = 0;
+  for (var i=0; i<rules.length; i++) {
+    RULES.push(new Rule(rules[i]));
+  }
+}
+
+
+
 function parse() {
   document.getElementById('result').innerHTML = '(<i>Processing...</i>)';
   document.getElementById('preParse').value = '';
@@ -260,6 +332,9 @@ function parse() {
     var preParsed = preParseText(document.getElementById('scrSource').value);
     document.getElementById('preParse').value = preParsed;
     parseText(preParsed);
+    
+    //Now, convert it to a state machine
+    buildRulesArray();
   } catch (err) {
     document.getElementById('result').innerHTML = '<b>ERROR[Line: ' + err.line + ',Col: ' + err.column + ']</b>: ' + err;
     return;
