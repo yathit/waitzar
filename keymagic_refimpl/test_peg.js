@@ -316,9 +316,7 @@ function State(toPerform) {
 
 
 
-var always = '';  //TODO: lambad
-var nothing = ''; //TODO: lambad
->>>>>>> .r1567
+
 function make_state(prim, side) {
   ensure(side=='lhs' || side=='rhs');
   var id = prim.type + ':' + side;
