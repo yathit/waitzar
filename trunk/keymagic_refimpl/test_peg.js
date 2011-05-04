@@ -43,13 +43,26 @@ function Prim(type, value, id) {
 
 
 //Some high-level containers
-options = new Array();
-variables = new Array();
-rules = new Array();
-switches = new Array();
+var options = new Array();
+var variables = new Array();
+var rules = new Array();
+var switches = new Array();
 
 //Constructs for the model
-RULES = new Array();
+var RULES = new Array();
+var VARS = new Object();
+var SWITCHES = new Object();
+var TYPED_STR = '';
+var RULE_VK = null;
+var VKEY = null;
+
+//Internal model constructs
+var groups = new Array();
+var group_ids = new Array();
+var sw_temp = new Array();
+var src = '';
+var singleASCII = false;
+var isLHS = true;
   
 
 VIRT_KEY_CODES = {
@@ -264,10 +277,201 @@ function ensure(test) {
 }
 
 
+
+function find_final_state(s) {
+  //Any transition should eventually lead to the final state regardless of the option
+  if (s.transitions.len==0) { return s; }
+  return find_final_state(s.transitions[0].s);
+}
+
+function Trans(t, s) {
+  this.test  = t;
+  this.state = s;
+}
+
+function State(toPerform) {
+  this.action = toPerform;
+  this.transitions = new Array();
+
+  this.add_transition = function(test, state) {
+    transitions.push(Trans(test, state));
+    return state;
+  }
+
+  //Attempt to move to the next state
+  this.next_transition = function() {
+    for (i=0; i<transitions.len; i++) {
+      if (transitions[i].t()) {
+        return transitions[i].s;
+      }
+    }
+    return null;
+  }
+
+  this.is_end_state = function() {
+    return transitions.len == 0;
+  }
+}
+
+
+
 var always = '';  //TODO: lambad
 var nothing = ''; //TODO: lambad
 function make_state(prim, side) {
-  //TODO: Requires lambda functions
+  ensure(side=='lhs' || side=='rhs');
+  var id = prim.type + ':' + side;
+  var ret = null;
+
+  //String, LHS
+  if (id=='STRING:lhs') {
+    ret = State(nothing);
+    ret.add_transition(function(){
+      return str.starts_with(prim.val.reverse());
+    }, State(function() {
+      groups.push(prim.value.reverse());
+      group_ids.push(-1);
+      str = str.substr(prim.value.len, str.len);
+    }));
+  }
+
+  //String, RHS
+  if (id=='STRING:rhs') {
+    ret = State(nothing);
+    ret.add_transition(always, State(function() {
+      str.append(prim.value);
+    }));
+  }
+
+  //Virtual Key, LHS
+  if (id=='VIRT_KEY:lhs') {
+    ret = State(nothing);
+    ret.add_transition(function(){
+      if (str.len==0 || VKEY == null) { return false; }
+      if (!VKEY.matches(prim.val)) { return false; }
+      return true;
+    }, State(function() {
+      groups.push(str[0]);
+      group_ids.push(-1);
+      str = str.substr(1, str.len);
+    }));
+  }
+
+  //Variable, RHS
+  if (id=='VAR_NAME:rhs') {
+    ret = State(nothing);
+    ret.add_transition(always, State(function() {
+      s = VARS[prim.value].simple;
+      str.append(s);
+    }));
+  }
+
+  //Backref, RHS
+  if (id=='BACKREF:rhs') {
+    ret = State(nothing);
+    ret.add_transition(always, State(function() {
+      s = groups[prim.id];
+      str.append(s);
+    }));
+  }
+
+  //Wildcard, LHS
+  if (id=='WILDCARD:lhs') {
+    ret = State(nothing);
+    ret.add_transition(function() {
+      if (str.len==0) { return false };
+      if (str[0]>=0x21 && str[0]<=0x7D)   { return true; }
+      if (str[0]>=0xFF && str[0]<=0xFFFD) { return true; }
+      return false;
+    }, State(function() {
+      groups.push(str[0]);
+      group_ids.push(-1);
+      str = str.substr(1, str.len);
+    }));
+  }
+
+  //Wildcard Variable All, LHS
+  if (id=='WILDCARD_VAR_ALL:lhs') {
+    ret = State(nothing);
+    branch = State(nothing);
+    ret.add_transition(function() {
+      return str.len > 0;
+    }, branch);
+    finalSt = State(nothing);
+    for (i=0; i<prim.value.len; i++) {
+      next = branch.add_transition(function() {
+        str[0] == prim.value[i];
+      }, State(function() {
+        groups.push(str[0]);
+        group_ids.push(i);
+        str = str.substr(1, str.len);
+      }));
+      next.add_transition(always, finalSt);
+    }
+  }
+
+  //Wildcard Variable None, LHS
+  if (id=='WILDCARD_VAR_NONE:lhs') {
+    ret = State(nothing);
+    next = State(nothing);
+    ret.add_transition(function() {
+      return str.len > 0;
+    }, next);
+    for (i=0; i<prim.value.len; i++) {
+      next = next.add_transition(function() {
+        str[0] != prim.value[i];
+      }, State(nothing));
+    }
+    next.action = function() {
+      groups.push(str[0]);
+      group_ids.push(-1);
+      str = str.substr(1, str.len);
+    }
+  }
+
+  //Backref ID, RHS
+  if (id=='BACKREF_ID:rhs') {
+    ret = State(nothing);
+    ret.add_transition(always, State(function() {
+      s = VARS[prim.value].simple[group_ids[prim.id]];
+      str.append(s);
+    }));
+  }
+
+  //Switch, LHS
+  if (id=='SWITCH:lhs') {
+    ret = State(nothing);
+    ret.add_transition(function(){
+      return SWITCHES[prim.value];
+    }, State(function() {
+      sw_temp.push(prim.value);
+    }));
+  }
+
+  //Switch, RHS
+  if (id=='SWITCH:rhs') {
+    ret = State(nothing);
+    ret.add_transition(always, State(function() {
+      SWITCHES[prim.value] = true;
+    }));
+  }
+
+  //Variable, LHS
+  if (id=='VAR_NAME:lhs') {
+    ret = State(nothing);
+    ret.add_transition(always, State(function() {
+      //Change the next transition
+      old_transition = next_transition;
+      plus_one_state = next_transition();
+      next_transition = function() {
+        next_state = VARS[prim.value].enter_context(plus_one_state);
+        next_transition = old_transition;
+        return next_state;   //Jump into the variable's state machine
+      }
+    }));
+  }
+
+  //Return the item we created, or null if nothing matched
+  return ret;
 }
 
 
@@ -282,14 +486,14 @@ function build_state_tree(token_list, side, reverse) {
 	if (reverse) { t_id = token_list.length - i - 1; }
 	
     //Translate this token into a primitive and then a state
-    var elem = make_state(token_list[t_id], side)
-    if (elem == null) { return null }  //Silently fail
-    elems[i] = elem
+    var elem = make_state(token_list[t_id], side);
+    if (elem == null) { return null; }  //Silently fail
+    elems[i] = elem;
 	
     //Hook the previous state into this one
     if (i>0) {
-      var prev = find_final_state(elems[i-1])
-      prev.transitions = elem.transitions
+      var prev = find_final_state(elems[i-1]);
+      prev.transitions = elem.transitions;
     }
   }
   
@@ -299,19 +503,53 @@ function build_state_tree(token_list, side, reverse) {
 
 
 function Rule(token) {
-  this.start = combine_halves(
-    build_state_tree(token.lhs, 'lhs', true),
-    build_state_tree(token.rhs, 'rhs', false)
-  );
-  this.VkPress = get_primary_vkey(token.lhs, null, true)
-
   this.combine_halves = function(lhs, rhs) {
+    var ret = State(nothing);
+    ret = ret.add_transition(always, State(function() {
+      groups.len = 0;
+      group_ids.len = 0;
+      sw_temp.len = 0;
+      src = TYPED_STR.reverse();
+      isLHS = true;
+    }));
+
+    ret.add_transition(always, lhs);
+    ret = find_final_state(ret);
     
+    ret = ret.add_transition(function(){
+      return !singleASCII && src.len>=0;
+    }, State(function() {
+      src = src.reverse();
+      groups = groups.reverse();
+      group_ids = group_ids.reverse();
+      for (key in sw_temp) {
+        SWITCHES[key] = false;
+      }
+      isLHS = false;
+      if (RULE_VK!=null) { VKEY = null; }
+    }));
+
+    ret.add_transition(always, rhs);
+    ret = find_final_state(ret);
+    
+    ret = ret.add_transition(always, State(function() {
+      diff = str_diff(TYPED_STR, str);
+      if (diff.len==0 || (diff.len==1 && diff[0].ord>=0x20 && diff[0].ord<=0x7F)) {
+        singleASCII = true;
+      }
+      TYPED_STR = src;
+    }));
   };
   
   this.get_primary_vkey = function(prims, res, allowed) {
     
   };
+
+  this.start = this.combine_halves(
+    build_state_tree(token.lhs, 'lhs', true),
+    build_state_tree(token.rhs, 'rhs', false)
+  );
+  this.VkPress = get_primary_vkey(token.lhs, null, true);
 }
 
 
