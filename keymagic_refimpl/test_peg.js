@@ -276,7 +276,8 @@ function ensure(test) {
   if (!test) { throw "Ensure failed"; }
 }
 
-
+var always = function() { return true; }
+var nothing = function() { }
 
 function find_final_state(s) {
   //Any transition should eventually lead to the final state regardless of the option
@@ -317,6 +318,7 @@ function State(toPerform) {
 
 var always = '';  //TODO: lambad
 var nothing = ''; //TODO: lambad
+>>>>>>> .r1567
 function make_state(prim, side) {
   ensure(side=='lhs' || side=='rhs');
   var id = prim.type + ':' + side;
