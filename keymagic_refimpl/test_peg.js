@@ -1,3 +1,9 @@
+function count_keys(obj) {
+  var i = 0;
+  for (var key in obj) { i++; }
+  return i;
+}
+
 function getParserSource() {
    //Get request object
    var ua = navigator.userAgent.toLowerCase();
@@ -55,6 +61,7 @@ var SWITCHES = new Object();
 var TYPED_STR = '';
 var RULE_VK = null;
 var VKEY = null;
+var STATE = null;
 
 //Internal model constructs
 var groups = new Array();
@@ -272,8 +279,8 @@ function parseText(sampleSrc) {
 }
 
 
-function ensure(test) {
-  if (!test) { throw "Ensure failed"; }
+function ensure(test, text) {
+  if (!test) { throw "Ensure failed: " + text; }
 }
 
 var always = function() { return true; }
@@ -281,8 +288,8 @@ var nothing = function() { }
 
 function find_final_state(s) {
   //Any transition should eventually lead to the final state regardless of the option
-  if (s.transitions.len==0) { return s; }
-  return find_final_state(s.transitions[0].s);
+  if (s.transitions.length==0) { return s; }
+  return find_final_state(s.transitions[0].state);
 }
 
 function Trans(t, s) {
@@ -295,22 +302,22 @@ function State(toPerform) {
   this.transitions = new Array();
 
   this.add_transition = function(test, state) {
-    transitions.push(Trans(test, state));
+    this.transitions.push(new Trans(test, state));
     return state;
   }
 
   //Attempt to move to the next state
   this.next_transition = function() {
-    for (i=0; i<transitions.len; i++) {
-      if (transitions[i].t()) {
-        return transitions[i].s;
+    for (i=0; i<this.transitions.len; i++) {
+      if (this.transitions[i].t()) {
+        return this.transitions[i].state;
       }
     }
     return null;
   }
 
   this.is_end_state = function() {
-    return transitions.len == 0;
+    return this.transitions.length == 0;
   }
 }
 
@@ -318,16 +325,16 @@ function State(toPerform) {
 
 
 function make_state(prim, side) {
-  ensure(side=='lhs' || side=='rhs');
+  ensure(side=='lhs' || side=='rhs', "side=='lhs' || side=='rhs'");
   var id = prim.type + ':' + side;
   var ret = null;
 
   //String, LHS
   if (id=='STRING:lhs') {
-    ret = State(nothing);
+    ret = new State(nothing);
     ret.add_transition(function(){
       return str.starts_with(prim.val.reverse());
-    }, State(function() {
+    }, new State(function() {
       groups.push(prim.value.reverse());
       group_ids.push(-1);
       str = str.substr(prim.value.len, str.len);
@@ -336,53 +343,53 @@ function make_state(prim, side) {
 
   //String, RHS
   if (id=='STRING:rhs') {
-    ret = State(nothing);
-    ret.add_transition(always, State(function() {
+    ret = new State(nothing);
+    ret.add_transition(always, new State(function() {
       str.append(prim.value);
     }));
   }
 
   //Virtual Key, LHS
   if (id=='VIRT_KEY:lhs') {
-    ret = State(nothing);
+    ret = new State(nothing);
     ret.add_transition(function(){
       if (str.len==0 || VKEY == null) { return false; }
       if (!VKEY.matches(prim.val)) { return false; }
       return true;
-    }, State(function() {
+    }, new State(function() {
       groups.push(str[0]);
       group_ids.push(-1);
       str = str.substr(1, str.len);
     }));
   }
-
+  
   //Variable, RHS
   if (id=='VAR_NAME:rhs') {
-    ret = State(nothing);
-    ret.add_transition(always, State(function() {
-      s = VARS[prim.value].simple;
+    ret = new State(nothing);
+    ret.add_transition(always, new State(function() {
+      var s = VARS[prim.value].simple;
       str.append(s);
     }));
   }
-
+  
   //Backref, RHS
   if (id=='BACKREF:rhs') {
-    ret = State(nothing);
-    ret.add_transition(always, State(function() {
-      s = groups[prim.id];
+    ret = new State(nothing);
+    ret.add_transition(always, new State(function() {
+      var s = groups[prim.id];
       str.append(s);
     }));
   }
 
   //Wildcard, LHS
   if (id=='WILDCARD:lhs') {
-    ret = State(nothing);
+    ret = new State(nothing);
     ret.add_transition(function() {
       if (str.len==0) { return false };
       if (str[0]>=0x21 && str[0]<=0x7D)   { return true; }
       if (str[0]>=0xFF && str[0]<=0xFFFD) { return true; }
       return false;
-    }, State(function() {
+    }, new State(function() {
       groups.push(str[0]);
       group_ids.push(-1);
       str = str.substr(1, str.len);
@@ -390,17 +397,17 @@ function make_state(prim, side) {
   }
 
   //Wildcard Variable All, LHS
-  if (id=='WILDCARD_VAR_ALL:lhs') {
-    ret = State(nothing);
-    branch = State(nothing);
+  if (id=='WILD_VAR_ALL:lhs') {
+    ret = new State(nothing);
+    branch = new State(nothing);
     ret.add_transition(function() {
-      return str.len > 0;
+      return str.length > 0;
     }, branch);
-    finalSt = State(nothing);
+    finalSt = new State(nothing);
     for (i=0; i<prim.value.len; i++) {
       next = branch.add_transition(function() {
         str[0] == prim.value[i];
-      }, State(function() {
+      }, new State(function() {
         groups.push(str[0]);
         group_ids.push(i);
         str = str.substr(1, str.len);
@@ -410,16 +417,16 @@ function make_state(prim, side) {
   }
 
   //Wildcard Variable None, LHS
-  if (id=='WILDCARD_VAR_NONE:lhs') {
-    ret = State(nothing);
-    next = State(nothing);
+  if (id=='WILD_VAR_NONE:lhs') {
+    ret = new State(nothing);
+    next = new State(nothing);
     ret.add_transition(function() {
-      return str.len > 0;
+      return str.length > 0;
     }, next);
     for (i=0; i<prim.value.len; i++) {
       next = next.add_transition(function() {
         str[0] != prim.value[i];
-      }, State(nothing));
+      }, new State(nothing));
     }
     next.action = function() {
       groups.push(str[0]);
@@ -428,37 +435,37 @@ function make_state(prim, side) {
     }
   }
 
-  //Backref ID, RHS
-  if (id=='BACKREF_ID:rhs') {
-    ret = State(nothing);
-    ret.add_transition(always, State(function() {
-      s = VARS[prim.value].simple[group_ids[prim.id]];
+  //WILD_BACKREF, RHS
+  if (id=='WILD_BACKREF:rhs') {
+    ret = new State(nothing);
+    ret.add_transition(always, new State(function() {
+      var s = VARS[prim.value].simple[group_ids[prim.id]];
       str.append(s);
     }));
   }
 
   //Switch, LHS
   if (id=='SWITCH:lhs') {
-    ret = State(nothing);
+    ret = new State(nothing);
     ret.add_transition(function(){
       return SWITCHES[prim.value];
-    }, State(function() {
+    }, new State(function() {
       sw_temp.push(prim.value);
     }));
   }
 
   //Switch, RHS
   if (id=='SWITCH:rhs') {
-    ret = State(nothing);
-    ret.add_transition(always, State(function() {
+    ret = new State(nothing);
+    ret.add_transition(always, new State(function() {
       SWITCHES[prim.value] = true;
     }));
   }
-
+  
   //Variable, LHS
   if (id=='VAR_NAME:lhs') {
-    ret = State(nothing);
-    ret.add_transition(always, State(function() {
+    ret = new State(nothing);
+    ret.add_transition(always, new State(function() {
       //Change the next transition
       old_transition = next_transition;
       plus_one_state = next_transition();
@@ -476,17 +483,17 @@ function make_state(prim, side) {
 
 
 function build_state_tree(token_list, side, reverse) {
-  ensure(side=='rhs' || side=='lhs');
-  ensure(token_list.length > 0);
+  ensure(side=='rhs' || side=='lhs', "build_state_tree(side is rhs or lhs)");
+  ensure(token_list.length > 0, "build_state_tree(token list not empty)");
 
-  elems = new Array();
+  var elems = new Array();
   elems.length = token_list.length;
   for (var i=0;i<token_list.length; i++) {
     var t_id = i
 	if (reverse) { t_id = token_list.length - i - 1; }
 	
     //Translate this token into a primitive and then a state
-    var elem = make_state(token_list[t_id], side);
+    var elem = make_state(token_list[t_id], side);		
     if (elem == null) { return null; }  //Silently fail
     elems[i] = elem;
 	
@@ -501,24 +508,84 @@ function build_state_tree(token_list, side, reverse) {
 };
 
 
+function make_simple(token_list) {
+  ensure(token_list.length > 0, "make_simple(token_list not empty)");
+  
+  var res = '';
+  for (var i=0; i<token_list.length; i++) {
+    var p = token_list[i];
+
+    //Invalid types cause the entire function to silently fail
+    if (p.type=='SWITCH' || p.type=='WILD' || p.type=='BACKREF' || 
+        p.type=='WILD_VAR_ALL' || p.type=='WILD_VAR_NONE' || p.type=='WILD_BACKREF') 
+      return null;
+
+    //Valid types
+    if (p.type=='STRING') { res += p.value; }
+    if (p.type=='VIRT_KEY') {
+      var val = p.value.getANum();
+      if (val == '\0') { return null; }
+      res += val;
+    }
+    if (p.type=='VAR_ELEMENT') {
+      var val = VARS[p.value].simple;
+      if (val == null) { return null; }
+      res += val[p.id];
+    }
+    if (p.type=='VAR_NAME') {
+      var val = VARS[p.value].simple;
+      if (val == null) { return null; }
+      res += val;
+    }
+	
+    //Just double-check our token type
+    ensure(p.type=='STRING' || p.type=='VIRT_KEY' || p.type=='VAR_ELEMENT' || p.type=='VAR_NAME', "p.type=='STRING' || p.type=='VIRT_KEY' || p.type=='VAR_ELEMENT' || p.type=='VAR_NAME'"); 
+  }
+}
+
+
+function Var(token) {
+  this.reset = function() {
+    this.ret_stack.length = 0;   //In case a previous match aborted halfway through
+  };
+  
+  //Allow context switching
+  this.enter_context = function(next_state) {
+    this.ret_stack.push(next_state);
+    return this.rev_states;
+  }
+
+  this.name = token.name;
+  this.rev_states = build_state_tree(token.items, 'lhs', true);
+  this.simple = make_simple(token.items);
+  this.ret_stack = new Array();
+
+  //Need to add a special "end" state for variables
+  this.last = find_final_state(this.rev_states);
+  this.last.add_transition(always, new State(function() {
+      STATE = ret_stack.pop();
+      STATE.action(); //Perform this state's action for it.
+    }));
+};
+
 
 function Rule(token) {
   this.combine_halves = function(lhs, rhs) {
-    var ret = State(nothing);
-    ret = ret.add_transition(always, State(function() {
-      groups.len = 0;
-      group_ids.len = 0;
-      sw_temp.len = 0;
+    var ret = new State(nothing);
+    ret = ret.add_transition(always, new State(function() {
+      groups.length = 0;
+      group_ids.length = 0;
+      sw_temp.length = 0;
       src = TYPED_STR.reverse();
       isLHS = true;
     }));
-
+	
     ret.add_transition(always, lhs);
     ret = find_final_state(ret);
-    
+
     ret = ret.add_transition(function(){
       return !singleASCII && src.len>=0;
-    }, State(function() {
+    }, new State(function() {
       src = src.reverse();
       groups = groups.reverse();
       group_ids = group_ids.reverse();
@@ -528,11 +595,11 @@ function Rule(token) {
       isLHS = false;
       if (RULE_VK!=null) { VKEY = null; }
     }));
-
+	
     ret.add_transition(always, rhs);
     ret = find_final_state(ret);
     
-    ret = ret.add_transition(always, State(function() {
+    ret = ret.add_transition(always, new State(function() {
       diff = str_diff(TYPED_STR, str);
       if (diff.len==0 || (diff.len==1 && diff[0].ord>=0x20 && diff[0].ord<=0x7F)) {
         singleASCII = true;
@@ -542,14 +609,33 @@ function Rule(token) {
   };
   
   this.get_primary_vkey = function(prims, res, allowed) {
-    
-  };
+    //Check each primitive in the list
+    for (var key in prims) {
+	  if (!prims.hasOwnProperty(key)) { continue; }
+      var prim = prims[key];
+      if (prim.type=='VIRT_KEY') {
+        ensure(res==null && allowed, "res==null && allowed")  //Only 1 result, and VirtKeys are still allowed
+        res = prim.value
+      }
 
+      if (prim.type=='VAR_NAME') {
+        //Needs to be handled recursively
+        res = this.get_primary_vkey(VARS[prim.value].rev_states, res, allowed) 
+      }
+
+      if (prim.type!='VIRT_KEY' && prim.type!='SWITCH' && prim.type!='VAR_NAME') {
+        //Can't match a VirtKey unless it's at the end of the string
+        allowed = false
+      }
+    }
+    return res
+  };
+  
   this.start = this.combine_halves(
     build_state_tree(token.lhs, 'lhs', true),
     build_state_tree(token.rhs, 'rhs', false)
   );
-  this.VkPress = get_primary_vkey(token.lhs, null, true);
+  this.VkPress = this.get_primary_vkey(token.lhs, null, true);
 }
 
 
@@ -560,6 +646,13 @@ function buildRulesArray() {
   }
 }
 
+function buildVarsArray() {
+  VARS = new Object(); //Remove all keys
+  for (var key in variables) {
+    var prim_list = variables[key];
+    VARS[key] = new Var({'name':key,'items':prim_list});
+  }
+}
 
 
 function parse() {
@@ -572,9 +665,11 @@ function parse() {
     parseText(preParsed);
     
     //Now, convert it to a state machine
+	buildVarsArray();
     buildRulesArray();
   } catch (err) {
     document.getElementById('result').innerHTML = '<b>ERROR[Line: ' + err.line + ',Col: ' + err.column + ']</b>: ' + err;
+	document.getElementById('result').innerHTML += '  Rules[' + RULES.length + '/' + rules.length + ']  Vars[' + count_keys(VARS) + '/' + count_keys(variables) +']';
     return;
   }
   document.getElementById('result').innerHTML = '<b>Done</b>';
