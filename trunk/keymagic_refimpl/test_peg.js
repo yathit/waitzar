@@ -221,61 +221,6 @@ function parseText(sampleSrc) {
   var parseSrc = getParserSource();
   var parser = PEG.buildParser(parseSrc);
   parser.parse(sampleSrc);
-
-  //Quick debug: options
-  var msg = "options[";
-  var comma = "";
-  for(var key in options) {
-    msg += (comma + key + '=' + options[key]);
-    comma = ', '
-  }
-  msg += ']\n';
-  
-  //Quick debug: switches
-  msg += "switches[";
-  var comma = "";
-  for(var key in switches) {
-    msg += (comma + key);
-    comma = ', '
-  }
-  msg += ']\n';
-  
-  //Quick debug: variables
-  msg += "variables[\n";
-  for(var key in variables) {
-    msg += ('  $' + key + ' = ')
-    comma = ''
-    var prod_list = variables[key];
-    for(var i=0; i<prod_list.length; i++) {
-      msg += (comma + prod_list[i].toString());
-      comma = ', '
-    }
-    msg += '\n';
-  }
-  msg += ']\n';
-  
-  //Quick debug: rules
-  msg += "rules[\n";
-  for(var i=0; i<rules.length; i++) {
-    var prod_list = rules[i].lhs;
-    comma = ''
-    for(var x=0; x<prod_list.length; x++) {
-      msg += (comma + prod_list[x].toString());
-      comma = ', '
-    }
-    msg += ' => ';
-    prod_list = rules[i].rhs;
-    comma = ''
-    for(var x=0; x<prod_list.length; x++) {
-      msg += (comma + prod_list[x].toString());
-      comma = ', '
-    }
-    msg += '\n';
-  }
-  msg += ']\n';
-  
-  //Alert debug
-  document.getElementById('parseTree').value = msg;
 }
 
 
@@ -655,6 +600,66 @@ function buildVarsArray() {
 }
 
 
+
+function prepare_debug_output() {
+  //Quick debug: options
+  var msg = "options[";
+  var comma = "";
+  for(var key in options) {
+    msg += (comma + key + '=' + options[key]);
+    comma = ', '
+  }
+  msg += ']\n';
+  
+  //Quick debug: switches
+  msg += "switches[";
+  var comma = "";
+  for(var key in switches) {
+    msg += (comma + key);
+    comma = ', '
+  }
+  msg += ']\n';
+  
+  //Quick debug: variables
+  msg += "variables[\n";
+  for(var key in variables) {
+    msg += ('  $' + key + ' = ')
+    comma = ''
+    var prod_list = variables[key];
+    for(var i=0; i<prod_list.length; i++) {
+      msg += (comma + prod_list[i].toString());
+      comma = ', '
+    }
+    msg += '\n';
+  }
+  msg += ']\n';
+  
+  //Quick debug: rules
+  msg += "rules[\n";
+  for(var i=0; i<rules.length; i++) {
+    var prod_list = rules[i].lhs;
+    comma = ''
+    for(var x=0; x<prod_list.length; x++) {
+      msg += (comma + prod_list[x].toString());
+      comma = ', '
+    }
+    msg += ' => ';
+    prod_list = rules[i].rhs;
+    comma = ''
+    for(var x=0; x<prod_list.length; x++) {
+      msg += (comma + prod_list[x].toString());
+      comma = ', '
+    }
+    msg += '\n';
+  }
+  msg += ']\n';
+  
+  //Alert debug
+  document.getElementById('parseTree').value = msg;
+}
+
+
+
 function parse() {
   document.getElementById('result').innerHTML = '(<i>Processing...</i>)';
   document.getElementById('preParse').value = '';
@@ -667,6 +672,9 @@ function parse() {
     //Now, convert it to a state machine
 	buildVarsArray();
     buildRulesArray();
+    
+    //Finally
+    prepare_debug_output();
   } catch (err) {
     document.getElementById('result').innerHTML = '<b>ERROR[Line: ' + err.line + ',Col: ' + err.column + ']</b>: ' + err;
 	document.getElementById('result').innerHTML += '  Rules[' + RULES.length + '/' + rules.length + ']  Vars[' + count_keys(VARS) + '/' + count_keys(variables) +']';
