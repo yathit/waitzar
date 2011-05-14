@@ -57,7 +57,7 @@ var dirConvert = {
   '\u00A9' : '\u109F',
   '\u00AB' : '\u107D\u1030',
   '\u00AC' : '\u1081\u102F',
-  '\u007D' : '\u1015',
+  '\u007D' : '\u2019',
   '\u007A' : '\u107D',
   '\u0079' : '\u1015',
   '\u004B' : '\u102F',
@@ -75,7 +75,7 @@ var dirConvert = {
   '\u0075' : '\u1075',
   '\u0078' : '\u1011',
   '\u0049' : '\u101B',
-  '\u005D' : '\u109B',
+  '\u005D' : '\u2018',
   '\u00B5' : '\u1091',
   '\u00B6' : '\u1092',
   '\u2219' : '\u1093',
@@ -281,6 +281,13 @@ function flush(arr) {
 }
 
 
+function fixQuotes(letter, prevStr, single, double) {
+  if (letter!=single || prevStr.length==0 || prevStr[prevStr.length-1]!=single) { 
+    return ''; 
+  }
+  return double;
+}
+
 
 var unknown = '';
 function convert(source) {
@@ -290,7 +297,18 @@ function convert(source) {
   for (c in source) {
     var letter = source[c];
     if (letter in dirConvert) {
-      res += dirConvert[letter];
+      var curr = dirConvert[letter];
+      
+      //Special case, quotes
+      var fix = fixQuotes(curr, res, '\u2018', '\u201C');
+      fix    += fixQuotes(curr, res, '\u2019', '\u201D');
+      if (fix.length > 0) {
+        res = res.substring(0, res.length-1);
+        curr = fix;
+      }
+      
+      res += curr;
+      
     } else {
       unknown += (unknown.length!=0?' ':' ') + letter;
     }
