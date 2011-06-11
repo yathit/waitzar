@@ -1,4 +1,4 @@
-#
+﻿#
 # This is a SIL encoding converter for the old Shan formats.
 #  Copyright 2011 Seth N. Hetu
 #  Released under the terms of the Apache License 2.0
@@ -282,6 +282,11 @@ def flush(arr):
 
   return res
 
+def esc(str):
+  res = u''
+  for chr in src:
+    res += '\\u' + hex(ord(chr))[2:].upper()
+  return res
 
 def fixQuotes(letter, prevStr, single, double):
   if letter!=single or len(prevStr)==0 or prevStr[-1]!=single:
@@ -333,10 +338,10 @@ def convert(source):
       #Report unknown unicode letters
       ordVal = ord(letter[0])
       if (ordVal>=0x1000 and ordVal<=0x109F) or (ordVal>=0xAA60 and ordVal<=0xAA7F):
-        unknown += u':'*(len(unknown)>0) + u'(' + ordVal + u')'
+        unknown += u':'*(len(unknown)>0) + u'(' + str(ordVal) + u')'
     elif in_id==-1 or out_id==-1:
       #Error!
-      unknown = u'*** ' + letter + u'  ' + in_id + u' ' + out_id
+      unknown = u'*** ' + letter + u'  ' + str(in_id) + u' ' + str(out_id)
       raise UnicodeError(u'Bad string: %s' % unknown)
     else:
       #A match exists; add it to output_norm. But first, check if this will make us 'go backwards'
@@ -367,9 +372,13 @@ def ShanConvertString(str):
   return convert(str)
 
 if __name__ == "__main__":
-  print 'Testing...'
-  x = ShanConvertString(u'AB')
-  print len(x)
+  src = u']]Twj:qgrf:vlnf;pof:]cj;} b[,erfaOurf:}}'
+  expected = '“တြႃးၸွမ်းလူၺ်ႈႁဝ်း‘ၶႃႈ’ ယႂ်ႇၼမ်သေၵမ်း”'
+  res = ShanConvertString(src)
+  
+  print src
+  print esc(res)
+  print esc(expected)
 
 
 
