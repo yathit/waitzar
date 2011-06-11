@@ -251,6 +251,7 @@ output_norm = [
 ]
 
 
+
 def find_letter(str, letter):
   for i in xrange(len(str)):
     if str[i]==letter:
@@ -316,7 +317,7 @@ def convert(source):
   norm_out = []
   #norm_out.length = output_norm.length;
   for i in output_norm:
-    norm_out.appen(u'')
+    norm_out.append(u'')
   for letter in res:
     #Get its corresponding entry IDs in input_norm and output_norm
     in_id = match_arr(input_norm, letter)
@@ -367,8 +368,9 @@ def ShanConvertString(str):
 
 if __name__ == "__main__":
   print 'Testing...'
-  x = ShanConvertString(u'\u1000')
-  print x
+  x = ShanConvertString(u'AB')
+  print len(x)
+
 
 
 
